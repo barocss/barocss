@@ -28,7 +28,7 @@ export function classifyMarkdown(text) {
 export function buildOutputDirectory(directory, config = '') {
   if (/^packages\/[^/]+$/.test(directory)) return `${directory}/dist`;
   if (['apps/library-docs', 'apps/barocss-docs'].includes(directory)) return `${directory}/docs/.vitepress/dist`;
-  if (!['apps/cad-editor', 'apps/render-editor', 'apps/barocss-site', 'examples/cad-preview'].includes(directory)) throw new Error('unaudited build output');
+  if (!['apps/cad-studio', 'apps/barocss-site'].includes(directory)) throw new Error('unaudited build output');
   const declarations = [...config.matchAll(/\boutDir\s*:\s*(['"])([^'"\r\n]+)\1/g)];
   if (declarations.length > 1 || (/\boutDir\s*:/.test(config) && declarations.length !== 1)) throw new Error('dynamic build output');
   const relative = declarations[0]?.[2] ?? 'dist';
@@ -127,7 +127,7 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
           docs = true; continue;
         }
         // Audited undeclared cross-package imports/fixture readers; do not guess a narrower graph.
-        if (/^(?:packages\/barocss(?:-browser|-server)?\/|apps\/cad-editor\/)/.test(path)) throw new Error('cross-root test input');
+        if (/^(?:packages\/barocss(?:-browser|-server)?\/)/.test(path)) throw new Error('cross-root test input');
         const owner = [...rows.values()].find(({ directory }) => path.startsWith(`${directory}/`));
         if (!owner) throw new Error('unowned root or shared input');
         const relative = path.slice(owner.directory.length + 1);
@@ -204,12 +204,12 @@ export function resolveComparison(eventName, event, checkoutSha, runGit = git) {
 }
 function workspaceRows(ref) {
   const workspace = git(['show', `${ref}:pnpm-workspace.yaml`]);
-  if (workspace.replace(/\s/g, '') !== "packages:-'apps/*'-'packages/*'-'examples/cad-preview'") throw new Error('unaudited workspace patterns');
-  return git(['ls-tree', '-r', '--name-only', ref]).split('\n').filter((path) => /^(?:(?:apps|packages)\/[^/]+|examples\/cad-preview)\/package\.json$/.test(path)).map((path) => {
+  if (workspace.replace(/\s/g, '') !== "packages:-'apps/*'-'packages/*'") throw new Error('unaudited workspace patterns');
+  return git(['ls-tree', '-r', '--name-only', ref]).split('\n').filter((path) => /^(?:apps|packages)\/[^/]+\/package\.json$/.test(path)).map((path) => {
     const directory = path.slice(0, -13); const manifest = JSON.parse(git(['show', `${ref}:${path}`]));
     let outputDirectory;
     if (manifest.scripts?.build || manifest.scripts?.['build:library']) {
-      const config = ['apps/cad-editor', 'apps/render-editor', 'apps/barocss-site', 'examples/cad-preview'].includes(directory) ? git(['show', `${ref}:${directory}/vite.config.ts`]) : '';
+      const config = ['apps/cad-studio', 'apps/barocss-site'].includes(directory) ? git(['show', `${ref}:${directory}/vite.config.ts`]) : '';
       outputDirectory = buildOutputDirectory(directory, config);
     }
     return { directory, manifest, outputDirectory };

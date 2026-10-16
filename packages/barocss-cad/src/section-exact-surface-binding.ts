@@ -6,6 +6,7 @@ import type { MultiSpanVLinearSurfacePlaneSectionResult } from './multispan-vlin
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import type { Curve, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const SectionExactSurfaceBindingDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', SECTION:'SECTION', SUPPORT:'SUPPORT', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type SectionExactSurfaceBindingDiagnosticCode = typeof SectionExactSurfaceBindingDiagnosticCode[keyof typeof SectionExactSurfaceBindingDiagnosticCode];
@@ -62,10 +63,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof SectionExactSurfaceBindingError) throw cause; throw new SectionExactSurfaceBindingError(code, 'Own snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 /** Collect complete copied source/model/topology/child identity contexts, including split helper receipts. */
 function contexts(input: unknown): Set<string> {

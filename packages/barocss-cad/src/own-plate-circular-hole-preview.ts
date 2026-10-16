@@ -1,9 +1,11 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateOwnPlateCircularHoleBundle } from './own-plate-circular-hole.js';
 import type { OwnPlateCircularHoleBundle } from './own-plate-circular-hole.js';
 import { evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Point } from './types.js';
+import { cross, dot } from './vec3.js';
 
 export interface OwnPlateHolePreviewContext {
   documentId: string; bodyId: string; documentRevision: string; kernelResultRevision: string; topologyRevision: string; taskToken: string;
@@ -33,7 +35,7 @@ export interface OwnPlateHolePreviewReport {
   limits: { maximumFaces: 64; maximumVertices: 4096; maximumTriangles: 7938; maximumCornerRayIterations: 56; localBindingComparisonMM: 1e-7 };
 }
 export interface OwnPlateHolePreviewResult { mesh: OwnNativeFaceMesh; provenance: OwnPlateHolePreviewFaceProvenance[]; report: OwnPlateHolePreviewReport }
-const LABEL = 'Own plate hole preview', TOL = 1e-7;
+const LABEL = 'Own plate hole preview', TOL = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, detail: string): asserts condition { if (!condition) throw new Error((LABEL + ': ' + detail).slice(0, 1024)); }
 function snapshot(input: unknown, sourceStrings = false): unknown {
   let remaining = 131072;
@@ -66,9 +68,7 @@ function admitContext(input: unknown): OwnPlateHolePreviewContext {
   return Object.fromEntries(Object.entries(r).map(([key,v]) => [key, opaque(v,48)])) as unknown as OwnPlateHolePreviewContext;
 }
 export function validateOwnPlateHolePreviewContext(input: unknown): asserts input is OwnPlateHolePreviewContext { admitContext(snapshot(input)); }
-function cross(a: Point,b: Point): Point { return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]; }
 function delta(a: Point,b: Point): Point { return a.map((x,i)=>x-b[i]) as Point; }
-function dot(a: Point,b: Point): number { return a.reduce((sum,x,i)=>sum+x*b[i],0); }
 function normal(surface: Surface, uv: [number,number], orientation: 'forward'|'reverse'): Point {
   const d = evaluateSurfaceD1(surface,...uv), n = cross(d.du,d.dv), length = Math.hypot(...n);
   check(n.every(Number.isFinite) && Number.isFinite(length) && length > 0,'actual native D1 normal is degenerate');

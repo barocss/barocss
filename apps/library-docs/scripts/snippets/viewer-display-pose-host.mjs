@@ -1,6 +1,6 @@
 import * as ViewerPoseAPI from '@barocss/viewer';
 
-const sourceProfile = '5f5ad866205a21510ac69552e704cc162fa253b5';
+const sourceProfile = 'c79d752cb3463a34e6c93cb64e3693bc493c271f';
 const ref = { modelId: 'pose_panel', surfaceId: 'panel' };
 const binding = { contextId: 'pose-panel-session', targetId: 'panel-pose', ref };
 const basis = { basis: 'part-xyz-matches-rhyup' };
@@ -10,7 +10,7 @@ const displayPose = { contextId: 'pose-panel-session', timeSeconds: 0, poses: [
   { targetId: 'panel-pose', translation: [30, 10, 0],
     rotation: [0, 0, Math.SQRT1_2, Math.SQRT1_2], scale: [1, 1, 1] },
 ] };
-const ledger = { created: 0, disposeCalls: 0, pending: 0, listenersAttached: 0, listenersRemoved: 0 };
+const ledger = { created: 0, disposeCalls: 0, pending: 0 };
 let lastDisposedLedger = null;
 
 function sameData(first, second) {
@@ -52,7 +52,8 @@ function canvasElement() {
   return canvas;
 }
 
-export function createViewerDisplayPoseExample(panel, text) {
+// The Viewer draws with WebGPU: creation and readPixels are asynchronous, so update and action are too.
+export async function createViewerDisplayPoseExample(panel, text) {
   let accepted = null, disposed = false;
   const pending = new Set();
   const readout = document.createElement('p');
@@ -63,24 +64,20 @@ export function createViewerDisplayPoseExample(panel, text) {
   function release(candidate) {
     if (!candidate || candidate.released) return;
     candidate.released = true;
-    if (candidate.onLoss) {
-      candidate.canvas.removeEventListener('webglcontextlost', candidate.onLoss);
-      ledger.listenersRemoved++;
-    }
     if (candidate.viewer) { ledger.disposeCalls++; candidate.viewer.dispose(); }
     candidate.canvas.remove();
     if (pending.delete(candidate)) ledger.pending--;
   }
-  function retainedBaseline() {
+  async function retainedBaseline() {
     if (!accepted) return null;
-    try { return { state: accepted.viewer.getState(), pixels: accepted.viewer.readPixels() }; }
+    try { return { state: accepted.viewer.getState(), pixels: await accepted.viewer.readPixels() }; }
     catch (error) { return { unavailable: error.message }; }
   }
-  function withRetention(operation) {
-    const before = retainedBaseline();
-    try { return operation(); }
+  async function withRetention(operation) {
+    const before = await retainedBaseline();
+    try { return await operation(); }
     catch (error) {
-      const after = retainedBaseline();
+      const after = await retainedBaseline();
       const checked = Boolean(before?.state && after?.state);
       error.retention = checked
         ? { scope: 'Application observation of this live accepted Viewer', checked: true,
@@ -95,19 +92,22 @@ export function createViewerDisplayPoseExample(panel, text) {
     if (!(rect.width > 0 && rect.height > 0)) return null;
     return candidate.viewer.projectNativePoint({ kind: 'surface', ...ref, u, v });
   }
+  // The drawn frame of a candidate after its last change (readPixels waits for that frame).
+  async function readFrame(candidate) {
+    const pixels = await candidate.viewer.readPixels();
+    candidate.frame = { width: candidate.canvas.width, height: candidate.canvas.height,
+      byteCount: pixels.byteLength, rgbaChecksum: checksum(pixels) };
+  }
   function report() {
     const state = accepted?.viewer.getState() ?? null;
     const live = !disposed && state?.status === 'ready';
-    let frame = accepted?.frame ?? null, projection = null, midpointProjection = null;
+    const frame = accepted?.frame ?? null;
+    let projection = null, midpointProjection = null;
     if (live) {
-      const pixels = accepted.viewer.readPixels();
-      frame = { width: accepted.canvas.width, height: accepted.canvas.height,
-        byteCount: pixels.byteLength, rgbaChecksum: checksum(pixels) };
-      accepted.frame = frame;
       projection = project(accepted, ...accepted.recipe.probeUV);
       midpointProjection = project(accepted, .5, .5);
     }
-    const result = structuredClone({ backend: 'Public Viewer WebGL2', sourceProfile,
+    const result = structuredClone({ backend: 'Public Viewer on the @barocss/gpu WebGPU viewer', sourceProfile,
       recipe: accepted?.recipe ?? null, editorSource: accepted ? JSON.stringify(accepted.recipe, null, 2) : null,
       state, measurement: state?.measurement ?? null,
       nativePoints: state?.measurement ? { first: state.measurement.first, second: state.measurement.second } : null,
@@ -115,21 +115,21 @@ export function createViewerDisplayPoseExample(panel, text) {
       lastPick: accepted?.lastPick ?? null, pickedUnderPose: accepted?.pickedUnderPose ?? null,
       lastPickMeaning: 'Last successful public pick; historical after a later pose or camera change',
       frame, available: live, disposed,
-      ledger: { ...ledger, lastDisposedLedger, scope: 'Application create/dispose/listener calls; not raw GPU deletion' } });
+      ledger: { ...ledger, lastDisposedLedger, scope: 'Application create/dispose calls; not raw GPU deletion' } });
     readout.textContent = 'Application readout · rounded to 3 decimals. Native width: '
       + (result.measurement ? result.measurement.distanceMM.toFixed(3) + ' mm' : 'not measured')
       + '. Native midpoint: ' + roundedVector(result.midpointProjection?.point.pointMM) + ' mm'
       + '. Displayed midpoint: ' + roundedVector(result.midpointProjection?.displayPositionScene) + ' scene units.';
     return result;
   }
-  function prepare(recipe) {
+  async function prepare(recipe) {
     const candidate = { recipe, canvas: canvasElement(), viewer: null, released: false, lastPick: null, pickedUnderPose: null };
     pending.add(candidate); ledger.pending++;
     try {
-      candidate.viewer = ViewerPoseAPI.createViewer(candidate.canvas, { mmToSceneUnit: .001, background: [.04, .06, .1] });
+      candidate.viewer = await ViewerPoseAPI.createViewer(candidate.canvas, { mmToSceneUnit: .001, background: [.04, .06, .1] });
       ledger.created++;
-      candidate.onLoss = () => { candidate.contextLost = true; };
-      candidate.canvas.addEventListener('webglcontextlost', candidate.onLoss); ledger.listenersAttached++;
+      // Released (the example disposed) while the Viewer was being created.
+      if (candidate.released) { ledger.disposeCalls++; candidate.viewer.dispose(); throw new Error('Viewer display pose example is disposed'); }
       candidate.viewer.loadNative(recipe.nativeSource, { sourceVersion: 0, countU: 3, countV: 3 });
       const inventory = candidate.viewer.getState().surfaces;
       if (inventory.length !== 1 || inventory[0].modelId !== ref.modelId || inventory[0].surfaceId !== ref.surfaceId) {
@@ -141,16 +141,15 @@ export function createViewerDisplayPoseExample(panel, text) {
       const probe = { ...ref, u: recipe.probeUV[0], v: recipe.probeUV[1] };
       candidate.viewer.measureNativeSurfacePoints(probe, probe);
       measure(candidate.viewer);
-      const pixels = candidate.viewer.readPixels();
-      candidate.frame = { width: candidate.canvas.width, height: candidate.canvas.height,
-        byteCount: pixels.byteLength, rgbaChecksum: checksum(pixels) };
+      await readFrame(candidate);
       return candidate;
     } catch (error) { release(candidate); throw error; }
   }
-  function update(nextText) {
+  async function update(nextText) {
     active();
-    return withRetention(() => {
-      const candidate = prepare(recipeFrom(nextText)), prior = accepted;
+    return withRetention(async () => {
+      const candidate = await prepare(recipeFrom(nextText)), prior = accepted;
+      active();
       if (prior) prior.canvas.replaceWith(candidate.canvas); else panel.append(candidate.canvas, readout);
       accepted = candidate;
       if (pending.delete(candidate)) ledger.pending--;
@@ -158,17 +157,19 @@ export function createViewerDisplayPoseExample(panel, text) {
       return report();
     });
   }
-  function action(id) {
+  async function action(id) {
     active();
     if (!accepted) throw new Error('An accepted Viewer is required');
-    return withRetention(() => {
+    return withRetention(async () => {
       if (id === 'apply-pose') {
         accepted.viewer.applyMotionFrame(structuredClone(displayPose), [structuredClone(binding)], basis);
         accepted.recipe.pose = structuredClone(displayPose);
+        await readFrame(accepted);
         return { report: report(), acceptedSource: JSON.stringify(accepted.recipe, null, 2) };
       }
       if (id === 'reset-display') {
         accepted.viewer.resetMotion(); accepted.recipe.pose = null;
+        await readFrame(accepted);
         return { report: report(), acceptedSource: JSON.stringify(accepted.recipe, null, 2) };
       }
       if (id === 'measure-native') measure(accepted.viewer);
@@ -181,8 +182,10 @@ export function createViewerDisplayPoseExample(panel, text) {
         accepted.viewer.select(hit.ref);
         accepted.lastPick = structuredClone(hit);
         accepted.pickedUnderPose = accepted.viewer.getState().motion;
+        await readFrame(accepted);
         return { report: report(), pick: structuredClone(hit) };
       } else throw new RangeError('Unknown Viewer display pose action');
+      await readFrame(accepted);
       return { report: report() };
     });
   }
@@ -194,6 +197,6 @@ export function createViewerDisplayPoseExample(panel, text) {
     readout.remove();
   }
   const controller = { update, action, report, dispose };
-  try { update(text); return controller; }
+  try { await update(text); return controller; }
   catch (error) { dispose(); throw error; }
 }

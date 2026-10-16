@@ -6,6 +6,7 @@ import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Point } from './types.js';
+import { same as sameData } from './structural-equality.js';
 
 export interface XYCirclePrismDocumentV0 {
   format: 'barocss-xy-circle-prism-feature'; version: 0; id: string; lengthUnit: 'mm'; sketch: XYArcSketchDocumentV0;
@@ -80,14 +81,6 @@ function nativeIds(data: unknown, result = new Set<string>()): Set<string> {
     if ((key === 'id' || key === 'name') && typeof value === 'string') result.add(value); nativeIds(value, result);
   }
   return result;
-}
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function evaluate(document: XYCirclePrismDocumentV0, label: string): XYCirclePrismDocumentResult {
   const sketchEvaluation = guard(label + ': $.sketch', () => evaluateXYArcSketchDocument(document.sketch));

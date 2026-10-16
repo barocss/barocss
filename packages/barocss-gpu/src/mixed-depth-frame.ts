@@ -19,7 +19,7 @@ export interface MixedDepthFrameV0 {
   format:'barocss-gpu-mixed-depth-frame';version:0;profile:'sdf-sphere-native-surface-v0';sourceVersion:1;
   source:string;surface:MixedDepthSurfaceV0;camera:MeshCamera;mmToSceneUnit:number;translate:Vec3;
 }
-interface PreparedMixedDepthFrame {frame:MixedDepthFrameV0;execution:Extract<GpuExecution,{kind:'sdf'}>;mesh:ReturnType<typeof prepareMesh>}
+export interface PreparedMixedDepthFrame {frame:MixedDepthFrameV0;execution:Extract<GpuExecution,{kind:'sdf'}>;mesh:ReturnType<typeof prepareMesh>}
 function check(condition:unknown,code:MixedDepthDiagnosticCode,message:string):asserts condition {
   if(!condition)throw new MixedDepthError(code,message);
 }

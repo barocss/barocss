@@ -1,7 +1,7 @@
-/* global createViewerExample: readonly, createCanvas2DExample: readonly, createPhysicsExample: readonly */
+/* global createViewerExample: readonly, createPhysicsExample: readonly */
 // Build-time host bindings inserted by gallery-input.mjs at the host-factory marker.
 import { compileCadModel, evaluateCurve, curveDomain, evaluateSurface, tessellateSurface } from '@barocss/cad';
-import { mountScene, mountMesh, compileMeshMaterial } from '@barocss/gpu';
+import { createViewer, showScene, bindingShader, compileMeshMaterial, validateMeshMaterialBinding, SceneViewError } from '@barocss/gpu';
 // DOCS_HOST_FACTORIES
 export const presets = {
   scene: { title:'GPU scene · rotated box and sphere', language:'GPU scene source1', source:`@scene shapes {
@@ -56,15 +56,22 @@ for (const [key, preset] of Object.entries(presets)) {
  preset.label = preset.targetFunction ? preset.targetFunction+'()' : preset.label || {scene:'GPU scene',curve:'CAD curve',surface:'CAD surface',material:'GPU material'}[key];
  preset.anchor ??= {scene:'gpu-scene',curve:'cad-curve',surface:'cad-surface',material:'gpu-material'}[key] || key;
 }
-const options={mmToSceneUnit:.12,translate:[-.7,-.45,0],color:[.22,.65,.85],background:[.063,.094,.125],camera:{eye:[2,1.6,3],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}};
+// Millimetres into scene units, the old mesh host's framing; the WebGPU viewer frames it on first show.
+const options={mmToSceneUnit:.12,translate:[-.7,-.45,0],color:[.22,.65,.85],background:[.063,.094,.125]};
+const camera={position:[2,1.6,3],target:[0,0,0],up:[0,1,0],fovY:45};
 function surfaceData(source, sourceVersion=0){const result=compileCadModel(source,{sourceVersion});if(!result.ok)throw Error(JSON.stringify(result.diagnostics));const object=result.model.objects.find(o=>o.kind==='surface');if(!object)throw Error('Expected a Surface');const mesh=tessellateSurface(object,{countU:17,countV:17,revision:0});return{...mesh,centerMM:evaluateSurface(object,.5,.5),sourceVersion,parameters:(result.ir.parameters || []).map(({id,value,unit})=>({id,value,unit}))};}
 function fittedOptions(packet){
  const {min,max}=packet.bounds,scale=1.8/Math.max(...max.map((n,i)=>n-min[i]),1);
  return {...options,mmToSceneUnit:scale,translate:min.map((n,i)=>-(n+max[i])/2*scale)};
 }
+// Column-major: scale by mmToSceneUnit, then translate.
+const placement=view=>{const s=view.mmToSceneUnit,[x,y,z]=view.translate;return[s,0,0,0,0,s,0,0,0,0,s,0,x,y,z,1];};
+// The sampled 17 × 17 U/V grid as line segments over the packet's own vertices.
 function samplingGrid(packet){
- const point=(u,v)=>packet.positions.slice((u*17+v)*3,(u*17+v)*3+3);
- return {version:0,packet,color:[.65,.85,.95],paths:[...Array.from({length:17},(_,u)=>({id:'row_'+u,points:Array.from({length:17},(_,v)=>point(u,v))})),...Array.from({length:17},(_,v)=>({id:'column_'+v,points:Array.from({length:17},(_,u)=>point(u,v))}))]};
+ const indices=[],at=(u,v)=>u*17+v;
+ for(let u=0;u<17;u++)for(let v=0;v<16;v++)indices.push(at(u,v),at(u,v+1));
+ for(let v=0;v<17;v++)for(let u=0;u<16;u++)indices.push(at(u,v),at(u+1,v));
+ return{positions:packet.positions,indices,topology:'lines'};
 }
 function describeSceneObject(object) {
  const value={id:object.id,type:object.type,color:[...object.color],translate:[...object.translate],rotateDegrees:[...object.rotateDegrees]};
@@ -75,15 +82,17 @@ function describeSceneObject(object) {
  if(object.type==='torus'){value.majorRadius=object.majorRadius;value.minorRadius=object.minorRadius;}
  return value;
 }
-export function createExample(canvas,key,source){
+export async function createExample(canvas,key,source){
  const preset=presets[key];if(!preset)throw Error('Unknown example');
  const kind=preset.kind;
  if(kind==='viewer')return createViewerExample(canvas,source);
- if(kind==='canvas2d')return createCanvas2DExample(canvas,source);
  if(kind==='physics')return createPhysicsExample(canvas,source);
  if(kind==='scene'){
-  const renderer=mountScene(canvas,source,undefined,{sourceVersion:1});
-  return{dispose:()=>renderer.dispose(),update(text){const result=renderer.update(text);if(!result.ok)throw result.error;return this.report();},report:()=>({sourceVersion:1,objects:renderer.scene.objects.map(describeSceneObject),backend:'WebGL2 SDF'})};
+  const viewer=await createViewer(canvas,{camera});
+  let view;
+  try{view=showScene(viewer,source);}catch(error){viewer.dispose();throw error;}
+  const report=()=>({sourceVersion:view.result.execution.scene.version,objects:view.result.execution.scene.objects.map(describeSceneObject),meshes:view.meshes.size,backend:'WebGPU viewer · showScene'});
+  return{dispose:()=>{view.dispose();viewer.dispose();},update(text){const result=view.update(text);if(!result.ok)throw new SceneViewError(result.diagnostics);return report();},report};
  }
  if(kind==='curve'){
   const context=canvas.getContext('2d');if(!context)throw Error('Canvas2D unavailable');
@@ -94,25 +103,37 @@ export function createExample(canvas,key,source){
  const control=preset.control || {name:'amount',min:0,max:1,step:.05,default:0};
  let compiled;
  if(kind==='material'){compiled=compileMeshMaterial(source);if(!compiled.ok)throw Error(JSON.stringify(compiled.diagnostics));}
- const renderer=mountMesh(canvas,data.packet,initialOptions,kind==='surface'?samplingGrid(data.packet):null);
- const report=(next,view)=>({backend:'CAD sampling → WebGL2 mesh',sourceVersion:next.sourceVersion,centerMM:next.centerMM,parameters:next.parameters,vertices:next.report.vertexCount,triangles:next.report.triangleCount,maxSampledDeviationMM:next.report.maxSampledDeviationMM,certified:next.report.certified,mmToSceneUnit:view.mmToSceneUnit});
+ const viewer=await createViewer(canvas,{background:options.background,camera});
+ let surface=null,grid=null;
+ // A new packet replaces both meshes; the old ones stay until the new ones are added.
+ function show(packet,view){
+  const transform=placement(view);
+  const nextSurface=viewer.add({positions:packet.positions,normals:packet.normals,indices:packet.indices},{name:packet.surfaceId,transform,material:{color:view.color,doubleSided:true,roughness:.6,...(surface?{shader:surface.material.shader}:{})}});
+  const nextGrid=kind==='surface'?viewer.add(samplingGrid(packet),{name:'sampling-grid',transform,pickable:false,material:{color:[.65,.85,.95],unlit:true}}):null;
+  surface?.remove();grid?.remove();surface=nextSurface;grid=nextGrid;
+ }
+ try{show(data.packet,initialOptions);viewer.fit();}catch(error){viewer.dispose();throw error;}
+ const report=(next,view)=>({backend:'CAD sampling → WebGPU viewer mesh',sourceVersion:next.sourceVersion,centerMM:next.centerMM,parameters:next.parameters,vertices:next.report.vertexCount,triangles:next.report.triangleCount,maxSampledDeviationMM:next.report.maxSampledDeviationMM,certified:next.report.certified,mmToSceneUnit:view.mmToSceneUnit});
  let value=report(data,initialOptions),acceptedAmount=control.default;
+ // A refused material leaves the drawn one and the accepted amount in place.
  function adoptMaterial(material,amount){
-  const uniforms={[control.name]:amount},result=renderer.setMaterial({material,uniforms});
-  if(!result.ok)throw result.error;
+  // validateMeshMaterialBinding refuses an unknown or out-of-range uniform; bindingShader lowers it to WGSL.
+  const uniforms={[control.name]:amount},shader=bindingShader(validateMeshMaterialBinding({material,uniforms}));
+  // The mesh colour multiplies the shader's colour: white leaves the material's own colour.
+  surface.material={shader,color:[1,1,1]};
   acceptedAmount=amount;value={...value,shaderId:material.shaderId,targetFunction:preset.targetFunction,uniforms};
  }
- const controller={dispose:()=>renderer.dispose(),report:()=>value,update(text){
+ const controller={dispose:()=>viewer.dispose(),report:()=>value,update(text){
   if(kind==='material'){
    const candidate=compileMeshMaterial(text);if(!candidate.ok)throw Error(JSON.stringify(candidate.diagnostics));
    adoptMaterial(candidate.material,acceptedAmount);this.material=candidate.material;
   }else{
    const next=surfaceData(text,preset.sourceVersion || 0),view=preset.sourceVersion ? fittedOptions(next.packet) : options;
-   const result=renderer.update(next.packet,view,samplingGrid(next.packet));if(!result.ok)throw result.error;
+   show(next.packet,view);
    value=report(next,view);
   }
   return value;
  },setAmount(amount){adoptMaterial(this.material,amount);return value;}};
- if(kind==='material'){try{adoptMaterial(compiled.material,acceptedAmount);controller.material=compiled.material;}catch(error){renderer.dispose();throw error;}}
+ if(kind==='material'){try{adoptMaterial(compiled.material,acceptedAmount);controller.material=compiled.material;}catch(error){viewer.dispose();throw error;}}
  return controller;
 }

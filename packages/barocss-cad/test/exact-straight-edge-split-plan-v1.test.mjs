@@ -44,3 +44,18 @@ test('reversing original edge orientation retains exact vertex and reverses sube
  assert.deepEqual(reverse.subedges[2],forward.subedges[2]);
  assert.deepEqual(reverse.subedges[3],forward.subedges[3]);
 });
+
+test('C8: caller points are read once; a shifting Proxy cannot split one point and report another', () => {
+  let reads = 0;
+  const target = { x: 0, y: 0 };
+  // Descriptors (what admission validates) say x = 0 once, then 5; plain reads always say 5.
+  const shifting = new Proxy(target, {
+    getOwnPropertyDescriptor(t, key) { const d = Reflect.getOwnPropertyDescriptor(t, key); if (key === 'x') { reads++; return { ...d, value: reads === 1 ? 0 : 5 }; } return d; },
+    get(t, key, r) { return key === 'x' ? 5 : Reflect.get(t, key, r); },
+  });
+  const result = plan('e1', shifting, { x: 10, y: 10 }, 'e2', { x: 0, y: 10 }, { x: 10, y: 0 });
+  assert.equal(result.status, 'exact');
+  assert.equal(reads, 1);
+  // The first subedge starts at the point the crossing was computed from.
+  assert.deepEqual(result.subedges[0].startMM.x, { numerator: '0', denominator: '1' });
+});

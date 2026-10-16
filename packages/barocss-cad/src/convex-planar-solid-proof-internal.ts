@@ -1,4 +1,5 @@
 import { SectionRationalContext } from './section-rational-internal.js';
+import { chartRoundingBoundMM } from './numeric-policy.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import type { Point } from './types.js';
@@ -68,6 +69,8 @@ export type ExactPointData = [SectionFraction, SectionFraction, SectionFraction]
 export class SolidProof {
   readonly rational = new SectionRationalContext((kind, detail) => { throw new ConvexPlanarSolidError(kind, detail); });
   supportPredicates = 0; coefficientProofs = 0; fanTriangles = 0; queryPredicates = 0;
+  /** Pcurve poles accepted under CadNumericPolicy.chartParameters (not exact, within one rounding). */
+  certifiedLifts = 0; maximumLiftDeviationMM = 0;
   point(p: Point): ExactPoint { return p.map(v => this.rational.from(v)) as ExactPoint; }
   add(a: ExactPoint, b: ExactPoint): ExactPoint { return a.map((v, i) => this.rational.add(v, b[i])) as ExactPoint; }
   sub(a: ExactPoint, b: ExactPoint): ExactPoint { return a.map((v, i) => this.rational.sub(v, b[i])) as ExactPoint; }
@@ -91,8 +94,14 @@ export class SolidProof {
       for (let i = 0; i < 2; i++) {
         const uv = this.point(pc.curve.controlPoints[i]); check(uv[2].n === 0n, 'BINDING', 'Pcurve must be exactly UV');
         const a = r.div(r.sub(uv[0], u0), r.sub(u1, u0)), b = r.div(r.sub(uv[1], v0), r.sub(v1, v0));
-        const lifted = this.add(this.add(origin, this.scale(u, a)), this.scale(v, b));
-        check(this.equal(lifted, this.point(line.controlPoints[i])), 'BINDING', 'Stored whole pcurve lift is not exact; parent tolerance cannot certify sewing');
+        const lifted = this.add(this.add(origin, this.scale(u, a)), this.scale(v, b)), pole = this.point(line.controlPoints[i]);
+        if (!this.equal(lifted, pole)) {
+          // CadNumericPolicy.chartParameters: the 3D pole stays exact; its stored UV may carry one rounding.
+          const bound = chartRoundingBoundMM(u.map(x => r.nearest(x)), [p.knotsU[1], p.knotsU[2]], v.map(x => r.nearest(x)), [p.knotsV[1], p.knotsV[2]]);
+          const deviation = this.sub(lifted, pole).map(x => r.abs(x));
+          check(deviation.every((x, k) => r.compare(x, r.from(bound[k])) <= 0), 'BINDING', 'Stored whole pcurve lift exceeds one chart rounding; parent tolerance cannot certify sewing');
+          this.certifiedLifts++; this.maximumLiftDeviationMM = Math.max(this.maximumLiftDeviationMM, ...deviation.map(x => r.upward(x)));
+        }
       }
       const start = use.sense === 'forward' ? 0 : 1, end = 1 - start;
       check(use.interval[0] === line.knots[start + 1] && use.interval[1] === line.knots[end + 1], 'BINDING', 'Directed actual native interval required');

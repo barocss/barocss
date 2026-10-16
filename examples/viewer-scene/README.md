@@ -2,7 +2,8 @@
 
 This local reference page loads `two-surfaces.barocad` through the public
 `@barocss/cad-interop/native` parser and displays both original Surface packets
-through `@barocss/viewer` and the public BaroCSS GPU scene backend.
+through `@barocss/viewer`, which draws with the WebGPU viewer core in
+`@barocss/gpu/viewer`. `createViewer` is async, so the page awaits it.
 
 After the Viewer and GPU libraries are built:
 
@@ -32,9 +33,9 @@ source or pointer controls. Stop it with
 For the focused keyboard lifecycle probe, open
 <http://127.0.0.1:52165/?keyboardProof=1>. It runs on the same compiled
 source in Chromium and writes a JSON result in the status panel. It compares
-direct and key-driven fit pixels/camera, selection clearing, ignored keys,
-empty/context-loss errors, adapter and Viewer disposal, one context and
-Viewer-owned GL resource cleanup. The ordinary route remains interactive;
+direct and key-driven fit camera and WebGPU pixel captures (`await
+viewer.readPixels()`), selection clearing, ignored keys, the empty-scene
+error, and adapter and Viewer disposal. The ordinary route remains interactive;
 press its actual focused F and Escape keys to verify physical keyboard input.
 
 The measurement panel accepts two qualified native Surface parameters. Its

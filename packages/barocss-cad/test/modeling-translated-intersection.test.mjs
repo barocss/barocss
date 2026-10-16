@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-translated-intersection.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -191,10 +191,10 @@ function refuseIntersection(snapshot, action, cause, dimension) {
   try { return mockNative(action); } finally { delete state.intersectionError; delete state.emptyDimension; }
 }
 
-test('all24 providers are isolated and intersection consumes the actual translated Solid in either operand order', () => {
+test('all25 providers are isolated and intersection consumes the actual translated Solid in either operand order', () => {
   for (const reverse of [false, true]) {
     const start = state.calls.length, { snapshot } = part({ reverse }), calls = state.calls.slice(start);
-    assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+    assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
     assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildXYAffineSketch',
       'buildXYAffineSketchPrism', 'buildModelingTranslation', 'intersectConvexPlanarSolids']);
     const final = calls.at(-1), operands = reverse ? [snapshot.bodies.other.native, snapshot.bodies.translated.native]

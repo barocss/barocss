@@ -23,6 +23,7 @@ import type { RectangularExtrusionCubeProof } from './rectangular-extrusion-cube
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction } from './section-rational-internal.js';
 import type { Curve, Surface, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const RectangularFaceExtrusionBodyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',
@@ -159,16 +160,6 @@ function finite(value: number, detail: string,
   code: RectangularFaceExtrusionBodyDiagnosticCode = CODE.REPRESENTABILITY): number {
   check(Number.isFinite(value), code, detail);
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length &&
-      Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 /** Descriptor inspection never invokes authored getters. Counts every retained occurrence. */
 function ownData(input: unknown, owned = false, copyData = true): { value: unknown; count: number } {

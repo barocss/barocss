@@ -8,7 +8,7 @@
     "source": "@scene roundedStack {\n  version: 1;\n  background: #101820;\n  box #base;\n  rounded-box #left;\n  rounded-box #center;\n  rounded-box #right;\n}\n#base { size: 3.8 .2 1.5; translate: 0 -1.1 0; color: #425267; }\nrounded-box { size: .9 .8 .7; radius: .12; rotate-y: -20deg; color: #57B4D9; }\n#left { translate: -1.2 -.6 0; }\n#center { translate: 0 0 0; radius: .06; rotate-y: 20deg; color: #F1AA55; }\n#right { translate: 1.2 .6 0; rotate-z: 15deg; color: #95D88B; }\nrounded-box { radius: .2; }",
     "description": "Three rounded boxes share a type style. The center ID retains its smaller radius and opposite Y rotation when the later type rule changes the side boxes.",
     "expected": {
-      "basis": "Source-resolved values; image appearance also depends on the SDF view.",
+      "basis": "Source-resolved values; image appearance also depends on the viewer's lighting and camera.",
       "objectCount": 4,
       "ids": [
         "base",

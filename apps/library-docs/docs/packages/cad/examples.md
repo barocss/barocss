@@ -138,7 +138,7 @@ Open [the live Curve input](/playground#cad-curve). The cyan line is the actual 
 }
 ```
 
-The original domain is `[0,1]`. The host evaluates101 uniformly spaced parameters. At `u=.5`, the actual point is approximately `[14.142135623730951,14.142135623730951,0]` mm. The middle rational weight produces the quarter circle of radius20; replacing it with1 changes the shape. The image uses CAD evaluation followed by a host Canvas2D drawing.
+The original domain is `[0,1]`. The host evaluates101 uniformly spaced parameters. At `u=.5`, the actual point is approximately `[14.142135623730951,14.142135623730951,0]` mm. The middle rational weight produces the quarter circle of radius20; replacing it with1 changes the shape. The image uses CAD evaluation followed by a host 2D canvas drawing.
 
 ## Query a Curve with an original domain
 

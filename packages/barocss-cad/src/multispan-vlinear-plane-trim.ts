@@ -12,6 +12,7 @@ import { evaluateCurve, evaluateSurface, validateCurve } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import type { Curve, Model, Point, Surface } from './types.js';
+import { same } from './structural-equality.js';
 
 export const MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SECTION: 'SECTION', UV: 'UV', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode];
@@ -89,10 +90,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof MultiSpanVLinearSurfacePlaneTrimError) throw cause; throw new MultiSpanVLinearSurfacePlaneTrimError(code, 'Own snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 function domain(curve: Curve): [number, number] { return [curve.knots[curve.degree], curve.knots[curve.controlPoints.length]]; }
 function comb(n: number, k: number): number { return [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1], [1, 5, 10, 10, 5, 1]][n][k]; }

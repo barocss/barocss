@@ -6,7 +6,7 @@ import {spawn} from 'node:child_process';
 import {resolve,relative,join,isAbsolute} from 'node:path';
 import {build} from 'esbuild';
 
-const folders=['barocss-cad','barocss-gpu','barocss-physics','barocss-viewer','barocss-cad-interop','barocss-canvas2d'];
+const folders=['barocss-cad','barocss-gpu','barocss-physics','barocss-viewer','barocss-cad-interop'];
 const owned=['barocss-cad','barocss-gpu'],prepared=new Map();
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const slash=path=>path.replaceAll('\\','/');

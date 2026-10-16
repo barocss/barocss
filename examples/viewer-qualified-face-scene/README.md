@@ -1,5 +1,11 @@
 # Independent original source-qualified Faces
 
+> The page draws with the WebGPU viewer core: `await createViewer(canvas, options)`
+> returns the Viewer and `await viewer.readPixels()` returns RGBA rows from the top.
+> There is no WebGL2 context, so no context-loss state or Lose context control.
+> Viewer status is `ready`, `empty` or `disposed`. Older text below that mentions
+> context loss or unavailable presentation describes the previous WebGL2 Viewer.
+
 This bounded host submits public `loadQualifiedFaceScene` with2..6 independent
 original Source0/forward Face assets, explicit camera, grid and scene translation.
 Each complete Model0/mm file contains one Surface and four Curves. Repeated local
@@ -122,28 +128,27 @@ VIEWER_QUALIFIED_FACE_COMPILED=1 node examples/viewer-qualified-face-scene/serve
 `/input-audit.json` requires own src with zero own dist in ordinary mode and
 own dist with zero own src in compiled mode. Missing mappings refuse.
 `VIEWER_QUALIFIED_FACE_PORT` changes the port;
-`VIEWER_QUALIFIED_FACE_EVIDENCE` optionally records `/result`. Original mixed
-Sphere/native, native panel, Shell graph, assembly revisions, canonical document
-and uniform sources are served for root-owned transition tests. Held
+`VIEWER_QUALIFIED_FACE_EVIDENCE` optionally records `/result`. The native
+panel, Shell graph, assembly revisions and canonical document are served for
+root-owned transition tests. Held
 `/slow-native.barocad` releases only after POST `/release-slow`.
 
-The bounded Run proof records complete source/Face copies and actual native
-one-scale/translation GL positions, normals and indices; authentic F edit
-versus stale Face refusal; exact-input/getter/grid and late sixth-Face allocation
-retention; inspection lifecycle; reversed order; camera/resize; two assets and
-Clear. It preserves the first failure and accepted page state. It does not
-automatically replay tests or dispose afterward. Full actual six-direction
-pixel/shared-depth verification and old-mode/race/unavailable/loss gates are
-owned by the main acceptance runner.
+The bounded Run proof records complete source/Face copies; authentic F edit
+versus stale Face refusal; exact-input/getter/grid refusals that keep the
+accepted state and WebGPU `readPixels` hash; inspection lifecycle; reversed
+order; camera/resize; two assets and Clear. It preserves the first failure and
+accepted page state. It does not automatically replay tests or dispose
+afterward.
 
 Order comparison checks a qualified interior F native point and records both
-frame hashes. Touching equal-depth original boundaries can resolve color by
-draw order under strict LESS; whole-frame hash equality is not promised.
+frame hashes. The probe pixel row counts from the top, matching `readPixels`.
+Touching equal-depth original boundaries can resolve color by draw order;
+whole-frame hash equality is not promised.
 
 `window.__viewerQualifiedFaceProof` exposes Viewer/current copied scene,
 original requests/source files/raw bytes/manifest, `candidate(overrides)`,
-`load`, `inspect`, `render`, native upload `witness`, `pixelInfo`, global seven
-resource counters/readbacks/errors, allocation hooks and `dispose`.
+`load`, `inspect`, `render`, the async `pixelInfo()` capture hash, browser
+errors/warnings and `dispose`.
 `measurementInput(sourceId,geometryId,params)` creates the current exact pin;
 `measure(first,second)` calls the public CPU query and displays its result.
 The `measurementReport` getter returns an independent copy. The physical
@@ -163,10 +168,10 @@ Length hook members are `LENGTH_OPTIONS`, `lengthPin`,
 `lengthReport` getter. Public CAD arc query/validation are exposed for the main
 runner's independent checks. All query reports remain caller-owned copies.
 Public CAD `tessellateSurface`, `validateFaceBundle`, original evaluation, GPU
-`prepareCamera`/qualified scene and renderer APIs, mixed/uniform/Shell providers,
+`prepareCamera`/qualified scene CPU APIs, mixed/uniform CPU preparation,
 Assembly/Model-set/document Loader and Physics cloth creation are available for
-the root's independent controls. The loss extension is captured before loss.
-No private renderer, framebuffer or hidden resource getter is used.
+the root's independent controls. No private renderer, framebuffer or hidden
+resource getter is used.
 
 Native author, actual consumer verification, exact code merge availability,
 later integrated checks and publication remain separate. No global closure,
@@ -737,7 +742,7 @@ reports the error. Recovery failure has no pixel rollback promise.
 Accepted non-camera scene changes or canvas backing/CSS geometry changes end
 the old gesture. Camera-only motion keeps the active gesture. Switching the
 option off releases capture and restores the caller's previous touch-action.
-Loss, unavailable presentation, Clear, mode change and Dispose detach controls.
+Clear, mode change and Dispose detach controls.
 Dispose removes the local listeners before disposing the Viewer. Retained
 CPU inspection remains separate from unavailable camera navigation.
 

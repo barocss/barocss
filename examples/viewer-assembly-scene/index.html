@@ -23,7 +23,7 @@
     <canvas id="view" width="640" height="480" aria-label="Selected original assembly instances"></canvas>
     <button id="revision0" disabled>Load revision 0</button><button id="revision1" disabled>Load revision 1</button>
     <button id="fit" disabled>Fit visible</button><button id="run-proof" disabled>Run proof</button>
-    <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+    <button id="dispose" disabled>Dispose viewer</button>
     <label>Selection filter <select id="filter" disabled><option value="all">All</option>
       <option value="surface">Surfaces</option><option value="curve">Curves</option></select></label>
     <pre id="inspection" aria-label="Original instance point">Select an instance to inspect.</pre>
@@ -35,7 +35,7 @@
     <details><summary>About instance choice</summary><p>Stage any 1–4 original instances, then Apply to load them with their authored hierarchy placement and a fitted camera.
       Metadata-only instances are not in the view. Show controls below change visibility of accepted instances; they do not change this choice.
       A choice alone changes no accepted scene. Discard restores the accepted IDs. Apply resets selection and point inspection only after success.
-      Retained original metadata can remain available after presentation loss, but Apply needs a ready Viewer.</p></details>
+      Apply needs a ready Viewer.</p></details>
   </fieldset><h2>Accepted instance bindings</h2><ul id="instances"></ul></aside></div>
   <pre id="status" role="status" aria-live="polite">Loading original assembly fixtures…</pre>
   <script type="module" src="/bundle.js"></script>

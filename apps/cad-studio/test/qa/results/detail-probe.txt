@@ -1,0 +1,21 @@
+B08 edge-touch union: "REFUSED: n4: the bodies touch along an edge or at a vertex only; the result is not a manifold solid"
+vertex-touch union: The bodies only touch along an edge or a point
+fillet R15 ok vol 14836.60 bounds {"min":[0,0,0],"max":[32,32,16]}
+fillet R16 ok vol 14623.40 bounds {"min":[0,0,0],"max":[32,32,16]}
+fillet R16.5 refused: The chamfer or fillet is too large
+fillet R17 refused: The chamfer or fillet is too large
+fillet R24 refused: The chamfer or fillet is too large
+fillet R31 refused: The chamfer or fillet is too large
+fillet R32 refused: The chamfer or fillet is too large
+fillet R33 refused: The chamfer or fillet is too large
+chamfer 8 ok vol 15360.00 (exact if fits 15360.00) bounds {"min":[0,0,0],"max":[32,32,16]}
+chamfer 15 ok vol 12784.00 (exact if fits 12784.00) bounds {"min":[0,0,0],"max":[32,32,16]}
+chamfer 16 ok vol 12288.00 (exact if fits 12288.00) bounds {"min":[0,0,0],"max":[32,32,16]}
+chamfer 17 refused: The chamfer or fillet is too large
+chamfer 20 refused: The chamfer or fillet is too large
+circle r5 at [ 38, 10 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 42, 10 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 19 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 21 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 1 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+island: A shape inside a hole is not supported yet: draw it as its own sketch.

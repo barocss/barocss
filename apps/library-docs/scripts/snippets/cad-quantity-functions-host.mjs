@@ -1,11 +1,9 @@
 import { compileCadModel, surfaceDomain, evaluateSurface, tessellateSurface } from '@barocss/cad';
-import { mountMesh } from '@barocss/gpu';
+import { createViewer } from '@barocss/gpu';
 
-const sourceProfile = '4f93558d77c980fcb4e04ea21d76589466839c47';
-const baseOptions = {
-  mmToSceneUnit: .12, translate: [-.7,-.45,0], color: [.22,.65,.85], background: [.063,.094,.125],
-  camera: {eye:[2,-2,3],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100},
-};
+const sourceProfile = 'c79d752cb3463a34e6c93cb64e3693bc493c271f';
+const baseOptions = { mmToSceneUnit: .12, translate: [-.7,-.45,0], color: [.22,.65,.85], background: [.063,.094,.125] };
+const camera = { position: [2,-2,3], target: [0,0,0], up: [0,1,0], fovY: 45 };
 function dataFor(source) {
   const compiled = compileCadModel(source, {sourceVersion:3});
   if (!compiled.ok) {
@@ -26,24 +24,39 @@ function fit(packet) {
   const scale = 1.8 / Math.max(...max.map((value,index) => value-min[index]),1);
   return {...baseOptions,mmToSceneUnit:scale,translate:min.map((value,index) => -(value+max[index])/2*scale)};
 }
+// The sampled 17 × 17 U/V grid (17 rows and 17 columns) as line segments over the packet's vertices.
 function grid(packet) {
-  const point = (u,v) => packet.positions.slice((u*17+v)*3,(u*17+v)*3+3);
-  return {version:0,packet,color:[.65,.85,.95],paths:[
-    ...Array.from({length:17},(_,u)=>({id:'row_'+u,points:Array.from({length:17},(_,v)=>point(u,v))})),
-    ...Array.from({length:17},(_,v)=>({id:'column_'+v,points:Array.from({length:17},(_,u)=>point(u,v))})),
-  ]};
+  const indices = [], at = (u,v) => u*17+v;
+  for (let u = 0; u < 17; u++) for (let v = 0; v < 16; v++) indices.push(at(u,v),at(u,v+1));
+  for (let v = 0; v < 17; v++) for (let u = 0; u < 16; u++) indices.push(at(u,v),at(u+1,v));
+  return {positions:packet.positions,indices,topology:'lines'};
 }
-export function createExample(canvas, key, source) {
+// Column-major: millimetres scaled into scene units, then moved to the origin.
+function placement(view) {
+  const s = view.mmToSceneUnit, [x,y,z] = view.translate;
+  return [s,0,0,0, 0,s,0,0, 0,0,s,0, x,y,z,1];
+}
+export async function createExample(canvas, key, source) {
   if (key !== 'cad-quantity-functions') throw new Error('Unknown CAD quantity function example');
   let accepted = dataFor(source), view = fit(accepted.packet);
-  const renderer = mountMesh(canvas,accepted.packet,view,grid(accepted.packet));
-  let disposed = false, lost = false, frameCount = 1;
-  const onLoss = () => { lost = true; };
-  canvas.addEventListener('webglcontextlost',onLoss);
+  const viewer = await createViewer(canvas,{background:baseOptions.background,camera});
+  let meshes = [], disposed = false, frameCount = 0;
+  // The new wall and grid are added before the accepted ones are removed.
+  function show(packet, candidateView) {
+    const transform = placement(candidateView);
+    const next = [
+      viewer.add({positions:packet.positions,normals:packet.normals,indices:packet.indices},{name:'wall',transform,material:{color:candidateView.color,doubleSided:true,roughness:.6}}),
+      viewer.add(grid(packet),{name:'sampling-grid',transform,pickable:false,material:{color:[.65,.85,.95],unlit:true}}),
+    ];
+    for (const mesh of meshes) mesh.remove();
+    meshes = next; frameCount++;
+  }
+  try { show(accepted.packet,view); viewer.fit(); }
+  catch (error) { viewer.dispose(); throw error; }
   function report() {
     const {compiled} = accepted, {ir} = compiled;
     return structuredClone({
-      backend:'Public CAD Source3 → sampled wall → WebGL2 mesh',sourceProfile,
+      backend:'Public CAD Source3 → sampled wall → WebGPU viewer mesh',sourceProfile,
       sourceVersion:3,irSchemaVersion:ir.schemaVersion,nativeModelVersion:compiled.model.version,
       selectedSurfaceId:accepted.wall.id,
       parameters:ir.parameters.map(({id,quantityKind,value,unit})=>({id,quantityKind,value,unit})),
@@ -54,7 +67,7 @@ export function createExample(canvas, key, source) {
         frameId,parentFrameId,functionId,depth,result,
         arguments:bindings.map(({formalName,quantity,origin})=>({formalName,quantity,origin})),
       })),
-      mmToSceneUnit:view.mmToSceneUnit,frameCount,available:!disposed && !lost,
+      mmToSceneUnit:view.mmToSceneUnit,frameCount,available:!disposed,
       source:accepted.source,model:compiled.model,constructions:compiled.constructions,ir,
     });
   }
@@ -62,18 +75,15 @@ export function createExample(canvas, key, source) {
     report,
     update(text) {
       if (disposed) throw new Error('CAD quantity function example is disposed');
-      if (lost) throw new Error('WebGL2 context is lost; recreate the example');
       const candidate = dataFor(text), candidateView = fit(candidate.packet);
-      const update = renderer.update(candidate.packet,candidateView,grid(candidate.packet));
-      if (!update.ok) throw update.error;
-      accepted = candidate; view = candidateView; frameCount++;
+      show(candidate.packet,candidateView);
+      accepted = candidate; view = candidateView;
       return report();
     },
     dispose() {
       if (disposed) return;
       disposed = true;
-      canvas.removeEventListener('webglcontextlost',onLoss);
-      renderer.dispose();
+      viewer.dispose();
     },
   };
 }

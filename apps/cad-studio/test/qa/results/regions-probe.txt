@@ -1,0 +1,7 @@
+{"name":"two circles r10, centres 12 apart","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}
+{"name":"two circles r10, centres 25 apart (disjoint)","role":"region","expected":3141.59,"kernel":[3141.59],"mesh":[3121.45],"bodies":1,"faces":[6]}
+{"name":"rect 40x20 + circle r5 at (42,10) over the right edge","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}
+{"name":"rect 40x20 + circle r5 at (20,21) over the top edge","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}
+{"name":"rect 40x20 then circle r5 at (20,19) (classified HOLE)","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}
+{"name":"two rectangles overlapping","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}
+{"name":"circle then rect overlapping it","error":"Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch."}

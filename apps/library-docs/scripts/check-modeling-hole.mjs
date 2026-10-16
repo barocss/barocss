@@ -92,41 +92,6 @@ for (const stage of [source.stages[1], source.stages[3], cold.stages[1]])
 assert.deepEqual(source.stages[5].recomputation, { reusedFeatures: [0, 1, 2], evaluatedFeatures: [] });
 assert.deepEqual(cold.stages[0].recomputation, { reusedFeatures: [], evaluatedFeatures: [0, 1, 2] });
 
-const transferPath = 'packages/barocss-cad-editor/scripts/fixtures/modeling-hole/baseline-native.json';
-const transfer = readFileSync(resolve(root, transferPath));
-const transferIdentity = { bytes: transfer.length, sha256: digest(transfer) };
-assert.deepEqual(transferIdentity, { bytes: 277591, sha256: '3ee3d585448a24ad6d8fcdbc3cddd927eb6e13b399db6a707444940080fc4024' });
-assert.deepEqual(transferIdentity, receipt.transport);
-assert.equal(source.transfer.bytes, transfer.length); assert.equal(source.transfer.sha256, digest(transfer));
-const baseline = JSON.parse(transfer), saved = JSON.parse(baseline.text);
-assert.equal(baseline.bodySHA256, source.initialBodySHA256);
-assert.deepEqual(baseline.parameters, { width: 80, depth: 40, height: 8, centerX: 40, centerY: 20, radius: 5 });
-assert.deepEqual(Object.keys(baseline.bodies), ['blank', 'plate']);
-assert.deepEqual(Object.keys(saved.outputs), ['blank', 'plate']); assert.equal(saved.schema, 1);
-assert.deepEqual(saved.nodes.map(node => node.kind), ['sketch', 'extrude', 'hole']);
-assert.deepEqual(baseline.features.map(feature => feature.kind), ['sketch', 'extrude', 'hole']);
-for (const forbidden of ['native', 'bodies', 'mesh', 'certificate', 'bodyId', 'solidId', 'taskToken'])
-  assert.ok(!new RegExp(`"${forbidden}"\\s*:`).test(baseline.text), `Saved intent excludes ${forbidden}`);
-assert.equal(baseline.bodies.blank.family, 'convex-planar');
-assert.deepEqual(baseline.bodies.blank.native.certificate.volumeMM3, { numerator: '25600', denominator: '1' });
-assert.equal(baseline.bodies.plate.family, 'stored-rational-plate-hole');
-const native = baseline.bodies.plate.native, preview = baseline.holeMesh;
-assert.equal(native.certificate.kind, 'restricted-stored-rational-plate-hole-solid');
-assert.equal(native.certificate.geometryAuthority, 'stored-coefficient-mathematical-model');
-assert.equal(native.certificate.solid, true); assert.equal(native.certificate.topologyCertified, true);
-assert.equal(native.certificate.genus, 1); assert.equal(Object.hasOwn(native.certificate, 'volumeMM3'), false);
-assert.deepEqual(preview.report.native, native.parentReport);
-assert.equal(preview.report.solid, false); assert.equal(preview.report.topologyCertified, false);
-assert.equal(preview.report.segmentsPerQuarter, 4);
-assert.deepEqual([preview.report.faceCount, preview.report.vertexCount, preview.report.triangleCount], [7, 256, 128]);
-assert.equal(preview.mesh.chunks.length, 7); assert.equal(preview.provenance.length, 7);
-for (const role of ['bottom-cap', 'top-cap', 'hole-wall']) {
-  const provenance = preview.provenance.find(face => face.role === role);
-  assert.ok(provenance); assert.equal(provenance.panels.length, 20);
-  assert.equal(provenance.nativeLoopIds.length, role === 'hole-wall' ? 1 : 2);
-}
-assert.equal(source.holeDisplay.centreApertureOpen, true); assert.equal(source.holeDisplay.cavityNormalsInward, true);
-
 // Pin all 21 prior source/authored downloads to the adopted base, not the changing working tree.
 const priorDocs = JSON.parse(git('apps/library-docs/evidence/modeling-suppression-docs.json'));
 const preservedDownloads = [...priorDocs.preservedDownloads, {
@@ -159,13 +124,12 @@ if (mode !== 'static') {
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }
 console.log(JSON.stringify({
-  ok: true, scope: 'mounting-plate guide/download; pinned provider/native receipts and unchanged genuine baseline; unchanged prior downloads; no native execution',
+  ok: true, scope: 'mounting-plate guide/download; pinned provider/native receipts; unchanged prior downloads; no native execution',
   mode, typedExampleFiles: mode === 'static' ? 0 : 10, typeCheck: mode === 'static' ? 'UNRUN' : 'passed',
   enginePin, acceptedProviderPin, testedProductPin, engineReceiptSHA256: digest(receiptText),
   modelingSourceSHA256: digest(modeling), providerFixtureSHA256: digest(fixture),
   ...(entry ? { entrySHA256: digest(readFileSync(entry)) } : {}),
   downloadSHA256: digest(snippet), guideSHA256: digest(page),
-  nativeBaseline: { ...transferIdentity, measuredMeshes: ['blank', 'plate'], holeFaces: 7, holeVertices: 256, holeTriangles: 128 },
   preservedDownloads, totalDownloadsAfter: 22, nativeCampaignRun: false, browserOrReactRun: false,
   uiBehaviorScope: 'Separate actual controller/scene/recipe tests; no UI-string surrogate',
 }, null, 2));

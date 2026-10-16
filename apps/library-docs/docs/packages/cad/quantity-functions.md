@@ -6,7 +6,7 @@
 
 The picture uses width 10 cm and the edited default factor 1: width/depth/height are 100/25/50 mm, the extrusion vector is `[0,25,50]` and its midpoint is `[50,12.5,25]` mm. The starting program below uses default factor 2, giving height 100 mm and midpoint Z = 50 mm. Only the sampled `wall` Surface is displayed; it is not a closed Body or wall thickness.
 
-This example uses experimental `@barocss/cad` version `0.0.0-experimental` at source profile `4f93558d77c980fcb4e04ea21d76589466839c47`. Source3 is an explicit new compiler dialect here: `compileCadModel(source,{sourceVersion:3})`, with `version:3; length-unit:mm;` in the source. Returned IR has `schemaVersion:3` and `sourceVersion:3`; native geometry remains Model version 0. Existing Source0/1/2 examples keep their original grammar, source profiles and compiler options.
+This example uses experimental `@barocss/cad` version `0.0.0-experimental`. Source3 was introduced at source profile `4f93558d77c980fcb4e04ea21d76589466839c47`; the live example now bundles the CAD and GPU sources of `c79d752cb3463a34e6c93cb64e3693bc493c271f`. Source3 is an explicit new compiler dialect here: `compileCadModel(source,{sourceVersion:3})`, with `version:3; length-unit:mm;` in the source. Returned IR has `schemaVersion:3` and `sourceVersion:3`; native geometry remains Model version 0. Existing Source0/1/2 examples keep their original grammar, source profiles and compiler options.
 
 ## Complete initial Source3 input
 
@@ -134,7 +134,7 @@ The native Model contains geometry only. Parameters and functions stay in IR3, w
 
 The packet has 289 vertices and 512 triangles. The display host draws 17 rows and 17 columns of evaluated U/V grid paths. Those 34 paths are samples, not the two-pole Curve control polygon, Surface control net or topological Edges. Sampling returns `certified:false`; measured local deviation is not a global shape-error certificate.
 
-The application supplies the existing GPU mesh renderer and fits sampled bounds for presentation. Native packet XYZ stays in mm; the display converts mm to scene units once and centers the sampled bounds. A proportional width edit can therefore yield similar fitted pixels despite different native dimensions. The independent default-factor edit changes proportions while the width remains 100 mm. Compilation and CPU sampling do not themselves establish a rendered frame or native editor admission.
+The application draws the sampled wall and its U/V grid lines with the `@barocss/gpu` WebGPU viewer (`createViewer`, then `viewer.add`) and fits sampled bounds for presentation. Native packet XYZ stays in mm; the display converts mm to scene units once and centers the sampled bounds. A proportional width edit can therefore yield similar fitted pixels despite different native dimensions. The independent default-factor edit changes proportions while the width remains 100 mm. Compilation and CPU sampling do not themselves establish a rendered frame or native editor admission.
 
 ## Read lexical calls and bounded work
 

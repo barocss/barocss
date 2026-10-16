@@ -14,12 +14,8 @@
     "check": "pnpm type-check && pnpm lint && pnpm build:library && pnpm test",
     "changeset:version": "pnpm changeset version && pnpm install --lockfile-only",
     "changeset:publish": "pnpm changeset publish",
-    "dev:cad": "pnpm --filter @barocss/cad-editor-example dev",
-    "dev:gpu": "node examples/gpu-scene/source-server.mjs",
-    "test:editor:source": "node examples/cad-preview/unified-editor-smoke.mjs",
-    "dev:cad-editor": "pnpm --filter @barocss/cad-editor-app dev",
-    "build:cad-editor": "pnpm --filter @barocss/cad-editor build:library && pnpm --filter @barocss/cad-editor-app build",
-    "dev:render-editor": "pnpm --filter @barocss/render-editor-app dev"
+    "dev:cad": "pnpm --filter @barocss/cad-studio-app dev",
+    "dev:gpu": "node examples/gpu-scene/source-server.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

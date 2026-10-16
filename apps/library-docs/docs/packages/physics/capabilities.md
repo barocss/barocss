@@ -39,7 +39,7 @@ Start with the [fixed-step recipe](./examples#advance-a-rigid-world-explicitly) 
 pnpm --filter @barocss/library-docs dev --host 127.0.0.1
 ```
 
-Open `/playground#physics-step` at the printed URL. Advance 1, Reset, Advance 20 shows copied CPU state in a **host Canvas2D XY projection**. Y=0 is a reference, not a collider. The [CPU receipt](https://github.com/barocss/barocss/blob/98955db7d1c8aa85ecadb789d00c6f4916178d04/apps/library-docs/evidence/host-samples-physics-cpu.json) and [native browser checkpoint](https://github.com/barocss/barocss/blob/98955db7d1c8aa85ecadb789d00c6f4916178d04/apps/library-docs/evidence/host-samples-checkpoint.md) establish that task, not collisions or long-run stability.
+Open `/playground#physics-step` at the printed URL. Advance 1, Reset, Advance 20 shows copied CPU state in a **host 2D canvas XY projection**. Y=0 is a reference, not a collider. The [CPU receipt](https://github.com/barocss/barocss/blob/98955db7d1c8aa85ecadb789d00c6f4916178d04/apps/library-docs/evidence/host-samples-physics-cpu.json) and [native browser checkpoint](https://github.com/barocss/barocss/blob/98955db7d1c8aa85ecadb789d00c6f4916178d04/apps/library-docs/evidence/host-samples-checkpoint.md) establish that task, not collisions or long-run stability.
 
 For separate contact/joint previews, follow the [native-Surface host README](https://github.com/barocss/barocss/blob/98955db7d1c8aa85ecadb789d00c6f4916178d04/examples/physics-viewer-scene/README.md): build CAD, GPU, CAD interop, Viewer and Physics using their existing `build:library` scripts, then:
 

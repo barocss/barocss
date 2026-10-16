@@ -16,7 +16,9 @@ export type XYNumericalSketchConstraint =
   | { id: string; kind: 'coincident'; pointA: string; pointB: string }
   | { id: string; kind: 'horizontal' | 'vertical'; segmentId: string }
   | { id: string; kind: 'length'; segmentId: string; lengthMM: number }
-  | { id: string; kind: 'signed-angle'; segmentA: string; segmentB: string; angleRad: number };
+  | { id: string; kind: 'signed-angle'; segmentA: string; segmentB: string; angleRad: number }
+  /** |segmentA| − |segmentB| = 0: arc radii, equal sides. */
+  | { id: string; kind: 'equal-length'; segmentA: string; segmentB: string };
 export type XYNumericalSketchBranchGuard =
   | { id: string; kind: 'positive-projection'; segmentId: string; direction: XYPoint }
   | { id: string; kind: 'oriented-triplet'; pointA: string; pointB: string; pointC: string; orientation: 'ccw' | 'cw' };

@@ -1,6 +1,5 @@
-import { mountNativeDirectionalLightWebGPUViewport } from '@barocss/gpu';
-import type { NativeDirectionalLightWebGPUOptions, NativeDirectionalLightWebGPUStatus,
-  NativeDirectionalLightWebGPUViewport, UpdateResult } from '@barocss/gpu';
+import { mountNativeBackend, directionalDrawing } from './native-backend.js';
+import type { NativeBackend, UpdateResult, ViewerWebGPUOptions, ViewerWebGPUStatus } from './native-backend.js';
 import type { ViewerGeometryRef } from './index.js';
 import { ViewerNativeDirectionalLightError, copyOwn, freezeOwn, prepareLightCandidate, refKey, refuse } from './native-directional-light-candidate.js';
 import type { ViewerNativeDirectionalLightInput, ViewerNativeDirectionalLightAccepted,
@@ -11,7 +10,7 @@ export interface ViewerNativeDirectionalLightWebGPU {
   readonly originals: ViewerNativeDirectionalLightInput;
   readonly accepted: ViewerNativeDirectionalLightAccepted;
   readonly selected: ViewerGeometryRef | null;
-  readonly status: NativeDirectionalLightWebGPUStatus;
+  readonly status: ViewerWebGPUStatus;
   replace(input: unknown): Promise<UpdateResult>;
   resize(width: number, height: number): Promise<UpdateResult>;
   readPixels(): Promise<Uint8Array>;
@@ -28,10 +27,10 @@ function failure(cause: unknown): UpdateResult {
 }
 /** Explicit required-WebGPU consumer. Existing createViewer and Editor paths are unchanged. */
 export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanvasElement, input: unknown,
-  options: NativeDirectionalLightWebGPUOptions): Promise<ViewerNativeDirectionalLightWebGPU> {
+  options: ViewerWebGPUOptions): Promise<ViewerNativeDirectionalLightWebGPU> {
   let current: LightCandidate = prepareLightCandidate(input, 1, null);
-  let backend: NativeDirectionalLightWebGPUViewport;
-  try { backend = await mountNativeDirectionalLightWebGPUViewport(canvas, current.gpuRequest, options); }
+  let backend: NativeBackend;
+  try { backend = await mountNativeBackend(canvas, current.gpuRequest, options, request => request as typeof current.gpuRequest, directionalDrawing); }
   catch (cause) { throw gpuError(cause); }
   try {
     if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during mount');
@@ -103,7 +102,7 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
         let token: object | undefined;
         try {
           token = enter(); const started = epoch;
-          let picked: Awaited<ReturnType<NativeDirectionalLightWebGPUViewport['pick']>>;
+          let picked: Awaited<ReturnType<NativeBackend['pick']>>;
           try { picked = await backend.pick(x, y); } catch (cause) { throw gpuError(cause); }
           check(started);
           if (picked.generation !== current.accepted.generation) refuse('STATE', 'Picked generation differs from accepted native metadata');

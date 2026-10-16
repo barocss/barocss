@@ -4,6 +4,7 @@ import type { SectionFraction as F } from './section-rational-internal.js';
 import { validateQualifiedTranslatedStripBodyMesh } from './qualified-translated-strip-body-mesh.js';
 import { encodeQualifiedStripBinaryStlTrusted } from './qualified-strip-binary-stl-encoding-internal.js';
 import type {Point} from './types.js';
+import { same } from './structural-equality.js';
 export interface QualifiedTranslatedStripBodyBinaryStlOptions {
  evaluationId:string;maximumVertices:290;maximumTriangles:576;maximumBytes:28884;
 }
@@ -179,16 +180,6 @@ function fileSize(input: unknown, cap: number, fail: Fail): Size {
     }); append('}');
   };
   visit(input); append('\n'); return { utf16, utf8 };
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) &&
-    a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length &&
-      Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 
 /** Validate the whole qualified native mesh once, then encode its original indexed triangles. */

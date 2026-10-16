@@ -3,6 +3,7 @@ import type { CadDocumentResult } from './cad-document.js';
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CadReferenceDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', REFERENCE: 'REFERENCE', STALE: 'STALE', QUERY: 'QUERY', FRAME: 'FRAME',
@@ -124,16 +125,6 @@ function revision(value: unknown): number {
   check(typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 2147483647 && !Object.is(value, -0),
     CODE.REFERENCE, 'unsigned revision0..2147483647 required; signed zero refused');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function document(input: CadDocumentResult): CadDocumentResult {
   const owned = snapshot(input) as CadDocumentResult;

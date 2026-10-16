@@ -4,11 +4,11 @@
 
 This example uses experimental `@barocss/gpu` version `0.0.0` at source profile `23321ac563f7ec5335d755239534d0a17da303d2`. The public compiler, complete-IR validator, GLSL text lowerer and CPU evaluator must come from that matching provider. The older [mesh material examples](./material-language) and [reusable UV shader](./reusable-shader) keep their stated providers. Source availability does not establish package publication.
 
-The example needs Canvas2D to display its CPU results. It does not need WebGL2 or WebGPU. The lowered GLSL is available in the accepted report, but this host does not link or execute it.
+The example needs a browser 2D canvas context to display its CPU results. It does not need WebGL2 or WebGPU. The lowered GLSL is available in the accepted report, but this host does not link or execute it.
 
 ![Actual CPU threshold palette: dark reference at .49 and light references/current color at .5 and .51](/examples/discrete-material.jpg)
 
-The actual browser image uses default `level:.5`. Reference .49 displays sRGB8 `[9,19,28]`; references .5 and .51 and the current swatch display `[225,210,195]`. The application converts public CPU linear RGB into Canvas2D colors. This image shows no GL shader execution and supplies no bit-level pixel parity claim.
+The actual browser image uses default `level:.5`. Reference .49 displays sRGB8 `[9,19,28]`; references .5 and .51 and the current swatch display `[225,210,195]`. The application converts public CPU linear RGB into 2D canvas colors. This image shows no GL shader execution and supplies no bit-level pixel parity claim.
 
 ## Complete editable source
 

@@ -37,7 +37,7 @@ function errorSnapshot(error){
   return{name:error instanceof Error?error.name:'Error',message:error instanceof Error?error.message:String(error),
     code:typeof code==='string'||typeof code==='number'&&Number.isFinite(code)?code:null};
 }
-const gpuEligible=state=>!['context-lost','unavailable','disposed'].includes(state.status);
+const gpuEligible=state=>state.status!=='disposed';
 const stateRefs=state=>[...state.surfaces.map(ref=>({kind:'surface',...ref})),
   ...state.curves.map(ref=>({kind:'curve',...ref}))];
 async function read(file,current){

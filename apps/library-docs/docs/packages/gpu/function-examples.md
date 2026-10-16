@@ -66,7 +66,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. A channel above 255 is outside the literal byte range. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. A channel above 255 is outside the literal byte range. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## sin — One explicit scalar cycle {#material-sin}
 
@@ -103,7 +103,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `TYPE`. sin requires a float argument, not a color. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `TYPE`. sin requires a float argument, not a color. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## cos — Start at the warm endpoint {#material-cos}
 
@@ -140,7 +140,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. The inferred argument 2000 exceeds the ±1000-radian function limit. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. The inferred argument 2000 exceeds the ±1000-radian function limit. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## radians — Normalize a half turn {#material-radians}
 
@@ -175,7 +175,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. The inferred argument 2000 exceeds the ±1000-degree conversion limit. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. The inferred argument 2000 exceeds the ±1000-degree conversion limit. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## pow — Square an admitted amount {#material-pow}
 
@@ -210,7 +210,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. The exponent must be an unsigned integer literal from 2 through 8. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. The exponent must be an unsigned integer literal from 2 through 8. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## abs — Cold center and warm ends {#material-abs}
 
@@ -245,7 +245,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. abs refuses an inferred argument outside±1000. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. abs refuses an inferred argument outside±1000. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## min — Stop at sixty percent {#material-min}
 
@@ -280,7 +280,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. Both inferred min argument ranges must remain within±1000. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. Both inferred min argument ranges must remain within±1000. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## max — Start at forty percent {#material-max}
 
@@ -315,7 +315,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. Both inferred max argument ranges must remain within±1000. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. Both inferred max argument ranges must remain within±1000. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## clamp — Keep quarter-to-three-quarter color {#material-clamp}
 
@@ -350,7 +350,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. The lower inferred bound cannot exceed the upper inferred bound. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. The lower inferred bound cannot exceed the upper inferred bound. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## smoothstep — Literal edges and flat endpoints {#material-smoothstep}
 
@@ -387,7 +387,7 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. Edges must be ordered with reciprocal 1/(hi-lo) at most 1000; equal edges refuse. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. Edges must be ordered with reciprocal 1/(hi-lo) at most 1000; equal edges refuse. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## mix — Inset endpoints using both overloads {#material-mix}
 
@@ -422,13 +422,13 @@ The material changes the color of the same CAD-derived mesh. Compare the display
 }
 ```
 
-Expected compiler diagnostic: `RANGE`. A color mix ratio with inferred value -.1 is outside0..1. Compile the complete candidate before renderer adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
+Expected compiler diagnostic: `RANGE`. A color mix ratio with inferred value -.1 is outside0..1. Compile the complete candidate before adoption. A refused compiler result supplies no new material; keep the accepted one. A later binding/presentation refusal is a separate host result.
 
 ## Compiler, lowering and host lifetime
 
-`compileMeshMaterial(source)` returns an ok/material or diagnostics result. Validate its returned material with `validateMeshMaterialIR`; `lowerMeshMaterial` reconstructs/validates before emitting trusted expression text and uniform layout. These CPU operations allocate no canvas or renderer. Host bindings use the declared name `amount`, not the generated `mat_u_0` name.
+`compileMeshMaterial(source)` returns an ok/material or diagnostics result. Validate its returned material with `validateMeshMaterialIR`; `lowerMeshMaterial` reconstructs/validates before emitting trusted expression text and uniform layout. These CPU operations allocate no canvas or viewer. Host bindings use the declared name `amount`, not the generated `mat_u_0` name.
 
-Compile before mounting an admitted mesh. If initial material adoption fails after mount, dispose that candidate renderer. Later rejected edits keep the accepted binding under the renderer's actual update result. The host owns listeners, the control, source editing and renderer lifetime. Remove listeners before disposal; context loss and restoration must use the supported recovery path.
+Compile before colouring a mesh. Adopt a binding with `mesh.material = { color: [1, 1, 1], shader: bindingShader(validateMeshMaterialBinding({ material, uniforms })) }` (the mesh colour multiplies the shader's colour); a rejected edit throws before the assignment and keeps the accepted material drawn. The host owns listeners, the control, source editing and viewer lifetime. Remove listeners before disposal; the viewer itself replaces a lost GPU device.
 
 The compiler admits the complete declared input interval. It does not accept an unsafe source merely because the host currently binds amount 0. Float mix can infer a wider interval through its arithmetic expansion; the dedicated constant-endpoint sample keeps that expansion safe. A general float mixture of varying inputs can require an explicit final clamp before color mix.
 

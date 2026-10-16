@@ -1,1 +1,0 @@
-{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"noEmit":true,"allowJs":true,"checkJs":true,"skipLibCheck":true,"lib":["ES2022","DOM","DOM.Iterable"],"paths":{"@barocss/canvas2d":["../src/index.ts"],"@barocss/canvas2d/document":["../src/document.ts"]}},"files":["sprite-blend.mjs","image-color-key-types.ts"]}

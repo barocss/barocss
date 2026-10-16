@@ -1,7 +1,5 @@
-import {GPUError} from './renderer.js';
+import {GPUError} from './gpu-error.js';
 import {freezeGpuData} from './gpu-data.js';
-import {MESH_LIGHTING,MESH_SHADERS} from './mesh-shaders.js';
-import type {SceneShaders} from './compiler.js';
 
 /** Derived display data in scene units, separate from native CAD and Physics metre data. */
 export interface ClothLayerV0 {
@@ -99,18 +97,3 @@ export function prepareClothLayer(input:unknown,previous:ClothLayerV0|null,newGe
   const layer:ClothLayerV0=freezeGpuData({version:0,kind:'simulation-cloth',layerId,contextId,sceneRevision,stepIndex,coordinateSystem,positions,indices});
   return{layer,positions:lowered,normals,indices:Uint16Array.from(indices)};
 }
-
-/** Trusted fixed two-sided opaque material. Native mesh material/lighting is unaffected. */
-export const CLOTH_SHADERS:SceneShaders={
-  vertex:MESH_SHADERS.vertex,
-  fragment:`#version 300 es
-precision highp float;
-in vec3 worldNormal;
-out vec4 outputColor;
-void main(){
- vec3 n=normalize(worldNormal);
- if(!gl_FrontFacing)n=-n;
- float light=${MESH_LIGHTING.ambientStrength.toFixed(2)}+${MESH_LIGHTING.diffuseStrength.toFixed(2)}*max(dot(n,normalize(vec3(${MESH_LIGHTING.direction.map(value=>value.toFixed(1)).join(',')}))),0.0);
- outputColor=vec4(pow(pow(vec3(0.76,0.52,0.22),vec3(2.2))*light,vec3(1.0/2.2)),1.0);
-}`,
-};

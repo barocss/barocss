@@ -47,16 +47,6 @@ const nativeSource = '@model cloth_native_control { version:0; length-unit:mm; '
   + 'knots-u:[-0,-0,5,5]; knots-v:[10,10,20,20]; '
   + 'control-points:[[[-700,300,-700],[-700,300,700]],[[700,300,-700],[700,300,700]]]; '
   + 'weights:[[1,1],[1,1]]; } }';
-const sphereOriginal = "@scene mixed_depth { version:1; background:#101820; sphere #original_sphere; } #original_sphere { radius:0.5; color:#ff0000; translate:0 0 0; rotate-x:0deg; rotate-y:0deg; rotate-z:0deg; }";
-const nativeOriginal = "@model rational_native { version:0; length-unit:mm; @surface #original_panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,5,5]; knots-v:[-0,-0,11,11]; control-points:[[[-1000,-1000,0],[-1000,1000,0]],[[1000,-1000,0],[1000,1000,0]]]; weights:[[1,1.2],[0.7,1]]; } }";
-const nativeMixed = await readFile(resolve(root, 'examples/viewer-curve-scene/mixed.barocad'));
-const fixtureData = [
-  ['sphere-original', Buffer.from(sphereOriginal), '/original.scene.source1.css', 'examples/gpu-scene/mixed-depth-flow.mjs:13'],
-  ['native-original', Buffer.from(nativeOriginal), '/original.surface.source0.css', 'examples/gpu-scene/mixed-depth-flow.mjs:14'],
-  ['native-mixed', nativeMixed, '/mixed-original.barocad', 'examples/viewer-curve-scene/mixed.barocad'],
-];
-const fixtureManifest = fixtureData.map(([name, body, url, origin]) => ({name, url, origin, bytes: body.length, sha256: createHash('sha256').update(body).digest('hex')}));
-const fixtureFiles = fixtureData.map(([,body,url]) => [url, {body, type: 'text/plain'}]);
 const ownFixtureNames = ['warped.authentic-request.json', 'interior_edit.authentic-request.json',
   ...['A','B','C','D','E','F'].map(id => 'warped_' + id + '.source0.css'), 'interior_edit_F.source0.css'];
 const qualifiedManifest = [], qualifiedRoutes = [];
@@ -67,8 +57,6 @@ for (const name of ownFixtureNames) {
 }
 const files = new Map([
   ...qualifiedRoutes,
-
-  ...fixtureFiles,
   ['/fixture-manifest.json', { body: JSON.stringify(qualifiedManifest, null, 2), type: 'application/json' }],
   ['/', { body: await readFile(resolve(directory, 'index.html')), type: 'text/html' }],
   ...await Promise.all([0, 1].map(async revision => ['/assembly-revision' + revision + '.json', { body: await readFile(resolve(root, 'examples/gpu-scene/fixtures/assembly-revision' + revision + '.json')), type: 'application/json' }])),
@@ -77,8 +65,6 @@ const files = new Map([
   ['/shell-graph.json', { body: await readFile(resolve(root,
     'packages/barocss-cad-interop/examples/boolean-extrusion-fanout-three-data/three_shared_region_leaves.authored-graph.json')), type: 'application/json' }],
   ['/document.cad-document.json', { body: await readFile(resolve(root, 'packages/barocss-cad-interop/examples/document-gpu-v2.cad-document.json')), type: 'application/json' }],
-  ['/old-single.source0.css', { body: await readFile(resolve(root, 'examples/viewer-selected-uniform-curve-scene/fixtures/old-single.source0.css')), type: 'text/plain' }],
-  ['/mixed-quintic.source0.css', { body: await readFile(resolve(root, 'examples/viewer-selected-uniform-curve-scene/fixtures/mixed-quintic.source0.css')), type: 'text/plain' }],
   ['/input-audit.json', { body: JSON.stringify(audit, null, 2), type: 'application/json' }],
 ]);
 const heldNative = new Set();

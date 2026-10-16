@@ -93,9 +93,6 @@ export function createHostController(viewer, { generation = 1 } = {}) {
       old.active.dispose(); old.shadow.dispose();
       return snapshot();
     },
-    markContextLost() {
-      live(); needsReset = true; phase = 'context-lost'; frame = null; displayStep = null;
-    },
     dispose() {
       if (!disposed) { disposed = true; pair.active.dispose(); pair.shadow.dispose(); }
     },

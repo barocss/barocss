@@ -26,10 +26,8 @@ prior accepted CPU/display and requiresReset. No hidden replay/state setter.
 Metres stay metres in the nine-field Viewer DTO. Viewer applies1000×.001 once.
 Native source millimetres stay original. Hashes bind paused context/generation/
 step and discard stale completions; live playback computes them when paused.
-Context loss pauses and disposes Viewer while the context is lost, retaining
-CPU/source for reporting. After actual restoration, explicitReset reconstructs
-Viewer/native/material and a fresh CPU pair on the same caller-owned canvas.
-No automatic continuation.
+The Viewer draws with WebGPU: startup awaits `createViewer` once and Reset
+reuses it. `viewer.readPixels()` is awaited and returns top-down RGBA rows.
 
 ## Verification
 
@@ -50,19 +48,17 @@ and triangle centroid/edge-midpoint physicalsphere penetration≤.002m. Sampled
 triangle checks do not prove continuous contact.
 
 The browser driver checks all public host states againstNode raw bits, actual
-0/60/240 positions/index/normal buffer readbacks, actualWebGL2 pixels/bothfaces/
-shareddepth/completefrustum/native source/material retention, controls/lateGPU
-failure/non-atomicreset/copies/contextloss/restoration/resources/console and
-ownedcleanup. Rendering-only native/cloth controls are deliberately labelled
-inspection evidence, not accepted host physics updates. GLloss code is recorded
-separately; normal/restored/finalGL must be0.
+0/60/240 WebGPU readPixels captures/bothfaces/shared depth/completefrustum/native
+source/material retention, invalid frame retention, controls, an injected late
+Viewer submission failure, non-atomic reset with an injected second-stage
+failure, copies, console and disposal. Rendering-only native/cloth controls are
+deliberately labelled inspection evidence, not accepted host physics updates.
 
 After numerical/control/pixel gates pass, use the final driver argument `cost`
 for one warm then three actual240-step/2s browser plays per source and compiled
 graph. CombinedBOTH-world solver p95≤8.33ms and simulated/wallratio≥.90 are
 required; Viewer submission and totalhost work are separate. Raw readback,
-hashing/reference/IO are outside timing; ordinary resource counters remain
-on and their overhead is disclosed. This is not GPU completion or FPS proof.
+hashing/reference/IO are outside timing. This is not GPU completion or FPS proof.
 
 CONTRACT.md and Issue981/6093857136 froze actual parentec20329c/ownership/API/
 units/transaction/clock/proof. The first source camera clipped the nativefloor;
@@ -80,6 +76,11 @@ under674 remain separate. Discoverable gallery registration is a later narrow
 Issue if required.
 
 ## Executed native gate
+
+The record below and `evidence/` describe the earlier WebGL2 renderer (GL
+buffer readbacks, resource counters, allocation-failure injection, context
+loss). Those WebGL2-only probes were removed with that renderer.
+`browser-replay.py` still verifies only that saved evidence, not a new run.
 
 Actual parentec20329c → clean measured sourcea8a4a61f. Original required public
 CAD/CAD-interop/GPU/Physics/Viewer library builds pass with unchanged commands.

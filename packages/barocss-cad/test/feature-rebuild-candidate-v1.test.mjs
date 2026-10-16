@@ -33,7 +33,7 @@ test('real authored Native graph rebuild generates a separately owned candidate 
   const { fileURLToPath } = await import('node:url');
   const { resolve } = await import('node:path');
   const { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } = await import('../dist/index.js');
-  const fixture = resolve(fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url)));
+  const fixture = resolve(fileURLToPath(new URL('./fixtures/boolean-extrusion.authored-graph.json', import.meta.url)));
   const document = JSON.parse(readFileSync(fixture, 'utf8'));
   const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
   const previous = evaluateBooleanExtrusionFeatureGraph(document, options);

@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-rotation-pivot.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -165,12 +165,12 @@ function recipe({pivot=[16,12,4],finishing=0,placement=false}={}){
  const snapshot=(finishing?mockFinishing:mockNative)(()=>model.build({original,middle,...(placed?{placed}:{})}));
  return {model,original,middle,placed,snapshot};
 }
-test('all24 inert bindings retain absent pivot three-argument request and authored explicit zero four-argument request',()=>{
+test('all25 inert bindings retain absent pivot three-argument request and authored explicit zero four-argument request',()=>{
  for(const pivot of [undefined,[0,-0,0]]){const {model,original}=part(),output=original.rotate(options(pivot)),start=state.calls.length;
  const snapshot=mockNative(()=>model.build({original,output}));const call=state.calls.slice(start).find(c=>c.binding==='buildModelingRotation');
  assert.equal(call.args.length,pivot===undefined?3:4);assert.deepEqual(Object.keys(call.result.request),pivot===undefined?['parent','spec','prefix']:['parent','spec','prefix','pivotMM']);
  const node=JSON.parse(snapshot.save()).nodes[2];assert.equal(Object.hasOwn(node,'pivot'),pivot!==undefined);if(pivot){assert.deepEqual(call.args[3],pivot);assert.match(snapshot.save(),/-0/);}frozen(snapshot);}
- assert.equal(replaced.size,24);
+ assert.equal(replaced.size, 25);
 });
 test('all axes and six authored angles preserve pivot and canonical two-field private spec',()=>{
  for(const axis of ['x','y','z'])for(const angle of [90,180,270,-90,-180,-270]){const {model,original}=part(),pivot=[16,-0,4],output=original.rotate(options(pivot,axis,angle));

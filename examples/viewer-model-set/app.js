@@ -3,7 +3,7 @@ import { loadBaroCadModelSet } from '../../packages/barocss-cad-interop/dist/mod
 
 const canvas = document.querySelector('#view');
 const output = document.querySelector('#status');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.05, background: [0.015, 0.02, 0.03] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.05, background: [0.015, 0.02, 0.03] });
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const wide = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 1,
@@ -33,7 +33,7 @@ try {
   refs.map((ref, index) => ({ contextId: 'two-files', targetId: `object-${index}`, ref })),
   { basis: 'part-xyz-matches-rhyup' });
   viewer.fit();
-  const posed = hash(viewer.readPixels());
+  const posed = hash(await viewer.readPixels());
   const hits = new Map();
   for (let y = 6; y < canvas.height && hits.size < 4; y += 5) {
     for (let x = 6; x < canvas.width && hits.size < 4; x += 5) {
@@ -45,7 +45,7 @@ try {
   const curveHit = hits.get('curve:asset.b');
   viewer.selectGeometry({ kind: 'curve', ...curveHit.ref });
   assert(viewer.getState().selectedGeometry?.modelId === 'asset.b', 'Qualified Curve selection failed');
-  const selected = hash(viewer.readPixels());
+  const selected = hash(await viewer.readPixels());
   assert(selected !== posed, 'Qualified Curve highlight did not change pixels');
   viewer.fitGeometry({ kind: 'surface', ...hits.get('surface:asset_a').ref });
   const singleCamera = viewer.getState().camera;
@@ -62,16 +62,16 @@ try {
       { modelId: 'asset.b', curveId: 'wide_64', t: 1 });
   } catch { crossRefused = true; }
   assert(crossRefused, 'Cross-alias native measurement accepted');
-  const beforeRefusal = viewer.getState(), beforePixels = hash(viewer.readPixels());
+  const beforeRefusal = viewer.getState(), beforePixels = hash(await viewer.readPixels());
   let invalidRefused = false;
   try {
     viewer.loadModelSet({ ...set, entries: [set.entries[0],
       { ...set.entries[1], aliasId: 'asset_a' }] });
   } catch { invalidRefused = true; }
-  assert(invalidRefused && hash(viewer.readPixels()) === beforePixels
+  assert(invalidRefused && hash(await viewer.readPixels()) === beforePixels
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeRefusal), 'Invalid candidate changed accepted scene');
   viewer.resetMotion();
-  const reset = hash(viewer.readPixels());
+  const reset = hash(await viewer.readPixels());
   viewer.loadNative(set.entries[0].result.source, { sourceVersion: 0, countU: 8, countV: 8,
     curveDisplay: wide.curveDisplay });
   assert(viewer.getState().native?.model.name === 'wide_model'

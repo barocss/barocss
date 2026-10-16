@@ -4,11 +4,10 @@ import { prepareNativePointLightProgramWGSL } from './native-point-light-program
 import type { PreparedNativePointLightProgramWGSL, NativePointLightProgramWGSLProgram,
   NativePointLightProgramWGSLABI } from './native-point-light-program-wgsl.js';
 import type { NativePointLightsV0 } from './native-point-lights.js';
-import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
+import type { PrimitiveSceneRef } from './primitive-scene.js';
 import { prepareCamera } from './camera.js';
 import type { MeshCamera } from './camera.js';
 import type { RGB, Vec3 } from './scene-types.js';
-import type { UpdateResult } from './renderer.js';
 
 export const NativePointLightWebGPUDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', PROFILE: 'PROFILE', FRAME: 'FRAME', PROGRAM: 'PROGRAM', REPRESENTATION: 'REPRESENTATION',
@@ -30,38 +29,12 @@ export interface NativePointLightWebGPURequest {
   frame: Omit<PrimitiveSceneCpuFrameV0, 'options'> & { options: NativePointLightWebGPUFrameOptions };
   lights: NativePointLightsV0;
 }
-export interface NativePointLightWebGPUOptions { readonly width: number; readonly height: number }
-export interface NativePointLightWebGPULimits {
-  readonly maxTextureDimension2D: number; readonly maxBufferSize: number; readonly maxUniformBufferBindingSize: number;
-  readonly maxColorAttachments: number; readonly maxColorAttachmentBytesPerSample: number;
-  readonly maxVertexBuffers: number; readonly maxVertexAttributes: number; readonly maxBindGroups: number;
-  readonly maxVertexBufferArrayStride: number; readonly maxUniformBuffersPerShaderStage: number;
-  readonly maxBindingsPerBindGroup: number;
-}
 export interface NativePointLightWebGPUResources {
   readonly geometryBytes: number; readonly uniformBytes: number; readonly colorIdentityBytes: number;
   readonly depthTexels: number; readonly depthBudgetBytes: number; readonly chargedBytes: number;
   readonly readbackBytes: number; readonly buffers: number; readonly textures: number;
   readonly bindGroups: number; readonly pipelines: number;
 }
-export interface NativePointLightWebGPUStatus {
-  readonly backend: 'webgpu'; readonly profile: 'qualified-surface-authored-point-webgpu-v0';
-  readonly state: 'ready' | 'lost' | 'failed' | 'disposed'; readonly generation: number;
-  readonly width: number; readonly height: number; readonly limits: NativePointLightWebGPULimits;
-  readonly resources: NativePointLightWebGPUResources;
-}
-export interface NativePointLightWebGPUPick { readonly generation: number; readonly ref: PrimitiveSceneRef | null }
-export interface NativePointLightWebGPUViewport {
-  readonly canvas: HTMLCanvasElement; readonly originals: NativePointLightWebGPURequest;
-  readonly selected: PrimitiveSceneRef | null; readonly status: NativePointLightWebGPUStatus;
-  updateFrame(input: unknown): Promise<UpdateResult>;
-  resize(width: number, height: number): Promise<UpdateResult>;
-  readPixels(): Promise<Uint8Array>;
-  pick(x: number, y: number): Promise<NativePointLightWebGPUPick>;
-  select(ref: PrimitiveSceneRef | null): UpdateResult;
-  dispose(): void;
-}
-
 /** Private producer result. Never accepted as a caller token or exported from the barrel. */
 export interface PreparedNativePointLightWebGPUFrame {
   readonly request: NativePointLightWebGPURequest;

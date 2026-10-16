@@ -3,30 +3,7 @@ import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 const canvas = document.querySelector('#view');
 const stateElement = document.querySelector('#state');
 const keyboardProofMode = new URLSearchParams(location.search).has('keyboardProof');
-const proofContexts = new Set(), proofResources = {};
-if (keyboardProofMode) {
-  const getContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-    const context = getContext.call(this, kind, ...args);
-    if (kind === 'webgl2' && context) proofContexts.add(context);
-    return context;
-  };
-  for (const type of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-    const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-    proofResources[type] = live;
-    const create = prototype[`create${type}`], remove = prototype[`delete${type}`];
-    prototype[`create${type}`] = function (...args) {
-      const value = create.apply(this, args);
-      if (value) live.add(value);
-      return value;
-    };
-    prototype[`delete${type}`] = function (value) {
-      live.delete(value);
-      return remove.call(this, value);
-    };
-  }
-}
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
 const sourcePath = new URLSearchParams(location.search).get('weightedCurve') === '1'
   ? '/weighted-curve.barocad' : '/two-surfaces.barocad';
 const source = await (await fetch(sourcePath)).text();
@@ -170,7 +147,7 @@ window.viewerDemo = { viewer, controls, pointerErrors, keyboardControls, keyboar
 if (keyboardProofMode) {
   const assert = (value, message) => { if (!value) throw new Error(message); };
   const same = (first, second) => JSON.stringify(first) === JSON.stringify(second);
-  const pixelHash = () => viewer.readPixels().reduce((value, byte) =>
+  const pixelHash = async () => (await viewer.readPixels()).reduce((value, byte) =>
     Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
   const send = (key, flags = {}) => {
     const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...flags });
@@ -179,20 +156,20 @@ if (keyboardProofMode) {
   };
   try {
     viewer.fit();
-    const fitted = viewer.getState().camera, fittedPixels = pixelHash();
+    const fitted = viewer.getState().camera, fittedPixels = await pixelHash();
     viewer.orbit(0.4, 0.12);
     assert(send('f') && same(viewer.getState().camera, fitted)
-      && pixelHash() === fittedPixels, 'Focused fit did not restore the direct camera and pixels');
+      && await pixelHash() === fittedPixels, 'Focused fit did not restore the direct camera and pixels');
     viewer.selectGeometry({ kind: 'surface', ...refs[0] });
-    const selectedPixels = pixelHash();
+    const selectedPixels = await pixelHash();
     assert(send('Escape') && viewer.getState().selectedGeometry === null
-      && pixelHash() !== selectedPixels && viewer.getState().native.source === source,
+      && await pixelHash() !== selectedPixels && viewer.getState().native.source === source,
     'Escape did not clear selection while preserving source');
-    const stable = viewer.getState(), stablePixels = pixelHash();
+    const stable = viewer.getState(), stablePixels = await pixelHash();
     for (const [key, flags] of [
       ['f', { shiftKey: true }], ['f', { ctrlKey: true }], ['f', { repeat: true }],
       ['f', { isComposing: true }], ['q', {}],
-    ]) assert(!send(key, flags) && same(viewer.getState(), stable) && pixelHash() === stablePixels,
+    ]) assert(!send(key, flags) && same(viewer.getState(), stable) && await pixelHash() === stablePixels,
       `Ignored key ${key} changed accepted Viewer state`);
     const inputEvent = new KeyboardEvent('keydown', { key: 'f', bubbles: true, cancelable: true });
     document.querySelector('#first-u').dispatchEvent(inputEvent);
@@ -200,36 +177,24 @@ if (keyboardProofMode) {
       'Input-target key changed Viewer state');
     keyboardControls.dispose(); keyboardControls.dispose();
     viewer.orbit(0.2, 0);
-    const detached = viewer.getState(), detachedPixels = pixelHash();
-    assert(!send('f') && same(viewer.getState(), detached) && pixelHash() === detachedPixels,
+    const detached = viewer.getState(), detachedPixels = await pixelHash();
+    assert(!send('f') && same(viewer.getState(), detached) && await pixelHash() === detachedPixels,
       'Disposed keyboard adapter handled a key');
     keyboardControls = viewer.attachKeyboardControls({ onError: error => keyboardErrors.push(error.message) });
     window.viewerDemo.keyboardControls = keyboardControls;
     viewer.clear();
-    const blank = viewer.getState(), blankPixels = pixelHash();
+    const blank = viewer.getState(), blankPixels = await pixelHash();
     assert(!send('f') && keyboardErrors.length === 1
-      && same(viewer.getState(), blank) && pixelHash() === blankPixels,
+      && same(viewer.getState(), blank) && await pixelHash() === blankPixels,
     'Empty fit did not report and retain the accepted blank scene');
     viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
-    canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
-    const lost = viewer.getState();
-    assert(!send('f') && keyboardErrors.length === 2
-      && viewer.getState().status === 'context-lost' && same(viewer.getState(), lost),
-    'Context-loss fit did not report and retain camera/state');
     viewer.dispose();
     const disposed = viewer.getState();
-    assert(!send('f') && keyboardErrors.length === 2 && same(viewer.getState(), disposed),
+    assert(!send('f') && keyboardErrors.length === 1 && same(viewer.getState(), disposed),
       'Disposed Viewer handled a canvas key');
-    const remaining = Object.fromEntries(Object.entries(proofResources)
-      .map(([type, live]) => [type, live.size]));
     const result = { ok: true, sourcePath, fitted, fittedPixels, selectedPixels,
       ignored: ['shift', 'ctrl', 'repeat', 'composing', 'other', 'input', 'adapter-disposed'],
-      errors: keyboardErrors, oneContext: proofContexts.size === 1,
-      glError: [...proofContexts][0]?.getError(), remaining,
-      status: viewer.getState().status };
-    assert(result.oneContext && result.glError === 0
-      && Object.values(remaining).every(value => value === 0),
-    'Viewer keyboard proof leaked a WebGL resource or context');
+      errors: keyboardErrors, status: viewer.getState().status };
     stateElement.textContent = JSON.stringify(result, null, 2);
   } catch (error) {
     viewer.dispose();

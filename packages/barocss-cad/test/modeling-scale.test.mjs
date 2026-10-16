@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-scale.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -160,8 +160,8 @@ const doc = (factor=0.5) => ({format:'barocss-cad-model',schema:1,units:'mm',par
 const part = () => {const model=createCadModel();return {model,original:rectangle(model).extrude(8)};};
 function pair(factor=0.5) {const {model,original}=part(),scaled=original.scale(options(factor));return mockNative(()=>model.build({original,scaled}));}
 
-test('all twenty-four facade providers are replaced with direct provenance excluding native implementations',()=>{
-  assert.equal(replaced.size,24);assert.equal(inputPaths.length,pureModules.size);
+test('all twenty-five facade providers are replaced with direct provenance excluding native implementations',()=>{
+  assert.equal(replaced.size, 25);assert.equal(inputPaths.length,pureModules.size);
   const start=state.calls.length,snapshot=pair(),calls=state.calls.slice(start);
   assert.deepEqual(calls.map(c=>c.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingScale']);
   assert.equal(calls[2].args[0],snapshot.bodies.original.native);assert.deepEqual(calls[2].args[1],{factor:0.5});assert.equal(calls[2].args[2],'m2');

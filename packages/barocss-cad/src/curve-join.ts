@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
@@ -34,7 +35,7 @@ export interface JoinedCurveResult {
   left:Curve;right:Curve;options:CurveJoinOptions;curve:Curve;source:string;sourceVersion:0;model:Model;
   parentSources:{left:string;right:string};parentModels:{left:Model;right:Model};provenance:CurveJoinProvenance;report:JoinedCurveReport;
 }
-const LABEL='Native Curve join',EPS=64*Number.EPSILON,POINT_TOLERANCE=1e-7,D1_TOLERANCE=1e-7;
+const LABEL='Native Curve join',EPS=64*Number.EPSILON,POINT_TOLERANCE=CadNumericPolicy.linearToleranceMM,D1_TOLERANCE=CadNumericPolicy.relativeComparison;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

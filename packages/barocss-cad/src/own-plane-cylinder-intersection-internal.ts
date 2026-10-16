@@ -9,6 +9,7 @@ import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 
 import type { XYCirclePrismPlaneIntersectionOptions, XYCirclePrismPlaneBindings, PlaneCylinderHomogeneousSpan, PlaneCylinderIntersectionObservation } from './own-plane-cylinder-intersection.js';
+import { same } from './structural-equality.js';
 
 export interface OwnPlaneCylinderCandidate {
   shell: XYCirclePrismShellBundle; options: XYCirclePrismPlaneIntersectionOptions; sourceCircle: Curve;
@@ -36,10 +37,7 @@ function record(input: unknown, fields: string[]): Record<string, unknown> {
   check(input !== null && typeof input === 'object' && !Array.isArray(input), 'record required'); const r = input as Record<string, unknown>;
   check(Object.keys(r).length === fields.length && fields.every(key => Object.hasOwn(r, key)), 'exact fields required: ' + fields.join(',')); return r;
 }
-export function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
-}
+export { same };
 function admitOptions(input: unknown, shell: XYCirclePrismShellBundle): XYCirclePrismPlaneIntersectionOptions {
   const r = record(input, ['curveId','planeId','planePcurveId','wallPcurveId','evaluationId','slopeX','slopeY','zInterceptMM']);
   for (const key of ['curveId','planeId','planePcurveId','wallPcurveId','evaluationId']) check(typeof r[key] === 'string' && (r[key] as string).length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(r[key] as string), 'ASCII IDs1..48 required');

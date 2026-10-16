@@ -1,6 +1,7 @@
 import { validateBooleanExtrusionFeatureGraph } from './boolean-extrusion-feature-graph.js';
 import type { BooleanExtrusionFeatureGraphResult } from './boolean-extrusion-feature-graph.js';
 import { extrudeCoplanarFaceBoolean } from './coplanar-face-boolean-extrusion.js';
+import { same } from './structural-equality.js';
 
 /**
  * Experimental single-leaf native re-execution witness.
@@ -23,18 +24,6 @@ export type NativeExtrusionLeafProbeV1 =
   | { readonly status: 'refused'; readonly reason: 'invalid-native-graph' | 'revision-or-identity' |
       'changed-region' | 'unsupported-feature' | 'native-refusal' | 'output-mismatch' };
 
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b))
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
-      a.every((item, index) => same(item, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    const keys = Object.keys(left);
-    return keys.length === Object.keys(right).length &&
-      keys.every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 
 /**
  * Prove that one extrusion can be re-executed from an unchanged earlier Native

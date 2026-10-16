@@ -3,6 +3,7 @@ import type { CadCompileResult } from './model-compiler.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain } from './math.js';
 import { curveDecimal } from './curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const IGESImportDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', FILE: 'FILE', RECORD: 'RECORD', GLOBAL: 'GLOBAL',
@@ -293,17 +294,6 @@ function snapshot(input: unknown, owned = false, result = false): unknown {
     if (cause instanceof IGESImportError) throw cause;
     throw new IGESImportError(code, 'Own snapshot failed', cause);
   }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  }
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length &&
-      Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function fileSize(input: unknown, limit: number): Size {
   let utf16 = 0, utf8 = 0;

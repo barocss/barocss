@@ -6,6 +6,7 @@ import type { XYCirclePrismDocumentV0, XYCirclePrismDocumentResult, XYCirclePris
 import type { XYCirclePrismShellReport } from './xy-circle-prism-shell.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
+import { same as sameData } from './structural-equality.js';
 
 export type SketchCircleLengthDefinition = { kind: 'literal'; valueMM: number } | { kind: 'offset'; parameterId: string; offsetMM: number };
 export interface SketchCircleLengthParameter { id: string; type: 'length'; definition: SketchCircleLengthDefinition }
@@ -67,14 +68,6 @@ function admit(input: unknown, label: string): SketchCircleFeatureGraphV0 {
     return admitFeature(value, label, '$.features[' + index + ']');
   });
   return { format: 'barocss-sketch-circle-feature-graph', version: 0, id, lengthUnit: 'mm', sketch: data.sketch as XYArcSketchDocumentV0, parameters, features };
-}
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 
 function evaluate(document: SketchCircleFeatureGraphV0, label: string, nativeIdentities?: Map<string, string>): SketchCircleFeatureGraphResult {

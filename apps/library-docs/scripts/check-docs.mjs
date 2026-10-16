@@ -1,11 +1,9 @@
-import './check-cad-editor-round-post.mjs';
-import './check-cad-editor-next-lessons.mjs';
 import { checkExampleCatalog } from './check-example-catalog.mjs';
 import { repairSourceLinks } from './source-links.mjs';
 import { readFile, readdir, access } from 'node:fs/promises';
 import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkCurrentInventory } from './inventory.mjs';
+import { checkCurrentInventory, retiredSlugs } from './inventory.mjs';
 const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 const docs = resolve(app, 'docs');
@@ -21,7 +19,7 @@ async function walk(directory) {
   }
 }
 await walk(docs);
-for (const p of inventory.packages) {
+for (const p of inventory.packages.filter(p => !retiredSlugs.includes(p.slug))) {
   const required = ['index', ...( ['kit','browser','server'].includes(p.slug) ? [] : ['quickstart','guides','api','reference','examples','limits'])];
   for (const name of required) {
     const text = await readFile(resolve(docs, 'packages', p.slug, `${name}.md`), 'utf8');
@@ -35,7 +33,7 @@ for (const page of pages) {
   // JSON/CSS downloads use native anchors; verify their built bytes match the source.
   for (const match of text.matchAll(/<a\b[^>]*\s(?::href="withBase\('([^'?#]+\.(?:json|css))'\)"|href="([^"?#]+\.(?:json|css))")[^>]*>/g)) {
     const href = match[1] || match[2];
-    if (!href.startsWith('/examples/') && !href.startsWith('/evidence/cad-editor/manual-1803/'))
+    if (!href.startsWith('/examples/'))
       throw new Error(`Unexpected JSON/CSS download: ${href}`);
     const source = resolve(docs, 'public', `.${href}`);
     const built = resolve(docs, '.vitepress/dist', `.${href}`);
@@ -76,4 +74,4 @@ for (const page of pages) {
 }
 await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
 const exampleCatalog = await checkExampleCatalog(app);
-console.log(JSON.stringify({ exampleCatalog, pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit, manifestCommit: currentInventory.manifestCommit }));
+console.log(JSON.stringify({ exampleCatalog, pages: pages.length, packages: currentInventory.packages.length, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit, manifestCommit: currentInventory.manifestCommit }));

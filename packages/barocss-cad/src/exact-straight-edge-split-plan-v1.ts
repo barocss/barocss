@@ -1,4 +1,5 @@
 import { intersectProperSegmentsExactBinary64V1 } from './exact-segment-intersection-point-v1.js';
+import { snapshotExactSegments } from './exact-segment-snapshot-internal.js';
 import type { Binary64PointV1 } from './exact-binary64-orientation-v1.js';
 import type { ExactRationalMMV1 } from './exact-segment-intersection-point-v1.js';
 
@@ -55,9 +56,13 @@ export function planExactStraightEdgeCrossingSplitV1(
       !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(firstId) ||
       !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(secondId) || firstId === secondId)
     return { status: 'unsupported', reason: 'invalid-edge-ids' };
-  const result = intersectProperSegmentsExactBinary64V1(a, b, c, d, maxAbsCoordinateMM);
+  // Read the caller's points once: the crossing and the subedge endpoints come from the same snapshot,
+  // so a Proxy or accessor cannot hand the intersection one point and the plan another.
+  const admitted = snapshotExactSegments(a, b, c, d, maxAbsCoordinateMM);
+  if (admitted.reason) return { status: 'unsupported', reason: admitted.reason };
+  const [pa, pb, pc, pd] = admitted.points as readonly Binary64PointV1[];
+  const result = intersectProperSegmentsExactBinary64V1(pa, pb, pc, pd, maxAbsCoordinateMM);
   if (result.status !== 'exact') return result;
-  const [pa, pb, pc, pd] = [a, b, c, d] as Binary64PointV1[];
   const endpointA = point(pa), endpointB = point(pb), endpointC = point(pc), endpointD = point(pd);
   const crossing = result.pointMM;
   const segment = (id: string, t0: ExactRationalMMV1, t1: ExactRationalMMV1,

@@ -13,5 +13,7 @@ VIEWER_MODEL_SET_URL_EVIDENCE=/tmp/viewer-894-browser.json node examples/viewer-
 
 Open <http://127.0.0.1:52994/> in Chromium. The page compares synchronous
 Loader admission with URL admission and checks progress, abort, stale requests,
-failed source, scene replacement and resource cleanup in one WebGL2 canvas.
+failed source, scene replacement and disposal in one WebGPU canvas. The
+Viewer is created with `await createViewer(...)`; pixel hashes come from
+`await viewer.readPixels()`.
 A deliberate HTTP 404 may appear as one browser network-console error.

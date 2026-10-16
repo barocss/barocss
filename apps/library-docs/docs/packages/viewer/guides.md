@@ -28,6 +28,6 @@ Physics outputs metres. Viewer cloth/fluid adapters copy supported frame data an
 
 `clear()` draws a blank background frame and clears loaded authority, selection, poses and measurements while retaining accepted view/background/scale/lighting. It supersedes older pending native URL results. `getState().status` becomes `empty`. The initial no-renderer state and an explicit clear are different.
 
-Dispose pointer/keyboard adapters and Viewer on document close. Context loss or unavailable presentation retains only the documented authority for that mode; old pixels are not promised. Explicitly reconstruct a supported Viewer/provider path for recovery. Do not use a disposed object.
+Dispose pointer/keyboard adapters and Viewer on document close. The Viewer draws through the `@barocss/gpu` WebGPU viewer core, which replaces a lost GPU device and redraws the accepted scene; there is no WebGL context loss to recover from. `readPixels()` is asynchronous: it waits for the next drawn frame. Do not use a disposed object.
 
 `packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

@@ -1,5 +1,78 @@
 # @barocss/gpu (experimental v0)
 
+An independent CSS-shaped scene language, its CPU compiler and data services, and
+one WebGPU viewer. This package has no React, Three.js, GSS or existing
+utility-class dependency; it declares its own `@barocss/cad` dependency for native
+Curve/Surface admission. Its local package configuration is public
+(`private:false`, `publishConfig.access:public`). This does not mean the package
+has been published to npm, or claim CSS/GSS compatibility or production readiness.
+
+## Viewer (`@barocss/gpu/viewer`)
+
+One WebGPU renderer for a canvas: the package's rendering core. It owns one device and canvas context,
+keeps geometry in long-lived buffers, draws on demand (one frame per animation frame), follows the
+canvas size and pixel ratio, and replaces a lost device and re-uploads the scene.
+
+```js
+import { createViewer, translation } from '@barocss/gpu/viewer';
+
+const viewer = await createViewer(canvas, { background: { top: '#2e3035', bottom: '#18191b' }, grid: true });
+const box = viewer.add({ positions, normals, indices, faces }, { material: { color: '#c0c4cc', roughness: 0.5 } });
+viewer.add({ positions: edgeSegments, topology: 'lines' }, { material: { color: '#111111', unlit: true, lineWidth: 1.5 } });
+viewer.lights = [{ kind: 'directional', direction: [-0.4, 0.6, -1], castShadow: true }];
+viewer.environment = { ambientOcclusion: { strength: 1 } };
+viewer.fit();
+
+const hit = viewer.raycast(x, y);       // mesh, triangle, face id, instance, point — at once on the CPU
+const gpuHit = await viewer.pick(x, y); // the same from the GPU's id and depth targets
+box.outline = '#e8c25a';                // a selection outline around the visible part
+```
+
+- Camera: perspective (infinite far) or orthographic, reversed [0, 1] depth, clip planes fitted to the
+  scene, `fit()`, rays; orbit, pan and zoom to the point under the cursor (`controls: false` to drive the
+  camera yourself).
+- Materials: metal–roughness with directional, point and spot lights and a hemisphere ambient; unlit;
+  vertex colours; colour maps (`createTexture`, mipmaps, `Material.map` with `uvs`); transparency drawn
+  back to front; shadow catchers (`shadowOnly`).
+- Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
+- Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
+  shadows (shadow map, PCF), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  exposure and ACES tone mapping in a linear half-float pipeline.
+- Tests: `tests/viewer-core.test.mjs` (Node), `tests/viewer-browser.test.mjs` and
+  `tests/scene-viewer-browser.test.mjs` (Chrome's WebGPU, `CHROME` and `PW_DIR`,
+  `VIEWER_ADAPTER=swiftshader` for the software adapter).
+
+The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
+source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
+name the object), and `view.update(source)` shows an edited source, or returns its diagnostics and keeps
+the scene. Authored `@shader` materials lower to `Material.shader` (WGSL declarations, a colour expression
+and 64 bytes of params) with `materialShader(source, params?)` (`{ok, shader, uniforms, usesUV}` or
+diagnostics), `bindingShader(binding)` for a compiled `MeshMaterialBinding`, and
+`uv01Shader(material, uniforms)` for a native Surface UV01 material. A UV01 source reads
+`surface_u01`/`surface_v01` from the geometry's `uvs`.
+
+## Removed renderers
+
+The viewer is the only renderer. The earlier WebGL2 renderers and single-canvas
+WebGPU viewports were removed together with their browser flows and tests:
+`mountScene`/`SceneRenderer`, `mountMesh`/`MeshRenderer`, `mountMeshScene`,
+`mountMeshViewport`, `mountPrimitiveScene` (and V1/V2), `mountPrimitiveViewport`,
+`mountPrimitiveSceneFrame`/`mountPrimitiveViewportFrame`,
+`PrimitiveSceneRecoveryError`, `mountBooleanShell`, `mountBooleanShellScene`,
+`mountMixedDepthScene`, `mountQualifiedFaceScene` and
+`handoffQualifiedFaceToPrimitiveViewport`, `mountEngineScene`, the native
+directional-light, point-light and Surface UV01 WebGPU viewports,
+`prepareNativeSurfaceUV01ShaderSource`, `prepareNativeDirectionalLightShaderSource`
+and `CLOTH_SHADERS`. Draw with `createViewer`/`showScene` instead; `@barocss/viewer`
+draws its native scenes on the same core.
+
+The CPU data APIs below remain. Some of their types (`MeshEdgeOverlay`,
+`MeshFaceHighlight`, `MeshObjectHighlight`, `ParticleLayerV0`, `ClothLayerV0`,
+`PrimitiveSceneFrameV1`, `BooleanShellSceneInputV0` and the
+`NativeDirectionalLightWebGPU*`/`NativePointLightWebGPU*` request, error and status
+types) were shaped by those renderers and are kept as data contracts for callers
+such as `@barocss/viewer`; nothing in this package draws them directly.
+
 ## Complete integer-box Boolean CPU buffers
 
 `prepareAxisBoxBooleanBuffers(result, {basis:'authored-xyz-matches-rhyup',
@@ -20,31 +93,27 @@ The native integer-cell Solid proof remains native. Float32 positions/normals an
 Uint16 indices are independent caller-owned display copies. Metadata/native/options
 are frozen. `AxisBoxBooleanBufferError` codes are INPUT, BUDGET, NATIVE, BINDING and
 CONVERSION, with the actual cause retained. The explicit basis declares authored
-XYZ agreement with renderer Y-up; scale/translation apply once. Unsafe coordinate
+XYZ agreement with the display's Y-up; scale/translation apply once. Unsafe coordinate
 loss and degenerate display triangles refuse without a partial public result.
 
-This CPU profile is separate from existing extrusion-Shell and limited Face/Mesh
-renderer inputs. It is not an original Surface, a renderer or a Viewer adoption.
-No edges, colors, camera, picking or GLB are added. The focused
-`axis-box-boolean-buffers-flow.mjs --output <dir>` uses recorded native results,
-actual source/compiled public API and cold files; it requires no browser or GL.
+This CPU profile is separate from extrusion-Shell and Face/Mesh preview inputs. It
+is not an original Surface. No edges, colors, camera, picking or GLB are added. The
+focused `examples/gpu-scene/axis-box-boolean-buffers-flow.mjs --output <dir>` uses
+recorded native results, actual source/compiled public API and cold files; it
+requires no browser or GPU.
 
 ## Native Curve coordinate conversion
 
 Primitive Curve display preparation refuses a nonzero posed millimetre coordinate
 that becomes zero when multiplied by `mmToSceneUnit`. It also refuses a nonzero
 final scene coordinate that becomes zero in Float32. Scene translation cannot
-hide scaling loss. These refusals use the existing `GPUError` and update result
-contracts; original source, native points, IDs and uniform/adaptive profiles remain
+hide scaling loss. These refusals use the existing `GPUError`
+contract; original source, native points, IDs and uniform/adaptive profiles remain
 unchanged. Exact zero, legitimate pose cancellation and nonzero Float32 subnormals
 remain admitted subject to the existing range and segment-collapse guards.
 
 This tightens admission for previously accepted lossy conversions. It does not
 certify lossless pose/translation arithmetic, pixel accuracy or device capacity.
-The focused `examples/gpu-scene/curve-coordinate-admission-flow.mjs --output <dir>`
-checks actual source and compiled API CPU preparation using an intentional null
-context boundary. It creates no WebGL renderer and does not prove visible-frame
-retention or replace an actual browser flow.
 
 These direct GPU cases are not Viewer reproductions. Existing Viewer native
 loading first performs its own Loader admission and supports display scales
@@ -62,12 +131,8 @@ conversion and triangle validity checks. Exact zero, legitimate post-pose or
 scene translation cancellation and nonzero Float32 subnormals remain admitted.
 Previously accepted per-coordinate scaling or Float32 zero loss now refuses.
 
-Run `examples/gpu-scene/surface-coordinate-admission-flow.mjs --output <dir>` for
-the focused actual Source0/CAD sampling/public GPU API/cold-file CPU flow.
-Direct `prepareMesh` returns real CPU arrays; the posed mount checks stop at an
-intentional null context. No successful renderer, pixel or frame-retention
-claim follows. Full pose/translation precision and native Solid accuracy remain
-outside this conversion contract.
+Direct `prepareMesh` returns real CPU arrays. Full pose/translation precision and
+native Solid accuracy remain outside this conversion contract.
 
 ## Positive pose scale admission
 
@@ -81,14 +146,6 @@ compare it with a later rotated component: rotation or translation may legitimat
 cancel a component. Original source/native values and the existing operation
 order, unit conversion, Float32, segment and triangle checks remain unchanged.
 This is a scalar admission guard, not a guarantee of lossless pose arithmetic.
-The focused `pose-scale-admission-flow.mjs --output <dir>` checks real public API
-CPU preparation and cold files at an intentional null context boundary; it claims
-no successful renderer or browser verification.
-
-An independent CSS-shaped scene language and original WebGL2 SDF renderer.
-This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
-Its local package configuration is public (`private:false`, `publishConfig.access:public`).
-This does not mean the package has been published to npm, or claim CSS/GSS compatibility or production readiness.
 
 ## Compiled package and local source development
 
@@ -141,8 +198,8 @@ unknown IDs/properties/selectors and properties applied to the wrong shape fail.
 
 Limits: 64 KiB UTF-8 source, 32 objects, 128 rules, 512 style declarations,
 finite numbers, coordinates with absolute value <=1000, dimensions >0 and <=1000.
-Geometry must also remain positive after conversion to GPU float32. Values smaller
-than the ray epsilon may be accepted but need not produce visible geometry.
+Geometry must also remain positive after conversion to GPU float32. Very small
+positive values may be accepted but need not produce visible geometry.
 Diagnostics carry source offsets and one-based line/column positions.
 
 ## Source1 rigid rotation (prototype)
@@ -171,19 +228,8 @@ Source1 emits SDF render IR schema2 with `angleUnit: 'deg'`, `rotationOrder: 'X-
 and per-draw `rotateDegrees`. Scene0, SDF IR1, mesh IR1 and old shader bytes
 remain unchanged. AST schema1 identifies source0 or source1 in `sourceVersion`.
 
-Use `mountScene(canvas, source, camera, {sourceVersion: 1})`, or the matching
-fourth constructor argument. The third argument remains the runtime camera.
-The renderer keeps its selected source version for all updates. Camera changes
-alter only the view. Unknown options and invalid source updates fail before
-adoption; the accepted scene and frame remain usable.
-
-The minimal root preview includes **GPU · Rotated box**, with mouse orbit.
-Build the GPU package and run `examples/gpu-scene/rotation-smoke.mjs` using the
-installed PW_DIR/CHROME and BAROCSS_ROTATION_EVIDENCE paths. This short smoke
-checks real shader compile/link/draw, rotated/edit/orbit frames, inverse-axis
-order, invalid-update retention and an unchanged source0 shader fixture.
-Broader numerical/resource/performance/compatibility validation is deferred.
-This increment adds no groups, scale, CSG, animation, materials or picking.
+`showScene` compiles a source as source1 when its header says `version: 1;` and
+places each object with its translation and X-then-Y-then-Z rotation.
 
 ## Source1 capped cylinder (prototype)
 
@@ -208,15 +254,6 @@ layout remains, but does not determine cylinder dimensions. Source0/Scene0/IR1
 reject cylinders; source1 sphere/box shader bytes stay unchanged when no cylinder
 is present. This is an additive experimental source1/IR2 kind; an older implementation
 or consumer must not be assumed to support it.
-
-Select **GPU · Cylinder** in the minimal Example menu to see the cap and side.
-`examples/gpu-scene/cylinder-smoke.mjs` checks actual generated GLSL distance
-control points (RGBA8 tolerance2/255), source edits, orbit, invalid-frame retention
-and unchanged source0/source1 shader controls. CPU intent controls use tolerance
-1e-12. It writes exact HEAD, source/AST/IR/execution/camera/backend and PNG lineage
-under BAROCSS_CYLINDER_EVIDENCE, using existing PW_DIR/CHROME installations.
-This is prototype evidence; broader numerical/resource/performance suites remain
-deferred. No CAD cylinder, B-Rep, capsule, groups, CSG or material system is added.
 
 ## Source1 capsule (prototype)
 
@@ -246,55 +283,37 @@ requires both vectors and rejects sparse/accessor/foreign/extra values without
 invoking getters. This is an additive experimental source1/IR2 kind; older consumers
 must not be assumed to support it. Source0/Scene0/IR1 reject capsule.
 
-Select **GPU · Capsule** at `/#capsule` for an oblique mixed-primitive view.
-`examples/gpu-scene/capsule-smoke.mjs` runs real generated GLSL axis/oblique/end
-region distance probes (RGBA8 tolerance2/255), CPU intent controls (1e-12), source
-edits/orbit/invalid-frame retention and exact old source0/rotation/cylinder shader
-controls. Use existing PW_DIR/CHROME and BAROCSS_CAPSULE_EVIDENCE paths for PNGs
-and exact HEAD/source/AST/IR/execution/camera/backend lineage. Broader numerical,
-resource, performance and compatibility suites remain deferred. No native CAD
-capsule/B-Rep, groups, scale, CSG, materials, animation or picking is added.
-
 ## Built ESM API
 
 ```js
-import { parseScene, compileScene, mountScene } from '@barocss/gpu';
+import { parseScene, compileScene, compileGpu, createViewer, showScene } from '@barocss/gpu';
 const scene = parseScene(source); // throws SceneError with diagnostics
-const shaders = compileScene(scene); // revalidates structured input
-const renderer = mountScene(canvas, source); // throws GPUError on GL failure
-const result = renderer.update(nextSource); // {ok:true} or {ok:false,error}
-renderer.resize(640, 480);
-const rgba = renderer.readPixels(); // bottom-left origin, Uint8Array
-renderer.dispose(); // idempotent
+const shaders = compileScene(scene); // revalidates structured input; SDF shader text
+const compiled = compileGpu({ kind: 'scene', source }); // {ok, ast, ir, execution} or {ok:false, diagnostics}
+
+const viewer = await createViewer(canvas);
+const view = showScene(viewer, source); // throws SceneViewError if the first source fails
+const result = view.update(nextSource); // {ok:true} or {ok:false, diagnostics}; the shown scene stays
+const { width, height, data } = await viewer.capture(); // RGBA rows from the top
+view.dispose();
+viewer.dispose();
 ```
 
-`scene` and `shaders` getters expose the accepted state. Invalid parse, validation,
-shader compilation/link or candidate GL draw returns failure and keeps the accepted
-scene/frame when the context remains usable. A lost context cannot preserve usable
-pixels: it is explicit failure and requires a fresh mount. Missing WebGL2 fails;
-there is no CPU fallback. Resize/read/getters throw after disposal/context loss;
-update returns failure after disposal/context loss. Dispose removes only this
-renderer's programs/shaders/VAO and its listener. No timer or animation loop exists.
-Use a dedicated canvas/context: drawing sets default framebuffer, program, VAO,
-viewport and blend/depth/scissor/cull/color-mask state; previous host GL state is
-not restored. Buffer sizes are integer 1..4096 with <=4,194,304 total pixels.
+`showScene` tessellates each primitive with the geometry builders below
+(`segments`, default 48, shared between objects of the same shape), shows the scene
+background unless `background: false`, fits the camera on first show unless
+`fit: false`, and accepts an outer `transform` for a scene inside another world.
 
-## Rendering contract
+## Generated SDF shader text
 
-Right-handed scene coordinates, +Y up. Fixed camera at (0,0,6), looking toward -Z,
-vertical perspective field of view 45 degrees; aspect follows buffer size.
-Sphere and axis-aligned box SDFs are evaluated with a fixed template. Lowest
-signed distance wins; equal distances retain the earlier declared object.
-128 ray steps, maximum travel 100 units, hit/normal epsilon 0.001. The camera
-may be inside a shape; surfaces below epsilon and distant/off-camera objects are
-not visibility guarantees. No textures, CSG, rotation, scaling, shadows or picking.
-Light direction normalize(-0.6,0.8,1); ambient .35 plus Lambert .65.
-Object color uses gamma-2.2 conversion to linear before lighting and back afterward.
-Background is emitted unchanged. No raw source/name/ID enters GLSL.
-Generated fragment shader <=64 KiB; per-frame work also has buffer/object/step ceilings.
-
-WebGL2 behavior reference: [Khronos specification](https://registry.khronos.org/webgl/specs/2.0.0/).
-Original implementation, not GSS code or compatibility.
+`compileScene` and `compileGpu` still emit the original fixed GLSL ES 3.00 SDF
+vertex/fragment text as CPU output; no renderer in this package runs it. Its
+contract: right-handed scene coordinates, +Y up, fixed camera at (0,0,6) looking
+toward -Z with a 45-degree vertical field of view; lowest signed distance wins and
+equal distances retain the earlier declared object; 128 ray steps, maximum travel
+100 units, hit/normal epsilon 0.001; light direction normalize(-0.6,0.8,1), ambient
+.35 plus Lambert .65, gamma-2.2 object colour. No raw source/name/ID enters GLSL.
+The generated fragment shader is at most 64 KiB.
 
 ## Verification and local example
 
@@ -303,41 +322,37 @@ Run lint, type-check, test and test:consumer. The consumer packs built artifacts
 imports ESM and compiles declarations independently.
 
 ```sh
-PW_DIR=/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node \
+PW_DIR=/path/to/node_modules/playwright \
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 pnpm --filter @barocss/gpu test:browser
 ```
 
-The pixel gate must obtain actual WebGL2 and readPixels. Missing browser/context
-is failure, never skip. Software WebGL proves functionality only; it proves no
-physical-GPU execution, throughput or performance. Evidence retains source,
-validated data, shaders, PNG/JSON, SHA/hash/backend/buffer/assertion details.
-The example lives in `examples/gpu-scene/`; follow its README to run on loopback.
+`test:browser` runs `tests/viewer-browser.test.mjs` and
+`tests/scene-viewer-browser.test.mjs` in Chrome's WebGPU; they skip without `CHROME`
+and `PW_DIR`. `VIEWER_ADAPTER=swiftshader` selects the software adapter, which
+proves functionality only, not physical-GPU execution or performance.
+`pnpm dev:gpu` serves `examples/gpu-scene/` on loopback (the scene language at `/`,
+host triangle packets at `/mesh.html`); see its README.
 
-## Host triangle preview API (packet v0)
+## Host triangle preview packet (packet v0)
 
-This additive host API is separate from the unchanged sphere/box stylesheet grammar.
-It attaches one approximate open-surface preview per dedicated canvas, with no SDF
-composition, CAD runtime, automatic camera fit, tessellation, rotation or nonuniform scale.
+This host data contract is separate from the sphere/box stylesheet grammar. It
+describes one approximate open-surface preview, with no SDF composition, CAD
+runtime, automatic camera fit, tessellation, rotation or nonuniform scale.
 
 ```js
-import { mountMesh } from '@barocss/gpu';
+import { prepareMesh } from '@barocss/gpu';
 const options = {
   mmToSceneUnit: 0.1, translate: [-0.5, -0.5, -1.5],
   color: [0.9, 0.4, 0.1], background: [0.06, 0.12, 0.19],
 };
-const renderer = mountMesh(canvas, packet, options);
-const result = renderer.update(nextPacket, options);
-console.log(renderer.revision, renderer.packet, renderer.options);
-renderer.resize(640, 480);
-const rgba = renderer.readPixels();
-renderer.dispose();
+const prepared = prepareMesh(packet, options); // validated copies and Float32/Uint16 buffers
 ```
 
 All option fields are required. Scale is explicit finite positive millimetres-to-scene
 conversion; translation is scene-space XYZ. RGB values are finite opaque normalized
 components 0..1. Resulting coordinates must be finite within -1000..1000.
-Packets/options are defensively copied, and accepted getters return copies.
+Packets/options are defensively copied, and validators return copies.
 Revision is host provenance, integer 0..2147483647; lower/equal revisions are allowed
 and are not a freshness or synchronization policy. Unknown packet/option fields fail.
 
@@ -367,36 +382,10 @@ a=(i,j), b=(i+1,j), c=(i,j+1), d=(i+1,j+1).
 Structural/count checks precede array allocation. Approximate previews do not replace
 NURBS/IGES or demonstrate watertight/manufacturable geometry.
 
-The mesh path uses original fixed GLSL ES3.00 shaders and indexed WebGL2 triangles.
-Default camera/light/gamma match the primitive path; default perspective near plane .01 and far100. The optional mesh camera changes only the view; primitive rendering stays fixed.
-No face culling: open surfaces remain visible from either side, using their supplied
-world normals without reversing them. Depth uses LESS, with earlier triangles winning
-exact depth ties. Buffer/pixel limits match the primitive path (4096 per side,
-4,194,304 pixels total). Positions/normals each allocate <=49,152 bytes; indices
-<=47,628 bytes. One accepted and one candidate set coexist during updates. Each owns
-one program/VAO, three buffers, RGBA8 texture, depth24 renderbuffer and framebuffer.
-Shaders are released after linking. Framebuffer storage is bounded by the pixel ceiling;
-backend-specific physical allocation is not a performance claim.
-
-Candidates validate, upload and draw offscreen before presenting with WebGL2 blit.
-Failed validation/upload/compile/link/draw keeps accepted metadata and usable prior
-pixels; failed presentation restores from the accepted framebuffer when context is usable.
-Resize allocates/draws before resizing the host buffer and restores on failure.
-Lost context requires a fresh mount and cannot promise usable retained pixels.
-Dispose is idempotent, releases only owned resources/listener; it retains the canvas.
-Use a dedicated context: host GL state is changed and not restored.
-No animation loop, network, file operations or third-party renderer is included.
-
-Both original and mesh browser gates must pass without skips. The analytic host fixture
-uses radius10/height30 quarter-cylinder p(u,v)=(10*cos(pi*u/2),10*sin(pi*u/2),30*v),
-normal oriented by cross(partialU,partialV). The visibility fixture explicitly
-reorients host coordinates by -90 degrees about X, (x,y,z)->(x,z,-y), and
-transforms normals identically; the renderer itself supports no rotation.
-Host placement/scale remain explicit;
-no CAD package imports are required. The literal asymmetric patch is a deterministic
-contract replay control. Actual CAD output integration is recorded separately when both
-independently verified lanes are available. See `examples/gpu-scene/mesh.html`.
-
+`examples/gpu-scene/mesh.html` draws these packets on the viewer. The analytic
+host fixture is a radius10/height30 quarter-cylinder
+p(u,v)=(10*cos(pi*u/2),10*sin(pi*u/2),30*v), normal oriented by
+cross(partialU,partialV); no CAD package imports are required.
 
 ### Optional mesh camera
 
@@ -407,7 +396,7 @@ const camera = {
   eye: [4, 3, 6], target: [0, 0, 0], up: [0, 1, 0],
   fovYDegrees: 45, near: 0.01, far: 100,
 };
-const result = renderer.update(renderer.packet, { ...renderer.options, camera });
+const accepted = validateMeshOptions({ ...options, camera });
 ```
 
 Absence preserves the old options shape and fixed mesh projection: eye(0,0,6),
@@ -426,27 +415,23 @@ Numeric bounds alone do not guarantee a stable Float32 matrix. The near/far
 planes must remain distinct after Float32 conversion, and their computed
 normalized-device depth endpoints must remain within 1e-3 of -1/+1. No silent
 clamping, unit inference or automatic camera fitting occurs. Caller vectors
-and nested accepted getters own separate copies.
+and accepted values own separate copies.
 
 `prepareCamera(camera, aspect)` returns column-major Float32 view/projection
-matrices for bounded independent host diagnostics. The renderer computes its
-aspect from its own buffer dimensions and accepts no raw matrix/shader input.
-Candidate uniform/upload/draw failures retain the prior usable frame/options
-when the context remains available. Context loss requires a new renderer.
+matrices for bounded independent host diagnostics.
 
 ## Own compiler pipeline
 
-`compileGpu({kind: 'scene', source})` compiles the existing independent `@scene`
-language through original ranged syntax AST, symbol/type/default/cascade analysis,
-versioned render IR, and original fixed SDF GLSL lowering. The actual scene renderer
-uses this pipeline once per candidate. `parseScene` and structured `compileScene`
-remain supported conveniences over the same parser/semantic/lowering phases.
+`compileGpu({kind: 'scene', source})` compiles the independent `@scene` language
+through original ranged syntax AST, symbol/type/default/cascade analysis, versioned
+render IR, and original fixed SDF GLSL lowering. `showScene` uses this pipeline for
+each source. `parseScene` and structured `compileScene` remain supported
+conveniences over the same parser/semantic/lowering phases.
 
 `compileGpu({kind: 'mesh', packet, options})` validates the original packet and
 explicit millimetre conversion/camera, emits one indexed-mesh IR draw, and lowers
-that intent through the original Float32/Uint16 preparation. The mesh renderer uses
-this path for creation and updates. CAD is one packet producer; GPU imports no CAD
-package. `prepareMesh` and the original validators remain supported.
+that intent through the original Float32/Uint16 preparation. CAD is one packet
+producer; `prepareMesh` and the original validators remain supported.
 
 Success returns `{ok:true, ast, ir, execution, diagnostics:[]}`. Scene execution is
 `{kind:'sdf', scene, shaders}`; mesh execution is `{kind:'indexed-mesh', mesh}` and
@@ -459,10 +444,10 @@ is explicit in options. These are alternative backends, not mixed depth renderin
 Failures return only `{ok:false, diagnostics}` with code, error severity, message
 and original UTF16 range (line/column start at1). Mesh failures have range:null and
 a dataPath. Invalid semantics never reach shader or typed-buffer lowering, and
-Float32 collapse remains a hard lowering error. No WebGL calls occur in compilation.
+Float32 collapse remains a hard lowering error. Compilation makes no GPU calls.
 AST/immutable IR/execution independently own their data, including writable typed
 buffer instances. No authored IR, callbacks, raw GLSL, imports, eval or new grammar
-is admitted. Actual renderer transactions/loss/disposal remain unchanged.
+is admitted.
 
 Allocation bounds:64KiB UTF8 source, at most65536 lexer tokens,4096 syntax nodes,
 32 objects,128 style rules,512 style declarations and two grammar levels (scene
@@ -470,67 +455,7 @@ body/style body). Valid maximal style/object fixtures use at most2208 AST nodes
 plus the two header fields, below the4096 ceiling. Lexing ranges use bounded newline
 indices and binary search; malformed nesting/token growth stays inside those bounds.
 Coordinates remain within1000; positive dimensions must remain Float32-representable
-and at most1000. Scene negativezero still normalizes to positivezero. Original
-positive Scene/shader/buffer fixtures and exact packed/browser compiler records
-are retained by the verification tests. Software SwiftShader proof is functional
-evidence and does not claim physical GPU performance.
-
-## Opt-in scene presentation camera
-
-`mountScene(canvas, source, camera)` can use the existing strict `MeshCamera` data
-contract as a presentation camera for SDF scenes. `renderer.camera` returns an owned
-copy and `renderer.setCamera(camera)` redraws through view uniforms. Camera-only
-actions retain parsed geometry, shader program and resources; invalid camera or
-draw failures retain the last accepted camera/frame. Source updates and resize keep
-the accepted view. Lost/disposed contexts reject camera updates.
-
-The source grammar and render IR are unchanged. Omitting the third argument keeps
-the original fixed-camera shader bytes and behaviour. Opt-in view rays use the
-existing validated right-handed basis and FOV, explicit near/far, and the original
-128-step/100-scene-unit workload cap. No authored GLSL or implicit geometry rotation
-is admitted. Gallery mouse orbit uses this view API for sphere/box and mesh examples.
-
-### Derived CAD edge display (prototype)
-
-`mountMesh(canvas, packet, options, overlay)` accepts an optional `MeshEdgeOverlay`
-with `version: 0`, a complete matching `packet`, up to 64 uniquely named paths,
-and opaque RGB `color`. Each path has 2–64 original-mm XYZ points; the total is
-at most 4096. The renderer uses the mesh conversion/camera and one-pixel,
-depth-tested line strips in the same candidate framebuffer.
-
-`renderer.setEdgeOverlay(overlay)` changes this display atomically; `null` removes
-it. `renderer.edgeOverlay` returns owned data. `update(packet, options, overlay)`
-sets fresh paths; omitted overlay retains existing paths only when the complete
-packet is exactly equal, including all numbers and metadata. A changed packet
-with omitted overlay drops paths. This does not change mesh/compiler IR, source
-grammar, model geometry or topology, and does not certify input paths as CAD edges.
-
-The host Box prototype supplies its twelve actual global native edges; supported
-Surface previews supply sampled natural boundaries. Broad resource, compatibility
-and pixel/regression validation is deferred under the prototype-first policy.
-
-## Display face highlight (prototype)
-
-`MeshFaceHighlight` version0 binds the complete accepted packet, ASCII faceId,
-exclusive indexRange[start,end] and opaque RGB. Range endpoints are integer
-multiples of3, nonempty and within the original indices. The host resolves that
-range from actual native face metadata; GPU does not infer topology.
-
-Pass optional highlight after the existing edge overlay to mountMesh/constructor,
-or as update's fourth argument. `setFaceHighlight(highlight|null)` and the owned
-`faceHighlight` getter support atomic view changes. Omitted highlight retains only
-for the exact same packet; a changed packet clears it. Invalid range/stale packet
-rejects before candidate adoption and retains frame. Highlight draws the selected
-original indices with the original shader/camera/depth and a separate color; hidden
-faces remain occluded and original edge overlay stays on top. No new packet schema,
-CAD dependency, material/selection kernel or renderer-budget widening is added.
-
-Highlight uses depth EQUAL against the original accepted fill, with the same
-polygon offset when original edges are enabled. Raster-visible shared silhouette
-boundary samples may retain the selected face's color; this does not establish a
-hidden-line or geometric visibility certificate. The focused prototype measured
-bottom-face changes only within1.1 physical pixels of its actual original boundary
-paths and unchanged protected cap/wall interior samples.
+and at most1000. Scene negativezero still normalizes to positivezero.
 
 ## Source1 rounded box (prototype)
 
@@ -553,14 +478,6 @@ Structured compile and original source/AST/IR agree. Source0 rejects this kind;
 old box/sphere/cylinder/capsule data and shader semantics stay unchanged. No native
 CAD fillet, B-Rep rounded solid, Boolean or commercial parity is claimed.
 
-The root Example **GPU · Rounded box** uses actual original source1 compilation.
-`examples/gpu-scene/rounded-box-smoke.mjs` after the affected GPU build, with
-PW_DIR/CHROME and BAROCSS_ROUNDED_BOX_EVIDENCE, records source/AST/semantic/IR/GLSL,
-actual plain-vs-rounded projected center/corner controls, radius edit/orbit,
-sphere-equality pixel comparison, source/structured/range failures with frame
-retention, backend/GL0 and PNG lineage. Broader validation remains deferred.
-
-
 ## Source1 ring torus (prototype)
 
 ```css
@@ -580,53 +497,7 @@ major/minor properties are unsupported on other primitives. Scene1 and IR2 carry
 not aliases. Source0 remains unchanged.
 
 The original compiler lowers distance to the XZ centreline circle minus the tube
-radius. Select **GPU · Torus** at `/#torus`, drag to orbit, or select Torus and
-Apply in the GPU source editor. Invalid editor source/version retains the accepted
-view. `examples/gpu-scene/torus-smoke.mjs` runs one affected-build actual source,
-helper-distance, hole/annulus/rotation pixel and editor-retention flow. Software
-WebGL is permitted; broad validation and physical performance claims are deferred.
-This GPU SDF is separate from native CAD geometry or certified solids.
-
-## Host object selection (private editor)
-
-MeshRenderer.setObjectHighlight accepts null or an exact version0 record with the
-complete accepted packet, objectId, aligned nonempty indexRange and bounded RGB
-color. The host resolves native object identity and contiguous triangle range;
-GPU does not infer topology. Admission reuses strict own-data packet/range/color
-checks, rejects stale packets/getters and retains the previous frame on failure.
-Object tint is display-only and stays distinct from original face highlighting.
-Camera/edge updates and resize retain it only for the same accepted packet.
-Changed geometry clears the old binding until the host supplies the new range.
-The lighting getter reports the fixed direction/ambient/diffuse values used by
-the original mesh shader. No editable light/shadow/scene grammar is added.
-
-## Empty or mesh viewport (private editor)
-
-`mountMeshViewport(canvas, options)` starts with a real opaque empty framebuffer,
-without a placeholder mesh, shader, native Surface or document. It reuses the
-original renderer's context and staged framebuffer lifecycle. `state.kind` is
-`empty` or `mesh`; each state getter returns owned display data. Mesh states
-include the accepted packet, edge overlay and resolved face/object selection;
-empty states contain none of these. Existing `mountMesh` still requires a valid
-nonempty packet.
-
-`update(packet, options, overlay?, selection?)` accepts the original packet/options
-and optional `{face, object}` highlight records. Omitted records are retained only
-for the same packet; `selection: null` clears both highlights. `clear(options?)`
-commits a validated empty background and releases old geometry resources.
-Both return `UpdateResult` and retain the accepted frame, options and selection
-when admission or actual GL allocation fails. `setCamera(camera)` also returns
-`UpdateResult`; `resize(width, height)` and `render()` preserve empty state.
-`readPixels()` observes the real displayed framebuffer. `dispose()` is idempotent.
-Camera/resize do not resurrect cleared geometry, and the canvas/context remain
-stable across empty/mesh transitions. Context loss requires mounting a new viewport.
-
-Run `node examples/cad-preview/mesh-viewport-smoke.mjs`, then open its printed
-localhost URL. This one source-only browser flow uses the original own CAD Box,
-observes its actual position upload and pixels, clears geometry, injects a real
-framebuffer allocation refusal, and checks retained state and resource cleanup.
-The host exits with the posted browser result. This is bounded lifecycle evidence;
-commercial editor interaction and hardware performance remain separate scopes.
+radius. This GPU SDF is separate from native CAD geometry or certified solids.
 
 ## Own CAD face preview bridge (private prototype)
 
@@ -661,48 +532,39 @@ are library-owned (a serialized/cloned result is not an admitted result).
 There is no general persistent naming, nearest-triangle repair or native topology
 certification. Selection captions and triangle array positions are not keys.
 
-Keep the prepared context paired with the renderer's accepted packet. Stage a
-new prepared result, call the original renderer update, and adopt the context
-only on success. Existing renderer options, Float32 admission, camera, shading,
-face tint and atomic candidate behavior remain unchanged. The focused source
-smoke consumes real recorded own-CAD DTOs; external CAD kernels are references
-only and are not runtime dependencies.
+Keep the prepared context paired with the packet it produced: stage a new prepared
+result and adopt its context only once the packet is accepted. External CAD kernels
+are references only and are not runtime dependencies.
 
-Focused source verification uses `node examples/cad-preview/kernel-face-preview-smoke.mjs`
-with recorded `BAROCSS_NATIVE_FACE_INITIAL`, `BAROCSS_NATIVE_FACE_REBUILT`,
-`BAROCSS_NATIVE_FACE_METADATA` and a unique `BAROCSS_NATIVE_FACE_EVIDENCE` directory.
-The ephemeral loopback host bundles only actual GPU source, serves the recorded
-own-CAD data and awaits one controlled-browser flow. Open its printed URL and
-press **Run recorded native flow**. It records actual GL position/normal/index
-buffers, native UV/sense/ranges, readback frames, qualified face selection,
-rebuild/stale-reference and an original Float32 refusal. It does not evaluate
-CAD again, install a backend, or mount a new product editor route.
+## Primitive scene entries, poses and lighting (CPU)
 
-## Separate mesh packets in one scene (#665)
+The complete frame preflight below admits native Surface and Curve entries in the
+qualified scene v2 envelope `{version:2,entries}`. A Surface entry is
+`{kind:'surface',packet,color,transform?,ref}`. A Curve entry is
+`{kind:'curve',sample,sampleVersion,basis,color,transform?,ref}`, where `sample` is
+a complete own CAD Curve record and `sampleVersion` names its kind (0 adaptive,
+1 wide adaptive, 2 uniform preview, 3 selected uniform preview), and `basis` must be `'authored-xyz-matches-rhyup'`: the host asserts
+that authored XYZ matches the right-handed Y-up frame; no axis rotation is inferred.
+Version0 samples use the original CAD sampler validator; version1 uses
+`validateWideAdaptiveCurveSamples` on the full own native wide record; versions 2/3
+use the uniform Curve preview validators. GPU code does
+not replace the CAD sampling engine. The older v0/v1 entry types remain exported.
 
-`mountMeshScene(canvas, entries, options)` mounts1..4 original PreviewPackets with
-unique native `surfaceId` values. Each entry is `{packet,color}`; color is opaque
-normalized RGB. `MeshSceneOptions` is `MeshOptions` without color: shared camera,
-mmToSceneUnit, scene-unit translation and background. It keeps native packets and
-indices separate, uses one WebGL2 context/shared depth buffer, and draws each
-object with its own color. No synthetic combined packet, scene graph, native
-picking/topology or edge overlay is inferred. Optional explicit display transforms
-are described below; omitted transforms retain this original lowering path.
+`ref:{modelId,geometryId}` is required. `modelId` is the caller's accepted
+source-model namespace (ASCII1..128), not an inferred native Model name or a native
+revision/topology certificate. `geometryId` must match the original
+packet.surfaceId or validated sample.curve.id exactly. Pairs are unique; the same
+original geometry ID is legal in different model namespaces.
 
-`MeshSceneRenderer.update(entries,options)` returns UpdateResult. All data and
-Float32 geometry pass existing admission before candidate adoption. Failure keeps
-the prior accepted scene/frame. `entries` and `options` return owned copies.
-`resize(width?,height?)` defaults to current canvas dimensions and stages before
-acceptance. `render`, `readPixels` and idempotent `dispose` own only this renderer's
-GPU resources; caller native data/canvas/context remain caller-owned. Do not mount
-competing renderers on that canvas. Context loss refuses explicitly; mount a new
-renderer rather than assuming automatic restoration. The existing frame limits
-(4096 per axis/4194304 pixels) and per-packet workloads remain; at most4 packets.
-Lazy first mount lets a Viewer remain empty until a supported source is admitted.
+The scene admits1..4 distinct native objects, up to4096 segments/4097 points per
+wide Curve and 16384 segments/16388 points across the scene. The wide native
+profile is positive open-clamped degree1..3, up to64 original poles/70 knots.
+Native validation precedes any typed-array allocation, and all native
+source/coefficients/IDs, original parameter/D1-guard/quality data remain owned
+copies. Exactly repeated native sample points remain zero-length segments; nonzero
+native segments that collapse in Float32 refuse.
 
-## Explicit per-entry display poses (#670)
-
-`MeshSceneEntry.transform` optionally supplies the complete
+`MeshSceneTransform` optionally supplies the complete
 `{translationMm,rotationXYZW,scale}` pose in the original packet's declared
 right-handed Y-up XYZ frame. No axis conversion is inferred. Translation is
 finite within ±10000 mm; each scale is in [0.001,100]; the XYZW quaternion has
@@ -718,216 +580,17 @@ normal agreement. Final positions remain within ±1000 scene units; there is no
 clamp or reflection support. With no transform, the old compiler/Float32 path is
 used exactly, including its normal values and refusal behavior.
 
-The renderer's `bounds` getter returns owned `{min,max}` copies computed from
-the actual Float32 display vertices across all entries, in scene units. These
-are display extrema, not native Surface bounds or tight NURBS extents. `entries`
-returns copied original packets, colors and any authored poses. Resize retains
-the accepted execution arrays and poses. Failed poses, second entries or display
-lowering preserve the entire previous entries/options/bounds/frame. Viewer hosts
-own their Motion frame mapping, fit and picking; the GPU owns no player or timer.
-
-One genuine native CAD packet/WebGL flow consumes the compiled GPU export:
-
-```sh
-REPO_DEPS_ROOT=/path/to/existing/dependencies \
-BAROCSS_MESH_TRANSFORM_EVIDENCE=/unique/evidence \
-BAROCSS_MESH_TRANSFORM_PORT=52191 \
-node packages/barocss-gpu/tests/mesh-scene-transform-flow.mjs
-```
-
-Open the printed loopback URL and press **Run display transform flow**. The
-receipt covers actual uploaded buffers, independently expected transformed
-positions/normals/bounds, original metadata, visible frames/shared depth,
-invalid pose and Float32 collapse retention, copied getters and disposal.
-Broader validation and npm publication are separate states.
-
-## Genuine native Surface and Curve primitives (#679)
-
-`mountPrimitiveScene(canvas, entries, options)` adds a mixed renderer alongside
-unchanged `mountMeshScene`. A Surface entry is `{kind:'surface',packet,color,
-transform?}`. A Curve entry is `{kind:'curve',sample,basis,color,transform?}`, where
-`sample` is the complete own CAD `AdaptiveCurveSamplingResult` and `basis` must be
-`'authored-xyz-matches-rhyup'`. The host explicitly asserts that authored XYZ
-matches the renderer's right-handed Y-up frame. There is no inferred axis rotation.
-This package declares its own `@barocss/cad` dependency. The native validator
-reconstructs the sample from original Curve coefficients/options before display;
-GPU code does not replace the CAD sampling engine.
-
-The scene admits1..4 entries with distinct native IDs and at most4096 Curve points /
-4092 Curve segments in total. Native sampling keeps its current degree1..3,
-2..16-pole, positive-weight, nonperiodic clamped family and actual native refusal
-limits. Full copied source/Model/coefficients/parameters/provenance/quality reports
-remain separate from renderer-local positions. Input snapshots reject getters,
-hidden/symbolic/foreign/cyclic/sparse/nonfinite data within262144 values, depth24,
-4096 array elements,64 record fields and262144-character strings per sample.
-
-Options and optional per-entry poses use the #670 contract and existing camera.
-One context, candidate framebuffer and shared depth clear support lit indexed
-Surface triangles and unlit `LINE_STRIP` Curves at width1 device pixel. Curves
-have one position buffer and no normals, indices, UV or fabricated Surface packet.
-There is no depth bias: coplanar Curves can be occluded under the shared `LESS`
-depth test. Exactly repeated native sample points remain zero-length segments;
-nonzero native segments that collapse in Float32 are refused atomically.
-
-`entries`, `options` and actual Float32 display `bounds` return owned copies.
-`update`, staged `resize`, `render`, `readPixels` and idempotent resource-only
-`dispose` follow the existing lifecycle. Invalid native records, basis, poses,
-coordinates or candidate resources retain the previous complete scene/pixels.
-No timer, native edit, boundary topology, exact picking, thick-line portability,
-global tolerance or manufacturing certification is inferred.
-
-One actual compiled CAD/GPU/WebGL flow: set a unique `BAROCSS_PRIMITIVE_EVIDENCE`
-directory, optionally `BAROCSS_PRIMITIVE_PORT`, and run
-`node packages/barocss-gpu/tests/primitive-scene-flow.mjs`. Open the printed
-loopback URL and press **Run native primitive flow**. It uses two genuine native
-Surfaces and two weighted, asymmetric Curves with nonunit original domains.
-Root/lock adoption, Viewer consumer adoption and publication remain separate.
-
-## Explicit wide primitive scene v1 (#725)
-
-`mountPrimitiveSceneV1(canvas,{version:1,entries},options)` adds an explicit scene
-envelope and `PrimitiveSceneRendererV1`. Surface entries keep the old fields.
-Each Curve entry now requires `sampleVersion:0|1`, exactly matching its native
-sample report. Version0 uses the original CAD sampler validator; version1 uses
-`validateWideAdaptiveCurveSamples` on the full own native wide record. Its source
-version remains0. Old `mountPrimitiveScene` and its16-pole/v0 reader continue to
-reject v1 envelopes/records/additional fields, with their old capacities.
-
-V1 uses the same GPU backend and declared frame/pose/resource contracts. It admits
-1..4 distinct native objects, up to4096 segments/4097 points per wide Curve, and
-16384 segments/16388 points across the scene. The wide native profile is positive
-open-clamped degree1..3, up to64 original poles/70 knots. Its snapshot admission is
-2097152 values/depth32/8192 array elements/64 record fields/262144-character source
-strings. Legacy samples retain their own smaller per-record profile. Native
-validation must precede GPU allocation, and all native source/coefficients/IDs,
-original parameter/D1-guard/quality data remain owned copies. No fit, edge identity
-or global/manufacturing certificate is inferred.
-
-`entries`/`options`/actual Float32 `bounds` return copies. `update` takes the same
-explicit v1 envelope and stages the complete candidate. Mismatched sample/source/
-scene versions, tampered/getter/budget/unsafe pose/Float32 data preserve the prior
-entire scene/pixels. Resize/render/readPixels/dispose inherit the same single
-context/shared depth lifecycle; no new renderer or copied CAD span kernel exists.
-Normals/indices apply only to Surfaces and line width remains1 device pixel.
-
-One actual compiled native-record/GPU/WebGL flow uses saved real CAD696 records:
-
-```sh
-BAROCSS_WIDE_NATIVE_RECORD=/actual/wide.owned-result.json \
-BAROCSS_LEGACY_NATIVE_RECORD=/actual/legacy.v0-owned-result.json \
-BAROCSS_PRIMITIVE_V1_EVIDENCE=/unique/output \
-BAROCSS_PRIMITIVE_V1_PORT=52193 \
-node packages/barocss-gpu/tests/primitive-scene-v1-flow.mjs
-```
-
-Open the printed loopback URL and press **Run wide native scene flow**. Actual
-old-reader refusal,64-pole/nonunit/C0 source record, independent line/mesh buffers,
-pixels/TRS/bounds/depth, candidate retention and owned cleanup are recorded.
-Native API completion, Integration/Viewer/Loader adoption and publication remain
-separate. Only the compatible compiled own-CAD producer can satisfy this new API.
-
-## Explicit directional and ambient mesh lighting (#717)
-
 Optional `MeshOptions.lighting` is a complete
 `MeshLighting={ambientStrength,directionalStrength,direction}` record. Strengths
 are finite [0,1] and their sum is at most1. Direction is dimensionless in the
-renderer's Y-up world-normal frame, has finite components within ±1000 and is
-nonzero. Authored direction/strength values are copied; direction is normalized
-only when lowering GPU uniforms, including finite subnormal values. Unknown,
-getter/hidden/symbol/sparse/nonfinite/zero data refuse without clamping.
+Y-up world-normal frame, has finite components within ±1000 and is nonzero.
+Authored direction/strength values are copied; direction is normalized only when
+lowering, including finite subnormal values. Unknown, getter/hidden/symbol/sparse/
+nonfinite/zero data refuse without clamping. The indexed-mesh compiler IR retains
+it in draw options. The declared strength is `ambientStrength + directionalStrength
+* max(dot(unitNormal, unitDirection),0)`.
 
-Single mesh/viewport, mesh-scene and primitive-scene/v1 paths consume this option.
-The indexed-mesh compiler IR retains it in draw options. Older strict readers
-refuse the additional field; no SDF language or private editor lamp API is implied.
-Absent lighting preserves exactly the original shader source, ambient0.35 /
-diffuse0.65 direction[-0.6,0.8,1] and gamma2.2 path. Supplied lighting only changes
-opaque mesh shading; native positions/normals/indices/UV/IDs and bounds are unchanged.
-Curve lines and edge overlays remain unlit. No PBR, shadows or photometric units.
-
-The actual strength is `ambientStrength + directionalStrength * max(dot(unitNormal,
-unitDirection),0)`, applied through the existing gamma/color formula. MeshRenderer
-`shaders` reflects the accepted shader; `lighting` retains legacy `diffuseStrength`
-metadata and reports configured/constant kind. The full authored DTO is available
-in copied `options.lighting`. Candidates validate/stage atomically; invalid lighting
-keeps accepted options/data/pixels/resources and disposal remains resource-only.
-
-One actual native Surface/Curve and all common mesh paths are exercised by
-`node packages/barocss-gpu/tests/mesh-lighting-flow.mjs` with unique
-`BAROCSS_LIGHTING_EVIDENCE` and optional `BAROCSS_LIGHTING_PORT`. Press **Run native
-lighting flow** at its printed URL. Independent bright/opposed/zero/default gamma
-pixels, unchanged real GL arrays/native source, unlit Curve pixels, subnormal
-direction lowering, copied getters/IR, invalid retention and cleanup are recorded.
-Integration, Viewer/editor adoption and publication remain separate stages.
-
-## Qualified original model identities in scene v2 (#746)
-
-`mountPrimitiveSceneV2(canvas,{version:2,entries},options)` adds required
-`ref:{modelId,geometryId}` to each existing explicit-v1 entry. `modelId` is the
-caller's accepted source-model namespace (ASCII1..128), not an inferred native
-Model name or a native revision/topology certificate. `geometryId` must match
-original packet.surfaceId or validated sample.curve.id exactly. Structured pairs
-are unique; the same original geometry ID is legal in different model namespaces.
-Source/models/packets/samples/IDs remain unchanged; no synthetic ID workaround.
-
-V2 keeps1..4 objects, v1 Curve budgets/sampleVersion/frame/TRS/lighting/Float32
-admission and the same single-context shared-depth backend. Ref/getter/native-ID/
-duplicate-pair/invalid-candidate refusal retains the whole accepted data/pixels.
-Owned entries copy refs and native records. Old v0/v1 profile schemas/uniqueness
-remain and refuse v2/ref fields. No document transport, native reference revision
-binding, topology naming, exact picking or assembly semantics are inferred.
-
-Use `node packages/barocss-gpu/tests/primitive-scene-v2-flow.mjs` with unique
-`BAROCSS_PRIMITIVE_V2_EVIDENCE` and optional port. Press **Run qualified native scene
-flow**. It first demonstrates the actual old refusal on two native source Models
-with shared Surface/Curve IDs, then observes the new qualified scene's buffers,
-pixels/bounds/depth/ref/native retention, invalid cases and cleanup. Integration
-and actual model-set/Viewer/Loader adoption remain separate from native readiness.
-
-### Explicit qualified primitive viewport (#763)
-
-```ts
-const viewport = mountPrimitiveViewport(canvas, options);
-// Genuine empty background/depth frame. No fake native primitive or bounds.
-viewport.entries; // []
-viewport.bounds;  // null
-viewport.update({version: 2, entries: qualifiedNativeEntries}, options);
-viewport.clear(options); // UpdateResult; explicit empty command
-viewport.dispose();
-```
-
-PrimitiveViewport reuses the existing primitive backend, validation and atomic
-frame/resource lifecycle. update requires exactly existing qualified scenev2
-1–4 entries; Surface packets/native Curve samplingv0/v1, original source/IDs/UV,
-explicit TRS/frame/unit/lighting and all native/display budgets remain unchanged.
-Old mountPrimitiveScene/v1/v2 constructors and updates still refuse empty arrays.
-The new constructor creates a real empty framebuffer/color/depth with zero
-primitive buffers, programs, VAOs or fabricated native geometry.
-
-clear requires explicit current PrimitiveSceneOptions, with the same own-data,
-camera/lighting/unit/canvas admission. It stages background/depth and releases the
-previous owned frame only after success. Invalid update/clear candidates retain
-accepted entries/options/bounds/pixels. entries and options return owned copies;
-bounds is a copied derived display bound or null when empty. render/readPixels,
-resize and idempotent dispose retain current loss/disposal rules. No Infinity
-bounds, fake Surface packet, normalized native domain or serialized empty model
-is introduced. This is display lifecycle, not sketch document/authoring support.
-
-One real compiled native553 Line + own-GPU browser collector:
-
-```sh
-BAROCSS_PRIMITIVE_VIEWPORT_EVIDENCE=/absolute/unique/output \
-BAROCSS_PRIMITIVE_VIEWPORT_PORT=52199 \
-node examples/gpu-scene/primitive-viewport-flow.mjs
-```
-
-Open its isolated localhost page and run the actual clear flow. It checks original
-source/coefficient copies and actual Line GL buffer, independent empty background
-pixels, invalid/legacy-empty refusal retention, clear/restore/empty resize and zero
-owned resources after disposal. It proves one nativev0 Line and this explicit
-viewport lifecycle. Wide/Surface/reader/gallery/hardware-performance campaigns
-and Viewer/Loader/sketch UI adoption are separate.
-
-### Own opaque Mesh material source (#779)
+## Own opaque Mesh material source (#779)
 
 ```ts
 const result = compileMeshMaterial(`
@@ -938,22 +601,16 @@ const result = compileMeshMaterial(`
   }
 }`);
 if (result.ok) {
-  meshRenderer.setMaterial({material: result.material, uniforms: {timeSeconds: 1}});
-  meshRenderer.material; // owned accepted binding
-  meshRenderer.setMaterial(null); // exact legacy path
+  mesh.material = { shader: bindingShader({ material: result.material, uniforms: { timeSeconds: 1 } }) };
 }
 ```
 
 compileMeshMaterial is a DOM-free source→typedIR compiler with half-open UTF16
 source diagnostics. validateMeshMaterialIR reconstructs source and compares complete
-owned data; lowerMeshMaterial emits only trusted expression/uniform layout. Imported
-or forged success objects/raw GLSL are not trusted. MeshRenderer.setMaterial validates
-IR and scalar values, then uses its existing program/frame/resource lifecycle.
-Missing uniform values use declared defaults; foreign/getter/nonfinite/out-of-range
-values refuse. Source changes and uniform changes restage program/buffers/frame;
-this prototype does not promise buffer/program reuse or animation performance.
-There is no timer or native geometry mutation. setMaterial(null) restores old shader
-bytes/pixels. Existing update/resize preserve accepted material; clear removes it.
+owned data; lowerMeshMaterial emits only trusted expression/uniform layout and
+lowerMeshMaterialWGSL the WGSL form the viewer uses. Imported or forged success
+objects/raw shader text are not trusted. Missing uniform values use declared
+defaults; foreign/getter/nonfinite/out-of-range values refuse.
 
 Profile mesh-opaque-fragment-v0 is one opaque color output with float uniforms,
 decimal/exponent and opaque #RGB/#RRGGBB literals, unary± and float+,-,*, sin/cos, mix(color,color,
@@ -986,132 +643,18 @@ expanded depth stays16. Repeated references cannot evade these limits. Run the
 compiled source/file flow with
 `node examples/gpu-scene/material-locals-flow.mjs --output <directory>`.
 
-Hex colors decode once using legacy gamma2.2; expressions are linear RGB, then one
-existing ambient/directional lighting multiplication and one gamma2.2 encode, alpha1.
+Hex colors decode once using legacy gamma2.2; expressions are linear RGB.
 No CSSColor4/exact sRGB-transfer/PBR certification. No division/loops/conditions/eval/
-imports/callbacks/rawGLSL/color uniforms/UV/textures/vertex deformation. Native UV is
-retained packet data, not a material varying. Original positions/normals/indices/UV/
-IDs/source stay unchanged; all previous MeshOptions/scene grammar/version/Curve/edge
-paths stay. Only single MeshRenderer is adopted. Other Scene/Primitive/Viewer/Canvas
-material APIs are separate. Material and overlay/face/object highlight combinations
-explicitly refuse in this profile; no silent selection masking.
+imports/callbacks/raw shader text/color uniforms/UV/textures/vertex deformation in this
+profile. Native UV is retained packet data, not a material varying. Original
+positions/normals/indices/UV/IDs/source stay unchanged.
 
-Every refused candidate retains accepted material/native/program/pixels and frees
-only candidate resources. CPU artifacts own copies/GC; GL resources remain this
-renderer's ownership. Compiled Node probe and one actual native Surface GPU flow:
+The compiled Node probe:
 
 ```sh
 BAROCSS_MATERIAL_CPU_EVIDENCE=/absolute/unique/cpu \
 node examples/gpu-scene/mesh-material-cpu-probe.mjs
-BAROCSS_MATERIAL_GPU_EVIDENCE=/absolute/unique/gpu \
-BAROCSS_MATERIAL_CAD_DEPS=/absolute/compiled/CAD/provider/repo \
-node examples/gpu-scene/mesh-material-flow.mjs
 ```
-
-The actual browser flow checks typed source/IR/trusted GLSL, nonunit native affine
-Surface/source/UV/-0 and actual position/normal/index uploads; caller time0/1/2
-independent linear/mix/light/gamma RGB, CPU/IR/uniform refusals, explicit test-injected
-createProgram-null retention, exact absent-material restoration and disposal0.
-The injection is not physical allocation exhaustion. No broad/native/reader/packed/
-color/renderer/performance campaign or publication follows from this prototype.
-
-### Qualified Surface material (#837)
-
-`PrimitiveSceneRendererV2` and `PrimitiveViewport` expose
-`setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding | null): UpdateResult`
-and a copied `materials: PrimitiveSceneMaterial[]` query. Select the exact
-accepted `{modelId, geometryId}` pair. Only Surface entries accept the existing
-opaque material language/typed IR/uniform binding. Null resets that Surface;
-other bindings stay. Unknown/Curve references and unsafe bindings refuse with
-the complete accepted frame/state retained. Native packet/UV/IDs/poses and
-position/normal/index buffers stay geometry authority; material is appearance.
-
-Updates restage the full frame/programs/buffers. There is no reuse/performance
-promise or internal clock. Resize/render retain bindings. A successful scene
-`update` replaces geometry and explicitly resets all materials; failed updates
-retain them. Viewport `clear` drops bindings after successful empty adoption;
-empty binding requests refuse. Disposal is idempotent and owns only allocated
-GPU resources. Context loss retains the existing remount requirement.
-
-Scene0/1/2 entry and options schemas are unchanged. Primitive renderers have no
-selection/highlight/edge-overlay API; unsupported overlay fields still refuse.
-MeshRenderer's separate overlay policy is unchanged. Existing absent/reset
-material uses the exact legacy shader path. Curves remain on their default
-Line shader. No texture/UV varying, deformation/PBR/shadow/raw GLSL or Viewer
-adoption is supplied. See `examples/gpu-scene/qualified-material-flow.mjs` for
-one actual mixed native scene and independent time0/1/2 RGB/light/gamma checks.
-
-### Shared-depth bounded particle layer (#850)
-
-Only `PrimitiveSceneRendererV2` and `PrimitiveViewport` expose:
-
-```ts
-setParticleLayer(frame: ParticleLayerV0 | null): UpdateResult
-update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions,
-       particles?: ParticleLayerV0 | null): UpdateResult
-// Copied query:
-particleLayer: ParticleLayerV0 | null
-```
-
-`ParticleLayerV0` has exact own fields `version:0`, `contextId`, `sceneRevision`,
-`stepIndex`, `coordinateSystem:'right-handed-y-up-scene-units'`, and a dense
-`positions:number[]`. Admit1..256 XYZ points, finite±1000 scene units;
-context/revision ASCII1..128; integer step0..2147483647. GPU copies original
-binary64 numbers and lowers a derived Float32 buffer. GPU does not convert
-metres/mm, import Physics, advance simulation or create native geometry IDs.
-The host owns tag meaning, unit mapping and pending generation checks.
-
-Incremental set requires current context/revision match and nondecreasing step;
-equal step requires identical original position bits. Null clears only particles.
-Reset clears first or uses a full atomic update with an explicit new context.
-Full update with the same context retains revision/step checks; a different
-context permits a new generation. Omitted/null third argument clears particles
-on successful scene replacement. Native/camera/particle state stages in one
-accepted frame; refusal retains prior state/pixels/resources. Whole scene update
-retains the material-reset rule above; particle-only updates retain materials.
-
-Particles use fixed6px opaque circular POINTS, encoded cyan[0.1,0.7,1]/alpha1,
-actual LESS depth test/write and the native camera/framebuffer. A WebGL2 point-size
-range containing6 is required. No separate canvas/renderer/blit, overlay SVG,
-forced visibility, transparency sorting, texture/PBR or lighting/gamma pass for
-particles is supplied. Submitted count differs from visible/occluded samples.
-Native bounds and entries describe native geometry; inspect particle positions
-separately. Native-empty binding refuses. Viewport clear removes both; resize/
-render retain; lost context requires remount; dispose releases owned resources.
-Full frames/programs/buffers restage; no reuse or performance guarantee.
-
-### Explicit complete frame (#868)
-
-`PrimitiveSceneRendererV2` and `PrimitiveViewport` expose
-`updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult` and copied `frame` query.
-The exact own DTO requires all fields:
-
-```ts
-{ version: 0, scene: PrimitiveSceneInputV2, options: PrimitiveSceneOptions,
-  particles: ParticleLayerV0 | null, materials: PrimitiveSceneMaterial[] }
-```
-
-Materials are a dense0..4 list of unique `{ref,binding}` pairs, resolved against
-candidate Surface entries. Unknown/duplicate/Curve refs and unsafe data refuse.
-Missing candidate Surface binding means default appearance; empty materials and
-null particles are explicit clears. No old namespace transfers implicitly.
-All current native/IR/uniform/particle/camera/profile limits apply. Query material
-ordering follows candidate native entry order, as the existing materials query.
-
-CPU validation and existing native/material/particle programs stage one full
-frame before presentation/adoption. Refusal preserves all prior scene/options/
-appearance/layer queries and pixels and releases candidate resources. Existing
-`update` keeps its material reset; existing setters remain explicit. Resize/
-render retain the full frame; clear drops it. Only Viewport accepts scene2
-entries[] with materials[]/particles:null. SceneRendererV2 still requires1..4.
-Empty frames use no fake geometry or geometry programs. Context loss/remount and
-owned idempotent disposal stay current. No clock or buffer/program reuse promise.
-
-Primitive rendering still has no selection/highlight/edge overlay. Such fields
-refuse. A material overrides stored entry color, so a host must visibly support
-selection feedback or refuse that selected-material combination. GPU does not
-silently clear selection or implement Viewer behavior. Viewer869 adoption is a
-separate consumer after the actual Integration receipt.
 
 ## Native Boolean CPU buffers (#891)
 
@@ -1124,10 +667,8 @@ once. Native UV, sources, mesh/support/evaluation IDs and fragment provenance
 remain native. Bridges and diagonals are excluded from boundary pairs. Empty
 regions return empty arrays and null bounds. Unsafe Float32 geometry refuses.
 
-This is a CPU backend preparation API, not a PreviewPacket0 or a render entry.
-Existing mount/scene/viewport APIs do not accept this profile. Browser, GL,
-materials, depth, pixels and resource lifetime require a separate actual target
-consumer. This API does not resolve the denied #874 browser gate.
+This is a CPU backend preparation API, not a PreviewPacket0. GPU upload, materials,
+depth, pixels and resource lifetime belong to the consumer that draws it.
 
 Run the affected build and the actual saved-file API flow:
 
@@ -1146,159 +687,20 @@ bindings for each true edge. Face vertices retain hard normals without welding.
 `edgeIndices` draws two successive segments per path. Bridges and cap/wall
 triangulation diagonals are excluded. Raw XYZ conversion applies once.
 
-This CPU profile is distinct from the planar #891 profile and PreviewPacket0.
-It is not accepted by existing mount/viewport render APIs, and has no browser,
-GL, pixel, resource, inverse-picking or Solid certificate. Unsafe converted
+This CPU profile is distinct from the planar #891 profile and PreviewPacket0. It
+has no GPU, pixel, resource, inverse-picking or Solid certificate. Unsafe converted
 triangles or edge segments refuse; genuine empty results stay empty/null.
+`BooleanShellSceneInputV0` (`{schema:'barocss-gpu-boolean-shell-scene',version:0,
+entries}`, each entry `{ref,native,color,edges}` with a qualified
+`{graphId,graphRevision,featureId,outputSlotId}` ref) remains the exported shape
+`@barocss/viewer` uses for selected Shell graphs.
 
 ```sh
 pnpm --filter @barocss/gpu build:library
 node examples/gpu-scene/shell-buffers-flow.mjs --meshes /path/to/896/meshes --planar /path/to/887/cross_union.owned-mesh.json --output /tmp/shell-buffers
 ```
 
-## Provisional native Shell renderer source (#908)
-
-`mountBooleanShell(canvas, completeNativeShellMesh, {mesh: {...meshOptions, camera}, edges: null})`
-adds a dedicated draw path for the whole #896 mesh using public #904 preparation.
-It preserves native hard-normal faces and original Curve samples, without a
-Surface/PreviewPacket0 adapter. `edges: {color: [0,0,0]}` selects true global paths
-only. Indexed triangles write LESS depth; sampled lines use LEQUAL/no depth write,
-with polygon offset on filled faces. This is display bias, not CAD hidden-line proof.
-
-`update(native, options)` and `setOptions(options)` return UpdateResult; view-only
-changes reuse accepted buffers. `resize`, `render`, `readPixels` and idempotent
-`dispose` follow the candidate framebuffer lifecycle. Copied `native`, `options`,
-`bounds` and `empty` getters preserve authority; `resourceCounts` reports owned
-handles, not driver memory. Explicit camera and edges/null are required. Dimensions
-are 1..4096 with area at most 4194304 pixels. Context loss requires a new renderer;
-original CPU data can still be read before disposal. Use resize for canvas changes.
-
-**Source/build stage only: actual GL, pixels, depth, failure retention, resource
-cleanup and visible Shell support have not run.** The #874 administrative browser
-policy denial remains unresolved. Do not treat this provisional entry as tested
-render support or a release. It does not change existing packet/scene render APIs.
-
-The pending example can be compiled without opening a server or browser:
-
-```sh
-pnpm --filter @barocss/gpu build:library
-node examples/gpu-scene/shell-render-flow.mjs --build-only --output /tmp/shell-render-build
-```
-
-The actual #908 flow later passed after owner permission/app restoration and was
-separately accepted on local Integration; historical denial evidence is retained.
-
-### Qualified native Shell depth scene (#941)
-
-`mountBooleanShellScene(canvas, scene, options)` uses one exclusive WebGL2 context
-and one shared depth framebuffer for up to4 caller-selected complete native Shell
-meshes. Scene input is exactly `{schema:'barocss-gpu-boolean-shell-scene',version:0,
-entries}`. Each entry has `{ref,native,color,edges}`; color is explicit RGB[0,1],
-edges is explicitly null or `{color:RGB}`. Ref is the exact caller qualification
-`{graphId,graphRevision,featureId,outputSlotId}`: case-sensitive ASCII IDs1..64 and
-a nonnegative safe revision. Duplicate complete tuples refuse. GPU validates the
-tuple/profile, not its relationship to a CAD graph; callers obtain current leaves
-from actual CAD evaluation. Native local IDs may repeat across qualified leaves.
-
-Options are `{mmToSceneUnit,translate,background,camera,lighting?}` with required
-explicit MeshCamera and current optional MeshLighting. Original authored XYZ/mm
-enters one positive scale/translation without axis conversion, native reconstruction
-or welding. Complete native source/F64/UV/face/Shell/true Curve identity is copied
-separately from private display arrays. Copied `scene`, `options`, `bounds` getters,
-`empty` and live `resourceCounts` provide inspection. Empty entries retain identity;
-explicit empty scenes draw only the background. No Surface retag or native union.
-
-`update(scene,options)` and `setOptions(options)` return UpdateResult; resize,
-render, readPixels and idempotent dispose follow the single-Shell lifecycle. A
-whole candidate must validate, stage and present before adoption. Refusal retains
-all accepted entries/native/frame/resources; dimensions roll back on resize failure.
-Same-conversion view updates reuse private CPU buffers. Context loss rejects GL
-operations while retaining CPU provenance until disposal; mount a new renderer
-explicitly after a restored context. render re-presents the accepted framebuffer.
-
-Draw all opaque triangles first with LESS/depth writes, then all original sampled
-Curve paths with LEQUAL/no depth writes/width1. Enabled edges apply the existing
-polygon offset to their own filled entry. Equal-depth ties follow input order;
-sampled display bias is not certified CAD hidden-line or topology resolution.
-Caps per mesh stay384 vertices/288 triangles/192 paths/80 faces/8 Shells. Four-entry
-aggregate caps are1536/1152/768/320/32 respectively, at most1536 sampled line segments
-and77568 derived geometry-array bytes, excluding native/JS/framebuffer memory.
-Native snapshot work stays1048576 values per mesh, bounded by4 entries. Frame size
-is1..4096 per axis and area4194304. Accepted plus one staged target uses at most4
-programs/4 shaders/16 VAOs/40 buffers/2 framebuffer-texture-depth sets; shader handles
-are transient. These are owned-handle limits, not physical memory/performance claims.
-
-Actual source/file/browser flow command:
-
-```sh
-node examples/gpu-scene/shell-scene-flow.mjs --graphs <927-authored-files> --meshes <896-mesh-files> --output <directory>
-```
-
-Native implementation, local Integration, named consumer adoption and publication
-are separate stages recorded in #941. No assembly poses/picking/material language,
-Solid certification or arbitrary meshes are added by this scene profile.
-
-### Derived cloth layer and complete frame1 (#979)
-
-PrimitiveSceneRendererV2 and PrimitiveViewport add copied `clothLayer` and
-`setClothLayer(layer|null)` for one genuine derived simulation sheet beside accepted
-native geometry. A cloth layer is not a native Surface/Curve, packet, editable face
-or picking authority. Native entries, source/IDs/UV/poses and native-only bounds
-remain separate. GPU does not run Physics or a clock. #825 saved research snapshots
-are real display controls; they do not establish the public Physics/Viewer bridge.
-
-Exact ClothLayerV0 fields are `{version:0,kind:'simulation-cloth',layerId,contextId,
-sceneRevision,stepIndex,coordinateSystem:'right-handed-y-up-scene-units',positions,
-indices}`. IDs are opaque ASCII1..128 as in ParticleLayerV0; stepIndex is0..240.
-Positions are867 own finite binary64 Number values within±1000 scene units; indices
-are1536 canonical17×17 grid values for512 triangles. Preserve original Number
-values and signed zero separately from private F32 positions/normals/U16 indices.
-The host/Viewer maps metres once via `metres * 1000 * mmToSceneUnit`. GPU applies
-no additional native mm scale, axis conversion or transform to cloth coordinates.
-
-For an active identity, older steps and changed equal-step data refuse; identical
-equal-step submissions may restage but preserve semantic state. Changed layer,
-context or opaque revision requires explicit cloth clear or full frame1 replacement.
-An opaque revision has no inferred order. Even full frame1 replacement rejects a
-regressing/changed-equal step under the same identity. Null clears cloth and its
-cursor only, retaining native/options/material/particle state. Nonnull requires
-accepted native geometry; an empty viewport must first accept its native scene.
-
-Additive PrimitiveSceneFrameV1 has exactly `{version:1,scene,options,particles,
-materials,cloth}`, with qualified native scene2 and explicit cloth/null. Use copied
-`frameV1` and `updateFrameV1` for atomic camera/pose/visibility/native appearance
-updates that retain the derived layer. Dedicated material/particle setters and
-resize retain cloth. Exact legacy `frame`/`updateFrame` version0 stays available;
-its full replacement explicitly clears cloth, as do ordinary successful native
-update, clear and disposal. Failed replacements retain the entire old frame.
-The cloth-only getter retains CPU metadata after context loss until disposal;
-other native/complete frame getters keep their existing live-context requirement.
-
-One separate cloth draw uses fixed opaque RGB[0.76,0.52,0.22], current fixed
-directional/ambient gamma2.2 appearance and `gl_FrontFacing` to orient normals on
-both sides. It shares the native camera, target and LESS/depth writes. Validate
-original and F32 canonical triangle areas; area-weighted vertex normals must be
-finite and nonzero. Degenerate/cancelling normals refuse without repair. Native
-material/lighting changes do not change the fixed cloth appearance. Native picking
-does not account for visual cloth occlusion; consumers must disclose that limit.
-
-The cloth upload arrays total10008 bytes (3468 positions +3468 normals +3072 indices),
-with one VAO/three buffers/one program and no extra framebuffer. Existing native,
-particle, material and framebuffer limits remain. At most one accepted plus one
-candidate frame structurally permits12 programs/12 VAOs/32 buffers and2 framebuffer,
-texture and depth attachments; shader compilation is sequential with2 transient
-handles. Actual flow tracks owned handles and cleanup, not physical memory or GPU
-completion timing. All input/F32/shader/late allocation failures retain accepted
-native+cloth metadata/pixels/resources. Disposal is idempotent.
-
-```sh
-node examples/gpu-scene/cloth-layer-flow.mjs --trial <825-selected-trial.json> --output <directory>
-```
-
-Native GPU implementation, local Integration, Physics world, Viewer bridge/host,
-numeric collision/performance certification and publication are distinct stages.
-
-### Bounded scalar material absolute value
+## Bounded scalar material functions (abs, min, max)
 
 `abs(float)` accepts one expression bounded within `[-1000,1000]`. For example,
 `mix(#123,#ABC,abs(phase))` accepts a uniform phase declared in `[-1,1]`.
@@ -1346,7 +748,6 @@ The CPU source/emitted/cold-file flow is
 `node examples/gpu-scene/material-radians-flow.mjs --output <fresh-dir>`.
 Native grammar completion does not establish browser or editor adoption.
 
-
 ### Bounded integer-power material expressions
 
 `pow(base, n)` accepts a scalar expression and one unsigned numeric literal
@@ -1360,7 +761,6 @@ dynamic exponent, new runtime intrinsic, angle unit or IR/profile is added.
 For a cubic fade, use `mix(#000,#FFF,pow(strength,3))` with strength bounded0..1.
 Run `node examples/gpu-scene/material-integer-power-demo.mjs --source <fresh-dir>`
 for one source/emitted/cold-file CPU flow. This does not establish rendered pixels.
-
 
 ## General engine geometry
 
@@ -1382,7 +782,7 @@ Original and converted triangles must have safe nonzero area and normals that
 agree with their winding. Nonzero attributes that become zero in Float32 are
 refused. Source arrays cannot contain accessors, sparse values or foreign data.
 The source stays immutable; returned typed buffer contents are caller-owned
-and mutable. Preparation allocates no WebGL resources.
+and mutable. Preparation allocates no GPU resources.
 
 Run `node examples/gpu-scene/triangle-geometry-flow.mjs --output <fresh-directory>`
 after the GPU library build for one source/API/emitted/cold-file flow.
@@ -1403,7 +803,7 @@ mesh bounds and an ordered visible draw plan. Mesh instances share their one
 prepared catalog geometry and material. Original local poses, coordinates, UVs
 and IDs remain unchanged. Float32 matrices and geometry buffers are independently
 owned mutable execution data. The CPU admission model checks transformed original
-and Float32 triangles. It does not allocate GL handles or prove shader pixels.
+and Float32 triangles. It does not allocate GPU handles or prove shader pixels.
 
 Scene0 admits16 geometries,32 materials,64 nodes,32 total mesh instances and16
 levels. Aggregate geometry limits are262144 vertices/triangles and11534336 buffer
@@ -1594,7 +994,6 @@ original scene and viewport request to reconstruct the classification.
 This CPU service provides no CSS/DPR mapping, Float32 raster agreement,
 occlusion, native CAD hit, exact floating certificate or performance claim.
 
-
 ### Caller-time local quaternion rotation clips
 
 `sampleEngineRotationClip(originalScene, originalClip, request)` evaluates one
@@ -1649,7 +1048,6 @@ This CPU source service owns no clock, player, loop, blending, events,
 renderer, native CAD pose, simulation or browser. Slerp, multiple-turn spin,
 scale/skin/morph channels and full interval validity are unsupported.
 
-
 ### Caller-time positive local-scale clips
 
 `sampleEngineScaleClip(originalScene, originalClip, request)` samples a
@@ -1700,7 +1098,6 @@ Save the full original scene, clip and request. This CPU source service owns
 no clock, player, loop, renderer, native CAD scaling, simulation or browser.
 Existing native millimetre display poses have a separate scale contract.
 
-
 ### Original material opacity and object order (CPU source service)
 
 `prepareEngineOpacityBindings(scene, opacityBindings)` prepares one complete
@@ -1743,14 +1140,13 @@ inputs and prior accepted originals untouched.
 Save the complete original scene and companion. Ordinary JSON drops the sign
 of negative-zero; retain a separate sign record if exact Number sign matters.
 Cold reconstruction revalidates both original inputs. This API prepares source
-order; existing opaque renderers do not consume the companion. Actual blending,
+order; no renderer in this package consumes the companion. Actual blending,
 shader pixels, GPU resources, transparent visibility and triangle sorting need
 separate renderer qualification. No rendered transparency, PBR or textured
 alpha support is implied.
 
 ONE source/API/file flow: `node examples/gpu-scene/engine-opacity-bindings-flow.mjs
 --output <fresh-directory>`.
-
 
 ### Original ambient/directional light bindings (CPU source service)
 
@@ -1800,7 +1196,7 @@ Refusal returns no partial source and preserves caller and accepted originals.
 Save the full original scene and companion; retain an explicit sign sidecar
 when ordinary JSON would discard negative-zero. Reopening recomputes only
 the derived unit direction and execution data. This service prepares original
-light bindings; existing opaque renderers do not consume them. It does not
+light bindings; no renderer in this package consumes them. It does not
 render Lambert pixels, alter native gamma2.2 lighting, add PBR/shadows or
 qualify GPU resources. Generic linearRGB/sRGB rendering is a separate stage.
 
@@ -1857,7 +1253,7 @@ data and must not replace original supplied uniform records. Shader ID alone
 does not identify source: the same ID can have different complete sources;
 different material bindings can supply different values for the same source.
 This service has no program cache, GLSL from callers, geometry attributes,
-texture/light/alpha composition, pixels, GL resources or consumer adoption.
+texture/light/alpha composition, pixels, GPU resources or consumer adoption.
 
 ONE source/API/file/cold flow:
 `node examples/gpu-scene/engine-material-bindings-flow.mjs --output <fresh-directory>`.
@@ -1914,7 +1310,7 @@ leaves. Legacy declared uniforms named `uv_u`/`uv_v` retain their meaning;
 only the new profile prohibits declarations shadowing input names. Legacy
 and UV IR reject each other's validation/lowering paths. Legacy lowering
 retains its original mutable three-field result. Current material companion0
-and native renderers still accept only the legacy profile; a future distinct
+accepts only the legacy profile; a future distinct
 binding and renderer contract must consume the UV profile explicitly.
 No GPU program/cache/gamma/resource lifetime or consumer adoption is implied.
 
@@ -2057,7 +1453,6 @@ resource/cache/lifetime, consumer document or publication support.
 ONE source/API/file/cold flow:
 `node examples/gpu-scene/engine-uv-repeating-material-bindings-flow.mjs --output <fresh-directory>`.
 
-
 ### Original indexed triangle normal generation
 
 `prepareTriangleGeometryWithNormals(source)` admits an explicit
@@ -2075,11 +1470,10 @@ Original signed data, generated Number normals and mutable execution buffers are
 independent. Existing geometry0 still requires explicit normals. Limits are
 131072 vertices and triangles, 1048576 original numeric values, plus the existing
 geometry and Float32 representation limits. This API performs one existing
-geometry admission; it does not allocate WebGL resources.
+geometry admission; it does not allocate GPU resources.
 
 The source, emitted API and cold-file example is
 `examples/gpu-scene/triangle-normal-generation-flow.mjs`.
-
 
 ### Atomic local TRS clips
 
@@ -2108,7 +1502,6 @@ identifies final admission. This API has no clock, renderer or playback loop.
 The source, emitted API and cold-file example is
 `examples/gpu-scene/engine-transform-clip-flow.mjs`.
 
-
 ### Source2 local XYZ scale
 
 `compileAffineSceneSource(source)` compiles a distinct Source2 source profile for
@@ -2131,11 +1524,10 @@ then multiplies local distance by the minimum executed scale. The resulting
 field is conservative in ideal arithmetic and is not exact world distance.
 Original Number values and executed Float32 constants stay distinct. Hardware
 precision, ray convergence, normals, pixels and resources have not been
-qualified by this source compiler. Existing renderers do not accept Source2.
+qualified by this source compiler. `showScene` does not accept Source2.
 
 A six-shape source is `examples/gpu-scene/affine-scene-authoring.css`. The source,
 emitted API and cold-file flow is `affine-scene-source-flow.mjs` in that folder.
-
 
 ### Original Source1 / Source2 object bounds (CPU)
 
@@ -2169,7 +1561,7 @@ rotated curved primitives can have loose boxes. Rounded outputs have no outward
 padding or rigorous rounding certificate. They do not certify Float32 shaders,
 raymarch/pixel containment, exact native extrema, safe culling or continuous
 animation bounds. Source spelling/signs remain original; canonical zero policy
-is the actual compiler's. CPU data is copied, frozen and GC-owned; no DOM, GL,
+is the actual compiler's. CPU data is copied, frozen and GC-owned; no DOM, GPU
 resources, cache, file transport or renderer adoption occurs here. Render's
 Frame all/selected UI and camera acceptance remain separate.
 
@@ -2178,7 +1570,6 @@ Run the bounded source/API/emitted/file flow after building, with a fresh output
 ```sh
 node examples/gpu-scene/source-scene-bounds-flow.mjs --output /absolute/fresh/output
 ```
-
 
 ### CPU authored material color inspection
 
@@ -2211,24 +1602,6 @@ existing composition `fract(clamp(uv_u,-999,999)+phase)` for bounded inspection.
 CPU evaluation/native adoption, editor use, actual graphics and publication
 are separate stages.
 
-
-### Primitive presentation recovery failure
-
-A failed candidate plus failed accepted-frame presentation recovery returns
-`PrimitiveSceneRecoveryError extends AggregateError`, with fixed name/message,
-readonly `code:'CONTEXT'` and standard `errors` exactly `[original,recovery]`.
-The owned two-element array is frozen; cause objects retain their identities
-and are not frozen or normalized. Successful recovery retains the original
-candidate Error object and existing UpdateResult signature.
-
-Failed recovery makes presentation unavailable. It does not assert actual
-hardware context loss. Subsequent GPU presentation/readback refuses; dispose
-still releases owned live-context resources using actual `gl.isContextLost()`.
-Viewer must consume the published fatal error to retain native CPU/provenance
-while fencing Open/Fit/presentation. There is no public private-state getter,
-new renderer/profile or resize-recovery promise. Code/build/public-error checks
-are separate from actual single/double-fault WebGL2/Viewer/resource proof.
-
 ### Generic indexed Box authoring
 
 `prepareBoxGeometry(input)` accepts exact Box source0 parameters:
@@ -2247,7 +1620,7 @@ replace SDF Box kernels.
 Errors reuse `TriangleGeometryError`. Exact data, metadata, dimension bounds,
 original area and Float32 nonzero/collapse checks apply. Tiny positive dimensions
 can genuinely refuse; values are never enlarged or clamped. Source/caller data
-and independent calls do not share mutable arrays. Existing general renderer,
+and independent calls do not share mutable arrays. Rendering,
 pixels, lifetime, textures and publication retain their separate qualifications.
 
 `examples/gpu-scene/box-geometry-flow.mjs --output <fresh-directory>` exercises
@@ -2336,16 +1709,14 @@ Materials retain input order and reference candidate Surfaces. Existing source
 validation, uniform defaults, declared ranges and canonical numerical zero
 apply. Records and original arrays are frozen; execution views belong to the
 caller. Mutating those views does not change `.frame`. Re-admit `.frame` through
-the supported API before a later mount or update; the prepared DTO is inspectable
-CPU data and is not a trusted backend token. Existing constructors and updates
-keep their own signatures and validation.
+the supported API before any later use; the prepared DTO is inspectable CPU
+data and is not a trusted backend token.
 
 Existing native/sample/material caps and errors remain. Actual Error identities
 propagate; a thrown non-Error is wrapped in GPUError with its original cause.
 Preflight success does not establish shader compilation, device capacity,
-complete first presentation, rollback, lifecycle or rendered Open. Those remain
-separate requirements of #1375. A failed first mount has no accepted frame to
-roll back. Existing #1334 update recovery retains its own semantics.
+presentation, rollback, lifecycle or rendered Open; those belong to the consumer
+that draws the frame (`@barocss/viewer` draws native scenes on the viewer core).
 
 `examples/gpu-scene/primitive-frame-preflight-flow.mjs --output <fresh-directory>`
 uses genuine authored native Surface assets, two materials, explicit poses and
@@ -2444,7 +1815,7 @@ Existing TriangleGeometryError codes and original/F32 admission remain. Original
 half-height or slope underflow refuses GEOMETRY before generation; no clamp or
 healing. Sampled bounds, authored apex normals and original mesh CPU ray queries
 are separate from analytical enclosure, native CAD identity, SDF, raster picking,
-GL, performance, parity and publication. Existing providers and exports remain.
+GPU, performance, parity and publication. Existing providers and exports remain.
 
 `examples/gpu-scene/cone-geometry-flow.mjs --output <fresh-directory>` checks
 source/emitted/DTS APIs, literal topology/winding/seams/cap UV/apex normals, shared
@@ -2640,41 +2011,6 @@ reflection behavior remains compatible.
 One bounded source/emitted/file/cold flow:
 `node examples/gpu-scene/native-reflection-cause-flow.mjs --output /absolute/fresh-directory`.
 
-## Trusted native Surface UV01 shader source (CPU)
-
-`prepareNativeSurfaceUV01ShaderSource(unknown)` accepts four own fields:
-`format: 'barocss-gpu-native-surface-uv01-shader-request'`, `version: 0`, a raw
-native UV01 `binding` request, and explicit `lighting` (null for the existing
-fixed-light template, or the existing three-field MeshLighting configuration).
-It admits lighting first, reconstructs the actual binding once, then reuses the
-own mesh shader templates and trusted lowered expression. Binding work remains
-two material snapshots/compiles plus one geometry producer, with existing bounds.
-
-The six-field v0 result has profile `source0-native-opaque-uv01-shader-source-v0`,
-`request`, `binding`, and `shaders: {vertex, fragment}`. Its request is effective
-canonical intent with all uniform defaults resolved, rather than unresolved
-editor history. Ordinary data is fresh/frozen; the binding's independent Float32
-UV01 view remains mutable. Original geometry/material source strings and native
-control, knots, domain, raw U/V, signs and IDs remain separate from derived data.
-
-GLSL300es/highp source retains position0/normal1, the existing camera branch and
-lighting/gamma/opaque output. Location2 is `vec2 native_surface_uv01`, assigned to
-matching `v_native_surface_uv01` varying. Trusted native material declarations and
-linear expression replace only the previous inner color decode. Each insertion
-anchor must occur once; each complete vertex/fragment is bounded to 65536 UTF16
-units and UTF8 bytes. Caller GLSL or prepared bindings are not inputs.
-
-`NativeSurfaceUV01ShaderSourceError` reports INPUT/LIGHTING/BINDING/SHADER, bounded
-messages and actual cause/source-offset chains. Position and normal attributes
-must already be prepared in the existing display/world convention; this source
-builder applies no scene scale, pose or axis conversion. It creates no upload,
-linked program, frame, pixel, device or lifetime receipt. A matching renderer and
-qualified context still need their own contract and actual graphics acceptance.
-It retains the existing single global lighting model; light entities remain #1445.
-
-One source/emitted/DTS/file/cold flow:
-`node examples/gpu-scene/native-surface-uv01-shader-source-flow.mjs --output /absolute/fresh-directory`.
-
 ## Authored pure float material functions
 
 All four existing material compiler profiles accept bounded expression functions:
@@ -2718,7 +2054,6 @@ pixels, file/editor adoption and publication require their separate receipts.
 One source/emitted/file/cold flow:
 `node examples/gpu-scene/material-pure-float-function-flow.mjs --output /absolute/fresh-directory`.
 
-
 ## Pure color-return material expressions
 
 The same bounded function grammar also admits an existing color expression:
@@ -2751,7 +2086,6 @@ preparation is separate from linking, attribute uploads, frames and pixels.
 
 One new palette source/emitted/file/cold flow:
 `node examples/gpu-scene/material-color-return-function-flow.mjs --output /absolute/fresh-directory`.
-
 
 ## Typed literal Scene2 parameter references
 
@@ -2796,7 +2130,6 @@ UTF16/LF diagnostic positions and actual base compiler causes.
 One source/emitted/file/cold flow:
 `node examples/gpu-scene/scene-literal-parameter-flow.mjs --output /absolute/fresh-directory`.
 
-
 ## Typed Scene quantity products
 
 `compileMultiplicativeAffineSceneSource` is a separate source-only entry for
@@ -2820,7 +2153,6 @@ syntax/type/range/budget errors use original spans and actual Scene causes remai
 
 One new source/emitted/manual-file/cold flow:
 `node examples/gpu-scene/scene-quantity-product-flow.mjs --output /absolute/fresh-directory`.
-
 
 ## Flat typed Scene arithmetic
 
@@ -2846,7 +2178,6 @@ This CPU compiler creates no linked renderer/frame/TEN/pixel/lifetime receipt.
 
 One source/emitted/literal-control/file/cold flow:
 `node examples/gpu-scene/scene-flat-arithmetic-flow.mjs --output /absolute/fresh-directory`.
-
 
 ### Authored native directional light catalog (#1472)
 
@@ -2878,7 +2209,6 @@ New native frames, shader/uniform consumption, linked programs, pixels, Viewer
 accepted state, recovery/disposal and Render history/versioned files remain
 separate stages under #1445. Point/Spot lights and attachment remain future work.
 
-
 ### Bounded authored Scene repeats
 
 `compileFiniteRepeatAffineSceneSource(source)` is a separate opt-in Source2 compiler. For example:
@@ -2901,20 +2231,6 @@ The distinct version0 result/profile `source2-typed-finite-repeat-coefficients-v
 Original source is limited to 64KiB UTF16/UTF8, parameters16, references1536, rules128, fields512 and cumulative work4096. Each repeat adds10 work units and each generated object adds4 before expansion; existing parameter/expression charges also apply. Shaders remain64KiB each; the complete signed result remains2MiB before fresh copying/freezing. Rejections use `SceneParameterSourceError`. Older literal, product and arithmetic compilers retain their schemas and reject repeats.
 
 Rerun the bounded complete-source/file/cold qualifier with `node examples/gpu-scene/scene-finite-repeat-flow.mjs --output ABS_FRESH`. This proves CPU source authoring and lowering. Rendering, consumer document upgrades and publication require separate acceptance.
-
-
-### Native directional light shader source
-
-`prepareNativeDirectionalLightShaderSource({lights, material})` composes trusted CPU shader source and a uniform-name contract from a complete raw native directional light catalog and a legacy mesh material binding, or explicit `null`. It reuses catalog admission, existing material binding validation and public material lowering. A nonnull binding recompiles original material source twice through those actual providers; null performs no material compilation. EngineUV and NativeUV materials require their separate profiles and are refused here.
-
-The fresh frozen eight-field version0 result has profile `native-world-directional-linear-mesh-opaque-v0`, independent original `catalog`/`material`, derived `execution`, `abi` and trusted `shaders`. Inventory order includes disabled lights. Each stable ID maps to index-based `nativeLightDirection_N`, `nativeLightColor_N` and `nativeLightIntensity_N` names; disabled effective intensity is positive zero while original catalog values remain. Material uniforms retain actual `mat_u_N` source order/defaults. The null-material branch uses the existing color uniform and power2.2 decode; a bound material omits that uniform and uses its trusted lowered linear expression.
-
-The vertex shader is unchanged. The fragment accumulates ambient plus zero to four colored Lambert terms with world RH Y-up surface-to-light unit directions. It multiplies the trusted linear base color, saturates linear radiance to[0,1], then applies native power1/2.2 with alpha1. It adds no old singleton light and has no runtime loop or arbitrary shader input. This new opaque profile uses native power-law color compatibility; it does not establish exact standard-sRGB, HDR/PBR or physical light transport.
-
-`DirectionalLightShaderSourceError` uses INPUT, LIGHTS, MATERIAL or BUDGET with bounded messages and actual reflection/provider causes. Existing provider source/work/cardinality limits apply; each shader remains64KiB UTF16/UTF8 and the complete signed result is capped at256KiB before final copy/freeze. Original catalog signs versus normalized/effective values and legacy material zero canonicalization remain separate. SourceId/revision and ABI names are caller tags and CPU names, not accepted frame/TEN or actual uniform-location certificates.
-
-After the affected GPU build, run `node examples/gpu-scene/directional-light-shader-source-flow.mjs --output ABS_FRESH` for the one source/emitted/raw-request/material-source/shader-file/cold flow. Shader linking, uniform upload, a new complete native frame/profile, recovery/lifetime, Viewer joins, editor files/history and publication require separate acceptance.
-
 
 ### Typed conditional Scene objects
 
@@ -3257,141 +2573,6 @@ After the affected GPU build, run the one source/emitted/IR/text/file/cold flow:
 node examples/gpu-scene/engine-uv-texture-material-flow.mjs --output /absolute/fresh-directory
 ```
 
-## Opt-in WebGPU primitive backend (#1512)
-
-This API uses the existing complete original native frame and legacy Material
-IR. Native code, builds and source/file flows are separate from actual GPU
-qualification. The required same-target browser access is currently denied by
-administrator policy; real WebGPU/device/screen qualification is pending. The
-preserved WebGL2 APIs remain available and their default selection is unchanged.
-
-The first admitted profile is frame version `0`, qualified scene version `2`,
-exactly one Surface, `particles: null`, explicit existing camera and zero or one
-matching legacy Mesh material. Optional existing MeshLighting is supported.
-Prepare the genuine packet from original CAD source, retain its qualified
-`{modelId, geometryId}` reference, and pass the complete frame:
-
-```ts
-// frame is the complete original {version, scene, options, particles, materials}.
-const prepared = prepareWebGPUPrimitiveFrame(frame, canvas.width, canvas.height);
-const viewport = await mountPrimitiveBackendViewport(canvas, frame, {
-  backend: 'webgpu',
-  fallbackCanvas: null,
-});
-viewport.status;
-await viewport.updateFrame(editedOriginalFrame);
-await viewport.resize(512, 512);
-const rgba = await viewport.readPixels();
-const hit = await viewport.pick(256, 256);
-viewport.select(hit.ref);
-viewport.select(null);
-viewport.dispose();
-```
-
-The renderer re-admits complete original frames; `prepared` is CPU data, never
-a trusted runtime shortcut. Geometry-parameter changes supply a freshly derived
-packet from the original CAD source. Camera, light, pose and material-uniform
-changes use the same complete frame contract. Curves, multiple Surfaces,
-particles, cloth, EngineUV/nativeUV/discrete/texture materials, multi-light
-catalogs and other profiles refuse before device work. Nothing is silently
-omitted. Existing native limits are 4096 vertices, 7938 triangles and 16 material
-uniforms.
-
-`lowerMeshMaterialWGSL(input)` reconstructs the complete unchanged legacy
-MeshMaterialIR and returns exactly `format`, `version`, `profile`, `material`,
-`expression`, `declarations`, `uniformLayout`, `uniformByteLength`. Format is
-`barocss-gpu-mesh-material-wgsl`, version `0`, profile
-`mesh-opaque-fragment-wgsl-v0`. The material parameter block is always 64 bytes,
-four vec4 slots. Layout records retain `name`, `type`, `min`, `max`, `default`,
-plus `index`, `byteOffset`, `access`; source order determines offset `4*i`.
-Trusted accesses use generated material slot/component expressions, never
-caller names as WGSL symbols. Executed Float32 coefficients/defaults/bounds that become
-nonfinite or underflow refuse `MeshMaterialError` with `RANGE`. Existing
-compiler budgets and old public IR types remain unchanged.
-
-`prepareWebGPUPrimitiveFrame(input, width, height)` calls common native frame
-admission and returns exactly `format`, `version`, `profile`, `frame`, `wgsl`,
-`frameUniforms`, `materialUniforms`. Format is
-`barocss-gpu-webgpu-primitive-frame`, version `0`, profile
-`qualified-surface-v0`. Metadata is fresh frozen ordinary data; independently
-owned Float32 views remain mutable. Frame uniforms contain view/projection/light/
-style in 160 bytes; material uniforms use 64 bytes. Original source, native F64
-control/knots/weights/mm and qualified IDs stay separate from display F32
-positions/world normals/U16 indices and resolved uniform values. Prepared
-geometry already includes the display transform; no second mm conversion occurs.
-
-Existing right-handed camera data is retained. The OpenGL clip-depth interval
-−1..1 becomes WebGPU 0..1 only through `(z+w)/2`. Rendering is one indexed
-triangle list, no culling/blending, `depth24plus` with `less`, group0 binding0
-for frame uniforms and binding1 for material uniforms. Existing power2.2 color
-decode/output encoding and single-directional/ambient response are preserved.
-No CPU/GPU numerical equality or native texture pairing is promised.
-
-Options have exactly `backend: 'webgpu' | 'webgl2' | 'auto'` and
-`fallbackCanvas: HTMLCanvasElement | null`. A supplied fallback canvas must be a
-distinct current-realm canvas. `auto` attempts WebGPU and uses startup fallback
-only for an admitted profile's capability/initialization failure. Before WebGPU
-context acquisition the original fresh canvas may use WebGL2; after acquisition
-only the explicit fresh fallback canvas can be used. No host canvas is created
-silently, and an acquired WebGPU canvas is never switched to WebGL2.
-
-The facade exposes copied `frame` and `selected`, actual `canvas`, and status
-with exactly `backend`, `state`, `generation`, `fallbackReason`, `limits`.
-States are `ready`, `lost`, `disposed`, `failed`. Limits are actual numeric
-`maxTextureDimension2D`, `maxBufferSize`, `maxUniformBufferBindingSize`,
-`maxColorAttachments`, `maxColorAttachmentBytesPerSample`, `maxVertexBuffers`,
-`maxVertexAttributes`, `maxBindGroups`, `maxVertexBufferArrayStride`, or `null`
-for the fallback. No device or GPU handle is public.
-
-`readPixels()` returns fresh canonical RGBA in top-left row order, converting
-BGRA or preserved WebGL2 bottom-left rows. WebGPU `pick(x,y)` requires bounded
-integer canvas pixels and reads the real depth-matched identity attachment;
-identity zero is a miss. Its result is exactly `{generation, ref}`. WebGL2
-fallback picking explicitly refuses `UNSUPPORTED`. `select(ref|null)` accepts
-only the admitted qualified reference; selecting a reference does not certify
-a physical hit. No bounds-based hit substitution is provided.
-
-Only one asynchronous operation may be pending. Overlapping mutations,
-readbacks and selection refuse `BUSY`; candidate snapshots precede the first
-await. Accepted generation advances only after submission/presentation/error
-checks. Candidate failure retains accepted resources; failed presentation
-attempts accepted-color recovery, whose failure is terminal. Resize commits
-backing dimensions with presentation and restores prior dimensions/color after
-refusal when needed. The 10-second wait timeout is terminal and prevents scope/
-resource reuse; late completion releases owned candidates. Queue completion
-alone is not screen evidence.
-
-Device loss is terminal `lost`, retaining the CPU frame and cleaning owned
-resources. There is no automatic device-loss-time fallback. `dispose()` is
-idempotent and destroys owned buffers/textures/device, unconfigures the owned
-context and clears references. Preserved WebGL2 errors retain their actual
-causes. Errors use `PrimitiveBackendError` and codes `INPUT`, `PROFILE`, `BUDGET`,
-`UNSUPPORTED`, `INIT`, `DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`; messages are
-bounded to 1024 characters. Local errors have no fabricated cause; reflection
-and inherited provider failures retain actual causes.
-
-Canvas sides are at most 1024 and total pixels at most 1048576. Actual device
-limits must admit dimensions 1024, buffer 4194304, uniform binding 160, two color
-attachments/eight bytes per sample, two vertex buffers/attributes, one bind group
-and stride12. Accepted plus candidate use at most 11 owned buffers, six textures
-and two pipeline/module/group references, including one serial readback buffer.
-Per-frame geometry/uniform logical buffers are at most 146156 bytes; readback is
-at most 4194304 bytes with 256-byte padded rows. Shader text is capped at 64KiB.
-These are bounded logical allocations, not measured driver memory.
-
-The one source/emitted/original-frame/WGSL/file/cold flow is:
-
-```sh
-node examples/gpu-scene/webgpu-primitive-vertical-flow.mjs --output /absolute/fresh-directory
-```
-
-That CPU flow does not qualify shader execution. Actual adapter/device limits,
-WGSL compilation, same-scene WebGPU/WebGL2 pixels, screen/console, updates,
-physical hit/miss, startup fallback and cleanup require the separately authorized
-real GPU phase. Device-loss proof, integration, consumer display and publication
-remain separate stages. The denied original browser target must not be bypassed
-through another browser/tool/origin/port.
-
 ## Authored EngineUV sampler and texture resource join (CPU, #1184)
 
 `prepareEngineUVTextureMaterialBindings(sceneInput, textureInput, materialInput)`
@@ -3607,7 +2788,7 @@ Actual validator `INPUT`, `IR`, `BUDGET`, diagnostics and reflection causes pass
 through unchanged. New emission `RANGE`, `BUDGET`, `IR` uses bounded messages,
 start/end0 and no fabricated source span or cause. Old legacy WGSL and GLSL
 profiles/types remain unchanged. This does not add EngineUV textures to the
-#1512 native Surface viewport. Discrete selection, repeating `fract`, nativeUV,
+native Surface UV01 profile. Discrete selection, repeating `fract`, nativeUV,
 renderer/device/pipeline/module validation, image evaluation, frame/pixels,
 selection/updates/retention/fallback/loss/lifetime, consumer and publication
 support remain separate.
@@ -3728,147 +2909,6 @@ unchanged package source inputs and local CAD dependency resolution, then one
 fresh Node.js22 child reconstructs source before regenerating the program. Source qualification
 does not complete #1184's real graphics gate.
 
-## Authored unlit EngineUV WebGPU viewport (#1184)
-
-`mountEngineUVTextureWebGPUViewport(canvas, sceneInput, textureInput,
-materialInput, optionsInput)` uses complete original scene0 and both original
-texture/Material companions. It requires WebGPU; no generic fallback is
-available. Options have exactly `{width, height}`, integers1..1024 and at most
-1048576 pixels:
-
-```ts
-const viewport = await mountEngineUVTextureWebGPUViewport(
-  canvas, originalScene, originalTextures, originalMaterials,
-  { width: 256, height: 256 },
-);
-viewport.status;
-viewport.originals;
-await viewport.updateFrame(editedScene, editedTextures, editedMaterials);
-const rgba = await viewport.readPixels();
-const hit = await viewport.pick(128, 128);
-viewport.select(hit.ref);
-viewport.select(null);
-viewport.dispose();
-```
-
-This is staging/runtime implementation. The native source/API/file flow does
-not prove actual modules, devices, programs or graphics. Actual generic GPU
-screen/pixel/lifecycle qualification remains UNRUN; no mock GPU or declaration
-of a graphics pass follows from source verification. The preserved #1512 native
-Surface profile and its manual evidence do not qualify this generic profile.
-
-Options are admitted first, then one complete original authored join runs
-synchronously before the first await. All hidden/unused source data is admitted;
-every visible draw requires an authored Material binding or `REFERENCE` refusal.
-An empty visible set is valid. Each authored entry then uses the actual complete
-program lowerer once: the join's two source reconstructions plus one program
-reconstruction, at most24 across eight entries. Caller WGSL, prepared shortcuts,
-injected devices/platforms, shaderId caches and partial frames are unsupported.
-
-The `originals` getter returns exactly `scene`, `textureBindings`,
-`materialBindings`, as fresh deep-frozen ordinary copies including original
-signed zeros. `selected` returns a copied frozen `{sceneId, nodeId, geometryId}`
-or null. IDs retain their respective source namespaces; sampler/shader/material
-IDs are not pick identity. No packed arrays or GPU handles escape.
-
-Status has exactly `backend`, `profile`, `state`, `generation`, `width`, `height`,
-`limits`, `resources`. Backend is `webgpu`, profile
-`engine-opaque-unlit-uv-texture-program-wgsl-v0`; states are `ready`, `lost`,
-`failed`, `disposed`. Limits and logical resource records are copied/frozen.
-Mount generation is1; successful update/resize advances once. Reads, picks and
-selection do not advance it.
-
-`updateFrame(scene, textures, materials)` and `resize(width, height)` return
-promises of the existing `UpdateResult`; `select(ref|null)` returns it directly.
-Refusals retain actual errors. Mount/read/pick reject `EngineUVWebGPUError`.
-Pixels are fresh tight RGBA in top-left order. `pick(x,y)` takes bounded integer
-backing pixels and reads the real depth-matched uint identity attachment, returning
-exactly `{generation, ref}`. Token0 is background; nonzero tokens map current
-draw order to actual scene/node/geometry references. Unknown tokens use `RENDER`.
-The host converts CSS coordinates; no pointer listener or bounds-hit proxy is
-added. Selection requires an accepted visible reference; null clears, and exact
-references remain selected only while visible after commit.
-
-Only one asynchronous operation may be pending; overlapping mutation/read/pick/
-selection refuses `BUSY`. External canvas backing changes use `STATE`;
-lost/failed/disposed operations also use `STATE`. Original candidate snapshots
-precede awaits. Upload and render happen offscreen, then same-format presentation
-and queue/error-scope completion precede atomic originals/resources/map/size/
-generation commit. Early failure releases its candidate and retains accepted
-state. Presentation failure restores old size/color when healthy; failed recovery
-is terminal and retains actual causes. Ten-second wait timeouts invalidate the
-operation epoch and clean late results. Device loss is terminal `lost`; disposal
-is idempotent, invalidates pending work and cleans owned resources/context/device.
-There is no automatic fallback or loss-time backend switch.
-
-Programs reuse position slot0/stride12 and UV slot1/stride8, frame128, material64,
-draw80 and three bind groups. Original scene-unit world/camera Float32 matrices
-are packed explicitly little-endian, with uint draw identity and three zero
-padding lanes. There is no normal, tint, light, native mm or UV/V remap; the
-program performs the one GL clip-depth conversion. Image rows are copied unchanged
-to rgba8unorm, nearest/clamp/level0, with the one explicit standard sampled sRGB
-decode. Authored linear color and original linear background use standard
-piecewise sRGB output encoding once, alpha1. No legacy display gamma2.2 is added.
-Canvas/offscreen color use rgba8unorm; RGBA-to-BGRA raw copies are not used.
-
-All admitted unique geometries, textures and authored materials are allocated,
-including unused ones; only visible draws get draw buffers. A candidate shares
-its source geometry/texture IDs internally, without cross-generation caching.
-Fixed sampler/layout ownership is device-scoped; pipelines/modules/groups are
-released as references and buffers/textures destroyed. Existing scene/catalog/
-source limits remain, including16 geometries/32 materials/64 nodes/32 meshes,
-524288 vertex work, 11534336 CPU geometry bytes, eight textures/4194304 byte
-channels, eight authored entries/128 uniforms and source64KiB. Each shader is
-capped at64KiB and aggregate shaders at512KiB UTF16/UTF8.
-
-Resource ledger has exactly `geometryBytes`, `textureBytes`, `uniformBytes`,
-`colorIdentityBytes`, `depthTexels`, `depthBudgetBytes`, `chargedBytes`,
-`readbackBytes`, `buffers`, `textures`, `bindGroups`, `pipelines`.
-`colorIdentityBytes` is8WH; `depthTexels` isWH; `depthBudgetBytes` is4WH, a
-conservative accounting charge, **not physical depth24plus storage**.
-`chargedBytes` sums geometry/texture/uniform/color-identity bytes plus that
-depth charge and is at most33554432. Accepted plus candidate plus the larger
-padded readback is at most67108864 before device mutation. Readback uses
-256-byte row pitch and at most4194304 bytes; pick uses256 scratch bytes.
-Buffers are at most89, textures11, bind groups48 and pipelines8 per candidate.
-Driver overhead, browser swap resources and physical memory remain unmeasured.
-
-Thirteen actual positive integer limits are checked and rechecked for each
-candidate: `maxTextureDimension2D`, `maxBufferSize`,
-`maxUniformBufferBindingSize`, `maxColorAttachments`,
-`maxColorAttachmentBytesPerSample`, `maxVertexBuffers`, `maxVertexAttributes`,
-`maxBindGroups`, `maxVertexBufferArrayStride`, `maxSampledTexturesPerShaderStage`,
-`maxSamplersPerShaderStage`, `maxUniformBuffersPerShaderStage`,
-`maxBindingsPerBindGroup`. They must admit the actual candidate dimensions/
-largest buffers/readback, 128-byte uniforms, two attachments/eight sample bytes,
-two vertex buffers/attributes, three groups/stride12, one texture/sampler,
-two uniforms per stage and two bindings per group. No dynamic-offset alignment
-is assumed.
-
-`EngineUVWebGPUError` uses `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `UNIFORM`,
-`MATERIAL`, `TEXTURE`, `SCENE`, `CAMERA`, `REPRESENTATION`, `UNSUPPORTED`, `INIT`,
-`DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`. Messages are bounded to1024 characters;
-raw reflection preserves an own exact cause even when undefined, while local
-guards have none. Actual join errors/codes remain causes. Program `RANGE` maps
-to `REPRESENTATION`, `BUDGET` to `BUDGET`, other program errors to `MATERIAL`;
-camera failures use `CAMERA`. Private preparation/packing helpers are not public
-exports. All earlier public exports/providers remain unchanged.
-
-Use Node.js22 and the preceding scoped `tsc`/browser ESM `esbuild` recipe with
-explicit local CAD alias before the one new source/private-preflight/direct-
-emitted/refusal/original-file/fresh-child qualifier:
-
-```sh
-node examples/gpu-scene/engine-uv-webgpu-runtime-flow.mjs --output /absolute/fresh-directory
-```
-
-That source gate supplies implementation/evidence only. Actual device modules,
-pipelines, quarter-texel pixels, physical picking, updates/refusal retention,
-device loss, browser/screen/live console, consumer and publication require
-separate real acceptance. Existing denied-target restrictions and protected
-servers/tabs remain; no alternate-origin/tool/port proof is proposed.
-
-
 ## Native Surface UV01 material WGSL source
 
 `lowerNativeSurfaceUV01MaterialWGSL(originalIR)` revalidates the complete native
@@ -3895,59 +2935,6 @@ node examples/gpu-scene/native-surface-uv01-wgsl-flow.mjs --output /absolute/fre
 
 Actual native UV01 WebGPU program/frame/render/pixels, consumer display and
 publication require separate receipts.
-
-## Multiple original Surface WebGPU viewport (#1553)
-
-`mountMultiSurfaceWebGPUViewport(canvas, completeFrame, { width, height })`
-selects required WebGPU for **1..4 original qualified Surfaces** and0..4 legacy
-MeshMaterial bindings. Use complete common frame0, scene2, explicit camera and
-`particles:null`. Existing global MeshLighting is optional. Curve, empty,
-particle, cloth, EngineUV, nativeUV01, texture and light-entity profiles are not
-admitted by this route. Existing single-Surface and WebGL APIs keep their contracts.
-
-Each full `(modelId,geometryId)` pair is distinct, including shared native geometry
-IDs under different model aliases. GPU retains independently copied native
-packets/parameters/poses/material CSS and Number coefficients. Existing common
-preflight applies native-mm/display transforms once. Private position/normal/U16
-execution bytes and camera160/material64 blocks are explicitly little-endian.
-Caller source-document/TEN relationships remain the caller's authority.
-
-One shared rgba8unorm/r32uint/depth24plus target draws entries in admitted order.
-Tokens1..N map full refs;0 is background. Native gamma2.2, inherited singleton
-lighting and direct background clear are preserved. Actual canvas configuration
-admits fixedRGBA8; no preferred-format assumption or automatic fallback is used.
-
-The returned viewport exposes `canvas`, fresh frozen `frame`, copied `selected`
-and eight-field `status`. Async `updateFrame`, `resize`, `readPixels` and `pick`
-allow one pending operation. `pick(x,y)` reads a top-left backing pixel and returns
-`{generation,ref}` from the actual identity attachment. `select(ref|null)` only
-changes metadata; it does not highlight or increment generation. Candidate updates
-retain a still-present full selection; validation refusals preserve accepted state.
-Failed presentation attempts restore accepted pixels; failed recovery is terminal.
-
-Dimensions1..1024/product1048576, per-program64KiB and signed ordinary
-`{frame,programs}`2MiB limits are bounded separately from upload charges. Status
-resources are eleven logical fields: per-entry5buffers/224uniformbytes, N pipelines
-and bindgroups, three shared textures, padded index/readback storage and logical
-4-byte depth charge. Candidate32MiB and overlap/readback64MiB are caps, not measured
-physical memory or driver-private allocation certificates. Required device limits
-are the nine named fields; private prepared data is not a public input shortcut.
-
-`MultiSurfaceWebGPUError` has INPUT/PROFILE/BUDGET/REPRESENTATION/UNSUPPORTED/INIT/
-DEVICE_LOST/RENDER/STATE/BUSY codes and bounded messages. Actual causes are retained.
-Device loss is terminal lost; timeout/recovery/cleanup failures are terminal failed.
-Each device await is capped at10s; epoch cancellation prevents late commits.
-`dispose()` invalidates waits, attempts every owned cleanup and releases this route's
-canvas claim. First disposal reports cleanup failures; repeated disposal is a no-op.
-No foreign device/context is released.
-
-Native source/API/file/cold qualification uses
-`node examples/gpu-scene/multi-surface-webgpu-flow.mjs --output ABS_FRESH` after
-`build:library` with Node22. This flow checks original native source reconstruction,
-trusted source/program/packing/identity/resource contracts and public emitted exports.
-It uses no fake GPU. Actual shader compilation/device/pixels/shared-depth picking,
-update retention/file remount/loss/driver cleanup and consumer adoption require
-separate genuine browser receipts. Native code is not publication or release.
 
 ## Complete native Surface UV01 WebGPU program source
 
@@ -4028,7 +3015,7 @@ frame/material/draw uniform blocks. U16 storage is padded to four bytes without
 changing the index count; all reserved bytes are zero. Ordinary results are
 recursively frozen, while typed views remain mutable and never share their buffers
 with caller data, other entries/calls or the other result views. Results are
-observations, never trusted future mount inputs.
+observations, never trusted inputs.
 
 Raw request and complete `{request, bindings, frame, programs}` accounting each
 charge every repeated path, signed number, source/code string and typed observation
@@ -4062,107 +3049,6 @@ flow. CPU/source results do not establish WGSL device/interpolation/pixels,
 physical picking, lifecycle, consumer TEN/schema/history/current-Root acceptance,
 Integration adoption or publication. The original browser denial and deferred
 rendering acceptance remain unchanged.
-
-### Required-WebGPU native Surface UV01 viewport (#1574)
-
-`await mountNativeSurfaceUV01WebGPUViewport(canvas, rawRequest, { width, height })`
-adds an explicit, required-WebGPU route for the complete raw request described in
-#1569 above. Supply a fresh current-realm `HTMLCanvasElement`; route-local canvas
-claims prevent duplicate mounts through this route, not mounts by other backends.
-Options contain exactly own enumerable plain-data `width` and `height`: finite
-integers 1–1024, at most 1048576 backing pixels, with no defaults. Accessors,
-hidden/extra/symbol fields and reflection failures are refused without invoking
-getters. No fallback, backend default, legacy admission or public device injection
-is added. The host must explicitly remount after device loss.
-
-The viewport exposes `canvas`, `originals`, `selected`, `status`,
-`updateFrame(input)`, `resize(width, height)`, `readPixels()`, `pick(x, y)`,
-`select(ref | null)` and `dispose()`. Mount rejects with
-`NativeSurfaceUV01WebGPUError`; updates/resizes return `Promise<UpdateResult>`,
-selection returns `UpdateResult`, and failed reads/picks reject. Diagnostic codes
-are exactly `INPUT`, `FRAME`, `BUDGET`, `UNSUPPORTED`, `INIT`, `DEVICE_LOST`,
-`RENDER`, `STATE`, `BUSY`, with messages at most 1024 characters. A provider
-refusal is `FRAME` with the exact `NativeSurfaceUV01FrameError` cause, including
-nested diagnostics/spans. Local refusals do not invent causes; reflection failures
-preserve their exact own cause, even `undefined`.
-
-Every admitted mount/update/resize synchronously invokes the real #1569 frame
-provider once before any device await. Resize recompiles retained raw originals,
-not prepared observations or the common legacy frame. Each `originals` read is a
-fresh independent recursively frozen ordinary copy of the complete raw request,
-including source text and signed Numbers. Upload buffers never become public
-viewport observations. Caller-owned source/body/asset/TEN/current-display
-correspondence is still required; aliases and equal-sized arrays do not prove it.
-The provider's 1–4 native-bound Surface profile and all its budgets remain intact.
-
-Each draw consumes its trusted complete program and declared entry points. Slots
-0/1/2 upload positions/normals/UV01 verbatim as Float32x3/Float32x3/Float32x2 with
-strides 12/12/8; the fourth geometry buffer is padded U16 indices with the provider's
-unchanged index count. Group 0 bindings 0/1/2 are the unchanged 160/64/16-byte
-frame/material/draw blocks, with explicit minimum binding sizes and stage visibility.
-This is seven buffers, one bind group and one pipeline per draw, plus shared
-`rgba8unorm`, `r32uint`, `depth24plus` attachments. Rendering is triangle-list,
-cull-none, opaque/no-blend, depth-write/less and single-sample. Identity clears to
-zero and each draw uploads its provider token `i + 1`. There is no second pose,
-normal, millimetre, UV or color transform. Presentation copies offscreen RGBA8 to
-a fixed opaque RGBA8 canvas configuration.
-
-`status` is an independent immutable observation with backend `webgpu`, profile
-`source0-native-surface-uv01-webgpu-v0`, state `ready | lost | failed | disposed`,
-generation, dimensions, actual snapshotted limits and the existing eleven-field
-logical resource ledger. Generation starts at one only after accepted presentation.
-The actual limits include texture dimension and max buffer size, uniform binding
-size ≥160, color attachments ≥2 and render-target bytes/sample ≥12, vertex buffers/attributes ≥3,
-bind groups ≥1, vertex stride ≥12, uniform buffers/shader stage ≥3 and bindings/group
-≥3. Render-target cost is 8 for RGBA8 plus 4 for R32uint; the logical packed
-color/identity storage ledger remains 8 bytes per pixel. Candidate dimensions,
-every upload, full padded readback and 256-byte pick
-staging must fit before allocation. Provider candidate charge remains ≤32 MiB;
-accepted + candidate + maximum readback logical charge must be ≤64 MiB. Logical
-depth bytes/counts are not driver measurements, and no sampled texture/sampler
-support is inferred. Resources report zero after owned resources are released.
-
-One asynchronous operation may run at a time; a `BUSY` refusal does not release
-the active operation's lock. Host backing-size changes outside `resize` are
-refused. Candidates compile/upload/render offscreen, present successfully, then
-commit raw originals/generation/selection and release old resources. Recoverable
-candidate failures preserve accepted metadata/resources. A failed presentation
-restores backing dimensions and re-presents the accepted scene; failed recovery
-or cleanup is terminal. Ten-second bounded waits, epoch invalidation, late-device
-destruction and late-map unmapping prevent pending work from reviving a disposed
-viewport. Actual device loss (including rejection of its loss promise) is terminal;
-no automatic backend switch occurs. Disposal is idempotent, cancels waits, releases
-route claims/context/device/resources and preserves primary plus cleanup failures.
-
-`readPixels()` returns an independent tightly packed, top-left RGBA byte array,
-removing WebGPU's 256-byte row padding. `pick(x, y)` accepts bounded integer
-backing pixels in that same orientation and returns `{ generation, ref }`, where
-`ref` is the complete model/geometry pair or `null` for background; invalid identity
-tokens are `RENDER` refusals. Selection is metadata only, survives reordering by
-full pair and clears when the selected pair disappears; there is no highlight shader.
-
-After the affected GPU type-check and library build, run:
-
-```sh
-node --test packages/barocss-gpu/tests/native-surface-uv01-webgpu-viewport.test.mjs
-node examples/gpu-scene/native-surface-uv01-webgpu-runtime-flow.mjs --output ABS_FRESH
-```
-
-These are **DETERMINISTIC SOFTWARE EVIDENCE**. The private fake browser boundary
-exercises actual source-derived admission and runtime control flow, not a graphics
-device. The source/emitted/public-API/original-file/cold flow saves complete raw
-requests, native sources and material sources and reopens/recompiles them in a fresh
-process; prepared output is never cold authority. The defensive 32/64 MiB runtime
-caps are not claimed as exercised real-data branches when earlier provider limits
-make them unreachable. The existing #1569 no-mock qualifier is unchanged.
-
-Real-device WGSL compilation, upload/interpolation/shared-depth pixels with an
-independent declared tolerance, physical identity picking, update/refusal pixel
-retention, file remount and driver/loss/lifetime acceptance remain UNRUN. A permitted
-genuine cloud-browser acceptance is the next dependency, followed by named-consumer
-original-source/TEN/current-display integration. This software implementation does
-not establish #1512 milestone-4 completion, default readiness, consumer acceptance,
-publication or release; the original Mac graphics denial is not bypassed.
 
 ### Authored directional light WGSL preparation (#1578)
 
@@ -4208,8 +3094,8 @@ arithmetic, without a physical/PBR/HDR/exact-standard-sRGB claim.
 
 Downstream pipeline contract: triangle-list, cull none, no blending, one sample,
 color targets `rgba8unorm` and `r32uint`, depth `depth24plus`, write enabled,
-compare `less`. No device or pipeline is created. This API does not widen #1553
-or #1574 admission, accept caller WGSL, create UV/texture unions, or certify a
+compare `less`. No device or pipeline is created. This API does not widen the
+native Surface UV01 frame admission, accept caller WGSL, create UV/texture unions, or certify a
 frame, pixels, picking, loss/disposal, original-source/TEN/current-display join,
 or Viewer/Render editing/Save/Open. Those need explicit downstream work.
 
@@ -4217,195 +3103,6 @@ Bounds: unchanged provider envelopes, raw material snapshot depth24/8192 values,
 256 array elements/16 record entries; WGSL <=64KiB UTF16 and UTF8; streamed signed
 ordinary result <=2MiB UTF16 and UTF8, depth48/32768 values, plus exactly208 binary
 bytes. Defensive output caps are not claimed to have been forced with mocks.
-
-After `pnpm --filter @barocss/gpu build:library`, run Node22:
-`node examples/gpu-scene/native-directional-light-program-wgsl-flow.mjs --output /absolute/fresh/directory`.
-The one CPU qualifier exercises ordinary source and emitted public entries,
-independent literal module/LE-byte expectations, declaration consumer and exact
-two runtime/eight type-only additions, edits/refusals/ownership, signed original
-file saves and cold reconstruction. Numerical CPU references are not rendered
-pixels; actual shader compilation, upload and GPU/runtime checks remain unrun.
-Actual legacy source admission rejects f32-overflow coefficients first (literal
-and generated coefficients are bounded by1000, intermediate ranges by1e6).
-Therefore lowerer overflow is unreachable under this unchanged profile; the
-qualifier records that upstream refusal, not a fabricated lowerer-overflow pass.
-Genuine lowerer coefficient/default/bound underflow is tested independently of
-local upload underflow.
-
-## Authored directional-light required WebGPU viewport (#1579)
-
-`mountNativeDirectionalLightWebGPUViewport(canvas, request, {width,height})` is an
-additive, explicit required-WebGPU route. It renders 1–4 admitted qualified native
-Surface packets, legacy opaque material bindings, and a complete 0–4 authored
-world-directional light catalog. Existing routes, defaults and fallbacks are unchanged.
-
-The exact request is `{format:'barocss-gpu-native-directional-light-webgpu-request',
-version:0,frame,lights}`. `frame` is the complete existing version0 CPU frame
-`{version:0,scene:{version:2,entries},options,particles:null,materials}`. Options must
-explicitly contain exactly `mmToSceneUnit`, `translate`, `background`, and `camera`;
-any legacy `lighting` field is refused. Entry colors and optional existing transforms
-are admitted by the unchanged qualified-v2 provider. Material targets use full
-`{modelId,geometryId}` pairs (modelId up to128 characters). Each replacement is
-complete; omitted bindings do not carry forward. Pass the raw authored catalog,
-including disabled entries and original directions, labels, order and revisions.
-
-The frozen facade exposes `canvas`, fresh recursively frozen `originals`, fresh
-`selected`, and `status`. Operations are `updateFrame`, `resize`, `readPixels`,
-`pick`, `select`, and idempotent `dispose`. Mount rejects; update/resize/select
-return the existing `UpdateResult`. Readbacks reject on refusal. Generation starts
-at1 after presentation and advances only on accepted update/resize. Selection is
-metadata only. Pick reads a bounded integer top-left backing pixel and returns
-`{generation,ref}` from the identity attachment; readPixels returns fresh tightly
-packed top-left RGBA bytes. The host must provide a fresh current-realm canvas,
-retain ownership of it, and change backing size only through this viewport.
-Duplicate claims are prevented within this route, not across unrelated APIs.
-
-Private admission snapshots original packets, complete material source/overrides,
-and raw lights before awaiting a device. It invokes common admission exactly once
-and the actual directional WGSL provider once per draw. That means N catalog
-admissions and exactly3 material reconstructions per bound draw (common1,
-program2), unbound0. This admits authentic packet structure, not CAD-source
-provenance: callers retain complete CAD documents/models/revisions and own the
-packet/source/TEN/current-display join. A prepared frame is never a caller token.
-
-Each draw owns position, normal, U16 index and four uniform buffers, with group0
-bindings frame144/material64/lights144/draw16, all fragment-visible and frame also
-vertex-visible. Provider WGSL and material/light bytes are consumed unchanged;
-only new frame and identity data are packed locally, little-endian. There are N
-pipelines/groups and three shared color/identity/depth attachments. Color is opaque
-rgba8unorm, identity r32uint, depth depth24plus/less, no blend, cull none, sample1.
-No UV buffers, textures, shadows, point/spot lights or automatic fallback are added.
-
-For N draws and W×H, logical steady ownership is7N buffers,368N uniform bytes,
-padded geometry bytes plus12WH attachment budget, and3 textures. Readback is a
-separate `ceil(4W/256)*256*H` transient buffer. Candidate cap32MiB and overlap cap
-64MiB include the maximum readback. Dimensions are explicit integer1..1024, at
-most1048576 pixels. These are conservative logical charges, not physical driver
-allocation measurements. Device limits are checked before allocations, including
-color target cost12 bytes/sample (distinct from8WH packed color+identity storage),
-four fragment uniforms/bindings,144-byte uniform binding size and every upload
-and padded readback. Provider caps may make defensive residency ceilings unreachable.
-Raw signed ordinary data is capped at2MiB UTF16/UTF8,262144 visits,depth48;
-aggregate request/common/program metadata at8MiB,524288 visits,depth64. Records
-are current-realm own data, at most64 fields; arrays are dense, bounded24576,
-and source strings/keys bounded64KiB. Accessors, symbols, hidden fields, cycles,
-nonfinite values and legacy singleton lighting are refused without coercion.
-
-Candidate rendering precedes canvas mutation; presentation precedes commit.
-Recoverable candidate refusals retain accepted observations. Failed presentation
-restores dimensions and re-presents the accepted frame; failed restoration or
-cleanup is terminal. Operations serialize with BUSY; device loss, rejected loss
-promises and10-second timeout invalidate pending epochs with no fallback. Cleanup
-attempts every owned resource even after a failure, preserves aggregate causes,
-and releases the logical ledger. Disposal invalidates pending work; late devices
-are destroyed and late mappings unmapped. Remount explicitly after terminal failure.
-Diagnostics are INPUT,PROFILE,FRAME,PROGRAM,REPRESENTATION,BUDGET,UNSUPPORTED,INIT,
-DEVICE_LOST,RENDER,STATE,BUSY. Exact provider/reflection causes are retained.
-
-Software verification: `node --test --test-concurrency=1
-packages/barocss-gpu/tests/native-directional-light-webgpu-viewport.test.mjs` and,
-after the GPU library build, `node
-examples/gpu-scene/native-directional-light-webgpu-flow.mjs --output ABS_FRESH`.
-The latter compares source/emitted/DTS, independent ABI/resource expectations and
-fresh-process reconstruction from saved original CAD/material files. Test-platform
-bytes establish deterministic software control flow only. Genuine GPU shader
-compilation, rendered directional colors/depth, physical picking, original-file
-mount and driver cleanup remain UNRUN until permitted device acceptance. #1579
-stays open for that stage; editor integration and overall default readiness remain
-separate. No release/publication claim follows from these software checks.
-
-## General engine renderer — implementation stage, graphics acceptance pending
-
-`mountEngineScene(canvas, originalScene, {width, height})` implements a separate
-opaque unlit engine-scene0 WebGL2 path. Sizes are explicit integers1..2048.
-The caller owns and exclusively assigns a real HTML canvas. Complete original
-scene, exact options and camera admission precede canvas/context allocation.
-The renderer exposes `getScene`, `render`, `update`, `resize`, `readPixels` and
-idempotent `dispose`, without a clock or DOM/layout changes.
-
-Geometry buffers are shared by geometry ID within each complete frame, with
-actual Uint16/Uint32 index dispatch and per-object world matrices. Candidate
-updates rebuild resources from original source, then stage common-depth colour
-targets before presentation and commit. Materials/background use explicit
-linear RGB to standard sRGB encoding. Alpha is opaque; texture and lighting
-profiles are separate. Original Number geometry, UVs, local poses and IDs remain
-distinct from derived Float32 arrays and GPU resources.
-
-The implementation admits at most16 used geometry resources and32 visible
-meshes; existing source scene budgets remain enforced. Logical steady GPU bytes
-are bounded by45,088,768 and complete accepted-plus-candidate by90,177,536.
-Resource handles are bounded by84 steady and170 including candidate/transient
-shaders. These counts are a code contract, not measured driver memory.
-
-Invalid CPU edits refuse without touching the accepted frame. Live GPU staging
-failures attempt rollback; dual operation/rollback errors are retained together
-and make graphics unavailable. Source getters retain frozen independent copies
-after context loss or rollback failure until disposal. Context loss is terminal.
-External backing changes require explicit resize and have no retained-pixel
-promise. Readback is owned bottom-left RGBA bytes, separate from CSS/DPR.
-
-**Actual shader compilation, pixels, resource transactions and lifecycle have
-not been browser verified.** #1183 graphics acceptance remains blocked by the
-recorded administrator-policy refusal on the original authorized browser
-target. Run `node examples/gpu-scene/engine-scene-renderer-flow.mjs --output
-<fresh-directory>` after the GPU build only for genuine source/emitted public
-module import, declarations and pre-canvas input admission. It uses no canvas,
-renderer instance, browser or mock GL and does not fulfill graphics acceptance.
-
-### Optional bounded native-edge presentation (#1995)
-
-`mountEngineScene(canvas, scene, options, edges)` and the matching constructor
-accept an optional `EngineSceneEdgeOverlayV0`; `renderer.update(scene, edges)`
-atomically replaces the pair. Omitted or null edges clear the overlay. Resize
-revalidates the accepted, independently copied pair. `EngineSceneV0`, renderer
-options and original triangle-only raycasting are unchanged. The sidecar is
-presentation data, not a native CAD identity certificate.
-
-```ts
-const edges: EngineSceneEdgeOverlayV0 = {
-  format: 'barocss-gpu-engine-scene-edges', version: 0, sceneId: scene.id,
-  color: [0.02, 0.03, 0.04],
-  owners: [{ nodeId: 'body', geometryId: 'body_geometry', indices: [0, 1] }],
-};
-const renderer = mountEngineScene(canvas, scene, { width: 800, height: 600 }, edges);
-```
-
-At most16 owner rows,32 segments per row and256 segments overall are admitted.
-Rows refer to exact current mesh/geometry IDs and the geometry's original full
-position index space. Empty index rows deliberately cover fills for bias but
-allocate no edge resources. Hidden owners, including empty rows, are validated
-and budgeted; hidden rows do not draw or allocate edge resources. Exact own-data
-records and dense arrays are required. Admission rejects extra/accessor fields,
-duplicate owners, invalid index pairs, self/reversed duplicate segments and
-Float32-collapsed local or transformed endpoints. All sidecar data is copied;
-edge index types are selected independently of the triangle index type.
-
-All opaque fills complete first. Every owner fill uses polygonOffset(1,1), then
-nonempty visible rows draw GL.LINES with the existing depth attachment, program,
-position buffers and transforms, LEQUAL, disabled depth writes and lineWidth(1).
-Triangle VAO element bindings remain intact. Depth/polygon/line state is restored
-on draw exits. The width is one backing-buffer pixel, approximately half a CSS
-pixel at DPR2. Fixed fill bias is an approximate raster tolerance: grazing or
-near-coincident surfaces may expose artifacts, not exact hidden-line removal.
-Native GL clipping is used; no clipping-generated contour becomes a CAD edge.
-
-Each renderer frame adds at most16 edge VAOs and16 index buffers, with at most512
-indices/2048 bytes. No extra position/normal/UV buffers, program, texture,
-framebuffer or canvas is added. Accepted-plus-candidate frames may double these
-additions; a host's accepted-plus-preview renderers are a separate multiplier.
-The original no-overlay resource bounds above exclude these optional additions.
-Handles are recorded immediately and cleanup attempts each owned release once.
-Candidate failures retain the accepted pair under the existing rollback contract.
-Cleanup after a successful swap is nonfatal; a thrown driver deletion is a
-release attempt, not proof the driver freed a resource. Context loss remains
-terminal and rollback failure makes graphics unavailable.
-
-`node --test packages/barocss-gpu/tests/engine-scene-edges.test.mjs` compiles the
-current source through esbuild for exactly12 pure admission and10 mocked renderer
-groups. The mock records commands, bindings, lifecycle and resource ownership;
-it does not rasterize pixels. Actual normal-scale DPR2 readability, bevel-interior
-face picking, occlusion and device cleanup require separate retained-geometry
-browser acceptance. This mounted path is WebGL2 only; no WebGPU parity is claimed.
 
 ## Native point-light catalog and WGSL producer (#1583)
 
@@ -4473,256 +3170,3 @@ intent, exact static shader/ABI content, real legacy material lowering, signed
 copies/bytes and bounded refusals. It does not execute or parse WGSL. Device
 compilation, renderer/frame integration, pixels, physical picking, recovery,
 lifetime and Viewer/editor consumer acceptance remain separate, unrun stages.
-
-## Native point-light required-WebGPU viewport (#1584)
-
-`mountNativePointLightWebGPUViewport(canvas, request, { width, height })` is an
-explicit awaited native Surface route. It requires a genuine WebGPU platform,
-adapter, device and current-realm `HTMLCanvasElement`; it never selects WebGL2 or
-changes existing defaults. Use a fresh host-owned canvas. Duplicate claims are
-local to this route, not a general cross-renderer ownership registry.
-
-**Evidence stage:** deterministic software qualification, not genuine-device
-acceptance. The focused test platform records calls and synthesizes readback bytes;
-it does not compile WGSL, rasterize, measure point-light pixels or qualify a driver.
-#1584 remains open for permitted physical-device compilation, range/color pixels,
-shared depth/picking, update/refusal/remount and lifecycle acceptance. Earlier
-#1583 CPU/static and #1579/#1581 native/source evidence are reused, not rerun as a
-native/cold-file/browser campaign. Existing graphics-denial boundaries remain.
-
-### Complete raw request and public surface
-
-```ts
-const viewport = await mountNativePointLightWebGPUViewport(canvas, {
-  format: 'barocss-gpu-native-point-light-webgpu-request', version: 0,
-  frame: {
-    version: 0, scene: { version: 2, entries }, particles: null, materials,
-    options: { mmToSceneUnit, translate, background, camera },
-  },
-  lights, // complete NativePointLightsV0, not prepared execution data
-}, { width: 640, height: 480 });
-const result = await viewport.updateFrame(nextCompleteRequest);
-if (!result.ok) console.error(result.error);
-const picked = await viewport.pick(20, 30); // top-left integer backing pixel
-await viewport.resize(800, 600);
-const rgba = await viewport.readPixels(); // fresh, tightly packed top-left RGBA
-viewport.dispose();
-```
-
-The three runtime exports are `mountNativePointLightWebGPUViewport`,
-`NativePointLightWebGPUError`, and frozen `NativePointLightWebGPUDiagnosticCode`
-(with a matching type). Eight public interfaces have the `NativePointLightWebGPU`
-prefix: `Request`, `FrameOptions`, `Options`, `Viewport`, `Status`, `Limits`,
-`Resources`, `Pick`. Existing `PrimitiveSceneRef`, `UpdateResult`, `MeshCamera` and
-`NativePointLightsV0` types are reused. Private frame preparation is neither a
-barrel export nor an admitted caller token. There is no device/provider injection.
-
-Both dimensions are explicit integers 1..1024, at most 1,048,576 pixels. Frame
-options are exactly `mmToSceneUnit`, `translate`, `background`, `camera`;
-`lighting`, even `undefined`, is refused. A complete qualified-v2 frame has 1..4
-native Surface entries, distinct full `{modelId, geometryId}` references,
-`particles:null`, and 0..4 legacy material bindings on present pairs. Raw point
-catalogs contain 0..4 lights under the unchanged #1583 profile. No partial patch,
-carried-forward material, prepared program, UV/texture material or mixed light
-catalog is admitted. Native packet admission does not prove original CAD-source,
-TEN or current-display provenance; the caller and later Viewer consumer own that
-association.
-
-`canvas`, `originals`, `selected`, `status` are observations. Raw originals are
-fresh independent deeply frozen copies, retaining signed Numbers, catalog order,
-labels and disabled values, packet data, material source and omitted overrides.
-`updateFrame`/`resize` return `Promise<UpdateResult>`; selection is synchronous
-`select(ref|null):UpdateResult`, metadata-only, preserving full-pair identity
-through reorder and clearing on removal. Model IDs retain the existing 128-character
-domain. `pick` returns frozen `{generation,ref}`; identity 0 is background/null,
-1..N resolves the full pair, and an out-of-range identity is an error. Selection
-never changes pixels or generation. `dispose()` is idempotent after its first
-cleanup attempt.
-
-### World coordinates, trusted producer and ABI
-
-Actual unchanged common frame admission runs once, actual camera preparation once,
-and actual #1583 point-light program preparation once per draw, using the original
-full-pair material binding or null. No extra binder/lowerer/catalog invocation is
-inserted; current provider composition reconstructs a bound material three times
-per draw (zero for unbound draws).
-
-The common provider already emits final scene/world Float32 arrays. Without pose,
-`P = packetMm * mmToSceneUnit + translate`; with pose,
-`P = (R * S * packetMm + translationMm) * mmToSceneUnit + translate` and
-`N = normalize(R * inverse(S) * packetNormal)`. This route checks those final
-position and normal components are finite and within ±1e6, with nonzero normal
-triples, then uploads them without another transform or normalization. Stronger
-provider constraints, including display positions ±1000 and native normal checks,
-remain intact. Tiny original normal components need not survive provider f32
-conversion. Light `positionScene` and `rangeScene` are already final world scene
-units and are never scaled, rotated or translated with geometry.
-
-Producer WGSL and material64/light144 upload bytes are unchanged. Frame144 packs
-column-major view at 0, projection at 64, fallback RGB at 128/132/136 and zero
-padding; draw16 packs little-endian u32 identity at 0 and zero padding. All four
-group0 uniform bindings are present: frame144 vertex+fragment, material64 fragment,
-lights144 fragment, draw16 fragment. Vertex slots0/1 are position/normal
-`float32x3`, stride12; indices are actual u16, zero-padded to four bytes, with the
-original count. Local packing rejects nonfinite and nonzero-to-zero f32 conversion;
-ordinary rounding and signed zero remain supported.
-
-The artistic point contribution is linear color × intensity × Lambert diffuse ×
-`max(1-distance/range,0)^2`, zero outside range. The producer safely scales normals
-and deltas; max-component below 2^-126 gives zero diffuse while ambient remains.
-Coincidence therefore has no diffuse direction. Final linear radiance is clamped
-0..1 and encoded with power1/2.2/alpha1. This is not inverse-square, photometric or
-PBR lighting and does not promise device subnormal preservation.
-
-### Bounded data, device limits and logical resources
-
-Raw own-data snapshots happen synchronously before the first device await. Exact
-current-realm plain records and dense arrays only; no getters, symbols, hidden
-fields, foreign prototypes, cycles or coercion. Signed raw representation is capped
-at 2MiB in each UTF16/UTF8 count, 262144 visits, depth48; arrays24576, records64,
-strings/keys65536, and entry/material/light cardinalities are checked before their
-elements. Aggregate raw request + common frame + ordinary program results is
-capped at 8MiB per encoding, 524288 visits, depth64; binary bytes are charged below.
-Producer-specific smaller limits still apply.
-
-For N draws at W×H, `resources` has exactly eleven fields:
-- `geometryBytes`: sum of the three padded geometry uploads per draw
-- `uniformBytes`: 368N; `colorIdentityBytes`: 8WH
-- `depthTexels`: WH; `depthBudgetBytes`: 4WH
-- `chargedBytes`: geometry + 368N + 12WH
-- `readbackBytes`: ceil(4W/256) × 256 × H, separate transient storage
-- `buffers`: 7N; `textures`: 3; `bindGroups`: N; `pipelines`: N
-
-These are conservative logical charges, not physical driver memory. Candidate
-charge is at most32MiB; accepted + candidate + maximum of 256 and their padded
-readbacks is at most64MiB. These and the ±1e6 envelope are defensive bounds that
-may be unreachable under stronger existing providers; tests do not replace
-providers to fabricate reachability.
-
-Eleven actual safe-integer device limits are snapshotted: texture dimension,
-buffer size, uniform binding size, color attachment count/bytes-per-sample, vertex
-buffer/attribute count, bind group count, vertex stride, fragment uniform count,
-and group binding count. Requirements include uniform144, attachments2,
-attachment cost12, vertex buffers/attributes2, groups1, stride12, uniforms4 and
-bindings4. Every upload and max(256,full padded readback) must fit maxBufferSize;
-W/H must fit maxTextureDimension2D. Candidate/readback constraints are rechecked
-before allocation. RGBA8 + R32Uint render-target cost12 differs from storage8WH.
-
-There are exactly three shared textures: rgba8unorm, r32uint, depth24plus. Rendering
-uses triangle-list, no culling/blending, depth write/less, sample1. Clear values are
-admitted background/alpha1, identity0, depth1; equal depth keeps the first draw.
-Presentation copies accepted RGBA8 to a fixed opaque RGBA8 canvas. Readback strips
-256-byte row padding; synthetic test bytes are not lighting evidence.
-
-### Atomic acceptance, errors and lifetime
-
-Status is `{backend:'webgpu',profile:'qualified-surface-authored-point-webgpu-v0',
-state,generation,width,height,limits,resources}` with ready/lost/failed/disposed.
-Generation starts at1 only after successful presentation. Candidate rendering,
-WGSL diagnostics, pipeline creation, error scopes, upload, submission and queue
-completion precede presentation and atomic acceptance. Old resources are released
-only afterward. Recoverable refusal retains accepted originals, selection,
-dimensions and generation. A presentation failure restores prior dimensions and
-re-presents the accepted image; recovery or cleanup failure is terminal rather
-than claiming retained pixels.
-
-One asynchronous operation runs at a time; BUSY refusal cannot release another
-operation's lock. Selection is also BUSY during pending work. Backing mutations
-and epochs are checked around awaits, including after completed readback returns.
-Waits are bounded to10s. Dispose and resolved or rejected device-loss notification
-invalidate pending work, late devices are destroyed, late mapped buffers unmapped,
-and no late result can commit. Every owned release is attempted despite errors,
-with primary and cleanup causes retained. Lost/failed state requires an explicit
-remount; automatic recovery/fallback is absent. A failed mount restores dimensions
-it touched and releases its claim/resources.
-
-Diagnostic codes are INPUT, PROFILE, FRAME, PROGRAM, REPRESENTATION, BUDGET,
-UNSUPPORTED, INIT, DEVICE_LOST, RENDER, STATE, BUSY. Own-shape failures are INPUT;
-wrong profile/kind/legacy lighting PROFILE; actual common/camera errors FRAME;
-actual program errors PROGRAM; local f32/envelope REPRESENTATION; bounds BUDGET.
-Messages are capped at1024 characters. Exact causes, including undefined and
-provider code/spans, survive; combined failures use owned AggregateError causes.
-
-Focused software check: build the GPU package, then run
-`node --test --test-concurrency=1 packages/barocss-gpu/tests/native-point-light-webgpu-viewport.test.mjs`
-with the repository-pinned Node22 toolchain. Full old suites, native recompilation,
-cold-file and genuine browser/device campaigns are outside this bounded stage.
-## QualifiedFace disposal and renderer transition limits
-
-`QualifiedFaceSceneRenderer.dispose()` marks the renderer disposed, detaches its
-accepted resource ownership, and attempts listener removal and every owned GL2
-handle deletion even if an earlier operation throws. Failed cleanup throws the
-existing `QualifiedFaceSceneError` with code `GPU` and an `AggregateError` cause
-containing the original failures. Repeated disposal does not retry deletion.
-The original CPU scene remains readable through `getScene()` after disposal.
-Successful-delete counters decrease; a refused delete remains unresolved, so
-cleanup failure is not proof of zero driver allocations.
-
-This is a teardown prerequisite for #1922, not atomic cross-family adoption.
-Current renderer families do not share a transactional canvas transfer boundary.
-Retain the existing refusal of a second live-family mount. An explicit future
-dispose/remount must stop on cleanup failure; once an old owner is retired, a
-failed new mount cannot promise its old displayed pixels or restore its renderer.
-
-## Complete first-frame mounts
-
-`mountPrimitiveSceneFrame(canvas, frame0)` returns the existing
-`PrimitiveSceneRendererV2`. `mountPrimitiveViewportFrame(canvas, frame0)` returns
-the existing `PrimitiveViewport`, including genuine empty support. Both routes
-re-admit raw complete frame0 through `preparePrimitiveSceneFrame`, with
-particles:null and no cloth. They check trusted final shader text before canvas
-access. The full native geometry, poses, materials, camera and lighting are
-passed to one initial candidate and one presentation. There is no bootstrap
-frame followed by update. Old constructors and mount/update signatures remain.
-
-These routes require a current-realm HTML canvas. A second new complete mount
-on that live canvas refuses; sharing with legacy or other backends is unsupported
-caller ownership. The caller's canvas is not resized or removed. Requested
-dimensions, actual initial backing and real texture/renderbuffer/viewport limits
-are checked before handles. Each trusted shader text is capped at 64KiB in
-UTF16 code units and UTF8 bytes. Later offscreen resize candidates retain their
-existing order, with target caps checked before changing the canvas backing.
-
-Factory instances have a scoped cleanup policy: attempt all live owned resource
-cleanup and listener/claim removal, preserving primary and actual cleanup errors
-in standard AggregateError. Terminal hardware loss skips GL deletion after
-restoration; native invalidation is distinct from delete-call evidence. A failed
-first mount has no accepted frame to roll back and does not promise prior canvas
-pixels. Successful disposal is idempotent. Legacy cleanup and #1334 recovery keep
-their own paths. Later existing particle/cloth methods retain separate profiles.
-
-These entry points are implemented code. Actual shader/device/pixel/presentation,
-allocation failure, loss and cleanup qualification remains a separate #1375
-graphics gate. Source/API admission alone does not establish rendered Open,
-Viewer adoption, current integrated validation or publication.
-
-`examples/gpu-scene/primitive-complete-mount-flow.mjs --output <fresh-directory> --fixture-dir <CPU-preflight-directory>`
-uses saved genuine native/material/frame files for source/emitted factory and
-cold API admission; unsupported Node targets do not instantiate a renderer.
-
-## Explicit QualifiedFace to PrimitiveViewport handoff
-
-`handoffQualifiedFaceToPrimitiveViewport(previous, frame, 'dispose-remount')`
-requires an authentic mounted QualifiedFace owner from the same module and the
-caller's exclusive ownership of its canvas/context. It does not discover or
-coordinate independently mounted legacy renderer families. No other live owner
-may share that canvas. The `atomic` mode refuses without changing the old owner.
-
-Complete frame0/scene2 data and final shader text are admitted before retirement.
-A `preflight` refusal leaves the old owner unchanged. Valid explicit retirement
-captures an independent deeply frozen `previousScene`, disposes the old owner,
-and mounts exactly one complete PrimitiveViewport on the same canvas. `ready`
-returns that viewport. `retirement` failure prevents a new mount; `mount` failure
-leaves the old owner disposed and no accepted successor. Both failures retain
-`previousScene` and original error causes. No prior pixel rollback or automatic
-reopen is promised after retirement. Old original data remain readable through
-`getScene()`; old live methods reject `DISPOSED`. Repeated/reentrant transfer and
-forged/foreign owners refuse. A failed preflight may be corrected and retried.
-
-Existing strict native/material admission, particles:null, 0..4 primitive caps,
-units, IDs, source/F64/UV authority and backing dimensions remain unchanged. The
-candidate is re-admitted by the complete mount factory: two bounded CPU passes,
-no trusted mutable prepared token. Cross-runtime saved material IR differences
-still refuse under the existing validator. This software API does not qualify
-actual same-context pixels, device loss, physical resource reclamation, Viewer
-consumption or other renderer-family transitions.

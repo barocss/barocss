@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
@@ -8,6 +9,7 @@ import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const WideAdaptiveCurveSamplingDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SPAN: 'SPAN', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -104,7 +106,7 @@ export interface WideAdaptiveCurveSamplingResult {
 }
 
 const CODE = WideAdaptiveCurveSamplingDiagnosticCode;
-const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = 1e-7, D1_TOLERANCE = 1e-7;
+const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: WideAdaptiveCurveSamplingDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new WideAdaptiveCurveSamplingError(code, detail);
 }
@@ -165,16 +167,6 @@ function id(value: unknown): string {
   check(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),
     CODE.IDENTITY, 'ASCII ID1..48 required');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function product(a: number, b: number): number {
   const value = finite(a * b, 'coefficient product overflow');

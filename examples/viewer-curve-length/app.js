@@ -9,29 +9,9 @@ const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 1677
 const canvas = document.querySelector('#view');
 const label = document.querySelector('#length');
 const status = document.querySelector('#status');
-const contexts = new Set(), browserErrors = [], resources = {};
+const browserErrors = [];
 window.addEventListener('error', event => browserErrors.push(event.message));
 window.addEventListener('unhandledrejection', event => browserErrors.push(String(event.reason)));
-const getContext = HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-  const context = getContext.call(this, kind, ...args);
-  if (kind === 'webgl2' && context) contexts.add(context);
-  return context;
-};
-for (const type of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-  const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-  resources[type] = live;
-  const create = prototype[`create${type}`], remove = prototype[`delete${type}`];
-  prototype[`create${type}`] = function (...args) {
-    const value = create.apply(this, args);
-    if (value) live.add(value);
-    return value;
-  };
-  prototype[`delete${type}`] = function (value) {
-    live.delete(value);
-    return remove.call(this, value);
-  };
-}
 
 const cadOptions = { interval: null, absoluteToleranceMM: 1e-7, relativeTolerance: 1e-8,
   maximumEvaluations: 4096, maximumSubdivisions: 128, maximumDepth: 12 };
@@ -56,7 +36,7 @@ try {
     && length.errorEstimateMM > 0 && length.errorEstimateMM <= 1e-7,
   'Original current-document Curve arc-length estimate was not validated');
 
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   viewer.loadDocument(cad, request);
   const state = viewer.getState();
   const body = state.documentBodies[0];
@@ -91,7 +71,7 @@ try {
     return anchor;
   };
   const firstAnchor = positionLabel();
-  const initialHash = hash(viewer.readPixels());
+  const initialHash = hash(await viewer.readPixels());
   assert(firstAnchor && firstAnchor.documentBody?.bodyId === reference.bodyId
     && firstAnchor.xCss >= 0 && firstAnchor.xCss <= canvas.clientWidth
     && firstAnchor.yCss >= 0 && firstAnchor.yCss <= canvas.clientHeight
@@ -113,7 +93,7 @@ try {
     && Math.abs(parseFloat(label.style.left) - cameraAnchor.xCss) < 0.1,
   `Host label did not follow the camera projection: ${JSON.stringify({ firstAnchor, cameraAnchor, cssLeft: label.style.left })}`);
   viewer.selectGeometry(ref);
-  const selectedHash = hash(viewer.readPixels());
+  const selectedHash = hash(await viewer.readPixels());
   assert(selectedHash !== initialHash && same(viewer.getState().selectedGeometry, ref),
     'Curve selection did not update Viewer display');
   viewer.applyGeometryMotionFrame({ contextId: 'curve-length', timeSeconds: 1,
@@ -127,7 +107,7 @@ try {
     && source === cad.document.assets.find(asset => asset.id === reference.assetId).source,
   `Display pose changed native arc length or failed to move label: ${JSON.stringify({ cameraAnchor, posedAnchor })}`);
 
-  const stableState = viewer.getState(), stableHash = hash(viewer.readPixels());
+  const stableState = viewer.getState(), stableHash = hash(await viewer.readPixels());
   const stableLabel = label.textContent, stablePosition = [label.style.left, label.style.top];
   const candidates = [
     () => queryCadDocumentCurveArcLength(cad, { ...reference, documentRevision: 2 }, cadOptions),
@@ -141,7 +121,7 @@ try {
     try { candidate(); } catch { refused++; }
   }
   assert(refused === candidates.length && same(viewer.getState(), stableState)
-    && hash(viewer.readPixels()) === stableHash && label.textContent === stableLabel
+    && hash(await viewer.readPixels()) === stableHash && label.textContent === stableLabel
     && same([label.style.left, label.style.top], stablePosition)
     && JSON.stringify(length) === originalLength
     && cad.document.assets.find(asset => asset.id === reference.assetId).source === source,
@@ -163,13 +143,9 @@ try {
     && viewer.getState().document === null && label.style.display === 'none',
   'Clear retained the old Curve or label');
   viewer.dispose(); viewer.dispose();
-  const remaining = Object.fromEntries(Object.entries(resources).map(([type, live]) => [type, live.size]));
-  const glError = [...contexts][0]?.getError();
-  assert(contexts.size === 1 && contexts.has(getContext.call(canvas, 'webgl2'))
-    && glError === 0 && Object.values(remaining).every(count => count === 0)
-    && document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
+  assert(document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
     && browserErrors.length === 0,
-  `WebGL2 or lifecycle evidence failed: ${JSON.stringify({ contexts: contexts.size, glError, remaining, browserErrors })}`);
+  `Lifecycle evidence failed: ${JSON.stringify({ browserErrors })}`);
   const result = { ok: true, reference, sourceRetained: true,
     originalInterval: length.report.interval, criterion: length.report.criterion,
     globalErrorCertified: length.report.quality.globalErrorCertified,
@@ -179,16 +155,15 @@ try {
     firstAnchor: { xCss: firstAnchor.xCss, yCss: firstAnchor.yCss },
     cameraAnchor: { xCss: cameraAnchor.xCss, yCss: cameraAnchor.yCss },
     posedAnchor: { xCss: posedAnchor.xCss, yCss: posedAnchor.yCss },
-    refused, hiddenRefused, clearedRefused, contextCount: contexts.size,
-    glError, remaining, browserErrors,
-    limits: 'One canonical revision1 Curve body, source0 sampled display, local Chromium WebGL2; estimator is heuristic and global error is not certified.' };
+    refused, hiddenRefused, clearedRefused, browserErrors,
+    limits: 'One canonical revision1 Curve body, source0 sampled display, local Chromium WebGPU; estimator is heuristic and global error is not certified.' };
   // The proof tears down its first Viewer. Reopen the accepted document in the
   // same caller canvas so the running example keeps showing the measured Curve.
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   viewer.loadDocument(cad, request);
   viewer.fit();
   const restoredAnchor = positionLabel();
-  assert(restoredAnchor && contexts.size === 1 && hash(viewer.readPixels()) !== 0,
+  assert(restoredAnchor && hash(await viewer.readPixels()) !== 0,
     'Visible demonstration did not return after the teardown check');
   result.restoredScene = true;
   window.addEventListener('pagehide', () => viewer.dispose(), { once: true });

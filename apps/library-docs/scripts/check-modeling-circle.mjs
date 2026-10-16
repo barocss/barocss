@@ -22,15 +22,6 @@ assert.ok(!guide.includes('The editor currently refuses difference outputs'));
 assert.ok(!guide.includes('top-entry or arbitrary cutters; editor preview unavailable'));
 for (const path of ['packages/barocss-cad/src/modeling.ts', 'packages/barocss-cad/test/modeling-circle-fixture.mjs'])
   assert.equal(hash(read(path)), hash(git(pin, path)), path);
-const transferPath = 'packages/barocss-cad-editor/scripts/fixtures/modeling-circle/baseline-native.json';
-const bytes = read(transferPath), transfer = JSON.parse(bytes), native = transfer.bodies.post.native;
-assert.equal(bytes.length, 81412); assert.equal(hash(bytes), '7338e8c36033d6a324760c9fc101d9509b73e89f223246395250c83cee6cc4e8');
-assert.equal(hash(bytes), hash(git(pin, 'packages/barocss-cad/test/modeling-circle-evidence/baseline-transfer.json')));
-assert.equal(native.certificate.genus, 0); assert.equal(native.certificate.solid, true); assert.equal(native.parent.report.solid, false);
-assert.equal(transfer.preview.report.solid, false); assert.equal(transfer.preview.packet.positions.length / 3, 98);
-assert.equal(transfer.preview.packet.indices.length / 3, 64); assert.equal(transfer.preview.faceRanges.length, 3);
-assert.equal(transfer.preview.packet.parameters.length, 196); assert.equal(transfer.preview.edgeProvenance.length, 3);
-assert.deepEqual(JSON.parse(transfer.text).outputs, { post: { node: 1, side: 'solid' } });
 const files = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory()
   ? files(join(directory, entry.name)) : /\.(ts|json|cad\.css)$/.test(entry.name) ? [join(directory, entry.name)] : []);
 const downloads = files(resolve(app, 'docs/public/examples')).map(path => path.slice(root.length + 1)); assert.equal(downloads.length, 25);
@@ -59,6 +50,6 @@ if (mode !== 'static') {
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }
 console.log(JSON.stringify({ ok: true, mode, providerPin: pin, base, typedExampleFiles, declarationCount,
-  guideSHA256: hash(guide), downloadSHA256: hash(download), transferSHA256: hash(bytes), transferBytes: bytes.length,
+  guideSHA256: hash(guide), downloadSHA256: hash(download),
   preservedDownloads, totalDownloads: 25, nativeCalls: 0, externalVisualGate: 'OPEN',
-  scope: 'exact source/transfer/download static checks and separately requested public example types; no native or browser run' }, null, 2));
+  scope: 'exact source/download static checks and separately requested public example types; no native or browser run' }, null, 2));

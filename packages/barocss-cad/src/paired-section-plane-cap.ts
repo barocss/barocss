@@ -8,6 +8,7 @@ import { evaluateCurve, evaluateSurface, validateCurve } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const PairedSectionPlaneCapDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', SECTION:'SECTION', BASIS:'BASIS', GRAPH:'GRAPH', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type PairedSectionPlaneCapDiagnosticCode = typeof PairedSectionPlaneCapDiagnosticCode[keyof typeof PairedSectionPlaneCapDiagnosticCode];
@@ -64,10 +65,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof PairedSectionPlaneCapError) throw cause; throw new PairedSectionPlaneCapError(code, 'Own snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 /** Collect complete copied source/model/topology/child identity contexts, including split helper receipts. */
 function contexts(input: unknown): Set<string> {

@@ -3,6 +3,7 @@ import { evaluateCurveD2 } from './second-derivatives.js';
 import type { CurveD2Result } from './second-derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const QuinticHermiteDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', REPRESENTABILITY: 'REPRESENTABILITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
@@ -109,12 +110,6 @@ function endpoint(value: unknown): QuinticHermiteEndpoint {
   const data = record(value, ['parameter', 'pointMM', 'derivativeMMPerParameter', 'secondDerivativeMMPerParameterSquared']);
   return { parameter: bounded(data.parameter), pointMM: vector(data.pointMM), derivativeMMPerParameter: vector(data.derivativeMMPerParameter),
     secondDerivativeMMPerParameterSquared: vector(data.secondDerivativeMMPerParameterSquared) };
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function difference(a: Point, b: Point): number {
   const value = Math.hypot(...a.map((component, axis) => component - b[axis]));

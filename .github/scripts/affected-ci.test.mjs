@@ -206,12 +206,11 @@ test('unresolved workspace references, duplicate owners and dependency cycles fa
   }
 });
 
-test('known undeclared core and CAD editor edges require conservative full regression', () => {
+test('known undeclared core edges require conservative full regression', () => {
   const packages = fixtures();
-  packages.push(pkg('@barocss/cad-editor-app', 'apps/cad-editor'));
   for (const path of [
     'packages/barocss/src/feature.ts', 'packages/barocss-browser/src/feature.ts',
-    'packages/barocss-server/src/feature.ts', 'apps/cad-editor/src/feature.ts',
+    'packages/barocss-server/src/feature.ts',
   ]) {
     assert.equal(createAffectedPlan(input({ packages, changes: [{ status: 'M', path }] })).mode, 'full', path);
   }
@@ -376,7 +375,7 @@ test('push comparison rejects missing, zero, non-ancestor, forced and wrong-chec
 test('full CI keeps type/lint/build phases and excludes every apps workspace from test execution', () => {
   const rootManifest = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
   assert.deepEqual(fullCheckCommands(rootManifest), [
-    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', './apps/**', '--if-present', 'run', 'build'],
   ]);
   assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, check: rootManifest.scripts.check + ' && extra-gate' } }));
   assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, test: 'pnpm run -r test && extra-gate' } }));
@@ -390,13 +389,13 @@ test('affected apps retain compile/lint/build coverage while test commands stay 
   assert.equal(plan.appTests, 'external');
   assert.deepEqual(packageCheckCommands(plan.packages[0]).map(([name]) => name), ['type-check', 'lint']);
   assert(plan.builds.some(({name}) => name === '@barocss/application'));
-  for (const directory of ['apps/render-editor', 'apps/cad-editor', 'apps/library-docs', 'apps/future-app']) {
+  for (const directory of ['apps/cad-studio', 'apps/library-docs', 'apps/future-app']) {
     assert(!packageCheckCommands({directory, scripts: checkScripts}).some(([name]) => name === 'test'));
   }
 });
 
 test('package and non-app example tests stay out of required CI and docs static checks remain', () => {
-  for (const directory of ['packages/feature', 'packages/barocss-cad', 'examples/cad-preview']) {
+  for (const directory of ['packages/feature', 'packages/barocss-cad']) {
     assert.deepEqual(packageCheckCommands({directory, scripts:checkScripts}).map(([name]) => name), ['type-check', 'lint']);
   }
   assert.deepEqual(docsValidationScripts, ['build', 'check:docs', 'check:api']);
@@ -404,21 +403,21 @@ test('package and non-app example tests stay out of required CI and docs static 
 });
 
 
-test('source-derived output directories cover cad-preview and both VitePress apps', () => {
-  assert.equal(buildOutputDirectory('examples/cad-preview', "build:{outDir:'editor-dist'}"), 'examples/cad-preview/editor-dist');
+test('source-derived output directories cover a Vite outDir and both VitePress apps', () => {
+  assert.equal(buildOutputDirectory('apps/cad-studio', "build:{outDir:'studio-dist'}"), 'apps/cad-studio/studio-dist');
   for (const directory of ['apps/library-docs', 'apps/barocss-docs']) assert.equal(buildOutputDirectory(directory), `${directory}/docs/.vitepress/dist`);
   assert.equal(buildOutputDirectory('apps/barocss-site', 'export default {}'), 'apps/barocss-site/dist');
-  for (const config of ["outDir: '../escape'", 'outDir: computed', "outDir:'a',outDir:'b'"]) assert.throws(() => buildOutputDirectory('examples/cad-preview', config));
+  for (const config of ["outDir: '../escape'", 'outDir: computed', "outDir:'a',outDir:'b'"]) assert.throws(() => buildOutputDirectory('apps/cad-studio', config));
   assert.throws(() => buildOutputDirectory('apps/unknown'));
   const packages = fixtures();
-  packages.push({ ...pkg('@barocss/cad-editor-example', 'examples/cad-preview'), outputDirectory: 'examples/cad-preview/editor-dist' });
-  const plan = createAffectedPlan(input({ packages, changes: [{ status: 'M', path: 'examples/cad-preview/src/entry.ts' }] }));
+  packages.push({ ...pkg('@barocss/cad-studio-app', 'apps/cad-studio'), outputDirectory: 'apps/cad-studio/studio-dist' });
+  const plan = createAffectedPlan(input({ packages, changes: [{ status: 'M', path: 'apps/cad-studio/src/entry.ts' }] }));
   assert.equal(plan.mode, 'packages');
   const manifest = artifact(plan);
-  assert(manifest.directories.includes('examples/cad-preview/editor-dist'));
+  assert(manifest.directories.includes('apps/cad-studio/studio-dist'));
   assert.equal(validateArtifactManifest(manifest, plan), true);
   const wrong = structuredClone(manifest);
-  wrong.directories = wrong.directories.map((p) => p.replace('editor-dist', 'dist'));
+  wrong.directories = wrong.directories.map((p) => p.replace('studio-dist', 'dist'));
   assert.throws(() => validateArtifactManifest(wrong, plan));
 });
 
@@ -430,16 +429,16 @@ test('manual regression retains package tests while required full mode has no te
 
 
 test('app lint fallback selects safe changed tracked code without generated or foreign files', () => {
-  const files = ['apps/render-editor/src/a.ts', 'apps/render-editor/src/b.tsx', 'apps/render-editor/native-flow.mjs', 'apps/render-editor/README.md', 'apps/other/src/a.ts'];
-  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, ['apps/render-editor/src/a.ts', 'apps/render-editor/dist/new.js', 'apps/other/src/a.ts']), ['apps/render-editor/src/a.ts']);
-  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, [], true), files.slice(0, 3).sort());
-  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, ['apps/render-editor/deleted.ts']), []);
-  for (const path of ['apps/render-editor/../secret.ts', '/tmp/secret.ts', 'apps/render-editor/a;echo.ts']) assert.throws(() => selectAppLintFiles('apps/render-editor', [path], []));
+  const files = ['apps/cad-studio/src/a.ts', 'apps/cad-studio/src/b.tsx', 'apps/cad-studio/native-flow.mjs', 'apps/cad-studio/README.md', 'apps/other/src/a.ts'];
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', files, ['apps/cad-studio/src/a.ts', 'apps/cad-studio/dist/new.js', 'apps/other/src/a.ts']), ['apps/cad-studio/src/a.ts']);
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', files, [], true), files.slice(0, 3).sort());
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', files, ['apps/cad-studio/deleted.ts']), []);
+  for (const path of ['apps/cad-studio/../secret.ts', '/tmp/secret.ts', 'apps/cad-studio/a;echo.ts']) assert.throws(() => selectAppLintFiles('apps/cad-studio', [path], []));
   assert.throws(() => selectAppLintFiles('packages/other', files, []));
 });
 
 test('app lint uses all owned code for config, dependency, unknown-base and regression changes', () => {
-  const plan = { changedPaths: ['apps/render-editor/src/a.ts'], reasons: [] };
+  const plan = { changedPaths: ['apps/cad-studio/src/a.ts'], reasons: [] };
   assert.equal(allAppLintRequired(plan, "import js from '@eslint/js'"), false);
   for (const path of ['eslint.config.mjs', 'pnpm-lock.yaml', 'packages/tool/package.json', 'tools/custom-lint.mjs']) assert.equal(allAppLintRequired({ ...plan, changedPaths: [path] }, ''), true, path);
   assert.equal(allAppLintRequired({ ...plan, changedPaths: [] }, ''), true);
@@ -458,8 +457,8 @@ test('verified docs check registration keeps full CI but does not widen unrelate
   assert.equal(plan.docsNeeded, true);
   assert.equal(plan.docsCheckScriptOnly, true);
   assert.equal(allAppLintRequired(plan, ''), false);
-  const tracked = ['apps/cad-editor/src/old.ts', 'apps/library-docs/scripts/new-check.mjs', 'apps/library-docs/scripts/old-check.mjs'];
-  assert.deepEqual(selectAppLintFiles('apps/cad-editor', tracked, plan.changedPaths, false), []);
+  const tracked = ['apps/cad-studio/src/old.ts', 'apps/library-docs/scripts/new-check.mjs', 'apps/library-docs/scripts/old-check.mjs'];
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', tracked, plan.changedPaths, false), []);
   const ownAll = plan.changedPaths.includes('apps/library-docs/package.json');
   assert.deepEqual(selectAppLintFiles('apps/library-docs', tracked, plan.changedPaths, ownAll), tracked.slice(1));
 });
@@ -503,13 +502,13 @@ test('docs exception never masks concurrent root dependency lint type or build i
   const args = input({ changes: [{ status: 'M', path: 'apps/library-docs/package.json' }] });
   args.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node new.mjs';
   for (const path of ['package.json', 'pnpm-lock.yaml', 'packages/tool/package.json', 'eslint.config.mjs',
-    'apps/render-editor/eslint.config.mjs', 'apps/render-editor/tsconfig.json', 'apps/render-editor/vite.config.ts', 'apps/render-editor/scripts/build.mjs']) {
+    'apps/cad-studio/eslint.config.mjs', 'apps/cad-studio/tsconfig.json', 'apps/cad-studio/vite.config.ts', 'apps/cad-studio/scripts/build.mjs']) {
     const plan = createAffectedPlan({ ...args, changes: [...args.changes, { status: 'M', path }] });
     assert.equal(allAppLintRequired(plan, ''), true, path);
   }
-  const plan = createAffectedPlan({ ...args, changes: [...args.changes, { status: 'M', path: 'apps/render-editor/src/changed.tsx' }] });
+  const plan = createAffectedPlan({ ...args, changes: [...args.changes, { status: 'M', path: 'apps/cad-studio/src/changed.tsx' }] });
   assert.equal(allAppLintRequired(plan, ''), false);
-  assert.deepEqual(selectAppLintFiles('apps/render-editor', ['apps/render-editor/src/changed.tsx', 'apps/render-editor/src/old.tsx'], plan.changedPaths), ['apps/render-editor/src/changed.tsx']);
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', ['apps/cad-studio/src/changed.tsx', 'apps/cad-studio/src/old.tsx'], plan.changedPaths), ['apps/cad-studio/src/changed.tsx']);
   assert.equal(allAppLintRequired(plan, '', true), true);
 });
 
@@ -540,7 +539,7 @@ test('GPU additive test registration keeps full checks and unchanged external ru
     assert.equal(allAppLintRequired(plan, '', true), true);
     assert.equal(plan.appTests, 'external');
     assert.equal(plan.runtimeTests, 'manual/pre-release');
-    assert.deepEqual(selectAppLintFiles('apps/cad-editor', ['apps/cad-editor/src/old.ts'], plan.changedPaths), []);
+    assert.deepEqual(selectAppLintFiles('apps/cad-studio', ['apps/cad-studio/src/old.ts'], plan.changedPaths), []);
   }
 });
 
@@ -609,14 +608,14 @@ test('GPU registration rejects every other manifest field and lifecycle script c
 
 test('GPU registration cannot hide concurrent root config or app ownership changes', () => {
   for (const path of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc', 'eslint.config.mjs',
-    'apps/cad-editor/package.json', 'apps/render-editor/tsconfig.json', 'apps/render-editor/vite.config.ts',
-    'apps/render-editor/scripts/build.mjs', 'packages/barocss-gpu/tsconfig.json', 'tools/lint-plugin.mjs']) {
+    'apps/cad-studio/package.json', 'apps/cad-studio/tsconfig.json', 'apps/cad-studio/vite.config.ts',
+    'apps/cad-studio/scripts/build.mjs', 'packages/barocss-gpu/tsconfig.json', 'tools/lint-plugin.mjs']) {
     const args = gpuRegistrationInput(); args.changes.push({ status: 'M', path });
     assert.equal(allAppLintRequired(createAffectedPlan(args), ''), true, path);
   }
-  const args = gpuRegistrationInput(); args.changes.push({ status: 'M', path: 'apps/render-editor/src/changed.tsx' });
+  const args = gpuRegistrationInput(); args.changes.push({ status: 'M', path: 'apps/cad-studio/src/changed.tsx' });
   const plan = createAffectedPlan(args);
   assert.equal(allAppLintRequired(plan, ''), false);
-  assert.deepEqual(selectAppLintFiles('apps/render-editor', ['apps/render-editor/src/changed.tsx', 'apps/render-editor/src/old.tsx'], plan.changedPaths), ['apps/render-editor/src/changed.tsx']);
+  assert.deepEqual(selectAppLintFiles('apps/cad-studio', ['apps/cad-studio/src/changed.tsx', 'apps/cad-studio/src/old.tsx'], plan.changedPaths), ['apps/cad-studio/src/changed.tsx']);
   assert.equal(allAppLintRequired(plan, "import './local-lint-plugin.mjs'"), true);
 });

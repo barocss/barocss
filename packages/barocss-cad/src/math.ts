@@ -111,6 +111,13 @@ export function surfaceDomain(surface: Surface): { u: [number, number]; v: [numb
 
 /** Compute the local nonzero basis functions. The right endpoint uses the last span. */
 export function basis(knots: number[], degree: number, count: number, parameter: number): { start: number; values: number[] } {
+  const values = Array<number>(degree + 1).fill(0);
+  const start = basisInto(knots, degree, count, parameter, values, Array<number>(degree + 1).fill(0), Array<number>(degree + 1).fill(0));
+  return { start, values };
+}
+
+/** basis() into caller-owned buffers (length degree + 1); returns the first pole index. */
+function basisInto(knots: number[], degree: number, count: number, parameter: number, values: number[], distancesLeft: number[], distancesRight: number[]): number {
   const left = knots[degree];
   const right = knots[count];
   requireValue(Number.isFinite(parameter) && parameter >= left && parameter <= right, 'Parameter is outside the knot domain');
@@ -125,18 +132,13 @@ export function basis(knots: number[], degree: number, count: number, parameter:
     }
     span = low;
   }
-  const values = Array<number>(degree + 1).fill(0);
-  const distancesLeft = Array<number>(degree + 1).fill(0);
-  const distancesRight = Array<number>(degree + 1).fill(0);
+  values.fill(0); distancesLeft.fill(0); distancesRight.fill(0);
   values[0] = 1;
   const scale = Math.max(1, Math.abs(left), Math.abs(right));
-  const distance = (a: number, b: number): number => {
-    const difference = a - b;
-    return Number.isFinite(difference) ? difference / scale : a / scale - b / scale;
-  };
   for (let level = 1; level <= degree; level++) {
-    distancesLeft[level] = distance(parameter, knots[span + 1 - level]);
-    distancesRight[level] = distance(knots[span + level], parameter);
+    const a = parameter - knots[span + 1 - level], b = knots[span + level] - parameter;
+    distancesLeft[level] = Number.isFinite(a) ? a / scale : parameter / scale - knots[span + 1 - level] / scale;
+    distancesRight[level] = Number.isFinite(b) ? b / scale : knots[span + level] / scale - parameter / scale;
     let saved = 0;
     for (let index = 0; index < level; index++) {
       const denominator = distancesRight[index + 1] + distancesLeft[level - index];
@@ -148,8 +150,8 @@ export function basis(knots: number[], degree: number, count: number, parameter:
     }
     values[level] = saved;
   }
-  requireValue(values.every(Number.isFinite), 'Knot arithmetic exceeded the finite range');
-  return { start: span - degree, values };
+  for (let i = 0; i <= degree; i++) requireValue(Number.isFinite(values[i]), 'Knot arithmetic exceeded the finite range');
+  return span - degree;
 }
 
 function project(sum: Point, weight: number): Point {
@@ -208,6 +210,34 @@ export function evaluateCurve(curve: Curve, parameter: number): Point {
 export function evaluateSurface(surface: Surface, u: number, v: number): Point {
   validateSurface(surface);
   return surfacePoint(surface, u, v);
+}
+
+/** An evaluator for one curve, validated once (the same points as evaluateCurve). */
+export function curveEvaluator(curve: Curve): (t: number) => Point {
+  validateCurve(curve);
+  return t => curvePoint(curve, t);
+}
+
+/** An evaluator for one surface, validated once (for callers that evaluate it many times). */
+export function surfaceEvaluator(surface: Surface): (u: number, v: number) => Point {
+  validateSurface(surface);
+  const P = surface.controlPoints, W = surface.weights, du = surface.degreeU, dv = surface.degreeV, nu = P.length, nv = P[0].length;
+  const constant = [0, 1, 2].map(axis => P.every(row => row.every(pole => Object.is(pole[axis], P[0][0][axis]))));
+  const bu = Array<number>(du + 1).fill(0), lu = bu.slice(), ru = bu.slice(), bv = Array<number>(dv + 1).fill(0), lv = bv.slice(), rv = bv.slice();
+  // The same arithmetic as evaluateSurface (bit-identical points), without its per-call allocation.
+  return (u, v) => {
+    const su = basisInto(surface.knotsU, du, nu, u, bu, lu, ru), sv = basisInto(surface.knotsV, dv, nv, v, bv, lv, rv);
+    const sum: Point = [0, 0, 0];
+    let weight = 0;
+    for (let i = 0; i <= du; i++) for (let j = 0; j <= dv; j++) {
+      const row = su + i, column = sv + j, factor = bu[i] * bv[j] * W[row][column], pole = P[row][column];
+      weight += factor;
+      sum[0] += factor * pole[0]; sum[1] += factor * pole[1]; sum[2] += factor * pole[2];
+    }
+    const point = project(sum, weight);
+    for (let axis = 0; axis < 3; axis++) if (constant[axis]) point[axis] = P[0][0][axis];
+    return point;
+  };
 }
 
 function sampleCount(count: number): void {

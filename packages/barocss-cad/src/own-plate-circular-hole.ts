@@ -6,6 +6,7 @@ import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export interface OwnPlateCircularHoleRequest {
   bodyId: string; featureId: string;
@@ -53,10 +54,6 @@ function snapshot(input: unknown, large = false): unknown {
 }
 function record(v: unknown, keys: string[]): Record<string, unknown> { check(v !== null && typeof v === 'object' && !Array.isArray(v), 'record required'); const r = v as Record<string, unknown>; check(Object.keys(r).length === keys.length && keys.every(k => Object.hasOwn(r, k)), 'exact fields required: ' + keys.join(',')); return r; }
 function id(v: unknown, bound = 48): string { check(typeof v === 'string' && v.length <= bound && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(v), 'bounded ASCII identifier required'); return v; }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((n, i) => same(n, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && same(x[k], y[k])); } return Object.is(a, b);
-}
 function request(input: unknown): OwnPlateCircularHoleRequest {
   const r = record(snapshot(input), ['bodyId', 'featureId', 'parameterIds', 'widthMM', 'heightMM', 'thicknessMM', 'centreMM', 'radiusMM']);
   const bodyId = id(r.bodyId, 32), featureId = id(r.featureId), p = record(r.parameterIds, ['width', 'height', 'thickness', 'centerX', 'centerY', 'radius']);

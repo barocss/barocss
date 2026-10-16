@@ -1,8 +1,0 @@
-> @barocss/canvas2d@0.0.0-experimental build:library
-> tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js
-
-src/path.ts(103,43): error TS2339: Property 'c1x' does not exist on type '{ kind: "M" | "L"; x: number; y: number; } | { kind: "C"; c1x: number; c1y: number; c2x: number; c2y: number; x: number; y: number; }'.
-src/path.ts(103,59): error TS2339: Property 'c1y' does not exist on type '{ kind: "M" | "L"; x: number; y: number; } | { kind: "C"; c1x: number; c1y: number; c2x: number; c2y: number; x: number; y: number; }'.
-src/path.ts(104,22): error TS2339: Property 'c2x' does not exist on type '{ kind: "M" | "L"; x: number; y: number; } | { kind: "C"; c1x: number; c1y: number; c2x: number; c2y: number; x: number; y: number; }'.
-src/path.ts(104,38): error TS2339: Property 'c2y' does not exist on type '{ kind: "M" | "L"; x: number; y: number; } | { kind: "C"; c1x: number; c1y: number; c2x: number; c2y: number; x: number; y: number; }'.
-ELIFECYCLE Command failed with exit code 2.

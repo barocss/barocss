@@ -1,9 +1,11 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole.js';
 import type { XYPolygonPrismShellWithHole, XYPolygonPrismShellWithHoleReport, XYPolygonPrismHoleCapFace } from './xy-polygon-prism-shell-hole.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import { evaluateCurve, curveDomain, surfaceDomain } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
+import { dot } from './vec3.js';
 
 export interface XYPolygonPrismHoleShellRayQueryOptions { originMM: Point; direction: Point; maxDistanceMM: number }
 export type XYPolygonPrismHoleShellRayFaceRole = 'bottom-cap' | 'top-cap' | 'outer-wall' | 'hole-wall';
@@ -35,7 +37,7 @@ export interface XYPolygonPrismHoleShellRayQueryResult {
   hits: XYPolygonPrismHoleShellRayHit[]; candidates: XYPolygonPrismHoleShellRayHit[]; coplanarFaces: XYPolygonPrismHoleShellCoplanarFace[];
   report: XYPolygonPrismHoleShellRayQueryReport;
 }
-const BOUNDARY_MM = 1e-7, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
+const BOUNDARY_MM = CadNumericPolicy.linearToleranceMM, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
 function check(condition: boolean, path: string, detail: string): asserts condition {
   if (!condition) throw new Error(('XY polygon through-hole shell ray: ' + path.slice(0, 256) + ': ' + detail).slice(0, 512));
 }
@@ -76,7 +78,6 @@ function admitOptions(input: unknown): XYPolygonPrismHoleShellRayQueryOptions {
   check(typeof fields.maxDistanceMM === 'number' && fields.maxDistanceMM > 0 && fields.maxDistanceMM <= 50000, '$options.maxDistanceMM', 'positive finite distance<=50000mm required');
   return { originMM: origin as Point, direction: direction as Point, maxDistanceMM: fields.maxDistanceMM };
 }
-const dot = (a: Point, b: Point): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const subtract = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 function outward(du: Point, dv: Point, orientation: number): Point {
   const cross: Point = [du[1] * dv[2] - du[2] * dv[1], du[2] * dv[0] - du[0] * dv[2], du[0] * dv[1] - du[1] * dv[0]], norm = Math.hypot(...cross);

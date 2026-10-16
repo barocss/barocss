@@ -9,6 +9,7 @@ import { evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const OrthogonalSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type OrthogonalSolidBooleanDiagnosticCode = typeof OrthogonalSolidBooleanDiagnosticCode[keyof typeof OrthogonalSolidBooleanDiagnosticCode];
@@ -65,7 +66,7 @@ export function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof OrthogonalSolidBooleanError) throw cause; throw new OrthogonalSolidBooleanError(code, 'Own snapshot failed', cause); }
 }
-export function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
+export { same };
 function integer(value: number): number { check(Number.isSafeInteger(value), CODE.BINDING, 'Exact safe integer arithmetic is required'); return value === 0 ? 0 : value; }
 function pointDifference(a: Point, b: Point): number { const value = Math.hypot(...a.map((x, index) => x - b[index])); check(Number.isFinite(value), CODE.BINDING, 'Finite native point/derivative residual is required'); return value; }
 function qualifiedContexts(input: unknown): Set<string> { const values = new Set<string>(); const visit = (value: unknown, key = '') => { if (typeof value === 'string') { if (key === 'id' || key === 'name' || /Ids?$/.test(key) || key === 'resultIdPrefix') values.add(value); } else if (Array.isArray(value)) value.forEach(item => visit(item, key)); else if (value && typeof value === 'object') for (const [field, item] of Object.entries(value)) visit(item, field); }; visit(input); return values; }

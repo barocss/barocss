@@ -1,9 +1,11 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { buildXYArc } from './xy-arc.js';
 import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { compileCadModel } from './model-compiler.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same as sameData } from './structural-equality.js';
 
 export interface ZAxisRevolvedSurfaceOptions { surfaceId: string }
 export interface ZAxisRevolvedSurfaceConstruction {
@@ -29,7 +31,7 @@ export interface ZAxisRevolvedSurfaceResult {
   construction: ZAxisRevolvedSurfaceConstruction; report: ZAxisRevolvedSurfaceReport;
 }
 const LABEL = 'Z-axis revolved surface';
-const OBSERVATION_MM = 1e-7;
+const OBSERVATION_MM = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, detail: string): asserts condition { requireCurveValue(condition, detail, LABEL); }
 function snapshot(input: unknown): unknown {
   let remaining = 1024;
@@ -59,14 +61,6 @@ function record(input: unknown, fields: string[]): Record<string, unknown> {
   const value = input as Record<string, unknown>; check(Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key)), 'exact fields required: ' + fields.join(',')); return value;
 }
 function id(input: unknown): string { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), 'ASCII ID1..48 required'); return input; }
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 function samples(curve: Curve): number[] {
   const [min, max] = curveDomain(curve), values = new Set<number>([min, max]);
   const breaks = [...new Set(curve.knots)].filter(k => k >= min && k <= max);

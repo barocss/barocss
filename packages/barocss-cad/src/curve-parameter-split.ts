@@ -1,3 +1,4 @@
+import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { insertCurveKnot } from './curve-knot-insertion.js';
 import type { CurveKnotInsertionProvenance, CurveKnotUnchangedPole, CurveKnotUnchangedKnot } from './curve-knot-insertion.js';
@@ -5,6 +6,7 @@ import { compileCadModel } from './model-compiler.js';
 import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same as sameData } from './structural-equality.js';
 
 export interface CurveParameterSplitOptions { parameter: number; lowerCurveId: string; upperCurveId: string }
 export interface CurveSplitPoleMapping { refinedPoleIndex: number; childPoleIndex: number }
@@ -32,7 +34,7 @@ export interface CurveParameterSplitReport {
   observations: { side: 'lower' | 'upper'; curveId: string; parameter: number; originalPointMM: Point; refinedPointMM: Point; childPointMM: Point; originalDifferenceMM: number; refinedDifferenceMM: number }[];
   maximumObservedDifferenceMM: number; authority: 'original-curve-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   limits: { maximumPoles: 16; maximumDegree: 3; authoredIdCharacters: 48; snapshotValues: 1024; snapshotDepth: 6;
-    arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 64; observationComparisonMM: 1e-7 };
+    arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 64; observationComparisonMM: number };
 }
 export interface CurveParameterSplitResult {
   original: Curve; refined: Curve; lower: Curve; upper: Curve; source: string; sourceVersion: 0; model: Model;
@@ -68,14 +70,6 @@ function record(input: unknown, fields: string[]): Record<string, unknown> {
   const value = input as Record<string, unknown>; check(Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key)), 'exact fields required: ' + fields.join(',')); return value;
 }
 function id(input: unknown): string { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), 'ASCII ID1..48 required'); return input; }
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 function samples(curve: Curve): number[] {
   const [min, max] = curveDomain(curve), values = new Set<number>([min, max]);
   const breaks = [...new Set(curve.knots)].filter(k => k >= min && k <= max);
@@ -99,20 +93,23 @@ function admit(input: unknown): Curve {
   check(typeof data.degree === 'number' && Number.isInteger(data.degree) && data.degree >= 1 && data.degree <= 3, 'degree 1..3 required');
   check(Array.isArray(data.controlPoints) && data.controlPoints.length >= 2 && data.controlPoints.length <= 16, 'original poles 2..16 required');
   const curve = data as unknown as Curve; validateCurve(curve);
-  check(curve.controlPoints.every(p => p.every(n => Math.abs(n) <= 10000)), 'XYZ coordinates within +/-10000 mm required');
+  check(curve.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'XYZ coordinates within the geometry range +/-' + CadNumericPolicy.geometryCoordinateAbsMM + ' mm required');
   return curve;
 }
 function guarded(curve: Curve, parameter: number): boolean {
   const [min, max] = curveDomain(curve);
   return parameter > min && parameter < max && curve.knots.filter(k => k === parameter).length >= curve.degree;
 }
+/** Observation tolerance of the current split: CadNumericPolicy.linearToleranceMM of the curve (1e-7 mm within the modeling range). */
+let observationTolerance = 1e-7;
 function difference(a: Point, b: Point): number {
-  const d = Math.hypot(...a.map((n, i) => n - b[i])); check(Number.isFinite(d) && d <= 1e-7, 'local native point observation exceeds 1e-7 mm'); return d;
+  const d = Math.hypot(...a.map((n, i) => n - b[i])); check(Number.isFinite(d) && d <= observationTolerance, 'local native point observation exceeds ' + observationTolerance + ' mm'); return d;
 }
 /** Two increasing-parameter native Curves through actual original knot refinement. */
 export function splitCurveAtParameter(input: Curve, options: CurveParameterSplitOptions): CurveParameterSplitResult {
   try {
     const originalData = snapshot(input), optionData = snapshot(options), original = admit(originalData);
+    observationTolerance = linearToleranceMM(geometryScaleMM(original.controlPoints));
     const settings = record(optionData, ['parameter', 'lowerCurveId', 'upperCurveId']);
     const parameter = settings.parameter, lowerId = id(settings.lowerCurveId), upperId = id(settings.upperCurveId), originalDomain = curveDomain(original);
     check(new Set([original.id, lowerId, upperId]).size === 3, 'original and child Curve IDs must differ');
@@ -173,7 +170,7 @@ export function splitCurveAtParameter(input: Curve, options: CurveParameterSplit
         guardedKnots: { original: guards(original), refined: guards(refined), lower: guards(lower), upper: guards(upper) }, derivativeSemantics: 'native-guards-unchanged', shared, sharedCutPoints, observations,
         maximumObservedDifferenceMM: Math.max(sharedCutPoints.maximumObservedDifferenceMM, ...observations.flatMap(o => [o.originalDifferenceMM, o.refinedDifferenceMM])), authority: 'original-curve-coefficients',
         geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-        limits: { maximumPoles: 16, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 64, observationComparisonMM: 1e-7 } } });
+        limits: { maximumPoles: 16, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 64, observationComparisonMM: observationTolerance } } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'invalid original Curve/split options';
     throw new Error((message.startsWith(LABEL) ? message : LABEL + ': ' + message).slice(0, 1024), { cause: error });

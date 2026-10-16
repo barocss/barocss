@@ -26,7 +26,7 @@ export async function startServer(port = 0) {
       const [type, filename] = files.get(req.url);
       const bytes = await readFile(filename);
       res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store',
-        'content-security-policy': "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'" });
+        'content-security-policy': "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'" });
       res.end(bytes);
     } catch {
       res.writeHead(500); res.end('Build the GPU package before starting the example');

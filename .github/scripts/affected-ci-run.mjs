@@ -49,7 +49,8 @@ function packageScript(name, directory, command, expected) {
   run('pnpm', ['--filter', name, 'run', command]);
 }
 function viewer() {
-  for (const name of ['native-directional-light-webgpu', 'native-surface-uv01-webgpu', 'native-point-light-webgpu']) run(process.execPath, ['--test', '--test-concurrency=1', `packages/barocss-viewer/tests/${name}.test.mjs`]);
+  // Real-browser WebGPU tests: they skip without CHROME and PW_DIR.
+  for (const name of ['viewer-browser', 'viewer-native-browser']) run(process.execPath, ['--test', '--test-concurrency=1', `packages/barocss-viewer/tests/${name}.test.mjs`]);
   run(process.execPath, ['--test', 'examples/viewer-native-scene-replacement/surface-curvature-contract.test.mjs']);
 }
 function rootChecks() {
@@ -69,7 +70,7 @@ export function fullCheckCommands(rootManifest, regression = false) {
     || rootManifest.scripts?.test !== 'pnpm run -r test') throw new Error('root check/test contract changed; update CI policy explicitly');
   return [
     ['type-check'], ['lint'], ['build:library'],
-    ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+    ['--recursive', '--filter', './apps/**', '--if-present', 'run', 'build'],
     ...(regression ? [['--recursive', '--filter', '!./apps/**', 'run', 'test']] : []),
   ];
 }

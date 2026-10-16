@@ -1,6 +1,6 @@
 import {createViewer} from '@barocss/viewer';
-import {prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareMesh,
-  prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
+import {prepareQualifiedFaceScene,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareMesh,
+  prepareUniformCurvePreview,prepareSelectedUniformCurvePreview} from '@barocss/gpu';
 import {compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,
   createCadDocument,createCadGeometryReference,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,
   queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,evaluateCurveCurvature,evaluateCurveD2,evaluateSurfaceCurvature,evaluateSurfaceD2,evaluateCurveD1,evaluateSurfaceD1,extractSurfaceIsoCurve} from '@barocss/cad';
@@ -99,24 +99,9 @@ const distanceFormat=new Intl.NumberFormat('en',{maximumFractionDigits:4});
 const measurementControls=['first','second'].map(side=>({side,
   source:document.querySelector('#measure-'+side+'-source'),geometry:document.querySelector('#measure-'+side+'-geometry'),
   u:document.querySelector('#measure-'+side+'-u'),v:document.querySelector('#measure-'+side+'-v'),t:document.querySelector('#measure-'+side+'-t')}));
-const buttons=Object.fromEntries(['load','interior-edit','mismatch','reverse','apply-color','saved-view','frame-all-faces','orbit','pan','resize','clear','run-proof','lose-context','dispose']
+const buttons=Object.fromEntries(['load','interior-edit','mismatch','reverse','apply-color','saved-view','frame-all-faces','orbit','pan','resize','clear','run-proof','dispose']
   .map(id=>[id,document.querySelector('#'+id)]));
-const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
-let faultType=null,faultAt=0,faultAttempts=0,faultConsumed=false,lossExtension=null;
-for(const type of['Buffer','Program','VertexArray','Framebuffer','Texture','Renderbuffer','Shader']){
-  const live=new Set(),p=WebGL2RenderingContext.prototype,create=p['create'+type],remove=p['delete'+type];resources[type]=live;peaks[type]=0;
-  p['create'+type]=function(...args){if(type===faultType&&++faultAttempts===faultAt){faultConsumed=true;return null;}
-    const value=create.apply(this,args);if(value){live.add(value);peaks[type]=Math.max(peaks[type],live.size);}return value;};
-  p['delete'+type]=function(value){live.delete(value);return remove.call(this,value);};
-}
-const getContext=HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext=function(kind,...args){const value=getContext.call(this,kind,...args);if(kind==='webgl2'&&value)contexts.add(value);return value;};
-const bufferData=WebGL2RenderingContext.prototype.bufferData;
-WebGL2RenderingContext.prototype.bufferData=function(target,values,...args){const outcome=bufferData.call(this,target,values,...args);
-  if(ArrayBuffer.isView(values)){const readback=new values.constructor(values.length);this.getBufferSubData(target,0,readback);
-    uploads.push({type:values.constructor.name,values:Array.from(readback),bytes:values.byteLength,exactReadback:same(values,readback)});}return outcome;};
-const drawElements=WebGL2RenderingContext.prototype.drawElements;
-WebGL2RenderingContext.prototype.drawElements=function(mode,count,...args){draws.push({mode,count,depth:this.getParameter(this.DEPTH_FUNC),write:this.getParameter(this.DEPTH_WRITEMASK)});return drawElements.call(this,mode,count,...args);};
+const errors=[],warnings=[];
 window.addEventListener('error',event=>errors.push(event.message));window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
 const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=null,disposed=false,running=false,result=null,inspectionReport=null,inspectionFace=null,measurementReport=null;
@@ -145,9 +130,7 @@ let treeTangentFirstCapture=null,treeTangentAngleReport=null,treeTangentProjecti
 let treeNormalFirstCapture=null,treeNormalAngleReport=null,treeNormalProjections={first:null,second:null,angle:null},treeNormalHidden={first:false,second:false};
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
-const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
-const glErrors=()=>[...contexts].map(gl=>gl.getError());
-const pixelInfo=()=>({hash:hash(viewer.readPixels())});
+const pixelInfo=async()=>({hash:hash(await viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspectionFace=null;inspection.textContent='';}
 function inspectionScopeChanged(scene){if(!inspectionReport)return false;const asset=scene?.assets.find(asset=>asset.sourceId===inspectionReport.sourceId);
@@ -162,14 +145,14 @@ function markFaceInspectionRows(){for(const item of rows.children)item.dataset.s
 function clearNativeSample(){nativeSampleRecord=null;nativeSampleOutput.textContent='';inspectPickedSurfaceCurvatureButton.disabled=true;}
 function invalidateFaceInspection(){faceInspectionEpoch++;faceInspectionRecord=null;faceScreenOutput.textContent='';clearNativeSample();markFaceInspectionRows();}
 function refreshFaceInspection(){const scope=currentFaceInspectionScope();if(!same(scope,faceInspectionScope)){invalidateFaceInspection();faceInspectionScope=clone(scope);}
-  const available=!disposed&&!!scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status);
+  const available=!disposed&&!!scope?.scene&&scope.status!=='disposed';
   faceInspectMode.disabled=!available||running;nativeSampleMode.disabled=!available||running;if(!available&&(faceInspectionRecord||nativeSampleRecord))invalidateFaceInspection();
   markFaceInspectionRows();return clone(faceInspectionScope);
 }
 function checkFaceInspectionScope(epoch,scope){refreshFaceInspection();check(epoch===faceInspectionEpoch&&same(scope,faceInspectionScope),
   'This Face inspection view is stale. Inspect the current view.');}
 function inspectFaceAt(point){refreshFaceInspection();const epoch=faceInspectionEpoch,scope=clone(faceInspectionScope);
-  check(!disposed&&scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status),'Face screen inspection requires an available Face view.');
+  check(!disposed&&scope?.scene&&scope.status!=='disposed','Face screen inspection requires an available Face view.');
   const pick=viewer.pickQualifiedFace(point);checkFaceInspectionScope(epoch,scope);
   faceInspectionRecord={epoch,scope,point:clone(point),pick:clone(pick)};
   faceScreenOutput.textContent=pick?'Current '+pick.ref.sourceId+' / '+pick.ref.faceId+' / '+pick.ref.modelId+' / '+pick.ref.surfaceId
@@ -181,7 +164,7 @@ function inspectFaceAt(point){refreshFaceInspection();const epoch=faceInspection
 function faceInspectionSnapshot(){return{mode:faceInspectMode.checked,epoch:faceInspectionEpoch,scope:clone(faceInspectionScope),record:clone(faceInspectionRecord),
   output:faceScreenOutput.textContent,markedRefs:[...rows.children].filter(item=>item.dataset.screenInspected==='true').map(item=>clone(faceRowRefs.get(item)))};}
 function readFaceSample(point){refreshFaceInspection();const epoch=faceInspectionEpoch,scope=clone(faceInspectionScope);
-  check(!disposed&&scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status),'Native screen sampling requires an available Face view.');
+  check(!disposed&&scope?.scene&&scope.status!=='disposed','Native screen sampling requires an available Face view.');
   const sample=viewer.sampleQualifiedFace(point);checkFaceInspectionScope(epoch,scope);
   return{epoch,scope,point:clone(point),sample:clone(sample)};
 }
@@ -975,7 +958,7 @@ function renderAppearanceControls(state){const ready=!disposed&&!running&&state.
   buttons['apply-color'].disabled=!ready||!state.qualifiedFaceScene?.assets.some(asset=>asset.sourceId===colorAsset.value);applyTreeColorButton.disabled=!ready||!qualifiedTreeSelected;
   const ref=qualifiedTreeSelected?.ref;treeColorTarget.textContent=ref?'Current tree parent: '+ref.sourceId+'/'+ref.expectedFace.topology.face.surfaceId+' · selected '+ref.kind+' '+ref.geometryId
     :'Select an original Surface or Curve for its parent Face color.';}
-function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed&&!['context-lost','unavailable'].includes(state.status);
+function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed;
   if(inspectionScopeChanged(scene))clearInspection();
   if(measurementScopeChanged(scene))clearMeasurement();
   if(areaScopeChanged(scene))clearArea();
@@ -1020,7 +1003,7 @@ function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngl
   renderNormalAngleControls(scene);updateNormalAngleLabel();
   syncFaceNavigation();
 }
-function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);invalidateFaceInspection();clearInspection();clearMeasurement();render();return viewer.getState();}
+function load(input=candidate()){viewer.loadQualifiedFaceScene(input);invalidateFaceInspection();clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
 function changeView(callback){callback();invalidateFaceInspection();}
 function frameAllFaces(){check(viewer.getState().qualifiedFaceScene,'Load current Faces first.');changeView(()=>viewer.fit());render();display('All current Faces framed.');}
@@ -1034,45 +1017,31 @@ function inspect(sourceId){const scene=viewer.getState().qualifiedFaceScene,asse
     incidenceValid:report.incidenceValid,solid:report.solid,geometricValidity:report.geometricValidity,source:asset.source};
   inspectionFace=clone(asset.face);inspection.textContent=JSON.stringify(inspectionReport,null,2);return clone(inspectionReport);
 }
-function witness(input){const scene=viewer.getState().qualifiedFaceScene;check(scene.assets.length===input.assets.length&&same(scene.assets,input.assets),'Whole original source-qualified assets changed');
-  const records=[];for(const asset of scene.assets){const surface=asset.face.geometry.objects.find(object=>object.kind==='surface'&&object.id===asset.face.topology.face.surfaceId),
-    packet=tessellateSurface(surface,{countU:scene.countU,countV:scene.countV,revision:0}).packet;
-    const expected=packet.positions.map((n,i)=>Math.fround(n*mmToSceneUnit+input.translateScene[i%3])),position=uploads.find(upload=>upload.type==='Float32Array'&&near(upload.values,expected));
-    check(position&&position.exactReadback,'Original one-scale/scene-translation GL positions differ for '+asset.sourceId);
-    check(uploads.some(upload=>upload.type==='Float32Array'&&near(upload.values,packet.normals.map(Math.fround)))
-      &&uploads.some(upload=>upload.type==='Uint16Array'&&same(upload.values,packet.indices)),'Native normals/index upload differs');
-    records.push({sourceId:asset.sourceId,vertices:packet.positions.length/3,triangles:packet.indices.length/3,positionBytes:position.bytes,parametersUV:packet.parameters});}
-  check(uploads.every(upload=>upload.exactReadback),'Actual GL readback differs');return records;
-}
-function retained(label,callback){const before=viewer.getState(),pixels=pixelInfo(),counts=resourceCounts(),report=inspection.textContent;let error;
-  try{callback();}catch(value){error=value;}check(error instanceof Error,label+' did not refuse');check(same(before,viewer.getState())&&same(pixels,pixelInfo())&&same(counts,resourceCounts()),label+' changed recoverable accepted state/pixels/resources');
+async function retained(label,callback){const before=viewer.getState(),pixels=await pixelInfo(),report=inspection.textContent;let error;
+  try{callback();}catch(value){error=value;}check(error instanceof Error,label+' did not refuse');check(same(before,viewer.getState())&&same(pixels,await pixelInfo()),label+' changed recoverable accepted state/pixels');
   check(inspection.textContent===report,label+' changed accepted read-only inspection');result?.refusals.push({label,error:error.message,type:error.name,code:error.code??null});return error;}
-function capture(label){const state=viewer.getState(),row={label,status:state.status,...pixelInfo(),sourceIds:state.qualifiedFaceScene?.assets.map(asset=>asset.sourceId)??[],resources:resourceCounts(),glErrors:glErrors()};
-  check(row.glErrors.every(n=>n===0),label+' GL error');result.cases.push(row);return row;}
-function failAllocation(type='Buffer',at=16){faultType=type;faultAt=at;faultAttempts=0;faultConsumed=false;}
-function clearAllocationFault(){const value={type:faultType,attempts:faultAttempts,consumed:faultConsumed};faultType=null;return value;}
+async function capture(label){const state=viewer.getState(),row={label,status:state.status,...await pixelInfo(),sourceIds:state.qualifiedFaceScene?.assets.map(asset=>asset.sourceId)??[]};
+  result.cases.push(row);return row;}
 function mismatchCandidate(){const value=candidate();value.assets[5].source=originalRequests.interior_edit.assets[5].source;return value;}
-async function runProof(){if(running||disposed||['context-lost','unavailable'].includes(viewer.getState().status))throw Error('An available scene is required');running=true;render();
-  result={ok:false,schema:'barocss-viewer-qualified-face-1080-basic',cases:[],refusals:[],failures:[],scope:'Independent original forward Faces; root adds complete pixel/depth/transitions/race/recovery/loss gates'};window.__viewerQualifiedFaceResult=result;
-  try{result.fixtures=manifest;result.inputAudit=await(await fetch('/input-audit.json')).json();const original=candidate();load(original);result.uploads=witness(original);const baseline=capture('six-original-qualified-Faces');
+async function runProof(){if(running||disposed)throw Error('An available scene is required');running=true;render();
+  result={ok:false,schema:'barocss-viewer-qualified-face-1080-basic',cases:[],refusals:[],failures:[],scope:'Independent original forward Faces'};window.__viewerQualifiedFaceResult=result;
+  try{result.fixtures=manifest;result.inputAudit=await(await fetch('/input-audit.json')).json();const original=candidate();load(original);const baseline=await capture('six-original-qualified-Faces');
     check(!viewer.getState().surfaces.length&&!viewer.getState().curves.length,'Qualified Faces became unqualified primitive inventory');result.inspection=inspect('F');
     const copy=viewer.getState().qualifiedFaceScene;copy.assets[0].source='changed';copy.assets[0].face.geometry.objects[0].weights[0][0]=2;
     check(same(viewer.getState().qualifiedFaceScene.assets,original.assets),'Copied source/Face data exposed authority');
-    retained('authentic F source with previous Face',()=>viewer.loadQualifiedFaceScene(mismatchCandidate()));
+    await retained('authentic F source with previous Face',()=>viewer.loadQualifiedFaceScene(mismatchCandidate()));
     const bad=mutate=>{const value=clone(original);mutate(value);return value;};
-    retained('duplicate sourceId',()=>viewer.loadQualifiedFaceScene(bad(value=>value.assets[1].sourceId='A')));
-    retained('foreign Surface association',()=>viewer.loadQualifiedFaceScene(bad(value=>value.assets[0].face.topology.face.surfaceId='foreign')));
-    retained('grid budget18',()=>viewer.loadQualifiedFaceScene(bad(value=>value.countU=18)));
-    retained('incorrect basis',()=>viewer.loadQualifiedFaceScene(bad(value=>value.basis='automatic')));
+    await retained('duplicate sourceId',()=>viewer.loadQualifiedFaceScene(bad(value=>value.assets[1].sourceId='A')));
+    await retained('foreign Surface association',()=>viewer.loadQualifiedFaceScene(bad(value=>value.assets[0].face.topology.face.surfaceId='foreign')));
+    await retained('grid budget18',()=>viewer.loadQualifiedFaceScene(bad(value=>value.countU=18)));
+    await retained('incorrect basis',()=>viewer.loadQualifiedFaceScene(bad(value=>value.basis='automatic')));
     let getterCalls=0;const getter=clone(original);Object.defineProperty(getter.assets[2],'source',{enumerable:true,get(){getterCalls++;return original.assets[2].source;}});
-    retained('native source accessor',()=>viewer.loadQualifiedFaceScene(getter));check(getterCalls===0,'Caller getter invoked');
-    uploads.length=0;failAllocation('Buffer',16);try{retained('late sixteenth Face buffer',()=>viewer.loadQualifiedFaceScene(original));}finally{result.allocation=clearAllocationFault();}
-    check(result.allocation.consumed&&uploads.length>0,'Late sixth-Face allocation was not consumed');
+    await await retained('native source accessor',()=>viewer.loadQualifiedFaceScene(getter));check(getterCalls===0,'Caller getter invoked');
     for(const[label,callback]of[['individual geometry fit',()=>viewer.fitGeometry({kind:'surface',modelId:original.assets[0].face.geometry.name,
       surfaceId:original.assets[0].face.topology.face.surfaceId})],['unqualified pick',()=>viewer.pickGeometry({xCss:20,yCss:20})],
       ['unqualified selection',()=>viewer.selectGeometry(null)],['unqualified native metric',()=>viewer.measureNativeSurfacePoints(
         {modelId:original.assets[0].face.geometry.name,surfaceId:'patch_A',u:.5,v:.5},{modelId:original.assets[0].face.geometry.name,surfaceId:'patch_A',u:0,v:0})],
-      ['null cloth',()=>viewer.setClothFrame(null)],['null fluid',()=>viewer.setFluidFrame(null)]])retained(label,callback);
+      ['null cloth',()=>viewer.setClothFrame(null)],['null fluid',()=>viewer.setFluidFrame(null)]])await retained(label,callback);
     const faceF=original.assets.find(asset=>asset.sourceId==='F');
     const surfaceF=faceF.face.geometry.objects.find(object=>object.kind==='surface'&&object.id===faceF.face.topology.face.surfaceId);
     const packetF=tessellateSurface(surfaceF,{countU:original.countU,countV:original.countV,revision:0}).packet;
@@ -1085,42 +1054,42 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
     const commonCamera=prepareCamera(original.camera,canvas.width/canvas.height);
     const multiply=(matrix,point)=>[0,1,2,3].map(row=>[0,1,2,3].reduce((sum,column)=>sum+matrix[column*4+row]*point[column],0));
     const clip=multiply(commonCamera.projection,multiply(commonCamera.view,[...pointScene,1]));
-    const probePixel=[Math.floor((clip[0]/clip[3]+1)*canvas.width/2),Math.floor((clip[1]/clip[3]+1)*canvas.height/2)];
+    const probePixel=[Math.floor((clip[0]/clip[3]+1)*canvas.width/2),Math.floor((1-clip[1]/clip[3])*canvas.height/2)];
     check(probePixel[0]>=0&&probePixel[0]<canvas.width&&probePixel[1]>=0&&probePixel[1]<canvas.height,'Qualified F interior probe must be on screen');
-    const readProbe=()=>{const bytes=viewer.readPixels(),offset=(probePixel[1]*canvas.width+probePixel[0])*4;return Array.from(bytes.slice(offset,offset+4));};
-    const originalProbe=readProbe();
-    const reversed=candidate({assets:[...clone(original.assets)].reverse()});load(reversed);const reversedFrame=capture('reversed-original-order'),reversedProbe=readProbe();
+    const readProbe=async()=>{const bytes=await viewer.readPixels(),offset=(probePixel[1]*canvas.width+probePixel[0])*4;return Array.from(bytes.slice(offset,offset+4));};
+    const originalProbe=await readProbe();
+    const reversed=candidate({assets:[...clone(original.assets)].reverse()});load(reversed);const reversedFrame=await capture('reversed-original-order'),reversedProbe=await readProbe();
     result.orderComparison={sourceId:'F',faceId:faceF.face.topology.face.id,surfaceId:surfaceF.id,parametersUV:interiorUV,nativePointMM,probePixel,
       originalHash:baseline.hash,reversedHash:reversedFrame.hash,originalPixel:originalProbe,reversedPixel:reversedProbe,
       boundaryColorPolicy:'Touching equal-depth native boundaries can resolve color by draw order under strict LESS.'};
     check(same(originalProbe,reversedProbe),'Reversed order changed the qualified original F interior pixel');
     check(viewer.getState().qualifiedFaceScene.assets.every(asset=>original.assets.some(value=>same(value,asset))),
       'Reversed order changed original source-qualified assets');
-    const edited=candidate({variant:'interior_edit'});load(edited);result.editedUploads=witness(edited);const edit=capture('authentic-F-interior-edit');check(edit.hash!==baseline.hash,'Authentic F source/Face edit changed no pixels');
+    const edited=candidate({variant:'interior_edit'});load(edited);const edit=await capture('authentic-F-interior-edit');check(edit.hash!==baseline.hash,'Authentic F source/Face edit changed no pixels');
     for(let i=0;i<5;i++)check(same(edited.assets[i],original.assets[i]),'F edit changed another original source');check(inspectionReport===null,'Accepted source replacement kept stale report');
     inspect('F');const report=inspection.textContent;viewer.orbit(.03,.02);viewer.pan(.01,0);viewer.zoom(1.02);viewer.resize(480,360);viewer.resize(640,480);viewer.setView(camera);
-    check(inspection.textContent===report,'Camera/resize changed source inspection');capture('camera-retains-current-original-Faces');
-    load(candidate({assetCount:2}));capture('two-original-Faces');check(viewer.getState().qualifiedFaceScene.assets.length===2,'Two-asset admission failed');
+    check(inspection.textContent===report,'Camera/resize changed source inspection');await capture('camera-retains-current-original-Faces');
+    load(candidate({assetCount:2}));await capture('two-original-Faces');check(viewer.getState().qualifiedFaceScene.assets.length===2,'Two-asset admission failed');
     viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
-    result.contextCount=contexts.size;result.resources=resourceCounts();result.glErrors=glErrors();result.errors=[...errors];result.warnings=[...warnings];result.getterCalls=getterCalls;
-    check(contexts.size===1&&result.glErrors.every(n=>n===0)&&!errors.length&&!warnings.length,'Context/GL/browser gate failed');result.ok=true;
-  }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
+    result.errors=[...errors];result.warnings=[...warnings];result.getterCalls=getterCalls;
+    check(!errors.length&&!warnings.length,'Browser error/warning gate failed');result.ok=true;
+  }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;disposeFaceKeyboard?.();faceNavigation?.dispose();viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedNormalAngle();clearPickedSurfaceCurvature();clearQualifiedTree();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
-  glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
+function dispose(){if(disposed)return;disposeFaceKeyboard?.();faceNavigation?.dispose();viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedNormalAngle();clearPickedSurfaceCurvature();clearQualifiedTree();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,
+  errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
   for(const name of['warped','interior_edit'])originalRequests[name]=JSON.parse(fixtures[name+'.authentic-request.json'].text);
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
-  viewer=createViewer(canvas,{mmToSceneUnit,background});faceNavigation=createQualifiedFacePointerNavigation(viewer,canvas,{
+  viewer=await createViewer(canvas,{mmToSceneUnit,background});faceNavigation=createQualifiedFacePointerNavigation(viewer,canvas,{
     onViewChange:()=>{render();display('Qualified Face view moved.');},onError:error=>{display(error instanceof Error?error.message:String(error));render();}});
   disposeFaceKeyboard=createQualifiedFaceKeyboardFraming(viewer,canvas,{
     frameAll:()=>{check(!disposed&&!running,'Keyboard framing needs an idle live host.');frameAllFaces();},
     frameParent:()=>{check(!disposed&&!running,'Keyboard framing needs an idle live host.');frameTreeFace();},
     onError:error=>{display(error instanceof Error?error.message:String(error));render();}});
-  load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
+  load(candidate());
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();syncFaceNavigation();});labelResizeObserver.observe(canvas);
   window.__viewerQualifiedFaceProof={viewer,createViewer,applyQualifiedTreeFaceColor,applySourceColor,applyTreeParentColor,createQualifiedFaceKeyboardFraming,createQualifiedFacePointerNavigation,setFaceNavigationEnabled,syncFaceNavigation,faceNavigationSnapshot,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
     createPickedFacePoint,measurePickedFaceChord,isPickedFacePointCurrent,pickedChordSnapshot,pickChordAt,refreshPickedChord,remeasurePickedChord,resetPickedChord,
@@ -1136,20 +1105,20 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     queryQualifiedTreeSurfaceIsoCurve,inspectTreeIsoCurve,resetTreeIsoCurve,refreshTreeIsoCurve,treeIsoCurveSnapshot,extractSurfaceIsoCurve,
     queryQualifiedTreeTangentAngle,captureTreeTangent,refreshTreeTangentAngle,remeasureTreeTangentAngle,resetTreeTangentAngle,treeTangentAngleSnapshot,
     queryQualifiedTreeNormalAngle,captureTreeNormal,refreshTreeNormalAngle,remeasureTreeNormalAngle,resetTreeNormalAngle,treeNormalAngleSnapshot,
-    AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
+    AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,errors,warnings,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
     curvaturePin,queryQualifiedFaceCurveCurvature,inspectCurvature,updateCurvatureLabel,curvatureSnapshot,evaluateCurveCurvature,evaluateCurveD2,
     surfaceCurvaturePin,queryQualifiedFaceSurfaceCurvature,inspectSurfaceCurvature,updateSurfaceCurvatureLabel,surfaceCurvatureSnapshot,evaluateSurfaceCurvature,evaluateSurfaceD2,
     tangentAnglePin,queryQualifiedFaceTangentAngle,measureTangentAngle,updateTangentAngleLabel,tangentAngleSnapshot,evaluateCurveD1,
     normalAnglePin,queryQualifiedFaceNormalAngle,measureNormalAngle,updateNormalAngleLabel,normalAngleSnapshot,evaluateSurfaceD1,
-    failNextBuffer(at=16){failAllocation('Buffer',at);},clearAllocationFault,originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,witness,retained,capture,runProof,
-    prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareMesh,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
+    originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,retained,capture,runProof,
+    prepareQualifiedFaceScene,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareMesh,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
     createCadDocument,createCadGeometryReference,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,
     loadBaroCadModelSet,loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadAssembly,loadBaroCadAssembly,
-    createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,canvas,
-    get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
+    createClothWorld,createPhysicsClothWorld:createClothWorld,canvas,
+    get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
     get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
@@ -1207,5 +1176,5 @@ canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.che
     if(angleEnabled)try{adoptPickedAngle(record);}catch(error){display(error.message);}
     if(normalAngleEnabled)try{adoptPickedNormalAngle(record);}catch(error){display(error.message);}
   }catch(error){display(error.message);}});
-buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());
-canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost. Original source inspection remains available.');});window.addEventListener('beforeunload',()=>{if(viewer)dispose();});
+buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);
+window.addEventListener('beforeunload',()=>{if(viewer)dispose();});

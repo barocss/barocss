@@ -9,7 +9,7 @@ const BASIS = { basis: 'part-xyz-matches-rhyup' };
 const $ = (id) => document.getElementById(id);
 
 const canvas = $('viewer');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.065, 0.105] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.065, 0.105] });
 const source = await (await fetch('/two-surfaces.barocad')).text();
 viewer.loadNative(source, { sourceVersion: 0, countU: 12, countV: 12 });
 const native = viewer.getState().native;

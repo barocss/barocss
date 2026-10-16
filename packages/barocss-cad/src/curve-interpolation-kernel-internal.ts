@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, evaluateCurve, curveDomain } from './math.js';
 import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
@@ -7,7 +8,7 @@ import type { Curve, Model, Point } from './types.js';
 
 // Private literal codes avoid top-level reads of the public module during its import cycle.
 const CODE = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY',
-  CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const), PIVOT_EPSILON = 128 * Number.EPSILON, TOLERANCE = 1e-7;
+  CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const), PIVOT_EPSILON = 128 * Number.EPSILON, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, code: CurveInterpolationDiagnosticCode, detail: string): asserts condition { if (!condition) throw new CurveInterpolationError(code, detail); }
 function native<T>(action: () => T, detail: string, code: CurveInterpolationDiagnosticCode = CODE.NATIVE): T {
   try { return action(); } catch (cause) { if (cause instanceof CurveInterpolationError) throw cause;

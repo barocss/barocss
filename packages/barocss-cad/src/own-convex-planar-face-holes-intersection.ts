@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { curveDomain, validateCurve } from './math.js';
@@ -61,7 +62,7 @@ export interface ConvexPlanarFaceWithHolesIntersectionResult {
   loopIntervals:HoleFaceLoopInterval[];excludedHoleIntervals:HoleFaceExcludedInterval[];excludedUnions:HoleFaceExcludedUnion[];
   segments:HoleFaceIntersectionSegment[];points:HoleFaceIntersectionPoint[];components:{kind:'segment'|'point';id:string;domain:[number,number]}[];contacts:HoleFaceBoundaryContact[];report:ConvexPlanarFaceWithHolesIntersectionReport;
 }
-const LABEL='Own convex planar Face hole material intersection',TOL=1e-7,EPS=64*Number.EPSILON;
+const LABEL='Own convex planar Face hole material intersection',TOL=CadNumericPolicy.linearToleranceMM,EPS=64*Number.EPSILON;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

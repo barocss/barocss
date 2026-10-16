@@ -1,9 +1,0 @@
-async page=>{
-await page.waitForFunction(()=>browserTextConsumer.observe().opened?.helperCallsUnchanged===true);
-await page.evaluate(()=>{const o=browserTextConsumer.observe(),before=__beforeFont;if(browserTextConsumer.canvas===__beforeOpenCanvas||o.accepted.text!=='-$20'||o.accepted.layout.glyphs[0].textEnd!==4||JSON.stringify(o.accepted.allBytes)!==JSON.stringify(__beforeOpen.accepted.allBytes)||Object.values(o.opened).some(v=>v!==true)||o.counts.helperCalls!==before.helper||o.counts.fontPreparations!==before.font||__gpuProof.scratch2D!==before.scratch)throw Error('cold Open');__record('physicalOpenPunctuationNoHelper');});
-let o=await page.evaluate(()=>browserTextConsumer.observe()),box=await page.locator('#scene').boundingBox();for(const part of ['ink','space']){const p=o.accepted.points[part];await page.mouse.click(box.x+p.x,box.y+p.y)}
-await page.getByRole('button',{name:'Rerasterize restored -$20',exact:true}).click();await page.waitForFunction(()=>browserTextConsumer.observe().accepted?.source==='helper');
-await page.evaluate(()=>{const o=__record('restoredPublicHelperSetLayout');if(o.accepted.text!=='-$20'||o.accepted.layout.glyphs[0].textEnd!==4||!o.accepted.sceneMatchesTree||o.accepted.samples.ink.hit!=='Label'||JSON.stringify(o.accepted.samples.ink.rgba)!==JSON.stringify([255,255,255,255]))throw Error('restored layout')});
-o=await page.evaluate(()=>browserTextConsumer.observe());box=await page.locator('#scene').boundingBox();const p=o.accepted.points.ink;await page.mouse.click(box.x+p.x,box.y+p.y);
-const wait=page.waitForEvent('download');await page.getByRole('button',{name:'Export PNG',exact:true}).click();const d=await wait;await d.saveAs('/Users/user/.codex/worktrees/canvas2d-printable-text/barocss/packages/barocss-canvas2d/consumer/evidence/printable-text/exported.png');await page.evaluate(()=>__record('actualPNGDownload'));
-}

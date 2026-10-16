@@ -89,10 +89,7 @@ async function fixture({gpu,interop}){
     curveDisplay:{version:1,chordToleranceMM:.02,maxSegments:512,maxDepth:16}},
     basis:'authored-xyz-matches-rhyup',bodyIds:['body_0_surface','body_1_surface','body_0_curve']};
   const projected=interop.prepareBaroCadDocumentPrimitiveNativeRefsV2(result,options);
-  const paths=['examples/gpu-scene/mesh-material-cpu-probe.mjs','examples/gpu-scene/material-shorthand-flow.mjs'];
-  const files=await Promise.all(paths.map(path=>readFile(resolve(root,path))));
-  const shaderSources=[files[0].toString('utf8').match(/const source='([^']+)';/)?.[1],
-    files[1].toString('utf8').match(/\{name: 'nested', short: '([^']+)'/)?.[1]];
+  const shaderSources=[...(await import('./mounted-appearance.js')).MOUNTED_APPEARANCE_SHADER_SOURCES];
   const bindings=shaderSources.map((source,index)=>{check(source,'Original authored shader literal missing.');
     const compiled=gpu.compileMeshMaterial(source);check(compiled.ok,'Original authored shader refused.');
     return{material:compiled.material,uniforms:index===0?{timeSeconds:.5}:{}};
@@ -111,7 +108,7 @@ async function fixture({gpu,interop}){
       materials:surfaces.map((entry,index)=>({ref:{modelId:entry.ref.modelId,surfaceId:entry.ref.geometryId},binding:bindings[index]}))}};
   const context={mmToSceneUnit:.001,background:[.06,.09,.12]};
   return{input,context,manifest:{document:{path:documentPath,bytes:documentBytes.length,sha256:sha(documentBytes)},
-    shaders:paths.map((path,index)=>({path,fileSHA256:sha(files[index]),sourceBytes:Buffer.byteLength(shaderSources[index]),sourceSHA256:sha(shaderSources[index])}))}};
+    shaders:shaderSources.map(source=>({path:'examples/viewer-native-scene-replacement/mounted-appearance.js',sourceBytes:Buffer.byteLength(source),sourceSHA256:sha(source)}))}};
 }
 function geometryRef(entry){return entry.kind==='surface'
   ?{kind:'surface',modelId:entry.ref.modelId,surfaceId:entry.ref.geometryId}

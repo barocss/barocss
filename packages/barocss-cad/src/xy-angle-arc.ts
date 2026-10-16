@@ -4,6 +4,7 @@ import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
 import type { Curve, Model, Point } from './types.js';
 import type { XYPoint } from './xy-profile.js';
+import { same } from './structural-equality.js';
 
 export const XYAngleArcDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', UNIT: 'UNIT', RANGE: 'RANGE', ARITHMETIC: 'ARITHMETIC', NATIVE: 'NATIVE', SOURCE: 'SOURCE', BUDGET: 'BUDGET', OWNED: 'OWNED' } as const);
 export type XYAngleArcDiagnosticCode = typeof XYAngleArcDiagnosticCode[keyof typeof XYAngleArcDiagnosticCode];
@@ -34,7 +35,6 @@ function snapshot(input: unknown, owned = false): unknown {
     try { if (array) { const length = descriptors.length.value as number; check(Number.isInteger(length) && length >= 0 && length <= (owned ? 1024 : 16) && keys.length === length + 1, code, 'Dense bounded own arrays required'); return Array.from({ length }, (_, index) => { check(Object.hasOwn(descriptors, String(index)), code, 'Sparse/extra array fields refused'); return copy(descriptors[String(index)].value, depth + 1); }); } return Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); } finally { ancestors.delete(value); }
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof XYAngleArcError) throw cause; throw new XYAngleArcError(code, 'Own snapshot refused', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function finite(value: number): number { check(Number.isFinite(value), CODE.ARITHMETIC, 'Finite construction/observation arithmetic required'); return value; }
 function product(a: number, b: number): number { const value = finite(a * b); check(a === 0 || b === 0 || value !== 0, CODE.ARITHMETIC, 'Nonzero product underflow'); return value; }
 function translated(center: number, offset: number): number { const value = finite(center + offset); check(offset === 0 || value !== center, CODE.ARITHMETIC, 'A nonzero center-relative offset was completely absorbed'); check(center === 0 || offset === 0 || value !== offset, CODE.ARITHMETIC, 'The nonzero center was completely absorbed'); return value; }

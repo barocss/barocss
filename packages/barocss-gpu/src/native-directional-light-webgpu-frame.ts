@@ -4,11 +4,10 @@ import { prepareNativeDirectionalLightProgramWGSL } from './native-directional-l
 import type { PreparedNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLProgram,
   NativeDirectionalLightProgramWGSLABI } from './native-directional-light-program-wgsl.js';
 import type { NativeDirectionalLightsV0 } from './native-directional-lights.js';
-import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
+import type { PrimitiveSceneRef } from './primitive-scene.js';
 import { prepareCamera } from './camera.js';
 import type { MeshCamera } from './camera.js';
 import type { RGB, Vec3 } from './scene-types.js';
-import type { UpdateResult } from './renderer.js';
 
 export const NativeDirectionalLightWebGPUDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', PROFILE: 'PROFILE', FRAME: 'FRAME', PROGRAM: 'PROGRAM', REPRESENTATION: 'REPRESENTATION',
@@ -30,38 +29,12 @@ export interface NativeDirectionalLightWebGPURequest {
   frame: Omit<PrimitiveSceneCpuFrameV0, 'options'> & { options: NativeDirectionalLightWebGPUFrameOptions };
   lights: NativeDirectionalLightsV0;
 }
-export interface NativeDirectionalLightWebGPUOptions { readonly width: number; readonly height: number }
-export interface NativeDirectionalLightWebGPULimits {
-  readonly maxTextureDimension2D: number; readonly maxBufferSize: number; readonly maxUniformBufferBindingSize: number;
-  readonly maxColorAttachments: number; readonly maxColorAttachmentBytesPerSample: number;
-  readonly maxVertexBuffers: number; readonly maxVertexAttributes: number; readonly maxBindGroups: number;
-  readonly maxVertexBufferArrayStride: number; readonly maxUniformBuffersPerShaderStage: number;
-  readonly maxBindingsPerBindGroup: number;
-}
 export interface NativeDirectionalLightWebGPUResources {
   readonly geometryBytes: number; readonly uniformBytes: number; readonly colorIdentityBytes: number;
   readonly depthTexels: number; readonly depthBudgetBytes: number; readonly chargedBytes: number;
   readonly readbackBytes: number; readonly buffers: number; readonly textures: number;
   readonly bindGroups: number; readonly pipelines: number;
 }
-export interface NativeDirectionalLightWebGPUStatus {
-  readonly backend: 'webgpu'; readonly profile: 'qualified-surface-authored-directional-webgpu-v0';
-  readonly state: 'ready' | 'lost' | 'failed' | 'disposed'; readonly generation: number;
-  readonly width: number; readonly height: number; readonly limits: NativeDirectionalLightWebGPULimits;
-  readonly resources: NativeDirectionalLightWebGPUResources;
-}
-export interface NativeDirectionalLightWebGPUPick { readonly generation: number; readonly ref: PrimitiveSceneRef | null }
-export interface NativeDirectionalLightWebGPUViewport {
-  readonly canvas: HTMLCanvasElement; readonly originals: NativeDirectionalLightWebGPURequest;
-  readonly selected: PrimitiveSceneRef | null; readonly status: NativeDirectionalLightWebGPUStatus;
-  updateFrame(input: unknown): Promise<UpdateResult>;
-  resize(width: number, height: number): Promise<UpdateResult>;
-  readPixels(): Promise<Uint8Array>;
-  pick(x: number, y: number): Promise<NativeDirectionalLightWebGPUPick>;
-  select(ref: PrimitiveSceneRef | null): UpdateResult;
-  dispose(): void;
-}
-
 /** Private producer result. Never accepted as a caller token or exported from the barrel. */
 export interface PreparedNativeDirectionalLightWebGPUFrame {
   readonly request: NativeDirectionalLightWebGPURequest;

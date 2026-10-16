@@ -2,6 +2,7 @@ import type { Curve, Surface } from './types.js';
 import type { PairedRoofDifferenceBodyResult } from './paired-roof-difference-body.js';
 import type { PairedSurfaceMaterialBodyResult } from './paired-surface-material-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from './section-rational-internal.js';
+import { same } from './structural-equality.js';
 
 type F = SectionFraction;
 type R = SectionRational;
@@ -48,16 +49,6 @@ function check(condition: boolean, code: Code, detail: string): asserts conditio
   if (!condition) throw new PairedRoofBodySplitProofError(code, detail);
 }
 /** Copied native numbers, including signed zero, must retain their exact bits. */
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) &&
-    a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length &&
-      Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
-}
 function domain(curve: Curve): [number, number] {
   return [curve.knots[curve.degree], curve.knots[curve.controlPoints.length]];
 }

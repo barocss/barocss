@@ -1,7 +1,9 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { curveDomain, validateCurve } from './math.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './own-affine-plane-loop-internal.js';
+import { ExactAffinePlane } from './exact-affine-plane-internal.js';
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
@@ -42,7 +44,7 @@ export interface ConvexPlanarFaceUVClassification {
   classification:'inside'|'boundary'|'outside'|'outside-domain';uv:[number,number];pointMM:Point|null;faceNormal:Point|null;
   halfspaces:number[];boundaries:ConvexPlanarFaceBoundaryClassification[];
 }
-const LABEL='Own convex planar Face',TOL=1e-7;
+const LABEL='Own convex planar Face',TOL=CadNumericPolicy.linearToleranceMM;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {
@@ -72,8 +74,12 @@ export function buildConvexPlanarFace(planeInput:Surface,loopInput:ConvexPlanarF
   const originals=[p.id,loopId,options.faceId,options.evaluationId,...edges.map(edge=>edge.id)],generated=edges.flatMap((_,i)=>[role('v',i),role('e',i),role('use',i),role('uv',i)]);check(new Set([...originals,...generated]).size===originals.length+generated.length,'original/context/generated face identities must be distinct before native staging');
   const axes=buildAffinePlaneAxes(p,LABEL),admission=admitConvexNativeLineLoop(edges,axes,LABEL,p),target=options.orientation==='forward'?'ccw':'cw',forward=admission.orientation===target;
   const vertices:ConvexPlanarFaceVertex[]=edges.map((edge,i)=>({id:role('v',i),point:copyCadData(edge.controlPoints[0])})),topologicalEdges:ConvexPlanarFaceEdge[]=edges.map((edge,i)=>({id:role('e',i),curveId:edge.id,vertexIds:[vertices[i].id,vertices[(i+1)%vertices.length].id]}));
+  // Pcurve poles: exact rational UV rounded once (so a representable UV, e.g. x = 7 on a 22 mm chart, is
+  // exact and the stored-solid lift proof holds); the float Gram mapping stays the fallback.
+  let exactUV:ExactAffinePlane|null=null;try{exactUV=new ExactAffinePlane(p,LABEL);}catch{exactUV=null;}
+  const toUV=(point:Point):Point=>{if(exactUV){try{return exactUV.pointToNearestUV(point);}catch{exactUV=null;}}return mapAffinePlanePointToUV(point,axes,LABEL);};
   const pcurves:ConvexPlanarFacePcurve[]=edges.map((edge,i)=>{
-    const curve:Curve={kind:'curve',id:role('uv',i),degree:1,knots:copyCadData(edge.knots),weights:copyCadData(edge.weights),controlPoints:edge.controlPoints.map(point=>mapAffinePlanePointToUV(point,axes,LABEL))};validateCurve(curve);return{id:curve.id,edgeId:topologicalEdges[i].id,curveId:edge.id,coordinateSystem:'uv',domain:curveDomain(edge),curve};
+    const curve:Curve={kind:'curve',id:role('uv',i),degree:1,knots:copyCadData(edge.knots),weights:copyCadData(edge.weights),controlPoints:edge.controlPoints.map(toUV)};validateCurve(curve);return{id:curve.id,edgeId:topologicalEdges[i].id,curveId:edge.id,coordinateSystem:'uv',domain:curveDomain(edge),curve};
   });
   const ordered=Array.from({length:edges.length},(_,i)=>forward?i:edges.length-1-i),uses:ConvexPlanarFaceUse[]=ordered.map(index=>{
     const edge=topologicalEdges[index],domain=pcurves[index].domain;return{id:role('use',index),edgeId:edge.id,curveId:edge.curveId,vertexIds:forward?[edge.vertexIds[0],edge.vertexIds[1]]:[edge.vertexIds[1],edge.vertexIds[0]],sense:forward?'forward':'reverse',interval:forward?[domain[0],domain[1]]:[domain[1],domain[0]],pcurveId:pcurves[index].id};

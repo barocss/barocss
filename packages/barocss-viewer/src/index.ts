@@ -10,17 +10,14 @@ import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptions
 import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
 import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
   BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
-import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
-  mountPrimitiveViewport, PrimitiveSceneRenderer, PrimitiveSceneRendererV1,
-  PrimitiveSceneRendererV2, PrimitiveViewport, PrimitiveSceneRecoveryError, prepareMesh,
-  validateMeshCamera, validatePreviewPacket, mountBooleanShellScene, BooleanShellSceneRenderer,
-  validateUniformCurvePreview, validateSelectedUniformCurvePreview, mountMixedDepthScene,
-  MixedDepthRenderer, MixedDepthError, prepareMixedDepthFrame, mountQualifiedFaceScene,
-  QualifiedFaceSceneRenderer, QualifiedFaceSceneError, prepareQualifiedFaceScene,
-  handoffQualifiedFaceToPrimitiveViewport } from '@barocss/gpu';
+import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMaterialBinding, prepareClothLayer,
+  validateUniformCurvePreview, validateSelectedUniformCurvePreview, prepareMixedDepthFrame, resolveMixedDepthFrame,
+  prepareQualifiedFaceScene, resolveQualifiedFaceScene, prepareBooleanShellBuffers } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
-  PrimitiveSceneEntryV2, PrimitiveSceneFrameV0, PrimitiveSceneFrameV1, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
-  UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0 } from '@barocss/gpu';
+  PrimitiveSceneEntryV2, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
+  UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0, BooleanShellSceneInputV0 } from '@barocss/gpu';
+import { Presenter, itemsOf } from './presenter.js';
+import type { Drawing, DrawnItem } from './presenter.js';
 
 import { prepareViewerClothFrame } from './cloth-frame.js';
 import { prepareMountedNativeSceneAppearance } from './mounted-native-scene-appearance.js';
@@ -238,7 +235,7 @@ export interface ViewerNativeDocumentBodiesFitInput {
   documentRevision: number;
 }
 export interface ViewerState {
-  status: 'empty' | 'ready' | 'unavailable' | 'context-lost' | 'disposed';
+  status: 'empty' | 'ready' | 'disposed';
   frame: 'right-handed-y-up';
   sourceUnit: 'mm';
   mmToSceneUnit: number;
@@ -616,10 +613,24 @@ function interpolate(a: Vec3, b: Vec3, fraction: number): Vec3 {
 }
 
 /** One canvas and one BaroCSS GPU scene backend. The caller retains canvas ownership. */
+/** A UV sphere (scene units). */
+function sphereItem(centre: Vec3, radius: number, color: Vec3): DrawnItem {
+  const positions: number[] = [], normals: number[] = [], indices: number[] = [], rings = 24, segments = 48;
+  for (let i = 0; i <= rings; i++) for (let j = 0; j <= segments; j++) {
+    const t = (i / rings) * Math.PI, p = (j / segments) * Math.PI * 2;
+    const n: Vec3 = [Math.sin(t) * Math.cos(p), Math.cos(t), Math.sin(t) * Math.sin(p)];
+    normals.push(...n); positions.push(centre[0] + n[0] * radius, centre[1] + n[1] * radius, centre[2] + n[2] * radius);
+  }
+  for (let i = 0; i < rings; i++) for (let j = 0; j < segments; j++) {
+    const a = i * (segments + 1) + j, b = a + segments + 1;
+    indices.push(a, a + 1, b, a + 1, b + 1, b);
+  }
+  return { kind: 'triangles', positions, normals, indices, color };
+}
+
 export class Viewer {
-  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer |
-    PrimitiveSceneRendererV1 | PrimitiveSceneRendererV2 | PrimitiveViewport | BooleanShellSceneRenderer | MixedDepthRenderer
-    | QualifiedFaceSceneRenderer | null = null;
+  /** What is drawn: nothing yet, a scene of surfaces and curves (qualified: with materials and layers), a Shell, mixed depth or qualified Faces. */
+  private drawn: 'none' | 'mesh' | 'qualified' | 'shell' | 'mixed' | 'faces' = 'none';
   private packets: ViewerPacket[] = [];
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
@@ -627,7 +638,6 @@ export class Viewer {
   private selectedUniformCurve: SelectedUniformCurvePreview | null = null;
   private mixedDepth: ViewerMixedDepthState | null = null;
   private qualifiedFaceScene: QualifiedFaceSceneV0 | null = null;
-  private presentationUnavailable = false;
   private nativeReplacement = false;
   private appearanceDocument: CadDocumentResult | null = null;
   private acceptedLighting: MeshLighting | null = null;
@@ -654,29 +664,13 @@ export class Viewer {
   private geometryMotion: ViewerGeometryMotionState | null = null;
   private sceneRequest = 0;
   private disposed = false;
-  private contextLost = false;
-  private readonly onContextLost = (event: Event): void => {
-    this.contextLost = true;
-    if (this.renderer instanceof BooleanShellSceneRenderer || this.renderer instanceof MixedDepthRenderer
-      || this.renderer instanceof QualifiedFaceSceneRenderer
-      || this.uniformCurve || this.selectedUniformCurve || this.nativeReplacement || this.assembly) {
-      event.preventDefault();
-      // CPU provenance is Viewer-owned; retire old GL handles before caller restoration.
-      this.renderer?.dispose();
-    }
-  };
-
-  constructor(private readonly canvas: HTMLCanvasElement, private readonly options: ViewerOptions) {
+  constructor(private readonly canvas: HTMLCanvasElement, private readonly options: ViewerOptions,
+    private readonly presenter: Presenter) {
     check(canvas instanceof HTMLCanvasElement, 'Viewer requires an HTMLCanvasElement');
     this.dimensions(canvas.width, canvas.height);
-    canvas.addEventListener('webglcontextlost', this.onContextLost);
   }
   private live(): void { check(!this.disposed, 'Viewer is disposed'); }
-  private gpuLive(): void {
-    this.live(); check(!this.presentationUnavailable, 'Viewer presentation is unavailable; create a fresh Viewer');
-    check(!this.mixedDepth || !this.contextLost, 'Mixed depth context is lost; create a fresh Viewer');
-    check(!this.qualifiedFaceScene || !this.contextLost, 'Qualified Face context is lost; create a fresh Viewer');
-  }
+  private gpuLive(): void { this.live(); }
   private nativeScope(): void {
     check(!this.shell, 'This native operation is unavailable in native Shell mode');
     check(!this.qualifiedFaceScene, 'Unqualified native inspection is unavailable for independent qualified Face sources');
@@ -684,41 +678,39 @@ export class Viewer {
   private primitiveScope(): void {
     this.nativeScope(); check(!this.mixedDepth, 'This primitive operation is unavailable in mixed depth mode');
   }
-  private primitiveResult(result: ReturnType<PrimitiveSceneRenderer['update']>): void {
-    if (result.ok) return;
-    if (!this.contextLost && result.error instanceof PrimitiveSceneRecoveryError && result.error.code === 'CONTEXT')
-      this.presentationUnavailable = true;
-    throw result.error;
+  private show(items: DrawnItem[], camera: MeshCamera, translate?: Vec3): void {
+    const drawing: Drawing = { items, camera, lighting: this.acceptedLighting ?? this.options.lighting ?? null,
+      background: this.options.background, mmToScene: this.options.mmToSceneUnit, ...(translate ? { translate } : {}) };
+    this.presenter.show(drawing);
   }
-  private mixedResult(result: ReturnType<MixedDepthRenderer['updateFrame']>): void {
-    if (result.ok) return;
-    if (!this.contextLost && result.error instanceof MixedDepthError && result.error.code === 'CONTEXT')
-      this.presentationUnavailable = true;
-    throw result.error;
+  /** The current scene again with some of its layers or materials changed. */
+  private redrawScene(change: { particleLayer?: ParticleLayerV0 | null; clothLayer?: ClothLayerV0 | null;
+    surfaceMaterials?: ViewerSurfaceMaterial[] }): void {
+    this.present(this.packets, this.curves, this.camera, this.selected, this.motion, this.selectedGeometry,
+      this.geometryMotion, undefined, this.hiddenGeometry,
+      change.particleLayer !== undefined ? change.particleLayer : this.particleLayer,
+      change.surfaceMaterials ?? this.surfaceMaterials,
+      change.clothLayer !== undefined ? change.clothLayer : this.clothLayer);
   }
-  private qualifiedFaceResult(result: ReturnType<QualifiedFaceSceneRenderer['updateScene']>): void {
-    if (result.ok) return;
-    if (!this.contextLost && result.error instanceof QualifiedFaceSceneError && result.error.code === 'CONTEXT')
-      this.presentationUnavailable = true;
-    throw result.error;
+  /** A Shell scene: its faces and edges. */
+  private showShell(scene: BooleanShellSceneInputV0, camera: MeshCamera): void {
+    this.show(scene.entries.flatMap((entry): DrawnItem[] => {
+      const b = prepareBooleanShellBuffers(entry.native, { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] });
+      return [{ kind: 'triangles', positions: b.positions, normals: b.normals, indices: b.indices, color: entry.color as Vec3 },
+        ...(entry.edges ? [{ kind: 'lines' as const, positions: b.edgePositions, indices: b.edgeIndices, color: entry.edges.color as Vec3 }] : [])];
+    }), camera);
   }
-  private recoverPresentation(prior: Viewer['renderer'], failure: unknown, structuredCandidate = false): never {
-    try {
-      if (prior instanceof QualifiedFaceSceneRenderer) {
-        const restored = prior.updateScene(prior.getScene());
-        if (!restored.ok) throw restored.error;
-      } else if (prior instanceof MixedDepthRenderer) {
-        const restored = prior.updateFrame(prior.getFrame());
-        if (!restored.ok) throw restored.error;
-      } else prior?.render();
-    } catch (recovery) {
-      if (structuredCandidate || prior instanceof MixedDepthRenderer || prior instanceof QualifiedFaceSceneRenderer) {
-        if (!this.contextLost) this.presentationUnavailable = true;
-        throw new AggregateError([failure, recovery], 'Viewer candidate and accepted presentation recovery failed');
-      }
-      throw recovery;
-    }
-    throw failure;
+  /** Mixed depth: the native Surface and the authored Sphere (tessellated). */
+  private showMixed(frame: ReturnType<typeof prepareMixedDepthFrame>): void {
+    const { execution, mesh } = resolveMixedDepthFrame(frame), sphere = execution.scene.objects[0];
+    this.show([{ kind: 'triangles', positions: mesh.positions, normals: mesh.normals, indices: mesh.indices, color: frame.surface.color as Vec3 },
+      sphereItem(sphere.translate as Vec3, sphere.radius, sphere.color as Vec3)], frame.camera);
+  }
+  /** Qualified Faces: one mesh each. */
+  private showFaces(scene: QualifiedFaceSceneV0): void {
+    const { meshes } = resolveQualifiedFaceScene(scene);
+    this.show(meshes.map((mesh, i): DrawnItem => ({ kind: 'triangles', positions: mesh.positions, normals: mesh.normals,
+      indices: mesh.indices, color: scene.assets[i].color as Vec3 })), scene.camera);
   }
   private dimensions(width: number, height: number): void {
     check(Number.isInteger(width) && Number.isInteger(height) && width >= 1 && height >= 1
@@ -763,7 +755,6 @@ export class Viewer {
     surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
     clothLayer: ClothLayerV0 | null = this.clothLayer): void {
     this.gpuLive();
-    check(!this.contextLost, 'Cannot present after WebGL2 context loss; create a fresh Viewer');
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
     const curves = allCurves.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
@@ -772,146 +763,33 @@ export class Viewer {
       'Active cloth requires one visible qualified native Surface');
     const paletteInventory = this.appearanceDocument !== null && this.appearanceDocument === this.document
       && allPackets === this.packets && allCurves === this.curves ? this.geometryRefs() : null;
-    const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion, paletteInventory), options = this.gpuOptions(camera);
-    if (packets.length + curves.length === 0) {
-      if (this.renderer instanceof PrimitiveViewport) {
-        const result = this.renderer.clear(options);
-        this.primitiveResult(result);
-      } else {
-        const prior = this.renderer;
-        try {
-          const candidate = mountPrimitiveViewport(this.canvas, options);
-          this.renderer = candidate;
-          prior?.dispose();
-        } catch (error) { this.recoverPresentation(prior, error); }
-      }
-    } else if (qualified) {
-      const entries: PrimitiveSceneEntryV2[] = [
-        ...surfaces.map((entry, index): PrimitiveSceneEntryV2 => ({
-          kind: 'surface', ...entry,
-          ref: { modelId: packets[index].modelId, geometryId: packets[index].packet.surfaceId },
-        })),
-        ...curves.map((entry, index): PrimitiveSceneEntryV2 => {
-          const ref = { modelId: entry.modelId, geometryId: viewerCurveId(entry) };
-          const pose = curvePose({ modelId: entry.modelId, curveId: ref.geometryId }, geometryMotion);
-          const colorIndex = paletteInventory ? paletteInventory.findIndex(value => sameGeometryRef(value,
-            { kind: 'curve', modelId: ref.modelId, curveId: ref.geometryId })) : packets.length + index;
-          check(colorIndex >= 0, 'Native appearance Curve is absent from the current palette inventory');
-          const fields = {
-            basis: 'authored-xyz-matches-rhyup' as const, ref,
-            color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
-              && geometrySelection.curveId === ref.geometryId
-              ? SELECTED_COLOR : PALETTE[colorIndex % PALETTE.length],
-            ...(pose ? { transform: { translationMm: pose.translationMm,
-              rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}),
-          };
-          if (entry.sampleVersion === 3) {
-            return { kind: 'curve', sampleVersion: 3, sample: entry.sample, ...fields };
-          }
-          if (entry.sampleVersion === 2) {
-            return { kind: 'curve', sampleVersion: 2, sample: entry.sample, ...fields };
-          }
-          return entry.sampleVersion === 1
-            ? { kind: 'curve', sampleVersion: 1, sample: entry.sample, ...fields }
-            : { kind: 'curve', sampleVersion: 0, sample: entry.sample, ...fields };
-        }),
-      ];
-      const input = { version: 2 as const, entries };
-      if (this.renderer instanceof PrimitiveSceneRendererV2
-        || this.renderer instanceof PrimitiveViewport) {
-        const materials = surfaceMaterials.map(value => ({ ref: {
-          modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding }));
-        const result = clothLayer
-          ? this.renderer.updateFrameV1({ version: 1, scene: input, options,
-            particles: particleLayer, materials, cloth: clothLayer } satisfies PrimitiveSceneFrameV1)
-          : surfaceMaterials.length
-            ? this.renderer.updateFrame({ version: 0, scene: input, options,
-              particles: particleLayer, materials } satisfies PrimitiveSceneFrameV0)
-            : this.renderer.update(input, options, particleLayer);
-        this.primitiveResult(result);
-      } else {
-        const prior = this.renderer;
-        try {
-          const candidate = mountPrimitiveSceneV2(this.canvas, input, options);
-          this.renderer = candidate;
-          prior?.dispose();
-        } catch (error) { this.recoverPresentation(prior, error); }
-      }
-    } else if (curves.length) {
-      check(curves.every(entry => entry.sampleVersion === 0 || entry.sampleVersion === 1),
-        'Uniform Curve requires a qualified GPU scene');
-      const surfaceEntries = surfaces.map(entry => ({ kind: 'surface' as const, ...entry }));
-      const curveEntries = curves.map((entry, index) => {
-        const pose = curvePose({ modelId: entry.modelId, curveId: viewerCurveId(entry) }, geometryMotion);
-        return {
-          basis: 'authored-xyz-matches-rhyup' as const,
-          color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
-            && geometrySelection.curveId === viewerCurveId(entry)
-            ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
+    const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion, paletteInventory);
+    check(qualified || curves.every(entry => entry.sampleVersion === 0 || entry.sampleVersion === 1),
+      'Uniform Curve requires a qualified GPU scene');
+    const entries = [
+      ...surfaces.map((entry, index): PrimitiveSceneEntryV2 => ({
+        kind: 'surface', ...entry,
+        ref: { modelId: packets[index].modelId, geometryId: packets[index].packet.surfaceId },
+      })),
+      ...curves.map((entry, index): PrimitiveSceneEntryV2 => {
+        const ref = { modelId: entry.modelId, geometryId: viewerCurveId(entry) };
+        const pose = curvePose({ modelId: entry.modelId, curveId: ref.geometryId }, geometryMotion);
+        const colorIndex = paletteInventory ? paletteInventory.findIndex(value => sameGeometryRef(value,
+          { kind: 'curve', modelId: ref.modelId, curveId: ref.geometryId })) : packets.length + index;
+        check(colorIndex >= 0, 'Native appearance Curve is absent from the current palette inventory');
+        return { kind: 'curve', sampleVersion: entry.sampleVersion, sample: entry.sample,
+          basis: 'authored-xyz-matches-rhyup', ref,
+          color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
+            && geometrySelection.curveId === ref.geometryId
+            ? SELECTED_COLOR : PALETTE[colorIndex % PALETTE.length],
           ...(pose ? { transform: { translationMm: pose.translationMm,
-            rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}),
-        };
-      });
-      if (curves[0].sampleVersion === 1) {
-        const entries: PrimitiveSceneEntryV1[] = [
-          ...surfaceEntries,
-          ...curves.map((entry, index): PrimitiveSceneEntryV1 => {
-            if (entry.sampleVersion === 1) {
-              return { kind: 'curve', sampleVersion: 1, sample: entry.sample, ...curveEntries[index] };
-            }
-            check(entry.sampleVersion === 0, 'Legacy Viewer scene requires Curve sample v0 or v1');
-            return { kind: 'curve', sampleVersion: 0, sample: entry.sample, ...curveEntries[index] };
-          }),
-        ];
-        const input = { version: 1 as const, entries };
-        if (this.renderer instanceof PrimitiveSceneRendererV1) {
-          const result = this.renderer.update(input, options);
-          this.primitiveResult(result);
-        } else {
-          const prior = this.renderer;
-          try {
-            const candidate = mountPrimitiveSceneV1(this.canvas, input, options);
-            this.renderer = candidate;
-            prior?.dispose();
-          } catch (error) { this.recoverPresentation(prior, error); }
-        }
-      } else {
-        const entries = [
-          ...surfaceEntries,
-          ...curves.map((entry, index) => {
-            check(entry.sampleVersion === 0, 'Legacy Viewer scene requires Curve sample v0');
-            return { kind: 'curve' as const, sample: entry.sample, ...curveEntries[index] };
-          }),
-        ];
-        if (this.renderer instanceof PrimitiveSceneRenderer) {
-          const result = this.renderer.update(entries, options);
-          this.primitiveResult(result);
-        } else {
-          const prior = this.renderer;
-          try {
-            const candidate = mountPrimitiveScene(this.canvas, entries, options);
-            this.renderer = candidate;
-            prior?.dispose();
-          } catch (error) { this.recoverPresentation(prior, error); }
-        }
-      }
-    } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)
-      && !(this.renderer instanceof PrimitiveSceneRendererV1)
-      && !(this.renderer instanceof PrimitiveSceneRendererV2)
-      && !(this.renderer instanceof PrimitiveViewport)
-      && !(this.renderer instanceof BooleanShellSceneRenderer)
-      && !(this.renderer instanceof MixedDepthRenderer)
-      && !(this.renderer instanceof QualifiedFaceSceneRenderer)) {
-      const result = this.renderer.update(surfaces, options);
-      if (!result.ok) throw result.error;
-    } else {
-      const prior = this.renderer;
-      try {
-        const candidate = mountMeshScene(this.canvas, surfaces, options);
-        this.renderer = candidate;
-        prior?.dispose();
-      } catch (error) { this.recoverPresentation(prior, error); }
-    }
+            rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) } as PrimitiveSceneEntryV2;
+      }),
+    ];
+    const materials = qualified ? surfaceMaterials.map(value => ({ ref: {
+      modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding })) : [];
+    this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera);
+    this.drawn = qualified || packets.length + curves.length === 0 ? 'qualified' : 'mesh';
   }
   private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
     initialPoses: ViewerGeometryMotionState | null = null, deferDisplayValidation = false): ViewerPacket[] {
@@ -987,17 +865,10 @@ export class Viewer {
       }));
   }
   loadMixedDepthScene(input: ViewerMixedDepthInputV0): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load mixed depth after WebGL2 context loss');
+    this.gpuLive();
     const candidate = prepareViewerMixedDepth(input, this.options.mmToSceneUnit);
-    if (this.renderer instanceof MixedDepthRenderer) this.mixedResult(this.renderer.updateFrame(candidate.frame));
-    else {
-      const prior = this.renderer;
-      try {
-        const renderer = mountMixedDepthScene(this.canvas, candidate.frame);
-        this.renderer = renderer;
-        prior?.dispose();
-      } catch (error) { this.recoverPresentation(prior, error, true); }
-    }
+    this.acceptedLighting = null;
+    this.showMixed(candidate.frame); this.drawn = 'mixed';
     this.mixedDepth = candidate; this.camera = candidate.frame.camera; this.qualifiedFaceScene = null;
     this.acceptedLighting = null;
     this.packets = [{ modelId: candidate.frame.surface.ref.modelId, packet: candidate.frame.surface.packet }];
@@ -1011,17 +882,10 @@ export class Viewer {
     this.sceneRequest++;
   }
   loadQualifiedFaceScene(input: ViewerQualifiedFaceInputV0): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load qualified Faces after WebGL2 context loss');
+    this.gpuLive();
     const candidate = prepareViewerQualifiedFaces(input, this.options.mmToSceneUnit, this.options.background);
-    if (this.renderer instanceof QualifiedFaceSceneRenderer) this.qualifiedFaceResult(this.renderer.updateScene(candidate));
-    else {
-      const prior = this.renderer;
-      try {
-        const renderer = mountQualifiedFaceScene(this.canvas, candidate);
-        this.renderer = renderer;
-        prior?.dispose();
-      } catch (error) { this.recoverPresentation(prior, error, true); }
-    }
+    this.acceptedLighting = null;
+    this.showFaces(candidate); this.drawn = 'faces';
     this.qualifiedFaceScene = candidate; this.camera = candidate.camera;
     this.acceptedLighting = null;
     this.packets = []; this.curves = []; this.native = null; this.document = null; this.documentBodies = [];
@@ -1038,28 +902,28 @@ export class Viewer {
     return measureViewerQualifiedFacePoints(this.qualifiedFaceScene, first, second);
   }
   projectQualifiedFacePoint(input: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointProjection | null {
-    this.gpuLive(); check(!this.contextLost, 'Cannot project qualified Faces after WebGL2 context loss');
+    this.gpuLive();
     check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     const rect = this.canvas.getBoundingClientRect();
     return projectViewerQualifiedFacePoint(this.qualifiedFaceScene, input,
       this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   pickQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFacePick | null {
-    this.gpuLive(); check(!this.contextLost, 'Cannot pick qualified Faces after WebGL2 context loss');
+    this.gpuLive();
     check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     const rect = this.canvas.getBoundingClientRect();
     return pickViewerQualifiedFace(this.qualifiedFaceScene, point,
       this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   sampleQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFaceNativeSample | null {
-    this.gpuLive(); check(!this.contextLost, 'Cannot sample qualified Faces after WebGL2 context loss');
+    this.gpuLive();
     check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     const rect = this.canvas.getBoundingClientRect();
     return sampleViewerQualifiedFace(this.qualifiedFaceScene, point,
       this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   replaceNativeScene(input: ViewerNativeSceneReplacementV0): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot replace native scene after WebGL2 context loss');
+    this.gpuLive();
     const envelope = ownRecord(input, ['version', 'source', 'display'], 'Native scene replacement');
     check(envelope.version === 0, 'Only native scene replacement version0 is supported');
     const display = ownRecord(envelope.display, ['motion', 'visibleGeometry', 'camera'], 'Native scene display');
@@ -1205,75 +1069,44 @@ export class Viewer {
     this.appearanceDocument = null;
     this.sceneRequest++;
   }
-  /** First mount of a complete qualified native document and appearance on an unused canvas. */
+  /** The first scene of a Viewer: a complete qualified native document and its appearance. */
   loadNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
-    check(this.renderer === null, 'Initial native appearance requires an unmounted Viewer');
-    const request = this.sceneRequest;
-    const candidate = prepareMountedNativeSceneAppearance(input,
-      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
-    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
-    check(this.renderer === null && this.sceneRequest === request,
-      'Native appearance preparation changed the initial renderer or source request');
-    const renderer = mountPrimitiveViewport(this.canvas, candidate.prepared.prepared.frame.options);
-    try {
-      const result = renderer.updateFrame(candidate.prepared.prepared.frame);
-      if (!result.ok) throw result.error;
-    } catch (cause) {
-      try { renderer.dispose(); }
-      catch (cleanup) { throw new AggregateError([cause, cleanup], 'Native appearance mount and cleanup failed'); }
-      throw cause;
-    }
-    this.renderer = renderer;
-    this.adoptNativeSceneAppearance(candidate);
+    this.gpuLive(); check(this.drawn === 'none', 'Initial native appearance requires a Viewer that has drawn nothing');
+    this.drawAppearance(prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background }));
   }
-  /** One complete frame update on an already accepted qualified primitive backend. */
+  /** One complete frame update on an already accepted qualified scene. */
   replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
-    const renderer = this.renderer, request = this.sceneRequest;
-    check(renderer instanceof PrimitiveSceneRendererV2 || renderer instanceof PrimitiveViewport,
-      'Native appearance requires an already mounted qualified V2 or Viewport backend');
-    const candidate = prepareMountedNativeSceneAppearance(input,
-      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
-    check(renderer instanceof PrimitiveViewport || candidate.prepared.prepared.frame.scene.entries.length > 0,
-      'An empty native appearance requires an already mounted Viewport backend');
-    this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
-    check(this.renderer === renderer && this.sceneRequest === request,
-      'Native appearance preparation changed the accepted renderer or source request');
-    this.primitiveResult(renderer.updateFrame(candidate.prepared.prepared.frame));
-    this.adoptNativeSceneAppearance(candidate);
+    this.gpuLive(); check(this.drawn === 'qualified', 'Native appearance requires an already drawn qualified scene');
+    this.drawAppearance(prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background }));
   }
-  /** Explicit same-canvas QualifiedFace retirement followed by one complete Viewport mount. */
+  /**
+   * Replace the current qualified Faces with a native appearance. 'dispose-remount' draws it; 'atomic' (a
+   * swap the old renderers could not do either) is refused before anything changes.
+   */
   handoffQualifiedFaceToNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1,
     mode: 'atomic' | 'dispose-remount'): ViewerQualifiedFaceAppearanceHandoffResult {
-    this.gpuLive(); check(!this.contextLost, 'Cannot hand off native appearance after WebGL2 context loss');
-    const renderer = this.renderer, request = this.sceneRequest;
-    check(renderer instanceof QualifiedFaceSceneRenderer && this.qualifiedFaceScene !== null,
-      'Native appearance handoff requires the current qualified Face renderer');
-    if (mode !== 'dispose-remount') {
-      const refused = handoffQualifiedFaceToPrimitiveViewport(renderer, input, mode);
-      if (refused.ok || refused.stage !== 'preflight')
-        throw new Error('Atomic native appearance handoff violated the GPU refusal contract');
-      return refused;
-    }
-    const candidate = prepareMountedNativeSceneAppearance(input,
-      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
-    this.gpuLive(); check(!this.contextLost, 'Cannot hand off native appearance after WebGL2 context loss');
-    check(this.renderer === renderer && this.sceneRequest === request,
-      'Native appearance preparation changed the accepted renderer or source request');
-    const result = handoffQualifiedFaceToPrimitiveViewport(renderer,
-      candidate.prepared.prepared.frame, mode);
-    if (!result.ok) {
-      if (result.stage !== 'preflight') {
-        this.renderer = null;
-        this.presentationUnavailable = true;
-        this.sceneRequest++;
-      }
-      return result;
-    }
-    this.renderer = result.viewport;
+    this.gpuLive();
+    check(this.drawn === 'faces' && this.qualifiedFaceScene !== null,
+      'Native appearance handoff requires the current qualified Faces');
+    if (mode !== 'dispose-remount') return Object.freeze({ ok: false, stage: 'preflight',
+      error: new Error('Atomic Face-to-appearance handoff is unsupported; use dispose-remount') });
+    const previousScene = this.qualifiedFaceScene;
+    let candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>;
+    try {
+      candidate = prepareMountedNativeSceneAppearance(input,
+        { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
+    } catch (error) { return Object.freeze({ ok: false, stage: 'preflight', error: error instanceof Error ? error : new Error(String(error)) }); }
+    this.drawAppearance(candidate);
+    return Object.freeze({ ok: true, stage: 'ready', previousScene });
+  }
+  private drawAppearance(candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>): void {
+    const frame = candidate.prepared.prepared.frame;
+    this.acceptedLighting = candidate.lighting;
+    this.show(itemsOf(frame.scene.entries, frame.materials), frame.options.camera ?? candidate.prepared.display.camera, frame.options.translate);
+    this.drawn = 'qualified';
     this.adoptNativeSceneAppearance(candidate);
-    return Object.freeze({ ok: true, stage: 'ready', previousScene: result.previousScene });
   }
   private adoptNativeSceneAppearance(candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>): void {
     this.packets = candidate.packets; this.curves = candidate.curves;
@@ -1290,7 +1123,7 @@ export class Viewer {
   }
   loadUniformCurvePreview(input: UniformCurvePreview,
     options: { basis: 'authored-xyz-matches-rhyup' }): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load uniform Curve after WebGL2 context loss');
+    this.gpuLive();
     const request = ownRecord(options, ['basis'], 'Uniform Curve options');
     check(request.basis === 'authored-xyz-matches-rhyup',
       'Uniform Curve authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
@@ -1317,7 +1150,7 @@ export class Viewer {
   }
   loadSelectedUniformCurvePreview(input: SelectedUniformCurvePreview,
     options: { basis: 'authored-xyz-matches-rhyup' }): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load selected uniform Curve after WebGL2 context loss');
+    this.gpuLive();
     const request = ownRecord(options, ['basis'], 'Selected uniform Curve options');
     check(request.basis === 'authored-xyz-matches-rhyup',
       'Selected uniform Curve authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
@@ -1344,21 +1177,11 @@ export class Viewer {
     this.sceneRequest++;
   }
   loadShellGraph(input: BooleanExtrusionFeatureGraphResult, options: ViewerShellLoadOptions): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load Shell graph after WebGL2 context loss');
+    this.gpuLive();
     const candidate = prepareViewerShellGraph(input, options, this.options.mmToSceneUnit);
     const bounds = candidate.boundsScene;
     const camera = bounds ? cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height) : this.camera;
-    if (this.renderer instanceof BooleanShellSceneRenderer) {
-      const result = this.renderer.update(candidate.scene, this.gpuOptions(camera));
-      if (!result.ok) throw result.error;
-    } else {
-      const prior = this.renderer;
-      try {
-        const renderer = mountBooleanShellScene(this.canvas, candidate.scene, this.gpuOptions(camera));
-        this.renderer = renderer;
-        prior?.dispose();
-      } catch (error) { this.recoverPresentation(prior, error); }
-    }
+    this.showShell(candidate.scene, camera); this.drawn = 'shell';
     this.shell = candidate; this.camera = camera; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null; this.nativeReplacement = false; this.appearanceDocument = null;
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = []; this.assembly = null; this.assemblyInstances = [];
@@ -1369,7 +1192,7 @@ export class Viewer {
     this.surfaceMaterials = []; this.sceneRequest++;
   }
   loadAssembly(input: CadAssemblyResult, options: ViewerAssemblyLoadOptions): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot load assembly after WebGL2 context loss');
+    this.gpuLive();
     const request = ownRecord(options, ['native', 'basis', 'instanceIds'], 'Assembly options');
     check(request.basis === 'authored-xyz-matches-rhyup',
       'Assembly authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
@@ -1518,15 +1341,13 @@ export class Viewer {
     this.gpuLive();
     check(!this.qualifiedFaceScene, 'Qualified Faces do not support simulation layers');
     check(!this.mixedDepth, 'Mixed depth does not support simulation layers');
-    if (this.shell) { check(!this.contextLost, 'Cannot change frames after WebGL2 context loss');
+    if (this.shell) {
       check(input === null, 'Native Shell mode does not support simulation layers'); return; }
-    check(!this.contextLost, 'Cannot change cloth frame after WebGL2 context loss');
+   
     if (input === null) {
       if (!this.clothFrame) return;
-      check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
-        'Cloth layer requires a qualified GPU scene');
-      const result = this.renderer.setClothLayer(null);
-      this.primitiveResult(result);
+      check(this.drawn === 'qualified', 'Cloth layer requires a qualified GPU scene');
+      this.redrawScene({ clothLayer: null });
       this.clothFrame = null; this.clothLayer = null;
       return;
     }
@@ -1536,27 +1357,25 @@ export class Viewer {
       this.visible({ kind: 'surface', modelId: this.packets[0].modelId,
         surfaceId: this.packets[0].packet.surfaceId }),
     'Cloth layer requires one visible native Surface and no Curves');
-    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
-      'Cloth layer requires a qualified GPU scene');
+    check(this.drawn === 'qualified', 'Cloth layer requires a qualified GPU scene');
     const candidate = prepareViewerClothFrame(input, this.options.mmToSceneUnit, this.clothFrame);
     if (candidate.unchanged) return;
-    const result = this.renderer.setClothLayer(candidate.layer);
-    this.primitiveResult(result);
+    // The layer's own admission: finite, non-degenerate triangles that survive Float32.
+    prepareClothLayer(candidate.layer, this.clothLayer);
+    this.redrawScene({ clothLayer: candidate.layer });
     this.clothFrame = candidate.frame; this.clothLayer = candidate.layer;
   }
   setFluidFrame(input: ViewerFluidFrameV0 | null): void {
     this.gpuLive();
     check(!this.qualifiedFaceScene, 'Qualified Faces do not support simulation layers');
     check(!this.mixedDepth, 'Mixed depth does not support simulation layers');
-    if (this.shell) { check(!this.contextLost, 'Cannot change frames after WebGL2 context loss');
+    if (this.shell) {
       check(input === null, 'Native Shell mode does not support simulation layers'); return; }
-    check(!this.contextLost, 'Cannot change fluid frame after WebGL2 context loss');
+   
     if (input === null) {
       if (!this.fluidFrame) return;
-      check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
-        'Fluid layer requires a qualified GPU scene');
-      const result = this.renderer.setParticleLayer(null);
-      this.primitiveResult(result);
+      check(this.drawn === 'qualified', 'Fluid layer requires a qualified GPU scene');
+      this.redrawScene({ particleLayer: null });
       this.fluidFrame = null; this.particleLayer = null;
       return;
     }
@@ -1566,8 +1385,7 @@ export class Viewer {
       this.visible({ kind: 'surface', modelId: this.packets[0].modelId,
         surfaceId: this.packets[0].packet.surfaceId }),
     'Fluid layer requires one visible native Surface and no Curves');
-    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
-      'Fluid layer requires a qualified GPU scene');
+    check(this.drawn === 'qualified', 'Fluid layer requires a qualified GPU scene');
     const data = ownRecord(input,
       ['version', 'contextId', 'sceneRevision', 'stepIndex', 'particleCount', 'positionsM'], 'Fluid frame');
     check(data.version === 0 && data.particleCount === 256, 'Fluid frame requires version 0 and 256 particles');
@@ -1600,15 +1418,14 @@ export class Viewer {
     const layer: ParticleLayerV0 = { version: 0, contextId: data.contextId,
       sceneRevision: data.sceneRevision, stepIndex: data.stepIndex,
       coordinateSystem: 'right-handed-y-up-scene-units', positions };
-    const result = this.renderer.setParticleLayer(layer);
-    this.primitiveResult(result);
+    this.redrawScene({ particleLayer: layer });
     this.fluidFrame = { version: 0, contextId: data.contextId, sceneRevision: data.sceneRevision,
       stepIndex: data.stepIndex, particleCount: 256, positionsM };
     this.particleLayer = layer;
   }
   setSurfaceMaterial(inputRef: ViewerRef, binding: MeshMaterialBinding | null): void {
     this.gpuLive(); this.primitiveScope();
-    check(!this.contextLost, 'Cannot change Surface material after WebGL2 context loss');
+   
     const ref = parseRef(inputRef);
     check(this.modelSet !== null || this.document !== null,
       'Surface material requires a qualified native scene');
@@ -1618,17 +1435,16 @@ export class Viewer {
       this.visible({ kind: 'surface', ...ref }),
     'Surface material requires a visible qualified native Surface in a scene of 1..4 objects');
     check(!sameRef(ref, this.selected), 'Clear Surface selection before binding material');
-    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
-      'Surface material requires a qualified GPU scene');
-    const result = this.renderer.setMaterial({ modelId: ref.modelId, geometryId: ref.surfaceId }, binding);
-    this.primitiveResult(result);
-    const accepted = this.renderer.materials;
-    this.surfaceMaterials = this.packets.flatMap(entry => {
-      const material = accepted.find(item => item.ref.modelId === entry.modelId
-        && item.ref.geometryId === entry.packet.surfaceId);
-      return material ? [{ ref: { modelId: entry.modelId, surfaceId: entry.packet.surfaceId },
-        binding: material.binding }] : [];
+    check(this.drawn === 'qualified', 'Surface material requires a qualified GPU scene');
+    const accepted = binding === null ? null : validateMeshMaterialBinding(binding);
+    const others = this.surfaceMaterials.filter(item => !sameRef(item.ref, ref));
+    const materials = this.packets.flatMap(entry => {
+      const surface = { modelId: entry.modelId, surfaceId: entry.packet.surfaceId };
+      const material = sameRef(surface, ref) ? accepted : others.find(item => sameRef(item.ref, surface))?.binding ?? null;
+      return material ? [{ ref: surface, binding: material }] : [];
     });
+    this.redrawScene({ surfaceMaterials: materials });
+    this.surfaceMaterials = materials;
   }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
     if (this.mixedDepth) return this.mixedDepth.native.model.name === modelId ? this.mixedDepth.native.model : null;
@@ -1847,7 +1663,7 @@ export class Viewer {
       t: input.t, pointMM: [...evaluateCurve(curve, input.t)] as Vec3 };
   }
   projectNativePoint(input: ViewerNativePointInput): ViewerNativePointProjection | null {
-    this.gpuLive(); this.primitiveScope(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection'); check(!this.contextLost, 'Cannot project after WebGL2 context loss');
+    this.gpuLive(); this.primitiveScope(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection');
     const parsed = parseNativePointInput(input);
     const ref: ViewerGeometryRef = parsed.kind === 'surface'
       ? { kind: 'surface', modelId: parsed.modelId, surfaceId: parsed.surfaceId }
@@ -1902,7 +1718,7 @@ export class Viewer {
       ? this.selectedGeometry : null;
     const selected = selection?.kind === 'surface'
       ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
-    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected,
+    if (this.drawn === 'mesh' || this.drawn === 'qualified') this.present(this.packets, this.curves, this.camera, selected,
       this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null || this.assembly !== null || this.uniformCurve !== null
         || this.selectedUniformCurve !== null || this.nativeReplacement, hidden);
     this.hiddenGeometry = hidden;
@@ -1930,7 +1746,7 @@ export class Viewer {
       this.motion, this.geometryMotion));
   }
   fitQualifiedFace(input: ViewerQualifiedFaceFitInput): void {
-    this.gpuLive(); check(!this.contextLost, 'Cannot fit qualified Faces after WebGL2 context loss');
+    this.gpuLive();
     check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     const bounds = qualifiedFaceAssetDisplayBounds(this.qualifiedFaceScene, input);
     this.setView(cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height));
@@ -1987,7 +1803,7 @@ export class Viewer {
     return { low, high };
   }
   fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void {
-    this.gpuLive(); this.primitiveScope(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
+    this.gpuLive(); this.primitiveScope();
     const data = ownRecord(input, ['ref', 'documentRevision'], 'Native document fit');
     const ref = parseGeometryRef(data.ref);
     check(Number.isInteger(data.documentRevision) && (data.documentRevision as number) >= 0
@@ -1997,7 +1813,7 @@ export class Viewer {
     this.setView(cameraForBounds(low, high, this.canvas.width, this.canvas.height));
   }
   fitNativeDocumentBodies(input: ViewerNativeDocumentBodiesFitInput): void {
-    this.gpuLive(); this.primitiveScope(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
+    this.gpuLive(); this.primitiveScope();
     const data = ownRecord(input, ['refs', 'documentRevision'], 'Native document body-set fit');
     check(Array.isArray(data.refs) && data.refs.length >= 2 && data.refs.length <= 4,
       'Native document body-set fit requires 2..4 references');
@@ -2175,20 +1991,20 @@ export class Viewer {
   }
   setView(input: MeshCamera): void {
     this.gpuLive(); const camera = validateMeshCamera(input);
-    if (this.renderer instanceof QualifiedFaceSceneRenderer) {
+    if (this.drawn === 'faces') {
       check(this.qualifiedFaceScene, 'Qualified Face authority is missing');
       const scene = prepareQualifiedFaceScene({ ...this.qualifiedFaceScene, camera });
-      this.qualifiedFaceResult(this.renderer.updateScene(scene));
+      this.showFaces(scene);
       this.qualifiedFaceScene = scene;
-    } else if (this.renderer instanceof MixedDepthRenderer) {
+    } else if (this.drawn === 'mixed') {
       check(this.mixedDepth, 'Mixed depth authority is missing');
       const frame = prepareMixedDepthFrame({ ...this.mixedDepth.frame, camera });
-      this.mixedResult(this.renderer.updateFrame(frame));
+      this.showMixed(frame);
       this.mixedDepth = { native: this.mixedDepth.native, frame };
-    } else if (this.renderer instanceof BooleanShellSceneRenderer) {
-      const result = this.renderer.setOptions(this.gpuOptions(camera));
-      if (!result.ok) throw result.error;
-    } else if (this.renderer) this.present(this.packets, this.curves, camera, this.selected, this.motion);
+    } else if (this.drawn === 'shell') {
+      check(this.shell, 'Shell authority is missing');
+      this.showShell(this.shell.scene, camera);
+    } else if (this.drawn !== 'none') this.present(this.packets, this.curves, camera, this.selected, this.motion);
     this.camera = camera;
   }
   orbit(deltaAzimuthRadians: number, deltaElevationRadians: number): void {
@@ -2216,7 +2032,7 @@ export class Viewer {
     this.setView({ ...this.camera, eye: add(this.camera.target, offset), near, far });
   }
   pick(xCss: number, yCss: number): ViewerPick | null {
-    this.gpuLive(); this.primitiveScope(); check(!this.contextLost, 'Cannot pick after WebGL2 context loss');
+    this.gpuLive(); this.primitiveScope();
     finite(xCss, 'Pick X', 0, 4096); finite(yCss, 'Pick Y', 0, 4096);
     if (this.packets.length === 0) return null;
     const rect = this.canvas.getBoundingClientRect();
@@ -2261,7 +2077,7 @@ export class Viewer {
     return best;
   }
   pickShell(point: ViewerGeometryPoint): ViewerShellPick | null {
-    this.gpuLive(); check(!this.contextLost, 'Cannot pick Shell after WebGL2 context loss');
+    this.gpuLive();
     check(this.shell, 'Viewer has no current Shell scene');
     const rect = this.canvas.getBoundingClientRect();
     return pickViewerShell(this.shell, point, this.camera, this.options.mmToSceneUnit,
@@ -2269,7 +2085,7 @@ export class Viewer {
   }
   pickGeometry(pointInput: ViewerGeometryPoint,
     optionsInput?: ViewerGeometryPickOptions): ViewerGeometryPick | null {
-    this.gpuLive(); this.primitiveScope(); check(!this.contextLost, 'Cannot pick after WebGL2 context loss');
+    this.gpuLive(); this.primitiveScope();
     const point = ownRecord(pointInput, ['xCss', 'yCss'], 'Geometry pick point');
     const xCss = finite(point.xCss, 'Pick X', 0, 4096);
     const yCss = finite(point.yCss, 'Pick Y', 0, 4096);
@@ -2406,7 +2222,7 @@ export class Viewer {
     check(!this.qualifiedFaceScene, 'Qualified Face selection is unavailable');
     check(!this.mixedDepth, 'Mixed depth native selection is unavailable');
     if (this.shell) {
-      check(!this.contextLost, 'Cannot select after WebGL2 context loss');
+     
       check(input === null, 'Native Shell selection is unavailable'); return;
     }
     const selected = input === null ? null : parseRef(input);
@@ -2417,7 +2233,7 @@ export class Viewer {
       'Clear Surface material before selecting the bound Surface');
     const geometrySelection: ViewerGeometryRef | null = selected
       ? { kind: 'surface', ...selected } : null;
-    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected, this.motion,
+    if (this.drawn === 'mesh' || this.drawn === 'qualified') this.present(this.packets, this.curves, this.camera, selected, this.motion,
       geometrySelection);
     this.selected = selected;
     this.selectedGeometry = geometrySelection;
@@ -2427,7 +2243,7 @@ export class Viewer {
     check(!this.qualifiedFaceScene, 'Qualified Face selection is unavailable');
     check(!this.mixedDepth, 'Mixed depth native selection is unavailable');
     if (this.shell) {
-      check(!this.contextLost, 'Cannot select after WebGL2 context loss');
+     
       check(input === null, 'Native Shell selection is unavailable'); return;
     }
     const selection = input === null ? null : parseGeometryRef(input);
@@ -2443,20 +2259,16 @@ export class Viewer {
     }
     const surface = selection?.kind === 'surface'
       ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
-    if (this.renderer) this.present(this.packets, this.curves, this.camera, surface, this.motion, selection);
+    if (this.drawn === 'mesh' || this.drawn === 'qualified') this.present(this.packets, this.curves, this.camera, surface, this.motion, selection);
     this.selected = surface;
     this.selectedGeometry = selection;
   }
   resize(width: number, height: number): void {
     this.gpuLive(); this.dimensions(width, height);
-    if (this.renderer instanceof QualifiedFaceSceneRenderer) this.qualifiedFaceResult(this.renderer.resize(width, height));
-    else if (this.renderer instanceof MixedDepthRenderer) this.mixedResult(this.renderer.resize(width, height));
-    else if (this.renderer) this.renderer.resize(width, height);
-    else { this.canvas.width = width; this.canvas.height = height; }
+    this.presenter.setSize(width, height);
   }
   getState(): ViewerState {
-    const status = this.disposed ? 'disposed' : this.contextLost ? 'context-lost' : this.presentationUnavailable ? 'unavailable'
-      : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
+    const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
     return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       lighting: this.acceptedLighting ?? this.options.lighting ?? null,
@@ -2479,20 +2291,13 @@ export class Viewer {
       surfaceMaterial: this.surfaceMaterials.length === 1 ? this.surfaceMaterials[0] : null,
       surfaceMaterials: this.surfaceMaterials });
   }
-  readPixels(): Uint8Array {
-    this.gpuLive(); check(this.renderer, 'Viewer has no geometry');
-    try { return this.renderer.readPixels(); }
-    catch (error) {
-      if (!this.contextLost && this.renderer instanceof MixedDepthRenderer
-        && error instanceof MixedDepthError && error.code === 'CONTEXT') this.presentationUnavailable = true;
-      if (!this.contextLost && this.renderer instanceof QualifiedFaceSceneRenderer
-        && error instanceof QualifiedFaceSceneError && error.code === 'CONTEXT') this.presentationUnavailable = true;
-      throw error;
-    }
+  /** The drawn pixels once the current frame is on screen: RGBA, rows from the top. */
+  readPixels(): Promise<Uint8Array> {
+    this.gpuLive(); check(this.drawn !== 'none', 'Viewer has no geometry');
+    return this.presenter.readPixels();
   }
   dispose(): void { if (this.disposed) return; this.disposed = true;
-    this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
-    this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null;
+    this.presenter.dispose(); this.drawn = 'none'; this.fluidFrame = null; this.particleLayer = null;
     this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null;
     if (this.qualifiedFaceScene) {
       this.packets = []; this.curves = []; this.hiddenGeometry = []; this.selected = null; this.selectedGeometry = null;
@@ -2522,15 +2327,20 @@ export class Viewer {
     this.assembly = null; this.assemblyInstances = []; this.shell = null; }
 }
 
-export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {
-  return new Viewer(canvas, parseViewerOptions(options));
+/** A Viewer on a canvas (drawing with WebGPU through the @barocss/gpu viewer). */
+export async function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Promise<Viewer> {
+  check(canvas instanceof HTMLCanvasElement, 'Viewer requires an HTMLCanvasElement');
+  const parsed = parseViewerOptions(options);
+  return new Viewer(canvas, parsed, await Presenter.create(canvas, parsed.background));
 }
 
 export { prepareViewerNativeSceneAppearance } from './native-scene-appearance.js';
 export type { ViewerNativeSceneAppearanceInputV1, ViewerNativeSceneAppearanceContext,
   PreparedViewerNativeSceneAppearance } from './native-scene-appearance.js';
 
-// Explicit async native-document authored-light consumer; no default backend change.
+export type { ViewerWebGPUOptions, ViewerWebGPUStatus, UpdateResult as ViewerUpdateResult } from './native-backend.js';
+
+// Native-document authored lights (async: they draw with WebGPU like the Viewer).
 export { createNativeDirectionalLightWebGPUViewer } from './native-directional-light-webgpu.js';
 export { ViewerNativeDirectionalLightError } from './native-directional-light-candidate.js';
 export type { ViewerNativeDirectionalLightCode, ViewerNativeDirectionalLightOwner,
@@ -2538,14 +2348,14 @@ export type { ViewerNativeDirectionalLightCode, ViewerNativeDirectionalLightOwne
   ViewerNativeDirectionalLightPick } from './native-directional-light-candidate.js';
 export type { ViewerNativeDirectionalLightWebGPU } from './native-directional-light-webgpu.js';
 
-// Explicit original-document native UV01 route; existing Viewer defaults are unchanged.
+// Native-document surfaces with UV01 materials.
 export { createNativeSurfaceUV01WebGPUViewer } from './native-surface-uv01-webgpu.js';
 export { ViewerNativeSurfaceUV01Error } from './native-surface-uv01-candidate.js';
 export type { ViewerNativeSurfaceUV01Code, ViewerNativeSurfaceUV01Owner, ViewerNativeSurfaceUV01Material,
   ViewerNativeSurfaceUV01Input, ViewerNativeSurfaceUV01Accepted, ViewerNativeSurfaceUV01Pick } from './native-surface-uv01-candidate.js';
 export type { ViewerNativeSurfaceUV01WebGPU } from './native-surface-uv01-webgpu.js';
 
-/** Additive original-source/TEN consumer of the required-WebGPU point-light viewport. */
+/** Native-document authored point lights. */
 export { createNativePointLightWebGPUViewer } from './native-point-light-webgpu.js';
 export { ViewerNativePointLightError } from './native-point-light-candidate.js';
 export type { ViewerNativePointLightCode, ViewerNativePointLightOwner,

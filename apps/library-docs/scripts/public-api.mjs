@@ -10,7 +10,7 @@ const root = resolve(app, '../..');
 const baselineFile = resolve(app, 'evidence/public-api.json');
 const currentFile = resolve(app, 'evidence/current-public-api.json');
 const catalog = JSON.parse(await readFile(resolve(app, 'evidence/package-inventory.json'), 'utf8'));
-const slugs = ['render','gpu','cad','cad-interop','canvas2d','viewer','physics','cad-editor','render-editor'];
+const slugs = ['render','gpu','cad','cad-interop','viewer','physics'];
 const flags = ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope;
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function exportedType(map) {

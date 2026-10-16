@@ -19,23 +19,13 @@ let viewer;
 let controller;
 let generation = 0;
 let renderVersion = 0;
-canvas.addEventListener('webglcontextlost', event => {
-  event.preventDefault();
-  renderVersion++;
-  controller?.dispose();
-  controller = undefined;
-  for (const control of [toggle, stepButton, resetButton, sceneSelect]) control.disabled = true;
-  status.textContent = 'WebGL2 문맥을 잃었습니다. 복구 후 장면을 다시 만듭니다.';
-  window.fluidViewerState = { contextLost: true };
-});
-canvas.addEventListener('webglcontextrestored', () => location.reload());
 try {
   const modelSet = await loadBaroCadModelSet({
     format: 'barocad-model-set', version: 0, entries: [{ aliasId: 'fluid_basin',
       url: 'basin.barocad',
       options: { sourceVersion: 0, countU: 5, countV: 5, unitsPerMillimeter: 1 } }],
   }, { baseURL: location.href });
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.001,
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.001,
     background: [0.035, 0.065, 0.105] });
   viewer.loadModelSet(modelSet);
   const present = (state, running, reset = false) => {
@@ -55,7 +45,7 @@ try {
       window.fluidViewerState = { running, stepIndex: state.stepIndex,
         particleCount: state.particleCount, sceneRevision: state.sceneRevision, sha256: sha,
         diagnostics: { ...state.diagnostics },
-        displayStep: accepted.stepIndex, glError: canvas.getContext('webgl2').getError() };
+        displayStep: accepted.stepIndex };
     }).catch(error => { status.textContent = String(error); });
   };
   const startScene = () => {

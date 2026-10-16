@@ -2,7 +2,7 @@
 
 [Authored directional lights](./authored-directional-lights) — Complete native documents, raw materials and authored lights through the explicit asynchronous required-WebGPU facade.
 
-The public package entry is `@barocss/viewer`. `createViewer(canvas:HTMLCanvasElement,options:ViewerOptions):Viewer` validates `mmToSceneUnit`, background RGB and optional lighting. Viewer is also a public class; prefer the factory for option validation.
+The public package entry is `@barocss/viewer`. `createViewer(canvas:HTMLCanvasElement,options:ViewerOptions):Promise<Viewer>` validates `mmToSceneUnit`, background RGB and optional lighting, then opens the `@barocss/gpu` WebGPU viewer core on the canvas; await it before calling any method. It rejects when the canvas is not an `HTMLCanvasElement`, the options are invalid, or WebGPU is unavailable (a `ViewerError` from `@barocss/gpu`). Viewer is also a public class; use the factory, which creates its presenter.
 
 ## Core method contracts
 
@@ -17,7 +17,7 @@ The public package entry is `@barocss/viewer`. `createViewer(canvas:HTMLCanvasEl
 | `pickGeometry(point, options?): ViewerGeometryPick \| null` | CSS point; optional kinds and Curve tolerance. | Sampled Surface/Curve result; may be ambiguous. |
 | `select(ref \| null): void`, `selectGeometry(ref \| null): void` | Current visible qualified geometry. | Mode/material/lifecycle restrictions apply. |
 | `setView(camera)`, `orbit(a,e)`, `pan(x,y)`, `zoom(factor)` | Camera; radians for orbit, scene units for pan. | Admission refuses invalid poses; no native edit. |
-| `resize(width,height): void`, `readPixels(): Uint8Array` | Backing size; fresh RGBA buffer from live frame. | Context/mode/lifecycle errors reach host. |
+| `resize(width,height): void`, `readPixels(): Promise<Uint8Array>` | Backing size; fresh RGBA buffer of the next drawn frame, rows from the top. | Mode/lifecycle errors reach host; `readPixels` refuses before anything is drawn. |
 | `clear(): void`, `dispose(): void` | Explicit blank frame; release owned resources. | Dispose is idempotent; later GPU operations refuse. |
 
 ## Additional public profile methods
@@ -34,13 +34,13 @@ These methods are profile-specific. The retained pose method names do not create
 
 ## Errors and ownership
 
-Viewer admission uses errors from its validation and reached CAD/loader/GPU provider causes. Do not infer one universal Viewer error code from a message. Route caught errors through your host's diagnostics. `getState` distinguishes `empty`, `ready`, `context-lost`, `unavailable` and `disposed`. Control adapters each return `dispose()`; they own listeners, not the Viewer or canvas.
+Viewer admission uses errors from its validation and reached CAD/loader/GPU provider causes. Do not infer one universal Viewer error code from a message. Route caught errors through your host's diagnostics. `getState().status` is `empty`, `ready` or `disposed` for this Viewer; the type keeps `context-lost` and `unavailable` for compatibility, but there is no WebGL context to lose: the GPU viewer core replaces a lost device and redraws the scene itself. Control adapters each return `dispose()`; they own listeners, not the Viewer or canvas.
 
 `packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)
 
 ## Authored directional-light WebGPU facade
 
-`await createNativeDirectionalLightWebGPUViewer(canvas, input, { width, height })` creates `ViewerNativeDirectionalLightWebGPU`. This separate async factory requires WebGPU; it does not change synchronous `createViewer` defaults. The complete `ViewerNativeDirectionalLightInput` includes composition owner, original document source/TEN bindings, display, raw materials, light catalog and context. See the [complete recipe and lifetime contract](./authored-directional-lights).
+`await createNativeDirectionalLightWebGPUViewer(canvas, input, { width, height })` creates `ViewerNativeDirectionalLightWebGPU`. This separate async factory requires WebGPU like `createViewer`; it does not change `createViewer` defaults. The complete `ViewerNativeDirectionalLightInput` includes composition owner, original document source/TEN bindings, display, raw materials, light catalog and context. See the [complete recipe and lifetime contract](./authored-directional-lights).
 
 - `originals`, `accepted`, `selected`, `status`, `canvas`: copied/frozen originals, accepted native metadata, selection and actual backend status
 - `await replace(input)`, `await resize(width,height)`: inspect returned `UpdateResult.ok`; refusal is not successful adoption

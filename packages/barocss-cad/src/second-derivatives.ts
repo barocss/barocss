@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { basis, validateCurve, validateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { Curve, Surface, Point } from './types.js';
@@ -102,15 +103,17 @@ function boundedArray(value: unknown, minimum: number, maximum: number): asserts
   check(Array.isArray(value) && value.length >= minimum && value.length <= maximum,
     CODE.INPUT, 'Native array size is outside the supported range');
 }
-function boundedNumbers(value: unknown): void {
-  check(Array.isArray(value) && value.every(number => typeof number === 'number' && Math.abs(number) <= 10000),
-    CODE.INPUT, 'Original coordinates and knots must be finite and within 10000');
+function boundedNumbers(value: unknown, limit = 10000, what = 'knots'): void {
+  check(Array.isArray(value) && value.every(number => typeof number === 'number' && Math.abs(number) <= limit),
+    CODE.INPUT, `Original ${what} must be finite and within ${limit}`);
 }
+/** Coordinates use the geometry range (CadNumericPolicy); knots and parameters stay within 10000. */
+const coordinates = (value: unknown) => boundedNumbers(value, CadNumericPolicy.geometryCoordinateAbsMM, 'coordinates (mm)');
 function admittedCurve(input: Curve): Curve {
   const data = exactRecord(snapshot(input), ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']);
   boundedDegree(data.degree);
   boundedArray(data.controlPoints, 2, 64);
-  for (const point of data.controlPoints) boundedNumbers(point);
+  for (const point of data.controlPoints) coordinates(point);
   boundedNumbers(data.knots);
   const curve = data as unknown as Curve;
   native(() => validateCurve(curve), 'Native Curve validation failed');
@@ -122,7 +125,7 @@ function admittedSurface(input: Surface): Surface {
   boundedArray(data.controlPoints, 2, 16);
   for (const row of data.controlPoints) {
     boundedArray(row, 2, 16);
-    for (const point of row) boundedNumbers(point);
+    for (const point of row) coordinates(point);
   }
   boundedNumbers(data.knotsU); boundedNumbers(data.knotsV);
   const surface = data as unknown as Surface;

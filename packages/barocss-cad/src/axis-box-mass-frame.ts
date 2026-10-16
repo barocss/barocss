@@ -4,6 +4,7 @@ import type { CadAssemblyMatrix } from './cad-assembly.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const AxisBoxSolidMassFrameDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', POSE: 'POSE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidMassFrameDiagnosticCode = typeof AxisBoxSolidMassFrameDiagnosticCode[keyof typeof AxisBoxSolidMassFrameDiagnosticCode];
@@ -60,7 +61,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidMassFrameError) throw cause; throw new AxisBoxSolidMassFrameError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 
 /** Exact signed-axis rigid-frame mass properties, without baking geometry or inferring an assembly binding. */
 export function transformAxisBoxSolidMassFrame(massInput: AxisBoxSolidMassResult, optionsInput: AxisBoxSolidMassFrameOptions): AxisBoxSolidMassFrameResult {

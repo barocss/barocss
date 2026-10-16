@@ -1,3 +1,9 @@
+> The page draws with the WebGPU viewer core: `await createViewer(canvas, options)`
+> returns the Viewer and `await viewer.readPixels()` returns RGBA rows from the top.
+> There is no WebGL2 context, so no context-loss state or Lose context control.
+> Viewer status is `ready`, `empty` or `disposed`. Older text below that mentions
+> presentation loss or unavailability describes the previous WebGL2 Viewer.
+
 ## Navigate the original native view
 
 Open a supported original Source0 or IGES file. Enable **Navigate native view**.
@@ -17,9 +23,8 @@ successful source reload also cancels it when the content matches. A failed
 source candidate keeps the accepted view. This controller cannot detect an
 unobserved identical external reload as a new source generation.
 
-Disable navigation to remove its pointer controls. Presentation loss or failure,
-Clear, unsupported mode and disposal detach them. Caller context restoration
-does not resume a lost Viewer. The earlier CPU inspection rules still apply.
+Disable navigation to remove its pointer controls. Clear, unsupported mode and
+disposal detach them. The earlier CPU inspection rules still apply.
 The controller restores the prior inline touch-action value and priority.
 It uses the existing public Viewer pointer adapter and adds no camera solver,
 selection action, native hit, geometry edit, animation timer or export action.
@@ -226,34 +231,27 @@ VIEWER_REPLACEMENT_COMPILED=1 node examples/viewer-native-scene-replacement/serv
 `/input-audit.json` requires own src with zero own dist in ordinary mode, and
 own dist with zero own src in compiled mode. Missing compiled maps refuse.
 `VIEWER_REPLACEMENT_PORT` changes the port; `VIEWER_REPLACEMENT_EVIDENCE`
-optionally records `/result`. Existing original Uniform, Assembly, Shell and
+optionally records `/result`. Existing original Assembly, Shell and
 cloth-panel source fixtures support root-owned old-mode transition controls.
 `/slow-native.barocad` holds the actual first original document asset response
 until POST `/release-slow`, for deterministic request-generation checks.
 
-Run proof checks initial visible transformed original positions against actual
-GL buffer readback with exactly one scale, copied source/pins/signed-zero data,
-an independent null-camera union fit, all-hidden explicit-camera acceptance,
-stale pins/ref/motion/quaternion/hidden scene-bound/camera/getter refusals,
-consumed texture allocation failure after geometry uploads, old native/document
-generation compatibility, subsequent commands and Clear. It records the first
-failure and preserves accepted page state. Status shows a bounded summary;
-the complete evidence stays in the probe/result and optional output file.
+Run proof checks copied source/pins/signed-zero data, an independent
+null-camera union fit, all-hidden explicit-camera acceptance,
+stale pins/ref/motion/quaternion/hidden scene-bound/camera/getter refusals
+(each refusal keeps the accepted state and WebGPU `readPixels` hash), old
+native/document generation compatibility, subsequent commands and Clear. It
+records the first failure and preserves accepted page state. Status shows a
+bounded summary; the complete evidence stays in the result and optional output
+file.
 
 `window.__viewerReplacementProof` exposes public Viewer/createViewer,
 document result/original bytes/text/manifest, native source strings, public
 projection/options/pins/ref helpers, candidate builders, independent posed
-points/union fit/upload helpers, native query and public Loader/CAD/GPU/Physics
-modules. Global instrumentation installed before the first mount tracks seven
-resource classes, overlap peaks and actual readback. Fault hooks can target a
-specific allocation class/attempt. The loss extension is captured before loss.
-
-The main runner owns complete actual source/compiled acceptance, old cloth/
-Uniform/Assembly/Shell transitions, held URL winners, presentation-before-CPU
-commit, normal cleanup resources0 and separate loss/restore/refusal/Dispose.
-No lost-handle deletion0 or Editor Save/fresh Open acceptance is claimed.
-This proves a provider seam; editor consumer/history/publication gates remain
-separate from native completion and serial Integration.
+points/union fit helpers, the async `pixelInfo()` capture hash, native query and
+public Loader/CAD/GPU/Physics modules. No Editor Save/fresh Open acceptance is
+claimed. This proves a provider seam; editor consumer/history/publication gates
+remain separate from native completion and serial Integration.
 
 
 ## Open an original local Source0 file
@@ -331,6 +329,7 @@ results.
 `prepareViewerNativeSceneAppearance(input, context)` function. It uses the
 original canonical document, two authored shader sources, fresh document
 bindings, explicit poses, visibility, camera, lighting and constructor context.
+The two shader sources are the literals kept in `mounted-appearance.js`.
 It compares the complete result with independent public Interop and GPU CPU
 preparation. It also checks uniform defaults, hidden and empty frames, stale
 pins, malformed data, ownership and a cold Node consumer.
@@ -460,8 +459,7 @@ File/import provenance. Existing body rows and canvas focus remain connected.
 The narrow refresh may revalidate stored pins through public CAD compile/D0;
 it does not run a new measurement or write the SDK measurement caches.
 
-Presentation loss, unavailability, other modes and Dispose retire the keyboard
-adapter. A restored hardware context does not undo the SDK's sticky loss state.
+Other modes and Dispose retire the keyboard adapter.
 Original errors pass through once. A host refresh error after a successful SDK
 command is a postcommit error; no camera, selection or framebuffer rollback
 is promised. The local keyboard listeners and public adapter are removed before

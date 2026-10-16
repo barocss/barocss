@@ -6,6 +6,7 @@ import { validatePreviewPacket } from './packet.js';
 import type { PreviewPacket } from './packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
+import { cross } from './vec3.js';
 
 export interface ZAxisRevolvePreviewOptions {
   surfaceId: string; meshId: string; revision: number; segmentsPerMeridianSpan: number; segmentsPerQuarter: number; orientation: 'forward' | 'reverse';
@@ -53,7 +54,6 @@ function interpolate(a: number, b: number, t: number): number {
   if (t === 0) return a; if (t === 1) return b;
   const delta = b - a; return Number.isFinite(delta) ? a + delta * t : a * (1 - t) + b * t;
 }
-function cross(a: Point, b: Point): Point { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
 function triangleCross(a: Point, b: Point, c: Point): Point { return cross(b.map((n, i) => n - a[i]) as Point, c.map((n, i) => n - a[i]) as Point); }
 /** Native knot-span panel bridge; boundaries are parameter paths, not topology. */
 export function tessellateZAxisRevolvedSurface(meridian: Curve, inputOptions: ZAxisRevolvePreviewOptions): ZAxisRevolvePreviewResult {

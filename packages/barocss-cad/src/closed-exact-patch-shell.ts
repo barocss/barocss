@@ -2,6 +2,7 @@ import { buildExactBoundaryFaceAdjacency } from './exact-boundary-face-adjacency
 import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyResult } from './exact-boundary-face-adjacency.js';
 import type { SurfaceBoundary } from './boundary.js';
 import { copyCadData } from './data-copy.js';
+import { same } from './structural-equality.js';
 
 export const ClosedExactPatchShellDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', COVERAGE: 'COVERAGE', CONNECTED: 'CONNECTED', BINDING: 'BINDING', NATIVE: 'NATIVE', INCIDENCE: 'INCIDENCE', OWNED: 'OWNED',
@@ -76,11 +77,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof ClosedExactPatchShellError) throw cause; throw new ClosedExactPatchShellError(code, 'Own-data snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 function vertexKey(vertex: Pick<VertexReference, 'sourceId' | 'faceId' | 'vertexId'>): string { return vertex.sourceId + ':' + vertex.faceId + ':' + vertex.vertexId; }
 function boundaryKey(reference: { sourceId: string; boundary: SurfaceBoundary }): string { return reference.sourceId + ':' + reference.boundary; }

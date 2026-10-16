@@ -1,13 +1,15 @@
 # Viewer Curve scene
 
-This small host uses the public compiled Viewer, Loader and GPU packages. It
-loads one genuine source0 Model with two Surfaces and two weighted, nonunit
-Curves. The Curves retain original `[-2,7]` parameters and native XYZ/mm.
+This small host uses the public compiled Viewer, Loader and GPU packages;
+the Viewer draws with the WebGPU viewer core and is created with
+`await createViewer(...)`. It loads one genuine source0 Model with two
+Surfaces and two weighted, nonunit Curves. The Curves retain original
+`[-2,7]` parameters and native XYZ/mm.
 The page also loads a Curve-only Model, fits either scene, applies a display
 pose to the Surfaces and tries an invalid replacement.
 The **Wide 64-pole Curve** button loads committed source0 with explicit
-`curveDisplay.version:1`. It uses the GPU v1 primitive scene. The existing
-mixed and Curve-only buttons retain the unversioned v0 path.
+`curveDisplay.version:1`, the wide Curve sample. The existing mixed and
+Curve-only buttons retain the unversioned v0 sample.
 **Load mixed URL** reads the same committed source0 over local HTTP through
 the neutral Loader and Viewer admission. **Cancel URL** aborts that pending
 request. The accepted native source and display rules match the text load.
@@ -69,7 +71,7 @@ node examples/viewer-curve-scene/benchmark-browser.mjs
 ```
 
 The runner starts the local HTTP host, loads mixed, Curve-only and wide-64
-source scenes in Chromium WebGL2 (SwiftShader), and writes
+source scenes in Chromium with WebGPU (`--enable-unsafe-webgpu`), and writes
 `curve-picking.json`. Each scene runs the existing fixed-grid probe and
 confirms repeated signatures, an unchanged Viewer snapshot and no page errors.
 The saved record includes the exact commit, scene, camera, viewport, DPR,

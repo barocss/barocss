@@ -1,0 +1,27 @@
+{
+  "name": "@barocss/cad-studio-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 52020",
+    "build": "tsc --noEmit && vite build",
+    "type-check": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "test:browser": "node test/browser-flow.mjs",
+    "chat": "node scripts/chat-server.mjs"
+  },
+  "dependencies": {
+    "@barocss/cad": "workspace:*",
+    "@barocss/gpu": "workspace:*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "vite": "8.3.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/node": "26.6.4"
+  }
+}

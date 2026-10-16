@@ -6,7 +6,7 @@
     "language": "GPU scene source1",
     "sourceVersion": 1,
     "source": "@scene sixShapes {\n  version: 1;\n  background: #101820;\n  sphere #ball;\n  box #block;\n  cylinder #post;\n  capsule #pill;\n  rounded-box #case;\n  torus #ring;\n}\n#ball { radius: .4; translate: -2 1 0; color: #F1AA55; }\n#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; color: #57B4D9; }\n#post { radius: .35; height: 1; translate: 2 1 0; color: #95D88B; }\n#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; color: #CA97E5; }\n#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; color: #ED8090; }\n#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; color: #F0D670; }",
-    "description": "Compare all six admitted SDF primitives in two rows. The torus is rotated toward the default camera to show its hole.",
+    "description": "Compare all six admitted primitives in two rows, shown as meshes on the WebGPU viewer. The torus is rotated toward the camera to show its hole.",
     "expected": {
       "sourceVersion": 1,
       "objectCount": 6,

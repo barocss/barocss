@@ -1,6 +1,5 @@
-import { mountNativeSurfaceUV01WebGPUViewport } from '@barocss/gpu';
-import type { NativeSurfaceUV01WebGPUOptions, NativeSurfaceUV01WebGPUStatus,
-  NativeSurfaceUV01WebGPUViewport, UpdateResult } from '@barocss/gpu';
+import { mountNativeBackend, uv01Drawing } from './native-backend.js';
+import type { NativeBackend, UpdateResult, ViewerWebGPUOptions, ViewerWebGPUStatus } from './native-backend.js';
 import type { ViewerGeometryRef } from './index.js';
 import { ViewerNativeSurfaceUV01Error, copyOwn, freezeOwn, prepareUV01Candidate, refKey, refuse } from './native-surface-uv01-candidate.js';
 import type { ViewerNativeSurfaceUV01Input, ViewerNativeSurfaceUV01Accepted,
@@ -11,7 +10,7 @@ export interface ViewerNativeSurfaceUV01WebGPU {
   readonly originals: ViewerNativeSurfaceUV01Input;
   readonly accepted: ViewerNativeSurfaceUV01Accepted;
   readonly selected: ViewerGeometryRef | null;
-  readonly status: NativeSurfaceUV01WebGPUStatus;
+  readonly status: ViewerWebGPUStatus;
   replace(input: unknown): Promise<UpdateResult>;
   resize(width: number, height: number): Promise<UpdateResult>;
   readPixels(): Promise<Uint8Array>;
@@ -28,10 +27,10 @@ function failure(cause: unknown): UpdateResult {
 }
 /** Explicit required-WebGPU consumer. Existing createViewer and Editor paths are unchanged. */
 export async function createNativeSurfaceUV01WebGPUViewer(canvas: HTMLCanvasElement, input: unknown,
-  options: NativeSurfaceUV01WebGPUOptions): Promise<ViewerNativeSurfaceUV01WebGPU> {
+  options: ViewerWebGPUOptions): Promise<ViewerNativeSurfaceUV01WebGPU> {
   let current: UV01Candidate = prepareUV01Candidate(input, 1, null);
-  let backend: NativeSurfaceUV01WebGPUViewport;
-  try { backend = await mountNativeSurfaceUV01WebGPUViewport(canvas, current.gpuRequest, options); }
+  let backend: NativeBackend;
+  try { backend = await mountNativeBackend(canvas, current.gpuRequest, options, request => request as typeof current.gpuRequest, uv01Drawing); }
   catch (cause) { throw gpuError(cause); }
   try {
     if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during mount');
@@ -103,7 +102,7 @@ export async function createNativeSurfaceUV01WebGPUViewer(canvas: HTMLCanvasElem
         let token: object | undefined;
         try {
           token = enter(); const started = epoch;
-          let picked: Awaited<ReturnType<NativeSurfaceUV01WebGPUViewport['pick']>>;
+          let picked: Awaited<ReturnType<NativeBackend['pick']>>;
           try { picked = await backend.pick(x, y); } catch (cause) { throw gpuError(cause); }
           check(started);
           if (picked.generation !== current.accepted.generation) refuse('STATE', 'Picked generation differs from accepted native metadata');

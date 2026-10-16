@@ -15,7 +15,8 @@ With Node 22, build `@barocss/cad`, `@barocss/gpu`,
 node examples/viewer-document/server.mjs
 ```
 
-Open <http://127.0.0.1:52926/>. The page reports actual WebGL pixels,
+Open <http://127.0.0.1:52926/>. The page reports actual WebGPU pixels
+(`await viewer.readPixels()` after an awaited `createViewer`),
 qualified screen hits, body resolution, native measurement, display pose,
 invalid candidate retention, visible subset/isolation/all-hidden background,
 hidden-object native inspection, clear/reload and old source/model-set

@@ -96,45 +96,6 @@ for (const stage of [source.stages[1], source.stages[2], source.stages[5]])
 assert.deepEqual(cold.stages[0].recomputation, { reusedFeatures: [], evaluatedFeatures: [0, 1, 2, 3, 4] });
 assert.deepEqual(cold.stages[1].recomputation, { reusedFeatures: [0, 1, 2], evaluatedFeatures: [3, 4] });
 
-const transferPath = 'packages/barocss-cad-editor/scripts/fixtures/modeling-union/baseline-native.json';
-const transfer = readFileSync(resolve(root, transferPath));
-const transferIdentity = { bytes: transfer.length, sha256: digest(transfer) };
-assert.deepEqual(transferIdentity, { bytes: 524722, sha256: 'ad9ac80fa7e48e598116ba2d9e5ab37b597e9f3e15081e98513aea3479d81e06' });
-assert.equal(receipt.transfer.bytes, transfer.length); assert.equal(receipt.transfer.sha256, digest(transfer));
-assert.equal(source.transfer.bytes, transfer.length); assert.equal(source.transfer.sha256, digest(transfer));
-const baseline = JSON.parse(transfer), saved = JSON.parse(baseline.text);
-assert.equal(baseline.bodySHA256, source.initialBodySHA256);
-// Outer JSON.stringify preserved native geometry but normalizes -0 in parameters; authored text retains it.
-assert.deepEqual(baseline.parameters, { legMinX: 0, legMinY: 0, legWidth: 8, legHeight: 8 });
-assert.ok(Object.is(saved.parameters.legMinX, -0)); assert.ok(Object.is(saved.parameters.legMinY, -0));
-assert.deepEqual(Object.keys(baseline.bodies), ['base', 'leg', 'bracket']);
-assert.deepEqual(Object.keys(saved.outputs), ['base', 'bracket', 'leg']); assert.equal(saved.schema, 1);
-assert.deepEqual(saved.outputs, { base: { node: 1, side: 'solid' }, bracket: { node: 4, side: 'solid' }, leg: { node: 3, side: 'solid' } });
-assert.deepEqual(saved.nodes.map(node => node.kind), ['sketch', 'extrude', 'sketch', 'extrude', 'union']);
-assert.deepEqual(baseline.features.map(feature => feature.kind), ['sketch', 'extrude', 'sketch', 'extrude', 'union']);
-for (const forbidden of ['native', 'bodies', 'mesh', 'certificate', 'bodyId', 'solidId', 'taskToken'])
-  assert.ok(!new RegExp(`"${forbidden}"\\s*:`).test(baseline.text), `Saved intent excludes ${forbidden}`);
-assert.equal(baseline.bodies.base.family, 'convex-planar'); assert.equal(baseline.bodies.leg.family, 'convex-planar');
-assert.equal(baseline.bodies.bracket.family, 'orthogonal-cell');
-const native = baseline.bodies.bracket.native, buffers = baseline.buffers;
-assert.deepEqual(native.report, source.baseline.report);
-assert.deepEqual([native.bodies.length, native.shells.length, native.panels.length, native.sources.length, native.vertices.length, native.edges.length], [1, 1, 14, 14, 16, 28]);
-assert.deepEqual(buffers.options, { basis: 'authored-xyz-matches-rhyup', mmToSceneUnit: 1, translate: [0, 0, 0] });
-assert.equal(buffers.panels.length, 14); assert.equal(buffers.positions.length, 56 * 3);
-assert.equal(buffers.normals.length, 56 * 3); assert.equal(buffers.indices.length, 28 * 3);
-assert.equal(Object.hasOwn(buffers, 'uvs'), false); // No claim that raw tessellation UV arrays were retained.
-assert.deepEqual(buffers.report, source.cpu.report);
-for (const [index, panel] of native.panels.entries()) {
-  const retained = buffers.panels[index];
-  assert.equal(retained.panelId, panel.id); assert.equal(retained.bodyId, panel.bodyId);
-  assert.equal(retained.sourceId, panel.sourceId); assert.deepEqual(retained.lineage, panel.lineage);
-  assert.equal(retained.vertexOffset, index * 4); assert.equal(retained.indexOffset, index * 6);
-  assert.equal(retained.vertexCount, 4); assert.equal(retained.indexCount, 6);
-  assert.equal(retained.nativeVertexIdsInBufferOrder.length, 4);
-  assert.ok(panel.lineage.length > 0);
-  for (const lineage of panel.lineage) assert.equal(lineage.uvCorners.length, 4);
-}
-
 // Pin all 22 prior downloads to the adopted base, not the changing working tree.
 const priorDocs = JSON.parse(git('apps/library-docs/evidence/modeling-hole-docs.json'));
 const preservedDownloads = [...priorDocs.preservedDownloads, {
@@ -173,15 +134,12 @@ if (mode !== 'static') {
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }
 console.log(JSON.stringify({
-  ok: true, scope: 'connected-union guide/download; pinned provider/native receipts and baseline; 22 prior downloads unchanged; no native execution',
+  ok: true, scope: 'connected-union guide/download; pinned provider/native receipts; 22 prior downloads unchanged; no native execution',
   mode, typedExampleFiles: mode === 'static' ? 0 : 11, typeCheck: mode === 'static' ? 'UNRUN' : 'passed',
   providerPin, testedProductPin, engineReceiptSHA256: digest(receiptText),
   modelingSourceSHA256: digest(modeling), providerFixtureSHA256: digest(fixture),
   ...(entry ? { entrySHA256: digest(readFileSync(entry)) } : {}),
   downloadSHA256: digest(snippet), guideSHA256: digest(page),
-  nativeBaseline: { ...transferIdentity, generatedPanels: 14, nativeVertices: 16, nativeEdges: 28,
-    retainedHelperDisplayVertices: 56, retainedHelperTriangles: 28, retainedRawTessellationUVs: false,
-    replay: 'identity-checked helper arrays adapted to raw; genuine native pcurve endpoint UV copies; convex fan validator stubbed; changed-state meshes mocked' },
   preservedDownloads, totalDownloadsAfter: 23, nativeCampaignRun: false, browserOrReactRun: false,
   physicalFileFlows: 'UNRUN', externalVisualGate: 'OPEN',
   uiBehaviorScope: 'Separate actual controller/scene/recipe tests; static checks do not establish behavior',

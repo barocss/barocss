@@ -5,7 +5,9 @@ import { solveCubicBernsteinRoots, CubicBernsteinRootError } from './own-cubic-b
 import type { CubicBernsteinRootEvidence } from './own-cubic-bernstein-roots.js';
 import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
+import { linearToleranceMM, geometryScaleMM } from './numeric-policy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY', BUDGET: 'BUDGET',
@@ -36,7 +38,7 @@ export interface CubicCurveAffinePlaneIntersectionReport {
     planeDegree: [1, 1]; planeControlGrid: [2, 2]; planeEqualWeights: true; coordinateAbsMM: 10000;
     weightRange: [1e-6, 1e6]; positive: true; clamped: true; nonperiodic: true };
   numericPolicy: { parameterWidthTarget: 1e-12; normalizedParameterWidthTarget: number; maximumRootSteps: 64;
-    maximumScalarEvaluations: 1024; pointBindingComparisonMM: 1e-7;
+    maximumScalarEvaluations: 1024; pointBindingComparisonMM: number;
     criticalBracketPolicy: 'derivative-control-hull-lipschitz-plus64-epsilon-exclusion';
     nearZeroMidpointPolicy: 'represented-quarter-points-with-safely-opposite-ordered-signs-or-refusal';
     uvBoundaryPolicy: 'original-estimate-and-bracket-domain-agreement-no-clamp';
@@ -116,16 +118,6 @@ function id(value: unknown): string {
     CODE.IDENTITY, 'ASCII original/context/event ID1..48 required');
   return value;
 }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 
 /** Own bounded cubic support roots with the exact shared original Curve/Plane binding policy. */
 export function intersectCubicBezierCurveWithAffinePlaneSurface(curveInput: Curve, planeInput: Surface,
@@ -179,7 +171,7 @@ export function intersectCubicBezierCurveWithAffinePlaneSurface(curveInput: Curv
       planeDegree: [1, 1], planeControlGrid: [2, 2], planeEqualWeights: true, coordinateAbsMM: 10000,
       weightRange: [1e-6, 1e6], positive: true, clamped: true, nonperiodic: true },
     numericPolicy: { parameterWidthTarget: 1e-12, normalizedParameterWidthTarget: normalizedTarget, maximumRootSteps: 64,
-      maximumScalarEvaluations: 1024, pointBindingComparisonMM: 1e-7,
+      maximumScalarEvaluations: 1024, pointBindingComparisonMM: linearToleranceMM(geometryScaleMM(c.controlPoints, p.controlPoints.flat())),
       criticalBracketPolicy: 'derivative-control-hull-lipschitz-plus64-epsilon-exclusion',
       nearZeroMidpointPolicy: 'represented-quarter-points-with-safely-opposite-ordered-signs-or-refusal',
       uvBoundaryPolicy: 'original-estimate-and-bracket-domain-agreement-no-clamp', gramPolicy: '64-epsilon-scaled-determinant-refusal', exactParameterDedupOnly: true },

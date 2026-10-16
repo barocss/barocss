@@ -8,6 +8,7 @@ import type { RationalRuledSurfaceResult, RationalRuledSurfaceReport } from './r
 import { requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same as sameData } from './structural-equality.js';
 
 export interface DegreeMatchedBezierRuledOptions { surfaceId: string; targetDegree: 2 | 3 }
 export interface DegreeMatchedBezierSectionProvenance {
@@ -73,14 +74,6 @@ function record(input: unknown, fields: string[]): Record<string, unknown> {
   const value = input as Record<string, unknown>; check(Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key)), 'exact fields required: ' + fields.join(',')); return value;
 }
 function id(input: unknown): string { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), 'ASCII ID1..48 required'); return input; }
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 function admitCurve(input: unknown): Curve {
   const data = record(input, ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']);
   check(data.kind === 'curve', 'original Curve required'); id(data.id);

@@ -2,7 +2,7 @@
 import { withBase } from 'vitepress'
 import { ref, computed } from 'vue'
 import { exampleCatalog, exampleHref } from '../example-catalog.mjs'
-const libraries={cad:'CAD',gpu:'GPU',canvas2d:'Canvas2D',viewer:'Viewer',physics:'Physics'}
+const libraries={cad:'CAD',gpu:'GPU',viewer:'Viewer',physics:'Physics'}
 const purposes={api:'Library API',language:'Language',integration:'Integrated workflow'}
 const library=ref('all'),purpose=ref('all'),query=ref('')
 const entries=Object.entries(exampleCatalog)
@@ -15,14 +15,14 @@ function clear(){library.value='all';purpose.value='all';query.value=''}
 <template>
 <section class="example-catalog" aria-label="Example catalog">
  <nav class="catalog-views" aria-label="Ways to browse examples">
-  <a :href="withBase('/examples/library')"><img :src="withBase('/examples/path-edit.jpg')" alt="Quadratic and cubic paths rendered by Canvas2D"/><strong>By library</strong><span>Choose a library, then open its language, API or workflow examples.</span></a>
+  <a :href="withBase('/examples/library')"><img :src="withBase('/examples/viewer-panel.png')" alt="A native CAD model shown in the Viewer panel"/><strong>By library</strong><span>Choose a library, then open its language, API or workflow examples.</span></a>
   <a :href="withBase('/examples/language')"><img :src="withBase('/examples/advanced-shader.png')" alt="Neon plasma rendered from a complete GPU shader"/><strong>Language practice</strong><span>Learn model declarations, scene syntax and material expressions.</span></a>
   <a :href="withBase('/examples/integration')"><img :src="withBase('/examples/cad-surface.png')" alt="A sampled CAD surface displayed by the GPU renderer"/><strong>Integrated workflows</strong><span>Follow native data through multiple public libraries.</span></a>
  </nav>
  <div class="catalog-filters">
   <label>Library<select v-model="library" aria-label="Catalog library"><option value="all">All libraries</option><option v-for="(name,key) in libraries" :key="key" :value="key">{{name}}</option></select></label>
   <label>Purpose<select v-model="purpose" aria-label="Catalog purpose"><option value="all">All purposes</option><option v-for="(name,key) in purposes" :key="key" :value="key">{{name}}</option></select></label>
-  <label>Find an example<input v-model="query" aria-label="Find an example" type="search" placeholder="Shader, path, parameter…"/></label>
+  <label>Find an example<input v-model="query" aria-label="Find an example" type="search" placeholder="Shader, surface, parameter…"/></label>
  </div>
  <p class="catalog-count" role="status">{{matches.length}} of {{entries.length}} runnable examples</p>
  <ul class="catalog-list">

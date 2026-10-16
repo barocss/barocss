@@ -6,6 +6,7 @@ import type { SurfaceControlNetEdits, SurfaceControlNetResult, SurfacePoleField 
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Model, Surface } from './types.js';
+import { same } from './structural-equality.js';
 
 export const SourceSurfaceControlNetDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetDiagnosticCode = typeof SourceSurfaceControlNetDiagnosticCode[keyof typeof SourceSurfaceControlNetDiagnosticCode];
@@ -55,11 +56,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof SourceSurfaceControlNetError) throw cause; throw new SourceSurfaceControlNetError(code, 'Own-data snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 /** Match the original compiler's UTF-8 accounting, including lone-surrogate replacement. */
 function sourceBytes(source: string): number {

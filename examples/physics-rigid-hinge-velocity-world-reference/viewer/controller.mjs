@@ -21,8 +21,8 @@ export function createRecordedController({recording, createSession, validateFram
   if (!recording || !Array.isArray(recording.frames) || recording.frames.length !== 1201 ||
     typeof recording.frameFor !== 'function' || typeof createSession !== 'function' ||
     typeof validateFrame !== 'function' || typeof makeViewerFrame !== 'function') throw new Error('Recorded controller configuration is invalid');
-  let cursor = null, displayKnown = false, disposed = false, contextLost = false, restoredAvailable = false;
-  let session = null, lastViewer = null, sessionSerial = 0, presentationCount = 0;
+  let cursor = null, displayKnown = false, disposed = false;
+  let session = null, lastViewer = null, sessionSerial = 0, presentationCount = 0, freshSerial = 0;
   const errors = [];
   let clock;
   function snapshot() {
@@ -30,7 +30,7 @@ export function createRecordedController({recording, createSession, validateFram
     return {cursor, displayedCursor: displayKnown ? cursor : null,
       timeSeconds: cursor === null ? null : recording.frames[cursor].timeSeconds,
       playing: stats?.playing ?? false, ended: cursor === 1200, disposed, displayKnown,
-      contextLost, restoredAvailable, sessionSerial, presentationCount, pendingRAF: stats?.pendingRAF ?? 0,
+      sessionSerial, presentationCount, pendingRAF: stats?.pendingRAF ?? 0,
       errors: structuredClone(errors)};
   }
   const notify = () => onChange(snapshot());
@@ -55,7 +55,7 @@ export function createRecordedController({recording, createSession, validateFram
       motion.poses.some(pose => !targets.has(pose.targetId))) throw new Error('Recorded pose coverage is invalid');
   }
   function present(index) {
-    if (disposed || contextLost || !session) return false;
+    if (disposed || !session) return false;
     let frame, motion, bindings;
     try {
       if (!Number.isInteger(index) || index < 0 || index > 1200) throw new Error('Recorded frame is missing');
@@ -67,18 +67,22 @@ export function createRecordedController({recording, createSession, validateFram
     } catch (error) { return failure('validation', false, error); }
     try { session.viewer.applyMotionFrame(motion, bindings, BASIS); }
     catch (error) { return failure('submission', true, error); }
-    if (disposed || contextLost) return false;
+    if (disposed) return false;
     cursor = index; displayKnown = true; presentationCount++; notify(); return true;
   }
   clock = createPlaybackClock({dt: recording.dt, lastIndex: 1200, advance: present, changed: notify, requestFrame, cancelFrame});
-  function fresh() {
-    if (disposed || contextLost && !restoredAvailable) return false;
+  /** Session creation is asynchronous (the Viewer acquires a WebGPU device); a newer reset or disposal wins. */
+  async function fresh() {
+    if (disposed) return false;
+    const serial = ++freshSerial;
     clock.pause('paused'); displayKnown = false;
     if (session) { lastViewer = session.viewer; session.viewer.dispose(); session = null; }
+    let candidate = null;
     try {
-      session = createSession();
-      if (!session || !session.viewer || !Array.isArray(session.bindings)) throw new Error('Recorded session is invalid');
-      lastViewer = session.viewer; sessionSerial++; contextLost = false; restoredAvailable = false;
+      candidate = await createSession();
+      if (disposed || serial !== freshSerial) { candidate?.viewer?.dispose?.(); return false; }
+      if (!candidate || !candidate.viewer || !Array.isArray(candidate.bindings)) throw new Error('Recorded session is invalid');
+      session = candidate; lastViewer = session.viewer; sessionSerial++;
     } catch (error) { session = null; return failure('session', true, error); }
     if (!present(0)) return false;
     clock.setCursor(0); notify(); return true;
@@ -88,15 +92,8 @@ export function createRecordedController({recording, createSession, validateFram
     reset: fresh,
     seek(index) { clock.pause('paused'); const accepted = present(index); if (accepted) clock.setCursor(index); return accepted; },
     oneStep() { if (disposed || cursor === 1200) return false; clock.pause('paused'); const next = (cursor ?? -1) + 1; const accepted = present(next); if (accepted) clock.setCursor(next); return accepted; },
-    play() { if (disposed || contextLost || !displayKnown || cursor === null) return false; return clock.play(cursor); },
+    play() { if (disposed || !displayKnown || cursor === null) return false; return clock.play(cursor); },
     pause() { clock.pause('paused'); },
-    contextLost() {
-      if (disposed) return;
-      contextLost = true; restoredAvailable = false; displayKnown = false; clock.pause('context-lost');
-      if (session) { lastViewer = session.viewer; session.viewer.dispose(); session = null; }
-      notify();
-    },
-    contextRestored() { if (disposed || !contextLost) return; restoredAvailable = true; notify(); },
     dispose() {
       if (disposed) return;
       disposed = true; displayKnown = false; clock.dispose();
@@ -106,7 +103,7 @@ export function createRecordedController({recording, createSession, validateFram
     getSnapshot: snapshot,
     getClockStats: () => clock.getStats(),
     getViewerState() { return lastViewer?.getState() ?? null; },
-    readPixels() { if (disposed || contextLost || !displayKnown || !session) throw new Error('Recorded pixels are unavailable'); return session.viewer.readPixels(); },
+    readPixels() { if (disposed || !displayKnown || !session) throw new Error('Recorded pixels are unavailable'); return session.viewer.readPixels(); },
     getRecordingFrame: index => recording.frameFor(index),
   });
 }

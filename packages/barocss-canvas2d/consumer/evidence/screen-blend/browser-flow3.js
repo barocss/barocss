@@ -1,5 +1,0 @@
-async page=>{
-const canvas=await page.locator('#scene').boundingBox();await page.getByRole('button',{name:'Dispose',exact:true}).click();await page.mouse.click(canvas.x+20,canvas.y+144);
-await page.evaluate(()=>{const o=__record('disposeAndLatePointer');if(o.counts.created!==2||o.counts.disposed!==2||o.counts.bindings!==o.counts.unbindings||o.counts.pointers!==6)throw Error('lifetime');
-window.__resourceResult=__gpuProof.contexts.map(r=>({created:r.created,deleted:r.deleted,live:r.live(),error:r.error(),capacity:r.capacity}));for(const r of __resourceResult){if(r.error!==0||Object.values(r.live).some(v=>v!==0)||Object.entries(r.created).some(([k,v])=>v!==r.deleted[k]))throw Error('GL lifetime');}window.__proof={stages:__screenStages,oracle:__oracle,failureRestore:__failureRestore,historical:__historical,resources:__resourceResult,errors:__gpuProof.errors,warnings:__gpuProof.warnings,userAgent:navigator.userAgent};});
-}

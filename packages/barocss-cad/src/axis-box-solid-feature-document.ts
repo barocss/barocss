@@ -10,6 +10,7 @@ import { editSourceSurfaceControlNet } from './source-surface-control-net.js';
 import type { SourceSurfaceControlNetResult } from './source-surface-control-net.js';
 import type { SurfacePoleEdit } from './surface-control-net.js';
 import type { Model, Point, Surface } from './types.js';
+import { same } from './structural-equality.js';
 
 export const AxisBoxSolidFeatureDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', REVISION: 'REVISION', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE', BOOLEAN: 'BOOLEAN', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidFeatureDocumentDiagnosticCode = typeof AxisBoxSolidFeatureDocumentDiagnosticCode[keyof typeof AxisBoxSolidFeatureDocumentDiagnosticCode];
@@ -52,7 +53,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidFeatureDocumentError) throw cause; throw new AxisBoxSolidFeatureDocumentError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function point(input: unknown, sides = false): Point { const data = tuple(input, 3); check(data.every(value => typeof value === 'number' && Number.isSafeInteger(value) && (!sides || value >= 1 && value <= 10000)), CODE.INPUT, 'Safe integer origin/side triples with sides1..10000 are required'); return data as Point; }
 function corners(origin: Point, sides: Point, bounds: boolean): Point[] { const values = Array.from({ length: 8 }, (_, index) => origin.map((value, axis) => index >> axis & 1 ? value + sides[axis] : value) as Point); check(values.every(point => point.every(value => Number.isSafeInteger(value) && (!bounds || Math.abs(value) <= 10000))), CODE.INPUT, 'Exact represented authored Box corners are required'); return values; }
 function authored(input: unknown): AxisBoxSolidFeatureDocumentV0 {

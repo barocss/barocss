@@ -26,8 +26,7 @@ No event-supplied strings become shell commands. Selected scripts are checked
 against their exact current manifests before execution.
 
 Partial build artifacts bind this run, checkout SHA and plan hash. Each build
-row names its audited output directory: libraries and Vite apps use `dist`,
-`examples/cad-preview` uses its literal Vite `outDir` (`editor-dist`), and both
+row names its audited output directory: libraries and Vite apps use `dist` (or their literal Vite `outDir`), and both
 VitePress apps use `docs/.vitepress/dist`. Missing, empty, extra, unsafe, symlinked
 or corrupt outputs fail; repository-relative layout is preserved during restore.
 The final artifact job validates outputs rather than running packed runtime tests.

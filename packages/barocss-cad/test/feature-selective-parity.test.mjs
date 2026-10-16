@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../dist/index.js';
 import { planBooleanExtrusionImpactV1 } from '../dist/feature-impact-plan-v1.js';
 
-const fixture = fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
 const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
 const empty = { parameterEdits: [], faceEdits: [], booleanEdits: [], distanceEdits: [] };
 

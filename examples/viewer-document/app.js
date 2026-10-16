@@ -4,7 +4,7 @@ import { loadBaroCadModelSet } from '../../packages/barocss-cad-interop/dist/mod
 
 const canvas = document.querySelector('#view');
 const output = document.querySelector('#status');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 1,
@@ -59,7 +59,7 @@ try {
     'State did not copy document source');
   const refs = accepted.documentBodies.map(value => value.ref);
   poseDocument(refs);
-  const posedHash = hash(viewer.readPixels());
+  const posedHash = hash(await viewer.readPixels());
   const scanHits = () => {
     const found = new Map();
     for (let y = 6; y < canvas.height && found.size < 4; y += 4) {
@@ -78,7 +78,7 @@ try {
       && value.ref.curveId === secondCurve.ref.curveId);
   assert(resolvedBody?.binding.bodyId === 'body_1_curve', 'Screen ref did not resolve to original body');
   viewer.selectGeometry({ kind: 'curve', ...secondCurve.ref });
-  const selectedHash = hash(viewer.readPixels());
+  const selectedHash = hash(await viewer.readPixels());
   assert(selectedHash !== posedHash && viewer.getState().selectedGeometry?.modelId === 'asset_b',
     'Document Curve selection failed');
   viewer.fitGeometry({ kind: 'surface', ...hits.get('surface:asset.a').ref });
@@ -100,7 +100,7 @@ try {
   const surfacePointInput = { kind: 'surface', ...surfaceHit.ref,
     u: surfaceHit.parameterUV[0], v: surfaceHit.parameterUV[1] };
   const curvePointInput = { kind: 'curve', ...secondCurve.ref, t: secondCurve.parameterApprox };
-  const beforeProjection = viewer.getState(), pixelsBeforeProjection = hash(viewer.readPixels());
+  const beforeProjection = viewer.getState(), pixelsBeforeProjection = hash(await viewer.readPixels());
   const surfaceAnchor = viewer.projectNativePoint(surfacePointInput);
   const curveAnchor = viewer.projectNativePoint(curvePointInput);
   assert(surfaceAnchor && curveAnchor && surfaceAnchor.documentBody?.bodyId === 'body_0_surface'
@@ -112,7 +112,7 @@ try {
     && curveAnchor.depthScene > 0 && curveAnchor.occlusion === 'not-tested'
     && curveAnchor.approximate === true
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeProjection)
-    && hash(viewer.readPixels()) === pixelsBeforeProjection,
+    && hash(await viewer.readPixels()) === pixelsBeforeProjection,
   'Native measurement point projection changed state or lost qualified binding');
   const copiedAnchor = viewer.projectNativePoint(curvePointInput);
   copiedAnchor.documentBody.bodyId = 'caller-edited-copy';
@@ -140,7 +140,7 @@ try {
   const outsideFrustum = viewer.projectNativePoint(curvePointInput) === null;
   viewer.setView(cameraBeforeOutside);
   assert(outsideFrustum, 'Valid point behind the camera did not return null');
-  const beforeBadProjection = viewer.getState(), pixelsBeforeBadProjection = hash(viewer.readPixels());
+  const beforeBadProjection = viewer.getState(), pixelsBeforeBadProjection = hash(await viewer.readPixels());
   let badParameterRefused = false, badPointRefused = false, hiddenNativeRefused = false;
   try { viewer.projectNativePoint({ ...curvePointInput, t: 100000 }); }
   catch { badParameterRefused = true; }
@@ -150,7 +150,7 @@ try {
   catch { hiddenNativeRefused = true; }
   assert(badParameterRefused && badPointRefused && hiddenNativeRefused
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeBadProjection)
-    && hash(viewer.readPixels()) === pixelsBeforeBadProjection,
+    && hash(await viewer.readPixels()) === pixelsBeforeBadProjection,
   'Invalid native point projection changed state or pixels');
   let crossRefused = false;
   try {
@@ -159,7 +159,7 @@ try {
       { modelId: 'asset_b', curveId: 'guide_path_native', t: 7 });
   } catch { crossRefused = true; }
   assert(crossRefused, 'Cross-asset native distance accepted');
-  const beforeInvalid = viewer.getState(), pixelsBeforeInvalid = hash(viewer.readPixels());
+  const beforeInvalid = viewer.getState(), pixelsBeforeInvalid = hash(await viewer.readPixels());
   let badBodyRefused = false, badBasisRefused = false;
   try { viewer.loadDocument(result, { ...options, bodyIds: ['missing_body'] }); }
   catch { badBodyRefused = true; }
@@ -167,7 +167,7 @@ try {
   catch { badBasisRefused = true; }
   assert(badBodyRefused && badBasisRefused
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeInvalid)
-    && hash(viewer.readPixels()) === pixelsBeforeInvalid,
+    && hash(await viewer.readPixels()) === pixelsBeforeInvalid,
   'Invalid document candidate changed accepted scene');
   viewer.selectGeometry(refs[0]);
   viewer.setVisibleGeometry(refs.slice(1).reverse());
@@ -196,28 +196,28 @@ try {
   assert(isolated.visibleGeometry.length === 1 && isolatedHits.size === 1
     && isolatedHits.has('curve:asset_b'), 'One-object visibility or fit failed');
   viewer.setVisibleGeometry([]);
-  const hiddenAll = viewer.getState(), hiddenAllHash = hash(viewer.readPixels());
+  const hiddenAll = viewer.getState(), hiddenAllHash = hash(await viewer.readPixels());
   assert(hiddenAll.status === 'ready' && hiddenAll.visibleGeometry.length === 0
     && hiddenAll.documentBodies.length === 4 && hiddenAll.document !== null,
   'Hiding all unloaded the accepted document');
   let emptyFitRefused = false;
   try { viewer.fit(); } catch { emptyFitRefused = true; }
   assert(emptyFitRefused && JSON.stringify(viewer.getState()) === JSON.stringify(hiddenAll)
-    && hash(viewer.readPixels()) === hiddenAllHash,
+    && hash(await viewer.readPixels()) === hiddenAllHash,
   'Fit on hidden scene changed state or pixels');
   const hiddenMeasurement = viewer.measureNativeCurvePoints(
     { modelId: 'asset_b', curveId: 'guide_path_native', t: -3 },
     { modelId: 'asset_b', curveId: 'guide_path_native', t: 7 });
   assert(hiddenMeasurement.distanceMM === same.distanceMM,
     'Hidden geometry lost native measurement');
-  const beforeBadVisibility = viewer.getState(), beforeBadVisibilityHash = hash(viewer.readPixels());
+  const beforeBadVisibility = viewer.getState(), beforeBadVisibilityHash = hash(await viewer.readPixels());
   let duplicateRefused = false, foreignRefused = false, malformedRefused = false;
   try { viewer.setVisibleGeometry([refs[0], refs[0]]); } catch { duplicateRefused = true; }
   try { viewer.setVisibleGeometry([{ ...refs[0], modelId: 'foreign' }]); } catch { foreignRefused = true; }
   try { viewer.setVisibleGeometry([{ ...refs[0], extra: true }]); } catch { malformedRefused = true; }
   assert(duplicateRefused && foreignRefused && malformedRefused
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeBadVisibility)
-    && hash(viewer.readPixels()) === beforeBadVisibilityHash,
+    && hash(await viewer.readPixels()) === beforeBadVisibilityHash,
   'Invalid visibility candidate changed state or pixels');
   viewer.setVisibleGeometry(refs);
   viewer.fit();
@@ -233,7 +233,7 @@ try {
     && viewer.getState().documentBodies.length === 0
     && viewer.getState().visibleGeometry.length === 0 && clearedProjectionRefused,
   'Clear retained document projection authority');
-  const blankHash = hash(viewer.readPixels());
+  const blankHash = hash(await viewer.readPixels());
   assert(hiddenAllHash === blankHash, 'All-hidden frame did not match explicit blank background');
   viewer.loadNative(originalSource[0], { sourceVersion: 0, countU: 8, countV: 8,
     curveDisplay: native.curveDisplay });
@@ -246,12 +246,12 @@ try {
     u: surfacePointInput.u, v: surfacePointInput.v });
   assert(sourceAnchor && sourceAnchor.documentBody === null,
     'Single-source native Surface projection failed');
-  const singleSourceHash = hash(viewer.readPixels());
+  const singleSourceHash = hash(await viewer.readPixels());
   viewer.setVisibleGeometry([]);
-  assert(viewer.getState().status === 'ready' && hash(viewer.readPixels()) === blankHash,
+  assert(viewer.getState().status === 'ready' && hash(await viewer.readPixels()) === blankHash,
     'Legacy single-source hide did not keep authority or blank the viewport');
   viewer.setVisibleGeometry(singleSource.visibleGeometry);
-  assert(hash(viewer.readPixels()) === singleSourceHash,
+  assert(hash(await viewer.readPixels()) === singleSourceHash,
     'Legacy single-source show did not restore displayed geometry');
   viewer.clear();
   const modelSet = await loadBaroCadModelSet({ format: 'barocad-model-set', version: 0,
@@ -269,23 +269,23 @@ try {
     'Qualified model-set native Surface projection failed');
   viewer.clear();
   viewer.loadDocument(result, options);
-  const synchronousHash = hash(viewer.readPixels());
+  const synchronousHash = hash(await viewer.readPixels());
   const documentUrl = new URL('/document.cad-document.json', location.href).href;
   const slowDocumentUrl = new URL('/slow-document.cad-document.json', location.href).href;
   const progress = [];
   await viewer.loadDocumentUrl(documentUrl, options,
     { onProgress: event => progress.push(event.loadedBytes) });
   assert(progress.length > 0 && progress.at(-1) === 3172
-    && hash(viewer.readPixels()) === synchronousHash
+    && hash(await viewer.readPixels()) === synchronousHash
     && viewer.getState().documentBodies.length === 4,
   'Document URL did not match synchronous admission or byte progress');
-  const retainedUrlState = () => ({ state: JSON.stringify(viewer.getState()),
-    pixels: hash(viewer.readPixels()) });
+  const retainedUrlState = async () => ({ state: JSON.stringify(viewer.getState()),
+    pixels: hash(await viewer.readPixels()) });
   const refusesWithoutChange = async (url, displayOptions, transport) => {
-    const before = retainedUrlState();
+    const before = await retainedUrlState();
     let refused = false;
     try { await viewer.loadDocumentUrl(url, displayOptions, transport); } catch { refused = true; }
-    assert(refused && JSON.stringify(retainedUrlState()) === JSON.stringify(before),
+    assert(refused && JSON.stringify(await retainedUrlState()) === JSON.stringify(before),
       'Refused document URL changed accepted scene or pixels');
   };
   await refusesWithoutChange(new URL('/missing.cad-document.json', location.href).href, options);
@@ -295,11 +295,12 @@ try {
   await refusesWithoutChange(documentUrl, { ...options, bodyIds: ['missing_body'] });
   const aborted = new AbortController();
   const abortedLoad = viewer.loadDocumentUrl(slowDocumentUrl, options, { signal: aborted.signal });
+  abortedLoad.catch(() => {}); // Observed below, after an awaited pixel capture.
   aborted.abort();
-  const beforeAbort = retainedUrlState();
+  const beforeAbort = await retainedUrlState();
   let abortCode = null;
   try { await abortedLoad; } catch (error) { abortCode = error.code; }
-  assert(abortCode === 'ABORT_ERR' && JSON.stringify(retainedUrlState()) === JSON.stringify(beforeAbort),
+  assert(abortCode === 'ABORT_ERR' && JSON.stringify(await retainedUrlState()) === JSON.stringify(beforeAbort),
     'Caller abort replaced accepted document');
   const staleDocument = viewer.loadDocumentUrl(slowDocumentUrl, options)
     .then(() => null, error => error.code);
@@ -311,7 +312,7 @@ try {
     .then(() => null, error => error.code);
   viewer.loadDocument(result, options);
   const synchronousCode = await pendingDocument;
-  assert(synchronousCode === 'ABORT_ERR' && hash(viewer.readPixels()) === synchronousHash,
+  assert(synchronousCode === 'ABORT_ERR' && hash(await viewer.readPixels()) === synchronousHash,
     'Synchronous document did not supersede pending URL');
   const pendingNative = viewer.loadNativeUrl(new URL('/model-a.barocad', location.href).href,
     { sourceVersion: 0, countU: 8, countV: 8, curveDisplay: native.curveDisplay })
@@ -328,7 +329,7 @@ try {
     'Clear did not supersede pending document URL');
   const disposableCanvas = document.createElement('canvas');
   disposableCanvas.width = 800; disposableCanvas.height = 480;
-  const disposable = createViewer(disposableCanvas, { mmToSceneUnit: 0.15,
+  const disposable = await createViewer(disposableCanvas, { mmToSceneUnit: 0.15,
     background: [0.015, 0.02, 0.03] });
   const pendingDispose = disposable.loadDocumentUrl(slowDocumentUrl, options);
   disposable.dispose();

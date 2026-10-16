@@ -7,35 +7,9 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const canvas = document.querySelector('#view'), status = document.querySelector('#status');
-const errors = [], contexts = new Set(), pointDraws = [];
-const resources = {};
-for (const type of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-  const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-  resources[type] = live;
-  const create = prototype[`create${type}`], remove = prototype[`delete${type}`];
-  prototype[`create${type}`] = function (...args) {
-    const value = create.apply(this, args);
-    if (value) live.add(value);
-    return value;
-  };
-  prototype[`delete${type}`] = function (value) {
-    live.delete(value);
-    return remove.call(this, value);
-  };
-}
+const errors = [];
 window.addEventListener('error', event => errors.push(event.message));
 window.addEventListener('unhandledrejection', event => errors.push(String(event.reason)));
-const originalGetContext = HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-  const context = originalGetContext.call(this, kind, ...args);
-  if (kind === 'webgl2' && context) contexts.add(context);
-  return context;
-};
-const originalDrawArrays = WebGL2RenderingContext.prototype.drawArrays;
-WebGL2RenderingContext.prototype.drawArrays = function (mode, first, count) {
-  if (mode === this.POINTS) pointDraws.push(count);
-  return originalDrawArrays.call(this, mode, first, count);
-};
 const materialSource = '@shader #wave { @uniform timeSeconds: float(0,2,0); '
   + '@fragment { color: mix(#204080,#E08020,sin(timeSeconds*1.5707963267948966)*0.5+0.5); } }';
 const expectedColor = time => {
@@ -45,8 +19,16 @@ const expectedColor = time => {
   return first.map((value, index) => Math.round(Math.pow(
     value * (1 - ratio) + second[index] * ratio, 1 / 2.2) * 255));
 };
-const matches = (pixels, index, expected) => expected.every((value, channel) =>
-  Math.abs(pixels[index + channel] - value) <= 2);
+// A pixel of the most common colour among the pixels that differ between two captures (an interior one).
+const changedProbe = (a, b) => {
+  const counts = new Map();
+  for (let index = 0; index < a.length; index += 4) {
+    if (![0, 1, 2, 3].some(channel => a[index + channel] !== b[index + channel])) continue;
+    const key = a.slice(index, index + 4).join(), row = counts.get(key);
+    if (row) row.count++; else counts.set(key, { index, count: 1 });
+  }
+  return [...counts.values()].reduce((best, row) => row.count > best.count ? row : best, { index: -1, count: 0 }).index;
+};
 const cyanPixels = pixels => {
   let count = 0;
   for (let index = 0; index < pixels.length; index += 4) {
@@ -54,11 +36,11 @@ const cyanPixels = pixels => {
   }
   return count;
 };
-const retained = (viewer, action, label) => {
-  const state = viewer.getState(), pixels = hash(viewer.readPixels());
+const retained = async (viewer, action, label) => {
+  const state = viewer.getState(), pixels = hash(await viewer.readPixels());
   let refused = false;
   try { action(); } catch { refused = true; }
-  assert(refused && equal(viewer.getState(), state) && hash(viewer.readPixels()) === pixels,
+  assert(refused && equal(viewer.getState(), state) && hash(await viewer.readPixels()) === pixels,
     `${label} changed accepted Viewer state or pixels`);
 };
 
@@ -71,7 +53,7 @@ try {
   const compiled = compileMeshMaterial(materialSource);
   assert(compiled.ok && compiled.material, 'Host material source did not compile');
   const material = compiled.material;
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.065, 0.105],
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.065, 0.105],
     lighting: { ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1] } });
   viewer.loadModelSet(set);
   const initial = viewer.getState(), ref = initial.surfaces[0];
@@ -82,20 +64,18 @@ try {
   const nativeSnapshot = { source: viewer.getState().modelSet.entries[0].result.source,
     packet: viewer.getState().packets[0].packet, pointMM: measurement.first.pointMM,
     distanceMM: measurement.distanceMM };
-  const defaultHash = hash(viewer.readPixels()), originalCamera = viewer.getState().camera;
+  const defaultPixels = await viewer.readPixels(), defaultHash = hash(defaultPixels);
+  const originalCamera = viewer.getState().camera;
   const binding = timeSeconds => ({ material, uniforms: { timeSeconds } });
   const colors = [];
   let probe = -1;
   for (const timeSeconds of [0, 1, 2]) {
     viewer.setSurfaceMaterial(ref, binding(timeSeconds));
-    const pixels = viewer.readPixels(), expected = expectedColor(timeSeconds);
-    if (probe < 0) {
-      for (let index = 0; index < pixels.length; index += 4) {
-        if (matches(pixels, index, expected)) { probe = index; break; }
-      }
-    }
-    assert(probe >= 0 && matches(pixels, probe, expected) && pixels[probe + 3] === 255,
-      `Compiled material pixel differs at caller time ${timeSeconds}`);
+    const pixels = await viewer.readPixels(), expected = expectedColor(timeSeconds);
+    // The WebGPU Viewer lights the material colour, so the probe is a Surface pixel the material changed.
+    if (probe < 0) probe = changedProbe(pixels, defaultPixels);
+    assert(probe >= 0 && pixels[probe + 3] === 255,
+      `Compiled material changed no Surface pixel at caller time ${timeSeconds}`);
     assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === timeSeconds,
       'Viewer material query did not copy accepted uniform');
     colors.push({ timeSeconds, expected, actual: Array.from(pixels.slice(probe, probe + 4)),
@@ -103,6 +83,9 @@ try {
   }
   assert(colors[0].pixelHash === colors[2].pixelHash && colors[0].pixelHash !== colors[1].pixelHash,
     'Caller time 0/1/2 did not change independent pixels');
+  assert([0, 1, 2].every(channel => Math.sign(colors[1].actual[channel] - colors[0].actual[channel])
+    === Math.sign(colors[1].expected[channel] - colors[0].expected[channel])),
+  'Caller time 1 did not move the material pixel toward the mixed colour');
   const copied = viewer.getState().surfaceMaterial;
   copied.binding.uniforms.timeSeconds = 0;
   assert(viewer.getState().surfaceMaterial.binding.uniforms.timeSeconds === 2,
@@ -112,26 +95,18 @@ try {
   callerBinding.uniforms.timeSeconds = 2;
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1,
     'Caller mutated accepted material binding');
-  const acceptedHash = hash(viewer.readPixels());
-  retained(viewer, () => viewer.select(ref), 'Selected bound Surface');
-  retained(viewer, () => viewer.selectGeometry({ kind: 'surface', ...ref }), 'Tagged selected bound Surface');
-  retained(viewer, () => viewer.setVisibleGeometry([]), 'Hidden bound Surface');
-  retained(viewer, () => viewer.setSurfaceMaterial({ ...ref, surfaceId: 'wrong' }, binding(0)), 'Wrong reference');
-  retained(viewer, () => viewer.setSurfaceMaterial(ref, binding(3)), 'Invalid uniform');
+  const acceptedHash = hash(await viewer.readPixels());
+  await retained(viewer, () => viewer.select(ref), 'Selected bound Surface');
+  await retained(viewer, () => viewer.selectGeometry({ kind: 'surface', ...ref }), 'Tagged selected bound Surface');
+  await retained(viewer, () => viewer.setVisibleGeometry([]), 'Hidden bound Surface');
+  await retained(viewer, () => viewer.setSurfaceMaterial({ ...ref, surfaceId: 'wrong' }, binding(0)), 'Wrong reference');
+  await retained(viewer, () => viewer.setSurfaceMaterial(ref, binding(3)), 'Invalid uniform');
   const forged = structuredClone(material);
   forged.expression.args[0].linear[0] = 0.9;
-  retained(viewer, () => viewer.setSurfaceMaterial(ref, { material: forged,
+  await retained(viewer, () => viewer.setSurfaceMaterial(ref, { material: forged,
     uniforms: { timeSeconds: 0 } }), 'Forged IR');
-  const originalCreateProgram = WebGL2RenderingContext.prototype.createProgram;
-  let failProgram = true;
-  WebGL2RenderingContext.prototype.createProgram = function (...args) {
-    if (failProgram) { failProgram = false; return null; }
-    return originalCreateProgram.apply(this, args);
-  };
-  try { retained(viewer, () => viewer.setSurfaceMaterial(ref, binding(0)), 'Injected GPU allocation failure'); }
-  finally { WebGL2RenderingContext.prototype.createProgram = originalCreateProgram; }
-  retained(viewer, () => viewer.loadModelSet({ ...set, entries: [] }), 'Invalid scene replacement');
-  assert(hash(viewer.readPixels()) === acceptedHash, 'Refusal changed material pixels');
+  await retained(viewer, () => viewer.loadModelSet({ ...set, entries: [] }), 'Invalid scene replacement');
+  assert(hash(await viewer.readPixels()) === acceptedHash, 'Refusal changed material pixels');
 
   viewer.orbit(0.04, 0.02);
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1,
@@ -150,7 +125,7 @@ try {
     'Pose or resize dropped Surface material');
   viewer.resetMotion();
   viewer.setView(originalCamera);
-  assert(hash(viewer.readPixels()) === acceptedHash, 'Camera/pose round-trip changed material pixels');
+  assert(hash(await viewer.readPixels()) === acceptedHash, 'Camera/pose round-trip changed material pixels');
 
   const initialPositionsM = [];
   for (let z = 0; z < 4; z++) for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
@@ -166,30 +141,30 @@ try {
     sceneRevision: fluid.sceneRevision, stepIndex: fluid.stepIndex,
     particleCount: fluid.particleCount, positionsM: fluid.positionsM });
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1
-    && viewer.getState().fluidFrame?.particleCount === 256 && pointDraws.at(-1) === 256,
+    && viewer.getState().fluidFrame?.particleCount === 256,
     'Material and actual Physics particles did not coexist');
-  const occluded = cyanPixels(viewer.readPixels());
+  const occluded = cyanPixels(await viewer.readPixels());
   viewer.applyGeometryMotionFrame({ contextId: 'fluid_depth_pose', timeSeconds: 0,
     poses: [{ targetId: 'surface', translation: [2000, 0, 0] }] },
   [{ contextId: 'fluid_depth_pose', targetId: 'surface', ref: { kind: 'surface', ...ref } }],
   { basis: 'part-xyz-matches-rhyup' });
-  const exposed = cyanPixels(viewer.readPixels());
-  assert(exposed > occluded && pointDraws.at(-1) === 256
+  const exposed = cyanPixels(await viewer.readPixels());
+  assert(exposed > occluded && viewer.getState().fluidFrame?.particleCount === 256
     && viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1,
     `Shared depth or material retention missing: ${occluded} vs ${exposed}`);
   viewer.resetMotion();
-  assert(cyanPixels(viewer.readPixels()) === occluded, 'Shared depth did not restore after pose');
+  assert(cyanPixels(await viewer.readPixels()) === occluded, 'Shared depth did not restore after pose');
   viewer.orbit(0.01, 0);
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1
-    && viewer.getState().fluidFrame?.particleCount === 256 && pointDraws.at(-1) === 256,
+    && viewer.getState().fluidFrame?.particleCount === 256,
     'Atomic camera frame dropped material or particles');
   viewer.setView(originalCamera);
   viewer.setFluidFrame(null);
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1
-    && hash(viewer.readPixels()) === acceptedHash,
+    && hash(await viewer.readPixels()) === acceptedHash,
     'Particle-only clear dropped material or changed material-only pixels');
   viewer.setSurfaceMaterial(ref, null);
-  assert(viewer.getState().surfaceMaterial === null && hash(viewer.readPixels()) === defaultHash,
+  assert(viewer.getState().surfaceMaterial === null && hash(await viewer.readPixels()) === defaultHash,
     'Explicit material clear did not restore default pixels');
   assert(equal(nativeSnapshot, { source: viewer.getState().modelSet.entries[0].result.source,
     packet: viewer.getState().packets[0].packet,
@@ -198,19 +173,19 @@ try {
     distanceMM: measurement.distanceMM }),
     'Material changed qualified source, UV/packet or native measurement');
   viewer.select(ref);
-  retained(viewer, () => viewer.setSurfaceMaterial(ref, binding(1)), 'Binding selected Surface');
+  await retained(viewer, () => viewer.setSurfaceMaterial(ref, binding(1)), 'Binding selected Surface');
   viewer.select(null);
   viewer.setSurfaceMaterial(ref, binding(1));
   viewer.loadModelSet(set);
   assert(viewer.getState().surfaceMaterial === null && viewer.getState().fluidFrame === null
-    && hash(viewer.readPixels()) === defaultHash,
+    && hash(await viewer.readPixels()) === defaultHash,
     'Scene replacement retained material or changed default pixels');
   viewer.setSurfaceMaterial(ref, binding(1));
   viewer.clear();
   assert(viewer.getState().surfaceMaterial === null && viewer.getState().status === 'empty',
     'Viewer clear retained material');
   viewer.loadNative(source, { sourceVersion: 0, countU: 5, countV: 5 });
-  retained(viewer, () => viewer.setSurfaceMaterial(viewer.getState().surfaces[0], binding(1)),
+  await retained(viewer, () => viewer.setSurfaceMaterial(viewer.getState().surfaces[0], binding(1)),
     'Legacy scene material admission');
   const legacyMeasurement = viewer.measureNativeSurfacePoints(
     { ...viewer.getState().surfaces[0], u: 0, v: 0 },
@@ -221,27 +196,15 @@ try {
     'Legacy source or native measurement changed');
   viewer.loadModelSet(set);
   viewer.setSurfaceMaterial(ref, binding(1));
-  canvas.dispatchEvent(new Event('webglcontextlost'));
-  assert(viewer.getState().status === 'context-lost', 'Viewer did not record context loss');
-  const lostState = viewer.getState();
-  let lostRefused = false;
-  try { viewer.setSurfaceMaterial(ref, binding(0)); } catch { lostRefused = true; }
-  assert(lostRefused && equal(viewer.getState(), lostState),
-    'Material change after context loss changed accepted state');
   viewer.dispose(); viewer.dispose(); world.dispose();
-  const remaining = Object.fromEntries(Object.entries(resources).map(([type, live]) => [type, live.size]));
-  assert(Object.values(remaining).every(count => count === 0),
-    `Viewer GPU resources remain after disposal: ${JSON.stringify(remaining)}`);
-  assert(contexts.size === 1 && contexts.has(originalGetContext.call(canvas, 'webgl2')),
-    'Viewer used more than one WebGL2 context');
+  assert(viewer.getState().status === 'disposed' && viewer.getState().surfaceMaterial === null,
+    'Disposal retained the material binding');
   assert(errors.length === 0, `Browser errors: ${errors.join(', ')}`);
   const result = { ok: true, colors, defaultHash, materialHash: acceptedHash,
     nativeSourceBytes: source.length, measurementMM: measurement.distanceMM,
-    particleCount: fluid.particleCount, pointDraws: pointDraws.length,
-    occlusion: { occludedCyanPixels: occluded, exposedCyanPixels: exposed },
-    contextCount: contexts.size, remaining, glError: [...contexts][0].getError(), errors,
-    limits: 'One qualified native Surface, opaque material and actual 256 Physics particles in local Chromium WebGL2. No texture, PBR, overlay, broad performance or publication claim.' };
-  assert(result.glError === 0, 'WebGL2 reported an error');
+    particleCount: fluid.particleCount,
+    occlusion: { occludedCyanPixels: occluded, exposedCyanPixels: exposed }, errors,
+    limits: 'One qualified native Surface, opaque material and actual 256 Physics particles in local Chromium WebGPU. No texture, PBR, overlay, broad performance or publication claim.' };
   window.viewerMaterialProof = result;
   status.textContent = JSON.stringify(result, null, 2);
   const recorded = await fetch('/result', { method: 'POST', body: JSON.stringify(result) });

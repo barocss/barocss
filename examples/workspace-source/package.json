@@ -5,7 +5,6 @@
   "dependencies": {
     "@barocss/cad": "workspace:*",
     "@barocss/cad-interop": "workspace:*",
-    "@barocss/canvas2d": "workspace:*",
     "@barocss/gpu": "workspace:*",
     "@barocss/physics": "workspace:*",
     "@barocss/viewer": "workspace:*"

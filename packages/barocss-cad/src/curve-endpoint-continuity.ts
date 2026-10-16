@@ -4,6 +4,7 @@ import { evaluateCurveCurvature, NativeCurvatureError } from './local-curvature.
 import type { CurveCurvatureResult } from './local-curvature.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CurveEndpointContinuityDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE',
@@ -94,12 +95,6 @@ function record(value: unknown, fields: string[], code: CurveEndpointContinuityD
 }
 function id(value: unknown): string {
   check(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), CODE.IDENTITY, 'ASCII qualified endpoint ID1..48 required'); return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function admitInput(value: unknown): CurveEndpointContinuityInput {
   const data = record(value, ['sourceId', 'source', 'curve', 'endpoint']), curve = record(data.curve, ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']) as unknown as Curve;

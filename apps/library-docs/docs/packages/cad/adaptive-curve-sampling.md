@@ -4,11 +4,11 @@
 
 ![Coarse adaptive display with orange native control polygon, cyan returned points and original parameter distribution](/examples/cad-adaptive-sampling.jpg)
 
-The actual browser image uses criterion `.2 mm`, with 14 accepted segments and 15 returned points. Orange marks the original poles/control polygon; cyan marks the returned display polyline. The lower axis shows original parameters `[-3,5]`. This is application Canvas2D drawing from CPU results, not a GPU frame or a native edge representation.
+The actual browser image uses criterion `.2 mm`, with 14 accepted segments and 15 returned points. Orange marks the original poles/control polygon; cyan marks the returned display polyline. The lower axis shows original parameters `[-3,5]`. This is application 2D canvas drawing from CPU results, not a GPU frame or a native edge representation.
 
 This guide uses experimental `@barocss/cad` version `0.0.0-experimental` at fixed source profile `733428030029a65797c26e3daadcae94c4762b09`. The public operations are `sampleSourceCurveAdaptive` and `validateSourceCurveAdaptive`. Use a matching TypeScript-capable consumer. Source availability is separate from the selected execution results and package publication.
 
-The public API returns CPU data synchronously. The interactive application runs that same calculation in an application-owned Worker, then draws its returned points in a Canvas2D polyline; it allocates no BaroCSS GPU renderer and makes no shader-frame claim. The display has no new native Curve, edge, topology or Solid.
+The public API returns CPU data synchronously. The interactive application runs that same calculation in an application-owned Worker, then draws its returned points in a 2D canvas polyline; it allocates no BaroCSS GPU renderer and makes no shader-frame claim. The display has no new native Curve, edge, topology or Solid.
 
 ## Complete request and original source
 

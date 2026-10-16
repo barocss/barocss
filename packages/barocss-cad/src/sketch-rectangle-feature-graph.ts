@@ -4,6 +4,7 @@ import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 import type { AxisRectangleExtrusionResult, AxisRectangleExtrusionConstruction } from './axis-rectangle-extrusion.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
+import { same as sameData } from './structural-equality.js';
 
 export type SketchRectangleLengthDefinition = { kind: 'literal'; valueMM: number } | { kind: 'offset'; parameterId: string; offsetMM: number };
 export interface SketchRectangleLengthParameter { id: string; type: 'length'; definition: SketchRectangleLengthDefinition }
@@ -143,14 +144,6 @@ function resolve(parameters: SketchRectangleLengthParameter[], label: string): S
     result.push({ id: p.id, type: 'length', valueMM, dependencyIds: d.kind === 'offset' ? [d.parameterId] : [], order: result.length });
   }
   return result;
-}
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function authoredGraphIds(document: SketchRectangleFeatureGraphV0): string[] {
   return [document.id, document.sketch.id,

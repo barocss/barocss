@@ -3,6 +3,7 @@ import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const AxisBoxSolidMassDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', BOOLEAN: 'BOOLEAN', BINDING: 'BINDING', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidMassDiagnosticCode = typeof AxisBoxSolidMassDiagnosticCode[keyof typeof AxisBoxSolidMassDiagnosticCode];
@@ -61,7 +62,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidMassError) throw cause; throw new AxisBoxSolidMassError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 
 /** Exact uniform-density properties of the actual occupied integer-cell material, with final conversion certificates. */
 export function measureAxisBoxSolidBooleanMass(booleanInput: AxisBoxSolidBooleanResult, optionsInput: AxisBoxSolidMassOptions): AxisBoxSolidMassResult {

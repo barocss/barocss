@@ -6,13 +6,13 @@ import MaterialBench from '../../.vitepress/components/MaterialBench.vue'
 
 The material language computes the opaque fragment color of an admitted mesh. It accepts a small typed expression language and bounded scalar uniforms. Use the [live material example](/playground#gpu-material) to change the host-controlled blend and see the mesh color change.
 
-This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The CPU compiler runs before the mesh renderer adopts the result. The browser host needs WebGL2 and a TypeScript-capable bundler for this local source package.
+This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0. The grammar is that of source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`; the drawing recipes use the WebGPU viewer of `c79d752cb3463a34e6c93cb64e3693bc493c271f`. The CPU compiler runs before a mesh adopts the result as a viewer shader material. The browser host needs WebGPU and a TypeScript-capable bundler for this local source package.
 
 Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled program with explicit uniform values and, for UV profiles, dimensionless coordinates. That guide states the newer API version and its three supported material families.
 
 For authored `@fn` expressions, use [the reusable easing and palette guide](./reusable-shader) with its separate `363f583c` source profile. It adds bounded float/color-return declarations before locals; this page's older grammar, complete programs and public mesh contract retain their stated source snapshot.
 
-Read [Discrete threshold selection](./discrete-material) for the separate newer `select()` profile. Its strict `<` comparison, equality branch and public CPU RGB evaluation use a Canvas2D display; the older mesh renderer contract on this page does not accept that IR.
+Read [Discrete threshold selection](./discrete-material) for the separate newer `select()` profile. Its strict `<` comparison, equality branch and public CPU RGB evaluation use an application 2D canvas display; `bindingShader` and `materialShader` on this page do not accept that IR.
 
 ## Procedural UV plasma
 
@@ -26,7 +26,7 @@ The [transition-window material](./composition-examples#material-transition-wind
 
 <MaterialBench />
 
-This bench uses the same fixed `5f5ad866205a21510ac69552e704cc162fa253b5` public source profile as this guide. It runs ordinary `compileMeshMaterial`, explicitly calls `validateMeshMaterialIR`, then calls `lowerMeshMaterial`. It emits trusted GLSL **text**, without creating a renderer, evaluating color, executing GLSL or requesting a GPU device.
+This bench uses the same fixed `5f5ad866205a21510ac69552e704cc162fa253b5` public source profile as this guide. It runs ordinary `compileMeshMaterial`, explicitly calls `validateMeshMaterialIR`, then calls `lowerMeshMaterial`. It emits trusted GLSL **text**, without creating a viewer, evaluating color, executing GLSL or requesting a GPU device. The viewer itself draws the WGSL lowering (`lowerMeshMaterialWGSL`, used by `bindingShader` and `materialShader`).
 
 The initial complete blend is compiled once on client mount. Try **unknown()** to obtain a real source-offset diagnostic: the entire last accepted compiled IR, reconstructed IR and GLSL stay unchanged. **Correct blend, default .5** adopts a new candidate in the same model. Across those three attempts the direct application call counts are compile **3**, validate **2**, lower **2**. Editing the draft and selecting Source / IR / Validated IR / GLSL make no API calls. The Source view shows the current draft; the other views show the last accepted result.
 
@@ -48,41 +48,35 @@ The static SVG is a topology aid, not a timing animation. Use Left/Right, Home/E
 
 `amount` is a host-supplied scalar from0 to1 with default0. `ratio` is a float local. The output interpolates between blue and orange in linear color. At amount0, the shader uses the blue endpoint. At amount1, it uses the orange endpoint. At amount.5, `smoothstep(0,1,.5)` is .5. See the [image, mesh input and execution flow](./examples#host-controlled-material-blend).
 
-This source creates no mesh. Compile the material before mounting the admitted mesh. A refused compilation then allocates no renderer. The host needs a range input such as `<input id="amount" type="range" min="0" max="1" step=".01" value="0">`:
+This source creates no mesh. Compile the material before adding the mesh it colours. A refused compilation then changes nothing on screen. The host needs a range input such as `<input id="amount" type="range" min="0" max="1" step=".01" value="0">`:
 
 ```ts
-import { compileMeshMaterial, mountMesh } from '@barocss/gpu';
+import { compileMeshMaterial, validateMeshMaterialBinding, bindingShader } from '@barocss/gpu';
+import type { Mesh } from '@barocss/gpu';
 
 // source is the complete blend text above.
-// canvas, packet and options come from the CAD-to-mesh example.
+// mesh is what viewer.add returned in the CAD-to-mesh example.
+declare const mesh: Mesh;
 const compiled = compileMeshMaterial(source);
 if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
 const amountInput = document.querySelector<HTMLInputElement>('#amount');
 if (!amountInput) throw new Error('Material amount input is missing');
 
-const renderer = mountMesh(canvas, packet, options);
-
-const adopted = renderer.setMaterial({
-  material: compiled.material,
-  uniforms: { amount: 0 }
-});
-if (!adopted.ok) {
-  renderer.dispose(); // Initial setup did not complete.
-  throw adopted.error;
-}
+// Throws MeshMaterialError (code UNIFORM) for an unknown or out-of-range value.
+const shaderFor = (amount: number) =>
+  bindingShader(validateMeshMaterialBinding({ material: compiled.material, uniforms: { amount } }));
+// White: the viewer multiplies the shader's colour by the mesh colour.
+mesh.material = { color: [1, 1, 1], shader: shaderFor(0) };
 
 let acceptedAmount = 0;
 amountInput.value = String(acceptedAmount);
 function onAmountInput() {
   const amount = Number(amountInput!.value);
-  const changed = renderer.setMaterial({
-    material: compiled.material,
-    uniforms: { amount }
-  });
-  if (changed.ok) {
+  try {
+    mesh.material = { shader: shaderFor(amount) };
     acceptedAmount = amount;
-  } else {
-    console.error(changed.error.message);
+  } catch (error) {
+    console.error((error as Error).message);
     amountInput!.value = String(acceptedAmount);
   }
 }
@@ -90,14 +84,14 @@ amountInput.addEventListener('input', onAmountInput);
 
 function disposePreview() {
   amountInput!.removeEventListener('input', onAmountInput);
-  renderer.dispose();
+  mesh.material = { shader: null };
 }
-// Call disposePreview() when the host removes this view.
+// Call disposePreview() when the host removes this control.
 ```
 
-The same compiled material can be used with different in-range uniform values. A later refusal retains the accepted binding; the host restores its input value rather than treating the candidate as accepted. The handler reports errors, including context loss. After context loss, stop input handling and remount from retained data.
+The same compiled material can be used with different in-range uniform values. A refused value throws before the mesh changes, so the accepted shader stays drawn; the host restores its input value rather than treating the candidate as accepted.
 
-`setMaterial` restages a renderer candidate; this source snapshot does not expose a separate fast uniform-only setter. Remove the named listener before disposing the renderer. Renderer disposal does not remove caller-owned event listeners.
+Assigning a new binding of the same material keeps the same WGSL, so the viewer reuses its compiled pipeline and only rewrites the material's 64 bytes of params on the next frame. Remove the named listener before disposing the viewer; viewer disposal does not remove caller-owned event listeners. `materialShader(source, { amount })` compiles, lowers and binds in one call, clamping params into their declared ranges instead of refusing them.
 
 ## Program structure
 
@@ -270,43 +264,38 @@ console.log(lowered.uniformLayout[0].glslName); // 'mat_u_0'
 
 `lowerMeshMaterial` validates first, then emits trusted fragment-expression text and a uniform layout. A declaration's order determines its generated name (`mat_u_0`, `mat_u_1`, and so on). Host bindings use original names such as `amount`, not generated GLSL names. Lowering alone draws nothing.
 
-## Renderer adoption and lifetime
+## Viewer adoption and lifetime
 
-The mesh renderer requires an accepted nonempty mesh before material adoption. Clear edge overlays and face/object selection before setting a material. A material and those overlay/selection passes cannot coexist in this profile.
+A shader material is part of a mesh's `Material`: `mesh.material = { shader }` merges it with the mesh's colour, roughness and the other fields. The base colour is the mesh colour times the colour map texel times the shader's colour, so set `color: [1, 1, 1]` to draw the material's own colour. The viewer lights that base colour unless the material is `unlit`. Edge lines are separate meshes (`topology: 'lines'`) and selection is `mesh.outline`, so both can coexist with a shader material.
 
 ```ts
-const before = renderer.material;
-const refused = renderer.setMaterial({
-  material: compiled.material,
-  uniforms: { amount: 2 } // declared maximum is1
-});
-if (!refused.ok) console.log(refused.error.message);
-// The previous accepted material remains active if the context is live.
+const before = mesh.material.shader;
+try {
+  mesh.material = { shader: bindingShader(validateMeshMaterialBinding({
+    material: compiled.material,
+    uniforms: { amount: 2 } // declared maximum is1
+  })) };
+} catch (error) {
+  console.log((error as Error).message);
+  console.assert(mesh.material.shader === before); // The accepted material is still drawn.
+}
 
-const cleared = renderer.setMaterial(null);
-if (!cleared.ok) throw cleared.error;
+mesh.material = { shader: null }; // Back to the plain colour.
 ```
 
-The renderer validates a binding, creates a candidate shader/resources, presents it, then adopts it and releases the previous resources. On refusal it releases candidate resources and attempts to present the accepted state. Context loss may prevent restoration. Mount a new renderer after context loss. Disposal ends the renderer lifetime.
+`validateMeshMaterialBinding` checks the binding on the CPU; `bindingShader` lowers it to WGSL declarations, a colour expression and params. The viewer compiles a shader module the first time a WGSL text is drawn. A shader that fails to compile is reported through the viewer's `onError` (default `console.error`). A lost device is replaced by the viewer, which re-uploads the scene; `viewer.dispose()` ends the viewer lifetime.
 
-The material getter returns a clone of accepted binding data. Mutating that clone does not change the live material. An accepted mesh update retains the current material. Clear the material with `setMaterial(null)` before adding an overlay or selection.
-
-There is no implicit timer, time uniform or animation loop. The host owns time and must bind it explicitly. Repeated material adoption should be scheduled according to the actual renderer contract; do not infer a zero-cost per-frame uniform path.
+There is no implicit timer, time uniform or animation loop. The host owns time and must bind it explicitly. Each assignment requests one frame; schedule repeated assignments yourself.
 
 ### Supply caller time on demand
 
-This host recipe creates a pulse preview and draws a new time sample only when the user selects a button. Pass a host-owned `<button type="button">Sample elapsed time</button>`, canvas and admitted mesh packet/options. The packet/options can come from the [complete CAD-to-mesh example](./examples#cad-surface-to-a-rendered-mesh).
+This host recipe colours a mesh with a pulse material and draws a new time sample only when the user selects a button. Pass a host-owned `<button type="button">Sample elapsed time</button>` and a mesh that `viewer.add` returned. The mesh can come from the [complete CAD-to-mesh example](./examples#cad-surface-to-a-rendered-mesh).
 
 ```ts
-import { compileMeshMaterial, mountMesh } from '@barocss/gpu';
-import type { MeshOptions, PreviewPacket } from '@barocss/gpu';
+import { compileMeshMaterial, validateMeshMaterialBinding, bindingShader } from '@barocss/gpu';
+import type { Mesh } from '@barocss/gpu';
 
-function mountPulsePreview(
-  canvas: HTMLCanvasElement,
-  packet: PreviewPacket,
-  options: MeshOptions,
-  sampleButton: HTMLButtonElement
-): () => void {
+function pulseMesh(mesh: Mesh, sampleButton: HTMLButtonElement): () => void {
   const compiled = compileMeshMaterial(`
 @shader #pulse {
   @uniform timeSeconds: float(0,2,0);
@@ -314,14 +303,9 @@ function mountPulsePreview(
   @fragment { color: mix(#204080,#E08020,ratio); }
 }`);
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const renderer = mountMesh(canvas, packet, options);
-  const initial = renderer.setMaterial({
-    material: compiled.material, uniforms: { timeSeconds: 0 }
-  });
-  if (!initial.ok) {
-    renderer.dispose();
-    throw initial.error;
-  }
+  const shaderAt = (timeSeconds: number) =>
+    bindingShader(validateMeshMaterialBinding({ material: compiled.material, uniforms: { timeSeconds } }));
+  mesh.material = { color: [1, 1, 1], shader: shaderAt(0) };
 
   const startedAt = performance.now();
   let stopped = false;
@@ -330,27 +314,24 @@ function mountPulsePreview(
     const elapsedSeconds = (performance.now() - startedAt) / 1000;
     // Wrap elapsed time into [0,2), inside the declared inclusive [0,2].
     const timeSeconds = elapsedSeconds % 2;
-    const changed = renderer.setMaterial({
-      material: compiled.material, uniforms: { timeSeconds }
-    });
-    if (!changed.ok) console.error(changed.error.message);
+    try { mesh.material = { shader: shaderAt(timeSeconds) }; }
+    catch (error) { console.error((error as Error).message); }
   }
   sampleButton.addEventListener('click', onSampleTime);
-  return function disposePulsePreview() {
+  return function stopPulse() {
     if (stopped) return;
     stopped = true;
     sampleButton.removeEventListener('click', onSampleTime);
-    renderer.dispose();
+    mesh.material = { shader: null };
   };
 }
-// Use a separate renderer lifecycle for this preview.
-// const disposePulse = mountPulsePreview(canvas, packet, options, sampleButton);
-// On host teardown: disposePulse();
+// const stopPulse = pulseMesh(mesh, sampleButton);
+// On host teardown: stopPulse(), then viewer.dispose() if the host owns the viewer.
 ```
 
 For an elapsed time of5.25seconds, the supplied value is1.25. The host's modulo policy repeats a two-second interval; it does not extend the declared range. Passing5.25directly would be refused. This example schedules no automatic callback and makes no per-frame performance claim.
 
-The returned cleanup removes the host listener before disposing GPU resources. A later failed time sample does not replace the accepted material binding. If the context is lost, call cleanup and remount. Compare the [interactive material example](./examples#host-controlled-material-blend) when adding controls to your own host.
+The returned cleanup removes the host listener and clears the shader material. A later failed time sample does not replace the accepted material. A lost device needs no action from the host: the viewer replaces it and redraws the accepted material. Compare the [interactive material example](./examples#host-controlled-material-blend) when adding controls to your own host.
 
 ## Diagnostics and budgets
 
@@ -364,7 +345,7 @@ The returned cleanup removes the host listener before disposing GPU resources. A
 | `IR` | Retained source and supplied IR disagree | Modified expression without matching source |
 | `UNIFORM` | Invalid runtime uniform binding | Unknown name or out-of-range value |
 
-Compile diagnostics have `code`, `message`, `start` and `end`. Offsets refer to the original source. The compiler reports the first failure. IR/binding validation can throw `MeshMaterialError`; `setMaterial` returns `{ok:false,error}` when adoption is refused.
+Compile diagnostics have `code`, `message`, `start` and `end`. Offsets refer to the original source. The compiler reports the first failure. IR/binding validation throws `MeshMaterialError` with one of these codes; `materialShader` returns `{ok:false,diagnostics}` for a source that does not compile.
 
 | Boundary | Limit |
 | --- | --- |
@@ -381,6 +362,6 @@ Function expansion and local reuse consume these same node/depth budgets. A shor
 
 ## Supported boundary
 
-This profile changes opaque fragment color. It has no arbitrary GLSL, texture sampling, UVs, alpha, discard, lighting-language blocks or vertex displacement. It does not apply to `mountScene` SDF objects. The CPU Engine material/texture binding types are a separate API and do not establish a general Engine renderer in this source snapshot.
+This profile changes opaque fragment color. It has no arbitrary GLSL, texture sampling, UVs, alpha, discard, lighting-language blocks or vertex displacement. It does not apply to `showScene` objects, which take their scene colour. The CPU Engine material/texture binding types are a separate API.
 
 Read the [material binding guide](./guides#bind-a-material-and-retain-accepted-state), [scene language](./language) and [examples](./examples) for this API profile.

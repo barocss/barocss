@@ -7,6 +7,7 @@ import type {
 import { extrudeCoplanarFaceBoolean } from './coplanar-face-boolean-extrusion.js';
 import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
 import { copyCadData } from './data-copy.js';
+import { same } from './structural-equality.js';
 
 /**
  * A ticket is an unforgeable in-memory identity, NOT a persisted authorization.
@@ -39,18 +40,6 @@ export interface NativeExtrusionPreviewAcceptanceSessionV1 {
   accept(token: NativeExtrusionPreviewTicketV1): NativeExtrusionAcceptedV1;
   cancel(token: NativeExtrusionPreviewTicketV1): void;
   dispose(): void;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b))
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
-      a.every((value, index) => same(value, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    const keys = Object.keys(left);
-    return keys.length === Object.keys(right).length &&
-      keys.every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 
 /**
