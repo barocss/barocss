@@ -31,7 +31,7 @@ import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
-import { sketchClick } from './sketch/select';
+import { sketchClick, startPicking } from './sketch/select';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -58,8 +58,7 @@ function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, numbe
 }
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
-  // Select and Dimension work on the current outline: it stays.
-  if (tool === 'select' || tool === 'dimension') return { ...s, tool, picked: [], editDim: null, shape: s.shape?.kind === 'polygon' && s.shape.pending ? { ...s.shape, pending: false } : s.shape };
+  if (tool === 'select' || tool === 'dimension') return startPicking(s, tool);
   s = { ...s, picked: [], editDim: null };
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };

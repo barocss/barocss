@@ -49,3 +49,23 @@ export function sketchClick(s: SketchState, hit: SketchPick | null, additive: bo
   if (first && first.i !== hit.i) return { ...s, picked: [], editDim: distanceKey(shape, first.i, hit.i) };
   return { ...s, picked: [hit], editDim: null };
 }
+
+/** A rectangle as a closed four-edge outline (counter-clockwise from its lower-left corner) with its H/V edges kept; null when degenerate. */
+export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, { kind: 'rectangle' }>): Polygon | null {
+  const x0 = Math.min(r.a[0], r.b[0]), x1 = Math.max(r.a[0], r.b[0]), y0 = Math.min(r.a[1], r.b[1]), y1 = Math.max(r.a[1], r.b[1]);
+  if (x1 - x0 < 1 || y1 - y0 < 1) return null;
+  return { kind: 'polygon', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] } };
+}
+
+/**
+ * Switching to Select or Dimension: the current shape stays (a rectangle becomes an outline so its edges
+ * take constraints and dimensions); with none, the last finished outline or rectangle comes back to edit.
+ */
+export function startPicking(s: SketchState, tool: 'select' | 'dimension'): SketchState {
+  let shape = s.shape, done = s.done ?? [];
+  if (shape?.kind === 'polygon' && shape.pending) shape = { ...shape, pending: false };
+  const last = done[done.length - 1];
+  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = done.slice(0, -1); }
+  if (shape?.kind === 'rectangle') shape = rectangleOutline(shape) ?? shape;
+  return { ...s, tool, picked: [], editDim: null, shape, done };
+}

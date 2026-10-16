@@ -357,6 +357,52 @@ try {
     await iso();
   });
 
+  await check('a rectangle takes a typed dimension and a constraint', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 120, cy - 70); await clickAt(cx + 120, cy + 70);
+    await press('d'); assert.match(await status(), /2 DOF/);
+    // The rectangle is an outline now: its bottom edge (screen top) takes a length typed in the viewport.
+    await clickAt(cx, cy + 70);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Length of edge 1');
+    await page.locator('.dim-edit').fill('40'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '40'); assert.match(await status(), /1 DOF/);
+    // Its right edge made equal to the width: a square.
+    await press('s'); await clickAt(cx - 120, cy - 70 + 20); // the left edge, still where it was drawn
+    assert.match(await page.locator('.cons-sel').innerText(), /edge 4/);
+    await page.keyboard.down('Shift'); await clickAt(cx - 60, cy + 70); await page.keyboard.up('Shift');
+    await page.click('[aria-label="Equal"]'); assert.match(await status(), /Fully defined/);
+    assert.equal(await page.inputValue('#sk-len3'), '40');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    assert.equal(Math.max(...xs) - Math.min(...xs), 40); assert.equal(Math.max(...ys) - Math.min(...ys), 40); await iso();
+  });
+
+  await check('horizontal and vertical distances between two points', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    const corners = [[-150, -80], [150, -80], [130, 80], [-160, 90]];
+    for (const [dx, dy] of [...corners, corners[0]]) await clickAt(cx + dx, cy + dy);
+    const value = async (label) => Number(await page.inputValue(`[aria-label="${label}"]`));
+    // Select two points; the panel offers their straight, horizontal and vertical distance.
+    await press('s'); await clickAt(cx + 150, cy - 80);
+    await page.keyboard.down('Shift'); await clickAt(cx - 160, cy + 90); await page.keyboard.up('Shift');
+    await page.click('[aria-label="Horizontal distance"]');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Horizontal distance point 2 – point 4');
+    await page.locator('.dim-edit').fill('55'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 2 X') - await value('Point 4 X')) - 55) < 1e-3);
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Horizontal distance\s*point 2 – point 4 = 55/);
+    // The Dimension tool on two points opens their distance; V turns it vertical.
+    await press('d'); await clickAt(cx - 150, cy - 80); await clickAt(cx + 130, cy + 80);
+    await page.locator('.dim-edit').press('v');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Vertical distance point 1 – point 3');
+    await page.locator('.dim-edit').fill('30'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 1 Y') - await value('Point 3 Y')) - 30) < 1e-3);
+    assert.match(await status(), /3 DOF/); await snap('axis-distances');
+    await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
