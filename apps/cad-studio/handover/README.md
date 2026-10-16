@@ -14,7 +14,7 @@ no npm publish.
 | Worktree it is checked out in | `.claude/worktrees/barocss-naver-team-17-cfd156` |
 | Cut from | `review/cad-gpu-engine-2026-10-14` @ `c73bf909` (the earlier single-engine/cad-studio line) |
 | Relation to `develop` | ~1,380 commits ahead, 2 behind (`57ad0fd0`, `1edc9026` — Integration's docs/viewer commits) |
-| Open decision | where to merge this branch next: fast-forward `review/cad-gpu-engine-2026-10-14` (checked out in `.claude/worktrees/barocss-cad-gpu-review-efbb2c`, which has uncommitted drafts), or a real merge into local `develop` (owned by Execute Integration per AGENTS.md, checked out at `~/.barocss-ai/v3/integration`). Not done; ask the owner. |
+| Also on | `review/cad-gpu-engine-2026-10-14` was fast-forwarded to the hand-over tip on 2026-10-16 (owner's choice), so it and `claude/cad-studio-2026-10-16` point at the same commit. It is checked out in `.claude/worktrees/barocss-cad-gpu-review-efbb2c` (untracked drafts there kept). Merging into local `develop` (owned by Execute Integration per AGENTS.md) was not done. |
 
 Feature branches (all merged into the integration branch; each has its own worktree under `.claude/worktrees/`):
 
@@ -135,4 +135,4 @@ fails because the package `files` include `src`.
 
 > Continue cad-studio from `apps/cad-studio/handover/README.md` on branch `claude/cad-studio-2026-10-16`
 > (worktree `.claude/worktrees/barocss-naver-team-17-cfd156`). Verify the tip with section 2 first, then ask
-> me where to merge it (section 1, open decision) and which open item in section 4 to take next.
+> me which open item in section 4 to take next.
