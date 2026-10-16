@@ -61,7 +61,7 @@ test('a constraint the others already imply is refused as over-defining; a confl
   // Edge 3 is parallel to the horizontal edge 1: horizontal is implied.
   const redundant = applyConstraint(s, [E(2)], 'horizontal');
   assert.equal(redundant.ok, false);
-  assert.match(!redundant.ok ? redundant.reason : '', /Horizontal edge 3 is already determined by the other constraints — adding it would over-define the sketch/);
+  assert.match(!redundant.ok ? redundant.reason : '', /Horizontal edge 3 is already implied by the other constraints — adding it would over-define the sketch/);
   // Perpendicular to a parallel pair cannot hold.
   const conflict = applyConstraint(s, [E(0), E(2)], 'perpendicular');
   assert.equal(conflict.ok, false);

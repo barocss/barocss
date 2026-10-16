@@ -7,10 +7,10 @@ import {
 } from '../sketch/rules';
 import './constraints.css';
 
-const TOOLS: { kind: ConstraintKind; sym: string; label: string }[] = [
-  { kind: 'horizontal', sym: 'H', label: 'Horizontal' }, { kind: 'vertical', sym: 'V', label: 'Vertical' },
-  { kind: 'parallel', sym: '∥', label: 'Parallel' }, { kind: 'perpendicular', sym: '⊥', label: 'Perpendicular' },
-  { kind: 'equal', sym: '=', label: 'Equal' }, { kind: 'coincident', sym: '◎', label: 'Coincident' }, { kind: 'fix', sym: '⚓', label: 'Fix' },
+const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }[] = [
+  { kind: 'horizontal', sym: 'H', label: 'Horizontal', short: 'Horiz' }, { kind: 'vertical', sym: 'V', label: 'Vertical', short: 'Vert' },
+  { kind: 'parallel', sym: '∥', label: 'Parallel', short: 'Parallel' }, { kind: 'perpendicular', sym: '⊥', label: 'Perpendicular', short: 'Perp' },
+  { kind: 'equal', sym: '=', label: 'Equal', short: 'Equal' }, { kind: 'coincident', sym: '◎', label: 'Coincident', short: 'Centre' }, { kind: 'fix', sym: '⚓', label: 'Fix', short: 'Fix' },
 ];
 
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
@@ -35,9 +35,9 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
       : 'Pick points and edges with Select (S) · Shift adds'}</div>
     <div className="cons-tools" role="group" aria-label="Constraints for the selection">
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
-        title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b>{t.label.slice(0, 4)}</button>)}
-      <button type="button" aria-label="Dimension" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, or two points'}
-        onClick={() => dim && onEditDim(dim)}><b>↔</b>Dim</button>
+        title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b><span>{t.short}</span></button>)}
+      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, or two points'}
+        onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
     <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length}</div>

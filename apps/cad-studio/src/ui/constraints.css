@@ -11,7 +11,8 @@
 .vp-overlay .dim.driving:hover .dim-chip { fill: #20345a; }
 .vp-overlay .dim.ref .dim-chip { stroke-dasharray: 3 2; opacity: 0.85; }
 .vp-overlay .cons-glyph .cons-text { font-size: 11px; }
-.dim-edit { position: absolute; z-index: 5; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
+.dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 5; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
   font: 500 12px var(--mono); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); outline: none; }
 :root[data-theme='light'] .vp-overlay .dim-line, :root[data-theme='light'] .vp-overlay .dim-ext { stroke: #2f6fd6; }
 :root[data-theme='light'] .vp-overlay .dim-arrow { fill: #2f6fd6; }
@@ -20,9 +21,10 @@
 :root[data-theme='light'] .dim-edit { background: #fff; color: var(--text); border-color: #2f6fd6; }
 
 .cons-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px; }
-.cons-tools button { height: 26px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px; border: 1px solid #4a4d53; background: transparent;
-  color: var(--text-2); font: 500 11px var(--mono); cursor: pointer; padding: 0 4px; }
-.cons-tools button b { font-weight: 600; color: var(--accent); }
+.cons-tools button { height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 5px; border: 1px solid #4a4d53;
+  background: transparent; color: var(--text-2); cursor: pointer; padding: 0 2px; min-width: 0; }
+.cons-tools button b { font: 600 13px var(--mono); color: var(--accent); line-height: 1.1; }
+.cons-tools button span { font: 500 9.5px var(--sans); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .cons-tools button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
 .cons-tools button:disabled { opacity: 0.38; cursor: default; }
 .cons-sel { font: 400 11px var(--mono); color: var(--muted); margin: 0 0 6px; }

@@ -44,7 +44,7 @@ export function checkEdit(candidate: Polygon, prev: Polygon | null, what = 'That
   const r = solveShape(candidate);
   if (!r.ok) return { ok: false, reason: `${what}: ${r.reason}` };
   if (prev && redundancy(r) > redundancy(solveShape(prev)))
-    return { ok: false, reason: `${what} is already determined by the other constraints — adding it would over-define the sketch` };
+    return { ok: false, reason: `${what} is already implied by the other constraints — adding it would over-define the sketch` };
   const shape: Polygon = { ...candidate, points: r.points, bulges: r.bulges };
   solved.set(shape, r);
   return { ok: true, shape, report: r };

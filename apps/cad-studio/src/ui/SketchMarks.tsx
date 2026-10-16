@@ -13,6 +13,8 @@ export interface MarkHandlers {
   onDimCommit?(key: string, value: number): void;
 }
 interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined }
+/** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
+export interface Marks { under: ReactNode[]; svg: ReactNode[]; html: ReactNode }
 
 const fmt = (v: number) => String(Math.round(v * 100) / 100);
 type XY = [number, number];
@@ -27,10 +29,10 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimClick, onDimEdit, onDimCommit }: Args): { svg: ReactNode[]; html: ReactNode } {
+export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
-  const svg: ReactNode[] = [], anchors = new Map<string, XY>();
+  const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map<string, XY>();
   const edgePath = (i: number) => [...sampleSegment(s.points[i] as P2, s.points[(i + 1) % n] as P2, s.bulges?.[i] ?? 0, 16), s.points[(i + 1) % n]].map(P);
   const mid = (i: number): XY => {
     const b = s.bulges?.[i] ?? 0, a = s.points[i] as P2, c = s.points[(i + 1) % n] as P2;
@@ -43,8 +45,8 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
 
   // Picked and hovered entities.
   const mark = (p: SketchPick, cls: string) => {
-    if (p.kind === 'point') { const q = pts[p.i]; if (q) svg.push(<circle key={cls + 'p' + p.i} cx={q[0]} cy={q[1]} r={7} className={'sk-pick-point ' + cls} />); }
-    else if (p.i < n) svg.push(<polyline key={cls + 'e' + p.i} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+    if (p.kind === 'point') { const q = pts[p.i]; if (q) under.push(<circle key={cls + 'p' + p.i} cx={q[0]} cy={q[1]} r={7} className={'sk-pick-point ' + cls} />); }
+    else if (p.i < n) under.push(<polyline key={cls + 'e' + p.i} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
   };
   if (hover && !picked.some(p => samePick(p, hover))) mark(hover, 'hover');
   picked.forEach(p => mark(p, 'on'));
@@ -91,10 +93,11 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
     svg.push(<g key={key} className="cons-glyph"><title>{title}</title><rect x={at[0] - 9} y={at[1] - 8} width={18} height={16} rx={3} className="cons-chip" />
       <text x={at[0]} y={at[1] + 4} textAnchor="middle" className="cons-text">{text}</text></g>);
   };
+  // Inside the edge, stepping along it upwards on screen: the edge's length label sits below its middle.
   const onEdge = (i: number, text: string, key: string, title: string) => {
     const k = (stack.get('e' + i) ?? 0) + 1; stack.set('e' + i, k);
-    const a = pts[i], b = pts[(i + 1) % n], u = unit(a, b), o = outward(a, b), m = mid(i);
-    glyph(add(add(m, u, 22 * k), o, -16), text, key, title);
+    const a = pts[i], b = pts[(i + 1) % n], u0 = unit(a, b), u: XY = u0[1] > 0 || (u0[1] === 0 && u0[0] < 0) ? [-u0[0], -u0[1]] : u0, o = outward(a, b), m = mid(i);
+    glyph(add(add(m, u, 22 * k), o, -20), text, key, title);
   };
   const onPoint = (i: number, text: string, key: string, title: string) => {
     const k = (stack.get('p' + i) ?? 0); stack.set('p' + i, k + 1);
@@ -122,11 +125,12 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
         onFocus={e => e.currentTarget.select()}
         onKeyDown={e => {
           e.stopPropagation();
-          if (e.key === 'Enter') { e.preventDefault(); onDimCommit?.(editDim, Number(e.currentTarget.value)); }
+          // Committing blurs at once, so keys that follow reach the app even before the editor unmounts.
+          if (e.key === 'Enter') { e.preventDefault(); const v = Number(e.currentTarget.value); onDimCommit?.(editDim, v); e.currentTarget.blur(); }
           else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
         }}
         onBlur={() => onDimEdit?.(null)} />;
     }
   }
-  return { svg, html };
+  return { under, svg, html };
 }
