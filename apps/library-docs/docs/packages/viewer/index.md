@@ -4,7 +4,7 @@
 
 Viewer loads bounded native CAD inputs and displays sampled Surface/Curve geometry through the `@barocss/gpu` WebGPU viewer core. `createViewer` and `readPixels` are asynchronous. Use it when your host needs a canvas, camera controls, qualified object references and explicit query boundaries.
 
-**Checkpoint:** `e532fc3037f9` (the WebGPU presenter; earlier pages describe `5f5ad866205a`); version `0.0.0-experimental`. Public configuration is local source availability, not verified npm publication. Use ordinary package-name imports with the existing TypeScript-capable workspace host and Node 22+. No source condition is required. Plain Node cannot resolve internal source `.js` specifiers to `.ts`.
+**Checkpoint:** `c79d752c37f9` (the WebGPU presenter; earlier pages describe `5f5ad866205a`); version `0.0.0-experimental`. Public configuration is local source availability, not verified npm publication. Use ordinary package-name imports with the existing TypeScript-capable workspace host and Node 22+. No source condition is required. Plain Node cannot resolve internal source `.js` specifiers to `.ts`.
 
 ## Four separate results
 

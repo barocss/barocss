@@ -6,7 +6,7 @@
 
 The actual image shows the panel after applying the 90° display pose. The application readout below it reports native measurement and midpoint coordinates, rounded to three decimal places. That DOM text is separate from the native canvas frame; the pose changes presentation while the native midpoint remains `[50,0,20]` mm.
 
-This guide uses experimental `@barocss/viewer` version `0.0.0-experimental` at fixed source profile `e532fc3037f9c1e13819b61d63de06164c50128f`, which draws with the `@barocss/gpu` WebGPU viewer core (the pose API is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`). Use a matching TypeScript-capable browser consumer and WebGPU. Source availability, CPU calculations, actual Viewer presentation and publication are separate stages.
+This guide uses experimental `@barocss/viewer` version `0.0.0-experimental` at fixed source profile `c79d752cb3463a34e6c93cb64e3693bc493c271f`, which draws with the `@barocss/gpu` WebGPU viewer core (the pose API is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`). Use a matching TypeScript-capable browser consumer and WebGPU. Source availability, CPU calculations, actual Viewer presentation and publication are separate stages.
 
 The public method names `applyMotionFrame` and `resetMotion` accept caller-owned display data. The pose actions import no Motion package, start no clock and perform no native geometry edit. `timeSeconds:0` is supplied frame metadata, not a request to advance a simulation.
 

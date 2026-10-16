@@ -1,6 +1,6 @@
 import * as ViewerPoseAPI from '@barocss/viewer';
 
-const sourceProfile = 'e532fc3037f9c1e13819b61d63de06164c50128f';
+const sourceProfile = 'c79d752cb3463a34e6c93cb64e3693bc493c271f';
 const ref = { modelId: 'pose_panel', surfaceId: 'panel' };
 const binding = { contextId: 'pose-panel-session', targetId: 'panel-pose', ref };
 const basis = { basis: 'part-xyz-matches-rhyup' };

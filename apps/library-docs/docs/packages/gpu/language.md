@@ -2,7 +2,7 @@
 
 The scene language declares simple 3D objects and assigns their properties. The compiler resolves the declarations on the CPU. `showScene(viewer, source)` shows the accepted scene on the WebGPU viewer: each object becomes a tessellated mesh with its placement and color. Start with the [live scene example](/playground#gpu-scene), then change one property at a time.
 
-This page describes source0 and source1 at local source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`; the grammar is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
+This page describes source0 and source1 at local source snapshot `c79d752cb3463a34e6c93cb64e3693bc493c271f`; the grammar is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
 
 ## Typed Source2 generation
 

@@ -1,7 +1,7 @@
 import { compileCadModel, surfaceDomain, evaluateSurface, tessellateSurface } from '@barocss/cad';
 import { createViewer } from '@barocss/gpu';
 
-const sourceProfile = 'e532fc3037f9c1e13819b61d63de06164c50128f';
+const sourceProfile = 'c79d752cb3463a34e6c93cb64e3693bc493c271f';
 const baseOptions = { mmToSceneUnit: .12, translate: [-.7,-.45,0], color: [.22,.65,.85], background: [.063,.094,.125] };
 const camera = { position: [2,-2,3], target: [0,0,0], up: [0,1,0], fovY: 45 };
 function dataFor(source) {

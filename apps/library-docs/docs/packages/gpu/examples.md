@@ -2,7 +2,7 @@
 
 Start the [visual playground](/playground). It runs the real source APIs in your browser. Choose **GPU scene** to edit shapes, or **GPU material** to change the color of a CAD-derived mesh. Each example shows its input, accepted result and diagnostics.
 
-The scene and mesh-material examples below describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`, where the WebGPU viewer is the only renderer. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`; the playground draws the same inputs on the viewer, so shading and framing differ.
+The scene and mesh-material examples below describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `c79d752cb3463a34e6c93cb64e3693bc493c271f`, where the WebGPU viewer is the only renderer. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`; the playground draws the same inputs on the viewer, so shading and framing differ.
 
 ## Procedural UV plasma
 

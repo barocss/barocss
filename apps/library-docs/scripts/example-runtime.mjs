@@ -10,7 +10,7 @@ export const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const root = resolve(app, '../..');
 // The commit whose package sources the examples bundle: the WebGPU viewer core (@barocss/gpu/viewer,
 // the async @barocss/viewer). A workspace that matches it bundles in place; otherwise its Git snapshot.
-export const pin = 'e532fc3037f9c1e13819b61d63de06164c50128f';
+export const pin = 'c79d752cb3463a34e6c93cb64e3693bc493c271f';
 // cad-editor and render-editor are retired (folded into apps/cad-studio) and canvas2d was
 // deleted; none of them is part of the pinned package list.
 const names = ['gpu', 'cad', 'cad-interop', 'viewer', 'physics'];

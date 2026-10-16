@@ -2,7 +2,7 @@
 
 These three editable examples combine the language features explained in the [scene guide](./language) and [material guide](./material-language). Open a sample, change one value, then select **Run input**. Use **Reset example** to restore its complete input.
 
-They use local `@barocss/gpu` version `0.0.0` at source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`, drawn on the WebGPU viewer. Scene inputs select source1 in their `version: 1;` header. The material uses `mesh-opaque-fragment-v0` and a host-controlled `amount`. The browser needs WebGPU; a separate source-package host needs a TypeScript-capable bundler. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`.
+They use local `@barocss/gpu` version `0.0.0` at source snapshot `c79d752cb3463a34e6c93cb64e3693bc493c271f`, drawn on the WebGPU viewer. Scene inputs select source1 in their `version: 1;` header. The material uses `mesh-opaque-fragment-v0` and a host-controlled `amount`. The browser needs WebGPU; a separate source-package host needs a TypeScript-capable bundler. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`.
 
 ## Shared rounded-box styles and ID overrides
 

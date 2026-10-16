@@ -5,7 +5,7 @@
   "anchor": "cad-quantity-functions",
   "guide": "/packages/cad/quantity-functions",
   "sourceVersion": 3,
-  "sourceProfile": "e532fc3037f9c1e13819b61d63de06164c50128f",
+  "sourceProfile": "c79d752cb3463a34e6c93cb64e3693bc493c271f",
   "language": "CAD source3 → native Model0 → sampled wall",
   "description": "Pure length/scalar functions compute named quantities with lexical formals and a closed default. Edit the width or change the default factor from 2 to 1 to alter the wall proportions. The full mixed model stays retained; only the wall is displayed.",
   "source": "/* 설계 π: preserve complete original Source, CRLF and odd literals. */\r\n@model quantity_functions {\r\nversion: 3; length-unit: mm;\r\n@function #scaleLength(value: length, factor: scalar = 2): length { return: $value * $factor; }\r\n@function #half(value: length): length { return: scaleLength(value: $value, factor: .5); }\r\n@parameter #width { type: length; value: 10 cm; }\r\n@parameter #height { type: length; value: scaleLength(value: half(value: $width)); }\r\n@parameter #depth { type: length; value: scaleLength(factor: .25, value: $width); }\r\n@curve #untouched_curve { type:nurbs; degree:2; knots:[-2.000,-2,-2,3,3.0,3]; control-points:[[-0,2,1],[3,4,2],[6,2,1]]; weights:[1,2,1]; }\r\n@curve #profile { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[$width,0,0]]; weights:[1,1]; }\r\n@extrude #wall { curve:#profile; vector:[0,$depth,$height]; }\r\n@surface #untouched_surface { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.000,0,1,1.00]; knots-v:[-1,-1,2,2]; control-points:[[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights:[[1,2],[3,4]]; }\r\n/* Keep Ω and every unrelated original coefficient. */\r\n}\r\n",

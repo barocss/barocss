@@ -60,7 +60,7 @@ export async function bundleCadQuantityFunctions(app = defaultApp, platform = 'b
   if (!ownInputs.length || unexpected.length) throw Error(`Unexpected CAD quantity function closure: ${unexpected.join(', ')}`);
   const provenance = { sourcePin: profile.sourcePin, verifiedBlobs: Object.keys(profile.files).length,
     ownSourceInputs: ownInputs.length, ownDistInputs: 0, host: platform === 'browser' ? 'Public CAD Source3 sampling and GPU mesh display' : 'Public CAD Source3 compiler/evaluation consumer; no GL',
-    visualPin: 'e532fc3037f9c1e13819b61d63de06164c50128f' };
+    visualPin: 'c79d752cb3463a34e6c93cb64e3693bc493c271f' };
   await writeFile(resolve(consumers, platform === 'browser' ? 'browser-metafile.json' : `${consumerName}-node-metafile.json`), JSON.stringify(result.metafile, null, 2) + '\n');
   return { result, provenance };
 }

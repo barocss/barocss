@@ -6,7 +6,7 @@ import MaterialBench from '../../.vitepress/components/MaterialBench.vue'
 
 The material language computes the opaque fragment color of an admitted mesh. It accepts a small typed expression language and bounded scalar uniforms. Use the [live material example](/playground#gpu-material) to change the host-controlled blend and see the mesh color change.
 
-This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0. The grammar is that of source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`; the drawing recipes use the WebGPU viewer of `e532fc3037f9c1e13819b61d63de06164c50128f`. The CPU compiler runs before a mesh adopts the result as a viewer shader material. The browser host needs WebGPU and a TypeScript-capable bundler for this local source package.
+This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0. The grammar is that of source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`; the drawing recipes use the WebGPU viewer of `c79d752cb3463a34e6c93cb64e3693bc493c271f`. The CPU compiler runs before a mesh adopts the result as a viewer shader material. The browser host needs WebGPU and a TypeScript-capable bundler for this local source package.
 
 Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled program with explicit uniform values and, for UV profiles, dimensionless coordinates. That guide states the newer API version and its three supported material families.
 

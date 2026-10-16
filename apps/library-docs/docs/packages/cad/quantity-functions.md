@@ -6,7 +6,7 @@
 
 The picture uses width 10 cm and the edited default factor 1: width/depth/height are 100/25/50 mm, the extrusion vector is `[0,25,50]` and its midpoint is `[50,12.5,25]` mm. The starting program below uses default factor 2, giving height 100 mm and midpoint Z = 50 mm. Only the sampled `wall` Surface is displayed; it is not a closed Body or wall thickness.
 
-This example uses experimental `@barocss/cad` version `0.0.0-experimental`. Source3 was introduced at source profile `4f93558d77c980fcb4e04ea21d76589466839c47`; the live example now bundles the CAD and GPU sources of `e532fc3037f9c1e13819b61d63de06164c50128f`. Source3 is an explicit new compiler dialect here: `compileCadModel(source,{sourceVersion:3})`, with `version:3; length-unit:mm;` in the source. Returned IR has `schemaVersion:3` and `sourceVersion:3`; native geometry remains Model version 0. Existing Source0/1/2 examples keep their original grammar, source profiles and compiler options.
+This example uses experimental `@barocss/cad` version `0.0.0-experimental`. Source3 was introduced at source profile `4f93558d77c980fcb4e04ea21d76589466839c47`; the live example now bundles the CAD and GPU sources of `c79d752cb3463a34e6c93cb64e3693bc493c271f`. Source3 is an explicit new compiler dialect here: `compileCadModel(source,{sourceVersion:3})`, with `version:3; length-unit:mm;` in the source. Returned IR has `schemaVersion:3` and `sourceVersion:3`; native geometry remains Model version 0. Existing Source0/1/2 examples keep their original grammar, source profiles and compiler options.
 
 ## Complete initial Source3 input
 

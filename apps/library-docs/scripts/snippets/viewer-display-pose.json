@@ -3,7 +3,7 @@
   "title": "Native points and a displayed pose",
   "label": "Viewer display pose",
   "anchor": "viewer-display-pose",
-  "sourceProfile": "e532fc3037f9c1e13819b61d63de06164c50128f",
+  "sourceProfile": "c79d752cb3463a34e6c93cb64e3693bc493c271f",
   "language": "Source0 native model + caller-owned Viewer pose JSON",
   "description": "Translate and rotate the displayed panel while its native coordinates and 100 mm measurement remain unchanged. Project a native point, pick its displayed triangle and select the actual hit. Reset restores the identity display pose.",
   "source": "{\n  \"nativeSource\": \"@model pose_panel {\\n  version: 0; length-unit: mm;\\n  @surface #panel {\\n    type: nurbs; degree-u: 1; degree-v: 1;\\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\\n    control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];\\n    weights: [[1,1],[1,1]];\\n  }\\n}\",\n  \"pose\": null,\n  \"probeUV\": [\n    0.35,\n    0.4\n  ]\n}",
