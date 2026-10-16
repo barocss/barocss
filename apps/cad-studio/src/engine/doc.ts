@@ -49,7 +49,7 @@ export type ModelNode = SketchNode
 import type { RenderSettings } from './render';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import type { Mate } from '../assembly/mates';
+import { rotationSteps, type Mate } from '../assembly/mates';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -88,9 +88,9 @@ export function placedDoc(inst: PartInstance): StudioDoc {
   let doc = base;
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;
-    (['x', 'y', 'z'] as const).forEach((axis, k) => {
-      if (!inst.rotation[k]) return;
-      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees: inst.rotation[k] }] };
+    // (Any rotation: the kernel turns about X and Y by quarter turns only, see rotationSteps.)
+    rotationSteps(inst.rotation).forEach(({ axis, angleDegrees }) => {
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees }] };
       at = { node: doc.nodes.length - 1, side: 'solid' };
     });
     if (inst.position.some(v => v !== 0)) {

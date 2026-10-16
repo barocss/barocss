@@ -17,7 +17,8 @@ export interface MateRef { part: string; face: string }
  * either way round (flip unset: as the other mates or the part's stance have it), the same way (false)
  * or reversed (true). `angle`: flat faces `angle` degrees apart (0: facing each other as in coincident; flip:
  * measured from facing the same way), with no hold on position. `tangent`: a round face touching a flat face,
- * its axis parallel to the face and its radius in front of it (flip: behind it).
+ * its axis parallel to the face and its radius in front of it (flip: behind it); or two round faces touching
+ * along parallel axes, outside each other (a pin inside a hole: inside; flip swaps the two).
  */
 export interface Mate { id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean }
 
@@ -33,7 +34,7 @@ export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]
 
 /** Which mates a pair of faces admits. */
 export const kindsFor = (a: MateFace, b: MateFace): MateKind[] =>
-  a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric'] : ['tangent'];
+  a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric', 'tangent'] : ['tangent'];
 
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
 type Mat3 = [number, number, number, number, number, number, number, number, number];
@@ -76,16 +77,41 @@ const DEG = Math.PI / 180;
 export function rotationMatrix(rotation: readonly number[]): Mat3 {
   return matMul(axisAngle([0, 0, 1], rotation[2] * DEG), matMul(axisAngle([0, 1, 0], rotation[1] * DEG), axisAngle([1, 0, 0], rotation[0] * DEG)));
 }
+/**
+ * An instance's rotation as kernel turns, applied in order: X → Y → Z when the X and Y angles are quarter
+ * turns (the kernel turns about X and Y by those only), else the same rotation exactly as Z turns between
+ * quarter turns about X — R = Rz(a) · Rx(−90) · Rz(b) · Rx(90) · Rz(c), since Rx(−90) Rz(b) Rx(90) = Ry(b).
+ */
+export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 'z'; angleDegrees: number }[] {
+  const quarter = (v: number) => Math.abs(v / 90 - Math.round(v / 90)) < 1e-12;
+  if (quarter(rotation[0]) && quarter(rotation[1])) return (['x', 'y', 'z'] as const).flatMap((axis, k) => rotation[k] ? [{ axis, angleDegrees: rotation[k] }] : []);
+  const m = rotationMatrix(rotation);
+  // Z–Y–Z angles of R: b from R22, then a and c (b at 0 or 180: one Z turn).
+  const b = Math.acos(Math.max(-1, Math.min(1, m[8]))), sb = Math.sin(b);
+  let a: number, c: number;
+  if (sb > 1e-12) { a = Math.atan2(m[5], m[2]); c = Math.atan2(m[7], -m[6]); }
+  else if (m[8] > 0) { a = Math.atan2(m[3], m[0]); c = 0; }
+  else { a = Math.atan2(-m[3], -m[0]); c = 0; }
+  const deg = (r: number) => clean(r / DEG, 1e-9);
+  return [{ axis: 'z' as const, angleDegrees: deg(c) }, { axis: 'x' as const, angleDegrees: 90 }, { axis: 'z' as const, angleDegrees: deg(b) },
+    { axis: 'x' as const, angleDegrees: 270 }, { axis: 'z' as const, angleDegrees: deg(a) }].filter(s => s.angleDegrees !== 0);
+}
+
 /** Values a hair from a round number are that number (and −0 is 0), so solved placements read cleanly. */
 export const clean = (v: number, step = 1e-9) => { const r = Math.round(v); const x = Math.abs(v - r) < step ? r : v; return x === 0 ? 0 : x; };
+/**
+ * Angles within a micro-degree of a whole degree are that degree: a slanted face's normal is read back from
+ * its surface to about 1e-10, which would otherwise leave 44.99999999745° where the face is at 45°.
+ */
+const ANGLE_SNAP = 1e-6;
 /** The X→Y→Z angles (degrees) of a rotation; at ±90° about Y the X angle is 0. */
 export function eulerOf(m: Mat3): Vec3 {
   const sy = -m[6];
   if (Math.abs(sy) > 1 - 1e-12) {
     const y = sy > 0 ? 90 : -90;
-    return [0, y, clean(Math.atan2(-m[1], m[4]) / DEG)];
+    return [0, y, clean(Math.atan2(-m[1], m[4]) / DEG, ANGLE_SNAP)];
   }
-  return [clean(Math.atan2(m[7], m[8]) / DEG), clean(Math.atan2(sy, Math.hypot(m[7], m[8])) / DEG), clean(Math.atan2(m[3], m[0]) / DEG)];
+  return [clean(Math.atan2(m[7], m[8]) / DEG, ANGLE_SNAP), clean(Math.atan2(sy, Math.hypot(m[7], m[8])) / DEG, ANGLE_SNAP), clean(Math.atan2(m[3], m[0]) / DEG, ANGLE_SNAP)];
 }
 
 /** A face moved by a placement (R, t). */
@@ -113,7 +139,7 @@ export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace |
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   const kinds = kindsFor(fa, fb);
   if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces (a hole, a pin).'
-    : mate.kind === 'tangent' ? 'Tangent needs a flat face and a round face.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
+    : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
   if (mate.kind === 'angle' && !(Number.isFinite(mate.angle ?? NaN) && mate.angle! >= 0 && mate.angle! <= 180)) return 'Enter an angle from 0° to 180°.';
   return null;
@@ -194,9 +220,9 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   const Rcur = rotationMatrix(inst.rotation);
   // Mates with a set sense first; an axis either way round then takes the sense that fits them (or, when
   // both fit, the one nearer how the part stands).
-  const free = (t: Term) => t.mate.kind === 'concentric' && t.mate.flip === undefined;
-  // Angles and tangents hold a direction at an angle to another (a cone), not onto it: they come after.
-  const cone = (t: Term) => t.mate.kind === 'angle' || t.mate.kind === 'tangent';
+  const free = (t: Term) => t.mate.kind === 'concentric' && t.mate.flip === undefined || roundPair(t);
+  // Angles and flat-to-round tangents hold a direction at an angle to another (a cone), not onto it: they come after.
+  const cone = (t: Term) => t.mate.kind === 'angle' || t.mate.kind === 'tangent' && !roundPair(t);
   const angles = terms.filter(cone);
   for (const term of [...terms.filter(t => !free(t) && !cone(t)), ...terms.filter(free)]) {
     const { u, v: v0 } = directionOf(term);
@@ -285,20 +311,82 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
     const before = accepted.slice(0, accepted.indexOf(term)).map(x => label(x.mate));
     problems.push({ mate: term.mate.id, reason: `Conflicts with ${before.length ? before.join(' and ') : 'the mates before it'}: they hold ${partName} ${fmtNum(off)} mm from where this mate puts it.` });
   }
+  // Round-to-round tangents: the axes a fixed distance apart, met by the smallest move the linear mates allow.
+  let t = basis.reduce((acc, b) => add(acc, mul(b.q, b.s)), t0);
+  const held = basis.map(b => b.q);
+  for (const term of accepted.filter(roundPair)) {
+    const r = placeRound(term, R, t, held);
+    if ('t' in r) { t = r.t; continue; }
+    refused.push(term);
+    // What holds it: every mate placed by position before it (the linear ones, and earlier round ones).
+    const before = accepted.filter(x => x !== term && !refused.includes(x) && (!roundPair(x) || accepted.indexOf(x) < accepted.indexOf(term))).map(x => label(x.mate));
+    problems.push({ mate: term.mate.id, reason: `Conflicts with ${before.length ? before.join(' and ') : 'the mates before it'}: they hold ${partName} so the axes can only be ${r.range} apart, not ${fmtNum(r.want)} mm.` });
+  }
   // A mate refused for its position gives up its direction too: solve again without it.
   if (refused.length) {
     const again = solveOne(inst, accepted.filter(x => !refused.includes(x)), label, partName);
     return { R: again.R, t: again.t, problems: [...problems, ...again.problems] };
   }
-  return { R, t: basis.reduce((acc, b) => add(acc, mul(b.q, b.s)), t0), problems };
+  return { R, t, problems };
+}
+
+/**
+ * Two round faces touching: the moving axis `want` = rA + rB from the fixed one (inside a hole, or flipped:
+ * |rA − rB|). Across the fixed axis that is a circle; the move goes to its nearest point, along the
+ * directions the linear mates (`held`, orthonormal) leave free. Once placed, both directions across the
+ * axis are held for later ones.
+ */
+function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3 } | { range: string; want: number } {
+  const f = term.fixed as Cylinder, m = term.moving as Cylinder;
+  const inside = (f.outer !== m.outer) !== !!term.mate.flip, want = inside ? Math.abs(f.radius - m.radius) : f.radius + m.radius;
+  const [e1, e2] = perpendiculars(f.axis);
+  const off = sub(add(apply(R, m.point), t), f.point), x: [number, number] = [dot(off, e1), dot(off, e2)];
+  // The free directions (the complement of what is held), and what each does across the axis.
+  const freeDirs: Vec3[] = [];
+  for (const e of [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]) {
+    let v = e;
+    for (const q of [...held, ...freeDirs]) v = sub(v, mul(q, dot(v, q)));
+    if (len(v) > 1e-9) freeDirs.push(unit(v));
+  }
+  const G = freeDirs.map(fd => [dot(fd, e1), dot(fd, e2)] as [number, number]);
+  // G Gᵀ (2 × 2): its rank is how many directions across the axis are free.
+  const a = G.reduce((s, g) => s + g[0] * g[0], 0), b = G.reduce((s, g) => s + g[0] * g[1], 0), c = G.reduce((s, g) => s + g[1] * g[1], 0);
+  const det = a * c - b * b, norm2 = Math.hypot(x[0], x[1]);
+  const lockAfter = () => { held.push(...[e1, e2].map(e => { let v = e; for (const q of held) v = sub(v, mul(q, dot(v, q))); return v; }).filter(v => len(v) > 1e-9).map(unit)); };
+  const moveBy = (s: [number, number], inv: [number, number, number]): Vec3 => {
+    // The smallest move making the shift s across the axis: Δ = Σ fᵢ (Gᵢ · (G Gᵀ)⁺ s).
+    const y: [number, number] = [inv[0] * s[0] + inv[1] * s[1], inv[1] * s[0] + inv[2] * s[1]];
+    return freeDirs.reduce((acc, fd, i) => add(acc, mul(fd, G[i][0] * y[0] + G[i][1] * y[1])), [0, 0, 0] as Vec3);
+  };
+  if (det > 1e-12) {
+    // Free across the axis: straight out (or in) to the circle; from the axis itself, along the first direction across.
+    const dir: [number, number] = norm2 > 1e-12 ? [x[0] / norm2, x[1] / norm2] : [1, 0];
+    const target: [number, number] = [dir[0] * want, dir[1] * want];
+    const tt = add(t, moveBy([target[0] - x[0], target[1] - x[1]], [c / det, -b / det, a / det]));
+    lockAfter(); return { t: tt };
+  }
+  if (a + c > 1e-12) {
+    // One direction g across the axis: |x + λ g| = want, the smaller λ.
+    const gl = Math.sqrt(a + c), g: [number, number] = [Math.sqrt(a) / gl, (b >= 0 ? 1 : -1) * Math.sqrt(c) / gl];
+    const xg = x[0] * g[0] + x[1] * g[1], perp = Math.abs(x[0] * g[1] - x[1] * g[0]), disc = want * want - perp * perp;
+    if (disc < -POS_TOL * want * 2) return { range: `at least ${fmtNum(perp)} mm`, want };
+    const root = Math.sqrt(Math.max(0, disc)), l1 = -xg + root, l2 = -xg - root, lambda = Math.abs(l1) <= Math.abs(l2) ? l1 : l2;
+    const s2 = a + c; // G Gᵀ = s2 g gᵀ: its pseudo-inverse on g is g gᵀ / s2
+    const tt = add(t, moveBy([lambda * g[0], lambda * g[1]], [g[0] * g[0] / s2, g[0] * g[1] / s2, g[1] * g[1] / s2]));
+    lockAfter(); return { t: tt };
+  }
+  if (Math.abs(norm2 - want) > POS_TOL) return { range: `exactly ${fmtNum(norm2)} mm`, want };
+  return { t };
 }
 
 type Cylinder = Extract<MateFace, { kind: 'cylinder' }>;
 /** The direction a mate turns: flat faces opposed (flip: the same way), axes the same way (flip: reversed). */
 function directionOf(t: Term): { u: Vec3; v: Vec3 } {
   if (t.fixed.kind === 'plane' && t.moving.kind === 'plane') return { u: t.moving.normal, v: t.mate.flip ? t.fixed.normal : mul(t.fixed.normal, -1) };
-  return { u: (t.moving as Cylinder).axis, v: mul((t.fixed as Cylinder).axis, t.mate.flip ? -1 : 1) };
+  return { u: (t.moving as Cylinder).axis, v: mul((t.fixed as Cylinder).axis, t.mate.kind === 'concentric' && t.mate.flip ? -1 : 1) };
 }
+/** A tangent between two round faces (parallel axes a sum or a difference of radii apart). */
+const roundPair = (t: Term) => t.mate.kind === 'tangent' && t.fixed.kind === 'cylinder' && t.moving.kind === 'cylinder';
 /** The linear conditions g·t = h a mate puts on the move t, once the rotation R is known. */
 function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
   const f = term.fixed, m = term.moving;
@@ -308,7 +396,7 @@ function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
     const side = term.mate.flip ? -1 : 1;
     if (f.kind === 'plane' && m.kind === 'cylinder') return [{ g: f.normal, h: dot(f.normal, f.point) + side * m.radius - dot(f.normal, apply(R, m.point)) }];
     if (f.kind === 'cylinder' && m.kind === 'plane') { const n = apply(R, m.normal); return [{ g: n, h: dot(n, f.point) - side * f.radius - dot(n, apply(R, m.point)) }]; }
-    return [];
+    return []; // two round faces: not linear, placed after the linear mates (placeRound)
   }
   if (f.kind === 'plane' && m.kind === 'plane') {
     const d = term.mate.kind === 'distance' ? term.mate.distance ?? 0 : 0;

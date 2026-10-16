@@ -24,8 +24,11 @@ export interface Assembly {
   ground(id: string, on: boolean): string | null;
   /** The mates without those on a part (when it is removed). */
   without(part: string): Mate[];
-  /** What to outline while adding a mate. */
-  highlight: { faces: { body: number; face: number }[]; instances: string[] };
+  /**
+   * What to show picked: the faces clicked while adding a mate, else the selected mate's two faces —
+   * base part faces (`faces`), instance faces, and the instances to outline while adding.
+   */
+  highlight: { faces: { body: number; face: number }[]; instanceFaces: { id: string; body: number; face: number }[]; instances: string[] };
 }
 
 export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit }: {
@@ -158,9 +161,21 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       commit(instances.map(i => i.id === id ? { ...i, grounded: on || undefined } : i), mates); return null;
     },
     without: part => mates.filter(m => m.a.part !== part && m.b.part !== part),
-    highlight: {
-      faces: (draft?.picks ?? []).flatMap(p => p.body !== undefined && p.face !== undefined ? [{ body: p.body, face: p.face }] : []),
-      instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => p.ref.part),
-    },
+    highlight: (() => {
+      const sel = mates.find(m => m.id === selected), refs = draft ? draft.picks.map(p => p.ref) : sel ? [sel.a, sel.b] : [];
+      // A face by name on the part's evaluated bodies (display faces may join coplanar faces: "a+b").
+      const locate = (ref: MateRef) => {
+        for (const [body, b] of (ref.part === BASE ? bodies : instanceBodies.get(ref.part)?.bodies ?? []).entries()) {
+          const face = b.mesh.faces.findIndex(f => f.name.split('+').includes(ref.face));
+          if (face >= 0) return { body, face };
+        }
+        return null;
+      };
+      return {
+        faces: refs.filter(r => r.part === BASE).flatMap(r => { const at = locate(r); return at ? [at] : []; }),
+        instanceFaces: refs.filter(r => r.part !== BASE).flatMap(r => { const at = locate(r); return at ? [{ id: r.part, ...at }] : []; }),
+        instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => p.ref.part),
+      };
+    })(),
   };
 }
