@@ -936,7 +936,9 @@ try {
     await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
     assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
     assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
-    assert.match(requests[2].text, /image/);
+    assert.match(requests[2].text, /image 1 \(plate\.png, traced into \d+ layers/);
+    // The traced outlines go with every later turn, for the image tools on the server.
+    assert.equal(requests[2].traces.length, 1); assert.ok(Array.isArray(requests[2].traces[0].layers));
     assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
     // One undo takes the whole first turn back.
     await page.evaluate(() => document.activeElement?.blur());

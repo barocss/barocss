@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,8 +13,9 @@ import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatSta
 import { checkNode, deleteFeature } from '../src/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
-import { checkImages, claudeArgs, createChatServer, stateNote, summarize, userMessage } from '../server/chatServer';
+import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
+import { simplify, traceImage, traceLoops } from '../src/chat/trace';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -40,7 +41,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.match(tool.name, /^[a-z_]+$/); assert.ok(tool.description.length > 40, tool.name);
     assert.equal(tool.input_schema.type, 'object'); assert.equal(tool.input_schema.additionalProperties, false, tool.name);
   }
-  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'measure', 'select']));
+  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'select']));
   const run = TOOLS.find(t => t.name === 'run_command')!;
   assert.deepEqual((run.input_schema.properties as any).command.enum, CHAT_COMMANDS);
   assert.deepEqual(new Set(Object.keys(COMMAND_DOCS)), new Set(CHAT_COMMANDS));
@@ -197,13 +198,15 @@ function fakeClaude(script: (args: string[], statePath: string) => (string | (()
     if (args[0] === '--version') { setImmediate(() => { child.stdout.end('2.1.283 (Claude Code)\n'); child.emit('close', 0); }); return child; }
     const config = JSON.parse(args[args.indexOf('--mcp-config') + 1]);
     const steps = script(args, config.mcpServers.cad.env.CAD_CHAT_STATE);
+    fake.lastState = JSON.parse(readFileSync(config.mcpServers.cad.env.CAD_CHAT_STATE, 'utf8'));
     (async () => {
       for (const s of steps) { await new Promise(r => setTimeout(r, 5)); if (rec.killed) return; if (typeof s === 'function') s(); else child.stdout.write(s + '\n'); }
       child.stdout.end(); child.emit('close', 0);
     })();
     return child;
   };
-  return { spawn: spawn as any, spawned };
+  const fake = { spawn: spawn as any, spawned, lastState: null as any };
+  return fake;
 }
 
 async function serve(handler: ReturnType<typeof createChatServer>) {
@@ -211,9 +214,12 @@ async function serve(handler: ReturnType<typeof createChatServer>) {
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   return { url: `http://127.0.0.1:${(server.address() as { port: number }).port}/api/chat`, close: () => new Promise(r => server.close(r)) };
 }
+/** What the studio's page sends through the dev server's proxy. */
+const STUDIO = { origin: 'http://127.0.0.1:52020' };
+const JSON_POST = { ...STUDIO, 'content-type': 'application/json' };
 async function turn(url: string, body: unknown, signal?: AbortSignal) {
   const events: TurnEvent[] = [];
-  const res = await fetch(`${url}/turn`, { method: 'POST', body: JSON.stringify(body), signal });
+  const res = await fetch(`${url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify(body), signal });
   const feed = eventParser(e => events.push(e));
   feed(await res.text());
   return { status: res.status, events };
@@ -235,7 +241,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
   const work = scratch();
   const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: work }));
   try {
-    assert.deepEqual(await (await fetch(`${srv.url}/status`)).json(), { enabled: true, model: 'claude-opus-5-5', via: '2.1.283 (Claude Code)' });
+    assert.deepEqual(await (await fetch(`${srv.url}/status`, { headers: STUDIO })).json(), { enabled: true, model: 'claude-opus-5-5', via: '2.1.283 (Claude Code)' });
     assert.equal((await turn(srv.url, { text: '' })).status, 400);
     const { events } = await turn(srv.url, { text: 'add a Ø8 hole 6 mm from the corner', doc: plate });
     assert.deepEqual(events.map(e => e.type), ['text', 'text', 'tool', 'state', 'done']);
@@ -257,11 +263,13 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.equal(mcp.command, process.execPath); assert.deepEqual(mcp.args, ['/x/cadMcp.mjs']);
     // The next turn resumes the CLI conversation and carries an image before its text.
     const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64');
-    await turn(srv.url, { text: 'like this drawing', doc: built, session: sid, images: [{ media_type: 'image/png', data: png }] });
+    await turn(srv.url, { text: 'like this drawing', doc: built, session: sid, images: [{ media_type: 'image/png', data: png }], traces: [{ width: 1, height: 1, background: '#ffffff', layers: [] }] });
     assert.equal(fake.spawned[2].args[fake.spawned[2].args.indexOf('--resume') + 1], sid);
     assert.deepEqual(JSON.parse(fake.spawned[2].stdin).message.content.map((b: any) => b.type), ['image', 'text']);
     assert.deepEqual(JSON.parse(fake.spawned[2].stdin).message.content[0].source, { type: 'base64', media_type: 'image/png', data: png });
-    const refused = await fetch(`${srv.url}/turn`, { method: 'POST', body: JSON.stringify({ text: 'x', doc: built, images: [{ media_type: 'image/svg+xml', data: 'AAAA' }] }) });
+    const state = fake.lastState;
+    assert.deepEqual(state?.images, [{ width: 1, height: 1, background: '#ffffff', layers: [] }]);
+    const refused = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc: built, images: [{ media_type: 'image/svg+xml', data: 'AAAA' }] }) });
     assert.equal(refused.status, 400); assert.match((await refused.json()).error, /PNG, JPEG, WEBP, GIF/);
     assert.equal(fake.spawned.length, 3);
   } finally { await srv.close(); }
@@ -273,7 +281,7 @@ test('the chat server reports a missing CLI, failed turns, and kills the CLI whe
   const missing = (() => { const c = new EventEmitter() as any; c.stdout = new PassThrough(); c.stderr = new PassThrough(); setImmediate(() => c.emit('error', new Error('spawn claude ENOENT'))); return c; }) as any;
   let srv = await serve(createChatServer({ mcpScript: 'x', spawn: missing, workDir: scratch() }));
   try {
-    const st = await (await fetch(`${srv.url}/status`)).json();
+    const st = await (await fetch(`${srv.url}/status`, { headers: STUDIO })).json();
     assert.equal(st.enabled, false); assert.match(st.reason, /claude auth login/);
     const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
     assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'spawn claude ENOENT' }]);
@@ -306,4 +314,153 @@ test('chat images: the server checks type, count, encoding and size; the browser
   assert.deepEqual(fitSize(4000, 3000), [1568, 1176]);
   assert.deepEqual(fitSize(800, 600), [800, 600]);
   assert.deepEqual(fitSize(1000, 5000), [314, 1568]);
+});
+
+/** A smiley character bitmap: a yellow face with two black eyes and a red mouth, on white or transparent. */
+function smiley(transparent: boolean) {
+  const W = 200, H = 160, px = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, inFace = (x - 100) ** 2 + (y - 80) ** 2 < 70 ** 2;
+    const eye = (x - 75) ** 2 + (y - 60) ** 2 < 10 ** 2 || (x - 125) ** 2 + (y - 60) ** 2 < 10 ** 2;
+    const mouth = x > 70 && x < 130 && y > 100 && y < 115;
+    const c = !inFace ? (transparent ? [0, 0, 0, 0] : [255, 255, 255, 255]) : eye ? [20, 20, 20, 255] : mouth ? [220, 30, 40, 255] : [250, 210, 40, 255];
+    px.set(c, i);
+  }
+  return { px, W, H };
+}
+
+test('the tracer splits a character bitmap into a silhouette and its colour regions, with holes', () => {
+  for (const transparent of [false, true]) {
+    const { px, W, H } = smiley(transparent);
+    const t = traceImage(px, W, H);
+    assert.equal(t.background, transparent ? 'transparent' : '#ffffff');
+    const byColour = (c: string) => t.layers.find(l => l.color === c)!;
+    const sil = t.layers[0];
+    assert.equal(sil.id, 'silhouette'); assert.equal(sil.regions.length, 1); assert.equal(sil.regions[0].holes.length, 0);
+    const face = byColour('#fad228'), eyes = byColour('#141414'), mouth = byColour('#dc1e28');
+    assert.ok(face && eyes && mouth, JSON.stringify(t.layers.map(l => l.color)));
+    assert.equal(face.regions.length, 1); assert.equal(face.regions[0].holes.length, 3);
+    assert.equal(eyes.regions.length, 2); assert.equal(mouth.regions.length, 1);
+    assert.equal(t.layers.length, 4);
+    assert.ok(t.layers.reduce((s, l) => s + l.regions.reduce((a, r) => a + r.outer.length, 0), 0) < 600);
+  }
+  // A white face drawn with a black outline on white: the enclosed white becomes its own colour layer.
+  const W = 120, H = 120, px = new Uint8ClampedArray(W * H * 4).fill(255);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const r = Math.hypot(x - 60, y - 60); if (r > 40 && r < 46) px.set([0, 0, 0, 255], (y * W + x) * 4); }
+  const ring = traceImage(px, W, H);
+  assert.deepEqual(ring.layers.map(l => [l.id, l.color, l.regions.length, l.regions[0].holes.length]), [['silhouette', '#808080', 1, 0], ['color1', '#ffffff', 1, 0], ['color2', '#000000', 1, 1]]);
+  // Loops along pixel edges, simplified without losing the shape.
+  const sq = traceLoops(Uint8Array.from([0, 0, 0, 0, 1, 1, 0, 1, 1]), 3, 3);
+  assert.equal(sq.length, 1); assert.equal(sq[0].length, 8);
+  assert.deepEqual(simplify(sq[0], 0.5).length, 4);
+});
+
+test('extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale', async () => {
+  const { px, W, H } = smiley(false);
+  const images = [traceImage(px, W, H)];
+  let s: ChatState = { ...(await stateOf(emptyDoc())), images };
+  const layers = parse((await runTool(s, 'get_image_layers', {}, evaluate)).content);
+  assert.equal(layers.silhouette_aspect, 1);
+  const eyes = layers.layers.find((l: any) => l.color === '#141414');
+  assert.equal(eyes.regions, 2); assert.ok(eyes.box.y[0] > 0.5, JSON.stringify(eyes.box));
+  let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 60, height: 4 }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  const base = parse(r.content).bodies[0];
+  assert.ok(Math.abs(base.volume_mm3 - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume_mm3));
+  assert.deepEqual(base.bounds.min.map(Math.round), [0, 0, 0]); assert.deepEqual(base.bounds.max.map(Math.round), [60, 60, 4]);
+  r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width_mm: 60, height: 1.5, base: 4 }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  const eyeBody = parse(r.content).bodies.find((b: any) => b.key === 'b3');
+  // Two eyes Ø6 (10 px of 140 px across 60 mm → r ≈ 4.3 mm), 1.5 thick, in the upper half, on top of the base.
+  assert.ok(Math.abs(eyeBody.volume_mm3 - 2 * Math.PI * (10 * 60 / 140) ** 2 * 1.5) / eyeBody.volume_mm3 < 0.15, String(eyeBody.volume_mm3));
+  assert.equal(eyeBody.bounds.min[2], 4); assert.ok(eyeBody.bounds.min[1] > 30);
+  r = await runTool(s, 'run_command', { command: 'union', bodies: ['b1', 'b3'] }, evaluate);
+  assert.ok(!r.isError, r.content); assert.equal(r.state.bodies.length, 1);
+  // Standing: upright on XZ, thickness towards −Y.
+  r = await runTool({ ...(await stateOf(emptyDoc())), images }, 'extrude_image_layer', { width_mm: 40, height: 3, orientation: 'standing' }, evaluate);
+  assert.ok(!r.isError, r.content);
+  const up = parse(r.content).bodies[0].bounds;
+  assert.deepEqual([up.min[1], up.max[1], Math.round(up.max[2])], [-3, 0, 40]);
+  assert.match(parse((await runTool(s, 'extrude_image_layer', { layer: 'nope', width_mm: 60, height: 1 }, evaluate)).content).error, /No layer "nope"/);
+  assert.match(parse((await runTool({ ...s, images: [] }, 'get_image_layers', {}, evaluate)).content).error, /No image is attached/);
+});
+
+test('inflate_image_layer rounds the silhouette into a 3D body and sets features on its surface', async () => {
+  const { px, W, H } = smiley(false);
+  const images = [traceImage(px, W, H)];
+  let s: ChatState = { ...(await stateOf(emptyDoc())), images };
+  const id = (c: string) => images[0].layers.find(l => l.color === c)!.id;
+  let r = await runTool(s, 'inflate_image_layer', { layer: 'silhouette', mode: 'body', width_mm: 60, depth: 24 }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  const body = parse(r.content).bodies[0];
+  assert.deepEqual([body.bounds.min[2], body.bounds.max[2]], [-12, 12]);
+  assert.ok(Math.abs(body.bounds.max[0] - 60) < 0.5 && Math.abs(body.bounds.max[1] - 60) < 0.5, JSON.stringify(body.bounds));
+  // Rounder than a slab of the same outline, fuller than a cone.
+  const slab = Math.PI * 30 ** 2 * 24;
+  assert.ok(body.volume_mm3 > slab * 0.55 && body.volume_mm3 < slab * 0.85, String(body.volume_mm3 / slab));
+  assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2, body_depth: 24 }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  const eyes = parse(r.content).bodies.slice(1);
+  assert.equal(eyes.length, 2);
+  // Each eye sits in the upper half and reaches 2 mm above where it is sunk into the front surface.
+  for (const e of eyes) { assert.ok(e.bounds.min[1] > 30); assert.ok(e.bounds.min[2] > 9 && e.bounds.max[2] <= 12.5, JSON.stringify(e.bounds)); assert.ok(Math.abs(e.bounds.max[2] - e.bounds.min[2] - 2) < 1e-6); }
+  // The face colour is one region with three holes (eyes and mouth): a filled area, inflated whole.
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#fad228'), mode: 'bump', width_mm: 60, depth: 1, body_depth: 24 }, evaluate);
+  assert.ok(!r.isError, r.content);
+  // A ring stroke is skipped as an outline.
+  const ringPx = new Uint8ClampedArray(120 * 120 * 4).fill(255);
+  for (let y = 0; y < 120; y++) for (let x = 0; x < 120; x++) { const d = Math.hypot(x - 60, y - 60); if (d > 40 && d < 46) ringPx.set([0, 0, 0, 255], (y * 120 + x) * 4); }
+  const ring = traceImage(ringPx, 120, 120);
+  const rs: ChatState = { ...(await stateOf(emptyDoc())), images: [ring] };
+  // A big part lists faces and edges per body; a new small body is still listed in its result.
+  const cyl = await runTool(s, 'run_command', { command: 'cylinder', values: { r: 20, h: 7, x: 30, y: -20, z: -30 } }, evaluate);
+  const made = parse(cyl.content).bodies.find((b: any) => b.made_by?.includes('Cylinder'));
+  assert.ok(made.edges.some((e: any) => e.line === 'curve'), cyl.content.slice(0, 400));
+  const big = parse((await runTool(cyl.state, 'get_part_summary', {}, evaluate)).content);
+  assert.match(big.note, /call again with \{"body": key\}/); assert.equal(big.bodies[0].faces, undefined);
+  const one = parse((await runTool(cyl.state, 'get_part_summary', { body: made.key }, evaluate)).content);
+  assert.equal(one.bodies.find((b: any) => b.key === made.key).faces.length, 3);
+  assert.equal(big.features[0].node.points, undefined);
+  const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width_mm: 40, depth: 1, body_depth: 10 }, evaluate);
+  assert.match(parse(stroke.content).error, /outline stroke/);
+});
+
+/** A GET with a chosen Host header (fetch always sends the real one). */
+function rawStatus(url: string, host: string) {
+  return new Promise<number>((resolve, reject) => {
+    const u = new URL(url);
+    const req = httpRequest({ hostname: u.hostname, port: u.port, path: u.pathname, headers: { host } }, res => { res.resume(); resolve(res.statusCode ?? 0); });
+    req.on('error', reject); req.end();
+  });
+}
+
+test('the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON', async () => {
+  const fake = fakeClaude(() => [JSON.stringify({ type: 'result', subtype: 'success', is_error: false, session_id: 's' })]);
+  const srv = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: scratch() }));
+  const post = (headers: Record<string, string>, body = JSON.stringify({ text: 'hi', doc: emptyDoc() })) => fetch(`${srv.url}/turn`, { method: 'POST', headers, body });
+  try {
+    // Another page in the browser: a "simple" text/plain POST, or JSON, from its own origin.
+    assert.equal((await post({ origin: 'https://evil.example', 'content-type': 'text/plain' })).status, 403);
+    assert.equal((await post({ origin: 'https://evil.example', 'content-type': 'application/json' })).status, 403);
+    assert.equal((await post({ origin: 'null', 'content-type': 'application/json' })).status, 403);
+    assert.equal((await fetch(`${srv.url}/status`, { headers: { origin: 'http://localhost:3000' } })).status, 403);
+    // No Origin: the Host must be the studio's (the dev proxy keeps it), not this server's own or a rebound name.
+    assert.equal((await fetch(`${srv.url}/status`)).status, 403);
+    assert.equal(await rawStatus(`${srv.url}/status`, 'attacker.example:52021'), 403);
+    assert.equal(await rawStatus(`${srv.url}/status`, '127.0.0.1:52020'), 200);
+    // The studio itself, but not JSON: refused before any claude run.
+    assert.equal((await post({ ...STUDIO, 'content-type': 'text/plain' })).status, 415);
+    assert.equal((await post({ origin: 'http://localhost:4173' })).status, 415);
+    assert.equal(fake.spawned.filter(p => p.args[0] !== '--version').length, 0);
+    assert.equal((await post({ origin: 'http://localhost:52020', 'content-type': 'application/json; charset=utf-8' })).status, 200);
+    assert.equal(fake.spawned.filter(p => p.args[0] !== '--version').length, 1);
+  } finally { await srv.close(); }
+  // Allowed origins are configurable.
+  const other = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: scratch(), origins: ['http://127.0.0.1:52033'] }));
+  try {
+    assert.equal((await fetch(`${other.url}/status`, { headers: { origin: 'http://127.0.0.1:52033' } })).status, 200);
+    assert.equal((await fetch(`${other.url}/status`, { headers: STUDIO })).status, 403);
+  } finally { await other.close(); }
+  assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
 });

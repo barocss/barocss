@@ -45,6 +45,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
+  /** The traces of every image attached in this conversation (image 1 first). */
+  const traces = useRef<ChatImage['trace'][]>([]);
   const abort = useRef<AbortController | null>(null);
   const log = useRef<HTMLDivElement>(null);
 
@@ -62,15 +64,18 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const send = async () => {
     const attached = images;
-    const message = text.trim() || (attached.length ? 'Model the part shown in the image.' : '');
+    const first = traces.current.length + 1;
+    const note = attached.length ? `\n\n[Attached: ${attached.map((img, k) => `image ${first + k} (${img.name}, traced into ${img.trace.layers.length} layers: ${img.trace.layers.map(l => l.id).join(', ')})`).join('; ')}]` : '';
+    const message = (text.trim() || (attached.length ? 'Model what the image shows.' : '')) + note;
     if (!message || running || !status?.enabled || props.blocked) return;
     setText(''); setImages([]); setRunning(true);
+    traces.current = [...traces.current, ...attached.map(i => i.trace)];
     setItems(list => [...list, { kind: 'user', text: text.trim(), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null, previewing = 0;
     const done = await runServerTurn({
-      text: message, images: attached, doc: props.base(), session: session.current, signal: controller.signal,
+      text: message, images: attached, traces: traces.current, doc: props.base(), session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -100,7 +105,7 @@ export function ChatPanel(props: ChatPanelProps) {
       onDrop={e => { if (!e.dataTransfer.files.length) return; e.preventDefault(); if (enabled && !running) void attach(e.dataTransfer.files); }}>
       <div className="card-title">CHAT <span className="muted">{status?.model ?? ''}</span>
         <span className="grow" />
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; setItems([]); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
