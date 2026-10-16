@@ -600,7 +600,7 @@ function touchingLumps(solid: PrismaticSolid): boolean {
   }
   return false;
 }
-const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8 }).volumeMM3 : 0;
+const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volumeMM3 : 0;
 
 function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: (n: string) => string): Solid {
   // Upright solids stay upright when XY maps by a similarity and Z only scales and shifts.

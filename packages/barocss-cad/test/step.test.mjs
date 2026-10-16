@@ -106,3 +106,17 @@ test('a STEP file with several solids: one body by default, each solid its own p
   const moved = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text, each: true }, { id: 't', kind: 'translate', target: 'i/1', offset: [0, 0, 10] }])).outputs;
   assert.deepEqual(moved.map(o => o.id), ['i/0', 't']);
 });
+
+test('curved bodies read back from STEP keep their exact volume (quadrature over the read surfaces)', () => {
+  const tor = [{ id: 's', kind: 'sketch', profile: 'circle', center: [30, 10], radius: 5 }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+  const cases = [
+    ['a torus', D(tor), 2 * Math.PI ** 2 * 30 * 25],
+    ['a bent pipe', D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 8 }, { kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 8 }] }]), 25 * Math.PI * (16 + 10 * Math.PI)],
+    ['a torus and a rod joined', D([...tor, rect('b', -1, -1, 1, 1), { id: 'e', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'u', kind: 'union', target: 'r', tool: 'e' }]), 2 * Math.PI ** 2 * 30 * 25 + 160],
+  ];
+  for (const [name, doc, exact] of cases) {
+    const o = evaluateCadPart(doc).outputs.at(-1), back = evaluateCadPart(D([{ id: 'i', kind: 'import', step: o.exportStep({ name: 'x' }) }])).outputs[0].massProperties(1000);
+    assert.equal(back.method, 'quadrature', name);
+    assert.ok(Math.abs(back.volumeMM3 - exact) <= 1e-9 * exact, `${name}: ${back.volumeMM3} vs ${exact}`);
+  }
+});

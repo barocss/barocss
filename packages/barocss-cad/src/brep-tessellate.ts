@@ -200,7 +200,21 @@ function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2
   const e1 = unit(u), normal = unit(n); return { origin: p00, normal, e1, e2: cross(normal, e1) };
 }
 
-export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}): BrepMesh {
+export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}): BrepMesh { return tessellate(brep, options, null); }
+
+/** A face's vertices in a parameter domain of its surface, and the exact surface there (mass quadrature). */
+export interface FaceParameters {
+  readonly uv: readonly XY[]; readonly at: (u: number, v: number) => Point;
+  /** The triangles covering the domain (local indices) when they differ from the mesh's: on a pole side, those collapsed in space. */
+  readonly domain?: readonly (readonly [number, number, number])[];
+}
+/** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there. */
+export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}): { mesh: BrepMesh; parameters: Map<string, FaceParameters> } {
+  const parameters = new Map<string, FaceParameters>();
+  return { mesh: tessellate(brep, options, parameters), parameters };
+}
+
+function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null): BrepMesh {
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
@@ -281,14 +295,16 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
       const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
       const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
       const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
-      const { pts, tris } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null); continue;
+      const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
+      parameters?.set(face.id, { uv, at: frame.at }); continue;
     }
     const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
     const rails = railsOf(face, loops, coedges, edges);
     if (rails === undefined) {
       // Any other parametric surface without a seam: triangulated in its (u, v) domain.
       if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
-      const { pts, tris } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null); continue;
+      const { pts, tris, uv, domain } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
+      parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
     }
     const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
     const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
@@ -422,7 +438,7 @@ function evaluateSurfaceLocal(S: Surface, u: number, v: number): Point {
  * it, so the mesh stays conforming). Boundary edges are never split: the face meets its neighbours
  * exactly at the shared edge samples.
  */
-function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, parts: { points: Point[]; seam: boolean }[][], step: number): { pts: Point[]; tris: [number, number, number][] } {
+function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, parts: { points: Point[]; seam: boolean }[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[] } {
   const rings = parts.map(r => r.flatMap(c => c.points)), pts: Point[] = rings.flat(), outward = frame0.outwardRadial === (face.sense === 'forward');
   // A full-turn wall: its domain is centred opposite the seam; the seam going up lies on the right
   // when loops run counter-clockwise in (U, V) (outward radial), and points on the domain's edges take
@@ -496,7 +512,7 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
     bisect(x, y);
   }
   // Wound for the outward normal.
-  return { pts, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
+  return { pts, uv, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
 }
 
 /** Sides of a patch's domain that collapse to one point (poles): `along` is the coordinate that varies. */
@@ -528,7 +544,7 @@ function isSmoothPatch(S: Surface): boolean {
  * arc length), and refined by longest-edge bisection until the surface normals across every interior
  * edge differ by at most one angular step. Boundary edges are never split.
  */
-function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][] } {
+function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][] } {
   const S = face.surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
@@ -713,7 +729,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   refine(); flipAll(); refine();
   // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
   const keep = (face.sense === 'forward') !== flip, same = (a: number, b: number) => pts[a] === pts[b];
-  return { pts, tris: tris.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)).map(([a, b, c]) => keep ? [a, b, c] : [a, c, b]) };
+  const wound = tris.map(([a, b, c]): [number, number, number] => keep ? [a, b, c] : [a, c, b]);
+  return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)) };
 }
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };

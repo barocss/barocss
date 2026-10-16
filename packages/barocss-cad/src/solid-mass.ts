@@ -1,8 +1,10 @@
 // Mass properties of B-rep solids: closed form for prismatic solids (area moments of each slab's
-// section times its height), and exact integration of the display tessellation for any other B-rep
-// (exact for planar faces; for curved faces the chord error of the tessellation, reported).
+// section times its height); for any other B-rep, quadrature over the exact surfaces (brep-mass-
+// quadrature.ts), else exact integration of the display tessellation (exact for planar faces; for curved
+// faces the chord error of the tessellation, reported).
 import { regionMoments } from './curved-arrangement.js';
 import { tessellateBrep } from './brep-tessellate.js';
+import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
 import type { Brep } from './brep-core.js';
 import type { PrismaticSolid } from './prismatic-solid.js';
 import type { Point } from './types.js';
@@ -40,9 +42,24 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
   return solidMassFromIntegrals(I, densityKgPerM3, 'closed-form');
 }
 
-/** Tetrahedra from the origin over the watertight tessellation (divergence theorem). */
-export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: { readonly segmentsPerQuarter?: number } = {}): SolidMassProperties {
+/**
+ * Curved B-reps by quadrature over their surfaces, on meshes of `quadratureSegments` a quarter (8 by
+ * default; 0: none) and twice that, extrapolated (Richardson: the error left along trims that are not
+ * straight in a face's parameters, and beside poles, falls with the square of the step; faces with none
+ * give the same value on both). Otherwise, or when that cannot integrate a face, tetrahedra from the
+ * origin over the watertight tessellation (divergence theorem).
+ */
+export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): SolidMassProperties {
   const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
+  const q = options.quadratureSegments ?? 8;
+  if (curved && q > 0) {
+    let Q: number[] | null = null;
+    try {
+      const coarse = brepQuadratureIntegrals(brep, q), fine = coarse && brepQuadratureIntegrals(brep, 2 * q);
+      Q = coarse && fine ? fine.map((x, k) => (4 * x - coarse[k]) / 3) : null;
+    } catch { Q = null; }
+    if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
+  }
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
   const I = Array(10).fill(0) as number[];
   for (let t = 0; t < ix.length; t += 3) {

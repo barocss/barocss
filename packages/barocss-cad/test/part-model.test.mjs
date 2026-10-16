@@ -202,7 +202,8 @@ test('shell after fillets and chamfers: the hollow takes the same finishes, offs
   // A moved copy is shelled as its original, then moved (a scaled one with the wall scaled back).
   const trayOf = (more, target) => volume(evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 4 }, ...more, { id: 'sh', kind: 'shell', target, thickness: 2, open: ['e.top'] }])).outputs.at(-1));
   const still = trayOf([], 'f');
-  assert.ok(close(trayOf([{ id: 'r', kind: 'rotate', target: 'f', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [5, 6, 7] }], 't'), still, 1e-9));
+  // (Turned, its mesh differs, and so does the quadrature's small error along the mitred trims.)
+  assert.ok(close(trayOf([{ id: 'r', kind: 'rotate', target: 'f', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [5, 6, 7] }], 't'), still, 1e-5));
   assert.ok(close(trayOf([{ id: 'm', kind: 'mirror', target: 'f', plane: 'xz' }], 'm'), still, 1e-9));
   const big = evaluateCadPart(D([...box, { id: 'k', kind: 'scale', target: 'e', factor: 2 }, { id: 'sh', kind: 'shell', target: 'k', thickness: 4, open: ['e.top'] }])).outputs.at(-1);
   assert.ok(close(volume(big), 8 * (48000 - 56 * 36 * 18), 1e-12));
@@ -426,7 +427,7 @@ test('refusals name the feature and the reason', () => {
 test('mass properties: closed form for upright bodies agrees with mesh integration; STL is well formed', () => {
   const s = evaluateCadPart(D([rect('s', 0, 0, 60, 40), extrude('e', 's', 8), { id: 'h', kind: 'hole', target: 'e', center: [15, 20], radius: 4 }, circle('c', 40, 20, 6), extrude('b', 'c', 10, 8), { id: 'u', kind: 'union', target: 'h', tool: 'b' }]));
   const o = s.outputs[0], exact = o.massProperties(2700), mesh = brepMassProperties(o.brep, 2700, { segmentsPerQuarter: 64 });
-  assert.equal(exact.method, 'closed-form'); assert.equal(mesh.method, 'tessellated');
+  assert.equal(exact.method, 'closed-form'); assert.equal(mesh.method, 'quadrature');
   assert.ok(close(exact.volumeMM3, 19200 - 128 * pi + 360 * pi));
   assert.ok(close(mesh.volumeMM3, exact.volumeMM3, 1e-4));
   for (let k = 0; k < 3; k++) assert.ok(Math.abs(mesh.centroidMM[k] - exact.centroidMM[k]) < 1e-3, `centroid ${k}`);
@@ -455,7 +456,7 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
   for (const [name, doc, expected] of cases) {
     const o = evaluateCadPart(doc).outputs[0], m = o.massProperties(1), report = checkBrep(o.brep);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
-    assert.equal(m.method, o.representation === 'upright' ? 'closed-form' : 'tessellated', name);
+    assert.equal(m.method, o.representation === 'upright' ? 'closed-form' : 'quadrature', name);
     assert.ok(Math.abs(m.volumeMM3 - expected) < 3e-4 * expected, `${name}: ${m.volumeMM3} vs ${expected}`);
     assert.ok(o.brep.faces.every(f => f.name) && o.brep.edges.every(e => e.name), name);
     assert.ok(o.brep.faces.some(f => f.name.startsWith(name.includes('pin') ? 'p.side0' : name.includes('bar') ? 'k.side0' : 'h.side0')), `${name}: the cylinder wall keeps its feature name`);
@@ -560,4 +561,13 @@ test('sketch regions and holes: one extrude makes a windowed plate and a separat
   refused(D([plate, { id: 'd', kind: 'extrude', sketch: 's', height: 4, draft: 5 }]), 'CAPABILITY', /drafted extrude takes one loop/);
   refused(D([plate, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }]), 'CAPABILITY', /revolve takes a sketch of one loop/);
   refused(D([{ ...rect('x', 0, 0, 1, 1), holes: 'no' }]), 'INPUT', /holes must list/);
+});
+
+test('fillet volume is exact at any radius, up to the wall height (quadrature over the round)', () => {
+  for (const r of [4, 15, 16]) {
+    const o = evaluateCadPart(D([rect('s', 0, 0, 32, 32), extrude('e', 's', 16), { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: r }])).outputs.at(-1);
+    const m = o.massProperties(1000), exact = 32 * 32 * 16 - (r * r - pi * r * r / 4) * 32;
+    assert.equal(m.method, 'quadrature');
+    assert.ok(close(m.volumeMM3, exact, 1e-9), `R${r}: ${m.volumeMM3} vs ${exact}`);
+  }
 });
