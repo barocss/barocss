@@ -68,3 +68,12 @@ test('Mirror across a face’s plane (not only the origin’s): by default its o
   assert.deepEqual([up.plane, up.at], ['xy', 10]);
   assert.equal(m.derive!(ctx, { ...v, plane: 'xz' }, ['plane']).at, 10);
 });
+
+test('Patterns can make separate bodies instead of one', () => {
+  const ctx = picked(rectanglePart(10, 10, 10));
+  const row = bodiesOf(cmd('linear-pattern').build!(ctx, { ...cmd('linear-pattern').defaults!(ctx), spacing: 20, count: 3, result: 'separate' }));
+  assert.deepEqual(row.map(b => Math.round(b.mesh.bounds.min[0])).sort((a, b) => a - b), [0, 20, 40]);
+  const ring = bodiesOf(cmd('circular-pattern').build!(ctx, { ...cmd('circular-pattern').defaults!(ctx), count: 4, px: 30, py: 5, result: 'separate' }));
+  assert.equal(ring.length, 4);
+  assert.ok(ring.every(b => Math.abs(b.volumeMM3! - 1000) < 1e-6));
+});

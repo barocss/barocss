@@ -224,14 +224,15 @@ export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { do
  * A copy of a body as a body of its own: every feature it is built from, appended again (renumbered, its
  * face and edge names too), then moved by `offset`. Its look (colour) comes along. `top`: its new node.
  */
-export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, number, number]): { doc: StudioDoc; top: number } {
+export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, number, number] | ((copy: BodyRef) => ModelNode)): { doc: StudioDoc; top: number } {
   const nodes = doc.nodes, chain = new Set<number>(), stack = [body.node];
   while (stack.length) { const i = stack.pop()!; if (chain.has(i) || !nodes[i]) continue; chain.add(i); stack.push(...parentsOf(nodes[i])); }
   const order = [...chain].sort((a, b) => a - b), at = new Map(order.map((old, k) => [old, nodes.length + k]));
   const map = (i: number) => at.get(i) ?? i;
   const copies = order.map(i => renumber(nodes[i], map));
   const top = nodes.length + order.length;
-  let out: StudioDoc = { ...doc, nodes: [...nodes, ...copies, { kind: 'translate', parent: { node: map(body.node), side: body.side }, offset }] };
+  const copy: BodyRef = { node: map(body.node), side: body.side };
+  let out: StudioDoc = { ...doc, nodes: [...nodes, ...copies, typeof offset === 'function' ? offset(copy) : { kind: 'translate', parent: copy, offset }] };
   // The copy's look: the original's colour (not its name), keyed by the copy's first feature.
   const looks = doc.bodies ?? {}, rootKey = Object.keys(looks).find(k => { const m = /^b(\d+)/.exec(k); return m && chain.has(Number(m[1])) && !/_/.test(k); });
   if (rootKey && looks[rootKey].color) { const m = /^b(\d+)/.exec(rootKey)!; out = { ...out, bodies: { ...looks, [`b${map(Number(m[1]))}`]: { color: looks[rootKey].color } } }; }
