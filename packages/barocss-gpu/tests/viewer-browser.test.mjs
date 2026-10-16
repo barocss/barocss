@@ -244,8 +244,27 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const row = [], y = Math.round(screen([0, 300, 0])[1]), x0 = Math.ceil(screen([-30, 300, 0])[0]), x1 = Math.floor(screen([30, 300, 0])[0]);
       for (let x = x0; x <= x1; x++) row.push(pixel(far, [x, y])[1]);
       floor.remove();
-      return { near, farGreen: row };
+      // A shader material: WGSL computes the colour from uv and its params (with an alias and a helper).
+      const shaded = viewer.add(quad(-2, 2, -2, 2, 0, 1), { material: { unlit: true, color: '#ffffff', doubleSided: true, shader: {
+        declarations: 'fn pick_side(a: vec3<f32>, b: vec3<f32>, t: f32) -> vec3<f32> { return select(a, b, t >= 0.5); }\n',
+        expression: 'pick_side(vec3<f32>(materialParams.slot[0].x, 0.0, 0.0), vec3<f32>(0.0, 0.0, materialParams.slot[0].y), surface_u)',
+        aliases: { surface_uv: 'uv' }, params: [0.5, 1] } } });
+      shaded.material = { shader: { ...shaded.material.shader, expression: shaded.material.shader.expression.replace('surface_u)', 'surface_uv.x)') } };
+      viewer.camera.position = [0, -10, 0]; viewer.camera.target = [0, 0, 0];
+      viewer.fit({ min: [-2, 0, -2], max: [2, 0, 2] });
+      const sh = await viewer.capture();
+      const shader = { left: pixel(sh, at(0.25, 0.5)), right: pixel(sh, at(0.75, 0.5)) };
+      shaded.material = { shader: { ...shaded.material.shader, params: [1, 0.5] } };
+      const sh2 = await viewer.capture();
+      shader.leftAfter = pixel(sh2, at(0.25, 0.5)); shader.rightAfter = pixel(sh2, at(0.75, 0.5));
+      shaded.remove();
+      return { near, farGreen: row, shader };
     });
+    // Linear 0.5 encodes to 188; the params change without a new pipeline.
+    assert.deepEqual(tex.shader.left.slice(0, 3), [188, 0, 0], JSON.stringify(tex.shader));
+    assert.deepEqual(tex.shader.right.slice(0, 3), [0, 0, 255]);
+    assert.deepEqual(tex.shader.leftAfter.slice(0, 3), [255, 0, 0]);
+    assert.deepEqual(tex.shader.rightAfter.slice(0, 3), [0, 0, 188]);
     assert.deepEqual(tex.near.red.slice(0, 3), [255, 0, 0]);
     assert.deepEqual(tex.near.white.slice(0, 3), [255, 255, 255]);
     assert.deepEqual(tex.near.red2.slice(0, 3), [255, 0, 0]);

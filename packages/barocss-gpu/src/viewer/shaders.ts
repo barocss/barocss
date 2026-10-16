@@ -56,10 +56,24 @@ fn instanceNormal(i: Instance, n: vec3f) -> vec3f {
 }
 `;
 
-export const surfaceWGSL = common + /* wgsl */ `
-// The material's colour map (a white texel when it has none), sRGB-decoded by its format.
+/**
+ * A shader material's part of the surface shader: WGSL declarations, and an expression of the linear
+ * base colour (vec3<f32>) with uv, world and normal (and any aliases of them) and materialParams in scope.
+ */
+export interface SurfaceShader { declarations?: string; expression: string; aliases?: Readonly<Record<string, 'uv' | 'world' | 'normal'>> }
+const DEFAULT_PARAMS = 'struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\n';
+
+/** The surface shader, with a shader material's colour when one is given. */
+export const surfaceWGSL = (custom?: SurfaceShader): string => common + (custom?.declarations ?? '') + (/struct\s+MaterialParams\b/.test(custom?.declarations ?? '') ? '' : DEFAULT_PARAMS) + /* wgsl */ `
+// The material's colour map (a white texel when it has none), sRGB-decoded by its format, and the
+// 64 bytes of a shader material's parameters.
 @group(2) @binding(0) var map: texture_2d<f32>;
 @group(2) @binding(1) var mapSampler: sampler;
+@group(2) @binding(2) var<uniform> materialParams: MaterialParams;
+fn shaderColor(uv: vec2f, world: vec3f, normal: vec3f) -> vec3f {
+${Object.entries(custom?.aliases ?? {}).map(([name, from]) => `  let ${name} = ${from};
+`).join('')}  return ${custom ? custom.expression : 'vec3f(1.0)'};
+}
 struct VOut {
   @builtin(position) clip: vec4f,
   @location(0) world: vec3f,
@@ -118,7 +132,7 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   if (!front) { n = -n; }
   // Perspective: toward the eye; orthographic: against the view direction.
   let v = select(-frame.forward.xyz, normalize(frame.eye.xyz - in.world), frame.eye.w > 0.5);
-  let base = in.color.rgb * texel.rgb;
+  let base = in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, n);
   let metallic = clamp(object.params.x, 0.0, 1.0);
   let rough = clamp(object.params.y, 0.04, 1.0);
   let a = rough * rough;
@@ -155,7 +169,7 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let a = in.color.a * texel.a;
-  return vec4f(in.color.rgb * texel.rgb * a, a);
+  return vec4f(in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, normalize(in.normal)) * a, a);
 }
 // A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {

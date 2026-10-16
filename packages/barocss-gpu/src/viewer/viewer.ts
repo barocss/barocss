@@ -9,7 +9,7 @@ import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type Geo
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -36,6 +36,17 @@ export interface Material {
   shadowOnly?: boolean;
   /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
   map?: ImageTexture | null;
+  /**
+   * A shader material: WGSL that computes the base colour per pixel (then lit, unless unlit). The
+   * expression is a vec3<f32> of linear colour with uv, world, normal and materialParams (an
+   * array<vec4<f32>, 4> named slot: 64 bytes, from params) in scope; declarations may define helpers
+   * and their own struct MaterialParams of that size; aliases name uv, world or normal otherwise.
+   */
+  shader?: ShaderMaterial | null;
+}
+export interface ShaderMaterial extends SurfaceShader {
+  /** Up to 16 numbers for materialParams. */
+  params?: ArrayLike<number>;
 }
 
 /** Pixels for a texture: an image, a canvas or a bitmap, or RGBA bytes rows top to bottom. */
@@ -51,7 +62,7 @@ export interface TextureOptions {
 
 /** A texture the viewer keeps (with its source, to upload again after a device loss). */
 export class ImageTexture {
-  /** @internal */ gpu: { texture: Texture; group: BindGroup; device: Device } | null = null;
+  /** @internal */ gpu: { texture: Texture; group: BindGroup; device: Device; sampler: object } | null = null;
   disposed = false;
   constructor(readonly source: TextureSource, readonly options: Required<TextureOptions>, private readonly owner: Viewer) {}
   get width(): number { return this.source.width; }
@@ -117,7 +128,7 @@ export class Mesh {
   /** @internal */ dirty = true;
   private worldBox: Box3 | null | undefined;
   private _transform: Mat4 = identity();
-  private _material: Required<Omit<Material, 'color' | 'map'>> & { color: Vec3; map: ImageTexture | null };
+  private _material: Required<Omit<Material, 'color' | 'map' | 'shader'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null };
   private _visible: boolean;
   pickable: boolean;
   name: string | undefined;
@@ -128,6 +139,8 @@ export class Mesh {
   instances: { count: number; data: ArrayBuffer; matrices: Float64Array[]; buffer: Buffer | null; device: Device | null } | null = null;
   /** @internal Which outline colour of the frame (1-based; 0 none). */
   outlineSlot = 0;
+  /** @internal A shader material's bind group (its map and its own parameters), for the device and inputs it was made for. */
+  materialState: { device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array } | null = null;
   /** Pick id (1-based; 0 is empty space). */
   readonly id: number;
 
@@ -160,6 +173,12 @@ export class Mesh {
   }
   get material(): Readonly<Material> { return this._material; }
   set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this.touch(); }
+  /** @internal The 64 bytes of a shader material's parameters. */
+  shaderParams(): Float32Array {
+    const out = new Float32Array(16), p = this._material.shader?.params;
+    if (p) { if (p.length > 16) throw new RangeError('A shader material has at most 16 params'); for (let i = 0; i < p.length; i++) out[i] = p[i]; }
+    return out;
+  }
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
   get transparent(): boolean { return this._material.opacity < 1 || this._material.shadowOnly; }
@@ -191,10 +210,10 @@ export class Mesh {
   }
 }
 
-function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map'>> & { color: Vec3; map: ImageTexture | null } {
+function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null } {
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null,
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null,
   };
 }
 
@@ -262,7 +281,8 @@ export interface LineHit {
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
 
-type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'catcher' | 'grid' | 'output';
+/** Built-in pipelines by name; a shader material's are `shader<id>:<variant>`. */
+type PipelineKey = string;
 /** The scene target: linear, half float (blendable and multisampled everywhere). */
 const SCENE_FORMAT = 'rgba16float';
 
@@ -295,6 +315,12 @@ export class Viewer {
   private emptyShadow!: Texture;
   private shadowMap: Texture | null = null;
   private materialLayout!: object;
+  private surfaceLayout!: object;
+  /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
+  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean) => object;
+  /** Shader materials by their WGSL: an id and their module (made on first use). */
+  private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
+  private zeroParams!: Buffer;
   /** A white texel: the colour map of a material without one. */
   private white!: { texture: Texture; group: BindGroup };
   private mipPipelines = new Map<string, Pipeline>();
@@ -367,7 +393,8 @@ export class Viewer {
     this.mipPipelines.clear();
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
-    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: white.createView() }, { binding: 1, resource: this.mipSampler }] }) };
+    this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
+    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: white.createView() }, { binding: 1, resource: this.mipSampler }, { binding: 2, resource: { buffer: this.zeroParams } }] }) };
     this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
     device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
@@ -389,7 +416,7 @@ export class Viewer {
 
   private async createPipelines(): Promise<void> {
     const d = this.device;
-    const modules = { surface: d.createShaderModule({ code: surfaceWGSL, label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
+    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
     for (const [name, m] of Object.entries(modules)) {
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
@@ -402,8 +429,11 @@ export class Viewer {
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
     // Surfaces add the material's colour map.
-    this.materialLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } }] });
-    const surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
+    this.materialLayout = d.createBindGroupLayout({ entries: [
+      { binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } },
+      { binding: 2, visibility: 2, buffer: { type: 'uniform', minBindingSize: 64 } },
+    ] });
+    const surfaceLayout = this.surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
     const instance = { arrayStride: INSTANCE_STRIDE, stepMode: 'instance', attributes: [
       ...[0, 1, 2, 3].map(k => ({ shaderLocation: 3 + k, offset: k * 16, format: 'float32x4' })), { shaderLocation: 7, offset: 64, format: 'unorm8x4' },
     ] };
@@ -421,17 +451,16 @@ export class Viewer {
     const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
     const jobs: Promise<void>[] = [];
     d.pushErrorScope('validation');
-    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true]) {
-      const key = `${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t ? 'T' : ''}` as PipelineKey;
-      jobs.push(make(key, {
-        vertex: vertex(modules.surface),
-        fragment: { module: modules.surface, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
-        primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
-        // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
-        depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
-        multisample: ms,
-      }));
-    }
+    this.surfaceDescriptor = (module, lit, two, t) => ({
+      vertex: vertex(module),
+      fragment: { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
+      depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      multisample: ms,
+    });
+    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true])
+      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
     jobs.push(make('catcher', {
       vertex: vertex(modules.surface),
       fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
@@ -585,9 +614,50 @@ export class Viewer {
       addressModeU: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge', addressModeV: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge',
       magFilter: o.filter, minFilter: o.filter, mipmapFilter: o.filter, ...(o.filter === 'linear' && o.mipmaps ? { maxAnisotropy: 8 } : {}),
     });
-    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }] });
-    map.gpu = { texture, group, device: this.device };
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: this.zeroParams } }] });
+    map.gpu = { texture, group, device: this.device, sampler };
     return group;
+  }
+
+  /** A mesh's material bind group: its map's (or the white texel's), with its shader params when it has a shader. */
+  private materialGroup(m: Mesh): BindGroup {
+    const mat = m.material;
+    if (!mat.shader) { m.materialState?.params.destroy(); m.materialState = null; return this.mapGroup(mat.map ?? null); }
+    const map = mat.map && !mat.map.disposed ? mat.map : null, data = m.shaderParams(), st = m.materialState;
+    if (st && st.device === this.device && st.map === map) {
+      if (st.data.some((v, i) => v !== data[i])) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
+      return st.group;
+    }
+    st?.params.destroy();
+    this.mapGroup(map);
+    const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shader params' });
+    this.device.queue.writeBuffer(params, 0, data);
+    const view = map?.gpu ? map.gpu.texture.createView() : this.white.texture.createView(), sampler = map?.gpu ? map.gpu.sampler : this.mipSampler;
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: view }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } }] });
+    m.materialState = { device: this.device, map, params, group, data };
+    return group;
+  }
+
+  /** A shader material's pipeline for a variant: its module compiled on first use (errors reported, not thrown). */
+  private shaderPipeline(shader: ShaderMaterial, variant: string): PipelineKey {
+    const code = surfaceWGSL(shader);
+    let entry = this.shaders.get(code);
+    if (!entry) { entry = { id: this.shaders.size + 1, module: null, device: null }; this.shaders.set(code, entry); }
+    const key = `shader${entry.id}:${variant}`;
+    if (entry.device !== this.device || !entry.module) {
+      entry.module = this.device.createShaderModule({ code, label: `viewer shader material ${entry.id}` });
+      entry.device = this.device;
+      (entry.module as { getCompilationInfo(): Promise<{ messages: readonly { type: string; message: string; lineNum: number }[] }> }).getCompilationInfo().then(info => {
+        const errors = info.messages.filter(x => x.type === 'error');
+        if (errors.length) this.report(`Shader material ${entry!.id}: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
+      }, () => undefined);
+      for (const k of [...this.pipelines.keys()]) if (k.startsWith(`shader${entry.id}:`)) this.pipelines.delete(k);
+    }
+    if (!this.pipelines.has(key)) {
+      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('T');
+      this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t) }));
+    }
+    return key;
   }
 
   /** Fill a texture's mip levels, each a filtered half of the one above. */
@@ -713,7 +783,8 @@ export class Viewer {
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return (t ? 'lineT' : 'line');
     if (mat.shadowOnly) return 'catcher';
-    return `${mat.unlit ? 'unlit' : 'lit'}${two}${t}` as PipelineKey;
+    const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}`;
+    return mat.shader ? this.shaderPipeline(mat.shader, variant) : variant;
   }
 
   /** The shadow-casting light's view of the scene: an orthographic box around it along the light. */
@@ -764,7 +835,7 @@ export class Viewer {
     pass.setVertexBuffer(0, g.positions);
     if (full) {
       pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); pass.setVertexBuffer(3, this.instanceBuffer(m)); pass.setVertexBuffer(4, g.uvs!);
-      pass.setBindGroup(2, this.mapGroup(m.material.map ?? null));
+      pass.setBindGroup(2, this.materialGroup(m));
     }
     else pass.setVertexBuffer(1, this.instanceBuffer(m));
     if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
@@ -1087,12 +1158,12 @@ export class Viewer {
     const cancel = (globalThis as { cancelAnimationFrame?: (h: number) => void }).cancelAnimationFrame;
     if (this.scheduled) cancel?.(this.scheduled);
     for (const g of this.geometries) g.release();
-    for (const m of this.meshes) m.instances?.buffer?.destroy();
+    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); }
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy();
+    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();
     this.context?.unconfigure();
