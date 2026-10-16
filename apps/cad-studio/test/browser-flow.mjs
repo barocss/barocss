@@ -555,7 +555,12 @@ try {
 
   await check('draw a plate: standard views, dimensions that follow the model, SVG and PDF', async () => {
     const fs = await import('node:fs');
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    // An empty part: the sheet says there is nothing to draw, and no error is raised.
+    await page.click('[aria-label="New part"]'); await page.click('.mode button:text-is("Drawing")');
+    await page.waitForFunction(() => /no body to draw/.test(document.querySelector('.dw-paper')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/Could not draw/.test(await page.locator('.toast').allInnerTexts().then(t => t.join(' '))), 'no error toast for an empty part');
+    await page.click('.mode button:text-is("Model")');
+    await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;

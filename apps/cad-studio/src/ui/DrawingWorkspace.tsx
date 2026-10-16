@@ -44,6 +44,8 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const [section, setSection] = useState<SectionResult | null>(null);
   const [sectionY, setSectionY] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** The part has no body yet: the panel says so, and nothing is raised as an error. */
+  const [empty, setEmpty] = useState(false);
   const [busy, setBusy] = useState(true);
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
@@ -62,6 +64,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}) }).then(r => {
       if (!live) return;
       setBusy(false);
+      setEmpty(!r.ok && !!r.empty);
       if (r.ok) { setViews(r.views); setSection(r.section ?? null); setError(null); } else { setViews(null); setSection(null); setError(r.error); }
     });
     return () => { live = false; };
@@ -232,7 +235,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => { if (sheet) downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf'); };
-  useEffect(() => { if (error) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // What follows the cursor: the snap, the hovered edge, and the dimension being placed or dragged.
   const overlay = useMemo(() => {

@@ -262,3 +262,8 @@ test('hatching stays inside a ring and out of its hole', () => {
     assert.ok(Math.abs(Math.abs((m.b[1] - m.a[1]) / (m.b[0] - m.a[0])) - 1) < 1e-9, 'at 45°');
   }
 });
+
+test('an empty part has nothing to draw, and that is not an error', () => {
+  const r = projectViews([]);
+  assert.ok(!r.ok && r.empty === true && /no body/.test(r.error));
+});
