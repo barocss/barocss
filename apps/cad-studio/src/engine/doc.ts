@@ -48,6 +48,7 @@ export type ModelNode = SketchNode
 
 import type { RenderSettings } from './render';
 import type { DirectGeometry } from './direct';
+import type { DrawingSettings } from '../drawing/types';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -62,6 +63,8 @@ export interface StudioDoc {
   direct?: DirectGeometry;
   /** Other parts placed beside this one (a simple assembly). */
   instances?: PartInstance[];
+  /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
+  drawing?: DrawingSettings;
 }
 
 /** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */
