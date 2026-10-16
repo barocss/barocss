@@ -5,9 +5,11 @@ import { readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { evaluateDoc } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
+import type { ImageTrace } from '../src/chat/trace';
 import { runTool, TOOLS, type ChatState } from '../src/chat/tools';
 
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean }
+/** `images`: the traces of the conversation's attached images (read only). */
+export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; images?: ImageTrace[] }
 
 let revision = 1;
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
@@ -15,7 +17,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
 export async function serveMcp(statePath: string, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout) {
   const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
   const first = await evaluate(saved.doc);
-  let state: ChatState = { doc: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}) };
+  let state: ChatState = { doc: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
   let changed = saved.changed;
   const save = () => {
     const tmp = `${statePath}.tmp`;

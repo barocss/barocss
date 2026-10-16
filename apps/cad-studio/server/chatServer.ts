@@ -122,16 +122,17 @@ export function createChatServer(options: ChatServerOptions) {
       return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });
     }
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown };
+    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
     if (imageError) return sendJson(res, 400, { error: imageError });
     const images = (body.images ?? []) as TurnImage[];
+    if (body.traces !== undefined && (!Array.isArray(body.traces) || body.traces.length > 16 || body.traces.some(t => typeof t !== 'object' || !t || !Array.isArray((t as { layers?: unknown }).layers)))) return sendJson(res, 400, { error: '"traces" is a list of image traces.' });
 
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}) } satisfies StateFile));
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath } } } });
     const prompt = `${stateNote(body.doc as StudioDoc)}\n\n${body.text}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
