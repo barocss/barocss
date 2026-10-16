@@ -3,31 +3,31 @@
 // profile; a value the constraints cannot take leaves the nodes unchanged.
 import type { ModelNode, SketchNode, SketchOutline } from '../engine/doc';
 import type { EditField } from '../app/editFields';
-import { shapeNode } from './loops';
-import { commitDimension, dimensionLabel, dimensionValue, type Polygon } from './rules';
+import { profileOf } from './loops';
+import { commitDimension, dimensionLabel, dimensionValue } from './rules';
+import { outlinePolygon, sketchShapes } from './reopen';
+export { outlinePolygon };
 
 type Nodes = readonly ModelNode[];
-
-/** A kept outline as the sketcher's closed polygon. */
-export const outlinePolygon = (o: SketchOutline): Polygon => ({
-  kind: 'polygon', closed: true, points: o.points.map(p => [p[0], p[1]] as [number, number]), bulges: o.bulges ? [...o.bulges] : o.points.map(() => 0),
-  ...(o.lengths ? { lengths: o.lengths } : {}), ...(o.radii ? { radii: o.radii } : {}), ...(o.tangents ? { tangents: o.tangents } : {}),
-  ...(o.equalRadii ? { equalRadii: o.equalRadii } : {}), ...(o.concentric ? { concentric: o.concentric } : {}), ...(o.hv ? { hv: o.hv } : {}), ...(o.rules ? { rules: o.rules } : {}),
-});
 
 /** The driving dimensions' keys of a kept outline, in the order the sketch panel lists them. */
 export function drivingDimensions(o: SketchOutline): string[] {
   return [...Object.keys(o.lengths ?? {}).map(i => 'len' + i), ...Object.keys(o.radii ?? {}).map(i => 'rad' + i),
-    ...(o.rules ?? []).flatMap(r => r.kind === 'distance' ? [`dist${r.a}_${r.b}`] : r.kind === 'dx' || r.kind === 'dy' || r.kind === 'angle' ? [`${r.kind === 'angle' ? 'ang' : r.kind}${r.a}_${r.b}`] : [])];
+    ...(o.rules ?? []).flatMap(r => r.kind === 'distance' ? [`dist${r.a}_${r.b}`] : r.kind === 'dx' || r.kind === 'dy' || r.kind === 'angle' ? [`${r.kind === 'angle' ? 'ang' : r.kind}${r.a}_${r.b}`]
+      : r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy' ? [`${r.kind}${r.a}_${r.circle}`] : []),
+    ...(o.circles ?? []).map((_, j) => 'cdia' + j)];
 }
 
 /** A driving dimension's value as typed (lengths, radii, distances, angles), not as re-measured from the solved points. */
 export function drivingValue(o: SketchOutline, key: string): number | null {
   const m = /^(len|rad)(\d+)$/.exec(key);
   if (m) return (m[1] === 'len' ? o.lengths : o.radii)?.[Number(m[2])] ?? null;
+  const cd = /^(cdist|cdx|cdy)(\d+)_(\d+)$/.exec(key);
+  if (cd) { const r = (o.rules ?? []).find(x => x.kind === cd[1] && 'circle' in x && x.a === Number(cd[2]) && x.circle === Number(cd[3])); return r && 'value' in r ? r.value : null; }
+  const cdia = /^cdia(\d+)$/.exec(key); if (cdia) { const c = o.circles?.[Number(cdia[1])]; return c ? c.r * 2 : null; }
   const d = /^(dist|dx|dy|ang)(\d+)_(\d+)$/.exec(key); if (!d) return null;
   const kind = ({ dist: 'distance', dx: 'dx', dy: 'dy', ang: 'angle' } as const)[d[1] as 'dist' | 'dx' | 'dy' | 'ang'];
-  const r = (o.rules ?? []).find(x => x.kind === kind && 'a' in x && x.a === Number(d[2]) && x.b === Number(d[3]));
+  const r = (o.rules ?? []).find(x => x.kind === kind && 'b' in x && x.a === Number(d[2]) && x.b === Number(d[3]));
   return r && 'value' in r ? r.value : null;
 }
 
@@ -43,10 +43,10 @@ export function outlineFields(nodes: Nodes, s: number, prefix: string): EditFiel
       set: (n, v) => {
         const r = commitDimension(outlinePolygon(outline(n)), key, v);
         if (!r.ok) return n as ModelNode[];
-        const old = n[s] as SketchNode, next = shapeNode(r.shape);
-        if (!next) return n as ModelNode[];
-        const keep = { ...(old.plane ? { plane: old.plane } : {}), ...(old.regions ? { regions: old.regions } : {}), ...(old.holes ? { holes: old.holes } : {}) };
-        return n.map((x, k) => k === s ? { ...next, ...keep } as SketchNode : x);
+        // The whole profile again: the re-solved outline (its circles with it) and the sketch's other loops.
+        const old = n[s] as SketchNode, next = profileOf([r.shape, ...sketchShapes(old).done]);
+        if ('error' in next) return n as ModelNode[];
+        return n.map((x, k) => k === s ? { ...next.node, ...(old.plane ? { plane: old.plane } : {}) } as SketchNode : x);
       },
     };
   });

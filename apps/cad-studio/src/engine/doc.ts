@@ -16,6 +16,8 @@ export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; s
 export interface SketchOutline {
   points: [number, number][]; bulges?: number[]; lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
   equalRadii?: [number, number][]; concentric?: [number, number][]; hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
+  /** Circles dimensioned from the outline (they are also the profile's holes or regions). */
+  circles?: { c: [number, number]; r: number }[];
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline };
