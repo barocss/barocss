@@ -8,16 +8,17 @@
 import type { PartInstance } from '../engine/doc';
 
 export type Vec3 = [number, number, number];
-export type MateKind = 'coincident' | 'concentric' | 'distance';
+export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 export interface MateRef { part: string; face: string }
 /**
  * `coincident`: flat faces flush, facing each other (flip: facing the same way). `distance`: the same,
  * `distance` mm apart along the fixed face's normal. `concentric`: two round faces on one axis, the axes
  * either way round (flip unset: as the other mates or the part's stance have it), the same way (false)
- * or reversed (true).
+ * or reversed (true). `angle`: flat faces `angle` degrees apart (0: facing each other as in coincident; flip:
+ * measured from facing the same way), with no hold on position.
  */
-export interface Mate { id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; flip?: boolean }
+export interface Mate { id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean }
 
 /** A face's exact geometry in its part's own coordinates. */
 export type MateFace =
@@ -26,12 +27,12 @@ export type MateFace =
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
-export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance' };
+export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
 /** Which mates a pair of faces admits. */
 export const kindsFor = (a: MateFace, b: MateFace): MateKind[] =>
-  a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric'] : [];
+  a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric'] : [];
 
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
 type Mat3 = [number, number, number, number, number, number, number, number, number];
@@ -110,18 +111,21 @@ const degBetween = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) / DEG;
 export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace | undefined): string | null {
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   const kinds = kindsFor(fa, fb);
-  if (!kinds.length) return 'A flat face and a round face cannot be mated: pick two flat faces (coincident, distance) or two round faces (concentric).';
+  if (!kinds.length) return 'A flat face and a round face cannot be mated: pick two flat faces (coincident, distance, angle) or two round faces (concentric).';
   if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces (a hole, a pin).' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
+  if (mate.kind === 'angle' && !(Number.isFinite(mate.angle ?? NaN) && mate.angle! >= 0 && mate.angle! <= 180)) return 'Enter an angle from 0° to 180°.';
   return null;
 }
 
 /**
  * Places every instance its mates move. `tables(part)` gives a part's faces in its own coordinates
  * (undefined while they are being read). Instances are solved after the parts they are mated to; the base
- * part, grounded instances and instances no mate moves keep where they are.
+ * part, grounded instances and instances no mate moves keep where they are. Given the placements `before` a
+ * change, a part whose first mate's part moved while it stayed is carried along with it first, so it keeps
+ * its place relative to that part in the directions its mates leave free.
  */
-export function solveAssembly(instances: readonly PartInstance[], mates: readonly Mate[], tables: (part: string) => FaceTable | undefined): Solved {
+export function solveAssembly(instances: readonly PartInstance[], mates: readonly Mate[], tables: (part: string) => FaceTable | undefined, before?: readonly PartInstance[]): Solved {
   const problems: Problem[] = [];
   const byId = new Map(instances.map(i => [i.id, i]));
   const name = (part: string) => part === BASE ? 'the base part' : byId.get(part)?.name ?? part;
@@ -153,7 +157,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
       break;
     }
     for (const id of ready) {
-      const inst = byId.get(id)!, own = valid.filter(m => m.b.part === id);
+      const own = valid.filter(m => m.b.part === id), inst = carried(byId.get(id)!, own[0].a.part, placed.get(own[0].a.part)!, before);
       const r = solveOne(inst, own.map(m => {
         const ref = placed.get(m.a.part)!;
         return { mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], ref.R, ref.t), moving: tables(id)![m.b.face] };
@@ -165,6 +169,17 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     waiting = waiting.filter(id => !ready.includes(id));
   }
   return { instances: instances.map(i => out.get(i.id)!), problems, pending: false };
+}
+
+/** An instance moved rigidly with its reference part, when that part moved since `before` and it did not. */
+function carried(inst: PartInstance, ref: string, now: { R: Mat3; t: Vec3 }, before: readonly PartInstance[] | undefined): PartInstance {
+  const was = before?.find(i => i.id === inst.id), refWas = before?.find(i => i.id === ref);
+  const same = (a: readonly number[], b: readonly number[]) => a.every((v, k) => v === b[k]);
+  if (!was || !refWas || !same(was.position, inst.position) || !same(was.rotation, inst.rotation)) return inst;
+  const Ro = rotationMatrix(refWas.rotation);
+  if (same(Ro, now.R) && same(refWas.position, now.t)) return inst;
+  const D = matMul(now.R, transpose(Ro));
+  return { ...inst, rotation: eulerOf(matMul(D, rotationMatrix(inst.rotation))), position: add(apply(D, sub(inst.position as Vec3, refWas.position as Vec3)), now.t) };
 }
 
 interface Term { mate: Mate; fixed: MateFace; moving: MateFace }
@@ -179,7 +194,8 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   // Mates with a set sense first; an axis either way round then takes the sense that fits them (or, when
   // both fit, the one nearer how the part stands).
   const free = (t: Term) => t.mate.kind === 'concentric' && t.mate.flip === undefined;
-  for (const term of [...terms.filter(t => !free(t)), ...terms.filter(free)]) {
+  const angles = terms.filter(t => t.mate.kind === 'angle');
+  for (const term of [...terms.filter(t => !free(t) && t.mate.kind !== 'angle'), ...terms.filter(free)]) {
     const { u, v: v0 } = directionOf(term);
     const misfit = (v: Vec3): string | null => {
       if (frame) {
@@ -210,7 +226,41 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
     if (!frame && len(cross(u, dirs[0].u)) > 1e-6) frame = matMul(orthoFrame(dirs[0].v, v), transpose(orthoFrame(dirs[0].u, u)));
   }
   // One direction (or parallel ones): the smallest turn from where the part stands.
-  const R = frame ?? (dirs.length ? matMul(turnOnto(unit(apply(Rcur, dirs[0].u)), unit(dirs[0].v)), Rcur) : Rcur);
+  let R = frame ?? (dirs.length ? matMul(turnOnto(unit(apply(Rcur, dirs[0].u)), unit(dirs[0].v)), Rcur) : Rcur);
+  // Angles: each turns the part about the one axis left free (the fixed direction, else the first angle's
+  // partner normal) by the smallest turn that sets it; with the rotation already fixed it is only checked.
+  let hinge: Vec3 | null = frame ? null : dirs.length ? unit(dirs[0].v) : null;
+  for (const term of angles) {
+    const u = (term.moving as Extract<MateFace, { kind: 'plane' }>).normal, n = (term.fixed as Extract<MateFace, { kind: 'plane' }>).normal;
+    const w = term.mate.flip ? n : mul(n, -1), c = Math.cos((term.mate.angle ?? 0) * DEG), a = apply(R, u);
+    const fixedBy = dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ') || 'the angle before it';
+    if (frame) {
+      if (Math.abs(dot(a, w) - c) > DIR_TOL) problems.push({ mate: term.mate.id, reason: `Conflicts with ${fixedBy}: they hold this face of ${partName} at ${fmtNum(degBetween(dot(a, w)))}° to its partner.` });
+      else accepted.push(term);
+      continue;
+    }
+    if (!hinge) {
+      // Nothing holds the part yet: the smallest turn of this face onto the cone around its partner.
+      const k = cross(a, w), s = len(k);
+      const axis = s > 1e-12 ? mul(k, 1 / s) : perpendiculars(a)[0];
+      R = matMul(axisAngle(axis, Math.acos(Math.max(-1, Math.min(1, dot(a, w)))) - Math.acos(Math.max(-1, Math.min(1, c)))), R);
+      hinge = w; accepted.push(term); continue;
+    }
+    // A cos φ + B sin φ = C for the turn φ about the hinge.
+    const along = mul(hinge, dot(a, hinge)), across = sub(a, along);
+    const A = dot(across, w), B = dot(cross(hinge, across), w), C = c - dot(along, w), r = Math.hypot(A, B);
+    const lo = degBetween(dot(along, w) + r), hi = degBetween(dot(along, w) - r);
+    if (r < 1e-12 ? Math.abs(C) > DIR_TOL : Math.abs(C) > r + DIR_TOL) {
+      problems.push({ mate: term.mate.id, reason: `Conflicts with ${fixedBy}: turning ${partName} about the axis they leave free, this face can only be ${fmtNum(lo)}° to ${fmtNum(hi)}° from its partner.` });
+      continue;
+    }
+    if (r >= 1e-12) {
+      const phi0 = Math.atan2(B, A), d = Math.acos(Math.max(-1, Math.min(1, C / r)));
+      const wrap = (x: number) => Math.atan2(Math.sin(x), Math.cos(x)), p1 = wrap(phi0 + d), p2 = wrap(phi0 - d);
+      R = matMul(axisAngle(hinge, Math.abs(p1) <= Math.abs(p2) ? p1 : p2), R);
+    }
+    frame = R; accepted.push(term);
+  }
   // 2. Position: each mate asks g·t = h along one direction (flat faces) or two (an axis); the move is the
   // smallest from where the part stands. A mate whose demand the earlier ones already fix differently is refused.
   const t0: Vec3 = [...inst.position] as Vec3;
@@ -247,6 +297,7 @@ function directionOf(t: Term): { u: Vec3; v: Vec3 } {
 /** The linear conditions g·t = h a mate puts on the move t, once the rotation R is known. */
 function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
   const f = term.fixed, m = term.moving;
+  if (term.mate.kind === 'angle') return [];
   if (f.kind === 'plane' && m.kind === 'plane') {
     const d = term.mate.kind === 'distance' ? term.mate.distance ?? 0 : 0;
     return [{ g: f.normal, h: dot(f.normal, f.point) + d - dot(f.normal, apply(R, m.point)) }];

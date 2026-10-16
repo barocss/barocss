@@ -148,3 +148,46 @@ test('mates: concentric flip reverses the axis; rotations read back as X→Y→Z
   }
   assert.deepEqual(eulerOf(rotationMatrix([0, 0, 90])), [0, 0, 90]);
 });
+
+test('mates: a part mated to a fixed part moves with it as one piece', () => {
+  const base = rectanglePart(64, 32, 8);
+  const a = { ...inst('a', rectanglePart(20, 10, 4), [100, 0, 0]), grounded: true }, b = inst('b', rectanglePart(10, 10, 2), [105, 3, 0]);
+  const mates: Mate[] = [{ id: 'm1', kind: 'coincident', a: { part: 'a', face: 'n1.top' }, b: { part: 'b', face: 'n1.bottom' } }];
+  const r = solveAssembly([a, b], mates, tablesFor(base, [a, b]));
+  assert.deepEqual(r.instances[1].position, [105, 3, 4]);
+  // a moves and turns a quarter about Z: b keeps its place on a (5, 3 from a's corner), turned with it.
+  const moved = [{ ...r.instances[0], position: [130, 10, 0] as [number, number, number], rotation: [0, 0, 90] as [number, number, number] }, r.instances[1]];
+  const f = solveAssembly(moved, mates, tablesFor(base, moved), r.instances);
+  assert.deepEqual(f.problems, []);
+  assert.deepEqual(f.instances[1].rotation, [0, 0, 90]);
+  f.instances[1].position.forEach((v, k) => assert.ok(near(v, [127, 15, 4][k]), String(f.instances[1].position)));
+  // Undo-like: both changed since `before`, so nothing is carried (the placements are taken as they are).
+  const back = solveAssembly(r.instances, mates, tablesFor(base, r.instances), f.instances);
+  assert.deepEqual(back.instances, r.instances);
+});
+
+test('mates: an angle turns a part about the axis the other mates leave free', () => {
+  const base = rectanglePart(64, 32, 8), plate = inst('plate', rectanglePart(20, 10, 4), [100, 0, 0]);
+  const flat: Mate = { id: 'm1', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part: 'plate', face: 'n1.bottom' } };
+  // side3 (−X) at 30° from facing the base's +X side: a 30° turn about Z, the smaller way.
+  const angle: Mate = { id: 'm2', kind: 'angle', angle: 30, a: { part: BASE, face: 'n1.side1' }, b: { part: 'plate', face: 'n1.side3' } };
+  const r = solveAssembly([plate], [flat, angle], tablesFor(base, [plate]));
+  assert.deepEqual(r.problems, []);
+  assert.deepEqual([r.instances[0].rotation[0], r.instances[0].rotation[1], Math.abs(r.instances[0].rotation[2])], [0, 0, 30]);
+  assert.equal(r.instances[0].position[2], 8);
+  // Solved again: unchanged.
+  assert.deepEqual(solveAssembly(r.instances, [flat, angle], tablesFor(base, r.instances)).instances, r.instances);
+  // On its own: the smallest turn of the bottom to 90° from the top face's partner direction.
+  const alone = solveAssembly([plate], [{ ...angle, a: { part: BASE, face: 'n1.top' }, b: { part: 'plate', face: 'n1.bottom' }, angle: 90 }], tablesFor(base, [plate]));
+  const R = rotationMatrix(alone.instances[0].rotation);
+  assert.ok(near(R[8], 0, 1e-12), 'the bottom normal lies flat');
+  // The faces the coincident mate holds flush cannot also be 45° apart.
+  const no = solveAssembly([plate], [flat, { ...angle, a: flat.a, b: flat.b, angle: 45 }], tablesFor(base, [plate]));
+  assert.match(no.problems[0].reason, /Conflicts with Coincident 1: turning plate about the axis they leave free, this face can only be 0° to 0° from its partner/);
+  // With the rotation fixed by two mates, an angle is only checked.
+  const side: Mate = { id: 'm3', kind: 'coincident', a: { part: BASE, face: 'n1.side1' }, b: { part: 'plate', face: 'n1.side3' } };
+  assert.deepEqual(solveAssembly([plate], [flat, side, { ...angle, angle: 0 }], tablesFor(base, [plate])).problems, []);
+  assert.match(solveAssembly([plate], [flat, side, angle], tablesFor(base, [plate])).problems[0].reason, /Conflicts with Coincident 1 and Coincident 2: they hold this face of plate at 0° to its partner/);
+  // Out of range is refused before solving.
+  assert.match(solveAssembly([plate], [flat, { ...angle, angle: 200 }], tablesFor(base, [plate])).problems[0].reason, /0° to 180°/);
+});
