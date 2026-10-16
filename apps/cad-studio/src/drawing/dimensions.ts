@@ -2,7 +2,7 @@
 // dimension's references resolve against the current projection, and the value it reads — always
 // from the model's 3D geometry in mm, so a dimension follows the part as it changes.
 import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad';
-import type { DimPoint, DrawingDimension, Vec3, ViewId, XY } from './types';
+import type { DimPoint, DrawingDimension, EdgeRef, Vec3, ViewId, XY } from './types';
 
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -70,6 +70,8 @@ export function resolvePoint(pr: BrepProjection, ref: DimPoint): Vec3 | null {
 export type Resolved =
   | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string }
   | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string }
+  /** `vertex`: where the two lines meet; `from`/`to`: the sector's bounding directions (counter-clockwise from → to); `ends`: each edge's far end from the vertex. */
+  | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string }
   | { ok: false; dim: DrawingDimension; reason: string };
 
 export const fmtMM = (v: number) => { const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? String(r) : r.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); };
@@ -80,8 +82,46 @@ export function linearValue(pr: BrepProjection, a: readonly number[], b: readonl
   return orient === 'horizontal' ? Math.abs(du) : orient === 'vertical' ? Math.abs(dv) : Math.hypot(du, dv);
 }
 
+/** A straight edge on the current model: its two ends in view coordinates (null: gone, or not straight). */
+export function resolveLine(pr: BrepProjection, ref: EdgeRef): [XY, XY] | null {
+  let best: [XY, XY] | null = null, bestD = Infinity;
+  for (const e of pr.edges) {
+    if (e.name !== ref.edge || !e.ends || (e.kind !== 'line' && e.kind !== 'silhouette') || e.circle) continue;
+    const [p, q] = e.ends, m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2], d = dist3(m, ref.near);
+    if (d < bestD) { bestD = d; best = [inView(pr, p), inView(pr, q)]; }
+  }
+  return best;
+}
+
+/**
+ * The angle between two lines in a view, in the sector (of the four they make) that holds `place`:
+ * degrees from the model's exact edge ends, as the lines show in the view.
+ */
+export function angleBetween(a: [XY, XY], b: [XY, XY], place: XY): { vertex: XY; from: XY; to: XY; ends: [XY, XY]; degrees: number } | null {
+  const da: XY = [a[1][0] - a[0][0], a[1][1] - a[0][1]], db: XY = [b[1][0] - b[0][0], b[1][1] - b[0][1]];
+  const den = da[0] * db[1] - da[1] * db[0], la = Math.hypot(...da), lb = Math.hypot(...db);
+  if (Math.abs(den) <= 1e-9 * la * lb) return null; // parallel
+  const t = ((b[0][0] - a[0][0]) * db[1] - (b[0][1] - a[0][1]) * db[0]) / den, X: XY = [a[0][0] + da[0] * t, a[0][1] + da[1] * t];
+  const far = (l: [XY, XY]): XY => Math.hypot(l[0][0] - X[0], l[0][1] - X[1]) > Math.hypot(l[1][0] - X[0], l[1][1] - X[1]) ? l[0] : l[1];
+  const rays = [[da[0] / la, da[1] / la], [-da[0] / la, -da[1] / la], [db[0] / lb, db[1] / lb], [-db[0] / lb, -db[1] / lb]].map(r => ({ r: r as XY, at: Math.atan2(r[1], r[0]) }));
+  const at = Math.atan2(place[1] - X[1], place[0] - X[0]), norm = (x: number) => ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  // The rays just before and after the placement direction (counter-clockwise), one from each line.
+  const sorted = rays.map((r, k) => ({ ...r, line: k < 2 ? 0 : 1, off: norm(r.at - at) })).sort((p, q) => p.off - q.off);
+  const to = sorted[0], from = sorted[sorted.length - 1];
+  if (to.line === from.line) return null;
+  const degrees = norm(to.at - from.at) * 180 / Math.PI;
+  return { vertex: X, from: from.r, to: to.r, ends: [far(a), far(b)], degrees };
+}
+
 export function resolveDimension(views: Record<ViewId, BrepProjection>, dim: DrawingDimension): Resolved {
   const pr = views[dim.view];
+  if (dim.kind === 'angle') {
+    const a = resolveLine(pr, dim.a), b = resolveLine(pr, dim.b);
+    if (!a || !b) return { ok: false, dim, reason: 'An edge it measured is no longer in the part.' };
+    const g = angleBetween(a, b, dim.place);
+    if (!g) return { ok: false, dim, reason: 'Its two edges are now parallel in this view.' };
+    return { ok: true, kind: 'angle', dim, vertex: g.vertex, from: g.from, to: g.to, ends: g.ends, value: g.degrees, text: `${fmtMM(g.degrees)}°` };
+  }
   if (dim.kind === 'linear') {
     const a = resolvePoint(pr, dim.a), b = resolvePoint(pr, dim.b);
     if (!a || !b) return { ok: false, dim, reason: 'An edge it measured is no longer in the part.' };

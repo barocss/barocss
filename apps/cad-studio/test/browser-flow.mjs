@@ -555,7 +555,12 @@ try {
 
   await check('draw a plate: standard views, dimensions that follow the model, SVG and PDF', async () => {
     const fs = await import('node:fs');
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    // An empty part: the sheet says there is nothing to draw, and no error is raised.
+    await page.click('[aria-label="New part"]'); await page.click('.mode button:text-is("Drawing")');
+    await page.waitForFunction(() => /no body to draw/.test(document.querySelector('.dw-paper')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/Could not draw/.test(await page.locator('.toast').allInnerTexts().then(t => t.join(' '))), 'no error toast for an empty part');
+    await page.click('.mode button:text-is("Model")');
+    await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
@@ -578,9 +583,11 @@ try {
       // The width between two corners of the front view, placed below it; the hole's diameter from the top view.
       await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
       await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40);
-      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 2, null, { timeout: 5000 });
-      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8']);
-      assert.equal(await page.locator('.dw svg [data-dim]').count(), 2);
+      // The front view's lower right corner: its bottom and right edges, the angle placed inside.
+      await press('a'); await clickView('front', 40, 0); await clickView('front', 64, 5); await clickView('front', 58, 3);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 3, null, { timeout: 5000 });
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8', '90°']);
+      assert.equal(await page.locator('.dw svg [data-dim]').count(), 3);
       // A dimension in the isometric view is refused with the reason.
       await press('d'); await clickView('iso', 0, 0);
       assert.match(await page.locator('.dw-hint').innerText(), /front, top and right views/);
@@ -593,13 +600,18 @@ try {
       await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
       await page.waitForFunction(() => /Hole Ø12/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
       await page.click('.mode button:text-is("Drawing")');
-      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12', null, { timeout: 20000 });
-      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 2); assert.equal(saved.sheet, 'A4');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12,90°', null, { timeout: 20000 });
+      // Section A–A through the hole (the middle of the plate by default): two cut faces either side of it.
+      await page.click('[aria-label="Section A–A"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.section?.rings === 2, null, { timeout: 20000 });
+      assert.equal((await doc()).drawing.section.y, 16);
+      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 3); assert.equal(saved.sheet, 'A4');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.match(svgFile.suggestedFilename(), /\.svg$/);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);
       assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12<\/text>/); assert.match(svg, />64<\/text>/); assert.match(svg, />1:1<\/text>/);
       assert.match(svg, /stroke-dasharray="8 1.5 1.5 1.5"/, 'centre lines on the hole');
+      assert.ok(svg.includes('>SECTION A–A</text>'), 'the section on the sheet');
       const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
       const pdf = fs.readFileSync(await pdfFile.path()); fs.writeFileSync(join(out, 'drawing.pdf'), pdf);
       assert.equal(pdf.subarray(0, 8).toString(), '%PDF-1.4');

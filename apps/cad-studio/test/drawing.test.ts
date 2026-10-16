@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { brepsFor } from '../src/engine/evaluate';
-import { starterDoc, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { layoutSheet, scaleLabel, toSheet } from '../src/drawing/views';
-import { orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
+import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
 import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
+import { sectionOf } from '../src/drawing/section';
+import { hatch } from '../src/drawing/sheet';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
@@ -181,4 +183,87 @@ test('placed instances are drawn too, their edges named under the instance id', 
   const d: DrawingDimension = { id: 'd1', view: 'top', kind: 'diameter', edge: hole.name, near: [...hole.circle!.center] as [number, number, number], place: [130, 40] };
   const r = resolveDimension(v, d); assert.ok(r.ok && r.kind === 'diameter', JSON.stringify(r)); assert.equal(r.text, 'Ø8'); assert.ok(near(r.center[0], 112), String(r.center));
   assert.equal(viewsOf({ ...part, instances: [{ ...inst, hidden: true }] }).front.max[0], 64, 'a hidden instance is left out');
+});
+
+test('an angle between two lines reads the sector it is placed in', () => {
+  const x: [[number, number], [number, number]] = [[0, 0], [10, 0]], diag: [[number, number], [number, number]] = [[0, 0], [10, 10]];
+  const deg = (p: [number, number]) => Math.round(angleBetween(x, diag, p)!.degrees * 1e6) / 1e6;
+  assert.equal(deg([10, 4]), 45); assert.equal(deg([-2, 6]), 135); assert.equal(deg([-5, -1]), 45); assert.equal(deg([3, -6]), 135);
+  assert.deepEqual(angleBetween(x, diag, [10, 4])!.vertex, [0, 0]);
+  assert.equal(angleBetween(x, [[0, 5], [10, 5]], [1, 1]), null, 'parallel lines have none');
+});
+
+test('an angle dimension on a triangular prism reads its corner from the model and draws an arc', () => {
+  const tri = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [0, 30]] }), { kind: 'extrude', sketch: 0, height: 5 });
+  const v = viewsOf(tri);
+  const lines = v.top.edges.filter(e => e.kind === 'line' && e.ends && Math.abs(e.ends[0][2] - 5) < 1e-9 && Math.abs(e.ends[1][2] - 5) < 1e-9);
+  const base = lines.find(e => e.ends!.every(p => Math.abs(p[1]) < 1e-9))!, slope = lines.find(e => e.ends!.some(p => Math.abs(p[0] - 40) < 1e-9) && e.ends!.some(p => Math.abs(p[1] - 30) < 1e-9))!;
+  assert.ok(base && slope);
+  const mid = (e: typeof base) => [0, 1, 2].map(k => (e.ends![0][k] + e.ends![1][k]) / 2) as [number, number, number];
+  const d: DrawingDimension = { id: 'a1', view: 'top', kind: 'angle', a: { edge: base.name, near: mid(base) }, b: { edge: slope.name, near: mid(slope) }, place: [30, 3] };
+  const r = resolveDimension(v, d);
+  assert.ok(r.ok && r.kind === 'angle', JSON.stringify(r));
+  assert.equal(r.text, '36.87°'); assert.ok(near(r.vertex[0], 40) && near(r.vertex[1], 0));
+  const settings: DrawingSettings = { ...defaultDrawing(), dimensions: [d] };
+  const svg = sheetSvg(buildSheet(v, layoutSheet(v, settings), settings, { title: 't', date: 'd' }), 't');
+  assert.match(svg, />36.87°<\/text>/);
+  assert.match(svg.slice(svg.indexOf('data-dim="a1"')), /^[^]*?A\d/, 'an arc in the dimension');
+  // On the other side of the corner it reads the supplement.
+  const other = resolveDimension(v, { ...d, place: [50, 3] });
+  assert.ok(other.ok && other.text === '143.13°');
+});
+
+test('tangent edges show as thin lines when asked for, and the setting reads back', () => {
+  const box = starterDoc(); const filleted: StudioDoc = { ...box, nodes: [...box.nodes.slice(0, 2), { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 }] };
+  const b = brepsFor(filleted); assert.ok('breps' in b);
+  const off = projectViews(b.breps, b.prefixes), on = projectViews(b.breps, b.prefixes, { tangentEdges: true });
+  assert.ok(off.ok && on.ok);
+  assert.equal(off.views.top.edges.filter(e => e.tangent).length, 0);
+  const t = on.views.top.edges.filter(e => e.tangent && e.pieces.length);
+  assert.ok(t.length >= 1);
+  const settings: DrawingSettings = { ...defaultDrawing(), tangent: true };
+  const sheet = buildSheet(on.views, layoutSheet(on.views, settings), settings, { title: 't', date: 'd' });
+  const top = sheet.groups.find(g => g.role === 'view' && g.view === 'top')!;
+  assert.ok(top.marks.some(m => m.kind === 'line' && m.pen === 'thin'), 'a thin line in the top view');
+  assert.equal(readDrawing({ tangent: true }).tangent, true); assert.equal(readDrawing({ tangent: 'yes' }).tangent, undefined);
+});
+
+test('section A–A: the plate cut through its hole, the cut faces hatched, the cutting plane in the top view', () => {
+  const doc = plate(), r = sectionOf(doc, 16);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // Cut through the hole: two cut faces either side of it, 28 mm wide and 8 mm high each.
+  assert.equal(r.rings.length, 2);
+  const spans = r.rings.map(ring => [Math.min(...ring.map(p => p[0])), Math.max(...ring.map(p => p[0])), Math.min(...ring.map(p => p[1])), Math.max(...ring.map(p => p[1]))].map(x => Math.round(x * 1e6) / 1e6)).sort((a, b) => a[0] - b[0]);
+  assert.deepEqual(spans, [[0, 28, 0, 8], [36, 64, 0, 8]]);
+  assert.deepEqual([r.projection.min, r.projection.max], [[0, 0], [64, 8]]);
+  const v = viewsOf(doc), settings: DrawingSettings = { ...defaultDrawing(), section: { y: 16 } };
+  const layout = layoutSheet(v, settings, r.projection);
+  assert.ok(layout.section && layout.section.box[1] > layout.views.front.box[3], 'under the front view');
+  assert.ok(near(toSheet(layout.section!, [10, 0])[0], toSheet(layout.views.front, [10, 0])[0]), 'in projection with it');
+  const sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }, r), svg = sheetSvg(sheet, 't');
+  assert.ok(svg.includes('>SECTION A–A</text>')); assert.equal((svg.match(/>A<\/text>/g) ?? []).length, 2, 'A at both ends of the cutting plane');
+  const g = sheet.groups.find(x => x.role === 'section')!;
+  assert.ok(g.marks.filter(m => m.kind === 'line' && m.pen === 'thin').length > 10, 'hatched');
+  assert.ok(g.marks.every(m => !('pen' in m) || m.pen !== 'hidden'), 'a section shows no hidden lines');
+  // Behind the whole part: nothing to show; in front of it: the whole part.
+  const none = sectionOf(doc, 40); assert.ok(!none.ok && /Nothing/.test(none.error));
+  const all = sectionOf(doc, -5); assert.ok(all.ok && all.rings.length === 0);
+  assert.deepEqual(readDrawing({ section: { y: 3 } }).section, { y: 3 }); assert.equal(readDrawing({ section: { y: 'x' } }).section, undefined);
+});
+
+test('hatching stays inside a ring and out of its hole', () => {
+  const sq = (a: number, b: number): [number, number][] => [[a, a], [b, a], [b, b], [a, b]];
+  const lines = hatch([sq(0, 10), sq(4, 6)], 1).filter((m): m is Extract<Mark, { kind: 'line' }> => m.kind === 'line');
+  assert.ok(lines.length > 10);
+  for (const m of lines) for (const t of [0.25, 0.5, 0.75]) {
+    const p = [m.a[0] + (m.b[0] - m.a[0]) * t, m.a[1] + (m.b[1] - m.a[1]) * t];
+    assert.ok(p[0] >= -1e-9 && p[0] <= 10 + 1e-9 && p[1] >= -1e-9 && p[1] <= 10 + 1e-9, 'inside');
+    assert.ok(!(p[0] > 4 + 1e-9 && p[0] < 6 - 1e-9 && p[1] > 4 + 1e-9 && p[1] < 6 - 1e-9), 'not in the hole');
+    assert.ok(Math.abs(Math.abs((m.b[1] - m.a[1]) / (m.b[0] - m.a[0])) - 1) < 1e-9, 'at 45°');
+  }
+});
+
+test('an empty part has nothing to draw, and that is not an error', () => {
+  const r = projectViews([]);
+  assert.ok(!r.ok && r.empty === true && /no body/.test(r.error));
 });
