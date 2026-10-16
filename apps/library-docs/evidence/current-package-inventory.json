@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "1ec5ac3161f9c93db38aab43b50d55f7cb579532",
+  "manifestCommit": "83aea5001b2d7a9e25b0c771a3a162946d53ac64",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "retired": [
@@ -295,7 +295,7 @@
     {
       "slug": "gpu",
       "directory": "packages/barocss-gpu",
-      "manifestSha256": "59f97f802a0eb08ac08148f803d50e3cf3933cbeceda249c4d103460bceb4c0d",
+      "manifestSha256": "6ae98e4ac19041997000761bad17cb5164e604ba503e7bac848bfced86be9f18",
       "manifest": {
         "name": "@barocss/gpu",
         "version": "0.0.0",
@@ -332,7 +332,7 @@
           "lint": "eslint src",
           "type-check": "tsc --noEmit",
           "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-scene-edges.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
           "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
           "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
         },
@@ -398,7 +398,7 @@
             "lint": "eslint src",
             "type-check": "tsc --noEmit",
             "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-scene-edges.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
             "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
             "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
           }
