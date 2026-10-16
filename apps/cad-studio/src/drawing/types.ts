@@ -32,6 +32,8 @@ export interface DrawingSettings {
   hidden: boolean;
   /** false: no centre marks and centrelines (shown by default). */
   centers?: boolean;
+  /** Tangent edges (a fillet's boundaries) as thin lines (not shown by default). */
+  tangent?: boolean;
   /** The title block's part name (default: the file name). */
   title?: string;
   dimensions: DrawingDimension[];
@@ -48,6 +50,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     projection: r.projection === 'first' ? 'first' : 'third',
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
+    ...(r.tangent === true ? { tangent: true } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)) : [],
   };

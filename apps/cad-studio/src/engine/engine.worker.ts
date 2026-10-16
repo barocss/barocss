@@ -8,7 +8,7 @@ export type WorkerRequest =
   | { type: 'part'; id: number; doc: StudioDoc; revision: number }
   | { type: 'stl'; id: number; doc: StudioDoc; key: string }
   | { type: 'step'; id: number; doc: StudioDoc; name: string }
-  | { type: 'drawing'; id: number; doc: StudioDoc };
+  | { type: 'drawing'; id: number; doc: StudioDoc; options?: { tangentEdges?: boolean } };
 
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const request = event.data;
@@ -22,7 +22,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     (self as unknown as Worker).postMessage({ id: request.id, result }, transfer);
   } else if (request.type === 'drawing') {
     const r = brepsFor(request.doc);
-    (self as unknown as Worker).postMessage({ id: request.id, drawing: 'error' in r ? { ok: false, error: r.error } : projectViews(r.breps, r.prefixes) });
+    (self as unknown as Worker).postMessage({ id: request.id, drawing: 'error' in r ? { ok: false, error: r.error } : projectViews(r.breps, r.prefixes, request.options) });
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name) });
   } else {

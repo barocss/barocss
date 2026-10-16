@@ -37,7 +37,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     // Hidden pieces first, so visible ink covers them where they touch.
     for (const visible of [false, true]) for (const e of pr.edges) for (const p of e.pieces) {
       if (p.visible !== visible || (!visible && !showHidden)) continue;
-      marks.push(curveMark(v, p.curve, visible ? 'visible' : 'hidden'));
+      marks.push(curveMark(v, p.curve, !visible ? 'hidden' : e.tangent ? 'thin' : 'visible'));
     }
     if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
     groups.push({ role: 'view', view: id, marks });

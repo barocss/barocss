@@ -210,3 +210,18 @@ test('an angle dimension on a triangular prism reads its corner from the model a
   const other = resolveDimension(v, { ...d, place: [50, 3] });
   assert.ok(other.ok && other.text === '143.13°');
 });
+
+test('tangent edges show as thin lines when asked for, and the setting reads back', () => {
+  const box = starterDoc(); const filleted: StudioDoc = { ...box, nodes: [...box.nodes.slice(0, 2), { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 }] };
+  const b = brepsFor(filleted); assert.ok('breps' in b);
+  const off = projectViews(b.breps, b.prefixes), on = projectViews(b.breps, b.prefixes, { tangentEdges: true });
+  assert.ok(off.ok && on.ok);
+  assert.equal(off.views.top.edges.filter(e => e.tangent).length, 0);
+  const t = on.views.top.edges.filter(e => e.tangent && e.pieces.length);
+  assert.ok(t.length >= 1);
+  const settings: DrawingSettings = { ...defaultDrawing(), tangent: true };
+  const sheet = buildSheet(on.views, layoutSheet(on.views, settings), settings, { title: 't', date: 'd' });
+  const top = sheet.groups.find(g => g.role === 'view' && g.view === 'top')!;
+  assert.ok(top.marks.some(m => m.kind === 'line' && m.pen === 'thin'), 'a thin line in the top view');
+  assert.equal(readDrawing({ tangent: true }).tangent, true); assert.equal(readDrawing({ tangent: 'yes' }).tangent, undefined);
+});
