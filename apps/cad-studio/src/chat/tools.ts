@@ -10,6 +10,7 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { checkNode, deleteFeature } from './features';
 import type { ImageTrace, Pt } from './trace';
+import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
 export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
@@ -219,8 +220,39 @@ export function surfaceAt(outline: Pt[], centre: Pt, depth: number, p: Pt): numb
   return depth / 2 * Math.sqrt(1 - hi * hi);
 }
 
-/** Runs one tool call against the turn's state. */
+/**
+ * Runs one tool call against the turn's state. Assembly tools act on the instances and mates; a part
+ * tool with `part` set to an instance id builds that part (in its own coordinates), and the assembly is
+ * re-solved after it, as after a change of the base part.
+ */
 export async function runTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
+  const args = isObj(input) ? input : {};
+  if (ASSEMBLY_TOOL_NAMES.has(name)) {
+    const out = await runAssemblyTool(state, name, args, evaluate);
+    return { state: { ...state, doc: out.doc }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
+  }
+  const { part, ...rest } = args;
+  if (part === undefined || part === 'base') {
+    const out = await runPartTool(state, name, rest, evaluate);
+    if (!out.changed || !state.doc.mates?.length) return out;
+    // Parts mated to the base part follow its edit.
+    const solved = solveDoc(out.state.doc, state.doc.instances);
+    return { ...out, state: { ...out.state, doc: solved.doc }, ...(solved.problems.length ? { content: out.content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) } : {}) };
+  }
+  const inst = state.doc.instances?.find(i => i.id === part);
+  if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
+  if (name === 'select') return fail(state, 'The viewport selection shows the base part\'s faces only; select without "part".');
+  const r = await evaluate(inst.doc);
+  const sub: ChatState = { doc: inst.doc, bodies: r?.ok ? r.bodies : [], ...(state.images ? { images: state.images } : {}) };
+  const out = await runPartTool(sub, name, rest, evaluate);
+  const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},`);
+  if (!out.changed) return { ...out, state, content };
+  const doc = { ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) };
+  const solved = solveDoc(doc, state.doc.instances);
+  return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
+}
+
+async function runPartTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
   if ('__invalid_json' in args) return fail(state, 'The tool input was not valid JSON; send it again.');
   switch (name) {
@@ -402,7 +434,7 @@ const commandDoc = CHAT_COMMANDS.map(id => {
   return `- ${id} (${c.label}) — select ${d.selection}${values ? `; values: ${values}` : ''}`;
 }).join('\n');
 
-export const TOOLS: ToolDefinition[] = [
+const PART_TOOLS: ToolDefinition[] = [
   {
     name: 'get_part_summary',
     description: 'The current part: every feature node by index (sketch outlines abbreviated), parameters, and each visible body with volume and bounds, and its faces and edges by persistent name (e.g. face "n1.top", edge "n1.side0|n1.side1"). On a big part, faces and edges are listed for the one body named in "body". Call it before referring to faces or edges you have not seen in a result.',
@@ -493,6 +525,12 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
 ];
 
+/** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
+export const TOOLS: ToolDefinition[] = [
+  ...PART_TOOLS.map(t => t.name === 'select' ? t : { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: { type: 'string', description: 'The part to work on: an instance id from add_part (default "base", the document\'s own part).' } } } }),
+  ...ASSEMBLY_TOOLS,
+];
+
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z".
@@ -500,5 +538,7 @@ Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z
 Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result, and correct yourself when a tool refuses or a volume or bound is not what the request implies. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
+
+For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly: build the main or fixed part as the base part (or ground it), add each other part with add_part and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read each result: what the part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly.
 
 Finish with one or two sentences: what was built and its key numbers (volume, overall size). The user can undo your whole turn with one undo.`;

@@ -2,7 +2,7 @@
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
 import {
-  applyConstraint, circleDimensionKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
+  applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
 } from '../sketch/rules';
 import './constraints.css';
@@ -24,7 +24,8 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
   const point = picked.find(p => p.kind === 'point'), circle = picked.find(p => p.kind === 'circle');
   const twoPoints = picked.length === 2 && picked.every(p => p.kind === 'point') ? pointDimensionKeys(picked[0].i, picked[1].i)
-    : picked.length === 2 && point && circle ? circleDimensionKeys(point.i, circle.i) : null;
+    : picked.length === 2 && point && circle ? circleDimensionKeys(point.i, circle.i)
+      : picked.length === 2 && picked.every(p => p.kind === 'circle') ? circlePairKeys(picked[0].i, picked[1].i) : null;
   const apply = (kind: ConstraintKind) => {
     const r = applyConstraint(s, picked, kind);
     if (!r.ok) { setRefused(r.reason); return; }
@@ -39,7 +40,7 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
     <div className="cons-tools" role="group" aria-label="Constraints for the selection">
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
         title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b><span>{t.short}</span></button>)}
-      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, two straight edges (angle), or two points'}
+      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select an edge or arc, two straight edges (angle), two points, or a circle with a point, a horizontal or vertical edge or another circle'}
         onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
     {twoPoints && <div className="cons-tools cons-dims" role="group" aria-label="Dimensions between the points">

@@ -14,7 +14,8 @@ type Nodes = readonly ModelNode[];
 export function drivingDimensions(o: SketchOutline): string[] {
   return [...Object.keys(o.lengths ?? {}).map(i => 'len' + i), ...Object.keys(o.radii ?? {}).map(i => 'rad' + i),
     ...(o.rules ?? []).flatMap(r => r.kind === 'distance' ? [`dist${r.a}_${r.b}`] : r.kind === 'dx' || r.kind === 'dy' || r.kind === 'angle' ? [`${r.kind === 'angle' ? 'ang' : r.kind}${r.a}_${r.b}`]
-      : r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy' ? [`${r.kind}${r.a}_${r.circle}`] : []),
+      : r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy' ? [`${r.kind}${r.a}_${r.circle}`] : r.kind === 'cedge' ? [`cedge${r.edge}_${r.circle}`]
+      : r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy' ? [`${r.kind}${r.a}_${r.b}`] : []),
     ...(o.circles ?? []).map((_, j) => 'cdia' + j)];
 }
 
@@ -22,8 +23,12 @@ export function drivingDimensions(o: SketchOutline): string[] {
 export function drivingValue(o: SketchOutline, key: string): number | null {
   const m = /^(len|rad)(\d+)$/.exec(key);
   if (m) return (m[1] === 'len' ? o.lengths : o.radii)?.[Number(m[2])] ?? null;
+  const ce = /^cedge(\d+)_(\d+)$/.exec(key);
+  if (ce) { const r = (o.rules ?? []).find(x => x.kind === 'cedge' && x.edge === Number(ce[1]) && x.circle === Number(ce[2])); return r && 'value' in r ? r.value : null; }
+  const cc = /^(ccdist|ccdx|ccdy)(\d+)_(\d+)$/.exec(key);
+  if (cc) { const r = (o.rules ?? []).find(x => x.kind === cc[1] && 'b' in x && x.a === Number(cc[2]) && x.b === Number(cc[3])); return r && 'value' in r ? r.value : null; }
   const cd = /^(cdist|cdx|cdy)(\d+)_(\d+)$/.exec(key);
-  if (cd) { const r = (o.rules ?? []).find(x => x.kind === cd[1] && 'circle' in x && x.a === Number(cd[2]) && x.circle === Number(cd[3])); return r && 'value' in r ? r.value : null; }
+  if (cd) { const r = (o.rules ?? []).find(x => x.kind === cd[1] && 'circle' in x && 'a' in x && x.a === Number(cd[2]) && x.circle === Number(cd[3])); return r && 'value' in r ? r.value : null; }
   const cdia = /^cdia(\d+)$/.exec(key); if (cdia) { const c = o.circles?.[Number(cdia[1])]; return c ? c.r * 2 : null; }
   const d = /^(dist|dx|dy|ang)(\d+)_(\d+)$/.exec(key); if (!d) return null;
   const kind = ({ dist: 'distance', dx: 'dx', dy: 'dy', ang: 'angle' } as const)[d[1] as 'dist' | 'dx' | 'dy' | 'ang'];

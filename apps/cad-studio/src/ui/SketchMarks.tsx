@@ -99,7 +99,23 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
   }
   // Circle diameters and centre distances from outline points.
   (s.circles ?? []).forEach((c, j) => { const e = P([c.c[0] + c.r * Math.SQRT1_2, c.c[1] + c.r * Math.SQRT1_2]); chip([e[0] + 26, e[1] - 12], 'Ø' + fmt(c.r * 2), 'cdia' + j, false); });
+  /** Where an edge's distance to a circle is measured from: the edge's line straight across from the centre. */
+  const footOf = (edge: number, axis: 0 | 1, c: readonly number[]) => { const p = s.points[edge]; return axis === 1 ? [c[0], p[1]] : [p[0], c[1]]; };
   (s.rules ?? []).forEach(r => {
+    if (r.kind === 'cedge') {
+      const c = s.circles?.[r.circle]; if (!c || !s.points[r.edge]) return;
+      const f = P(footOf(r.edge, r.axis, c.c)), q = P(c.c), u = unit(f, q), key = `cedge${r.edge}_${r.circle}`;
+      svg.push(<line key={'cl' + key} x1={f[0]} y1={f[1]} x2={q[0]} y2={q[1]} className="dim-line" />);
+      arrow(f, [-u[0], -u[1]], 'ca1' + key); arrow(q, u, 'ca2' + key);
+      chip([(f[0] + q[0]) / 2 + u[1] * 22, (f[1] + q[1]) / 2 - u[0] * 22], fmt(r.value), key, true); return;
+    }
+    if (r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') {
+      const a = s.circles?.[r.a]?.c, b = s.circles?.[r.b]?.c; if (!a || !b) return;
+      const key = `${r.kind}${r.a}_${r.b}`;
+      if (r.kind === 'ccdist') { linear(P(a), P(b), r.value, key); return; }
+      const m = r.kind === 'ccdx' ? 0 : 1, o = 1 - m, far = Math.max(a[o], b[o]), at = (p: readonly number[]) => P(m === 0 ? [p[0], far] : [far, p[1]]);
+      linear(P(a), P(b), r.value, key, [at(a), at(b)]); return;
+    }
     if (r.kind !== 'cdist' && r.kind !== 'cdx' && r.kind !== 'cdy') return;
     const c = s.circles?.[r.circle], a = s.points[r.a]; if (!c || !a) return;
     const key = `${r.kind}${r.a}_${r.circle}`;
@@ -163,12 +179,15 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
   if (editDim) {
     const v = dimensionValue(s, editDim);
     const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim), cd = /^(?:cdist|cdx|cdy)(\d+)_(\d+)$/.exec(editDim);
+    const cc = /^(?:ccdist|ccdx|ccdy)(\d+)_(\d+)$/.exec(editDim), ce = /^cedge(\d+)_(\d+)$/.exec(editDim);
     const centreOf = (j: number) => s.circles?.[j] ? P(s.circles[j].c) : null;
-    const at = anchors.get(editDim) ?? (cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
+    const halfway = (a: XY | null, b: XY | null) => a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null;
+    const at = anchors.get(editDim) ?? (cc ? halfway(centreOf(+cc[1]), centreOf(+cc[2])) : ce ? (() => { const c = s.circles?.[+ce[2]]; const e = +ce[1];
+      return c && s.points[e] ? halfway(P(footOf(e, s.hv?.h.includes(e) ? 1 : 0, c.c)), P(c.c)) : null; })() : cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
       html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}
-        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d || cd ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
+        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d || cd || cc ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         style={{ left: at[0] - 42, top: at[1] - 13 }}
         onFocus={e => e.currentTarget.select()}
         onKeyDown={e => {
@@ -177,9 +196,9 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, done = 
           if (e.key === 'Enter') { e.preventDefault(); const v = Number(e.currentTarget.value); onDimCommit?.(editDim, v); e.currentTarget.blur(); }
           else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
           // Between two points: A aligned, H horizontal, V vertical.
-          else if ((d || cd) && /^[ahv]$/i.test(e.key)) {
-            e.preventDefault(); const k = e.key.toLowerCase() as 'a' | 'h' | 'v', ref = (d ?? cd)!;
-            onDimEdit?.((cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' })[k] + ref[1] + '_' + ref[2]);
+          else if ((d || cd || cc) && /^[ahv]$/i.test(e.key)) {
+            e.preventDefault(); const k = e.key.toLowerCase() as 'a' | 'h' | 'v', ref = (d ?? cd ?? cc)!;
+            onDimEdit?.((cc ? { a: 'ccdist', h: 'ccdx', v: 'ccdy' } : cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' })[k] + ref[1] + '_' + ref[2]);
           }
         }}
         onBlur={() => onDimEdit?.(null)} />;

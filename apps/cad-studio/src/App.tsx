@@ -257,7 +257,7 @@ export function App() {
       let n = 1; while (used.has(`inst${n}`)) n++;
       // Placed to the right of everything shown.
       const right = Math.max(0, ...bodies.map(b => b.mesh.bounds.max[0]), ...[...instanceBodies.values()].flatMap(v => v.bodies.map(b => b.mesh.bounds.max[0])));
-      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, instances: undefined, render: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0] };
+      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0] };
       commitInstances([...list, inst], [inst.id]); setSelection(emptySel); setDirectSel([]);
       setTimeout(() => viewport.current?.fit(), 600);
     } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }

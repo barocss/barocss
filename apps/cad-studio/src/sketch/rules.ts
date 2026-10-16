@@ -97,6 +97,8 @@ function pointOnArcEnd(s: Polygon, point: number, arc: number): string | null {
 export function dimensionKey(s: Polygon, picks: readonly SketchPick[]): string | null {
   const { points, edges, circles } = split(s, picks);
   if (circles.length === 1 && !edges.length && points.length <= 1) return points.length ? `cdist${points[0]}_${circles[0]}` : `cdia${circles[0]}`;
+  if (circles.length === 1 && edges.length === 1 && !points.length) return edgeCircleKey(s, edges[0], circles[0]);
+  if (circles.length === 2 && !edges.length && !points.length) return circlePairKeys(circles[0], circles[1]).dist;
   if (circles.length) return null;
   if (edges.length === 1 && !points.length) return (isArc(s, edges[0]) ? 'rad' : 'len') + edges[0];
   if (points.length === 2 && !edges.length) return distanceKey(s, points[0], points[1]);
@@ -159,6 +161,12 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
 
 /** A dimension's current value in the drawing (len<i>, rad<i>, dist / dx / dy <a>_<b>). */
 export function dimensionValue(s: Polygon, key: string): number | null {
+  const l = parseLinkKey(key);
+  if (l) {
+    if (l.kind === 'cedge') { const c = s.circles?.[l.j], p = s.points[l.edge]; if (!c || !p || !edgeCircleKey(s, l.edge, l.j)) return null; const m = edgeAxis(s, l.edge); return Math.abs(c.c[m] - p[m]); }
+    const a = s.circles?.[l.a]?.c, b = s.circles?.[l.b]?.c; if (!a || !b || l.a === l.b) return null;
+    return l.kind === 'ccdist' ? Math.hypot(b[0] - a[0], b[1] - a[1]) : Math.abs(b[l.kind === 'ccdx' ? 0 : 1] - a[l.kind === 'ccdx' ? 0 : 1]);
+  }
   const c = parseCircleKey(key);
   if (c) {
     const circle = s.circles?.[c.j]; if (!circle) return null;
@@ -178,6 +186,8 @@ export function dimensionValue(s: Polygon, key: string): number | null {
 }
 /** Whether a dimension is driving (locked). */
 export function isDriving(s: Polygon, key: string): boolean {
+  const l = parseLinkKey(key);
+  if (l) return l.kind === 'cedge' ? hasRule(s, r => r.kind === 'cedge' && r.edge === l.edge && r.circle === l.j) : hasRule(s, r => r.kind === l.kind && r.a === l.a && r.b === l.b);
   const c = parseCircleKey(key);
   if (c) return c.kind === 'cdia' ? false : hasRule(s, r => r.kind === c.kind && r.a === c.a && r.circle === c.j);
   const d = parseKey(key); if (!d) return false;
@@ -185,6 +195,20 @@ export function isDriving(s: Polygon, key: string): boolean {
   if ('a' in d) { const kind = ruleKind[d.kind]; return hasRule(s, r => r.kind === kind && 'b' in r && r.a === d.a && r.b === d.b); }
   return (d.kind === 'rad' ? s.radii : s.lengths)?.[d.i] !== undefined;
 }
+type LinkDim = { kind: 'cedge'; edge: number; j: number } | { kind: 'ccdist' | 'ccdx' | 'ccdy'; a: number; b: number };
+/** Edge-to-circle (cedge<edge>_<circle>) and circle-to-circle (ccdist / ccdx / ccdy <lo>_<hi>) dimension keys. */
+function parseLinkKey(key: string): LinkDim | null {
+  const e = /^cedge(\d+)_(\d+)$/.exec(key); if (e) return { kind: 'cedge', edge: Number(e[1]), j: Number(e[2]) };
+  const c = /^(ccdist|ccdx|ccdy)(\d+)_(\d+)$/.exec(key); return c ? { kind: c[1] as 'ccdist' | 'ccdx' | 'ccdy', a: Number(c[2]), b: Number(c[3]) } : null;
+}
+/** The straight, horizontal and vertical dimension keys between the outline's circles a and b. */
+export const circlePairKeys = (a: number, b: number) => { const [lo, hi] = a < b ? [a, b] : [b, a]; return { dist: `ccdist${lo}_${hi}`, dx: `ccdx${lo}_${hi}`, dy: `ccdy${lo}_${hi}` }; };
+/** An edge's distance key to circle j, when the edge is kept horizontal or vertical (null otherwise). */
+export function edgeCircleKey(s: Polygon, edge: number, j: number): string | null {
+  const hv = hvOf(s); return isLine(s, edge) && (hv.h.includes(edge) || hv.v.includes(edge)) ? `cedge${edge}_${j}` : null;
+}
+const edgeAxis = (s: Polygon, edge: number): 0 | 1 => hvOf(s).h.includes(edge) ? 1 : 0;
+const pairName = { ccdist: 'Distance', ccdx: 'Horizontal distance', ccdy: 'Vertical distance' } as const;
 type CircleDim = { kind: 'cdist' | 'cdx' | 'cdy'; a: number; j: number } | { kind: 'cdia'; j: number };
 /** Circle dimension keys: cdist / cdx / cdy <point>_<circle>, cdia<circle>. */
 function parseCircleKey(key: string): CircleDim | null {
@@ -200,6 +224,8 @@ function parseKey(key: string): { kind: 'len' | 'rad'; i: number } | { kind: Poi
   const d = /^(dist|dx|dy)(\d+)_(\d+)$/.exec(key); return d ? { kind: d[1] as PointDim, a: Number(d[2]), b: Number(d[3]) } : null;
 }
 export function dimensionLabel(s: Polygon, key: string): string {
+  const l = parseLinkKey(key);
+  if (l) return l.kind === 'cedge' ? `Distance edge ${l.edge + 1} – circle ${l.j + 1}` : `${pairName[l.kind]} circle ${l.a + 1} – circle ${l.b + 1}`;
   const c = parseCircleKey(key);
   if (c) return c.kind === 'cdia' ? `Diameter of circle ${c.j + 1}` : `${circleDimName[c.kind]} point ${c.a + 1} – circle ${c.j + 1}`;
   const d = parseKey(key); if (!d) return key;
@@ -209,6 +235,18 @@ export function dimensionLabel(s: Polygon, key: string): string {
 
 /** Sets a driving dimension to `value` mm (adding it if new): the solved outline, or why it is refused. */
 export function commitDimension(s: Polygon, key: string, value: number): EditResult {
+  const l = parseLinkKey(key);
+  if (l) {
+    if (dimensionValue(s, key) === null) return { ok: false, reason: l.kind === 'cedge' ? 'Measure a circle from a horizontal or vertical edge (or from a point)' : 'Unknown dimension' };
+    if (!Number.isFinite(value) || value < 0.001) return { ok: false, reason: 'A dimension must be greater than 0' };
+    const what = `${dimensionLabel(s, key)} = ${round(value)}`, base = { ...s, hv: hvOf(s) };
+    if (l.kind === 'cedge') {
+      const rules = (s.rules ?? []).filter(r => !(r.kind === 'cedge' && r.edge === l.edge && r.circle === l.j));
+      return checkEdit({ ...base, rules: [...rules, { kind: 'cedge', edge: l.edge, circle: l.j, axis: edgeAxis(s, l.edge), value }] }, s, what);
+    }
+    const rules = (s.rules ?? []).filter(r => !(r.kind === l.kind && r.a === l.a && r.b === l.b));
+    return checkEdit({ ...base, rules: [...rules, { kind: l.kind, a: l.a, b: l.b, value }] }, s, what);
+  }
   const c = parseCircleKey(key);
   if (c) {
     if (!s.circles?.[c.j] || (c.kind !== 'cdia' && !s.points[c.a])) return { ok: false, reason: 'Unknown dimension' };
@@ -259,6 +297,8 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'equal') add(id, 'Equal length', `edge ${r.a + 1} = edge ${r.b + 1}`, [E(r.a), E(r.b)]);
     else if (r.kind === 'fix') add(id, 'Fixed', `point ${r.point + 1}`, [P(r.point)]);
     else if (r.kind === 'coincident') add(id, 'Coincident', `point ${r.point + 1} · arc ${r.arc + 1} centre`, [P(r.point), E(r.arc)]);
+    else if (r.kind === 'cedge') add(id, 'Distance', `edge ${r.edge + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [E(r.edge), C(r.circle)]);
+    else if (r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') add(id, pairName[r.kind], `circle ${r.a + 1} – circle ${r.b + 1} = ${round(r.value)}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') add(id, circleDimName[r.kind], `point ${r.a + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [P(r.a), C(r.circle)]);
     else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);

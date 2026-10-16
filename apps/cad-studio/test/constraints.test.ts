@@ -391,3 +391,36 @@ test('Select / Dimension after drawing a circle edit the outline drawn before it
   const s = startPicking({ plane: xyPlane(), tool: 'circle', shape: hole, done: [rect] }, 'dimension');
   assert.deepEqual(s.shape, rectangleOutline(rect)); assert.deepEqual(s.done, [hole]);
 });
+
+test('circles are placed from horizontal / vertical edges and from each other', async () => {
+  const { sketchClick } = await import('../src/sketch/select');
+  const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('../src/sketch/rules');
+  const { outlineFields } = await import('../src/sketch/outlineFields');
+  const { profileOf } = await import('../src/sketch/loops');
+  let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [12, 10], r: 3 }, { c: [40, 18], r: 3 }] };
+  s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape; s = (commitDimension(s, 'len1', 30) as { shape: Polygon }).shape;
+  // Bottom edge 1 (horizontal): measured along Y; left edge 4 (vertical): along X; a slanted edge has no such key.
+  assert.equal(edgeCircleKey(s, 0, 0), 'cedge0_0'); assert.equal(dimensionLabel(s, 'cedge0_0'), 'Distance edge 1 – circle 1');
+  assert.equal(dimensionKey(s, [E(3), { kind: 'circle', i: 0 }]), 'cedge3_0');
+  assert.equal(edgeCircleKey(quad(), 2, 0), null);
+  let r = commitDimension(s, 'cedge0_0', 8); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  r = commitDimension(s, 'cedge3_0', 15); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  assert.deepEqual(s.circles![0].c, [15, 8]);
+  // Circle 2 from circle 1: 25 along X, 12 along Y.
+  assert.deepEqual(circlePairKeys(1, 0), { dist: 'ccdist0_1', dx: 'ccdx0_1', dy: 'ccdy0_1' });
+  r = commitDimension(s, 'ccdx0_1', 25); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  r = commitDimension(s, 'ccdy0_1', 12); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  assert.deepEqual(s.circles![1].c, [40, 20]); assert.equal(dof(s), 0);
+  // One more is refused: over-defined, or past the solver's 16 points / segments with a clear reason.
+  assert.match((commitDimension(s, 'ccdist0_1', 30) as { reason: string }).reason, /over-define|conflict|Too many points/);
+  assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail), [
+    'Distance edge 1 – circle 1 = 8', 'Distance edge 4 – circle 1 = 15', 'Horizontal distance circle 1 – circle 2 = 25', 'Vertical distance circle 1 – circle 2 = 12']);
+  // The Dimension tool: an edge then a circle, a circle then a circle.
+  const st: SketchState = { plane: xyPlane(), tool: 'dimension', shape: s };
+  assert.equal(sketchClick(sketchClick(st, E(0), false), { kind: 'circle', i: 1 }, false).editDim, 'cedge0_1');
+  assert.equal(sketchClick(sketchClick(st, { kind: 'circle', i: 1 }, false), { kind: 'circle', i: 0 }, false).editDim, 'ccdist0_1');
+  // Saved and driven from the feature editor.
+  const pr = profileOf([s]); assert.ok('node' in pr);
+  const labels = outlineFields([pr.node], 0, '').map(f => f.label);
+  assert.ok(labels.includes('Distance edge 1 – circle 1') && labels.includes('Vertical distance circle 1 – circle 2'), labels.join(', '));
+});

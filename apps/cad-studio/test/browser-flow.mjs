@@ -521,6 +521,36 @@ try {
     await iso();
   });
 
+  await check('holes placed from an edge and from each other', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 150, cy - 80); await clickAt(cx + 150, cy + 80);
+    await press('c'); await clickAt(cx - 80, cy + 20); await page.mouse.move(cx - 70, cy + 20); await clickAt(cx - 60, cy + 20);
+    await press('c'); await clickAt(cx + 60, cy - 10); await page.mouse.move(cx + 70, cy - 10); await clickAt(cx + 80, cy - 10);
+    // Dimension: the bottom edge (screen bottom, kept horizontal), then the first circle.
+    await press('d'); await clickAt(cx, cy + 80); await clickAt(cx - 60, cy + 20);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance edge 1 – circle 1');
+    await page.locator('.dim-edit').fill('10'); await page.locator('.dim-edit').press('Enter');
+    // The first circle (moved), then the second: their distance; H makes it horizontal.
+    const [x, y] = await page.evaluate(() => {
+      const r = document.querySelector('.vp-overlay').getBoundingClientRect();
+      const ps = document.querySelector('.vp-overlay polyline.sk-shape:not(.open)').getAttribute('points').trim().split(/\s+/).map(p => p.split(',').map(Number));
+      return [ps.reduce((a, p) => a + p[0], 0) / ps.length + r.left, ps.reduce((a, p) => a + p[1], 0) / ps.length + r.top];
+    });
+    await clickAt(x, y); await clickAt(cx + 80, cy - 10);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance circle 1 – circle 2');
+    await page.locator('.dim-edit').press('h'); await page.locator('.dim-edit').fill('30'); await page.locator('.dim-edit').press('Enter');
+    const list = await page.locator('.sk-panel [role=list]').innerText();
+    assert.match(list, /Distance\s*edge 1 – circle 1 = 10/); assert.match(list, /Horizontal distance\s*circle 1 – circle 2 = 30/);
+    await snap('holes-from-edge-and-each-other');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const n0 = (await doc()).nodes[0], [c1, c2] = n0.outline.circles;
+    assert.equal(n0.holes?.length, 2);
+    assert.ok(Math.abs(c1.c[1] - n0.outline.points[0][1] - 10) < 1e-6 && Math.abs(Math.abs(c2.c[0] - c1.c[0]) - 30) < 1e-6, JSON.stringify(n0.outline));
+    await iso();
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
@@ -953,6 +983,40 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
+    await page.click('[aria-label="Close chat"]');
+    await page.unroute(statusUrl); await page.unroute(turnUrl);
+  });
+
+  await check('chat commits an assembly: a pin part mated into a plate', async () => {
+    // A mocked turn whose result is an assembly (the tools that build it are covered by the unit tests).
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const plate = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [32, 16], radius: 4 }], outputs: { b2: { node: 2, side: 'solid' } } };
+    const pin = { ...empty, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const doc = { ...plate, instances: [{ id: 'p1', name: 'Pin', doc: pin, position: [32, 16, 8], rotation: [0, 0, 0] }],
+      mates: [{ id: 'm1', kind: 'concentric', a: { part: 'base', face: 'n2.side0' }, b: { part: 'p1', face: 'n1.side0' } }, { id: 'm2', kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }] };
+    const events = [
+      { type: 'tool', name: 'add_part', input: { name: 'Pin' }, summary: 'added part p1 "Pin"', isError: false },
+      { type: 'tool', name: 'add_mate', input: { kind: 'concentric' }, summary: 'added Concentric 1 (m1)', isError: false },
+      { type: 'tool', name: 'add_mate', input: { kind: 'coincident' }, summary: 'added Coincident 2 (m2)', isError: false },
+      { type: 'state', doc }, { type: 'text', delta: 'Pin mated into the plate.' }, { type: 'done', doc, session: 's-asm', end: 'done' },
+    ];
+    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
+    await page.route(turnUrl, r => r.fulfill({ status: 200, contentType: 'text/event-stream', body: events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('') }));
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await page.fill('[aria-label="Chat message"]', 'a plate with a pin in its hole, as two parts'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Pin mated")');
+    await page.waitForSelector('.ol.instance:has-text("Pin")', { timeout: 30000 });
+    await idle();
+    assert.deepEqual(await page.evaluate(() => [window.__studioDoc.instances.length, window.__studioDoc.mates.length, window.__studioDoc.instances[0].position]), [1, 2, [32, 16, 8]]);
+    // The studio's own solver keeps it where the mates put it, and the mate panel lists them.
+    await page.locator('.ol.instance', { hasText: 'Pin' }).click();
+    assert.match(await page.locator('[aria-label="Mates"]').innerText(), /Concentric 1[\s\S]*Coincident 2/);
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); await page.waitForFunction(() => !(window.__studioDoc.instances?.length));
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.instances?.length === 1);
     await page.click('[aria-label="Close chat"]');
     await page.unroute(statusUrl); await page.unroute(turnUrl);
   });
