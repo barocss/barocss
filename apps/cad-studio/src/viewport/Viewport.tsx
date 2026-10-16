@@ -44,7 +44,7 @@ interface Props {
   ghost: Set<number>;
   sketch: SketchState | null;
   gizmo: Gizmo | null;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean): void;
   onSketchShape(shape: SketchShape | null): void;
   onCursor(p: Vec3 | null): void;
   onBoxSelect(bodies: number[], additive: boolean): void;
@@ -59,6 +59,9 @@ interface Props {
   /** Direct curves and surfaces, and the selected ones. */
   direct?: DirectDisplay[];
   directSelection?: string[];
+  /** Placed instances of other parts, and the selected ones. */
+  instances?: { id: string; bodies: BodyResult[] }[];
+  instanceSelection?: string[];
 }
 
 const snap = (v: number) => Math.round(v);
@@ -126,6 +129,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { request(); }, [props.sketch, props.gizmo]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
+  useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
@@ -277,6 +281,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current!;
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
+    const instance = r.pickInstance?.(x, y, camera.current) ?? null;
+    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance }, e.shiftKey); return; }
     const edge = r.pickEdge(x, y, camera.current, viewState());
     const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);

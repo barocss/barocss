@@ -37,6 +37,9 @@ export class GpuRenderer implements ViewRenderer {
   /** Direct curves and surfaces: their meshes by object id, and the control nets of the selected ones. */
   private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
   private controls: Mesh[] = [];
+  /** Placed instances of other parts: their bodies' surfaces and edges. */
+  private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
+  private instanceSelection: readonly string[] = [];
   private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
@@ -73,6 +76,7 @@ export class GpuRenderer implements ViewRenderer {
     }
     if (this.ground) { this.ground.material = { opacity: env ? 0.55 : t.shadow }; this.ground.visible = env ? env.ground : true; }
     this.showProps();
+    this.paintInstances();
     this.viewer.requestRender();
   }
 
@@ -243,11 +247,12 @@ export class GpuRenderer implements ViewRenderer {
 
   /** The box around the bodies and the direct curves and surfaces. */
   bounds(): { min: Vec3; max: Vec3 } | null {
-    if (!this.bodies.length && !this.direct.length) return null;
+    if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     const grow = (b: { min: readonly number[]; max: readonly number[] }) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); } };
     for (const b of this.bodies) grow(b.result.mesh.bounds);
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(b); }
+    for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(b); }
     return { min, max };
   }
 
@@ -266,6 +271,41 @@ export class GpuRenderer implements ViewRenderer {
       if (on && it.controls.length) this.controls.push(this.viewer.add({ positions: it.controls, topology: 'lines' }, { material: { color: '#c9a3ff', unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }));
     }
     this.viewer.requestRender();
+  }
+
+  /** Instances of other parts: lit like bodies, with their edges; the selected ones outlined. */
+  setInstances(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void {
+    for (const it of this.instances) for (const m of [...it.surfaces, ...it.edges]) { m.remove(); m.geometry.dispose(); }
+    this.instances = items.map(it => ({
+      id: it.id,
+      surfaces: it.bodies.map(b => this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: 'inst:' + it.id })),
+      edges: it.bodies.filter(b => b.mesh.edgeLines.length).map(b => this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + it.id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false })),
+    }));
+    this.instanceSelection = selected;
+    this.paintInstances();
+  }
+
+  /** Instances' look: the modelling base, or their render appearance (by key inst:<id>). */
+  private paintInstances(): void {
+    const r = this.settings, env = r?.environment;
+    for (const it of this.instances) {
+      const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
+      for (const m of it.surfaces) {
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader) }
+          : { color: this.theme.base, metallic: 0, roughness: 0.62, opacity: 1, shader: null };
+        m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
+      }
+      for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
+    }
+    this.viewer.requestRender();
+  }
+
+  /** The instance under a point. */
+  pickInstance(x: number, y: number, camera: OrbitCamera): string | null {
+    if (!this.instances.length) return null;
+    this.sync(camera);
+    const name = this.viewer.raycast(x, y)?.mesh.name;
+    return name?.startsWith('inst:') ? name.slice(5) : null;
   }
 
   /** The direct object under a point: a surface hit, else a curve within a few pixels. */

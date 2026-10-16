@@ -55,6 +55,36 @@ export interface StudioDoc {
   render?: RenderSettings;
   /** NURBS curves and surfaces beside the model (imported CAD sources and what tools made of them). */
   direct?: DirectGeometry;
+  /** Other parts placed beside this one (a simple assembly). */
+  instances?: PartInstance[];
+}
+
+/** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */
+export interface PartInstance {
+  id: string; name: string;
+  /** The part as inserted (its own instances left out). */
+  doc: StudioDoc;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  hidden?: boolean;
+}
+
+/** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
+export function placedDoc(inst: PartInstance): StudioDoc {
+  const base = prefixDoc({ ...inst.doc, instances: undefined, render: undefined, direct: undefined }, inst.doc.nodes.length);
+  let doc = base;
+  for (const ref of Object.values(base.outputs)) {
+    let at: BodyRef = ref;
+    (['x', 'y', 'z'] as const).forEach((axis, k) => {
+      if (!inst.rotation[k]) return;
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees: inst.rotation[k] }] };
+      at = { node: doc.nodes.length - 1, side: 'solid' };
+    });
+    if (inst.position.some(v => v !== 0)) {
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'translate', parent: at, offset: [...inst.position] }] };
+    }
+  }
+  return prefixDoc(doc, doc.nodes.length);
 }
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} });

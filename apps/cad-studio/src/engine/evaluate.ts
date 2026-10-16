@@ -2,7 +2,7 @@ import { evaluateCadPart, type CadPartSnapshot, exportStep } from '@barocss/cad'
 import { bodyMesh, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
-import type { StudioDoc } from './doc';
+import { placedDoc, type StudioDoc } from './doc';
 
 export interface BodyResult {
   key: string;
@@ -38,12 +38,28 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   }
 }
 
-/** The whole part (every visible body) as one STEP file, or the reason it cannot be written. */
+/** Another part's bodies on their own (instances: not through the main part's cache). */
+export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+  const t0 = performance.now();
+  try {
+    const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => {
+      let volumeMM3: number | null = null, massG: number | null = null;
+      try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; } catch { /* no positive volume */ }
+      return { key: bodyKeyOf(o.id), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG };
+    });
+    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+  } catch (cause) {
+    return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
+  }
+}
+
+/** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */
 export function stepFor(doc: StudioDoc, name: string): { text: string } | { error: string } {
   try {
-    const outputs = snapshotOf(doc).outputs;
-    if (!outputs.length) return { error: 'There is no body to export.' };
-    return { text: exportStep(outputs.map(o => o.brep), { name }) };
+    const breps = snapshotOf(doc).outputs.map(o => o.brep);
+    for (const inst of doc.instances ?? []) if (!inst.hidden) breps.push(...evaluateCadPart(toPartDocument(placedDoc(inst))).outputs.map(o => o.brep));
+    if (!breps.length) return { error: 'There is no body to export.' };
+    return { text: exportStep(breps, { name }) };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 

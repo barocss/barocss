@@ -34,6 +34,9 @@ export interface ViewRenderer {
   /** Direct curves and surfaces (WebGPU only), and the one under a point. */
   setDirect?(items: import('../engine/direct').DirectDisplay[], selected: readonly string[]): void;
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
+  /** Placed instances of other parts (WebGPU only), and the one under a point. */
+  setInstances?(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void;
+  pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
 }
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }

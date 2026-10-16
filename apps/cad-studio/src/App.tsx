@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
+import { placedDoc, type PartInstance } from './engine/doc';
 import { emptyDoc, featureLabel, fmt, loftTop, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
@@ -17,6 +18,7 @@ import { RenderPanel } from './ui/RenderPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
+import { InstancePanel } from './ui/InstancePanel';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
@@ -73,6 +75,10 @@ export function App() {
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const turnFrom = useRef<RenderCamera | null>(null);
+  /** Selected part instances (by id), and their evaluated bodies (by id, with the placed document they are of). */
+  const [instanceSel, setInstanceSel] = useState<string[]>([]);
+  const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; bodies: BodyResult[] }>>(new Map());
+  const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
   const [sketchError, setSketchError] = useState<string | null>(null);
@@ -179,6 +185,43 @@ export function App() {
     if (select) setDirectSel(select);
   }, [doc, marker]);
   const directShown = useMemo(() => directDisplay(doc.direct), [doc.direct]);
+  /** One undoable change of the placed instances. */
+  const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, instances: next }); setDirty(true);
+    if (select) setInstanceSel(select);
+  }, [doc, marker]);
+  // Evaluate each instance whose placed part changed (in the worker, beside the main part).
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const next = new Map<string, { key: string; bodies: BodyResult[] }>();
+      for (const inst of doc.instances ?? []) {
+        const placed = placedDoc(inst), key = JSON.stringify(placed.nodes), have = instanceBodies.get(inst.id);
+        if (have && have.key === key) { next.set(inst.id, have); continue; }
+        const r = await engine.part(placed, revision.current++);
+        if (!live) return;
+        if (r.ok) next.set(inst.id, { key, bodies: r.bodies });
+        else setToast(r.error);
+      }
+      if (live) setInstanceBodies(next);
+    })();
+    return () => { live = false; };
+  }, [doc.instances]); // eslint-disable-line react-hooks/exhaustive-deps
+  const instancesShown = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
+  const insertPart = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as StudioDoc;
+      if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
+      const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
+      let n = 1; while (used.has(`inst${n}`)) n++;
+      // Placed to the right of everything shown.
+      const right = Math.max(0, ...bodies.map(b => b.mesh.bounds.max[0]), ...[...instanceBodies.values()].flatMap(v => v.bodies.map(b => b.mesh.bounds.max[0])));
+      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, instances: undefined, render: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0] };
+      commitInstances([...list, inst], [inst.id]); setSelection(emptySel); setDirectSel([]);
+      setTimeout(() => viewport.current?.fit(), 600);
+    } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+  };
   // Playing: time runs (looping), the bodies follow their keys and a turntable turns the camera.
   useEffect(() => {
     if (!playing) return;
@@ -323,15 +366,16 @@ export function App() {
     setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
   }, [sketch, ctx]);
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string }, additive: boolean) => {
+  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean) => {
     if (active) return;
     setPick(hit.point);
     if (hit.direct) {
       const id = hit.direct;
       setDirectSel(prev => additive ? (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]) : [id]);
-      setSelection(emptySel); return;
+      setSelection(emptySel); setInstanceSel([]); return;
     }
-    if (!additive) setDirectSel([]);
+    if (hit.instance) { setInstanceSel([hit.instance]); setSelection(emptySel); setDirectSel([]); return; }
+    if (!additive) { setDirectSel([]); setInstanceSel([]); }
     if (measure) {
       if (!hit.face && !hit.edge) return;
       const p: MeasurePick = hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
@@ -381,7 +425,8 @@ export function App() {
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
   const exportStepFile = async () => {
-    const r = await engine.step(evaluated, fileName);
+    // (The evaluated model, with the instances placed beside it now.)
+    const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName);
     if ('text' in r) downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step');
     else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
   };
@@ -430,7 +475,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={instanceSel}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -470,7 +515,9 @@ export function App() {
           try { downloadBytes(new TextEncoder().encode(directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
           catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
         }}><Icon name="polyline" /></button>}
-        <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <button className="tool" aria-label="Insert part" title="Insert another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>
+        <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
       <nav className="card toolbar" aria-label="Tools" hidden={rendering}>
@@ -501,6 +548,8 @@ export function App() {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
           }); }}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side}</span>}</button>;
         })}
+        {(doc.instances ?? []).map(inst => <button key={inst.id} className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
+          onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>)}
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}
           onClick={e => {
@@ -513,7 +562,7 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
-        selectedKeys={selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k)}
+        selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) viewport.current?.setCamera(render.camera); }} />}
@@ -534,10 +583,20 @@ export function App() {
         </>}
         <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>}
-      {!rendering && !sketch && !measure && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
+      {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {
+        const inst = doc.instances?.find(i => i.id === instanceSel[0]);
+        if (!inst) return null;
+        const list = doc.instances!;
+        return <InstancePanel inst={inst} bodies={instanceBodies.get(inst.id)?.bodies}
+          onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
+          onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
+            commitInstances([...list, { ...inst, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
+          onRemove={() => commitInstances(list.filter(i => i.id !== inst.id), [])} />;
+      })()}
+      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
-      {!rendering && !sketch && !measure && !directSel.length && <aside className="card props" aria-label="Selection">
+      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>

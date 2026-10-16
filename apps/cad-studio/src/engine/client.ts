@@ -24,6 +24,15 @@ export class EngineClient {
     });
   }
 
+  /** Another part on its own (an instance): never dropped as stale. */
+  part(doc: StudioDoc, revision: number): Promise<EvalResult> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.worker.postMessage({ type: 'part', id, doc, revision });
+    });
+  }
+
   step(doc: StudioDoc, name: string): Promise<{ text: string } | { error: string }> {
     const id = this.next++;
     return new Promise(resolve => {

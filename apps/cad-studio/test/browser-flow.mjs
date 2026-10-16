@@ -345,7 +345,7 @@ try {
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());
-    await page.locator('input[type=file]').setInputFiles(file);
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     assert.match(await outliner(), /1 body/); await iso();
   });
@@ -420,7 +420,7 @@ try {
   });
 
   await check('import a .barocad source and use curve and surface tools', async () => {
-    await page.setInputFiles('input[type="file"]', join(root, 'test/fixtures/study.barocad'));
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/study.barocad'));
     await page.waitForFunction(() => (window.__studioDoc.direct?.objects.length ?? 0) === 4);
     await page.locator('.ol.direct', { hasText: 'panel' }).click();
     await page.click('.direct-panel button:text-is("Iso-curve")');
@@ -460,6 +460,22 @@ try {
     await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
     await page.waitForFunction(n => window.__studioDoc.direct?.objects.length === n, before);
     await idle();
+  });
+
+  await check('place another part as an instance', async () => {
+    await page.setInputFiles('input[aria-label="Part file"]', join(root, 'test/fixtures/bracket.bcad'));
+    await page.waitForSelector('[aria-label="Instance"]');
+    await page.waitForFunction(() => /Bodies\s*1/.test(document.querySelector('[aria-label="Instance"]')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.fill('[aria-label="Instance Z"] >> nth=1', '45'); await press('Enter');
+    await page.click('[aria-label="Instance"] button:text-is("Duplicate")');
+    const inst = await page.evaluate(() => window.__studioDoc.instances.map(i => ({ name: i.name, rot: i.rotation[2], x: i.position[0] })));
+    assert.deepEqual(inst.map(i => [i.name, i.rot]), [['bracket', 45], ['bracket copy', 45]]);
+    assert.equal(inst[1].x, inst[0].x + 20);
+    const download = page.waitForEvent('download');
+    await page.click('[aria-label="Export STEP"]');
+    const text = await (await download).createReadStream().then(s => new Promise(r => { let t = ''; s.on('data', c => t += c); s.on('end', () => r(t)); }));
+    const solids = (text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, own = await page.evaluate(() => Object.keys(window.__studioDoc.outputs).length);
+    assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
   });
 
   await check('command palette and light theme', async () => {
