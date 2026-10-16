@@ -34,7 +34,8 @@ export type ModelNode = SketchNode
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
   | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
-  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number }
+  /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
+  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
   | { kind: 'scale'; parent: BodyRef; factor: number }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }

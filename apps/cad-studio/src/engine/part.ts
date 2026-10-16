@@ -19,7 +19,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }) };
     case 'translate': return { ...at, kind: 'translate', target: ref(node.parent), offset: node.offset };
-    case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees };
+    case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, ...(node.pivot ? { pivot: node.pivot } : {}) };
     // Studio mirrors keep the original, as a mirror copy beside it.
     case 'mirror': return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: true };
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor };

@@ -90,10 +90,10 @@ export function App() {
   const [active, setActive] = useState<Active | null>(null);
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
   /**
-   * A Move gizmo drag: the moved body follows at once as an offset of the evaluated part (`values`, the
-   * whole Move); once let go it stays until the preview of those values arrives (`settling`).
+   * A Move or Rotate gizmo drag: the body follows at once by this matrix on the evaluated part; once let
+   * go it stays until the preview of the values arrives (`settling`).
    */
-  const [moveDrag, setMoveDrag] = useState<{ values: Vec3; settling: boolean } | null>(null);
+  const [bodyDrag, setBodyDrag] = useState<{ matrix: Float64Array; settling: boolean } | null>(null);
   const previewFor = useRef<string | null>(null);
   const [sketch, setSketch] = useState<SketchState | null>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
@@ -575,31 +575,45 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const shownBodies = moveDrag ? bodies : previewBodies ?? bodies;
+  const shownBodies = bodyDrag ? bodies : previewBodies ?? bodies;
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const shownSelection = previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
-  /** The Move values when a gizmo drag began (its moves are from there). */
-  const moveFrom = useRef<Vec3 | null>(null);
-  const gizmo: TransformGizmo | null = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
-    const b = bodies[selectedBodies(active.ctx.selection)[0]]; const { min, max } = b.mesh.bounds;
-    const v: Vec3 = [Number(active.values.x), Number(active.values.y), Number(active.values.z)];
-    return { origin: [(min[0] + max[0]) / 2 + v[0], (min[1] + max[1]) / 2 + v[1], max[2] + v[2]], move: [0, 1, 2],
-      onMove: (delta, done) => {
-        const from = moveFrom.current ?? (moveFrom.current = v), next: Vec3 = [from[0] + delta[0], from[1] + delta[1], from[2] + delta[2]];
-        setMoveDrag({ values: next, settling: done });
-        setActive(a => a && { ...a, values: { ...a.values, x: next[0], y: next[1], z: next[2] }, preview: 'busy' });
-        if (done) moveFrom.current = null;
+  // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
+  // of the evaluated body); let go, the kernel preview of the values runs.
+  const dragFrom = useRef<Values | null>(null);
+  const cmdBody = active && (active.cmd.id === 'move' || active.cmd.id === 'rotate') && selectedBodies(active.ctx.selection).length === 1 ? selectedBodies(active.ctx.selection)[0] : undefined;
+  const gizmo: TransformGizmo | null = active && cmdBody !== undefined && bodies[cmdBody] ? (() => {
+    const { min, max } = bodies[cmdBody].mesh.bounds, values = active.values;
+    const begin = () => dragFrom.current ?? (dragFrom.current = values);
+    const show = (next: Values, matrix: Float64Array, done: boolean) => {
+      setBodyDrag({ matrix, settling: done });
+      setActive(a => a && { ...a, values: { ...a.values, ...next }, preview: 'busy' });
+      if (done) dragFrom.current = null;
+    };
+    if (active.cmd.id === 'move') {
+      const v: Vec3 = [Number(values.x), Number(values.y), Number(values.z)];
+      return { origin: [(min[0] + max[0]) / 2 + v[0], (min[1] + max[1]) / 2 + v[1], max[2] + v[2]], move: [0, 1, 2],
+        onMove: (delta, done) => {
+          const from = begin(), next: Vec3 = [Number(from.x) + delta[0], Number(from.y) + delta[1], Number(from.z) + delta[2]];
+          show({ x: next[0], y: next[1], z: next[2] }, previewMatrix({ kind: 'move', delta: next }), done);
+        } };
+    }
+    // Rotate: about the pivot; X and Y turn in quarter turns only (as the kernel does), Z in 15° steps.
+    const pivot: Vec3 = [Number(values.px), Number(values.py), Number(values.pz)];
+    return { origin: pivot, turn: [0, 1, 2], turnSnap: axis => axis === 2 ? 15 : 90,
+      onTurn: (axis, degrees, done) => {
+        const from = begin(), name = 'xyz'[axis], angle = from.axis === name ? Number(from.angle) + degrees : degrees;
+        show({ axis: name, angle }, previewMatrix({ kind: 'turn', axis, degrees: angle, centre: pivot }), done);
       } };
   })() : null;
-  // Let go: the offset stays until the preview of the final values is in, then the preview shows.
-  useEffect(() => { if (moveDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setMoveDrag(null); }, [previewBodies, moveDrag, active]);
-  useEffect(() => { if (active?.cmd.id !== 'move') setMoveDrag(null); }, [active?.cmd.id]);
-  const moved = moveDrag && active?.cmd.id === 'move' ? selectedBodies(active.ctx.selection)[0] : undefined;
-  const dragOffsets = useMemo(() => moved !== undefined && moveDrag ? new Map([[moved, moveDrag.values]]) : null, [moved, moveDrag]);
+  // Let go: the dragged look stays until the preview of the final values is in, then the preview shows.
+  useEffect(() => { if (bodyDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setBodyDrag(null); }, [previewBodies, bodyDrag, active]);
+  useEffect(() => { setBodyDrag(null); dragFrom.current = null; }, [active?.cmd.id]);
+  const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
   // (only what its mates leave free). It follows at once on screen; let go, it is placed (mates re-solve)
@@ -637,7 +651,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} instancePreview={instancePreview} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={dragOffsets ?? animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];

@@ -13,6 +13,8 @@ export interface ViewState {
   hoverFace: FaceRef | null; hoverEdge: EdgeRef | null;
   selectedFaces: FaceRef[]; selectedEdges: EdgeRef[]; selectedBodies: number[];
   offsets: Map<number, Vec3>;
+  /** Bodies shown moved by a matrix (column-major 4 × 4) while a gizmo drags them (WebGPU; WebGL2 shows its move only). */
+  transforms?: Map<number, Float64Array>;
   ghostBodies: Set<number>;
 }
 export type ThemeName = 'dark' | 'light';

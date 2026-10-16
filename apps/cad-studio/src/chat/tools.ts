@@ -32,7 +32,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   fillet: { selection: 'edges: [edges of one body]', values: { radius: 'fillet radius' } },
   shell: { selection: 'faces to open (all of one body), or bodies: [one body] for a closed hollow', values: { t: 'wall thickness' } },
   move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ' } },
-  rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z (through the origin)', angle: 'degrees' } },
+  rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z (x and y in quarter turns)', angle: 'degrees', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy (through the origin); keeps the original' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original' } },
   'circular-pattern': { selection: 'bodies: [one body]', values: { axis: 'z (even full turn) | x | y (quarter turns)', count: 'copies including the original' } },

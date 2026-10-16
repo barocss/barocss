@@ -14,7 +14,7 @@ const SPECS: Record<string, Spec> = {
   sweep: { sketch: 'sketch', path: 'path' },
   loft: { sections: 'sections', 'smooth?': 'bool' },
   translate: { parent: 'ref', offset: 'dim3' },
-  rotate: { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num' },
+  rotate: { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num', 'pivot?': 'dim3' },
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },

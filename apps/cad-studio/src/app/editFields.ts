@@ -87,6 +87,7 @@ export function editFields(nodes: Nodes, i: number): EditField[] {
     case 'rotate':
       out.push({ kind: 'choice', key: 'axis', label: 'Axis', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
       number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v }));
+      if (node.pivot) [0, 1, 2].forEach(k => number('p' + k, 'Pivot ' + 'XYZ'[k], 'mm', n => num((n as typeof node).pivot![k]), (n, v) => { const p = [...(n as typeof node).pivot!] as [Dim, Dim, Dim]; p[k] = v; return { ...(n as typeof node), pivot: p }; }));
       break;
     case 'mirror':
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });

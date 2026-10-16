@@ -184,7 +184,8 @@ export class GpuRenderer implements ViewRenderer {
         : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null };
       b.surface.pickable = !ghost;
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : null;
-      for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = translation(offset);
+      const moved = view.transforms?.get(bi) ?? translation(offset);
+      for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost; }
     });
   }

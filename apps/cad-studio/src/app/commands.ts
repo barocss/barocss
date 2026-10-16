@@ -47,6 +47,12 @@ function oneBody(ctx: Ctx) {
   return list.length === 1 ? ctx.bodies[list[0]] : null;
 }
 
+/** A body's box centre, to 0.001 mm (the origin when there is none). */
+export function centreOf(b: BodyResult | null | undefined): [number, number, number] {
+  if (!b) return [0, 0, 0];
+  const { min, max } = b.mesh.bounds; return [0, 1, 2].map(k => Math.round((min[k] + max[k]) / 2 * 1000) / 1000) as [number, number, number];
+}
+
 /** The hole axis and entry side of a face normal along ±X, ±Y or ±Z. */
 function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | null {
   const k = [0, 1, 2].find(i => Math.abs(Math.abs(n[i]) - 1) < 1e-6);
@@ -181,9 +187,11 @@ export const commands: Command[] = [
     id: 'rotate', label: 'Rotate', icon: '3d_rotation', shortcut: 'R', group: 'modify', keywords: 'turn spin',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to rotate.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
-      { key: 'angle', label: 'Angle', kind: 'deg', min: -360, max: 360, step: 15 }],
-    defaults: () => ({ axis: 'z', angle: 90 }),
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle) }),
+      { key: 'angle', label: 'Angle', kind: 'deg', min: -360, max: 360, step: 15 },
+      { key: 'px', label: 'Pivot X', kind: 'mm' }, { key: 'py', label: 'Pivot Y', kind: 'mm' }, { key: 'pz', label: 'Pivot Z', kind: 'mm' }],
+    // About the axis through the body's centre (where the gizmo sits); nothing turned until typed or dragged.
+    defaults: ctx => { const c = centreOf(oneBody(ctx)); return { axis: 'z', angle: 0, px: c[0], py: c[1], pz: c[2] }; },
+    build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
   {
     id: 'mirror', label: 'Mirror', icon: 'flip', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
