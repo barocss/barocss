@@ -195,6 +195,20 @@ try {
     d = await doc(); assert.equal(d.nodes[0].profile, 'rectangle'); assert.equal(d.nodes[0].holes?.length, 1); assert.deepEqual(d.nodes[0].plane.origin, [0, 0, 5]); await iso();
   });
 
+  await check('an angled reference plane tips the sketch and its extrusion', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); const [cx, cy] = await canvasCenter();
+    await press('r'); await clickAt(cx - 60, cy - 40); await clickAt(cx + 60, cy + 40);
+    // XY tipped 30° about its X axis: the normal leans towards +Y.
+    await page.fill('[aria-label="Plane angle"]', '30');
+    await page.waitForFunction(() => /SKETCH · 30° tilted plane/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await snap('tilted-plane-sketch');
+    await page.click('.topbar button.finish'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const n = (await doc()).nodes[0].plane.normal;
+    assert.ok(Math.abs(n[0]) < 1e-9 && Math.abs(n[1] - 0.5) < 1e-9 && Math.abs(n[2] - Math.sqrt(3) / 2) < 1e-9, `normal ${n}`);
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props').innerText(), /Faces\s*6/); await iso();
+  });
+
   await check('slot sketch extrudes as a curved body', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('o');
     const [cx, cy] = await canvasCenter();
