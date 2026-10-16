@@ -86,6 +86,10 @@ const rules: { test: RegExp; title: string; hint: string }[] = [
   { test: /angleDegrees must be in/i,
     title: 'The angle must be between 1° and 360°',
     hint: 'Enter an angle greater than 0°; 360° makes a full turn.' },
+  // The curved-face Boolean only suspects a touch: two crossing rings fail the same way.
+  { test: /analytic Boolean: the result is not a manifold solid/i,
+    title: 'These bodies could not be joined into one solid',
+    hint: 'They may only touch along an edge or a point: overlap them or keep them apart. If they clearly overlap (two crossing rings, say), the kernel can’t join these curved faces yet.' },
   { test: /not a manifold solid|touch along an edge or at a vertex/i,
     title: 'The bodies only touch along an edge or a point',
     hint: 'Overlap the bodies (or keep them apart) so the result is a proper solid.' },
