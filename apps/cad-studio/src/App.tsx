@@ -185,7 +185,8 @@ export function App() {
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
 
   const commit = useCallback((next: StudioDoc) => {
-    const dropped = marker !== null ? doc.nodes.length - marker : 0;
+    // Counted as the History bar shows them: sketches are part of the feature made from them.
+    const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
@@ -377,20 +378,21 @@ export function App() {
       fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }, { value: 'loft', label: 'Loft to a top section' }] },
         { key: 'h', label: 'Distance', kind: 'mm', min: 1, when: v => !String(v.make).startsWith('revolve') && !(v.op === 'cut' && v.make === 'extrude' && v.depth === 'through') }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.make === 'extrude' },
         // The revolve angle, or a pipe's bend angle (360: a quarter bend).
-        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') || v.make === 'pipe' },
+        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') },
+        { key: 'bendDeg', label: 'Angle', kind: 'deg', min: 1, max: 270, step: 15, when: v => v.make === 'pipe' },
         { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1, when: v => v.make === 'pipe' }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }], when: v => v.make === 'pipe' },
         { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }], when: v => v.make === 'loft' },
         { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400, when: v => v.make === 'loft' },
         { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400, when: v => v.make === 'loft' },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : []),
         ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' && v.make === 'extrude' }] : [])],
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bendDeg: 90, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, placedNode);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
         // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
         const height = cut && v.make === 'extrude' && v.depth === 'through' ? through : Number(v.h); const from = cut ? -height : 0;
-        // A pipe: a run of Distance, a bend of the radius and the revolve angle (90° by default), a run again.
+        // A pipe: a run of Distance, a bend of the radius and its own angle (90° by default), a run again.
         // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
         let e = v.make === 'loft'
           ? (() => {
@@ -401,7 +403,7 @@ export function App() {
             const secs = [{ sketch: s, z: 0 }, ...(mid > 0 ? [{ sketch: s + 2, z: z1 / 2 }] : []), { sketch: s + 1, z: z1 }];
             return withNode(t, { kind: 'loft', sections: cut ? [...secs].reverse() : secs, ...(mid > 0 ? { smooth: true } : {}) }); })()
           : v.make === 'pipe'
-          ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.deg) >= 360 ? 90 : Number(v.deg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
+          ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
           : String(v.make).startsWith('revolve')
           ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
           // With a draft a cut goes down from the face, so its walls lean in away from the opening.
@@ -460,6 +462,9 @@ export function App() {
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
         const name = file.name.replace(/\.(step|stp)$/i, ''), next = withNode(emptyDoc(), { kind: 'import', name, step: await file.text() });
+        // Read it before replacing the current part: a file the kernel cannot read keeps the part.
+        const read = await engine.part(next, revision.current++);
+        if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
         commit(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
@@ -695,7 +700,7 @@ export function App() {
       </aside>}
       </div>
 
-      {drawing && <DrawingWorkspace engine={engine} doc={evaluated} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
+      {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
 
       {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 

@@ -22,7 +22,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     (self as unknown as Worker).postMessage({ id: request.id, result }, transfer);
   } else if (request.type === 'drawing') {
     const r = brepsFor(request.doc);
-    (self as unknown as Worker).postMessage({ id: request.id, drawing: 'error' in r ? { ok: false, error: r.error } : projectViews(r.breps) });
+    (self as unknown as Worker).postMessage({ id: request.id, drawing: 'error' in r ? { ok: false, error: r.error } : projectViews(r.breps, r.prefixes) });
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name) });
   } else {

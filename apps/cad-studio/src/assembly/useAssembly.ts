@@ -8,7 +8,7 @@ import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Mate, 
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
-export interface MateDraft { kind: MateKind | 'auto'; distance: number; flip: boolean; picks: MatePick[]; error?: string }
+export interface MateDraft { kind: MateKind | 'auto'; distance: number; angle: number; flip: boolean; picks: MatePick[]; error?: string }
 type Hit = { face: { body: number; face: number } | null; instance?: string; instanceFace?: { body: number; face: number } };
 
 export interface Assembly {
@@ -58,12 +58,15 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
 
   const solve = useCallback((list: readonly PartInstance[], ms: readonly Mate[]) => solveAssembly(list, ms, p => tables.get(p)), [tables]);
 
-  // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows. The
-  // result replaces the document in place (it is the same state, solved), so undo skips it.
+  // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows, and
+  // one whose part moved is carried along with it. The result replaces the document in place (it is the
+  // same state, solved), so undo skips it.
+  const lastSolved = useRef<readonly PartInstance[] | undefined>(undefined);
   useEffect(() => {
-    if (!mates.length) { setProblems([]); return; }
-    const r = solve(instances, mates);
+    if (!mates.length) { setProblems([]); lastSolved.current = instances; return; }
+    const r = solveAssembly(instances, mates, p => tables.get(p), lastSolved.current);
     if (r.pending) return;
+    lastSolved.current = r.instances;
     setProblems(r.problems);
     const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
     if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
@@ -86,7 +89,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const kinds = kindsFor(fa, fb), kind = d.kind === 'auto' ? kinds[0] ?? 'coincident' : d.kind;
     const used = new Set(mates.map(m => m.id));
     let n = mates.length + 1; while (used.has(`m${n}`)) n++;
-    const mate: Mate = { id: `m${n}`, kind, a: first.ref, b: second.ref, ...(kind === 'distance' ? { distance: d.distance } : {}), ...(kind !== 'concentric' && d.flip ? { flip: true } : {}) };
+    const mate: Mate = { id: `m${n}`, kind, a: first.ref, b: second.ref, ...(kind === 'distance' ? { distance: d.distance } : {}), ...(kind === 'angle' ? { angle: d.angle } : {}), ...(kind !== 'concentric' && d.flip ? { flip: true } : {}) };
     const why = mateRefusal(mate, fa, fb);
     if (why) return { ...d, picks: [d.picks[0]], error: why };
     const r = solve(instances, [...mates, mate]);
@@ -143,7 +146,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
 
   return {
     mates, problems, tables, draft, selected,
-    start: () => { setDraftState({ kind: 'auto', distance: 10, flip: false, picks: [] }); setSelected(null); },
+    start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,

@@ -2,14 +2,15 @@
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import type { ProjectedCurve } from '@barocss/cad';
 import { resolveDimension, type Resolved } from './dimensions';
+import { centreMarks } from './centres';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { DrawingSettings, DrawingViews, ViewId, XY } from './types';
 import { VIEW_IDS } from './types';
 
-/** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), frame 0.7. */
-export type Pen = 'visible' | 'hidden' | 'thin' | 'frame';
-export const PENS: Record<Pen, { width: number; dash?: [number, number] }> = {
-  visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, frame: { width: 0.7 },
+/** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
+export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
+export const PENS: Record<Pen, { width: number; dash?: number[] }> = {
+  visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, center: { width: 0.25, dash: [8, 1.5, 1.5, 1.5] }, frame: { width: 0.7 },
 };
 export type Mark =
   | { kind: 'line'; a: XY; b: XY; pen: Pen }
@@ -38,6 +39,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
       if (p.visible !== visible || (!visible && !showHidden)) continue;
       marks.push(curveMark(v, p.curve, visible ? 'visible' : 'hidden'));
     }
+    if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
     groups.push({ role: 'view', view: id, marks });
   }
   const dimensions = settings.dimensions.map(d => resolveDimension(views, d));

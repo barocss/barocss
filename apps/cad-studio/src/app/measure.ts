@@ -125,7 +125,11 @@ export function measureItem(mesh: DisplayMesh, pick: MeasurePick): MeasureItem {
   const u = sub(m, p), v = sub(q, p), n = cross(u, v), nn = dot(n, n);
   if (nn > 1e-18) {
     const c = add(p, scale(add(scale(cross(n, u), dot(v, v)), scale(cross(v, n), dot(u, u))), 1 / (2 * nn))), r = len(sub(p, c));
-    if (pts.every(x => Math.abs(len(sub(x, c)) - r) < 1e-3 * Math.max(1, r))) return { label: 'Arc', length, radius: r };
+    if (pts.every(x => Math.abs(len(sub(x, c)) - r) < 1e-3 * Math.max(1, r))) {
+      // The samples lie on the circle: each chord spans 2·asin(chord / 2r), so r·Σθ is the true arc length.
+      const arc = r * segs.reduce((acc, [a, b]) => acc + 2 * Math.asin(Math.min(1, len(sub(b, a)) / (2 * r))), 0);
+      return { label: 'Arc', length: arc, radius: r };
+    }
   }
   return { label: 'Curve', length };
 }
