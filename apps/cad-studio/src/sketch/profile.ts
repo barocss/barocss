@@ -95,9 +95,11 @@ export interface OutlineConstraints {
   equalRadii?: ArcPair[]; concentric?: ArcPair[];
   /** Horizontal / vertical straight edges (default: as drawn, see inferredHV); explicit rules (see terms.ts). */
   hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
+  /** Centres of circles positioned by the rules (cdist / cdx / cdy). */
+  circles?: P2[];
 }
 /** `rows`: scalar equations; more rows than `rank` means some constraints are redundant (over-defined). */
-export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[] }
+export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[]; circles: P2[] }
 export type SolveResult = SolveReport | { ok: false; reason: string };
 
 /** Horizontal / vertical straight edges as drawn (exact coordinate equality on the 1 mm snap). */
@@ -161,7 +163,7 @@ export const canBeTangent = (points: P2[], bulges: number[] | undefined, j: numb
 export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[]): SolveResult {
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
-  const extra = ruleTerms(c.rules ?? [], points, bulges);
+  const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? []);
   if (n + arcs.length + extra.points.length > 16 || n + arcs.length + extra.segments.length > 16) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (16 points / 16 segments)' };
   const centres = new Map(arcs.map(i => [i, arcOf(points[i], points[(i + 1) % n], bulges[i]).center]));
   const straight = (i: number) => i >= 0 && i < n && !bulges[i];
@@ -207,5 +209,6 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     if (b > 0 && sweep <= 0) sweep += 2 * Math.PI; if (b < 0 && sweep >= 0) sweep -= 2 * Math.PI;
     return Math.tan(sweep / 4);
   });
-  return { ok: true, dof: result.report.localDegreesOfFreedom, rank: result.report.numericalRank, rows: result.report.scalarResidualCount, points: solved, bulges: solvedBulges };
+  const circles = (c.circles ?? []).map((p, j) => { const q = byId.get('k' + j); return q ? [round(q[0]), round(q[1])] as P2 : p; });
+  return { ok: true, dof: result.report.localDegreesOfFreedom, rank: result.report.numericalRank, rows: result.report.scalarResidualCount, points: solved, bulges: solvedBulges, circles };
 }

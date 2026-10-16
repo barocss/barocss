@@ -227,3 +227,167 @@ test('angle dimensions between two lines: at a shared corner, between separate e
   assert.equal(first.editDim, 'len1');
   assert.equal(sketchClick(first, E(2), false).editDim, 'ang1_2');
 });
+
+test('sketch history steps back and forward through outline edits, and only over the shape it left', async () => {
+  const { SketchHistory } = await import('../src/sketch/history');
+  const h = new SketchHistory(), a = quad();
+  const b = ok(applyConstraint(a, [E(2)], 'horizontal')), c = removeConstraint(b, 'h:0');
+  h.push(a, b); h.push(b, c);
+  assert.equal(h.undo(c), b); assert.equal(h.undo(b), a); assert.equal(h.undo(a), null);
+  assert.equal(h.redo(a), b); assert.equal(h.redo(b), c); assert.equal(h.redo(c), null);
+  // A new edit after an undo drops the redo; a shape the history did not leave clears it.
+  assert.equal(h.undo(c), b); h.push(b, a); assert.equal(h.redo(a), null);
+  assert.equal(h.undo(quad()), null); assert.equal(h.canUndo, false);
+});
+
+test('overlapping shapes in one sketch are refused with a reason, never cut or crashed', async () => {
+  const { profileOf } = await import('../src/sketch/loops');
+  const rect = (a: P2, b: P2) => ({ kind: 'rectangle' as const, a, b }), circle = (c: P2, r: number) => ({ kind: 'circle' as const, c, r });
+  const refused = (shapes: Parameters<typeof profileOf>[0]) => { const r = profileOf(shapes); assert.ok('error' in r, JSON.stringify(r)); return (r as { error: string }).error; };
+  // U43, U41, U42: two crossing rectangles; a circle across the top or the right edge.
+  assert.match(refused([rect([0, 0], [10, 10]), rect([5, 5], [15, 15])]), /Shapes 1 and 2 overlap/);
+  assert.match(refused([rect([0, 0], [40, 20]), circle([20, 19], 5)]), /overlap/);
+  assert.match(refused([rect([0, 0], [40, 20]), circle([38, 10], 5)]), /overlap/);
+  // Two circles 12 apart; C1: each shape's first point inside the other.
+  assert.match(refused([circle([0, 0], 10), circle([12, 0], 10)]), /overlap/);
+  assert.match(refused([circle([0, 0], 10), rect([5, -3], [20, 3])]), /overlap/);
+  // A hole fully inside and a separate region still work.
+  const ok2 = profileOf([rect([0, 0], [40, 20]), circle([20, 10], 5), circle([60, 10], 5)]);
+  assert.ok('node' in ok2 && ok2.node.holes?.length === 1 && ok2.node.regions?.length === 1);
+});
+
+test('a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions', async () => {
+  const { shapeNode } = await import('../src/sketch/loops');
+  const { featureOf } = await import('../src/engine/part');
+  const { editFields } = await import('../src/app/editFields');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
+  s = (commitDimension(s, 'dist0_2', 65) as { shape: Polygon }).shape;
+  const node = shapeNode(s)!;
+  assert.equal(node.profile, 'polygon');
+  assert.deepEqual(node.outline?.hv, { h: [0, 2], v: [1, 3] });
+  assert.deepEqual(node.outline?.lengths, { 0: 60 });
+  assert.deepEqual(node.outline?.rules, [{ kind: 'distance', a: 0, b: 2, value: 65 }]);
+  // The kernel takes the solved profile only.
+  assert.equal('outline' in (featureOf(node, 0) as object), false);
+  let d = withNode(withNode(emptyDoc(), node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.ok(evaluateDoc(d, 2).ok);
+  const fields = editFields(d.nodes, 1).filter(f => f.kind === 'number');
+  const len = fields.find(f => f.label === 'Length of edge 1')!, dist = fields.find(f => f.label === 'Distance point 1 – point 3')!;
+  assert.ok(len && dist, fields.map(f => f.label).join(', '));
+  assert.equal(len.get(d.nodes), 60); assert.ok(Math.abs(dist.get(d.nodes) - 65) < 1e-9);
+  // Width 40 with the diagonal held at 65: the height follows.
+  const nodes = len.kind === 'number' ? len.set(d.nodes, 40) : d.nodes;
+  const pts = (nodes[0] as { points: P2[] }).points, h = Math.max(...pts.map(p => p[1])) - Math.min(...pts.map(p => p[1]));
+  assert.ok(Math.abs(h - Math.sqrt(65 ** 2 - 40 ** 2)) < 1e-6, JSON.stringify(pts));
+  assert.equal((nodes[0] as { outline: { lengths: Record<number, number> } }).outline.lengths[0], 40);
+  // A value the constraints cannot take (longer than the diagonal) changes nothing.
+  assert.equal(len.kind === 'number' && len.set(nodes, 70), nodes);
+  d = { ...d, nodes };
+  assert.ok(evaluateDoc(d, 2).ok);
+});
+
+test('a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes', async () => {
+  const { sketchShapes, loopShape } = await import('../src/sketch/reopen');
+  const { shapeNode, profileOf } = await import('../src/sketch/loops');
+  const { outlineSegments } = await import('../src/sketch/profile');
+  // A constrained outline round-trips with every constraint.
+  let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
+  const back = sketchShapes(shapeNode(s)!).shape as Polygon;
+  assert.deepEqual(back.points, s.points); assert.deepEqual(back.lengths, { 0: 60 }); assert.deepEqual(back.hv, s.hv);
+  assert.equal(dof(back), dof(s));
+  // A line + arc loop gives back its points and bulges; one full arc is a circle.
+  const pts: P2[] = [[0, 0], [30, 0], [30, 20], [0, 20]], bulges = [0, 0.4, 0, -0.3];
+  const loop = loopShape(outlineSegments(pts, bulges)) as Polygon;
+  assert.deepEqual(loop.points, pts);
+  loop.bulges!.forEach((b, i) => assert.ok(Math.abs(b - bulges[i]) < 1e-9, `${b} vs ${bulges[i]}`));
+  assert.deepEqual(loopShape([{ kind: 'arc', start: [15, 5], center: [10, 5], direction: 'ccw' }]), { kind: 'circle', c: [10, 5], r: 5 });
+  // A plate with a hole and a separate boss: the main rectangle first, then the region and the hole.
+  const r = profileOf([{ kind: 'rectangle', a: [0, 0], b: [40, 20] }, { kind: 'circle', c: [20, 10], r: 4 }, { kind: 'circle', c: [60, 10], r: 5 }]);
+  assert.ok('node' in r);
+  const shapes = sketchShapes(r.node);
+  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20] });
+  assert.deepEqual(shapes.done.map(d => d.kind), ['circle', 'circle']);
+  // And profiles again to the same node.
+  assert.deepEqual(profileOf([shapes.shape!, ...shapes.done]), r);
+});
+
+test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)', async () => {
+  const { rectangleOutline } = await import('../src/sketch/select');
+  const { shapeNode } = await import('../src/sketch/loops');
+  const { editFields } = await import('../src/app/editFields');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const outline = rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [40, 20] })!;
+  assert.deepEqual(shapeNode(outline), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] });
+  // A typed width keeps it a rectangle; the editor then offers width, depth and corner.
+  const wide = (commitDimension(outline, 'len0', 55) as { shape: Polygon }).shape;
+  const node = shapeNode(wide)!;
+  assert.deepEqual(node, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [55, 20] });
+  const d = withNode(withNode(emptyDoc(), node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.deepEqual(editFields(d.nodes, 1).map(f => f.label).slice(0, 4), ['Width', 'Depth', 'Corner X', 'Corner Y']);
+  // A removed H/V edge or an explicit rule makes it an outline again.
+  assert.equal(shapeNode(removeConstraint(outline, 'v:1'))!.profile, 'polygon');
+  const fixed = ok(applyConstraint(outline, [Pt(2)], 'fix'));
+  assert.equal(shapeNode(fixed)!.profile, 'polygon');
+  assert.ok(shapeNode(fixed)!.outline?.rules?.length);
+  // A line-tool outline of the same shape stays a polygon.
+  assert.equal(shapeNode(close([[0, 0], [40, 0], [40, 20], [0, 20]]))!.profile, 'polygon');
+});
+
+test('a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited', async () => {
+  const { sketchClick, attachCircle, pickSketch } = await import('../src/sketch/select');
+  const { profileOf, shapeNode } = await import('../src/sketch/loops');
+  const { sketchShapes } = await import('../src/sketch/reopen');
+  const { editFields } = await import('../src/app/editFields');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const plate = (commitDimension(close([[0, 0], [40, 0], [40, 20], [0, 20]]), 'len0', 40) as { shape: Polygon }).shape;
+  const hole = { kind: 'circle' as const, c: [12, 9] as P2, r: 3 };
+  // The Dimension tool: point 1, then the finished circle, opens the distance to its centre and attaches the circle.
+  let state: SketchState = { plane: xyPlane(), tool: 'dimension', shape: plate, done: [hole] };
+  const project = (u: number, v: number) => [u * 10, 400 - v * 10];
+  assert.deepEqual(pickSketch(plate, project, 150, 310, state.done), { kind: 'circle', i: 0, done: true });
+  state = sketchClick(state, Pt(0), false);
+  state = sketchClick(state, { kind: 'circle', i: 0, done: true }, false);
+  assert.equal(state.editDim, 'cdist0_0'); assert.deepEqual(state.done, []);
+  let s = state.shape as Polygon;
+  assert.deepEqual(s.circles, [{ c: [12, 9], r: 3 }]);
+  assert.equal(dimensionKey(s, [Pt(0), { kind: 'circle', i: 0 }]), 'cdist0_0');
+  assert.match(constraintOptions(s, [{ kind: 'circle', i: 0 }]).fix ?? '', /circle takes dimensions/);
+  // Horizontal 10 and vertical 6 from point 1: the centre lands there; the rest of the plate is 1 DOF (its height).
+  const before = dof(s);
+  s = (commitDimension(s, 'cdx0_0', 10) as { shape: Polygon }).shape;
+  s = (commitDimension(s, 'cdy0_0', 6) as { shape: Polygon }).shape;
+  assert.deepEqual(s.circles![0].c, [10, 6]); assert.equal(dof(s), before - 2);
+  const d = commitDimension(s, 'cdia0', 8); assert.ok(d.ok); s = d.shape; assert.equal(s.circles![0].r, 4);
+  assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail),
+    ['Horizontal distance point 1 – circle 1 = 10', 'Vertical distance point 1 – circle 1 = 6']);
+  // A distance the plate cannot give conflicts; dimensioning the centre again over-defines.
+  assert.match((commitDimension(s, 'cdist0_0', 50) as { reason: string }).reason, /conflict/);
+  // The profile: the plate with the circle as its hole, and the outline keeps the circle and its rules.
+  const r = profileOf([s]); assert.ok('node' in r);
+  assert.equal(r.node.holes?.length, 1); assert.deepEqual(r.node.outline?.circles, [{ c: [10, 6], r: 4 }]);
+  let doc = withNode(withNode(emptyDoc(), r.node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.ok(evaluateDoc(doc, 2).ok);
+  // Reopened: the circle comes back on the outline, not beside it.
+  const back = sketchShapes(r.node);
+  assert.deepEqual((back.shape as Polygon).circles, [{ c: [10, 6], r: 4 }]); assert.deepEqual(back.done, []);
+  // The feature editor moves the hole by its horizontal distance.
+  const f = editFields(doc.nodes, 1).find(x => x.label === 'Horizontal distance point 1 – circle 1')!;
+  assert.ok(f && f.kind === 'number'); assert.equal(f.get(doc.nodes), 10);
+  const nodes = f.kind === 'number' ? f.set(doc.nodes, 25) : doc.nodes;
+  assert.deepEqual((nodes[0] as { outline: { circles: unknown } }).outline.circles, [{ c: [25, 6], r: 4 }]);
+  doc = { ...doc, nodes }; assert.ok(evaluateDoc(doc, 2).ok);
+  assert.equal(attachCircle({ plane: xyPlane(), tool: 'select', shape: plate, done: [] }, 0), null);
+  void shapeNode;
+});
+
+test('Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it', async () => {
+  const { startPicking, rectangleOutline } = await import('../src/sketch/select');
+  const rect = { kind: 'rectangle' as const, a: [0, 0] as P2, b: [40, 20] as P2 }, hole = { kind: 'circle' as const, c: [10, 10] as P2, r: 3 };
+  const s = startPicking({ plane: xyPlane(), tool: 'circle', shape: hole, done: [rect] }, 'dimension');
+  assert.deepEqual(s.shape, rectangleOutline(rect)); assert.deepEqual(s.done, [hole]);
+});

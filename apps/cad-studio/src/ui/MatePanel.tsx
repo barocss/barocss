@@ -10,22 +10,34 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
   const f = table?.[name];
   if (table && !f) return `missing face (${name})`;
   if (f?.kind === 'cylinder') return `${f.outer ? 'Round face' : 'Hole'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  const origin = /^origin:(xy|xz|yz)$/.exec(name);
+  if (origin) return `${origin[1].toUpperCase()} plane`;
   const tail = name.split('|')[0].split('.').pop() ?? name;
   const side = /^side(\d+)$/.exec(tail);
   return side ? `Side face ${Number(side[1]) + 1}` : tail === 'top' ? 'Top face' : tail === 'bottom' ? 'Bottom face' : tail;
 }
 
 /** Mates: the list (pick one to edit or delete it), and "Add mate": a face that stays, then a face on the part to move. */
-export function MatePanel({ assembly, instances, onRefused }: { assembly: Assembly; instances: PartInstance[]; onRefused(reason: string): void }) {
+export function MatePanel({ assembly, instances, instance, onRefused }: { assembly: Assembly; instances: PartInstance[]; instance?: string; onRefused(reason: string): void }) {
   const { mates, problems, draft, tables } = assembly;
   const partName = (part: string) => part === BASE ? 'Base part' : instances.find(i => i.id === part)?.name ?? part;
   const refText = (r: MateRef) => `${partName(r.part)} · ${faceLabel(r.face, tables.get(r.part))}`;
   const sel = mates.find(m => m.id === assembly.selected) ?? null;
   const problemOf = (id: string) => problems.find(p => p.mate === id);
+  // What the selected part can still do: fixed, placed by typed numbers, or its mates' remaining freedom.
+  const freedomText = (id: string) => {
+    if (instances.find(i => i.id === id)?.grounded) return 'fixed in place';
+    const f = assembly.freedom[id];
+    if (!f) return 'placed by its numbers (no mate moves it)';
+    if (!f.turns && !f.slides) return 'fully placed by its mates';
+    const n = (k: number, word: string) => k ? `${k} ${word}${k > 1 ? 's' : ''}` : '';
+    return 'free: ' + [n(f.slides, 'slide'), n(f.turns, 'turn')].filter(Boolean).join(' · ');
+  };
   return (
     <aside className="card props" aria-label="Mates">
       <div className="card-title">MATES <span className="muted">{mates.length || ''}</span>
         {!draft && <button className="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</button>}</div>
+      {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
         <label className="field"><span>Type</span>
           <select aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto' })}>
@@ -36,10 +48,11 @@ export function MatePanel({ assembly, instances, onRefused }: { assembly: Assemb
         {draft.kind === 'angle' && <NumberField label="Angle" unit="°" value={draft.angle} onCommit={v => assembly.setDraft({ angle: v })} />}
         {draft.kind !== 'concentric' && <label className="field check-row"><span>Flip</span>
           <input type="checkbox" aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
+        <PlanePicker instances={instances} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
-          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
+          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
         <div className="row-actions"><button className="ghost" onClick={assembly.cancel}>Cancel</button></div>
       </div>}
       {mates.map((m, i) => {
@@ -86,6 +99,21 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
       <div className="row-actions"><button className="ghost" onClick={onDelete}>Delete mate</button></div>
     </div>
   );
+}
+
+/** An origin plane of a part as the next pick: the part, then XY, XZ or YZ. */
+function PlanePicker({ instances, onPick }: { instances: PartInstance[]; onPick(ref: MateRef): void }) {
+  const [part, setPart] = useState(BASE);
+  return (<>
+    <label className="field"><span>Or a plane of</span>
+      <select aria-label="Plane of" value={part} onChange={e => setPart(e.target.value)}>
+        <option value={BASE}>Base part</option>
+        {instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+      </select></label>
+    <div className="row-actions" style={{ display: 'flex', gap: 6, paddingLeft: 84 }}>
+      {(['xy', 'xz', 'yz'] as const).map(p => <button key={p} type="button" className="ghost" aria-label={`Pick ${p.toUpperCase()} plane`} onClick={() => onPick({ part, face: `origin:${p}` })}>{p.toUpperCase()}</button>)}
+    </div>
+  </>);
 }
 
 function NumberField({ label, value, onCommit, unit = 'mm' }: { label: string; value: number; onCommit(v: number): void; unit?: string }) {

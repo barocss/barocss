@@ -121,6 +121,17 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (skip.has(e.id)) continue;
     const uses = usesOf.get(e.id) ?? [];
     if (uses.length !== 2) refuse('SELECTION', `edge ${e.name} does not join exactly two faces`);
+    // A convex finish of a straight edge between two planes must fit on both faces: its setback from the
+    // edge (the chamfer distance, or r / tan(half the corner angle)) at most each face's reach across it.
+    if (e.curve.degree === 1 && e.curve.controlPoints.length === 2 && uses.every(u => u.geometry.kind === 'plane')) {
+      const [E0] = ends(e), sides = intoFaces(e, uses, E0.x, E0.out);
+      if (convexAt(sides)) {
+        const half = Math.acos(Math.max(-1, Math.min(1, dot(sides[0].w, sides[1].w)))) / 2;
+        const back = kind === 'chamfer' ? size : size / Math.tan(half);
+        const walls = uses.map((u, k) => faceReach(body, u.face.id, E0.x, sides[k].w));
+        if (walls.some(w => back > w + 1e3 * tol)) refuse('PARAMETER', `edge ${e.name}: ${kind} ${size} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
+      }
+    }
     // How far the tool may run past each end: past the end of the body, else not at all. Where another
     // finished edge leaves the same vertex (a corner of a rounded box top), both tools run past it: with
     // one size, removing (or adding) both is exactly the mitre between the two finishes.
@@ -250,6 +261,15 @@ function outwardNormal(g: FaceGeometry, x: Point): Point | null {
 }
 
 /** Into each face at x, perpendicular to the edge (the face lies left of its coedge seen from outside). */
+/** How far a face reaches from x along w: the farthest control point of its edges (at least the face's true reach). */
+export function faceReach(body: Brep, faceId: string, x: Point, w: Point): number {
+  const loops = new Set(body.loops.filter(l => l.face === faceId).map(l => l.id));
+  const edges = new Set(body.coedges.filter(c => loops.has(c.loop)).map(c => c.edge));
+  let reach = 0;
+  for (const e of body.edges) if (edges.has(e.id)) for (const q of e.curve.controlPoints) reach = Math.max(reach, dot(sub(q, x), w));
+  return reach;
+}
+
 function intoFaces(e: Brep['edges'][number], uses: Use[], x: Point, tangent: Point): { n: Point; w: Point }[] {
   return uses.map(u => {
     const n = outwardNormal(u.geometry, x);

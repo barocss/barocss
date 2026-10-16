@@ -16,7 +16,11 @@ export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3 }
 /** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm). */
 export type DrawingDimension =
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
-  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY };
+  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY }
+  /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
+  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY };
+/** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
+export interface EdgeRef { edge: string; near: Vec3 }
 
 export interface DrawingSettings {
   sheet: 'A4' | 'A3';
@@ -28,6 +32,10 @@ export interface DrawingSettings {
   hidden: boolean;
   /** false: no centre marks and centrelines (shown by default). */
   centers?: boolean;
+  /** Tangent edges (a fillet's boundaries) as thin lines (not shown by default). */
+  tangent?: boolean;
+  /** Section A–A: the part cut by the plane Y = y, seen like the front view, under it (none: no section). */
+  section?: { y: number };
   /** The title block's part name (default: the file name). */
   title?: string;
   dimensions: DrawingDimension[];
@@ -44,6 +52,8 @@ export function readDrawing(raw: unknown): DrawingSettings {
     projection: r.projection === 'first' ? 'first' : 'third',
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
+    ...(r.tangent === true ? { tangent: true } : {}),
+    ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)) : [],
   };

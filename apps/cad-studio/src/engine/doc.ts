@@ -9,8 +9,18 @@ export interface BodyRef { node: number; side: Side }
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
-/** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only). */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][] };
+/**
+ * The closed outline a polygon / loop profile was drawn from, with its constraints and driving dimensions
+ * (see sketch/rules.ts): lengths and radii by segment, tangent joints, arc pairs, kept H/V edges, rules.
+ */
+export interface SketchOutline {
+  points: [number, number][]; bulges?: number[]; lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
+  equalRadii?: [number, number][]; concentric?: [number, number][]; hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
+  /** Circles dimensioned from the outline (they are also the profile's holes or regions). */
+  circles?: { c: [number, number]; r: number }[];
+}
+/** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -47,9 +57,10 @@ export type ModelNode = SketchNode
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
 
 import type { RenderSettings } from './render';
+import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import type { Mate } from '../assembly/mates';
+import { rotationSteps, type Mate } from '../assembly/mates';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -88,9 +99,9 @@ export function placedDoc(inst: PartInstance): StudioDoc {
   let doc = base;
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;
-    (['x', 'y', 'z'] as const).forEach((axis, k) => {
-      if (!inst.rotation[k]) return;
-      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees: inst.rotation[k] }] };
+    // (Any rotation: the kernel turns about X and Y by quarter turns only, see rotationSteps.)
+    rotationSteps(inst.rotation).forEach(({ axis, angleDegrees }) => {
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees }] };
       at = { node: doc.nodes.length - 1, side: 'solid' };
     });
     if (inst.position.some(v => v !== 0)) {

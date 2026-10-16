@@ -33,6 +33,8 @@ export interface ProjectedPiece { readonly curve: ProjectedCurve; readonly visib
 export interface ProjectedEdge {
   readonly name: string;
   readonly kind: 'line' | 'circle' | 'curve' | 'silhouette';
+  /** A tangent edge: a smooth joint between two different surfaces (only with `tangentEdges`). */
+  readonly tangent?: true;
   readonly ends: readonly [Point, Point] | null;
   readonly circle: { readonly center: Point; readonly radius: number; readonly normal: Point; readonly full: boolean; readonly sweep: number } | null;
   readonly pieces: readonly ProjectedPiece[];
@@ -44,11 +46,12 @@ export interface BrepProjection {
   readonly min: ProjectedXY; readonly max: ProjectedXY;
 }
 /** `prefixes`: put before the names of each B-rep's curves (parallel to the B-reps), to tell copies of one part apart. */
-export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[] }
+/** `tangentEdges`: also the smooth joints between different surfaces (a fillet's boundaries), marked `tangent`. */
+export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[]; readonly tangentEdges?: boolean }
 
 type XY = [number, number];
 interface Candidate {
-  name: string; kind: ProjectedEdge['kind']; ends: [Point, Point] | null; circle: ProjectedEdge['circle'];
+  name: string; kind: ProjectedEdge['kind']; tangent?: true; ends: [Point, Point] | null; circle: ProjectedEdge['circle'];
   s0: number; s1: number; at(s: number): Point; out(s0: number, s1: number): ProjectedCurve;
   /** Where visibility is tested at s (default `at`): a circle's chord on the tessellation, so its own faces' facets do not stand in front of it. */
   probe?(s: number): Point;
@@ -144,7 +147,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       if (fs.length === 2 && fs[0] === fs[1]) continue; // a seam
       const pts = polylineOf.get(edge.id);
       if (!pts || pts.length < 6) continue;
-      let kind: 'edge' | 'silhouette' = 'edge';
+      let kind: 'edge' | 'silhouette' | 'tangent' = 'edge';
       if (fs.length === 2) {
         const ga = geomOf(fs[0]), gb = geomOf(fs[1]);
         if (ga.kind === 'plane' && gb.kind === 'plane' && Math.abs(dot(ga.n, gb.n)) > 1 - 1e-9 && Math.abs(dot(sub(ga.o, gb.o), ga.n)) < 1e-6 * size) continue;
@@ -157,17 +160,19 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         const within = exact(ga) && exact(gb) ? Math.PI / 180 : 1.5 * Math.PI / 2 / perQuarter;
         if (na && nb && Math.abs(dot(unit(na), unit(nb))) > Math.cos(within)) {
           // (Between other surfaces, the silhouettes found on the faces run on across the joint.)
-          if (!(exact(ga) && exact(gb) && Math.abs(dot(unit(na), toward)) < 1e-6)) continue;
-          kind = 'silhouette';
+          if (exact(ga) && exact(gb) && Math.abs(dot(unit(na), toward)) < 1e-6) kind = 'silhouette';
+          else if (options.tangentEdges && !sameSurface(ga, gb, faceById.get(fs[0])!.name ?? fs[0], faceById.get(fs[1])!.name ?? fs[1])) kind = 'tangent';
+          else continue;
         }
       }
       const name = (options.prefixes?.[bi] ?? '') + (edge.name ?? edge.id) + (kind === 'silhouette' ? '~sil' : ''), c = edge.curve, into = kind === 'silhouette' ? silhouettes : candidates;
+      const tangent = kind === 'tangent' ? { tangent: true as const } : {};
       const a = vertex.get(edge.vertices[0])!, b = vertex.get(edge.vertices[1])!;
       if (c.degree === 1 && c.controlPoints.length === 2) {
         const A = c.controlPoints[0] as Point, B = c.controlPoints[1] as Point;
         const L = dist2(P(A), P(B));
         if (L <= 1e-9 * size) continue; // seen end-on
-        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'line', ends: [A, B], circle: null, s0: 0, s1: 1, eps: 1e-5 * size,
+        into.push({ name, ...tangent, kind: kind === 'silhouette' ? 'silhouette' : 'line', ends: [A, B], circle: null, s0: 0, s1: 1, eps: 1e-5 * size,
           at: s => lerp3(A, B, s), out: (s0, s1) => ({ kind: 'line', a: P(lerp3(A, B, s0)), b: P(lerp3(A, B, s1)) }),
           samples: () => steps(0, 1, Math.ceil(L / h)) });
         continue;
@@ -193,14 +198,14 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
           let k = 0; while (k < ps.length - 2 && ps[k + 1] < s) k++;
           const d = ps[k + 1] - ps[k]; return lerp3(poly[k], poly[k + 1], d > 0 ? Math.min(1, Math.max(0, (s - ps[k]) / d)) : 0);
         };
-        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full, sweep: total }, s0: 0, s1: total, eps: 1e-5 * size, at, probe,
+        into.push({ name, ...tangent, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full, sweep: total }, s0: 0, s1: total, eps: 1e-5 * size, at, probe,
           out: (s0, s1) => arcOut(C, U, V, theta(s0), theta(s1)),
           samples: () => steps(0, total, Math.max(Math.ceil(extent * total / h), Math.ceil(total / (Math.PI / 32)))) });
         continue;
       }
       const poly: Point[] = []; for (let k = 0; k < pts.length; k += 3) poly.push([pts[k], pts[k + 1], pts[k + 2]]);
       const cand = polylineCandidate(name, kind === 'silhouette' ? 'silhouette' : 'curve', poly, P, h, 1e-5 * size);
-      if (cand) into.push(cand);
+      if (cand) into.push({ ...cand, ...tangent });
     }
 
     // Silhouettes: where the tessellation's vertex normals turn edge-on, face by face. Off cylinders
@@ -310,11 +315,27 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   const out: ProjectedEdge[] = [];
   const min: XY = [Infinity, Infinity], max: XY = [-Infinity, -Infinity];
   for (const [c, pieces] of edges) {
-    out.push({ name: c.name, kind: c.kind, ends: c.ends, circle: c.circle, pieces });
+    out.push({ name: c.name, kind: c.kind, ...(c.tangent ? { tangent: true as const } : {}), ends: c.ends, circle: c.circle, pieces });
     for (const p of pieces) for (const q of flatten(p.curve, 1e-6 * size)) for (const k of [0, 1]) { min[k] = Math.min(min[k], q[k]); max[k] = Math.max(max[k], q[k]); }
   }
   if (!out.length) { min[0] = min[1] = max[0] = max[1] = 0; }
   return { right, up, toward, edges: out, min, max };
+}
+
+/**
+ * Two faces of one surface (no tangent edge between them): the same plane or cylinder, the pieces of one
+ * named face (`x#1`, `x#2`), or two general surfaces of one feature (a revolve's seams).
+ */
+function sameSurface(ga: ReturnType<typeof faceGeometry>, gb: ReturnType<typeof faceGeometry>, na: string, nb: string): boolean {
+  const near = (p: readonly number[], q: readonly number[], tol: number) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) <= tol;
+  if (ga.kind === 'plane' && gb.kind === 'plane') return Math.abs(dot(ga.n, gb.n)) > 1 - 1e-9 && Math.abs(dot(sub(ga.o, gb.o), ga.n)) < 1e-6;
+  if (ga.kind === 'cylinder' && gb.kind === 'cylinder') {
+    const scale = 1e-6 * Math.max(1, ga.r);
+    return Math.abs(ga.r - gb.r) < scale && Math.abs(Math.abs(dot(ga.a, gb.a)) - 1) < 1e-9 && near(cross(sub(gb.c, ga.c), ga.a), [0, 0, 0], scale);
+  }
+  const base = (n: string) => n.replace(/(#\d+)+$/, '');
+  if (base(na) === base(nb)) return true;
+  return ga.kind === 'other' && gb.kind === 'other' && na.split('.')[0] === nb.split('.')[0];
 }
 
 const steps = (s0: number, s1: number, n: number) => { const m = Math.max(1, Math.min(4000, n)); return Array.from({ length: m + 1 }, (_, k) => k === m ? s1 : s0 + (s1 - s0) * k / m); };

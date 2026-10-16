@@ -1,7 +1,7 @@
 // A sketch's closed shapes as one profile: each shape a closed loop; loops inside another are holes, the
 // rest are separate regions of material (the first drawn is the main profile).
 import type { SketchShape } from '../viewport/Viewport';
-import type { LoopSegment as DocSegment, SketchNode } from '../engine/doc';
+import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 
 export function isConvex(points: [number, number][]) {
@@ -21,10 +21,61 @@ export function shapeNode(s: SketchShape): SketchNode | null {
   if (s.kind === 'circle') return { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r };
   if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null;
   if (!s.closed || s.pending) return null;
+  const rect = rectangleNode(s); if (rect) return rect;
   // Straight convex outlines keep the polygon path (all features); concave or curved ones become a line + arc loop.
-  return !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points)
+  const node: SketchNode = !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points)
     ? { kind: 'sketch', profile: 'polygon', points: s.points }
     : { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points as P2[], s.bulges) };
+  const outline = outlineOf(s);
+  return outline ? { ...node, outline } : node;
+}
+
+/**
+ * A Rectangle-tool outline that is still exactly a rectangle (four straight edges kept horizontal and
+ * vertical, nothing else but edge lengths, which its width and depth carry) is saved as a rectangle, so the
+ * feature editor offers its width, depth and corner; null otherwise.
+ */
+export function rectangleNode(s: Extract<SketchShape, { kind: 'polygon' }>): SketchNode | null {
+  if (!s.fromRectangle || s.points.length !== 4 || s.bulges?.some(Boolean)) return null;
+  if ([s.radii, s.tangents, s.equalRadii, s.concentric, s.rules].some(v => v && (Array.isArray(v) ? v.length : Object.keys(v).length))) return null;
+  const hv = s.hv, p = s.points, eq = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+  if (!hv || hv.h.length + hv.v.length !== 4 || ![0, 1, 2, 3].every(i => hv.h.includes(i) || hv.v.includes(i))) return null;
+  const aligned = hv.h.includes(0)
+    ? eq(p[0][1], p[1][1]) && eq(p[1][0], p[2][0]) && eq(p[2][1], p[3][1]) && eq(p[3][0], p[0][0])
+    : eq(p[0][0], p[1][0]) && eq(p[1][1], p[2][1]) && eq(p[2][0], p[3][0]) && eq(p[3][1], p[0][1]);
+  if (!aligned) return null;
+  const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] };
+}
+
+/** A constrained outline as the sketch node keeps it (null when nothing constrains it). */
+export function outlineOf(s: Extract<SketchShape, { kind: 'polygon' }>): SketchOutline | null {
+  const { points, bulges, lengths, radii, tangents, equalRadii, concentric, hv, rules, circles } = s;
+  const has = (v: unknown) => Array.isArray(v) ? v.length > 0 : !!v && Object.keys(v).length > 0;
+  if (![lengths, radii, tangents, equalRadii, concentric, rules, circles].some(has) && !(hv && (hv.h.length || hv.v.length))) return null;
+  const out: SketchOutline = { points: points.map(p => [p[0], p[1]] as [number, number]) };
+  if (bulges?.some(Boolean)) out.bulges = [...bulges];
+  if (has(lengths)) out.lengths = { ...lengths }; if (has(radii)) out.radii = { ...radii }; if (has(tangents)) out.tangents = [...tangents!];
+  if (has(equalRadii)) out.equalRadii = equalRadii!.map(p => [...p] as [number, number]); if (has(concentric)) out.concentric = concentric!.map(p => [...p] as [number, number]);
+  if (hv) out.hv = { h: [...hv.h], v: [...hv.v] }; if (has(rules)) out.rules = rules!.map(r => ({ ...r }));
+  if (has(circles)) out.circles = circles!.map(c => ({ c: [c.c[0], c.c[1]], r: c.r }));
+  return out;
+}
+
+/** Whether two closed rings (sampled outlines) cross: a segment of one properly intersects a segment of the other. */
+export function ringsCross(a: P2[], b: P2[]): boolean {
+  const side = (p: P2, q: P2, r: P2) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  for (let i = 0; i < a.length; i++) {
+    const p = a[i], q = a[(i + 1) % a.length];
+    const lo = [Math.min(p[0], q[0]), Math.min(p[1], q[1])], hi = [Math.max(p[0], q[0]), Math.max(p[1], q[1])];
+    for (let j = 0; j < b.length; j++) {
+      const r = b[j], t = b[(j + 1) % b.length];
+      if (Math.max(r[0], t[0]) < lo[0] || Math.min(r[0], t[0]) > hi[0] || Math.max(r[1], t[1]) < lo[1] || Math.min(r[1], t[1]) > hi[1]) continue;
+      const d1 = side(p, q, r), d2 = side(p, q, t), d3 = side(r, t, p), d4 = side(r, t, q);
+      if (((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) && ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9))) return true;
+    }
+  }
+  return false;
 }
 
 /** A closed shape's outline, sampled (for drawing and for telling holes from regions). */
@@ -60,13 +111,19 @@ const inside = (p: P2, ring: P2[]) => {
  * the first region is the main profile. A shape inside a hole (an island) is refused for now.
  */
 export function profileOf(shapes: SketchShape[]): { node: SketchNode } | { error: string } {
+  // An outline's attached circles are shapes of the profile beside it (holes inside it, regions outside).
+  shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c): SketchShape => ({ kind: 'circle', c: c.c, r: c.r }))] : [s]);
   const closed = shapes.map(s => ({ s, node: shapeNode(s) })).filter((x): x is { s: SketchShape; node: SketchNode } => !!x.node);
   if (!closed.length) return { error: 'Draw a closed rectangle, circle, slot or outline on the sketch plane.' };
   if (closed.length === 1) return { node: closed[0].node };
   const rings = closed.map(x => shapeOutline(x.s));
+  // Overlapping shapes would silently become a cut or a bump depending on where each starts: refuse them.
+  for (let i = 0; i < rings.length; i++) for (let j = i + 1; j < rings.length; j++)
+    if (ringsCross(rings[i], rings[j])) return { error: `Shapes ${i + 1} and ${j + 1} overlap: draw them as one outline, or put one in its own sketch.` };
   const depth = rings.map((ring, i) => rings.filter((other, j) => j !== i && inside(ring[0], other)).length);
   if (depth.some(d => d > 1)) return { error: 'A shape inside a hole is not supported yet: draw it as its own sketch.' };
   const outers = closed.filter((_, i) => depth[i] === 0), holes = closed.filter((_, i) => depth[i] === 1);
+  if (!outers.length) return { error: 'Every shape lies inside another: draw the outer shape so it encloses the others.' };
   const [main, ...rest] = outers;
   return { node: { ...main.node, ...(rest.length ? { regions: rest.map(x => loopOf(x.node)) } : {}), ...(holes.length ? { holes: holes.map(x => loopOf(x.node)) } : {}) } as SketchNode };
 }
