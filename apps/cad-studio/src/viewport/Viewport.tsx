@@ -15,6 +15,7 @@ import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
+import { ViewCube } from './ViewCube';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'select' | 'dimension';
@@ -152,6 +153,21 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, hiddenBodies: propsRef.current.hiddenBodies,
   });
 
+  /** Turns the camera (eased, about a quarter second) to look at the target from direction `from`. */
+  const turning = useRef(0);
+  const lookFrom = (from: Vec3) => {
+    const c = camera.current, y0 = c.yaw, p0 = c.pitch, lim = Math.PI / 2 - 0.0002;
+    const pitch = Math.max(-lim, Math.min(lim, Math.asin(Math.max(-1, Math.min(1, from[2]))))), flat = Math.hypot(from[0], from[1]);
+    let dy = (flat > 1e-6 ? Math.atan2(from[1], from[0]) : y0) - y0; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+    const t0 = performance.now(), id = ++turning.current;
+    const step = () => {
+      if (id !== turning.current) return;
+      const t = Math.min(1, (performance.now() - t0) / 260), e = 1 - (1 - t) ** 3;
+      c.yaw = y0 + dy * e; c.pitch = p0 + (pitch - p0) * e; request();
+      if (t < 1) requestAnimationFrame(step);
+    };
+    step();
+  };
   const request = () => {
     if (frame.current) return;
     frame.current = requestAnimationFrame(() => {
@@ -591,7 +607,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key={'t' + k}><line x1={tx} y1={ty} x2={tx + x * 20} y2={ty + y * 20} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
         <text x={tx + x * 27} y={ty + y * 27 + 3} fontSize={9} textAnchor="middle" fill={color} fontFamily="IBM Plex Mono">{'XYZ'[k]}</text></g>);
     });
-    return <><svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>{editor}</>;
+    const basis = cam.basis();
+    return <><svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>{editor}
+      {!propsRef.current.sketch && <ViewCube right={basis.right} up={basis.up} forward={basis.forward} onLook={lookFrom} onOrbit={(dx, dy) => { camera.current.orbit(dx, dy); request(); }} />}</>;
   };
 
   return (

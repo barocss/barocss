@@ -1295,6 +1295,18 @@ try {
     assert.deepEqual((await doc()).bodies, { b1: { name: 'Base', color: '#4a90d9' } });
   });
 
+  await check('the view cube turns the view: a face looks straight at it, a corner from that corner', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    const labels = () => page.evaluate(() => [...document.querySelectorAll('.view-cube .vc-label')].map(t => t.textContent).sort().join(' '));
+    await page.locator('.view-cube polygon.face[data-view="0-0"]').click(); await page.waitForTimeout(450);
+    assert.equal(await labels(), 'FRONT', 'straight at the front: only it shows');
+    await snap('cube-front');
+    // The front's top right corner: from front, right and top at once.
+    await page.locator('.view-cube polygon[data-view="+-+"]').first().click(); await page.waitForTimeout(450);
+    assert.equal(await labels(), 'FRONT RIGHT TOP');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
