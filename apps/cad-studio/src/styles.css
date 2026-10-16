@@ -144,6 +144,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .cons-chip { fill: #24324a; }
 .cons-text { fill: #9fc4ff; font: 600 10px var(--mono); }
 .sk-panel .field input { font-size: 12px; }
+.sk-plane { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
 .sk-status { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; background: #1f3328; color: #bdf0cc; font-size: 11px; margin-bottom: 8px; }
 .sk-status.open { background: var(--accent-soft); color: #f3d98f; }
 .sk-status i { width: 8px; height: 8px; border-radius: 4px; background: currentColor; display: inline-block; }

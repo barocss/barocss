@@ -8,7 +8,7 @@ import type { Vec3 } from './engine/mesh';
 import { commands, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
-import { Viewport, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
+import { Viewport, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
@@ -23,7 +23,7 @@ import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeomet
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
-import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, xyPlane, type SketchPlane } from './sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
@@ -297,7 +297,8 @@ export function App() {
       if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face that is horizontal or vertical, or clear the selection to sketch on XY.', detail: '' }); return; }
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
-      setSketch({ plane, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
+      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base } } : { kind: 'xy', offset: 0 };
+      setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
@@ -316,6 +317,16 @@ export function App() {
     }
     setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx } });
   }, [ctx, selection, bodies, engine, commit]);
+
+  /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
+  const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number) => {
+    if (!sketch) return;
+    const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
+    const plane = offsetPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), offset);
+    setSketch({ ...sketch, plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset } });
+    const [min, max] = sketchRegion(bodies, plane);
+    viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+  }, [sketch, bodies]);
 
   const finishSketch = useCallback(() => {
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
@@ -576,7 +587,7 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}

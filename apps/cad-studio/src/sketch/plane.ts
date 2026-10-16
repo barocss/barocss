@@ -12,6 +12,16 @@ const clean = (v: Vec3): Vec3 => v.map(c => Math.abs(c) < 1e-9 ? 0 : Math.abs(Ma
 /** Lengths to a micrometre, so face positions read as authored. */
 const mm = (x: number) => Math.round(x * 1000) / 1000 || 0;
 
+export type PlaneKind = 'xy' | 'xz' | 'yz';
+/**
+ * The coordinate planes through the origin, seen as in the Top, Front and Right views: XY (X right, Y
+ * up), XZ (X right, Z up, facing −Y) and YZ (Y right, Z up, facing +X).
+ */
+export const standardPlane = (kind: PlaneKind): SketchPlane =>
+  kind === 'xy' ? xyPlane() : kind === 'xz' ? { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } : { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
+/** A plane moved along its normal. */
+export const offsetPlane = (p: SketchPlane, d: number): SketchPlane =>
+  d ? { ...p, origin: [0, 1, 2].map(k => mm(p.origin[k] + p.normal[k] * d)) as Vec3 } : p;
 /** The XY plane at height z (the default sketch plane, z 0). */
 export const xyPlane = (z = 0): SketchPlane => ({ origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] });
 export const isDefaultPlane = (p: SketchPlane) => p.normal[2] === 1 && p.xAxis[0] === 1 && p.origin.every(c => c === 0);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, rayOnPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { profileOf } from '../src/sketch/loops';
@@ -78,4 +78,13 @@ test('several closed shapes make one profile: shapes inside another are holes, t
   assert.ok('error' in profileOf([plate, windowHole, { kind: 'circle', c: [15, 20], r: 2 }]));
   assert.ok('error' in profileOf([{ kind: 'polygon', points: [[0, 0], [5, 0]], closed: false }]));
   assert.deepEqual(profileOf([plate]), { node: { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] } });
+});
+
+test('coordinate planes read as their views, and offsets move along the normal', () => {
+  // XZ: X right, Z up (the front view); YZ: Y right, Z up (the right view).
+  assert.ok(near(toWorld(standardPlane('xz'), [3, 4]), [3, 0, 4]));
+  assert.ok(near(toWorld(standardPlane('yz'), [3, 4]), [0, 3, 4]));
+  assert.equal(planeLabel(offsetPlane(standardPlane('xy'), 12.5)), 'Z 12.5');
+  assert.equal(planeLabel(offsetPlane(standardPlane('xz'), 10)), 'Y -10', 'XZ faces −Y');
+  assert.equal(planeLabel(offsetPlane(planeOfFace([1, 0, 0], [64, 0, 0])!, 5)), 'X 69');
 });

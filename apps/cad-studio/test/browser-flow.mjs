@@ -187,9 +187,12 @@ try {
     await page.click('[aria-label="New part"]'); await press('s'); [cx, cy] = await canvasCenter();
     await press('r'); await clickAt(cx - 120, cy - 80); await clickAt(cx + 120, cy + 80);
     await press('c'); await clickAt(cx, cy); await page.mouse.move(cx + 20, cy); await page.mouse.move(cx + 30, cy); await page.mouse.click(cx + 30, cy);
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    // Lifted 5 mm off XY before finishing: the shapes keep their plane coordinates.
+    await page.fill('[aria-label="Plane offset"]', '5');
+    await page.waitForFunction(() => /SKETCH · Z 5/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await page.click('.topbar button.finish'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
-    d = await doc(); assert.equal(d.nodes[0].profile, 'rectangle'); assert.equal(d.nodes[0].holes?.length, 1); await iso();
+    d = await doc(); assert.equal(d.nodes[0].profile, 'rectangle'); assert.equal(d.nodes[0].holes?.length, 1); assert.deepEqual(d.nodes[0].plane.origin, [0, 0, 5]); await iso();
   });
 
   await check('slot sketch extrudes as a curved body', async () => {

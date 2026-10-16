@@ -7,7 +7,7 @@ import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
-import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '../sketch/plane';
+import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type PlaneKind, type SketchPlane } from '../sketch/plane';
 import { shapeOutline } from '../sketch/loops';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
@@ -22,7 +22,9 @@ export type SketchShape =
       equalRadii?: [number, number][]; concentric?: [number, number][] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
-export interface SketchState { plane: SketchPlane; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
+/** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
+export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null } }
+export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
