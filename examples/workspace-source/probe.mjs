@@ -7,7 +7,7 @@ import { build } from 'esbuild';
 
 export const here = dirname(fileURLToPath(import.meta.url));
 export const root = resolve(here, '../..');
-export const names = ['cad', 'cad-interop', 'canvas2d', 'gpu', 'physics', 'viewer'];
+export const names = ['cad', 'cad-interop', 'gpu', 'physics', 'viewer'];
 export const families = names.map(name => ({ name: `@barocss/${name}`,
   directory: resolve(root, 'packages', `barocss-${name}`) }));
 
@@ -61,7 +61,7 @@ export async function publishedResolver() {
     throw new Error('Published export has no supported Node ESM target');
   }
   return { resolutions, plugin: { name: 'test-published-maps', setup(builder) {
-    builder.onResolve({ filter: /^@barocss\/(cad|cad-interop|canvas2d|gpu|physics|viewer)(\/|$)/ }, args => {
+    builder.onResolve({ filter: /^@barocss\/(cad|cad-interop|gpu|physics|viewer)(\/|$)/ }, args => {
       const packageName = args.path.split('/').slice(0, 2).join('/');
       const family = packages.get(packageName);
       const subpath = args.path.slice(packageName.length);

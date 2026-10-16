@@ -28,8 +28,7 @@ it with the WebGPU Viewer, measures native points, clears it, and restores it.
 The page keeps the Surface visible. Pixel hashes come from the awaited
 `viewer.readPixels()` WebGPU capture. Clear, Restore and Dispose use the Viewer
 public APIs. Run source flow creates a new Viewer after disposal. Proof is in
-`window.sourceProof` and `host.json`. The CPU flow also changes a Canvas display
-tree, compiles a GPU material, and runs exactly one Physics cloth API step.
+`window.sourceProof` and `host.json`. The CPU flow also compiles a GPU material, and runs exactly one Physics cloth API step.
 It also checks that the public GPU `/source` compatibility path keeps the root
 compiler function identity. Cloth disposal uses the public `/cloth` error class.
 

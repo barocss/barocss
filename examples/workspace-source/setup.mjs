@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const namespace = resolve(here, 'node_modules/@barocss');
 await mkdir(namespace, { recursive: true });
-for (const name of ['cad', 'cad-interop', 'canvas2d', 'gpu', 'physics', 'viewer']) {
+for (const name of ['cad', 'cad-interop', 'gpu', 'physics', 'viewer']) {
   const link = resolve(namespace, name);
   const target = resolve(here, '../../packages', `barocss-${name}`);
   try {

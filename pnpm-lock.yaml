@@ -93,8 +93,6 @@ importers:
 
   packages/barocss-cad: {}
 
-  packages/barocss-canvas2d: {}
-
   packages/barocss-cad-interop:
     dependencies:
       '@barocss/cad':

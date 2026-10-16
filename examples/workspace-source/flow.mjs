@@ -1,6 +1,5 @@
 import * as CAD from '@barocss/cad';
 import * as Interop from '@barocss/cad-interop';
-import * as Canvas from '@barocss/canvas2d';
 import * as GPU from '@barocss/gpu';
 import { compileGpu as compileGpuCompatibility } from '@barocss/gpu/source';
 import * as Physics from '@barocss/physics';
@@ -46,18 +45,6 @@ export function runCPUFlow() {
   requireValue(material.ok, 'GPU material source compilation failed');
   requireValue(compileGpuCompatibility === GPU.compileGpu, 'GPU compatibility subpath changed compiler identity');
 
-  const pose = (x = 0, y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
-  const tree = Canvas.createDisplayTree('SourceConsumer');
-  const group = tree.createContainer({ id: 'Group', layer: 0, transform: pose(10, 20) });
-  const rect = tree.createRect({ id: 'Rect', layer: 0, transform: pose(),
-    width: 12, height: 8, fill: [0.2, 0.8, 0.5, 1] });
-  tree.stage.addChild(group);
-  group.addChild(rect);
-  rect.setPosition(3, 4);
-  const bounds = rect.getWorldBounds();
-  requireValue(bounds.x === 13 && bounds.y === 24 && tree.snapshot().nodes.length === 1,
-    'Canvas display tree did not apply the child transform');
-
   const world = createClothWorld({ format: 'barocss-cloth-scene', version: 1,
     revision: 'sourceConsumer1', basis: 'right-handed-xyz-metres',
     fixedStepSeconds: 1 / 120, profile: 'pinned-sheet-sphere-v1' });
@@ -76,11 +63,11 @@ export function runCPUFlow() {
   requireValue(disposedRefused, 'Disposed cloth accepted getState or lost its subpath error identity');
   requireValue(typeof Viewer.Viewer === 'function' && typeof Viewer.createViewer === 'function',
     'Viewer public class or factory is missing');
-  const familyExports = Object.fromEntries(Object.entries({ CAD, Interop, Canvas, GPU, Physics, Viewer })
+  const familyExports = Object.fromEntries(Object.entries({ CAD, Interop, GPU, Physics, Viewer })
     .map(([name, namespace]) => [name, Object.keys(namespace).length]));
   return { ok: true, familyExports, nativeModel: native.model.name, nativeSurface: packet.surfaceId,
     vertices: mesh.positions.length / 3, triangles: gpuMesh.indices.length / 3,
     modelSetBinding: display[0].binding, materialCompiled: material.ok, gpuSourceCompatibility: true,
-    canvasBounds: bounds, cloth: { stepIndex: cloth.stepIndex, vertexCount: cloth.vertexCount,
+    cloth: { stepIndex: cloth.stepIndex, vertexCount: cloth.vertexCount,
       disposedRefused, rootErrorIdentity }, viewerClass: typeof Viewer.Viewer };
 }
