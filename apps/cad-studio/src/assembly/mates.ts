@@ -128,7 +128,13 @@ export interface Solved {
   problems: Problem[];
   /** A part's faces are still being read: nothing was solved. */
   pending: boolean;
+  /**
+   * What each mated instance can still do: free turns (0: its mates fix the rotation, 1: about one axis,
+   * 2 or 3) and free slides (directions of travel, a slide round a round face included).
+   */
+  freedom: Record<string, Freedom>;
 }
+export interface Freedom { turns: number; slides: number }
 
 const DIR_TOL = 1e-9, POS_TOL = 1e-6;
 const fmtNum = (v: number) => String(Math.round(v * 1000) / 1000);
@@ -163,7 +169,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (m.a.part === m.b.part) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
     if (m.b.part === BASE || byId.get(m.b.part)?.grounded) { problems.push({ mate: m.id, reason: `${name(m.b.part)} is fixed, so this mate cannot move it.` }); continue; }
     const ta = tables(m.a.part), tb = tables(m.b.part);
-    if (!ta || !tb) return { instances: [...instances], problems: [], pending: true };
+    if (!ta || !tb) return { instances: [...instances], problems: [], pending: true, freedom: {} };
     const why = mateRefusal(m, ta[m.a.face], tb[m.b.face]);
     if (why) { problems.push({ mate: m.id, reason: why }); continue; }
     valid.push(m);
@@ -173,7 +179,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
   const placed = new Map<string, { R: Mat3; t: Vec3 }>([[BASE, { R: IDENTITY, t: [0, 0, 0] }]]);
   const moved = new Set(valid.map(m => m.b.part));
   for (const inst of instances) if (!moved.has(inst.id)) placed.set(inst.id, { R: rotationMatrix(inst.rotation), t: [...inst.position] });
-  const out = new Map(instances.map(i => [i.id, i]));
+  const out = new Map(instances.map(i => [i.id, i])), freedom: Record<string, Freedom> = {};
   let waiting = [...moved];
   while (waiting.length) {
     const ready = waiting.filter(id => valid.every(m => m.b.part !== id || placed.has(m.a.part)));
@@ -190,12 +196,12 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
         return { mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], ref.R, ref.t), moving: tables(id)![m.b.face] };
       }), label, name(id));
       problems.push(...r.problems);
-      placed.set(id, { R: r.R, t: r.t });
+      placed.set(id, { R: r.R, t: r.t }); freedom[id] = r.freedom;
       if (own.length > r.problems.length) out.set(id, { ...inst, rotation: eulerOf(r.R), position: r.t.map(v => clean(v)) as Vec3 });
     }
     waiting = waiting.filter(id => !ready.includes(id));
   }
-  return { instances: instances.map(i => out.get(i.id)!), problems, pending: false };
+  return { instances: instances.map(i => out.get(i.id)!), problems, pending: false, freedom };
 }
 
 /** An instance moved rigidly with its reference part, when that part moved since `before` and it did not. */
@@ -212,7 +218,7 @@ function carried(inst: PartInstance, ref: string, now: { R: Mat3; t: Vec3 }, bef
 interface Term { mate: Mate; fixed: MateFace; moving: MateFace }
 
 /** One instance placed by its mates (each to faces already placed), from where it stands. */
-function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string, partName: string): { R: Mat3; t: Vec3; problems: Problem[] } {
+function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string, partName: string): { R: Mat3; t: Vec3; problems: Problem[]; freedom: Freedom } {
   const problems: Problem[] = [];
   // 1. Rotation: each mate asks R·u = v for a direction u of the moving face (a normal, an axis).
   const dirs: { u: Vec3; v: Vec3; mate: Mate }[] = [], accepted: Term[] = [];
@@ -259,6 +265,8 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   // Angles: each turns the part about the one axis left free (the fixed direction, else the first angle's
   // partner normal) by the smallest turn that sets it; with the rotation already fixed it is only checked.
   let hinge: Vec3 | null = frame ? null : dirs.length ? unit(dirs[0].v) : null;
+  // Free turns: none once the rotation is fixed, one about the hinge, two when an angle alone holds it.
+  let turns = frame ? 0 : dirs.length ? 1 : 3;
   for (const term of angles) {
     // An angle: the moving normal at `angle` to the partner's (opposed); a tangent: the axis square to the face's normal.
     const dirOf = (f: MateFace) => f.kind === 'plane' ? f.normal : f.axis;
@@ -275,7 +283,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
       const k = cross(a, w), s = len(k);
       const axis = s > 1e-12 ? mul(k, 1 / s) : perpendiculars(a)[0];
       R = matMul(axisAngle(axis, Math.acos(Math.max(-1, Math.min(1, dot(a, w)))) - Math.acos(Math.max(-1, Math.min(1, c)))), R);
-      hinge = w; accepted.push(term); continue;
+      hinge = w; turns = 2; accepted.push(term); continue;
     }
     // A cos φ + B sin φ = C for the turn φ about the hinge.
     const along = mul(hinge, dot(a, hinge)), across = sub(a, along);
@@ -290,7 +298,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
       const wrap = (x: number) => Math.atan2(Math.sin(x), Math.cos(x)), p1 = wrap(phi0 + d), p2 = wrap(phi0 - d);
       R = matMul(axisAngle(hinge, Math.abs(p1) <= Math.abs(p2) ? p1 : p2), R);
     }
-    frame = R; accepted.push(term);
+    frame = R; turns = 0; accepted.push(term);
   }
   // 2. Position: each mate asks g·t = h along one direction (flat faces) or two (an axis); the move is the
   // smallest from where the part stands. A mate whose demand the earlier ones already fix differently is refused.
@@ -315,10 +323,11 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   let t = basis.reduce((acc, b) => add(acc, mul(b.q, b.s)), t0);
   const held = basis.map(b => b.q);
   const rounds = accepted.filter(roundPair);
+  let roundHolds = 0; // directions the round tangents take (each one, a wedge two)
   // Two of them on parallel axes, with nothing else holding the part across them: wedged against both.
   if (rounds.length >= 2) {
     const r = placeWedge(rounds[0], rounds[1], R, t, held);
-    if (r && 't' in r) { t = r.t; rounds.splice(0, 2); }
+    if (r && 't' in r) { t = r.t; rounds.splice(0, 2); roundHolds += 2; }
     else if (r) {
       const [one, other] = rounds;
       refused.push(other); rounds.splice(1, 1);
@@ -327,7 +336,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   }
   for (const term of rounds) {
     const r = placeRound(term, R, t, held);
-    if ('t' in r) { t = r.t; continue; }
+    if ('t' in r) { t = r.t; roundHolds += r.holds; continue; }
     refused.push(term);
     // What holds it: every mate placed by position before it (the linear ones, and earlier round ones).
     const before = accepted.filter(x => x !== term && !refused.includes(x) && (!roundPair(x) || accepted.indexOf(x) < accepted.indexOf(term))).map(x => label(x.mate));
@@ -336,9 +345,9 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   // A mate refused for its position gives up its direction too: solve again without it.
   if (refused.length) {
     const again = solveOne(inst, accepted.filter(x => !refused.includes(x)), label, partName);
-    return { R: again.R, t: again.t, problems: [...problems, ...again.problems] };
+    return { R: again.R, t: again.t, problems: [...problems, ...again.problems], freedom: again.freedom };
   }
-  return { R, t, problems };
+  return { R, t, problems, freedom: { turns, slides: Math.max(0, 3 - basis.length - roundHolds) } };
 }
 
 /** How far a pair of round faces' axes must be apart (outside each other; inside a hole, or flipped: the difference). */
@@ -388,7 +397,7 @@ function placeWedge(first: Term, second: Term, R: Mat3, t: Vec3, held: Vec3[]): 
  * directions the linear mates (`held`, orthonormal) leave free. Once placed, both directions across the
  * axis are held for later ones.
  */
-function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3 } | { range: string; want: number } {
+function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3; holds: number } | { range: string; want: number } {
   const f = term.fixed as Cylinder, m = term.moving as Cylinder;
   const inside = (f.outer !== m.outer) !== !!term.mate.flip, want = inside ? Math.abs(f.radius - m.radius) : f.radius + m.radius;
   const [e1, e2] = perpendiculars(f.axis);
@@ -415,7 +424,7 @@ function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3 } | {
     const dir: [number, number] = norm2 > 1e-12 ? [x[0] / norm2, x[1] / norm2] : [1, 0];
     const target: [number, number] = [dir[0] * want, dir[1] * want];
     const tt = add(t, moveBy([target[0] - x[0], target[1] - x[1]], [c / det, -b / det, a / det]));
-    lockAfter(); return { t: tt };
+    lockAfter(); return { t: tt, holds: 1 };
   }
   if (a + c > 1e-12) {
     // One direction g across the axis: |x + λ g| = want, the smaller λ.
@@ -425,10 +434,10 @@ function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3 } | {
     const root = Math.sqrt(Math.max(0, disc)), l1 = -xg + root, l2 = -xg - root, lambda = Math.abs(l1) <= Math.abs(l2) ? l1 : l2;
     const s2 = a + c; // G Gᵀ = s2 g gᵀ: its pseudo-inverse on g is g gᵀ / s2
     const tt = add(t, moveBy([lambda * g[0], lambda * g[1]], [g[0] * g[0] / s2, g[0] * g[1] / s2, g[1] * g[1] / s2]));
-    lockAfter(); return { t: tt };
+    lockAfter(); return { t: tt, holds: 1 };
   }
   if (Math.abs(norm2 - want) > POS_TOL) return { range: `exactly ${fmtNum(norm2)} mm`, want };
-  return { t };
+  return { t, holds: 0 };
 }
 
 type Cylinder = Extract<MateFace, { kind: 'cylinder' }>;

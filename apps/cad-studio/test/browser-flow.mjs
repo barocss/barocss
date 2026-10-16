@@ -759,6 +759,10 @@ try {
     await page.fill('[aria-label="Instance Z"] >> nth=1', '90'); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.instances[0].rotation[2] === 90);
     await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
+    // What each part can still do: the bracket is fixed; flush and at an angle, the copy only slides.
+    assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /fixed in place/);
+    await page.locator('.ol.instance').nth(1).click();
+    assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /free: 2 slides$/);
     // With the instance still selected, a History chip opens the feature editor.
     await page.locator('.history .hs').first().click();
     await page.waitForSelector('.node-editor');

@@ -658,7 +658,7 @@ export function App() {
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
-      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances}
+      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}

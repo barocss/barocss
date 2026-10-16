@@ -16,16 +16,26 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
 }
 
 /** Mates: the list (pick one to edit or delete it), and "Add mate": a face that stays, then a face on the part to move. */
-export function MatePanel({ assembly, instances, onRefused }: { assembly: Assembly; instances: PartInstance[]; onRefused(reason: string): void }) {
+export function MatePanel({ assembly, instances, instance, onRefused }: { assembly: Assembly; instances: PartInstance[]; instance?: string; onRefused(reason: string): void }) {
   const { mates, problems, draft, tables } = assembly;
   const partName = (part: string) => part === BASE ? 'Base part' : instances.find(i => i.id === part)?.name ?? part;
   const refText = (r: MateRef) => `${partName(r.part)} · ${faceLabel(r.face, tables.get(r.part))}`;
   const sel = mates.find(m => m.id === assembly.selected) ?? null;
   const problemOf = (id: string) => problems.find(p => p.mate === id);
+  // What the selected part can still do: fixed, placed by typed numbers, or its mates' remaining freedom.
+  const freedomText = (id: string) => {
+    if (instances.find(i => i.id === id)?.grounded) return 'fixed in place';
+    const f = assembly.freedom[id];
+    if (!f) return 'placed by its numbers (no mate moves it)';
+    if (!f.turns && !f.slides) return 'fully placed by its mates';
+    const n = (k: number, word: string) => k ? `${k} ${word}${k > 1 ? 's' : ''}` : '';
+    return 'free: ' + [n(f.slides, 'slide'), n(f.turns, 'turn')].filter(Boolean).join(' · ');
+  };
   return (
     <aside className="card props" aria-label="Mates">
       <div className="card-title">MATES <span className="muted">{mates.length || ''}</span>
         {!draft && <button className="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</button>}</div>
+      {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
         <label className="field"><span>Type</span>
           <select aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto' })}>

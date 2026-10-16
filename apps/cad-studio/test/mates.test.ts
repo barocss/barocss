@@ -302,3 +302,24 @@ test('mates: wedged against two round faces — the circles’ nearer crossing, 
   assert.deepEqual(d.problems, []);
   assert.deepEqual(d.instances[2].position, [-10, -5, 30]);
 });
+
+test('mates: what each mated part can still do (free turns and slides)', () => {
+  const base = starterDoc(), pin = inst('pin', cylinderPart(4, 20), [100, 0, 0]), plate = inst('plate', rectanglePart(20, 10, 4), [100, 0, 0]);
+  const free = (list: PartInstance[], mates: Mate[]) => solveAssembly(list, mates, tablesFor(base, list)).freedom;
+  const flush = (part: string): Mate => ({ id: 'f', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part, face: 'n1.bottom' } });
+  const axis: Mate = { id: 'c', kind: 'concentric', a: { part: BASE, face: 'n2.side0' }, b: { part: 'pin', face: 'n1.side0' } };
+  // Flush on a face: slide in its plane, turn about its normal.
+  assert.deepEqual(free([pin], [flush('pin')]).pin, { turns: 1, slides: 2 });
+  // On an axis: slide along it, turn about it; flush too: only the turn.
+  assert.deepEqual(free([pin], [axis]).pin, { turns: 1, slides: 1 });
+  assert.deepEqual(free([pin], [flush('pin'), axis]).pin, { turns: 1, slides: 0 });
+  // Flush, and a side face a distance off: the rotation is fixed, it slides along that side.
+  const side: Mate = { id: 'd', kind: 'distance', distance: 5, a: { part: BASE, face: 'n1.side1' }, b: { part: 'plate', face: 'n1.side3' } };
+  assert.deepEqual(free([plate], [flush('plate'), side]).plate, { turns: 0, slides: 1 });
+  // An angle alone: two turns left; with the flush mate it fixes the turn about the normal.
+  const angle: Mate = { id: 'a', kind: 'angle', angle: 30, a: { part: BASE, face: 'n1.side1' }, b: { part: 'plate', face: 'n1.side3' } };
+  assert.deepEqual(free([plate], [angle]).plate, { turns: 2, slides: 3 });
+  assert.deepEqual(free([plate], [flush('plate'), angle]).plate, { turns: 0, slides: 2 });
+  // Lying on a face (tangent): it rolls and slides on it.
+  assert.deepEqual(free([pin], [{ id: 't', kind: 'tangent', a: { part: BASE, face: 'n1.top' }, b: { part: 'pin', face: 'n1.side0' } }]).pin, { turns: 2, slides: 2 });
+});
