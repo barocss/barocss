@@ -3,7 +3,8 @@
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { resolveDimension, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
-import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement } from './views';
+import { fitText } from './text';
+import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingSettings, DrawingViews, ViewId, XY } from './types';
 import { VIEW_IDS } from './types';
 
@@ -85,18 +86,22 @@ const rect = ([x0, y0, x1, y1]: readonly number[], pen: Pen): Mark[] => [
   { kind: 'line', a: [x1, y1], b: [x0, y1], pen }, { kind: 'line', a: [x0, y1], b: [x0, y0], pen },
 ];
 
+/** The title's room: from 2 mm in to 2 mm short of the projection symbol (its left edge at 59 mm from the right). */
+export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
+
 function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }): Mark[] {
   const [x0, y0, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
   const mid = y0 + 14, cols = [x0, x0 + 30, x0 + 60, x0 + 90, x1];
   marks.push({ kind: 'line', a: [x0, mid], b: [x1, mid], pen: 'thin' });
   for (const x of cols.slice(1, -1)) marks.push({ kind: 'line', a: [x, mid], b: [x, y1], pen: 'thin' });
   marks.push({ kind: 'text', at: [x0 + 2, y0 + 4], text: 'TITLE', size: 1.8, anchor: 'start' });
-  marks.push({ kind: 'text', at: [x0 + 2, y0 + 11], text: meta.title, size: 5, anchor: 'start', bold: true });
+  // Each field fits its cell: shrunk to a floor, then cut with an ellipsis. The title runs up to the projection symbol.
+  marks.push({ kind: 'text', at: [x0 + 2, y0 + 11], ...fitText(meta.title, 5, true, TITLE_ROOM, 3), anchor: 'start', bold: true });
   marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
   const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['SHEET', settings.sheet]];
   cells.forEach(([k, val], i) => {
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
-    marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], text: val, size: 3.5, anchor: 'start', bold: true });
+    marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });
   });
   marks.push(...projectionSymbol([x1 - 52, y0 + 7], settings.projection));
   marks.push({ kind: 'text', at: [x1 - 42, y0 + 11.5], text: settings.projection === 'third' ? 'THIRD ANGLE' : 'FIRST ANGLE', size: 1.8, anchor: 'start' });

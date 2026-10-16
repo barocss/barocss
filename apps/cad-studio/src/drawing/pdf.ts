@@ -1,13 +1,14 @@
 // The sheet as a one-page vector PDF at true size: lines and polylines as paths, arcs as cubic Béziers
 // (a quarter turn or less each), text in the standard Helvetica fonts (WinAnsi, so Ø and ° print).
 import { PENS, type Mark, type Sheet } from './sheet';
+import { textWidth } from './text';
 
 const PT = 72 / 25.4;
 const n = (v: number) => { const r = Math.round(v * 1e4) / 1e4; return Object.is(r, -0) ? '0' : String(r); };
 
 /** WinAnsi bytes of a string (characters outside it print as ?), escaped for a PDF string. */
 function winAnsi(s: string): string {
-  const special: Record<string, number> = { 'Ø': 0xd8, 'ø': 0xf8, '°': 0xb0, '±': 0xb1, '×': 0xd7, '·': 0xb7, '–': 0x96, '—': 0x97, '’': 0x92 };
+  const special: Record<string, number> = { '…': 0x85, 'Ø': 0xd8, 'ø': 0xf8, '°': 0xb0, '±': 0xb1, '×': 0xd7, '·': 0xb7, '–': 0x96, '—': 0x97, '’': 0x92 };
   let out = '';
   for (const ch of s) {
     const c = special[ch] ?? ch.charCodeAt(0);
@@ -17,20 +18,6 @@ function winAnsi(s: string): string {
   return out;
 }
 
-/** Helvetica advance widths (per 1000 em) for centring text. */
-function textWidth(s: string, size: number, bold: boolean): number {
-  let w = 0;
-  for (const ch of s) {
-    if (/[0-9]/.test(ch)) w += 556;
-    else if (ch === '.' || ch === ',' || ch === ' ' || ch === ':' || ch === '/') w += 278;
-    else if (ch === '-' || ch === '(' || ch === ')') w += 333;
-    else if (/[iIjl]/.test(ch)) w += 240;
-    else if (/[mwMW]/.test(ch)) w += 860;
-    else if (/[A-Z]|Ø/.test(ch)) w += bold ? 722 : 690;
-    else w += bold ? 611 : 556;
-  }
-  return w / 1000 * size;
-}
 
 function markOps(m: Mark): string {
   if (m.kind === 'fill') return `${m.points.map((p, k) => `${n(p[0])} ${n(p[1])} ${k ? 'l' : 'm'}`).join(' ')} h f\n`;
