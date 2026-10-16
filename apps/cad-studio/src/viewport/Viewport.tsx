@@ -9,8 +9,13 @@ import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type PlaneKind, type SketchPlane } from '../sketch/plane';
 import { shapeOutline } from '../sketch/loops';
+import type { SketchRule } from '../sketch/terms';
+import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
+import { pickSketch } from '../sketch/select';
+import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
+/** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 export type SketchShape =
   | { kind: 'rectangle'; a: [number, number]; b: [number, number] }
@@ -19,12 +24,16 @@ export type SketchShape =
       /** Locked edge lengths and arc radii by segment index; tangent joints by point index. */
       lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
       /** Arc pairs [lower, higher segment index] with the same radius / the same centre. */
-      equalRadii?: [number, number][]; concentric?: [number, number][] }
+      equalRadii?: [number, number][]; concentric?: [number, number][];
+      /** Horizontal / vertical edges (kept from closing on), explicit constraints and point distances (sketch/rules.ts). */
+      hv?: { h: number[]; v: number[] }; rules?: SketchRule[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
 export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null } }
-export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
+export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make;
+  /** Outline points and edges picked with the Select tool; the dimension open in the viewport editor (len<i>, rad<i>, dist<a>_<b>). */
+  picked?: SketchPick[]; editDim?: string | null }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
@@ -55,6 +64,10 @@ interface Props {
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
   onDimClick?(key: string): void;
+  /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
+  onSketchPick?(hit: SketchPick | null, additive: boolean): void;
+  onDimEdit?(key: string | null): void;
+  onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -80,7 +93,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; axis?: number; start?: Vec3; moved: boolean; x0?: number; y0?: number }>({ mode: null, x: 0, y: 0, moved: false });
-  const sketchDraft = useRef<{ cursor: [number, number] | null }>({ cursor: null });
+  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null }>({ cursor: null });
+  /** Plane coordinates of the sketch → canvas pixels. */
+  const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
+  const picking = (sk: SketchState | null) => sk?.tool === 'select' || sk?.tool === 'dimension';
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
@@ -231,7 +247,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
       propsRef.current.onCursor(p ? toWorld(sk.plane, [snap(p[0]), snap(p[1])]) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
-      if (s && c) {
+      if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y) : null;
+      else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
         if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
         if (s.kind === 'slot' && drafting.current) {
@@ -273,6 +290,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
       const c: [number, number] = [snap(p[0]), snap(p[1])];
       const s = liveShape.current;
+      if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y) : null, e.shiftKey); return; }
       if (sk.tool === 'rectangle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
@@ -331,6 +349,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const c = canvas.current; if (!c) return null;
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
+    let editor: React.ReactNode = null;
     const sk = props.sketch;
     if (sk) {
       const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
@@ -349,10 +368,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         for (let v = v0; v <= v1; v += step) seg([u0, v], [u1, v], 'gv' + v, v === 0);
       }
       const label = (x: number, y: number, text: string, key: string) => (
-        <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}>
+        <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}
+          onDoubleClick={e => { if (key.startsWith('len') || key.startsWith('rad')) { e.stopPropagation(); props.onDimEdit?.(key); } }}>
           <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
-      const glyph = (a: [number, number], b: [number, number], key: string) => {
-        const kind = a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
+      // A closed outline shows its kept H/V edges; while drawing, the edges that are H/V as drawn.
+      const hv = isSettled(sk.shape) ? hvOf(sk.shape) : null, driving = isSettled(sk.shape) ? drivingKeys(sk.shape) : new Set<string>();
+      const glyph = (a: [number, number], b: [number, number], key: string, edge?: number) => {
+        const kind = hv && edge !== undefined ? (hv.h.includes(edge) ? 'H' : hv.v.includes(edge) ? 'V' : null) : a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
         const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
         items.push(<g key={'g' + key}><rect x={m[0] - 8} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0]} y={m[1] - 15} textAnchor="middle" className="cons-text">{kind}</text></g>);
       };
@@ -396,13 +418,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
           if (bulge) {
             const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
             const cc = P(arc.center[0], arc.center[1]); items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
-            if (s.closed && !s.pending) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
+            if (s.closed && !s.pending && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
             if ((s.equalRadii ?? []).some(p => p.includes(i))) items.push(<g key={'eq' + i}><rect x={m[0] + 30} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0] + 38} y={m[1] - 15} textAnchor="middle" className="cons-text">=</text></g>);
             if ((s.concentric ?? []).some(p => p.includes(i))) items.push(<circle key={'oc' + i} cx={cc[0]} cy={cc[1]} r={6} className="sk-guide" fill="none" />);
             continue;
           }
-          glyph(a, b, 'p' + i);
-          if (s.closed && !s.pending) { const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); items.push(label(m[0], m[1] + 20, fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i)); }
+          glyph(a, b, 'p' + i, i);
+          if (s.closed && !s.pending && !driving.has('len' + i)) { const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); items.push(label(m[0], m[1] + 20, fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i)); }
         }
         if (!s.closed && !s.pending && cur && n) {
           const last = s.points[n - 1];
@@ -411,7 +433,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
           if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
         }
       }
-      const cur = sketchDraft.current.cursor;
+      if (isSettled(s)) {
+        const marks = sketchMarks({ shape: s, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking(sk) ? sketchDraft.current.hover ?? null : null, editDim: sk.editDim,
+          onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit });
+        items.push(...marks.svg); editor = marks.html;
+      }
+      const cur = picking(sk) ? null : sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
     }
     const ml = props.measureLine;
@@ -434,7 +461,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key={'t' + k}><line x1={tx} y1={ty} x2={tx + x * 20} y2={ty + y * 20} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
         <text x={tx + x * 27} y={ty + y * 27 + 3} fontSize={9} textAnchor="middle" fill={color} fontFamily="IBM Plex Mono">{'XYZ'[k]}</text></g>);
     });
-    return <svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>;
+    return <><svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>{editor}</>;
   };
 
   return (

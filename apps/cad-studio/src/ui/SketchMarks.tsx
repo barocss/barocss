@@ -1,0 +1,132 @@
+// What the viewport draws over a closed outline for its constraints: driving dimensions (lines with
+// arrows and a value chip, double-click to edit), glyphs of explicit constraints, the picked and hovered
+// points and edges, and the inline dimension editor.
+import type { ReactNode } from 'react';
+import { arcOf, sampleSegment, type P2 } from '../sketch/profile';
+import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '../sketch/rules';
+import type { Project } from '../sketch/select';
+import './constraints.css';
+
+export interface MarkHandlers {
+  onDimClick?(key: string): void;
+  onDimEdit?(key: string | null): void;
+  onDimCommit?(key: string, value: number): void;
+}
+interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined }
+
+const fmt = (v: number) => String(Math.round(v * 100) / 100);
+type XY = [number, number];
+const add = (a: XY, b: XY, k = 1): XY => [a[0] + b[0] * k, a[1] + b[1] * k];
+const unit = (a: XY, b: XY): XY => { const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; };
+
+/** Keys of the dimensions drawn as driving dimensions (the plain labels skip them). */
+export function drivingKeys(s: Polygon): Set<string> {
+  const keys = new Set<string>();
+  Object.keys(s.lengths ?? {}).forEach(i => { if (!s.bulges?.[+i]) keys.add('len' + i); });
+  Object.keys(s.radii ?? {}).forEach(i => { if (s.bulges?.[+i]) keys.add('rad' + i); });
+  return keys;
+}
+
+export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimClick, onDimEdit, onDimCommit }: Args): { svg: ReactNode[]; html: ReactNode } {
+  const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
+  const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
+  const svg: ReactNode[] = [], anchors = new Map<string, XY>();
+  const edgePath = (i: number) => [...sampleSegment(s.points[i] as P2, s.points[(i + 1) % n] as P2, s.bulges?.[i] ?? 0, 16), s.points[(i + 1) % n]].map(P);
+  const mid = (i: number): XY => {
+    const b = s.bulges?.[i] ?? 0, a = s.points[i] as P2, c = s.points[(i + 1) % n] as P2;
+    if (!b) return P([(a[0] + c[0]) / 2, (a[1] + c[1]) / 2]);
+    const arc = arcOf(a, c, b), t = arc.start + arc.sweep / 2; return P([arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t)]);
+  };
+  /** The screen normal of a→b that points away from the outline's centre. */
+  const outward = (a: XY, b: XY): XY => { const u = unit(a, b), nrm: XY = [-u[1], u[0]], m: XY = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    return (m[0] + nrm[0] - centroid[0]) ** 2 + (m[1] + nrm[1] - centroid[1]) ** 2 >= (m[0] - nrm[0] - centroid[0]) ** 2 + (m[1] - nrm[1] - centroid[1]) ** 2 ? nrm : [-nrm[0], -nrm[1]]; };
+
+  // Picked and hovered entities.
+  const mark = (p: SketchPick, cls: string) => {
+    if (p.kind === 'point') { const q = pts[p.i]; if (q) svg.push(<circle key={cls + 'p' + p.i} cx={q[0]} cy={q[1]} r={7} className={'sk-pick-point ' + cls} />); }
+    else if (p.i < n) svg.push(<polyline key={cls + 'e' + p.i} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
+  };
+  if (hover && !picked.some(p => samePick(p, hover))) mark(hover, 'hover');
+  picked.forEach(p => mark(p, 'on'));
+
+  const chip = (at: XY, text: string, key: string, driving: boolean) => {
+    const w = Math.max(40, text.length * 7.4 + 14);
+    anchors.set(key, at);
+    svg.push(<g key={'dd' + key} className={'dim' + (driving ? ' driving' : '')} data-dim={key}
+      onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onDimClick?.(key); }}
+      onDoubleClick={e => { e.stopPropagation(); onDimEdit?.(key); }}>
+      <title>{`${dimensionLabel(s, key)} · double-click to edit`}</title>
+      <rect x={at[0] - w / 2} y={at[1] - 11} width={w} height={22} rx={4} className="dim-chip" />
+      <text x={at[0]} y={at[1] + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
+  };
+  const arrow = (tip: XY, dir: XY, key: string) => {
+    const back = add(tip, dir, -8), side: XY = [-dir[1] * 3.5, dir[0] * 3.5];
+    svg.push(<path key={key} d={`M${tip[0]},${tip[1]}L${back[0] + side[0]},${back[1] + side[1]}L${back[0] - side[0]},${back[1] - side[1]}Z`} className="dim-arrow" />);
+  };
+  /** A linear dimension a–b, its line offset outwards with extension lines. */
+  const linear = (a: XY, b: XY, value: number, key: string) => {
+    const o = outward(a, b), a2 = add(a, o, 26), b2 = add(b, o, 26), u = unit(a2, b2);
+    svg.push(<line key={'dx1' + key} x1={a[0] + o[0] * 4} y1={a[1] + o[1] * 4} x2={a2[0] + o[0] * 5} y2={a2[1] + o[1] * 5} className="dim-ext" />,
+      <line key={'dx2' + key} x1={b[0] + o[0] * 4} y1={b[1] + o[1] * 4} x2={b2[0] + o[0] * 5} y2={b2[1] + o[1] * 5} className="dim-ext" />,
+      <line key={'dl' + key} x1={a2[0]} y1={a2[1]} x2={b2[0]} y2={b2[1]} className="dim-line" />);
+    arrow(a2, [-u[0], -u[1]], 'da1' + key); arrow(b2, u, 'da2' + key);
+    chip([(a2[0] + b2[0]) / 2, (a2[1] + b2[1]) / 2], fmt(value), key, true);
+  };
+
+  // Driving dimensions.
+  for (const key of drivingKeys(s)) {
+    const i = Number(key.slice(3)), v = dimensionValue(s, key); if (v === null) continue;
+    if (key.startsWith('len')) linear(pts[i], pts[(i + 1) % n], v, key);
+    else {
+      const arc = arcOf(s.points[i] as P2, s.points[(i + 1) % n] as P2, s.bulges![i]), c = P(arc.center), m = mid(i), u = unit(c, m);
+      svg.push(<line key={'rl' + key} x1={c[0]} y1={c[1]} x2={m[0]} y2={m[1]} className="dim-line" />);
+      arrow(m, u, 'ra' + key); chip(add(m, u, 30), 'R' + fmt(v), key, true);
+    }
+  }
+  (s.rules ?? []).forEach(r => { if (r.kind === 'distance' && pts[r.a] && pts[r.b]) linear(pts[r.a], pts[r.b], r.value, `dist${r.a}_${r.b}`); });
+
+  // Glyphs of explicit constraints, stacked along each edge past its H/V chip.
+  const stack = new Map<string, number>();
+  const glyph = (at: XY, text: string, key: string, title: string) => {
+    svg.push(<g key={key} className="cons-glyph"><title>{title}</title><rect x={at[0] - 9} y={at[1] - 8} width={18} height={16} rx={3} className="cons-chip" />
+      <text x={at[0]} y={at[1] + 4} textAnchor="middle" className="cons-text">{text}</text></g>);
+  };
+  const onEdge = (i: number, text: string, key: string, title: string) => {
+    const k = (stack.get('e' + i) ?? 0) + 1; stack.set('e' + i, k);
+    const a = pts[i], b = pts[(i + 1) % n], u = unit(a, b), o = outward(a, b), m = mid(i);
+    glyph(add(add(m, u, 22 * k), o, -16), text, key, title);
+  };
+  const onPoint = (i: number, text: string, key: string, title: string) => {
+    const k = (stack.get('p' + i) ?? 0); stack.set('p' + i, k + 1);
+    const q = pts[i]; glyph([q[0] - 16 - 20 * k, q[1] + 16], text, key, title);
+  };
+  (s.rules ?? []).forEach((r, k) => {
+    if (r.kind === 'parallel' || r.kind === 'perpendicular' || r.kind === 'equal') {
+      const sym = r.kind === 'parallel' ? '∥' : r.kind === 'perpendicular' ? '⊥' : '=', title = `${r.kind[0].toUpperCase() + r.kind.slice(1)} edges ${r.a + 1} and ${r.b + 1}`;
+      onEdge(r.a, sym, `ga${k}`, title); onEdge(r.b, sym, `gb${k}`, title);
+    } else if (r.kind === 'fix') onPoint(r.point, '⚓', `gf${k}`, `Point ${r.point + 1} fixed`);
+    else if (r.kind === 'coincident') onPoint(r.point, '◎', `gc${k}`, `Point ${r.point + 1} on the centre of arc ${r.arc + 1}`);
+  });
+
+  // The inline editor, over the dimension being edited.
+  let html: ReactNode = null;
+  if (editDim) {
+    const v = dimensionValue(s, editDim);
+    const d = /^dist(\d+)_(\d+)$/.exec(editDim);
+    const at = anchors.get(editDim) ?? (d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
+      : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
+    if (v !== null && at) {
+      html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}
+        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'} · Esc cancels`}
+        style={{ left: at[0] - 42, top: at[1] - 13 }}
+        onFocus={e => e.currentTarget.select()}
+        onKeyDown={e => {
+          e.stopPropagation();
+          if (e.key === 'Enter') { e.preventDefault(); onDimCommit?.(editDim, Number(e.currentTarget.value)); }
+          else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
+        }}
+        onBlur={() => onDimEdit?.(null)} />;
+    }
+  }
+  return { svg, html };
+}
