@@ -520,6 +520,58 @@ try {
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
   });
 
+  await check('mate the copy to the fixed bracket by its faces', async () => {
+    const ids = await page.evaluate(() => window.__studioDoc.instances.map(i => i.id));
+    const placed = () => page.evaluate(() => window.__studioDoc.instances.map(i => ({ p: i.position, r: i.rotation, fixed: !!i.grounded })));
+    const mates = () => page.evaluate(() => window.__studioDoc.mates ?? []);
+    const pickFace = (id, name) => page.evaluate(([i, n]) => window.__studioPickInstanceFace(i, n), [id, name]);
+    // (side0: the plane y = 0 through the part's origin, facing −Y, turned about Z with the part.)
+    const gap = (a, b) => { const t = a.r[2] * Math.PI / 180, n = [Math.sin(t), -Math.cos(t)]; return (b.p[0] - a.p[0]) * n[0] + (b.p[1] - a.p[1]) * n[1]; };
+    await page.locator('.ol.instance').first().click();
+    await page.click('[aria-label="Instance"] button:text-is("Fix in place")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].grounded === true);
+    // The copy's bottom flush on the bracket's top: it rises onto it and keeps its turn and its X, Y.
+    const before = (await placed())[1];
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    assert.ok(await pickFace(ids[0], 'n1.top')); assert.ok(await pickFace(ids[1], 'n1.bottom'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 1);
+    await page.waitForFunction(() => window.__studioDoc.instances[1].position[2] === 6);
+    let [br, copy] = await placed();
+    assert.deepEqual([copy.p[0], copy.p[1], copy.r[2]], [before.p[0], before.p[1], 45]);
+    // A side face 5 mm off the bracket's side, facing it: the copy turns half round.
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    await page.selectOption('[aria-label="Mate type"]', 'distance');
+    await page.fill('[aria-label="Mate distance"]', '5'); await press('Enter');
+    assert.ok(await pickFace(ids[0], 'n1.side0')); assert.ok(await pickFace(ids[1], 'n1.side0'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 2);
+    [br, copy] = await placed();
+    assert.equal(copy.r[2], -135); assert.equal(copy.p[2], 6);
+    assert.ok(Math.abs(gap(br, copy) - 5) < 1e-9, `gap ${gap(br, copy)}`);
+    // The copy's top flush on the bracket's top as well cannot be met: refused with the reason.
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    assert.ok(await pickFace(ids[0], 'n1.top')); assert.ok(await pickFace(ids[1], 'n1.top'));
+    assert.match(await page.locator('[aria-label="Mate refused"]').innerText(), /Conflicts with Coincident 1/);
+    assert.equal((await mates()).length, 2);
+    await page.click('[aria-label="Mates"] button:text-is("Cancel")');
+    // Edit the distance: re-solved.
+    await page.locator('.ol.mate', { hasText: 'Distance 2' }).click();
+    await page.fill('[aria-label="Mate distance"]', '10'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.mates[1].distance === 10);
+    [br, copy] = await placed();
+    assert.ok(Math.abs(gap(br, copy) - 10) < 1e-9, `gap ${gap(br, copy)}`);
+    // Lift the fixed bracket 5 mm: the copy follows, still flush on it and 10 mm off its side.
+    await page.locator('.ol.instance').first().click();
+    await page.fill('[aria-label="Instance Z"] >> nth=0', '5'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.instances[1].position[2] === 11);
+    [br, copy] = await placed();
+    assert.ok(Math.abs(gap(br, copy) - 10) < 1e-9, `gap ${gap(br, copy)}`);
+    // Delete the distance mate (still open from the edit); the coincident one stays.
+    assert.match(await page.locator('.ol.mate.sel').innerText(), /Distance 2/);
+    await page.click('[aria-label="Mates"] button:text-is("Delete mate")');
+    assert.deepEqual((await mates()).map(m => m.kind), ['coincident']);
+    await page.evaluate(() => document.activeElement?.blur());
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
