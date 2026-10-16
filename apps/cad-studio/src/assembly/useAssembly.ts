@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { FaceClient } from './faceClient';
-import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Mate, type MateKind, type MateRef, type Problem } from './mates';
+import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from './mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
@@ -13,10 +13,14 @@ type Hit = { face: { body: number; face: number } | null; instance?: string; ins
 
 export interface Assembly {
   mates: Mate[]; problems: Problem[]; tables: Map<string, FaceTable>;
+  /** What each mated instance can still do (see Solved.freedom). */
+  freedom: Record<string, Freedom>;
   draft: MateDraft | null; selected: string | null;
   start(): void; cancel(): void; setDraft(patch: Partial<MateDraft>): void; select(id: string | null): void;
   /** A viewport click while adding a mate (true: it was taken). */
   pick(hit: Hit): boolean;
+  /** Picks a face by name while adding a mate (an origin plane: `origin:xy`, `origin:xz`, `origin:yz`). */
+  pickFace(ref: MateRef): void;
   /** Changes a mate, re-solving; the reason when it cannot be met (nothing changes then). */
   edit(id: string, patch: Partial<Mate>): string | null;
   remove(id: string): void;
@@ -43,6 +47,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   const mates = useMemo(() => doc.mates ?? [], [doc.mates]);
   const [tables, setTables] = useState<Map<string, FaceTable>>(new Map());
   const [problems, setProblems] = useState<Problem[]>([]);
+  const [freedom, setFreedom] = useState<Record<string, Freedom>>({});
   const [draft, setDraftView] = useState<MateDraft | null>(null);
   // The draft as of the last pick, ahead of React's re-render (two picks can come before it).
   const draftRef = useRef<MateDraft | null>(null);
@@ -66,11 +71,11 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   // same state, solved), so undo skips it.
   const lastSolved = useRef<readonly PartInstance[] | undefined>(undefined);
   useEffect(() => {
-    if (!mates.length) { setProblems([]); lastSolved.current = instances; return; }
+    if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
     const r = solveAssembly(instances, mates, p => tables.get(p), lastSolved.current);
     if (r.pending) return;
     lastSolved.current = r.instances;
-    setProblems(r.problems);
+    setProblems(r.problems); setFreedom(r.freedom);
     const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
     if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
   }, [solve, instances, mates]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -117,11 +122,15 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       const name = named(BASE, bodies[hit.face.body]?.mesh.faces[hit.face.face]?.name);
       if (name) p = { ref: { part: BASE, face: name }, body: hit.face.body, face: hit.face.face };
     }
-    if (!p) return true;
-    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return true; }
+    if (p) addPick(p);
+    return true;
+  };
+  const addPick = (p: MatePick) => {
+    const draft = draftRef.current;
+    if (!draft) return;
+    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
     const next = { ...draft, error: undefined, picks: draft.picks.length >= 2 ? [p] : [...draft.picks, p] };
     setDraftState(next.picks.length === 2 ? finish(next) : next);
-    return true;
   };
   const pickRef = useRef(pick); pickRef.current = pick;
 
@@ -148,12 +157,12 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   return {
-    mates, problems, tables, draft, selected,
+    mates, problems, tables, freedom, draft, selected,
     start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
-    pick, edit,
+    pick, edit, pickFace: ref => addPick({ ref }),
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
       const by = mates.filter(m => m.b.part === id);
