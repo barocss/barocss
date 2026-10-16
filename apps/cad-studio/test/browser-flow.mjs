@@ -301,6 +301,62 @@ try {
     await iso();
   });
 
+  await check('explicit constraints and dimensions: picked, refused when redundant or conflicting, typed in the viewport', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    assert.match(await status(), /5 DOF/);
+    // Outline vertices on screen, read from the overlay (a straight outline's ring is its points).
+    const ring = async () => { await page.waitForTimeout(200); return page.evaluate(() => {
+      const r = document.querySelector('.vp-overlay').getBoundingClientRect();
+      return document.querySelector('.vp-overlay polygon.sk-shape:not(.done)').getAttribute('points').trim().split(/\s+/).map(p => { const [x, y] = p.split(',').map(Number); return [x + r.left, y + r.top]; });
+    }); };
+    const pick = async (kind, i, add = false) => {
+      const r = await ring(), a = r[i], b = r[(i + 1) % r.length], [x, y] = kind === 'point' ? a : [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      if (add) await page.keyboard.down('Shift'); await clickAt(x, y); if (add) await page.keyboard.up('Shift');
+    };
+    const constraints = () => page.locator('.sk-panel [role=list]').innerText();
+    const alert = () => page.locator('.sk-panel [role=alert]').innerText();
+    await press('s'); await pick('edge', 1); await pick('edge', 3, true);
+    assert.match(await page.locator('.cons-sel').innerText(), /edge 2, edge 4/);
+    await page.click('[aria-label="Parallel"]');
+    assert.match(await constraints(), /Parallel\s*edge 2 ∥ edge 4/); assert.match(await status(), /4 DOF/);
+    await pick('edge', 0); await pick('edge', 1, true); await page.click('[aria-label="Perpendicular"]');
+    assert.match(await status(), /3 DOF/);
+    // Edge 4 is parallel to edge 2, which is perpendicular to the horizontal edge 1: vertical is implied.
+    await pick('edge', 3); await page.click('[aria-label="Vertical"]');
+    assert.match(await alert(), /Vertical edge 4 is already implied by the other constraints — adding it would over-define the sketch/);
+    assert.doesNotMatch(await constraints(), /Vertical/);
+    // Dimension tool: an edge opens the inline editor; two points open their distance.
+    await press('d'); await pick('edge', 0);
+    await page.locator('.dim-edit').fill('60'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '60'); assert.match(await constraints(), /Length\s*edge 1 = 60/); assert.match(await status(), /2 DOF/);
+    await pick('point', 0); await pick('point', 2);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance point 1 – point 3');
+    await page.locator('.dim-edit').fill('75'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await constraints(), /Distance\s*point 1 – point 3 = 75/); assert.match(await status(), /1 DOF/);
+    await press('s'); await pick('edge', 2); await page.click('[aria-label="Horizontal"]');
+    assert.match(await status(), /Fully defined/);
+    // Removing the parallel frees edge 4; making it vertical is then no longer redundant.
+    await page.click('[aria-label="Remove Parallel edge 2 ∥ edge 4"]'); assert.match(await status(), /1 DOF/);
+    await pick('edge', 3); await page.click('[aria-label="Vertical"]'); assert.match(await status(), /Fully defined/);
+    await snap('constraints-fully-defined');
+    // Double-click a driving dimension to edit it; the distance holds, so the height follows.
+    const chip = await page.locator('.vp-overlay [data-dim="len0"] rect').boundingBox();
+    await page.mouse.dblclick(chip.x + chip.width / 2, chip.y + chip.height / 2);
+    await page.locator('.dim-edit').fill('50'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '50'); assert.equal(await page.inputValue('#sk-len2'), '50');
+    // A dimension that cannot hold is refused and leaves the outline as it was.
+    await press('d'); await pick('edge', 2);
+    await page.locator('.dim-edit').fill('40'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await alert(), /Length of edge 3 = 40: These constraints conflict/); assert.equal(await page.inputValue('#sk-len2'), '50');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 50) < 1e-6 && Math.abs(Math.max(...ys) - Math.min(...ys) - Math.sqrt(75 ** 2 - 50 ** 2)) < 1e-4, JSON.stringify(pts));
+    await iso();
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
@@ -570,6 +626,58 @@ try {
     const text = await (await download).createReadStream().then(s => new Promise(r => { let t = ''; s.on('data', c => t += c); s.on('end', () => r(t)); }));
     const solids = (text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, own = await page.evaluate(() => Object.keys(window.__studioDoc.outputs).length);
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
+  });
+
+  await check('mate the copy to the fixed bracket by its faces', async () => {
+    const ids = await page.evaluate(() => window.__studioDoc.instances.map(i => i.id));
+    const placed = () => page.evaluate(() => window.__studioDoc.instances.map(i => ({ p: i.position, r: i.rotation, fixed: !!i.grounded })));
+    const mates = () => page.evaluate(() => window.__studioDoc.mates ?? []);
+    const pickFace = (id, name) => page.evaluate(([i, n]) => window.__studioPickInstanceFace(i, n), [id, name]);
+    // (side0: the plane y = 0 through the part's origin, facing −Y, turned about Z with the part.)
+    const gap = (a, b) => { const t = a.r[2] * Math.PI / 180, n = [Math.sin(t), -Math.cos(t)]; return (b.p[0] - a.p[0]) * n[0] + (b.p[1] - a.p[1]) * n[1]; };
+    await page.locator('.ol.instance').first().click();
+    await page.click('[aria-label="Instance"] button:text-is("Fix in place")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].grounded === true);
+    // The copy's bottom flush on the bracket's top: it rises onto it and keeps its turn and its X, Y.
+    const before = (await placed())[1];
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    assert.ok(await pickFace(ids[0], 'n1.top')); assert.ok(await pickFace(ids[1], 'n1.bottom'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 1);
+    await page.waitForFunction(() => window.__studioDoc.instances[1].position[2] === 6);
+    let [br, copy] = await placed();
+    assert.deepEqual([copy.p[0], copy.p[1], copy.r[2]], [before.p[0], before.p[1], 45]);
+    // A side face 5 mm off the bracket's side, facing it: the copy turns half round.
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    await page.selectOption('[aria-label="Mate type"]', 'distance');
+    await page.fill('[aria-label="Mate distance"]', '5'); await press('Enter');
+    assert.ok(await pickFace(ids[0], 'n1.side0')); assert.ok(await pickFace(ids[1], 'n1.side0'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 2);
+    [br, copy] = await placed();
+    assert.equal(copy.r[2], -135); assert.equal(copy.p[2], 6);
+    assert.ok(Math.abs(gap(br, copy) - 5) < 1e-9, `gap ${gap(br, copy)}`);
+    // The copy's top flush on the bracket's top as well cannot be met: refused with the reason.
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    assert.ok(await pickFace(ids[0], 'n1.top')); assert.ok(await pickFace(ids[1], 'n1.top'));
+    assert.match(await page.locator('[aria-label="Mate refused"]').innerText(), /Conflicts with Coincident 1/);
+    assert.equal((await mates()).length, 2);
+    await page.click('[aria-label="Mates"] button:text-is("Cancel")');
+    // Edit the distance: re-solved.
+    await page.locator('.ol.mate', { hasText: 'Distance 2' }).click();
+    await page.fill('[aria-label="Mate distance"]', '10'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.mates[1].distance === 10);
+    [br, copy] = await placed();
+    assert.ok(Math.abs(gap(br, copy) - 10) < 1e-9, `gap ${gap(br, copy)}`);
+    // Lift the fixed bracket 5 mm: the copy follows, still flush on it and 10 mm off its side.
+    await page.locator('.ol.instance').first().click();
+    await page.fill('[aria-label="Instance Z"] >> nth=0', '5'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.instances[1].position[2] === 11);
+    [br, copy] = await placed();
+    assert.ok(Math.abs(gap(br, copy) - 10) < 1e-9, `gap ${gap(br, copy)}`);
+    // Delete the distance mate (still open from the edit); the coincident one stays.
+    assert.match(await page.locator('.ol.mate.sel').innerText(), /Distance 2/);
+    await page.click('[aria-label="Mates"] button:text-is("Delete mate")');
+    assert.deepEqual((await mates()).map(m => m.kind), ['coincident']);
+    await page.evaluate(() => document.activeElement?.blur());
   });
 
   await check('command palette and light theme', async () => {

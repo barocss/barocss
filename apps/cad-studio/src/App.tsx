@@ -21,12 +21,17 @@ import { DirectPanel } from './ui/DirectPanel';
 import { InstancePanel } from './ui/InstancePanel';
 import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
+import { MatePanel } from './ui/MatePanel';
+import { useAssembly } from './assembly/useAssembly';
+import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
+import { commitDimension, isSettled } from './sketch/rules';
+import { sketchClick } from './sketch/select';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -34,6 +39,8 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'polygon', key: 'L', label: 'Line', icon: 'polyline', hint: 'Click points, click the first point to close · A switches to arcs' },
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'line_curve', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'pill', hint: 'Click both centres, then the width' },
+  { tool: 'select', key: 'S', label: 'Select', icon: 'arrow_selector_tool', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
+  { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'straighten', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
 /** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
 const SKETCH_INSETS = { left: 64, right: 272 };
@@ -51,6 +58,9 @@ function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, numbe
 }
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
+  // Select and Dimension work on the current outline: it stays.
+  if (tool === 'select' || tool === 'dimension') return { ...s, tool, picked: [], editDim: null, shape: s.shape?.kind === 'polygon' && s.shape.pending ? { ...s.shape, pending: false } : s.shape };
+  s = { ...s, picked: [], editDim: null };
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one.
@@ -223,6 +233,12 @@ export function App() {
     })();
     return () => { live = false; };
   }, [doc.instances]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** One undoable change of the instances and their mates together. */
+  const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, instances, mates }); setDirty(true);
+  }, [doc, marker]);
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
   const instancesShown = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   const insertPart = async (file: File) => {
     try {
@@ -402,8 +418,9 @@ export function App() {
     setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
   }, [sketch, ctx, bodies]);
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean) => {
+  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
     if (active) return;
+    if (assembly.pick(hit)) return;
     setPick(hit.point);
     if (hit.direct) {
       const id = hit.direct;
@@ -426,7 +443,7 @@ export function App() {
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [active, measure]);
+  }, [active, measure, assembly]);
   pickRef.current = onPick;
 
   const doUndo = useCallback(() => {
@@ -480,7 +497,7 @@ export function App() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if (drawing) return; // (the Drawing workspace has its own keys)
-      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
+      if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
@@ -494,7 +511,7 @@ export function App() {
   });
 
   const shownBodies = previewBodies ?? bodies;
-  const shownSelection = previewBodies || sketch ? emptySel : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+  const shownSelection = previewBodies || sketch ? emptySel : assembly.draft ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
@@ -512,7 +529,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={instanceSel}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -520,6 +537,14 @@ export function App() {
         }); }}
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
+        onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
+        onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
+        onDimCommit={(key, value) => {
+          const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
+          if (!isSettled(shape)) return;
+          const r = commitDimension(shape, key, value);
+          if (r.ok) updateShape(r.shape); else setSketchError(r.reason);
+        }}
         onContextMenu={(at, hit) => {
           if (active || sketch) return;
           const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
@@ -598,7 +623,7 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}
@@ -629,12 +654,15 @@ export function App() {
           onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
           onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
             commitInstances([...list, { ...inst, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
-          onRemove={() => commitInstances(list.filter(i => i.id !== inst.id), [])} />;
+          onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
+          onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
+      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances}
+        onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
-      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && <aside className="card props" aria-label="Selection">
+      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
