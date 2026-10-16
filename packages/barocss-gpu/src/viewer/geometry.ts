@@ -16,6 +16,8 @@ export interface GeometryInput {
   topology?: 'triangles' | 'lines';
   /** An id per triangle (a CAD face, say), reported by picking. */
   faces?: ArrayLike<number>;
+  /** An id per line segment (a CAD edge, say), reported by line picking. */
+  edges?: ArrayLike<number>;
 }
 
 export interface PreparedGeometry {
@@ -23,6 +25,7 @@ export interface PreparedGeometry {
   positions: Float32Array; normals: Float32Array; colors: Uint8Array;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
+  edges: Uint32Array | null;
   vertexCount: number; elementCount: number;
   bounds: Box3 | null;
 }
@@ -49,7 +52,12 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new RangeError('faces must hold one id per triangle');
     faces = Uint32Array.from(input.faces);
   }
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), indices, faces, vertexCount, elementCount, bounds: boxOfPositions(positions) };
+  let edges: Uint32Array | null = null;
+  if (input.edges) {
+    if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new RangeError('edges must hold one id per segment');
+    edges = Uint32Array.from(input.edges);
+  }
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions) };
 }
 
 /** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */
@@ -99,4 +107,16 @@ export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3)
     if (d > 0 && (!best || d < best.t)) best = { triangle: t / 3, t: d };
   }
   return best;
+}
+
+/** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */
+export function segmentInstances(g: PreparedGeometry): ArrayBuffer {
+  const n = g.elementCount / 2, out = new ArrayBuffer(n * 32), f = new Float32Array(out), u = new Uint32Array(out);
+  const P = g.positions, I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
+  for (let s = 0; s < n; s++) {
+    const a = I ? I[2 * s] : 2 * s, b = I ? I[2 * s + 1] : 2 * s + 1;
+    f.set([P[3 * a], P[3 * a + 1], P[3 * a + 2], P[3 * b], P[3 * b + 1], P[3 * b + 2]], s * 8);
+    u[s * 8 + 6] = C[a]; u[s * 8 + 7] = C[b];
+  }
+  return out;
 }

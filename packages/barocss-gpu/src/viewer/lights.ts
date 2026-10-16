@@ -38,7 +38,7 @@ export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
 
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null): Float32Array {
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1]): Float32Array {
   const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
@@ -64,6 +64,7 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   });
   o += MAX_SPOT * 16;
   if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); f.set([shadow.normalOffset, shadow.texel, shadow.bias, 0], o + 16); }
+  f.set([...viewport, 0], o + 20);
   return f;
 }
 

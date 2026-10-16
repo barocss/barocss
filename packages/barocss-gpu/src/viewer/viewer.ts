@@ -5,7 +5,7 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { prepareGeometry, rayTriangles, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Color, type Environment, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
@@ -27,6 +27,8 @@ export interface Material {
   unlit?: boolean;
   /** Draw back faces too (lit from their own side). */
   doubleSided?: boolean;
+  /** Width of lines in CSS pixels (default 1). */
+  lineWidth?: number;
 }
 export interface AddMeshOptions {
   material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string;
@@ -37,7 +39,8 @@ export interface AddMeshOptions {
 }
 
 export class Geometry {
-  /** @internal */ gpu: { positions: Buffer; normals: Buffer; colors: Buffer; indices: Buffer | null; device: Device } | null = null;
+  /** @internal Triangles: positions, normals, colours, indices. Lines: positions holds the segment instances. */
+  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; indices: Buffer | null; device: Device } | null = null;
   disposed = false;
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
   get topology(): 'triangles' | 'lines' { return this.data.topology; }
@@ -45,14 +48,15 @@ export class Geometry {
   /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
   setColors(colors: ArrayLike<number> | null): void {
     this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
-    if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
+    if (this.gpu?.colors) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
+    else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
     this.owner.requestRender();
   }
   /** Release the GPU buffers (meshes using it stop drawing). */
   dispose(): void { this.disposed = true; this.release(); this.owner.requestRender(); }
   /** @internal */ release(): void {
     if (!this.gpu) return;
-    this.gpu.positions.destroy(); this.gpu.normals.destroy(); this.gpu.colors.destroy(); this.gpu.indices?.destroy();
+    this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.indices?.destroy();
     this.gpu = null;
   }
 }
@@ -108,13 +112,14 @@ export class Mesh {
   remove(): void { this.owner.remove(this); }
   private touch(): void { this.dirty = true; this.owner.requestRender(); }
 
-  /** @internal The object block (see Object in shaders.ts). */
-  pack(into: Float32Array, at: number): void {
+  /** @internal The object block (see Object in shaders.ts); lines carry their width in device pixels. */
+  pack(into: Float32Array, at: number, pixelRatio: number): void {
     const f = into, m = this._material, o = at / 4;
     f.set(this._transform, o);
     f.set(normalMatrix(this._transform), o + 16);
     f.set([...linear(m.color), m.opacity], o + 32);
-    f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
+    if (this.geometry.topology === 'lines') f.set([m.lineWidth * pixelRatio, 0, 0, 1], o + 36);
+    else f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
     new Uint32Array(f.buffer).set([this.id, this.outlineSlot, this._receiveShadow ? 1 : 0, 0], o + 40);
   }
 }
@@ -122,7 +127,7 @@ export class Mesh {
 function materialOf(m: Material = {}): Required<Omit<Material, 'color'>> & { color: Vec3 } {
   return {
     color: parseColor(m.color, [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false,
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1,
   };
 }
 
@@ -152,6 +157,14 @@ export interface PickHit {
   face: number | null;
   /** Reversed depth of the pixel (1 near, 0 far). */
   depth: number;
+}
+
+export interface LineHit {
+  mesh: Mesh;
+  /** The segment of the mesh's geometry nearest the point, and its id (GeometryInput.edges). */
+  segment: number; edge: number | null;
+  /** The nearest world point on the segment, and its distance from the point on screen (CSS pixels). */
+  point: Vec3; distance: number;
 }
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
@@ -303,9 +316,15 @@ export class Viewer {
       }));
     }
     for (const t of [false, true]) jobs.push(make(t ? 'lineT' : 'line', {
-      vertex: vertex(modules.line, false),
+      vertex: {
+        module: modules.line, entryPoint: 'vs',
+        buffers: [{ arrayStride: 32, stepMode: 'instance', attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'float32x3' },
+          { shaderLocation: 2, offset: 24, format: 'unorm8x4' }, { shaderLocation: 3, offset: 28, format: 'unorm8x4' },
+        ] }],
+      },
       fragment: { module: modules.line, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
-      primitive: { topology: 'line-list' },
+      primitive: { topology: 'triangle-list' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
@@ -414,6 +433,7 @@ export class Viewer {
 
   /** Match the canvas backing store to its CSS size times the pixel ratio. */
   resize(pixelRatio = this.pixelRatio): void {
+    if (pixelRatio !== this.pixelRatio) for (const m of this.meshes) m.dirty = true;
     this.pixelRatio = pixelRatio;
     const max = this.device?.limits.maxTextureDimension2D ?? 8192;
     const w = Math.max(1, Math.min(max, Math.round((this.canvas.clientWidth || this.canvas.width) * pixelRatio)));
@@ -470,11 +490,13 @@ export class Viewer {
       else if (src.byteLength) d.queue.writeBuffer(b, 0, src);
       return b;
     };
-    g.gpu = {
-      device: d,
-      positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
-      colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
-    };
+    g.gpu = data.topology === 'lines'
+      ? { device: d, positions: buffer(new Uint8Array(segmentInstances(data)), BufferUsage.VERTEX, 'segments'), normals: null, colors: null, indices: null }
+      : {
+        device: d,
+        positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
+        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
+      };
     return true;
   }
 
@@ -519,11 +541,11 @@ export class Viewer {
   }
 
   private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow));
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio]));
     if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
-      m.pack(this.objectData, m.slot * OBJECT_STRIDE);
+      m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
       m.dirty = false; lo = Math.min(lo, m.slot); hi = Math.max(hi, m.slot);
     }
     if (hi >= 0) this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
@@ -534,10 +556,8 @@ export class Viewer {
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
     pass.setVertexBuffer(0, g.positions);
-    if (!pick) {
-      if (data.topology === 'triangles') { pass.setVertexBuffer(1, g.normals); pass.setVertexBuffer(2, g.colors); }
-      else pass.setVertexBuffer(1, g.colors);
-    }
+    if (data.topology === 'lines') { pass.draw(6, data.elementCount / 2); return; }
+    if (!pick) { pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); }
     if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount); }
     else pass.draw(data.elementCount);
   }
@@ -706,6 +726,45 @@ export class Viewer {
       read: this.device.createBuffer({ size: 512, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'pick read' }),
     };
     return this.pickTargets;
+  }
+
+  /**
+   * The line segment drawn nearest a point of the canvas (CSS pixels), within radius pixels. Lines are
+   * thin, so this is a screen-space search, not a pixel read; it does not test whether a surface hides them.
+   */
+  pickLine(x: number, y: number, radius = 6): LineHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.camera.clip(this.sceneBounds());
+    const vp = this.camera.viewProjection(this.aspect);
+    let best: LineHit | null = null;
+    for (const m of this.meshes) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
+      const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
+      const clip = (i: number) => {
+        const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2];
+        return [M[0] * px + M[4] * py + M[8] * pz + M[12], M[1] * px + M[5] * py + M[9] * pz + M[13], M[3] * px + M[7] * py + M[11] * pz + M[15]];
+      };
+      for (let sgm = 0; sgm < g.elementCount / 2; sgm++) {
+        const ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1;
+        let a = clip(ia), b = clip(ib), s0 = 0, s1 = 1;
+        const eps = 1e-6;
+        if (a[2] < eps && b[2] < eps) continue;
+        // Clip to the space in front of the eye, keeping the 3D parameters of the kept ends.
+        if (a[2] < eps) { const k = (eps - a[2]) / (b[2] - a[2]); a = a.map((v, j) => v + (b[j] - v) * k); s0 = k; }
+        if (b[2] < eps) { const k = (eps - b[2]) / (a[2] - b[2]); b = b.map((v, j) => v + (a[j] - v) * k); s1 = 1 - k; }
+        const sx = (c: number[]) => (c[0] / c[2] * 0.5 + 0.5) * cw, sy = (c: number[]) => (0.5 - c[1] / c[2] * 0.5) * ch;
+        const ax = sx(a), ay = sy(a), dx = sx(b) - ax, dy = sy(b) - ay, l2 = dx * dx + dy * dy;
+        const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+        const dist = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+        if (dist > radius || (best && dist >= best.distance)) continue;
+        // Screen parameter → segment parameter (perspective-correct), then the world point.
+        const u = (t * a[2]) / ((1 - t) * b[2] + t * a[2] || 1), s = s0 + (s1 - s0) * u;
+        const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
+        best = { mesh: m, segment: sgm, edge: g.edges ? g.edges[sgm] : null, point: add(A, scale(sub(B, A), s)), distance: dist };
+      }
+    }
+    return best;
   }
 
   /** The world point under a pixel, or where the view ray meets the plane through the target (zoom to cursor). */

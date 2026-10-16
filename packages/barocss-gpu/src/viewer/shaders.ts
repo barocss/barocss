@@ -5,7 +5,7 @@
 
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16;
 export const OBJECT_BYTES = 176, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
@@ -27,6 +27,8 @@ struct Frame {
   // normal offset, texel size and depth bias.
   shadowViewProj: mat4x4f,
   shadow: vec4f,
+  // The target in device pixels: width, height, device pixels per CSS pixel.
+  viewport: vec4f,
 }
 struct Object {
   model: mat4x4f,
@@ -133,12 +135,33 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f { return vec4f(in.color.rgb * in.color.a, in.color.a); }
 `;
 
+/** Lines as screen-space quads, one instance per segment: width in device pixels (object.params.x). */
 export const lineWGSL = common + /* wgsl */ `
 struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f }
-@vertex fn vs(@location(0) position: vec3f, @location(2) color: vec4f) -> LOut {
+@vertex fn vs(@builtin(vertex_index) vi: u32, @location(0) a: vec3f, @location(1) b: vec3f, @location(2) ca: vec4f, @location(3) cb: vec4f) -> LOut {
   var o: LOut;
-  o.clip = frame.viewProj * object.model * vec4f(position, 1.0);
-  o.color = color * object.color;
+  var pa = frame.viewProj * object.model * vec4f(a, 1.0);
+  var pb = frame.viewProj * object.model * vec4f(b, 1.0);
+  // Clip to the space in front of the eye before dividing.
+  let eps = 1e-6;
+  if (pa.w < eps && pb.w < eps) { o.clip = vec4f(0.0, 0.0, -1.0, 1.0); return o; }
+  if (pa.w < eps) { pa = mix(pa, pb, (eps - pa.w) / (pb.w - pa.w)); }
+  if (pb.w < eps) { pb = mix(pb, pa, (eps - pb.w) / (pa.w - pb.w)); }
+  let half = frame.viewport.xy * 0.5;
+  let sa = pa.xy / pa.w * half;
+  let sb = pb.xy / pb.w * half;
+  let d = sb - sa;
+  let l = length(d);
+  let dir = select(vec2f(1.0, 0.0), d / l, l > 1e-6);
+  let nrm = vec2f(-dir.y, dir.x);
+  var corners = array<vec2f, 6>(vec2f(0.0, -1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0), vec2f(0.0, -1.0), vec2f(1.0, 1.0), vec2f(0.0, 1.0));
+  let c = corners[vi];
+  let p = select(pa, pb, c.x > 0.5);
+  let w = max(object.params.x, 1.0) * 0.5;
+  // Square caps: each end reaches half a width past its point.
+  let off = (nrm * c.y + dir * (c.x * 2.0 - 1.0)) * w / half * p.w;
+  o.clip = vec4f(p.xy + off, p.zw);
+  o.color = select(ca, cb, c.x > 0.5) * object.color;
   return o;
 }
 @fragment fn fs(in: LOut) -> @location(0) vec4f { return vec4f(in.color.rgb * in.color.a, in.color.a); }

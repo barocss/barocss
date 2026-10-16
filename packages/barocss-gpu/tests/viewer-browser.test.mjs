@@ -62,7 +62,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const red = viewer.add({ ...box(2, 2, 2), faces: Array.from({ length: 12 }, (_, i) => 10 + Math.floor(i / 2)) }, { name: 'red', material: { color: '#d03020', roughness: 0.5 } });
       const blue = viewer.add(box(1.5, 1.5, 1.5), { name: 'blue', material: { color: '#0000ff', unlit: true }, transform: api.translation([3.5, 0, 0]) });
       const glass = viewer.add({ positions: [-3, -1, -1, -1.5, -1, -1, -1.5, -1, 1, -3, -1, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'glass', material: { color: '#00ff00', opacity: 0.5, unlit: true, doubleSided: true } });
-      const edges = viewer.add({ positions: [-1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1], indices: [0, 1, 1, 2, 2, 3, 3, 0], topology: 'lines' }, { name: 'edges', material: { color: '#ffffff', unlit: true } });
+      const edges = viewer.add({ positions: [-1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1], indices: [0, 1, 1, 2, 2, 3, 3, 0], topology: 'lines', edges: [100, 101, 102, 103] }, { name: 'edges', material: { color: '#ffffff', unlit: true } });
       viewer.fit();
       await viewer.frame();
       window.t = { api, viewer, red, blue, glass, edges, box };
@@ -98,9 +98,12 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const top = await viewer.pick(...screen([0.2, 0.3, 1]));
       const side = await viewer.pick(...screen([3.5, -0.75, 0.2]));
       const empty = await viewer.pick(2, 2);
+      // The nearest edge segment within a few pixels: its id and the point on it.
+      const [ex, ey] = screen([0.3, -1, 1]);
+      const line = viewer.pickLine(ex + 2, ey + 3, 6), none = viewer.pickLine(ex + 30, ey + 30, 6);
       // Several at once queue on one read buffer.
       const many = await Promise.all([0, 1, 2, 3].map(() => viewer.pick(...screen([0, 0, 1]))));
-      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle, face: top.face }, side: side?.mesh.name, empty, many: many.map(h => h?.mesh.name) };
+      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle, face: top.face }, side: side?.mesh.name, empty, line: line && { name: line.mesh.name, edge: line.edge, point: line.point, distance: line.distance }, none, many: many.map(h => h?.mesh.name) };
     });
     t.diagnostic(JSON.stringify(picks));
     assert.equal(picks.top.name, 'red');
@@ -111,6 +114,8 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     // A face recoloured through its vertex colours; an outline around the visible part of a mesh.
     const marked = await p.evaluate(async () => {
       const { viewer, red, blue } = window.t;
+      // A wide edge line.
+      window.t.edges.material = { lineWidth: 5 };
       // Vertex colours multiply the material colour: a white material shows them as they are.
       const colors = Array.from({ length: 24 }, (_, v) => v >= 16 && v < 20 ? [1, 0.85, 0] : [0.82, 0.19, 0.13]).flat();
       red.material = { color: '#ffffff' };
@@ -126,7 +131,10 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const blueMid = pixel(img, screen([3.5, -0.75, 0]));
       window.marked = img;
       red.geometry.setColors(null); red.outline = null; red.material = { color: '#d03020' };
-      return { top: pixel(img, screen([0, 0, 1])), out, far, blueMid };
+      // Two pixels beside the front top edge: inside the 5 px line.
+      const [lx, ly] = screen([-0.5, -1, 1]), wide = bright(img, [lx, ly + 2]);
+      window.t.edges.material = { lineWidth: 1 };
+      return { top: pixel(img, screen([0, 0, 1])), out, far, blueMid, wide };
     });
     t.diagnostic(JSON.stringify(marked));
     if (process.env.VIEWER_SHOTS) {
@@ -138,8 +146,12 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     assert.ok(marked.out[2] > 120 && marked.out[1] > 100 && marked.out[0] < 80, `outline just outside ${marked.out}`);
     assert.deepEqual(marked.far, [32, 32, 32, 255], 'background beyond the outline');
     assert.deepEqual(marked.blueMid.slice(0, 3), [0, 0, 255]);
+    assert.ok(marked.wide > 200, `wide line ${marked.wide}`);
     assert.equal(picks.side, 'blue');
     assert.equal(picks.empty, null);
+    assert.equal(picks.line.name, 'edges'); assert.equal(picks.line.edge, 100);
+    assert.ok(Math.abs(picks.line.point[0] - 0.3) < 0.15 && Math.abs(picks.line.point[1] + 1) < 1e-9 && Math.abs(picks.line.point[2] - 1) < 1e-9 && picks.line.distance <= 6, JSON.stringify(picks.line));
+    assert.equal(picks.none, null);
     assert.deepEqual(picks.many, ['red', 'red', 'red', 'red']);
 
     // Orbit with a real drag, zoom with the wheel.

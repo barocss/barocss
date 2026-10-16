@@ -6,7 +6,7 @@ import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveRe
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, transformBox } from '../dist/viewer/bounds.js';
-import { prepareGeometry, rayTriangles } from '../dist/viewer/geometry.js';
+import { prepareGeometry, rayTriangles, segmentInstances } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 
@@ -108,10 +108,17 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
   // A face id per triangle.
   assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7] }), /one id per triangle/);
   assert.deepEqual([...prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7, 7] }).faces], [7, 7]);
+  // Lines: an id per segment; segment instances hold both ends and their colours.
+  assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 1, 2], topology: 'lines', edges: [1] }), /one id per segment/);
+  const lines = prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 3], topology: 'lines', edges: [4, 5], colors: [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1] });
+  const inst = segmentInstances(lines), f = new Float32Array(inst), u8 = new Uint8Array(inst);
+  assert.deepEqual([...f.slice(8, 14)], [1, 1, 0, 0, 1, 0]);
+  assert.deepEqual([...u8.slice(24, 32)], [255, 0, 0, 255, 0, 255, 0, 255]);
+  assert.deepEqual([...lines.edges], [4, 5]);
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 880);
+  assert.equal(FRAME_BYTES, 896);
   assert.match(surfaceWGSL, new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
   const f = packFrame(cam.viewProjection(1), cam, [

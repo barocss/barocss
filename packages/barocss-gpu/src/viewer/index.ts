@@ -1,5 +1,5 @@
 export { Viewer, Mesh, Geometry, ViewerError, createViewer } from './viewer.js';
-export type { Material, AddMeshOptions, ViewerOptions, PickHit, FrameStats } from './viewer.js';
+export type { Material, AddMeshOptions, ViewerOptions, PickHit, LineHit, FrameStats } from './viewer.js';
 export { Camera } from './camera.js';
 export type { CameraState, Projection, Ray } from './camera.js';
 export { OrbitControls, orbit, pan, zoom } from './controls.js';
