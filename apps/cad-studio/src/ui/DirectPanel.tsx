@@ -33,12 +33,17 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
         onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
       {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
+      {objs.length >= 3 && curves && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
+        <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+      </div>}
       {objs.length === 2 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>TWO CURVES</div>
         <div className="row-actions">
           <button className="ghost" onClick={() => run(() => directOps.joinCurves(direct, selected[0], selected[1]), added)}>Join</button>
           <button className="ghost" onClick={() => run(() => directOps.ruledSurface(direct, selected[0], selected[1]), added)}>Ruled surface</button>
           <button className="ghost" title="The first curve swept along the second" onClick={() => run(() => directOps.sweep(direct, selected[0], selected[1]), added)}>Sweep</button>
+          <button className="ghost" title="A surface through both curves" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
         </div>
       </div>}
     </aside>

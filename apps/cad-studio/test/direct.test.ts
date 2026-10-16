@@ -110,3 +110,15 @@ test('direct geometry: move, rotate and scale in place; duplicate and rename', (
   assert.equal(d.objects.at(-1)!.name, 'rail');
   assert.throws(() => directOps.scale(d, [top], 0), /positive/);
 });
+
+test('direct geometry: a loft through three curves of one degree and knots', () => {
+  let d = importSource(emptyDirect(), STUDY, 'study');
+  const base = byName(d, 'base');
+  d = directOps.duplicate(d, [base]);
+  const lifted = d.objects.at(-1)!.id;
+  d = directOps.move(d, [lifted], [0, 10, 6]);
+  d = directOps.loft(d, [base, lifted, byName(d, 'top')]);
+  const s = geometryOf(d, d.objects.find(o => o.id === byName(d, 'Lofted surface'))!);
+  assert.ok(s.kind === 'surface' && s.degreeV === 2, JSON.stringify(s.kind));
+  assert.throws(() => directOps.loft(d, [base]), /2 to 15/);
+});

@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, transformNativeGeometryAffine, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -175,6 +175,14 @@ export const directOps = {
     const n = name.trim();
     if (!n) throw new Error('A name is needed.');
     return { ...d, objects: d.objects.map(o => o.id === id ? { ...o, name: n } : o) };
+  },
+  /** A surface through 2–15 curves of the same degree and knots, in selection order (cubic across them when there are enough). */
+  loft(d: DirectGeometry, ids: string[]) {
+    if (ids.length < 2 || ids.length > 15) throw new Error('Loft through 2 to 15 curves.');
+    const sections = ids.map(id => curveOf(d, id)), n = sections.length;
+    const r = buildMultiSectionLoftSurface(sections, sections.map((_, i) => i / (n - 1)), {
+      surfaceId: fresh(usedIds(d), 'loft'), degreeV: Math.min(3, n - 1), maximumBasisEvaluations: 3600, maximumEliminationSteps: 1680, maximumObservations: 465 });
+    return add(d, [], r.source, [{ geometry: r.surface.id, name: 'Lofted surface' }]);
   },
   sweep(d: DirectGeometry, profile: string, rail: string) {
     const r = buildTranslationalSweepSurface(curveOf(d, profile), curveOf(d, rail), { surfaceId: fresh(usedIds(d), 'swept'), maximumObservations: 961 });
