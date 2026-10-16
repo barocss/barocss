@@ -38,3 +38,11 @@ Both images were inspected and independently accepted as qualitative concepts. E
 
 ![Opaque color uniform](04-opaque-material-uniform.png)
 ![Authored light color](05-authored-light-color.png)
+
+## Future opacity and normalized native coordinates
+- Board06 is explicitly a **future graphics target** for [#1237](https://github.com/barocss/barocss/issues/1237). CPU opacity/order preparation does not establish rendered alpha support. It depicts simple source-over intent without refraction, Fresnel, shadows or physical glass. No numeric alpha calibration is claimed. Independent review rejected the initial dark-mask overlap; final brighter warm/neutral overlap and nonnumeric labels were reviewed.
+- Board07 maps direct U/V gradients from [#1432](https://github.com/barocss/barocss/issues/1432) and native binding [#1439](https://github.com/barocss/barocss/issues/1439). Normalized derived shader coordinates are not exact native geometry queries. CPU/compiler/binding completion does not establish a real current-runtime capture. Camera/surface shape are intended controls, not identical pixel geometry.
+Both final PNGs were inspected and independently accepted as qualitative target designs.
+
+![Future opacity concept](06-future-opacity-composition.png)
+![Native normalized-coordinate concept](07-native-surface-uv01.png)
