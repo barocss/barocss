@@ -1133,7 +1133,10 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   const groups = [...shells.values()].map(m => {
     const v = m.reduce((acc, i) => acc + volume(i), 0);
     if (!m.some(i => pieces[i].face.surf.kind === 'nurbs')) return { members: m, volume: v };
-    const p = pieces[m[0]], x = p.key, n = normalOut({ ...p.face, out: p.out }, x), inward = classify(add(x, scale(n, 1000 * tol)), null, asFaces(m), tol) === 'in';
+    // (A point by a seam or an edge can be misjudged: several pieces vote, the volume's sign breaks a tie.)
+    const faces = asFaces(m), voters = m.filter((_, k) => k % Math.max(1, Math.floor(m.length / 7)) === 0).slice(0, 7);
+    const votes = voters.reduce((acc, i) => { const p = pieces[i], x = p.key, n = normalOut({ ...p.face, out: p.out }, x); return acc + (classify(add(x, scale(n, 1000 * tol)), null, faces, tol) === 'in' ? 1 : -1); }, 0);
+    const inward = votes > 0 || (votes === 0 && v < 0);
     return { members: m, volume: (inward ? -1 : 1) * Math.max(Math.abs(v), tol) };
   });
   const bodies = groups.filter(g => g.volume > 0).map(g => ({ outer: g, cavities: [] as typeof groups }));

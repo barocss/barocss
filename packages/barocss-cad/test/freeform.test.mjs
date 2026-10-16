@@ -181,6 +181,17 @@ test('a curve crossing between two faces is traced on both, short pieces by an e
   assert.ok(Math.abs(u + i - va - vb) < 2e-3 * vb && Math.abs(d + i - va) < 2e-3 * va, `${u} ${i} ${d}`);
 });
 
+test('a shell of general faces is told outer or cavity by several probes (found by fuzzing)', () => {
+  // A sphere and a tilted torus: the first probe point sat on the sphere's seam plane and was judged
+  // inside, so the result's only shell was taken for a cavity.
+  const R = 4.517572878859937, sph = transformBrep(revolveProfile({ id: 's', profile: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 0, -1, 0, 1, 0], offset: [1.5, 3, 1.5] });
+  const ring = revolveProfile({ id: 't', profile: [{ kind: 'arc', start: [6.8041005856357515, 0], center: [5.5994085585698485, 0], direction: 'ccw' }], axis: yAxis, angleDegrees: 360 });
+  const c = 0.8226396590005198, sn = 0.5685630936312245, tilted = transformBrep(transformBrep(ring, { matrix: [0, 1, 0, 1, 0, 0, 0, 0, 1], offset: [0.5, -0.5, 3] }), { matrix: [c, 0, sn, 0, 1, 0, -sn, 0, c], offset: [0, 0, 0] });
+  const vol = op => { const out = booleanAnalytic(sph, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+  const u = vol('union'), i = vol('intersection'), d = vol('difference'), va = 4 / 3 * pi * R ** 3;
+  assert.ok(Math.abs(d + i - va) < 3e-3 * va && u > va, `${u} ${i} ${d}`);
+});
+
 test('freeform faces on one surface: copies, turned copies and overlapping partial turns', () => {
   const rotY = (b, deg) => { const c = Math.cos(deg * pi / 180), s = Math.sin(deg * pi / 180); return transformBrep(b, { matrix: [c, 0, s, 0, 1, 0, -s, 0, c] }); };
   const half = id => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 });
