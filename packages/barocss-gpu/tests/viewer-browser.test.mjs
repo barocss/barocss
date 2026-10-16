@@ -98,12 +98,14 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const top = await viewer.pick(...screen([0.2, 0.3, 1]));
       const side = await viewer.pick(...screen([3.5, -0.75, 0.2]));
       const empty = await viewer.pick(2, 2);
+      // The same from the CPU, at once.
+      const cpu = viewer.raycast(...screen([0.2, 0.3, 1])), cpuSide = viewer.raycast(...screen([3.5, -0.75, 0.2])), cpuEmpty = viewer.raycast(2, 2);
       // The nearest edge segment within a few pixels: its id and the point on it.
       const [ex, ey] = screen([0.3, -1, 1]);
       const line = viewer.pickLine(ex + 2, ey + 3, 6), none = viewer.pickLine(ex + 30, ey + 30, 6);
       // Several at once queue on one read buffer.
       const many = await Promise.all([0, 1, 2, 3].map(() => viewer.pick(...screen([0, 0, 1]))));
-      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle, face: top.face }, side: side?.mesh.name, empty, line: line && { name: line.mesh.name, edge: line.edge, point: line.point, distance: line.distance }, none, many: many.map(h => h?.mesh.name) };
+      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle, face: top.face }, side: side?.mesh.name, empty, cpu: cpu && { name: cpu.mesh.name, face: cpu.face, point: cpu.point }, cpuSide: cpuSide?.mesh.name, cpuEmpty, line: line && { name: line.mesh.name, edge: line.edge, point: line.point, distance: line.distance }, none, many: many.map(h => h?.mesh.name) };
     });
     t.diagnostic(JSON.stringify(picks));
     assert.equal(picks.top.name, 'red');
@@ -149,6 +151,8 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     assert.ok(marked.wide > 200, `wide line ${marked.wide}`);
     assert.equal(picks.side, 'blue');
     assert.equal(picks.empty, null);
+    assert.equal(picks.cpu.name, 'red'); assert.equal(picks.cpu.face, 14); assert.equal(picks.cpuSide, 'blue'); assert.equal(picks.cpuEmpty, null);
+    assert.ok(Math.hypot(...picks.cpu.point.map((v, i) => v - picks.top.point[i])) < 0.06, 'CPU and GPU picks agree (within the half pixel the GPU reads at its centre)');
     assert.equal(picks.line.name, 'edges'); assert.equal(picks.line.edge, 100);
     assert.ok(Math.abs(picks.line.point[0] - 0.3) < 0.15 && Math.abs(picks.line.point[1] + 1) < 1e-9 && Math.abs(picks.line.point[2] - 1) < 1e-9 && picks.line.distance <= 6, JSON.stringify(picks.line));
     assert.equal(picks.none, null);

@@ -797,6 +797,29 @@ export class Viewer {
   }
 
   /**
+   * What is under a point of the canvas (CSS pixels), found on the CPU at once: a ray against the
+   * triangles of every visible, pickable mesh (pick() reads the GPU instead and waits for it).
+   */
+  raycast(x: number, y: number): PickHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.clipCamera();
+    const ray = this.camera.ray((x / cw) * 2 - 1, 1 - (y / ch) * 2, this.aspect);
+    let best: { mesh: Mesh; triangle: number; t: number } | null = null;
+    for (const m of this.meshes) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
+      // A ray in the mesh's own space keeps its parameter: distances compare across meshes.
+      const inv = invert(m.transform);
+      const hit = rayTriangles(m.geometry.data, transformPoint(inv, ray.origin), transformDirection(inv, ray.direction));
+      if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t };
+    }
+    if (!best) return null;
+    const point = add(ray.origin, scale(ray.direction, best.t)), faces = best.mesh.geometry.data.faces;
+    const v = transformPoint(this.camera.viewProjection(this.aspect), point);
+    return { mesh: best.mesh, point, triangle: best.triangle, face: faces ? faces[best.triangle] : null, depth: v[2] };
+  }
+
+  /**
    * The line segment drawn nearest a point of the canvas (CSS pixels), within radius pixels. Lines are
    * thin, so this is a screen-space search, not a pixel read; it does not test whether a surface hides them.
    */
