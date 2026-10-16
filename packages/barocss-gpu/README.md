@@ -34,6 +34,12 @@ box.outline = '#e8c25a';                // a selection outline around the visibl
 - Tests: `tests/viewer-core.test.mjs` (Node) and `tests/viewer-browser.test.mjs` (Chrome's WebGPU,
   `CHROME` and `PW_DIR`, `VIEWER_ADAPTER=swiftshader` for the software adapter).
 
+The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
+source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
+name the object), and `view.update(source)` shows an edited source, or returns its diagnostics and keeps
+the scene. Authored `@shader` materials lower to `Material.shader` (WGSL declarations, a colour expression
+and 64 bytes of params).
+
 The single-canvas WebGPU viewports that preceded it (`mountPrimitiveBackendViewport`,
 `mountEngineUVTextureWebGPUViewport`, `mountMultiSurfaceWebGPUViewport` and the unused `engine-webgpu-*`
 runtime) were removed; the remaining `mount*` entry points move onto the viewer next.

@@ -268,3 +268,7 @@ export type {QualifiedFacePrimitiveViewportHandoffResult} from './qualified-face
 // The unified WebGPU viewer: one device and canvas context, persistent buffers, on-demand frames,
 // orbit camera, metal–roughness lighting, picking and device-loss recovery.
 export * from './viewer/index.js';
+
+// The CSS-shaped scene language shown on the viewer.
+export { showScene, SceneViewError } from './scene-viewer.js';
+export type { SceneView, SceneViewOptions } from './scene-viewer.js';
