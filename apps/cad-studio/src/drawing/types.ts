@@ -26,6 +26,8 @@ export interface DrawingSettings {
   projection: 'third' | 'first';
   /** Hidden edges dashed in the orthographic views (the isometric view shows visible edges only). */
   hidden: boolean;
+  /** false: no centre marks and centrelines (shown by default). */
+  centers?: boolean;
   /** The title block's part name (default: the file name). */
   title?: string;
   dimensions: DrawingDimension[];
@@ -41,6 +43,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.scale === 'number' && r.scale > 0 ? { scale: r.scale } : {}),
     projection: r.projection === 'first' ? 'first' : 'third',
     hidden: r.hidden !== false,
+    ...(r.centers === false ? { centers: false } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)) : [],
   };

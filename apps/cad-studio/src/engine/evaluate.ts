@@ -70,7 +70,14 @@ export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
   } catch { return null; }
 }
 
-/** The part's visible bodies as B-reps (for drawings), or the reason they cannot be evaluated. */
-export function brepsFor(doc: StudioDoc): { breps: Brep[] } | { error: string } {
-  try { return { breps: snapshotOf(doc).outputs.map(o => o.brep) }; } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+/**
+ * The part's visible bodies and its shown instances' as B-reps (for drawings), with a name prefix for
+ * each (an instance's `<id>/`, so its edges are told apart), or the reason they cannot be evaluated.
+ */
+export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
+  try {
+    const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of evaluateCadPart(toPartDocument(placedDoc(inst))).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    return { breps, prefixes };
+  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
