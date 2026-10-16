@@ -9,27 +9,30 @@ import type { StudioDoc } from '../engine/doc';
 import type { FriendlyError } from '../engine/errors';
 import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
+import { toleranceText } from '../drawing/sheet';
 import { sheetPdf } from '../drawing/pdf';
 import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
-import { VIEW_IDS, type DimPoint, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
+import { VIEW_IDS, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
 import type { SectionResult } from '../drawing/section';
 import '../drawing/drawing.css';
 
-type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle';
+type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
   { tool: 'linear', label: 'Linear dimension', icon: 'straighten', key: 'D', hint: 'Click two points (edge ends, circle centres) or one straight edge, then where the dimension goes' },
   { tool: 'diameter', label: 'Diameter', icon: 'radio_button_unchecked', key: 'Ø', hint: 'Click a circle, then where its diameter goes' },
   { tool: 'radius', label: 'Radius', icon: 'line_end_circle', key: 'R', hint: 'Click a circle or an arc, then where its radius goes' },
   { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
+  { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
 ];
 type Pending =
   | { kind: 'linear'; view: ViewId; a: DimPoint; b?: DimPoint }
   | { kind: 'diameter' | 'radius'; view: ViewId; edge: string; near: Vec3 }
-  | { kind: 'angle'; view: ViewId; a: EdgeRef; b?: EdgeRef };
+  | { kind: 'angle'; view: ViewId; a: EdgeRef; b?: EdgeRef }
+  | { kind: 'note'; leader: { view: ViewId; at: XY } };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 interface Hover { q: XY; view: ViewId; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
@@ -52,7 +55,19 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [drag, setDrag] = useState<{ id: string; place: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
+  /** The selected note's text while it is typed, and the selected dimension's tolerance fields. */
+  const [noteDraft, setNoteDraft] = useState<string | null>(null);
+  const [tolDraft, setTolDraft] = useState<Record<string, string>>({});
+  /** A note just added: its text box takes the keyboard, its placeholder text selected. */
+  const noteBox = useRef<HTMLTextAreaElement>(null), [typeNote, setTypeNote] = useState<string | null>(null);
+  // (Once the new note has come back in the settings and its text box shows it.)
+  const shownNote = selected && settings.notes?.some(n => n.id === selected) ? selected : null;
+  useEffect(() => {
+    if (!typeNote || shownNote !== typeNote) return;
+    const t = setTimeout(() => { noteBox.current?.focus(); noteBox.current?.select(); setTypeNote(null); }, 0);
+    return () => clearTimeout(t);
+  }, [typeNote, shownNote]);
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const svg = useRef<SVGSVGElement>(null);
 
@@ -113,6 +128,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (!views) return;
     setMessage(null);
     // Where a dimension goes is read in its own view, wherever the pointer is.
+    if (pending?.kind === 'note') { addNote(h.q, pending.leader); return; }
     const placing = pending && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     const place = placing && layout ? fromSheet(layout.views[pending.view], h.q) : h.at;
     if (h.view === 'iso' && !placing) { setMessage('Dimensions go on the front, top and right views.'); return; }
@@ -163,14 +179,33 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     }
   };
 
+  /** A new note at a sheet point (with a leader to a view point), selected with its text ready to type. */
+  const addNote = (at: XY, leader?: { view: ViewId; at: XY }) => {
+    const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
+    const note: DrawingNote = { id: `n${k}`, text: 'NOTE', at: [Math.round(at[0] * 10) / 10, Math.round(at[1] * 10) / 10], ...(leader ? { leader } : {}) };
+    onChange({ ...settings, notes: [...(settings.notes ?? []), note] });
+    setPending(null); setTool('select'); setSelected(note.id); setNoteDraft(note.text); setTypeNote(note.id);
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     const target = (e.target as Element).closest('[data-dim]');
+    if (tool === 'note') e.preventDefault(); // (the note's text box keeps the focus it is given)
+    if (tool === 'note' && !pending) {
+      // On (or right by) a view: the leader's point first; elsewhere the note itself.
+      const q = sheetPoint(e.clientX, e.clientY), h = hoverAt(e.clientX, e.clientY); if (!q || !layout) return;
+      const [x0, y0, x1, y1] = h ? layout.views[h.view].box : [0, 0, 0, 0], on = h && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
+      if (h && on) { setPending({ kind: 'note', leader: { view: h.view, at: h.snap?.at ?? h.at } }); setMessage(null); } else addNote(q);
+      return;
+    }
+    if (tool === 'note' && pending?.kind === 'note') { const q = sheetPoint(e.clientX, e.clientY); if (q) addNote(q, pending.leader); return; }
     if (tool === 'select') {
       const id = target?.getAttribute('data-dim') ?? null;
-      setSelected(id);
-      const d = id ? settings.dimensions.find(x => x.id === id) : undefined;
+      setSelected(id); setNoteDraft(null); setTolDraft({});
+      const d = id ? settings.dimensions.find(x => x.id === id) : undefined, n = id ? settings.notes?.find(x => x.id === id) : undefined, q = sheetPoint(e.clientX, e.clientY);
+      if (n) setNoteDraft(n.text);
       if (d) setDrag({ id: d.id, place: d.place });
+      else if (n && q) setDrag({ note: n.id, at: n.at, grab: [q[0] - n.at[0], q[1] - n.at[1]] });
       else setDrag({ pan: [e.clientX, e.clientY], box: [...viewBox] as [number, number, number, number] });
       (e.currentTarget as Element).setPointerCapture(e.pointerId);
       return;
@@ -181,6 +216,11 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (drag && 'pan' in drag) {
       const k = mmPerPx(); setBox([drag.box[0] - (e.clientX - drag.pan[0]) * k, drag.box[1] - (e.clientY - drag.pan[1]) * k, drag.box[2], drag.box[3]]); return;
     }
+    if (drag && 'note' in drag) {
+      const q = sheetPoint(e.clientX, e.clientY);
+      if (q) setDrag({ ...drag, at: [Math.round((q[0] - drag.grab[0]) * 10) / 10, Math.round((q[1] - drag.grab[1]) * 10) / 10] });
+      return;
+    }
     if (drag && layout) {
       const q = sheetPoint(e.clientX, e.clientY), d = settings.dimensions.find(x => x.id === drag.id);
       if (q && d) setDrag({ id: drag.id, place: fromSheet(layout.views[d.view], q) });
@@ -189,6 +229,11 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     setHover(hoverAt(e.clientX, e.clientY));
   };
   const onPointerUp = () => {
+    if (drag && 'note' in drag) {
+      const n = settings.notes?.find(x => x.id === drag.note);
+      if (n && (n.at[0] !== drag.at[0] || n.at[1] !== drag.at[1])) onChange({ ...settings, notes: settings.notes!.map(x => x.id === n.id ? { ...x, at: drag.at } : x) });
+      setDrag(null); return;
+    }
     if (drag && !('pan' in drag)) {
       const d = settings.dimensions.find(x => x.id === drag.id);
       if (d && (d.place[0] !== drag.place[0] || d.place[1] !== drag.place[1])) {
@@ -204,15 +249,19 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     setBox([q[0] - (q[0] - x) * f, q[1] - (q[1] - y) * f, nw, h * f]);
   };
 
-  const remove = useCallback((id: string) => { commitDims(settings.dimensions.filter(d => d.id !== id)); setSelected(null); },
+  const remove = useCallback((id: string) => {
+    if (settings.notes?.some(n => n.id === id)) { const notes = settings.notes.filter(n => n.id !== id), { notes: _, ...rest } = settings; onChange(notes.length ? { ...rest, notes } : rest); }
+    else commitDims(settings.dimensions.filter(d => d.id !== id));
+    setSelected(null); setNoteDraft(null);
+  },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [settings]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.metaKey || e.ctrlKey) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
       if (e.key === 'Escape') { if (pending) cancel(); else { setSelected(null); setTool('select'); } return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(selected); return; }
-      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle' } as Record<string, Tool>)[e.key.toLowerCase()];
+      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note' } as Record<string, Tool>)[e.key.toLowerCase()];
       if (t) { setTool(t); setPending(null); setMessage(null); }
     };
     window.addEventListener('keydown', onKey);
@@ -242,7 +291,12 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (!layout || !views) return '';
     const parts: string[] = [];
     const v = hover ? layout.views[hover.view] : null;
-    const placing = pending && hover && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
+    if (pending?.kind === 'note' && hover) {
+      const t = toSheet(layout.views[pending.leader.view], pending.leader.at);
+      parts.push(`<g class="dw-preview"><line x1="${t[0]}" y1="${t[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g><circle class="dw-pick" cx="${t[0]}" cy="${t[1]}" r="0.9"/>`);
+      return parts.join('');
+    }
+    const placing = pending && hover && pending.kind !== 'note' && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     if (pending?.kind === 'angle') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
       const l = resolveLine(views[pending.view], ref);
       if (l) parts.push(`<g class="dw-hover">${marksSvg([{ kind: 'line', a: toSheet(layout.views[pending.view], l[0]), b: toSheet(layout.views[pending.view], l[1]), pen: 'visible' }])}</g>`);
@@ -271,12 +325,14 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today() }, cut), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today() }, cut), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected]);
 
-  const hint = message ?? (pending ? (pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
+  const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
 
   return (
     <div className="dw" aria-label="Drawing">
@@ -329,12 +385,50 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => { setSelected(r.dim.id); setTool('select'); }}>
-            <b>{r.ok ? r.text : 'lost'}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
+            <b>{r.ok ? r.text : 'lost'}{r.dim.tol ? ` ${toleranceText(r.dim.tol, r.dim.kind === 'angle' ? '°' : '')}` : ''}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
             <span className="muted" />
             <button className="tool tiny" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></button>
           </div>)}
           {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius, <Kbd>A</Kbd> angle) and click in a view. Values come from the model in mm and follow it as it changes.</div>}
           {lost.length > 0 && <div className="empty" style={{ color: 'var(--warn)' }}>{lost.length} dimension{lost.length > 1 ? 's' : ''} lost {lost.length > 1 ? 'their' : 'its'} reference (the part changed).</div>}
+        </div>
+
+        {selDim && <>
+          <div className="card-title" style={{ marginTop: 8 }}>TOLERANCE</div>
+          <label className="field"><span>Kind</span><select aria-label="Tolerance" value={selDim.tol?.kind ?? 'none'} onChange={e => {
+            const k = e.target.value, { tol: _, ...rest } = selDim;
+            const tol: Tolerance | null = k === 'symmetric' ? { kind: 'symmetric', value: 0.1 } : k === 'deviation' ? { kind: 'deviation', upper: 0.1, lower: 0 } : k === 'fit' ? { kind: 'fit', code: selDim.kind === 'diameter' ? 'H7' : 'h7' } : null;
+            setTolDraft({}); commitDims(settings.dimensions.map(d => d.id === selDim.id ? (tol ? { ...rest, tol } : rest) as DrawingDimension : d));
+          }}><option value="none">None</option><option value="symmetric">± symmetric</option><option value="deviation">Upper / lower</option><option value="fit">Fit (H7, h6 …)</option></select></label>
+          {selDim.tol && (selDim.tol.kind === 'symmetric' ? [['value', '±']] : selDim.tol.kind === 'deviation' ? [['upper', 'Upper'], ['lower', 'Lower']] : [['code', 'Fit']]).map(([key, label]) => {
+            const t = selDim.tol as Record<string, unknown>, shown = tolDraft[key] ?? String(t[key]);
+            const apply = () => {
+              const raw = tolDraft[key]; if (raw === undefined) return;
+              const next = { ...t, [key]: key === 'code' ? raw.trim() : Number(raw) } as Tolerance;
+              const ok = next.kind === 'fit' ? /^[A-Za-z]{1,2}\d{1,2}$/.test(next.code) : next.kind === 'symmetric' ? Number.isFinite(next.value) && next.value > 0 : Number.isFinite(next.upper) && Number.isFinite(next.lower) && next.upper >= next.lower;
+              if (ok) commitDims(settings.dimensions.map(d => d.id === selDim.id ? { ...d, tol: next } as DrawingDimension : d));
+              else setMessage(next.kind === 'fit' ? 'A fit is a letter or two and a grade, as H7 or js6.' : next.kind === 'symmetric' ? 'A ± tolerance is a number above 0.' : 'The upper deviation must not be below the lower.');
+              setTolDraft(m => { const { [key]: _, ...rest } = m; return rest; });
+            };
+            return <label key={key} className="field"><span>{label}</span><input aria-label={`Tolerance ${label}`} type={key === 'code' ? 'text' : 'number'} step="any" value={shown}
+              onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>;
+          })}
+        </>}
+
+        <div className="card-title" style={{ marginTop: 8 }}>NOTES <span className="muted">{settings.notes?.length ?? 0}</span></div>
+        <div className="dw-dims">
+          {(settings.notes ?? []).map(n => <div key={n.id} role="button" tabIndex={0} className={'dw-dim' + (selected === n.id ? ' sel' : '')} onClick={() => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }}>
+            <b className="dw-note-text">{n.text.split('\n')[0]}</b><span>{n.leader ? `→ ${n.leader.view}` : ''}</span><span className="muted" />
+            <button className="tool tiny" aria-label={`Remove note ${n.id}`} onClick={e => { e.stopPropagation(); remove(n.id); }}><Icon name="close" small /></button>
+          </div>)}
+          {!settings.notes?.length && <div className="empty"><Kbd>N</Kbd> adds a note: click the paper, or a view for a leader first.</div>}
+          {selNote && <>
+            <textarea ref={noteBox} className="dw-note-edit" aria-label="Note text" rows={3} value={noteDraft ?? selNote.text}
+              onChange={e => setNoteDraft(e.target.value)}
+              onBlur={() => { const t = (noteDraft ?? selNote.text).replace(/\s+$/, ''); if (t && t !== selNote.text) onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { ...n, text: t } : n) }); setNoteDraft(null); }}
+              onKeyDown={e => { if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) (e.target as HTMLTextAreaElement).blur(); }} />
+            {selNote.leader && <button className="ghost" onClick={() => onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { id: n.id, text: n.text, at: n.at } : n) })}>Remove leader</button>}
+          </>}
         </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>EXPORT</div>
@@ -348,7 +442,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
         <span>{hint}</span>
         {selected && <span><Kbd>Del</Kbd> remove</span>}
-        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> tools</span>
+        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> tools</span>
       </div>
     </div>
   );

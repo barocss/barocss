@@ -1,11 +1,11 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import { resolveDimension, type Resolved } from './dimensions';
+import { fmtMM, resolveDimension, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
-import { fitText } from './text';
+import { fitText, textWidth } from './text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
-import type { DrawingSettings, DrawingViews, ViewId, XY } from './types';
+import type { DrawingNote, DrawingSettings, DrawingViews, Tolerance, ViewId, XY } from './types';
 import { VIEW_IDS } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
@@ -21,7 +21,7 @@ export type Mark =
   | { kind: 'fill'; points: XY[] }
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section'; id?: string; view?: ViewId; marks: Mark[] }
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note'; id?: string; view?: ViewId; marks: Mark[] }
 export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[] }
 
 export const TEXT = 3.5;
@@ -46,6 +46,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   const dimensions = settings.dimensions.map(d => resolveDimension(views, d));
   for (const r of dimensions) if (r.ok) groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views[r.dim.view], r) });
+  for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
     const [x0, , x1, y1] = layout.views[id].box;
@@ -133,10 +134,36 @@ function arrow(tip: XY, dir: XY): Mark {
 }
 
 /** Text along a direction, turned to read from below or from the right (angle in (-90°, 90°]). */
-function textAlong(at: XY, dir: XY, text: string): Mark {
+function readAngle(dir: XY): number {
   let angle = -Math.atan2(dir[1], dir[0]) * 180 / Math.PI;
   if (angle > 90.001) angle -= 180; else if (angle < -89.999) angle += 180;
-  return { kind: 'text', at, text, size: TEXT, anchor: 'middle', angle: Math.round(angle * 1000) / 1000 };
+  return Math.round(angle * 1000) / 1000;
+}
+
+/** A deviation as written: +0.1, -0.05 (an ASCII minus, which every font and PDF encoding has), 0. */
+const signed = (v: number, unit: string) => v === 0 ? '0' : (v > 0 ? '+' : '-') + fmtMM(Math.abs(v)) + unit;
+/** A tolerance on one line (the panel; ± and fits print so on the sheet too). */
+export function toleranceText(t: Tolerance, unit = ''): string {
+  return t.kind === 'symmetric' ? `±${fmtMM(t.value)}${unit}` : t.kind === 'fit' ? t.code : `${signed(t.upper, unit)}/${signed(t.lower, unit)}`;
+}
+
+/**
+ * A dimension's value with its tolerance, as text at `at` (its baseline; `angle` as read): ± and fits
+ * follow the value on its line; deviations stack after it in smaller text, the upper one raised.
+ */
+export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = ''): Mark[] {
+  const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
+  const main = tol && tol.kind !== 'deviation' ? `${value} ${toleranceText(tol, unit)}` : value;
+  const small = 2.5, devs = tol?.kind === 'deviation' ? [signed(tol.upper, unit), signed(tol.lower, unit)] : null;
+  const wMain = textWidth(main, TEXT, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
+  const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
+  const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: TEXT, anchor: 'start', ...(angle ? { angle } : {}) }];
+  if (devs) {
+    const col = add(from, x, wMain + 0.8);
+    marks.push({ kind: 'text', at: add(col, up, 1.5), text: devs[0], size: small, anchor: 'start', ...(angle ? { angle } : {}) },
+      { kind: 'text', at: add(col, up, -0.6), text: devs[1], size: small, anchor: 'start', ...(angle ? { angle } : {}) });
+  }
+  return marks;
 }
 
 export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>): Mark[] {
@@ -159,7 +186,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
       if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin' });
     }
     const mid = at(theta / 2), out = unit(sub(mid, X));
-    marks.push({ kind: 'text', at: add(add(mid, out, 2.5), [0, 1.2]), text: r.text, size: TEXT, anchor: out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle' });
+    marks.push(...valueMarks(add(add(mid, out, 2.5), [0, 1.2]), 0, out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle', r.text, r.dim.tol, '°'));
     return marks;
   }
   if (r.kind === 'linear') {
@@ -179,7 +206,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     }
     // Text over the line (the side away from the measured points' middle when the line is beside them).
     const mid = add(A2, along, 0.5), up: XY = textUp(e);
-    marks.push(textAlong(add(mid, up, 1.2), e, r.text));
+    marks.push(...valueMarks(add(mid, up, 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
     return marks;
   }
   const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
@@ -191,7 +218,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     marks.push(r.kind === 'radius' ? arrow(rim, e) : arrow(rim, [-e[0], -e[1]]));
     const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
     marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin' });
-    marks.push({ kind: 'text', at: add(shoulder, [right ? 1 : -1, 0], 0.8), text: r.text, size: TEXT, anchor: right ? 'start' : 'end' });
+    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol));
     if (r.kind === 'radius') marks.push({ kind: 'fill', points: circlePoints(C, 0.4) });
     return marks;
   }
@@ -200,7 +227,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
   if (r.kind === 'diameter') marks.push({ kind: 'line', a: far, b: rim, pen: 'thin' }, arrow(rim, e), arrow(far, [-e[0], -e[1]]));
   else marks.push({ kind: 'line', a: C, b: rim, pen: 'thin' }, arrow(rim, e), { kind: 'fill', points: circlePoints(C, 0.4) });
   const mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
-  marks.push(textAlong(add(mid, textUp(e), 1.2), e, r.text));
+  marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
   return marks;
 }
 
@@ -249,6 +276,18 @@ export function hatch(rings: XY[][], spacing: number): Mark[] {
     }
     xs.sort((m, n) => m - n);
     for (let i = 0; i + 1 < xs.length; i += 2) if (xs[i + 1] - xs[i] > 1e-9) marks.push({ kind: 'line', a: back([xs[i], yy]), b: back([xs[i + 1], yy]), pen: 'thin' });
+  }
+  return marks;
+}
+
+export const NOTE_LINE = 5;
+/** A note's lines (top left at `at`) and its leader: from the nearer end of the first line, a short shoulder, then out to an arrow on the view point. */
+export function noteMarks(layout: SheetLayout, n: DrawingNote): Mark[] {
+  const lines = n.text.split('\n'), marks: Mark[] = lines.map((t, k) => ({ kind: 'text', at: [n.at[0], n.at[1] + TEXT * 0.85 + k * NOTE_LINE] as XY, text: t, size: TEXT, anchor: 'start' }));
+  if (n.leader) {
+    const tip = toSheet(layout.views[n.leader.view], n.leader.at), w = Math.max(0, ...lines.map(t => textWidth(t, TEXT, false)));
+    const y = n.at[1] + TEXT * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
+    marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee)));
   }
   return marks;
 }
