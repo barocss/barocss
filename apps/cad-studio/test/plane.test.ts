@@ -99,3 +99,29 @@ test('a plane tipped about its X axis keeps X and turns its normal towards Y', (
   assert.equal(planeLabel(t), '30° tilted plane');
   assert.ok(near(toWorld(t, [0, 10]), [0, 10 * c, -10 * s]), 'its Y tips down as the normal tips towards +Y');
 });
+
+test('loft sections: picked sketches on parallel planes, carried onto the lowest one, ordered by height', async () => {
+  const { loftSections, unusedSketches, pickedSketches } = await import('../src/app/profiles');
+  const rect = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [10, 10] as [number, number] };
+  const circle = { kind: 'sketch' as const, profile: 'circle' as const, center: [5, 5] as [number, number], radius: 3, plane: { origin: [0, 0, 20] as [number, number, number], normal: [0, 0, 1] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] } };
+  const nodes = [rect, circle];
+  assert.deepEqual(unusedSketches(nodes), [0, 1]);
+  assert.deepEqual(pickedSketches(nodes, undefined), [1], 'the newest unused one');
+  const s = loftSections(nodes, [1, 0]);
+  assert.ok(!('error' in s), JSON.stringify(s));
+  assert.deepEqual(s.sections.map(x => [x.source, x.z]), [[0, 0], [1, 20]]);
+  // Its loop carried onto XY keeps the circle's centre.
+  const arc = s.sections[1].node.profile === 'loop' ? s.sections[1].node.segments[0] : null;
+  assert.ok(arc?.kind === 'arc' && arc.center[0] === 5 && arc.center[1] === 5, JSON.stringify(arc));
+  // A tilted second sketch is refused with the reason.
+  const tilted = { ...circle, plane: { ...circle.plane, normal: [0, 0.6, 0.8] as [number, number, number] } };
+  const bad = loftSections([rect, tilted], [0, 1]);
+  assert.ok('error' in bad && /parallel/.test(bad.error));
+  // The loft built from them evaluates.
+  let d = withNode(emptyDoc(), rect); d = withNode(d, circle);
+  for (const sec of s.sections) d = withNode(d, sec.node);
+  d = withNode(d, { kind: 'loft', sections: [{ sketch: 2, z: 0 }, { sketch: 3, z: 20 }], from: [0, 1] });
+  const ev = evaluateDoc(d, 4);
+  assert.ok(ev.ok && ev.bodies.length === 1, JSON.stringify(!ev.ok && ev.error));
+  assert.deepEqual(unusedSketches(d.nodes), [], 'the loft uses its sources');
+});

@@ -22,9 +22,10 @@ function shiftNode(node: ModelNode, k: number): ModelNode {
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: r.node + k });
   const name = (s: string) => s.replace(/\bn(\d+)(?=[./#|]|$)/g, (_, d: string) => `n${Number(d) + k}`);
   switch (node.kind) {
-    case 'sketch': case 'import': return node;
+    case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
+    case 'import': return node;
     case 'extrude': case 'revolve': case 'sweep': return { ...node, sketch: node.sketch + k };
-    case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })) };
+    case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })), ...(node.from ? { from: node.from.map(i => i + k) } : {}) };
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };
     case 'difference': return { ...node, parent: ref(node.parent), tool: ref(node.tool) };
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };

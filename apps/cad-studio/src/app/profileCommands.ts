@@ -1,0 +1,113 @@
+// The commands that make a solid from finished sketches, each on its own as CAD tools have them: Extrude
+// (a picked profile pulled along its normal), Revolve (turned about a sketch axis), Pipe (carried along
+// runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
+// that body by default; Operation can make a new body or cut it instead.
+import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
+import { toWorld } from '../sketch/plane';
+import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
+import { refOf, type Command, type Ctx, type Field, type Values } from './commands';
+
+const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
+/** The sketch a single-profile command works on, or why there is none. */
+function oneProfile(ctx: Ctx): { index: number; node: SketchNode } | null {
+  const [i, ...rest] = pickedSketches(ctx.doc.nodes, ctx.selection.sketches);
+  return i !== undefined && !rest.length ? { index: i, node: ctx.doc.nodes[i] as SketchNode } : null;
+}
+const needProfile = (ctx: Ctx) => oneProfile(ctx) ? ok : no('Finish a sketch first, or pick one sketch (in the viewport or the History).');
+/** The body the sketch was drawn on, while it is still a body of the part. */
+function baseOf(ctx: Ctx, node: SketchNode): { ref: BodyRef; index: number } | null {
+  if (!node.on) return null;
+  const index = ctx.bodies.findIndex(b => { const r = refOf(b); return r.node === node.on!.node && r.side === node.on!.side; });
+  return index >= 0 ? { ref: node.on, index } : null;
+}
+const opFields = (base: boolean): Field[] => base ? [{ key: 'op', label: 'Operation', kind: 'choice', options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [];
+/** The new solid (the last node) joined to, or cut from, the base body as Operation says. */
+function combine(doc: StudioDoc, base: BodyRef | null, op: unknown): StudioDoc {
+  const tool = { node: doc.nodes.length - 1, side: 'solid' as const };
+  if (base && op === 'join') return withNode(doc, { kind: 'union', left: base, right: tool });
+  if (base && op === 'cut') return withNode(doc, { kind: 'difference', parent: base, tool });
+  return doc;
+}
+/** How deep a cut must go to leave the base body on the far side: its farthest corner behind the sketch plane, and a millimetre more. */
+function throughDepth(ctx: Ctx, node: SketchNode): number {
+  const base = baseOf(ctx, node); if (!base) return 0;
+  const { min, max } = ctx.bodies[base.index].mesh.bounds, p = planeOf(node), n = p.normal, o = p.origin;
+  let deepest = 0;
+  for (let i = 0; i < 8; i++) {
+    const c = [i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]];
+    deepest = Math.max(deepest, (o[0] - c[0]) * n[0] + (o[1] - c[1]) * n[1] + (o[2] - c[2]) * n[2]);
+  }
+  return Math.ceil(deepest) + 1;
+}
+
+export const extrudeCommand: Command = {
+  id: 'extrude', label: 'Extrude', icon: 'cad-extrude', shortcut: 'E', group: 'create', keywords: 'pull push pad boss cut pocket',
+  hint: 'Pull a finished sketch along its normal: drag the arrow or type the distance',
+  available: needProfile,
+  fields: ctx => {
+    const p = oneProfile(ctx), base = !!(p && baseOf(ctx, p.node));
+    return [{ key: 'h', label: 'Distance', kind: 'mm', min: 0.1, when: (v: Values) => !(v.op === 'cut' && v.depth === 'through') },
+      { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1 }, ...opFields(base),
+      ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' }] : [])];
+  },
+  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, draft: 0, ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) }; },
+  build: (ctx, v) => {
+    const p = oneProfile(ctx)!, cut = v.op === 'cut', height = cut && v.depth === 'through' ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
+    // A cut goes down from the face (with a draft its walls lean in away from the opening); join/new go up.
+    const node: ModelNode = cut ? (draft ? { kind: 'extrude', sketch: p.index, height: -height, draft } : { kind: 'extrude', sketch: p.index, height, from: -height })
+      : { kind: 'extrude', sketch: p.index, height, ...(draft ? { draft } : {}) };
+    return combine(withNode(ctx.doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
+  },
+  // The distance: an arrow from the profile's middle along the normal (into the body for a cut).
+  handles: (ctx, v) => {
+    const p = oneProfile(ctx); if (!p || (v.op === 'cut' && v.depth === 'through')) return [];
+    const plane = planeOf(p.node), n = plane.normal, sign = v.op === 'cut' ? -1 : 1, c = toWorld(plane, profileMiddle(p.node)), h = Number(v.h);
+    return [{ key: 'h', at: [c[0] + n[0] * sign * h, c[1] + n[1] * sign * h, c[2] + n[2] * sign * h], dir: [n[0] * sign, n[1] * sign, n[2] * sign], min: 0.1 }];
+  },
+};
+
+export const revolveCommand: Command = {
+  id: 'revolve', label: 'Revolve', icon: 'cad-revolve', group: 'create', keywords: 'lathe turn torus ring',
+  hint: 'Turn a finished sketch about its X or Y axis into a solid',
+  available: needProfile,
+  fields: ctx => { const p = oneProfile(ctx); return [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'y', label: 'Sketch Y' }, { value: 'x', label: 'Sketch X' }] },
+    { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15 }, ...opFields(!!(p && baseOf(ctx, p.node)))]; },
+  defaults: ctx => { const p = oneProfile(ctx); return { axis: 'y', deg: 360, ...(p && baseOf(ctx, p.node) ? { op: 'new' } : {}) }; },
+  build: (ctx, v) => {
+    const p = oneProfile(ctx)!;
+    return combine(withNode(ctx.doc, { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angleDegrees: Number(v.deg) }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+  },
+};
+
+export const pipeCommand: Command = {
+  id: 'pipe', label: 'Pipe', icon: 'cad-sweep', group: 'create', keywords: 'sweep tube bend path rail handle',
+  hint: 'Carry a finished sketch along a run, a bend and a run',
+  available: needProfile,
+  fields: ctx => { const p = oneProfile(ctx); return [{ key: 'h', label: 'Run', kind: 'mm', min: 0.1 }, { key: 'bend', label: 'Bend radius', kind: 'mm', min: 0.1 },
+    { key: 'bendDeg', label: 'Bend angle', kind: 'deg', min: 1, max: 270, step: 15 },
+    { key: 'toward', label: 'Bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
+    ...opFields(!!(p && baseOf(ctx, p.node)))]; },
+  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendDeg: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
+  build: (ctx, v) => {
+    const p = oneProfile(ctx)!, run = Number(v.h);
+    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+  },
+};
+
+export const loftCommand: Command = {
+  id: 'loft', label: 'Loft', icon: 'cad-loft', group: 'create', keywords: 'taper transition blend sections ruled',
+  hint: 'A solid through two or more sketches on parallel planes (Shift-click to pick them)',
+  available: ctx => { const picked = ctx.selection.sketches ?? []; if (picked.length < 2) return no('Pick two or more finished sketches on parallel planes (Shift-click).'); const s = loftSections(ctx.doc.nodes, picked); return 'error' in s ? no(s.error) : ok; },
+  fields: () => [{ key: 'smooth', label: 'Smooth (through the middle sections)', kind: 'choice', options: [{ value: 'no', label: 'Ruled' }, { value: 'yes', label: 'Smooth' }] }],
+  defaults: () => ({ smooth: 'no' }),
+  build: (ctx, v) => {
+    const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
+    if ('error' in s) throw new Error(s.error);
+    // Each section on the first one's plane (the picked sketches stay as they are, used by the loft).
+    let doc = ctx.doc; const at: number[] = [];
+    for (const sec of s.sections) { doc = withNode(doc, sec.node); at.push(doc.nodes.length - 1); }
+    return withNode(doc, { kind: 'loft', sections: s.sections.map((sec, k) => ({ sketch: at[k], z: sec.z })), from: s.sections.map(sec => sec.source), ...(v.smooth === 'yes' && s.sections.length > 2 ? { smooth: true } : {}) });
+  },
+};
+
+export const profileCommands = [extrudeCommand, revolveCommand, pipeCommand, loftCommand];

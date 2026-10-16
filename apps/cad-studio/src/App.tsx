@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedDoc, type PartInstance } from './engine/doc';
-import { emptyDoc, featureLabel, fmt, loftTop, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
+import { emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -27,13 +27,14 @@ import { deleteFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
+import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, toWorld, xyPlane, type SketchPlane } from './sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
@@ -401,8 +402,13 @@ export function App() {
       });
       return;
     }
+    // A profile seen straight on (just after sketching on it) is turned to an angle, so its pull shows.
+    if (['extrude', 'revolve', 'pipe', 'loft'].includes(cmd.id)) {
+      const [i] = pickedSketches(evaluated.nodes, selection.sketches), n = i !== undefined ? planeOf(evaluated.nodes[i] as SketchNode).normal : null, cam = viewport.current?.camera;
+      if (n && cam) { const f = cam.basis().forward; if (Math.abs(f[0] * n[0] + f[1] * n[1] + f[2] * n[2]) > 0.95) viewport.current?.setView('iso'); }
+    }
     setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx } });
-  }, [ctx, selection, bodies, engine, commit]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes]);
 
   /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
   const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
@@ -436,70 +442,12 @@ export function App() {
       engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
       return;
     }
-    const base = sketch.base ?? null;
-    // How deep a cut must go to leave the base body on the far side: its farthest corner behind the
-    // sketch plane, and a millimetre more.
-    const baseBody = base ? bodies.find(b => { const r = refOf(b); return r.node === base.node && r.side === base.side; }) : undefined;
-    const through = baseBody ? (() => {
-      const { min, max } = baseBody.mesh.bounds, n = sketch.plane.normal, o = sketch.plane.origin;
-      let deepest = 0;
-      for (let i = 0; i < 8; i++) {
-        const c = [i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]];
-        deepest = Math.max(deepest, (o[0] - c[0]) * n[0] + (o[1] - c[1]) * n[1] + (o[2] - c[2]) * n[2]);
-      }
-      return Math.ceil(deepest) + 1;
-    })() : 0;
-    const extrude: Command = {
-      id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
-      fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }, { value: 'loft', label: 'Loft to a top section' }] },
-        { key: 'h', label: 'Distance', kind: 'mm', min: 1, when: v => !String(v.make).startsWith('revolve') && !(v.op === 'cut' && v.make === 'extrude' && v.depth === 'through') }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.make === 'extrude' },
-        // The revolve angle, or a pipe's bend angle (360: a quarter bend).
-        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') },
-        { key: 'bendDeg', label: 'Angle', kind: 'deg', min: 1, max: 270, step: 15, when: v => v.make === 'pipe' },
-        { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1, when: v => v.make === 'pipe' }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }], when: v => v.make === 'pipe' },
-        { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }], when: v => v.make === 'loft' },
-        { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400, when: v => v.make === 'loft' },
-        { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400, when: v => v.make === 'loft' },
-        ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : []),
-        ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' && v.make === 'extrude' }] : [])],
-      // The distance: an arrow from the profile's middle along the sketch normal (into the body for a cut).
-      handles: (_, v) => {
-        if (String(v.make).startsWith('revolve') || (v.op === 'cut' && v.make === 'extrude' && v.depth === 'through')) return [];
-        const n = sketch.plane.normal, sign = v.op === 'cut' ? -1 : 1, c = toWorld(sketch.plane, profileMiddle(node)), h = Number(v.h);
-        return [{ key: 'h', at: [c[0] + n[0] * sign * h, c[1] + n[1] * sign * h, c[2] + n[2] * sign * h], dir: [n[0] * sign, n[1] * sign, n[2] * sign], min: 1 }];
-      },
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bendDeg: 90, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
-      build: (c, v) => {
-        const cut = v.op === 'cut'; const d = withNode(c.doc, placedNode);
-        // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
-        // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
-        const height = cut && v.make === 'extrude' && v.depth === 'through' ? through : Number(v.h); const from = cut ? -height : 0;
-        // A pipe: a run of Distance, a bend of the radius and its own angle (90° by default), a run again.
-        // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
-        let e = v.make === 'loft'
-          ? (() => {
-            // A middle size (not 0) adds the drawn shape scaled half way up, and the loft runs smoothly through it.
-            const s = d.nodes.length - 1, z1 = cut ? -height : height, mid = Number(v.mid) / 100;
-            let t = withNode(d, loftTop(placedNode as SketchNode, v.top as 'scaled', Number(v.scale) / 100));
-            if (mid > 0) t = withNode(t, loftTop(placedNode as SketchNode, 'scaled', mid));
-            const secs = [{ sketch: s, z: 0 }, ...(mid > 0 ? [{ sketch: s + 2, z: z1 / 2 }] : []), { sketch: s + 1, z: z1 }];
-            return withNode(t, { kind: 'loft', sections: cut ? [...secs].reverse() : secs, ...(mid > 0 ? { smooth: true } : {}) }); })()
-          : v.make === 'pipe'
-          ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
-          : String(v.make).startsWith('revolve')
-          ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
-          // With a draft a cut goes down from the face, so its walls lean in away from the opening.
-          : Number(v.draft) && cut ? withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: -height, draft: Number(v.draft) })
-          : withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}), ...(Number(v.draft) ? { draft: Number(v.draft) } : {}) });
-        const tool = { node: e.nodes.length - 1, side: 'solid' as const };
-        if (base && v.op === 'join') e = withNode(e, { kind: 'union', left: base as { node: number; side: 'solid' }, right: tool });
-        if (base && cut) e = withNode(e, { kind: 'difference', parent: base as { node: number; side: 'solid' }, tool });
-        return e;
-      },
-    };
-    setSketch(null);
-    setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
-  }, [sketch, ctx, bodies, doc, marker, commit, engine]);
+    // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready
+    // for Extrude, Revolve, Pipe or Loft.
+    const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
+    commit(next); setSketch(null);
+    setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
+  }, [sketch, doc, marker, commit, engine]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
     if (active) return;
@@ -528,6 +476,17 @@ export function App() {
     });
   }, [active, measure, assembly]);
   pickRef.current = onPick;
+  // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
+  const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
+  const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: profileRings(evaluated.nodes[i] as SketchNode), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, selection.sketches, sketch]);
+  const pickProfile = useCallback((id: number | null, additive: boolean) => {
+    if (id === null) return;
+    setDirectSel([]); setInstanceSel([]);
+    setSelection(prev => {
+      const list = prev.sketches ?? [];
+      return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
+    });
+  }, []);
 
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
@@ -718,7 +677,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
@@ -881,7 +840,7 @@ export function App() {
           </div>; })}
         </>}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge. Shift-click to pick bodies for a Boolean.</div>}
-        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
@@ -905,7 +864,11 @@ export function App() {
       })()}
       {!sketch && !active && !rendering && <div className="card history" aria-label="History">
         <span className="card-title inline">HISTORY</span>
-        {doc.nodes.map((n, i) => n.kind === 'sketch' ? null : (
+        {doc.nodes.map((n, i) => n.kind === 'sketch' ? (freeSketches.includes(i) ? (
+          // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
+          <button key={i} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
+            onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}>
+            <Icon name="cad-sketch" small />{featureLabel(n, i, doc.nodes)}</button>) : null) : (
           <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to edit · double-click to roll back here`}
             onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}>
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
@@ -972,13 +935,6 @@ const MATERIALS = [
 function iconFor(n: ModelNode) {
   return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', sweep: 'conversion_path', loft: 'filter_list', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
-}
-
-/** The middle of a sketch profile in its plane's coordinates (the average of its corners, a circle's centre). */
-function profileMiddle(n: SketchNode): [number, number] {
-  const pts: (readonly unknown[])[] = n.profile === 'rectangle' ? [n.min, n.max] : n.profile === 'circle' ? [n.center] : n.profile === 'polygon' ? n.points : n.segments.map(s => s.start);
-  const xs = pts.map(p => Number(p[0])).filter(Number.isFinite), ys = pts.map(p => Number(p[1])).filter(Number.isFinite);
-  return [xs.reduce((a, b) => a + b, 0) / (xs.length || 1), ys.reduce((a, b) => a + b, 0) / (ys.length || 1)];
 }
 
 function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void }) {

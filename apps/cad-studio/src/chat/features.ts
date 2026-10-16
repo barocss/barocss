@@ -132,7 +132,8 @@ function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: map(r.node) });
   const n = { ...node } as Record<string, unknown> & ModelNode;
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);
-  if (n.kind === 'loft') (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) }));
+  if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
+  if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   for (const key of ['parent', 'left', 'right', 'tool'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   if (n.kind === 'fillet' || n.kind === 'chamfer') (n as { edges: string[] }).edges = n.edges.map(e => renameIds(e, map));
   if (n.kind === 'shell') (n as { open: string[] }).open = n.open.map(e => renameIds(e, map));

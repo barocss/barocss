@@ -56,8 +56,11 @@ test('tool schemas: every buildable command is exposed and documented with the H
     hole: sel({ faces: [{ body: 0, face: top.index }] }), chamfer: sel({ edges: [{ body: 0, edge: 0 }] }), fillet: sel({ edges: [{ body: 0, edge: 0 }] }),
     union: sel({ bodies: [0, 1] }), difference: sel({ bodies: [0, 1] }), intersect: sel({ bodies: [0, 1] }),
   };
+  // The profile commands take the newest finished sketch: one drawn on the plate's top.
+  const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
   for (const id of CHAT_COMMANDS) {
-    const ctx: Ctx = { doc: s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
+    const profile = ['extrude', 'revolve', 'pipe'].includes(id);
+    const ctx: Ctx = { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);

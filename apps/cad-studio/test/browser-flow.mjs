@@ -175,7 +175,7 @@ try {
     await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
     await press('s'); await page.waitForFunction(() => /SKETCH · Y 0 · on face/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
     [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 40, cy - 25); await clickAt(cx + 40, cy + 25); await snap('front-face-sketch');
-    await press('Enter'); await hudReady();
+    await press('Enter'); await press('e'); await hudReady();
     await field('Operation').selectOption('cut'); await field('Depth').selectOption('through');
     assert.equal(await field('Distance').count(), 0, 'a through cut has no distance');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
@@ -190,7 +190,7 @@ try {
     // Lifted 5 mm off XY before finishing: the shapes keep their plane coordinates.
     await page.fill('[aria-label="Plane offset"]', '5');
     await page.waitForFunction(() => /SKETCH · Z 5/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
-    await page.click('.topbar button.finish'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.click('.topbar button.finish'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     d = await doc(); assert.equal(d.nodes[0].profile, 'rectangle'); assert.equal(d.nodes[0].holes?.length, 1); assert.deepEqual(d.nodes[0].plane.origin, [0, 0, 5]); await iso();
   });
@@ -202,7 +202,7 @@ try {
     await page.fill('[aria-label="Plane angle"]', '30');
     await page.waitForFunction(() => /SKETCH · 30° tilted plane/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
     await snap('tilted-plane-sketch');
-    await page.click('.topbar button.finish'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.click('.topbar button.finish'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const n = (await doc()).nodes[0].plane.normal;
     assert.ok(Math.abs(n[0]) < 1e-9 && Math.abs(n[1] - 0.5) < 1e-9 && Math.abs(n[2] - Math.sqrt(3) / 2) < 1e-9, `normal ${n}`);
@@ -214,7 +214,7 @@ try {
     const [cx, cy] = await canvasCenter();
     await clickAt(cx - 120, cy); await clickAt(cx + 120, cy); await page.mouse.move(cx + 120, cy + 20); await page.mouse.move(cx + 120, cy + 40); await page.mouse.click(cx + 120, cy + 40);
     assert.match(await status(), /Slot/); await snap('slot-sketch');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.deepEqual(d.nodes[0].segments.map(x => x.kind), ['line', 'arc', 'line', 'arc']);
     await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props').innerText(), /Faces\s*6/); await iso();
@@ -233,7 +233,7 @@ try {
     await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
     await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/); await snap('fully-defined');
     await page.fill('#sk-len2', String(W + 9)); assert.match(await page.locator('.sk-panel [role=alert]').innerText(), /conflict/);
-    await page.locator('#sk-len2').evaluate(e => e.blur()); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.locator('#sk-len2').evaluate(e => e.blur()); await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'polygon');
     const xs = d.nodes[0].points.map(p => p[0]), ys = d.nodes[0].points.map(p => p[1]);
@@ -247,7 +247,7 @@ try {
     await press('a'); await clickAt(cx + 50, cy + 80); await page.mouse.move(cx + 100, cy + 60); await page.mouse.move(cx + 100, cy + 40); await page.mouse.click(cx + 100, cy + 40);
     await press('l'); await clickAt(cx - 150, cy + 80); await clickAt(cx - 150, cy - 80);
     assert.match(await status(), /line \+ arc/i); await snap('outline-sketch');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.equal(d.nodes[0].segments.filter(x => x.kind === 'arc').length, 1); await iso();
   });
@@ -269,7 +269,7 @@ try {
     assert.equal(Math.abs(Number(await page.inputValue('[aria-label="Point 3 Y"]')) - Number(await page.inputValue('[aria-label="Point 2 Y"]'))), 2 * target);
     await snap('tangent-radius');
     await page.click('[aria-label="Tangent at point 3"]'); assert.deepEqual(await pressed(), ['T · 2']);
-    await page.locator('#sk-rad1').evaluate(e => e.blur()); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.locator('#sk-rad1').evaluate(e => e.blur()); await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); await iso();
   });
@@ -293,7 +293,7 @@ try {
     assert.equal(await page.getAttribute('[aria-label="Equal radius for arcs 1 and 3"]', 'aria-pressed'), 'false');
     assert.ok(await page.locator('.sk-panel [role=alert]').count() > 0);
     await page.locator('canvas').focus().catch(() => {}); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const arcs = (await doc()).nodes[0].segments.filter(x => x.kind === 'arc');
     assert.equal(arcs.length, 2);
@@ -350,7 +350,7 @@ try {
     await press('d'); await pick('edge', 2);
     await page.locator('.dim-edit').fill('40'); await page.locator('.dim-edit').press('Enter');
     assert.match(await alert(), /Length of edge 3 = 40: These constraints conflict/); assert.equal(await page.inputValue('#sk-len2'), '50');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 50) < 1e-6 && Math.abs(Math.max(...ys) - Math.min(...ys) - Math.sqrt(75 ** 2 - 50 ** 2)) < 1e-4, JSON.stringify(pts));
@@ -373,7 +373,7 @@ try {
     await page.keyboard.down('Shift'); await clickAt(cx - 60, cy + 70); await page.keyboard.up('Shift');
     await page.click('[aria-label="Equal"]'); assert.match(await status(), /Fully defined/);
     assert.equal(await page.inputValue('#sk-len3'), '40');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     assert.equal(Math.max(...xs) - Math.min(...xs), 40); assert.equal(Math.max(...ys) - Math.min(...ys), 40); await iso();
@@ -449,7 +449,7 @@ try {
     assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Rectangle/);
     assert.notEqual(await page.evaluate(() => document.activeElement?.tagName), 'INPUT');
     await press('s'); assert.equal(await page.inputValue('#sk-len0'), '60', 'outline back after S');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal((await doc()).nodes[0].outline?.lengths?.[0], 60, 'outline kept in the sketch node');
     // The feature editor offers the outline's driving dimension.
@@ -475,7 +475,7 @@ try {
     const [cx, cy] = await canvasCenter();
     for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
     await page.fill('#sk-len0', '60'); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
     await page.click('[aria-label="Edit sketch"]');
@@ -513,7 +513,7 @@ try {
     assert.match(list, /Horizontal distance\s*point 1 – circle 1 = 20/); assert.match(list, /Vertical distance\s*point 1 – circle 1 = 12/);
     assert.match(await status(), /2 DOF/);
     await snap('hole-placed');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const n0 = (await doc()).nodes[0], [c] = n0.outline.circles;
     assert.equal(n0.holes?.length, 1);
@@ -543,7 +543,7 @@ try {
     const list = await page.locator('.sk-panel [role=list]').innerText();
     assert.match(list, /Distance\s*edge 1 – circle 1 = 10/); assert.match(list, /Horizontal distance\s*circle 1 – circle 2 = 30/);
     await snap('holes-from-edge-and-each-other');
-    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const n0 = (await doc()).nodes[0], [c1, c2] = n0.outline.circles;
     assert.equal(n0.holes?.length, 2);
@@ -552,11 +552,14 @@ try {
   });
 
   await check('revolve a circle sketch into a torus from the palette', async () => {
-    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
+    // A circle off the Y axis, finished as a sketch, then Revolve on its own (about the sketch's Y axis).
+    await page.click('[aria-label="New part"]'); await press('s'); await press('c');
     const [cx, cy] = await canvasCenter();
     await clickAt(cx + 160, cy - 40); await page.mouse.move(cx + 190, cy - 40); await page.mouse.move(cx + 200, cy - 40); await page.mouse.click(cx + 200, cy - 40);
-    await press('Enter'); await hudReady();
-    assert.equal(await field('Make').inputValue(), 'revolve-y');
+    await press('Enter'); await page.waitForFunction(() => document.querySelectorAll('.profile.picked').length === 1, null, { timeout: 5000 });
+    assert.equal(await page.locator('.hud').count(), 0, 'finishing a sketch opens no command');
+    await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter'); await hudReady();
+    assert.equal(await field('Axis').inputValue(), 'y');
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'circle'); assert.equal(d.nodes[1].kind, 'revolve'); assert.equal(d.nodes[1].axis, 'y');
@@ -564,26 +567,35 @@ try {
   });
 
   await check('sweep a circle into a bent pipe from the palette', async () => {
-    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('pipe'); await press('Enter');
+    await page.click('[aria-label="New part"]'); await press('s'); await press('c');
     const [cx, cy] = await canvasCenter();
     await clickAt(cx, cy); await page.mouse.move(cx + 20, cy); await page.mouse.move(cx + 30, cy); await page.mouse.click(cx + 30, cy);
-    await press('Enter'); await hudReady();
-    assert.equal(await field('Make').inputValue(), 'pipe');
+    await press('Enter'); await page.waitForFunction(() => document.querySelectorAll('.profile.picked').length === 1, null, { timeout: 5000 });
+    await press(' '); await page.locator('.palette input').fill('pipe'); await press('Enter'); await hudReady();
+    assert.equal(await field('Bends toward').inputValue(), 'x');
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /Pipe 3 steps/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
     const last = (await doc()).nodes.at(-1); assert.equal(last.kind, 'sweep'); assert.equal(last.path[1].kind, 'bend'); await iso();
   });
 
   await check('loft a rectangle to a circle from the palette', async () => {
-    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter');
-    const [cx, cy] = await canvasCenter();
-    await clickAt(cx - 60, cy - 60); await page.mouse.move(cx + 30, cy + 30); await page.mouse.move(cx + 60, cy + 60); await page.mouse.click(cx + 60, cy + 60);
-    await press('Enter'); await hudReady();
-    assert.equal(await field('Make').inputValue(), 'loft');
-    await field('Loft top').selectOption('circle'); await hudReady(); await page.waitForTimeout(300);
+    // Two finished sketches: a rectangle on XY and a circle on a plane 20 above it, both picked (Shift), then Loft.
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    let [cx, cy] = await canvasCenter();
+    await clickAt(cx - 60, cy - 60); await clickAt(cx + 60, cy + 60); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 5000 });
+    await press('s'); await page.fill('[aria-label="Plane offset"]', '20');
+    await page.waitForFunction(() => /SKETCH · Z 20/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await press('c'); [cx, cy] = await canvasCenter();
+    await clickAt(cx, cy); await page.mouse.move(cx + 30, cy); await page.mouse.move(cx + 40, cy); await page.mouse.click(cx + 40, cy); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 5000 });
+    // The circle is picked; Shift-click the rectangle's chip to add it.
+    await page.locator('.history .hs.sketch').first().click({ modifiers: ['Shift'] });
+    await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 2, null, { timeout: 5000 });
+    await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady(); await page.waitForTimeout(300);
     await page.locator('.hud button', { hasText: 'Apply' }).click();
     await page.waitForFunction(() => /Loft 2 sections/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
-    const d = await doc(), last = d.nodes.at(-1); assert.equal(last.kind, 'loft'); assert.equal(d.nodes[last.sections[1].sketch].profile, 'circle'); await iso();
+    const d = await doc(), last = d.nodes.at(-1); assert.equal(last.kind, 'loft'); assert.deepEqual(last.sections.map(x => x.z), [0, 20]); assert.deepEqual(last.from, [0, 1]); await iso();
   });
 
   await check('fillet a box top edge from the palette', async () => {
@@ -591,7 +603,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1, edge = `n${ext}.side0|n${ext}.top`;
     assert.ok(await page.evaluate(n => window.__studioSelectEdge(n), edge), 'the edge exists');
-    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await press('e'); await hudReady();
     await field('Radius').fill('4'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /Fillet R4/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
     const d = await doc(), last = d.nodes[d.nodes.length - 1];
@@ -604,7 +616,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
-    await press(' '); await page.locator('.palette input').fill('shell'); await press('Enter'); await hudReady();
+    await press(' '); await page.locator('.palette input').fill('shell'); await press('Enter'); await press('e'); await hudReady();
     await field('Wall').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /Shell 2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
     const last = (await doc()).nodes.at(-1);
@@ -616,12 +628,12 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     assert.ok(await page.evaluate(n => window.__studioSelectEdge(n), `n${ext}.bottom|n${ext}.side0`), 'the foot edge exists');
-    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await press('e'); await hudReady();
     await field('Radius').fill('4'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     // (The outliner lists the evaluated bodies: the filleted body is there once the kernel is done.)
     await page.waitForFunction(() => /Fillet R4/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await page.waitForTimeout(300);
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
-    await press(' '); await page.locator('.palette input').fill('shell'); await press('Enter'); await hudReady();
+    await press(' '); await page.locator('.palette input').fill('shell'); await press('Enter'); await press('e'); await hudReady();
     await field('Wall').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /Shell 2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 30000 });
     const d = await doc(); assert.deepEqual(d.nodes.slice(-2).map(n => n.kind), ['fillet', 'shell']); assert.match(await outliner(), /1 body/); await iso();
@@ -1094,7 +1106,7 @@ try {
     await press('Enter'); await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     // The box's top face picks its body for Rotate.
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioSelectFace('n1.top'), null, { timeout: 15000 });
-    await press(' '); await page.locator('.palette input').fill('rotate'); await press('Enter'); await hudReady();
+    await press(' '); await page.locator('.palette input').fill('rotate'); await press('Enter'); await press('e'); await hudReady();
     await page.waitForSelector('[data-gizmo=turnX]', { timeout: 5000 });
     const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
     const q = await page.evaluate(() => { const ps = document.querySelector('[data-gizmo=turnX] polyline:nth-of-type(2)').getAttribute('points').trim().split(' ').map(p => p.split(',').map(Number)); return ps[ps.length >> 1]; });

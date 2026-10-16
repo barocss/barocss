@@ -117,7 +117,7 @@ export function shapeOutline(s: SketchShape): P2[] {
 }
 
 /** A sketch node's outline as line and arc segments (a circle: one full arc). */
-function loopOf(n: SketchNode): DocSegment[] {
+export function loopOf(n: SketchNode): DocSegment[] {
   const num = (p: readonly unknown[]) => [Number(p[0]), Number(p[1])] as [number, number];
   switch (n.profile) {
     case 'rectangle': { const a = num(n.min), b = num(n.max); return [a, [b[0], a[1]], b, [a[0], b[1]]].map(start => ({ kind: 'line', start: start as [number, number] })); }

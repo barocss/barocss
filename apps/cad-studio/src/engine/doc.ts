@@ -21,7 +21,8 @@ export interface SketchOutline {
   circles?: { c: [number, number]; r: number }[];
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline };
+/** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -47,7 +48,8 @@ export type ModelNode = SketchNode
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
-  | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean }
+  /** `from`: the sketches the sections were carried over from, when they lay on offset planes (used by the loft). */
+  | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean; from?: number[] }
   /** A body read from a STEP file (the file's text is kept in the document). */
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }
@@ -124,7 +126,7 @@ export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
-    case 'loft': return node.sections.map(s => s.sketch);
+    case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'import': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];

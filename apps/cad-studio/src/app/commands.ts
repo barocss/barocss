@@ -1,11 +1,13 @@
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
+import { profileCommands } from './profileCommands';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
-export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[] }
+/** `sketches`: finished sketches picked as profiles (node indices; see app/profiles.ts). */
+export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[] }
 export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number] }
 
 export type Values = Record<string, number | string>;
@@ -123,6 +125,7 @@ export const commands: Command[] = [
     id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
     available: () => ok, action: 'sketch',
   },
+  ...profileCommands,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,
@@ -234,11 +237,8 @@ export const commands: Command[] = [
   },
   { id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Lean faces away from a pull direction', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
   // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
-  { id: 'revolve', label: 'Revolve', icon: 'cad-revolve', hint: 'Turn a profile about an axis into a solid', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },
   // Sketch the bottom section; finishing it lofts it to a top section above.
-  { id: 'loft', label: 'Loft', icon: 'cad-loft', hint: 'A solid through two or more sections', group: 'create', keywords: 'taper transition blend sections ruled', available: () => ok, action: 'sketch' },
   // Sketch a section; finishing it sweeps it along a run, a bend and a run.
-  { id: 'pipe', label: 'Pipe', icon: 'cad-sweep', hint: 'Carry a profile along straight runs and bends', group: 'create', keywords: 'sweep tube bend path rail handle', available: () => ok, action: 'sketch' },
   {
     id: 'move', label: 'Move', icon: 'cad-move', hint: 'Move a body: drag the arrows, or type Δ or a position', shortcut: 'G', group: 'modify', keywords: 'translate position',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),

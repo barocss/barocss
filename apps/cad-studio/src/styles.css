@@ -244,3 +244,12 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .tooltip-head b { font-weight: 600; }
 .tooltip-desc { color: var(--text-2); line-height: 1.4; }
 .tooltip-off { color: var(--warn); line-height: 1.4; }
+
+/* Finished sketches waiting for a feature (viewport): outlines, the picked ones filled. */
+.vp-overlay .profile-line { fill: none; stroke: #8fb8ff; stroke-width: 1.6; stroke-linejoin: round; }
+.vp-overlay .profile.picked .profile-line { stroke: #f5c542; stroke-width: 2.2; }
+.vp-overlay .profile-fill { fill: #f5c542; fill-opacity: 0.18; stroke: none; }
+:root[data-theme='light'] .vp-overlay .profile-line { stroke: #2f6fd6; }
+.hs.sketch { color: #9ec1ff; }
+.hs.sketch.picked { background: var(--accent-soft); color: #f3d98f; outline: 1px solid var(--accent); }
+:root[data-theme='light'] .hs.sketch { color: #2f6fd6; }

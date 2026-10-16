@@ -21,10 +21,14 @@ export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string }
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
-export const CHAT_COMMANDS = commands.filter(c => c.build).map(c => c.id);
+// (Loft takes sketches picked in the studio; chat writes a loft node with add_features instead.)
+export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft').map(c => c.id);
 
 /** What each command needs selected and what its values mean. */
 export const COMMAND_DOCS: Record<string, { selection: string; values: Record<string, string> }> = {
+  extrude: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'distance along the sketch normal', draft: 'wall draft degrees (0: straight)', op: 'join | new | cut (only for a sketch drawn on a body face)', depth: 'distance | through (a cut only)' } },
+  revolve: { selection: 'none: the newest finished sketch no feature uses yet', values: { axis: 'y | x: the sketch axis to turn about', deg: 'angle, up to 360', op: 'join | new | cut (sketch on a body face)' } },
+  pipe: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'straight run before and after the bend', bend: 'bend radius', bendDeg: 'bend angle', toward: 'x | -x | y | -y', op: 'join | new | cut (sketch on a body face)' } },
   box: { selection: 'none (or a top face to stack on)', values: { w: 'width along X', d: 'depth along Y', h: 'height along Z', x: 'min corner X', y: 'min corner Y', z: 'base Z' } },
   cylinder: { selection: 'none', values: { r: 'radius', h: 'height', x: 'centre X', y: 'centre Y', z: 'base Z' } },
   hole: { selection: 'faces: [one flat face facing ±X/±Y/±Z]', values: { d: 'diameter (through all)', x: 'centre, first axis of the face plane (Z face: X; X face: Y; Y face: X)', y: 'centre, second axis (Z face: Y; X face: Z; Y face: Z)' } },

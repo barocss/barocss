@@ -94,6 +94,9 @@ interface Props {
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
+  /** Finished sketches no feature uses yet (world outlines), picked ones highlighted; a click picks one (Shift: adds). */
+  profiles?: { id: number; rings: Vec3[][]; picked: boolean }[];
+  onPickProfile?(id: number | null, additive: boolean): void;
   /** An instance shown moved while the gizmo drags it (see assembly/drag.ts previewMatrix). */
   instancePreview?: { id: string; matrix: Float64Array } | null;
 }
@@ -238,6 +241,22 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     return { project, forward, size: GIZMO_PX / perMm };
   };
   const sk0 = () => propsRef.current.sketch;
+  /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
+  const profileAt = (x: number, y: number, w: number, h: number): number | null => {
+    const list = propsRef.current.profiles; if (!list?.length) return null;
+    let best: number | null = null, bestD = 6;
+    for (const p of list) for (const [k, ring] of p.rings.entries()) {
+      const q = ring.map(v => camera.current.project(v, w, h));
+      let inside = false;
+      for (let i = 0, j = q.length - 1; i < q.length; j = i++) {
+        const a = q[i], b = q[j], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy, t = l2 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)) : 0;
+        const d = Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy); if (d < bestD) { bestD = d; best = p.id; }
+        if ((a[1] > y) !== (b[1] > y) && x < a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])) inside = !inside;
+      }
+      if (k === 0 && inside && best === null) best = p.id;
+    }
+    return best;
+  };
   const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
   /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
   const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean) => {
@@ -366,6 +385,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       return;
     }
     const r = renderer.current!;
+    // A finished sketch's outline (or inside its main loop) comes before the bodies behind it.
+    const prof = profileAt(x, y, w, h);
+    if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
@@ -503,6 +525,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (dr.mode === 'box' && dr.x0 !== undefined) {
       const crossing = dr.x < dr.x0;
       items.push(<rect key="box" x={Math.min(dr.x0, dr.x)} y={Math.min(dr.y0!, dr.y)} width={Math.abs(dr.x - dr.x0)} height={Math.abs(dr.y - dr.y0!)} className={crossing ? 'marquee crossing' : 'marquee'} />);
+    }
+    // Finished sketches waiting for a feature: their outlines, the picked ones filled.
+    if (!sk && props.profiles?.length) for (const p of props.profiles) {
+      const rings = p.rings.map(r => r.map(v => cam.project(v, w, h)));
+      items.push(<g key={'pf' + p.id} className={'profile' + (p.picked ? ' picked' : '')} data-profile={p.id}>
+        {p.picked && <path d={rings.map(r => 'M' + r.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join('L') + 'Z').join('')} fillRule="evenodd" className="profile-fill" />}
+        {rings.map((r, k) => <polygon key={k} points={r.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ')} className="profile-line" />)}</g>);
     }
     // The gizmo and feature handles, and while one is dragged what the drag means.
     if (props.gizmo || props.handles?.length) {
