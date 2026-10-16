@@ -90,7 +90,7 @@ const tables = (base: StudioDoc, list: PartInstance[]) => { const t = new Map<st
 const M = (id: string, kind: Mate['kind'], a: [string, string], b: [string, string], extra: Partial<Mate> = {}): Mate => ({ id, kind, a: { part: a[0], face: a[1] }, b: { part: b[0], face: b[1] }, ...extra });
 run('N7', AM, 'block origin XY on the base top (z 8), then origin YZ / XZ on base origin planes: fully placed at (0,0,8)', () => {
   const blk = inst('b', rectanglePart(10, 10, 4), [50, 40, 0]);
-  const ms = [M('m1', 'coincident', [BASE, 'n1.top'], ['b', 'origin:xy'], { flip: true }), M('m2', 'coincident', [BASE, 'origin:yz'], ['b', 'origin:yz'], { flip: true }), M('m3', 'coincident', [BASE, 'origin:xz'], ['b', 'origin:xz'], { flip: true })];
+  const ms = [M('m1', 'coincident', [BASE, 'n1.top'], ['b', 'origin:xy']), M('m2', 'coincident', [BASE, 'origin:yz'], ['b', 'origin:yz']), M('m3', 'coincident', [BASE, 'origin:xz'], ['b', 'origin:xz'])];
   const steps = [1, 2, 3].map(k => { const r = solveAssembly([blk], ms.slice(0, k), tables(starterDoc(), [blk])); return { position: r.instances[0].position, rotation: r.instances[0].rotation, freedom: r.freedom.b, problems: r.problems.map(p => p.reason) }; });
   const last = steps[2];
   return { ok: JSON.stringify(last.position) === '[0,0,8]' && !last.problems.length && last.freedom?.turns === 0 && last.freedom?.slides === 0, expected: 'after 3 mates: (0,0,8), freedom 0 turns 0 slides; after 1: 1 turn 2 slides', actual: steps };

@@ -19,6 +19,8 @@ export interface MateRef { part: string; face: string }
  * measured from facing the same way), with no hold on position. `tangent`: a round face touching a flat face,
  * its axis parallel to the face and its radius in front of it (flip: behind it); or two round faces touching
  * along parallel axes, outside each other (a pin inside a hole: inside; flip swaps the two).
+ * Origin planes (`origin:xy`…) have no material side: a flat mate with one lines the planes up facing the
+ * same way by default, and flip opposes them.
  */
 export interface Mate {
   id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean;
@@ -304,7 +306,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
     // An angle: the moving normal at `angle` to the partner's (opposed); a tangent: the axis square to the face's normal.
     const dirOf = (f: MateFace) => f.kind === 'plane' ? f.normal : f.axis;
     const u = dirOf(term.moving), n = dirOf(term.fixed);
-    const w = term.mate.kind === 'angle' && !term.mate.flip ? mul(n, -1) : n, c = term.mate.kind === 'angle' ? Math.cos((term.mate.angle ?? 0) * DEG) : 0, a = apply(R, u);
+    const w = term.mate.kind === 'angle' && !planesAligned(term.mate) ? mul(n, -1) : n, c = term.mate.kind === 'angle' ? Math.cos((term.mate.angle ?? 0) * DEG) : 0, a = apply(R, u);
     const fixedBy = dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ') || 'the angle before it';
     if (frame) {
       if (Math.abs(dot(a, w) - c) > DIR_TOL) problems.push({ mate: term.mate.id, reason: `Conflicts with ${fixedBy}: they hold this face of ${partName} at ${fmtNum(degBetween(dot(a, w)))}° to its partner.` });
@@ -474,9 +476,11 @@ function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3; hold
 }
 
 type Cylinder = Extract<MateFace, { kind: 'cylinder' }>;
+/** Whether a flat mate's normals face the same way: flip, or the reverse when an origin plane is involved. */
+export const planesAligned = (m: Mate) => !!m.flip !== (m.a.face.startsWith('origin:') || m.b.face.startsWith('origin:'));
 /** The direction a mate turns: flat faces opposed (flip: the same way), axes the same way (flip: reversed). */
 function directionOf(t: Term): { u: Vec3; v: Vec3 } {
-  if (t.fixed.kind === 'plane' && t.moving.kind === 'plane') return { u: t.moving.normal, v: t.mate.flip ? t.fixed.normal : mul(t.fixed.normal, -1) };
+  if (t.fixed.kind === 'plane' && t.moving.kind === 'plane') return { u: t.moving.normal, v: planesAligned(t.mate) ? t.fixed.normal : mul(t.fixed.normal, -1) };
   return { u: (t.moving as Cylinder).axis, v: mul((t.fixed as Cylinder).axis, t.mate.kind === 'concentric' && t.mate.flip ? -1 : 1) };
 }
 /** A tangent between two round faces (parallel axes a sum or a difference of radii apart). */
