@@ -22,10 +22,10 @@ Panels use matched scene concepts and intended single-variable changes. Image ge
 
 The first directional and point images were independently visually reviewed; embedded strict Same geometry wording was replaced with matched-concept wording. A rejected UV filtering draft was not published: current source admits nearest only. Final UV draft removes ground/cast shadows and replaces the proposed filter comparison with source-image update.
 
-## Next nonduplicate design queue
-1. Authored light color/intensity relationships under #1445/#1579.
-2. Opaque material uniform/color expressions under #779/#1439.
-3. Transparency as a separately labeled future target only after reading #1237 and its exact limits.
+## Initial design queue (now covered below)
+1. Covered: authored light color relationships under #1445/#1579 (Board05).
+2. Covered: opaque material uniform/color expressions under #779/#1439 (Boards04/07).
+3. Covered after reading #1237: separately labeled future transparency target (Board06).
 Shadows, environmental reflections, physically based materials and postprocessing are not current-support claims; require their own grounded future-design scope before adding imagery.
 
 ## Publication
@@ -46,3 +46,11 @@ Both final PNGs were inspected and independently accepted as qualitative target 
 
 ![Future opacity concept](06-future-opacity-composition.png)
 ![Native normalized-coordinate concept](07-native-surface-uv01.png)
+
+## Shared depth and future cast shadows
+- Board08 follows [#1059](https://github.com/barocss/barocss/issues/1059), specifically its front/behind native Surface and original SDF Sphere scenarios. Only surface depth is intended to change; these are opaque occlusion targets, not transparency or draw-order tricks. Related [#1072](https://github.com/barocss/barocss/issues/1072) addresses multiple native Faces on shared depth but is not the mixed-profile authority. No runtime status is inferred.
+- Board09 follows the exact [GPU Engine Roadmap E4 — scene service maturity](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e4--scene-service-maturity). That section places shadows behind original unit/color/light contracts and real pixel evidence. This image is a PLANNED/FUTURE visual target only, NOT implemented support or an API/algorithm commitment. The cast shadow follows the upper-left lighting and attaches at sphere contact. The unshadowed panel has no ground/contact shadow. Shadow softness, bias, filtering, precision, device support and performance are unspecified, untested and unclaimed.
+Both final PNGs were visually inspected and independently accepted as target concepts. The initial shadow draft's unwanted left contact shadow was corrected before publication.
+
+![Shared-depth target](08-shared-depth-occlusion.png)
+![Future shadow target](09-future-cast-shadow.png)
