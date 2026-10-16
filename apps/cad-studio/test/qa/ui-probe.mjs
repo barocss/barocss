@@ -212,10 +212,13 @@ try {
   const finishExtrude = async h => {
     await page.evaluate(() => document.activeElement?.blur());
     // (Finish keeps the sketch as a feature; Extrude is its own command now, E.)
-    await page.click('.topbar button.finish'); await page.waitForTimeout(300);
-    if (!(await page.locator('.toast[role=alert]').count())) { await press('e'); await page.waitForTimeout(300); }
+    // (A toast left by an earlier case is not this Finish's refusal: only a new one is.)
+    const toastText = async () => (await page.locator('.toast[role=alert]').allInnerTexts()).join(' ');
+    const before = await toastText(); await page.click('.topbar button.finish'); await page.waitForTimeout(300);
+    const refused = (await toastText()) !== before && /Finish the profile/.test(await toastText());
+    if (!refused) { await press('e'); await page.waitForTimeout(300); }
     const hud = await page.locator('.hud').count();
-    if (!hud) return { finished: false, toast: (await page.locator('.toast[role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ') };
+    if (!hud) return { finished: false, toast: (await toastText()).replace(/\s+/g, ' ') };
     await hudReady(); if (h !== undefined) await setField('Distance', h);
     const st = await hudStatus(); if (st !== 'preview') { const e = await hudError(); await press('Escape'); return { finished: true, status: st, error: e }; }
     await press('Enter'); await idle(); await page.waitForTimeout(300); return { finished: true, status: st };

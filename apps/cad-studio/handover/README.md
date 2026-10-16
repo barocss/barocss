@@ -114,10 +114,22 @@ beginner-ish tools, one consistent icon set). What landed, one commit each (`git
 - **Icons**: one generated system in `src/ui/cadIcons.tsx` (shared isometric projection, opaque three-tone
   faces mixed into `--icon-bg`, accent `--icon-ac`); check them with `test/qa/icon-sheet.tsx` (renders a sheet).
 
-Verified at `ab879125`: unit 163/163, type-check and lint clean, browser flow 59/59 (WebGPU). The flow takes
-`FLOW_ONLY=<regex>` to run the first step and the matching ones.
+Later the same night (`ab879125..`): previews tint the bodies a command adds; the command HUD sits at the
+right (the Selection panel's place) so it no longer covers the model; arrow keys nudge the picked body
+(Shift 10 mm, PgUp/PgDn for Z, one history step per run); ⌘C/⌘V copy and paste bodies; sketch construction
+shapes (X: dashed references kept with the sketch, never sent to the kernel); sketch tool and history icons in
+the CAD set; right-click a history step to edit, edit its sketch, roll back or delete it; the sketch hint bar at
+the top; the rail hidden in Drawing.
 
-Still open from this pass: kernel fillet ~140 ms per evaluation (dragging a fillet's own radius waits on it);
+Verified at the last commit of the pass: unit 164/164, type-check and lint clean, browser flow 62/62 (WebGPU).
+The flow takes `FLOW_ONLY=<regex>` to run the first step and the matching ones. The QA probe
+(`test/qa/ui-probe.mjs`) was brought to the new flows (shape labels, Finish then E, Mirror's default plane);
+note that it hot-reloads if sources change while it runs, and its cases depend on the ones before them.
+
+Still open from this pass: kernel fillet ~140 ms per evaluation (dragging a fillet's own radius waits on it;
+two thirds of it is `edge-finish.ts` `joinTouching` unioning the corner-mitred tools one by one);
+the sketch solver's 16-point admission limit is part of the kernel's frozen `bounded-length-angle-v0`
+contract (a test checks it), so it was left for the kernel owner;
 a GPU clipping plane would make the section view instant; sketch trim/offset/construction lines; the
 QA `test/qa/ui-probe.mjs` predates the new sketch flow (Finish no longer opens Extrude).
 
