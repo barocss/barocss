@@ -702,30 +702,28 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
   });
 
-  await check('chat builds a plate through a mocked proxy', async () => {
-    // The proxy's replies are scripted: each one reads the tool results the studio sent back.
-    const sse = (content, stop) => [
-      { type: 'message_start', message: { model: 'mock', content: [] } },
-      ...content.flatMap((b, index) => b.type === 'tool_use'
-        ? [{ type: 'content_block_start', index, content_block: { ...b, input: {} } }, { type: 'content_block_delta', index, delta: { type: 'input_json_delta', partial_json: JSON.stringify(b.input) } }, { type: 'content_block_stop', index }]
-        : [{ type: 'content_block_start', index, content_block: { type: 'text', text: '' } }, { type: 'content_block_delta', index, delta: { type: 'text_delta', text: b.text } }, { type: 'content_block_stop', index }]),
-      { type: 'message_delta', delta: { stop_reason: stop } }, { type: 'message_stop' },
-    ].map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
-    const results = body => body.messages.at(-1).content.filter(b => b.type === 'tool_result').map(b => JSON.parse(b.content));
-    let calls = 0; const tool = (name, input) => ({ type: 'tool_use', id: `toolu_${++calls}`, name, input });
-    const script = [
-      () => [{ type: 'text', text: 'Plate first.' }, tool('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } })],
-      body => { const top = results(body)[0].bodies[0].faces.find(f => f.normal[2] === 1).name; return [[6, 6], [58, 6], [6, 26], [58, 26]].map(([x, y]) => tool('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } })); },
-      body => [tool('run_command', { command: 'fillet', edges: results(body).at(-1).bodies[0].edges.filter(e => e.line === 'along z').map(e => e.name), values: { radius: 2 } })],
-      () => [{ type: 'text', text: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }],
-    ];
-    let turn = 0; const requests = [];
-    const statusUrl = u => u.pathname === '/api/chat/status', chatUrl = u => u.pathname === '/api/chat';
-    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
-    await page.route(chatUrl, r => {
+  await check('chat builds a plate through a mocked chat server', async () => {
+    // The chat server's replies are scripted (it runs the claude CLI with the studio's tools for real).
+    const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
+    const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
+    const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'run_command', input: { command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
+    for (const [x, y] of [[6, 6], [58, 6], [6, 26], [58, 26]]) {
+      nodes.push({ kind: 'hole', parent: { node: nodes.length - 1, side: 'solid' }, center: [x, y], radius: 4 });
+      events.push({ type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x, y } }, summary: 'Hole', isError: false }, { type: 'state', doc: docOf(nodes) });
+    }
+    nodes.push({ kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
+    const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
+    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
+      { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
+    const requests = [];
+    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.route(turnUrl, r => {
       const body = r.request().postDataJSON(); requests.push(body);
-      const content = script[turn++](body);
-      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(content, content.some(b => b.type === 'tool_use') ? 'tool_use' : 'end_turn') });
+      const reply = requests.length === 1 ? events : [{ type: 'text', delta: 'You’re welcome.' }, { type: 'done', session: body.session, end: 'done' }];
+      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
     });
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Chat"]');
@@ -736,17 +734,18 @@ try {
     await page.waitForFunction(() => /Fillet R2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
     assert.equal(await page.locator('.chat-tool').count(), 6);
-    assert.equal(await page.locator('.chat-tool.err').count(), 0);
-    assert.equal(requests.length, 4);
-    assert.ok(requests.every(b => typeof b.system === 'string' && b.tools.length === 7 && !('model' in b)));
-    // The last tool line shows the engine's volume; one undo takes the whole turn back.
-    const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
-    assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*1 body, ${expected} mm³`));
+    assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*${expected} mm³`));
+    assert.equal(requests[0].doc.nodes.length, 0); assert.equal(requests[0].session, undefined);
+    // The next message resumes the same CLI conversation and leaves the part as it is.
+    await input.fill('thanks'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
+    assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    // One undo takes the whole first turn back.
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
     await page.click('[aria-label="Close chat"]');
-    await page.unroute(statusUrl); await page.unroute(chatUrl);
+    await page.unroute(statusUrl); await page.unroute(turnUrl);
   });
 
   await check('command palette and light theme', async () => {

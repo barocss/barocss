@@ -1,12 +1,11 @@
 // Modeling by chat: the transcript (messages, compact tool calls), the input, and the turn's live
-// preview. The part changes only through `onCommit`, once per turn, so one undo takes a turn back.
+// preview. Turns run on the chat server (the claude CLI with the studio's tools); the part changes here
+// only through `onCommit`, once per turn, so one undo takes a turn back.
 import { useEffect, useRef, useState } from 'react';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { MessageParam, Transport } from '../chat/api';
-import { runTurn } from '../chat/loop';
-import type { ChatState, Evaluate, NameSelection } from '../chat/tools';
-import { chatStatus, proxyTransport, type ChatStatus } from '../chat/transport';
+import type { NameSelection } from '../chat/tools';
+import { chatStatus, runServerTurn, type ChatStatus } from '../chat/client';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -15,9 +14,10 @@ type Item =
   | { kind: 'tool'; name: string; input: unknown; summary: string; isError: boolean };
 
 export interface ChatPanelProps {
-  /** The part a new turn starts from (the evaluated document and its bodies). */
-  base(): ChatState;
-  evaluate: Evaluate;
+  /** The part a new turn starts from (the evaluated document). */
+  base(): StudioDoc;
+  /** The bodies of a document the turn has built so far (for the preview), or null. */
+  evaluate(doc: StudioDoc): Promise<BodyResult[] | null>;
   /** Why chat cannot start now (a command or sketch is open), or null. */
   blocked: string | null;
   onPreview(bodies: BodyResult[] | null): void;
@@ -25,7 +25,6 @@ export interface ChatPanelProps {
   /** A turn that only selected (the part unchanged). */
   onSelect(selection: NameSelection): void;
   onClose(): void;
-  transport?: Transport;
 }
 
 const brief = (input: unknown) => {
@@ -39,7 +38,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [text, setText] = useState('');
   const [running, setRunning] = useState(false);
-  const history = useRef<MessageParam[]>([]);
+  /** The CLI conversation the next turn resumes. */
+  const session = useRef<string | undefined>(undefined);
   const abort = useRef<AbortController | null>(null);
   const log = useRef<HTMLDivElement>(null);
 
@@ -54,24 +54,29 @@ export function ChatPanel(props: ChatPanelProps) {
     setItems(list => [...list, { kind: 'user', text: message }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
-    let open = false;
-    const result = await runTurn({
-      transport: props.transport ?? proxyTransport(), evaluate: props.evaluate, state: props.base(), history: history.current, text: message, signal: controller.signal,
+    let open = false, built: StudioDoc | null = null, previewing = 0;
+    const done = await runServerTurn({
+      text: message, doc: props.base(), session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
           setItems(list => wasOpen ? [...list.slice(0, -1), { kind: 'assistant', text: (list[list.length - 1] as { text: string }).text + e.delta }] : [...list, { kind: 'assistant', text: e.delta }]);
         } else if (e.type === 'tool') { open = false; setItems(list => [...list, { kind: 'tool', name: e.name, input: e.input, summary: e.summary, isError: e.isError }]); }
-        else if (e.type === 'notice') { open = false; setItems(list => [...list, { kind: 'notice', text: e.text }]); }
-        else latest.current.onPreview(e.state.bodies);
+        else if (e.type === 'state') {
+          built = e.doc; const n = ++previewing;
+          void latest.current.evaluate(e.doc).then(bodies => { if (n === previewing && abort.current === controller && bodies) latest.current.onPreview(bodies); });
+        }
       },
     });
-    history.current = result.history; abort.current = null; setRunning(false);
-    if (result.end === 'error') setItems(list => [...list, { kind: 'notice', text: result.error ?? 'The chat request failed.' }]);
-    if (result.end === 'aborted') setItems(list => [...list, { kind: 'notice', text: result.changed ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.' }]);
+    if (done.session) session.current = done.session;
+    abort.current = null; setRunning(false);
+    // An aborted turn keeps what it had built when it stopped.
+    const doc = done.doc ?? (done.end === 'aborted' ? built : null);
+    if (done.end === 'error') setItems(list => [...list, { kind: 'notice', text: done.error ?? 'The chat request failed.' }]);
+    if (done.end === 'aborted') setItems(list => [...list, { kind: 'notice', text: doc ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.' }]);
     latest.current.onPreview(null);
-    if (result.changed) latest.current.onCommit(result.state.doc, result.state.selection);
-    else if (result.state.selection) latest.current.onSelect(result.state.selection);
+    if (doc) latest.current.onCommit(doc, done.selection);
+    else if (done.selection) latest.current.onSelect(done.selection);
   };
 
   const enabled = !!status?.enabled;
@@ -79,14 +84,14 @@ export function ChatPanel(props: ChatPanelProps) {
     <aside className="card chat" aria-label="Chat">
       <div className="card-title">CHAT <span className="muted">{status?.model ?? ''}</span>
         <span className="grow" />
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { history.current = []; setItems([]); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
         {status && !enabled && <div className="chat-setup" role="note">
-          <b>Chat is off.</b> {status.reason ?? 'Set ANTHROPIC_API_KEY for the dev server.'}
-          <code>ANTHROPIC_API_KEY=sk-ant-… pnpm --filter @barocss/cad-studio-app dev</code>
-          The key stays in the dev server; the browser only talks to it.
+          <b>Chat is off.</b> {status.reason ?? 'Start the chat server.'}
+          <code>pnpm --filter @barocss/cad-studio-app chat</code>
+          It runs the claude CLI with its own sign-in; the browser only talks to the local server.
         </div>}
         {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges”.</div>}
         {items.map((it, i) => it.kind === 'tool'

@@ -742,7 +742,7 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
-      {chat && !rendering && !drawing && <ChatPanel base={() => ({ doc: evaluated, bodies })} evaluate={d => engine.part(d, revision.current++)}
+      {chat && !rendering && !drawing && <ChatPanel base={() => evaluated} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} />}

@@ -1,15 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { createServer } from 'node:http';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { PassThrough } from 'node:stream';
 import { commandById, type Ctx, type Selection } from '../src/app/commands';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { echoContent, toolUses, type AssistantMessage, type ChatRequest, type ContentBlock, type MessageParam, type Transport } from '../src/chat/api';
-import { runTurn, stateNote } from '../src/chat/loop';
-import { createAccumulator } from '../src/chat/sse';
 import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { checkNode, deleteFeature } from '../src/chat/features';
-import { createChatHandler, upstreamBody } from '../server/chatProxy';
+import { eventParser, type TurnEvent } from '../src/chat/client';
+import { serveMcp } from '../server/cadMcp';
+import { claudeArgs, createChatServer, stateNote, summarize } from '../server/chatServer';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -17,31 +21,18 @@ async function stateOf(doc: StudioDoc): Promise<ChatState> {
 }
 const parse = (content: string) => JSON.parse(content) as Record<string, any>;
 const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const scratch = () => mkdtempSync(join(tmpdir(), 'cad-chat-test-'));
 
-/** A scripted model: each step sees the conversation so far and returns the next assistant message. */
-function scripted(steps: ((messages: MessageParam[]) => ContentBlock[] | AssistantMessage)[]) {
-  const requests: ChatRequest[] = [];
-  let n = 0;
-  const transport: Transport = {
-    async send(request, { onText }) {
-      requests.push(structuredClone(request));
-      const step = steps[n++]; if (!step) throw new Error('The script ran out of steps.');
-      const out = step(request.messages);
-      const message: AssistantMessage = Array.isArray(out) ? { content: out, stop_reason: out.some(b => b.type === 'tool_use') ? 'tool_use' : 'end_turn' } : out;
-      for (const b of message.content) if (b.type === 'text') onText?.(b.text as string);
-      return message;
-    },
-  };
-  return { transport, requests };
+/** An MCP client over in-memory pipes to the real tool server. */
+function mcpClient(statePath: string) {
+  const input = new PassThrough(), output = new PassThrough();
+  const served = serveMcp(statePath, input, output);
+  const waiting = new Map<number, (m: any) => void>(); let buf = '', id = 0;
+  output.on('data', d => { buf += d; let nl; while ((nl = buf.indexOf('\n')) >= 0) { const m = JSON.parse(buf.slice(0, nl)); buf = buf.slice(nl + 1); waiting.get(m.id)?.(m); } });
+  const request = (method: string, params?: unknown) => new Promise<any>(resolve => { const n = ++id; waiting.set(n, resolve); input.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n'); });
+  const call = async (name: string, args: unknown) => { const m = await request('tools/call', { name, arguments: args }); return { isError: m.result.isError as boolean, json: parse(m.result.content[0].text) }; };
+  return { request, call, close: async () => { input.end(); await served; } };
 }
-let ids = 0;
-const call = (name: string, input: unknown): ContentBlock => ({ type: 'tool_use', id: `toolu_${++ids}`, name, input });
-/** The tool results of the last user message. */
-const lastResults = (messages: MessageParam[]) => {
-  const m = messages[messages.length - 1];
-  assert.equal(m.role, 'user');
-  return m.content.filter(b => b.type === 'tool_result').map(b => ({ ...(b as { content: string; is_error?: boolean }), json: parse((b as { content: string }).content) }));
-};
 
 test('tool schemas: every buildable command is exposed and documented with the HUD’s own value keys', async () => {
   for (const tool of TOOLS) {
@@ -97,54 +88,39 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   assert.ok(out.bodies[0].faces.some((f: any) => f.name === 'n1.top' && f.normal[2] === 1));
 });
 
-test('a scripted model builds the plate with four corner holes and R2 vertical edges, correcting a refused hole', async () => {
-  const start = await stateOf(emptyDoc());
-  const { transport, requests } = scripted([
-    () => [{ type: 'thinking', thinking: '', signature: 'sig-1' }, { type: 'text', text: 'Plate first.' }, call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } })],
-    messages => {
-      const [res] = lastResults(messages);
-      const top = res.json.bodies[0].faces.find((f: any) => f.normal[2] === 1).name;
-      // The last hole is placed off the part on purpose.
-      return [[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => call('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } }));
-    },
-    messages => {
-      const results = lastResults(messages);
-      assert.deepEqual(results.map(r => !!r.is_error), [false, false, false, true]);
-      assert.match(results[3].json.error, /misses the body/);
-      return [call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } })];
-    },
-    messages => {
-      const [res] = lastResults(messages);
-      const vertical = res.json.bodies[0].edges.filter((e: any) => e.line === 'along z').map((e: any) => e.name);
-      assert.equal(vertical.length, 4);
-      return [call('run_command', { command: 'fillet', edges: vertical, values: { radius: 2 } })];
-    },
-    messages => {
-      // Show the rounded corners: the fillet's faces of radius 2.
-      const [res] = lastResults(messages);
-      return [call('select', { faces: res.json.bodies[0].faces.filter((f: any) => f.radius === 2).map((f: any) => f.name) })];
-    },
-    () => [{ type: 'text', text: 'Done: 64 × 32 × 8 plate, four Ø8 holes, R2 vertical edges.' }],
-  ]);
-  const events: string[] = [];
-  const turn = await runTurn({ transport, evaluate, state: start, history: [], text: 'a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges', onEvent: e => { if (e.type === 'tool') events.push(`${e.name}${e.isError ? '!' : ''}`); } });
-  assert.equal(turn.end, 'done'); assert.ok(turn.changed);
-  assert.deepEqual(events, ['run_command', 'run_command', 'run_command', 'run_command', 'run_command!', 'run_command', 'run_command', 'select']);
-  assert.deepEqual(turn.state.doc.nodes.map(n => n.kind), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
-  assert.equal(turn.state.bodies.length, 1);
+test('a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole', async () => {
+  const statePath = join(scratch(), 'state.json');
+  writeFileSync(statePath, JSON.stringify({ doc: emptyDoc(), changed: false }));
+  const mcp = mcpClient(statePath);
+  const init = await mcp.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } });
+  assert.deepEqual(init.result.capabilities, { tools: {} });
+  const listed = (await mcp.request('tools/list')).result.tools;
+  assert.deepEqual(listed.map((t: any) => t.name), TOOLS.map(t => t.name));
+  assert.equal(listed[1].inputSchema.properties.command.enum.length, CHAT_COMMANDS.length);
+  assert.equal((await mcp.request('nope')).error.code, -32601);
+  const box = await mcp.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  assert.ok(!box.isError);
+  const top = box.json.bodies[0].faces.find((f: any) => f.normal[2] === 1).name;
+  // Parallel calls run in order; the last hole is off the part on purpose and is refused.
+  const holes = await Promise.all([[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => mcp.call('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } })));
+  assert.deepEqual(holes.map(h => h.isError), [false, false, false, true]);
+  assert.match(holes[3].json.error, /misses the body/);
+  const fixed = await mcp.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } });
+  const vertical = fixed.json.bodies[0].edges.filter((e: any) => e.line === 'along z').map((e: any) => e.name);
+  assert.equal(vertical.length, 4);
+  const fillet = await mcp.call('run_command', { command: 'fillet', edges: vertical, values: { radius: 2 } });
+  assert.ok(!fillet.isError, JSON.stringify(fillet.json));
+  const round = fillet.json.bodies[0].faces.filter((f: any) => f.radius === 2).map((f: any) => f.name);
+  assert.ok(!(await mcp.call('select', { faces: round })).isError);
+  await mcp.close();
+  // The state file holds what the turn built, for the chat server to hand back.
+  const saved = JSON.parse(readFileSync(statePath, 'utf8'));
+  assert.equal(saved.changed, true); assert.equal(saved.selection.faces.length, 4);
+  assert.deepEqual(saved.doc.nodes.map((n: any) => n.kind), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
+  const s = await stateOf(saved.doc);
   const expected = 64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8;
-  assert.ok(Math.abs(volume(turn.state) - expected) / expected < 1e-6, String(volume(turn.state)));
-  assert.equal(turn.state.selection?.faces.length, 4);
-  // The conversation: alternating roles, every tool call answered by id, thinking echoed unchanged.
-  assert.deepEqual(turn.history.map(m => m.role), ['user', 'assistant', 'user', 'assistant', 'user', 'assistant', 'user', 'assistant', 'user', 'assistant', 'user', 'assistant']);
-  assert.match((turn.history[0].content[0] as { text: string }).text, /Current part: 0 features; no bodies/);
-  assert.deepEqual(turn.history[1].content[0], { type: 'thinking', thinking: '', signature: 'sig-1' });
-  for (let i = 1; i < turn.history.length - 1; i += 2) {
-    const asked = toolUses(turn.history[i].content as ContentBlock[]).map(c => c.id);
-    assert.deepEqual(turn.history[i + 1].content.map(b => (b as { tool_use_id: string }).tool_use_id), asked);
-  }
-  assert.equal(requests.length, 6);
-  assert.deepEqual(requests[0].tools.map(t => t.name), TOOLS.map(t => t.name));
+  assert.ok(Math.abs(volume(s) - expected) / expected < 1e-6, String(volume(s)));
+  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2} → 1 body, ${Math.round(expected)} mm³`);
 });
 
 test('add_features checks nodes before the kernel; revolve and polygon profiles build', async () => {
@@ -205,122 +181,104 @@ test('measure, select and the part summary read the evaluated part by name', asy
   const sum = parse((await runTool(s, 'get_part_summary', {}, evaluate)).content);
   assert.deepEqual(sum.features.map((f: any) => f.label), ['Sketch · rectangle', 'Extrude 8']);
   assert.equal(sum.bodies[0].faces.length, 6); assert.equal(sum.bodies[0].edges.length, 12);
-  assert.match(stateNote(s), /2 features; bodies b1 16384 mm³/);
+  assert.match(stateNote(s.doc), /Current part: 2 features/);
 });
 
-test('the turn loop stops at the step cap, on refusals, cut-off output and aborts, and keeps the history valid', async () => {
-  const s = await stateOf(rectanglePart(64, 32, 8));
-  // Step cap: a model that never stops asking.
-  const loop = scripted(Array.from({ length: 3 }, () => () => [call('get_part_summary', {})]));
-  let t = await runTurn({ transport: loop.transport, evaluate, state: s, history: [], text: 'loop', maxSteps: 3 });
-  assert.equal(t.end, 'step-cap'); assert.equal(t.history.length, 7); assert.equal(t.changed, false);
-  // Refusal: not echoed back.
-  t = await runTurn({ transport: scripted([() => ({ content: [], stop_reason: 'refusal', stop_details: { category: null, explanation: 'no' } })]).transport, evaluate, state: s, history: [], text: 'x' });
-  assert.equal(t.end, 'refusal'); assert.deepEqual(t.history.map(m => m.role), ['user']);
-  // Cut off mid tool call: answered, not run.
-  t = await runTurn({ transport: scripted([() => ({ content: [call('run_command', { command: 'box' })], stop_reason: 'max_tokens' })]).transport, evaluate, state: s, history: [], text: 'x' });
-  assert.equal(t.end, 'max-tokens'); assert.equal(t.changed, false); assert.equal((t.history[2].content[0] as { is_error: boolean }).is_error, true);
-  // Abort after the first change: the change is kept (the caller commits it), the rest not run.
-  const controller = new AbortController();
-  const ab = scripted([() => [call('run_command', { command: 'box', values: { x: 100 } }), call('run_command', { command: 'box', values: { x: 200 } })]]);
-  t = await runTurn({ transport: ab.transport, evaluate, state: s, history: [], text: 'x', signal: controller.signal, onEvent: e => { if (e.type === 'tool') controller.abort(); } });
-  assert.equal(t.end, 'aborted'); assert.ok(t.changed); assert.equal(t.state.bodies.length, 2);
-  assert.match((t.history[2].content[1] as { content: string }).content, /stopped/);
-  // Transport errors end the turn with the message.
-  const failing: Transport = { send: async () => { throw new Error('Chat request failed (503): ANTHROPIC_API_KEY is not set'); } };
-  t = await runTurn({ transport: failing, evaluate, state: s, history: [], text: 'x' });
-  assert.equal(t.end, 'error'); assert.match(t.error!, /ANTHROPIC_API_KEY/);
-});
-
-test('after a mid-output fallback only the blocks after the boundary are echoed or run', () => {
-  const content: ContentBlock[] = [
-    { type: 'thinking', thinking: '', signature: 'a' }, { type: 'text', text: 'partial' }, call('select', {}),
-    { type: 'fallback', from: { model: 'x' }, to: { model: 'y' } }, { type: 'thinking', thinking: '', signature: 'b' }, call('get_part_summary', {}),
-  ];
-  assert.deepEqual(echoContent(content).map(b => b.type), ['text', 'fallback', 'thinking', 'tool_use']);
-  assert.deepEqual(toolUses(content).map(c => c.name), ['get_part_summary']);
-  assert.equal(echoContent(content.slice(0, 3)).length, 3);
-});
-
-test('the stream accumulator assembles text, thinking signatures and streamed tool input from any chunking', () => {
-  const events = [
-    ['message_start', { type: 'message_start', message: { model: 'claude-opus-5-5', content: [] } }],
-    ['content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '' } }],
-    ['content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'EqQB' } }],
-    ['content_block_stop', { type: 'content_block_stop', index: 0 }],
-    ['content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }],
-    ['content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'Building ' } }],
-    ['content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'the plate.' } }],
-    ['content_block_stop', { type: 'content_block_stop', index: 1 }],
-    ['content_block_start', { type: 'content_block_start', index: 2, content_block: { type: 'tool_use', id: 'toolu_1', name: 'run_command', input: {} } }],
-    ['content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'input_json_delta', partial_json: '{"command":"bo' } }],
-    ['content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'input_json_delta', partial_json: 'x","values":{"w":64}}' } }],
-    ['content_block_stop', { type: 'content_block_stop', index: 2 }],
-    ['content_block_start', { type: 'content_block_start', index: 3, content_block: { type: 'tool_use', id: 'toolu_2', name: 'get_part_summary', input: {} } }],
-    ['content_block_stop', { type: 'content_block_stop', index: 3 }],
-    ['message_delta', { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 40 } }],
-    ['message_stop', { type: 'message_stop' }],
-  ] as const;
-  const wire = events.map(([e, d]) => `event: ${e}\ndata: ${JSON.stringify(d)}\n\n`).join('') + ': ping\n\n';
-  for (const size of [1, 7, wire.length]) {
-    let text = '';
-    const acc = createAccumulator(d => { text += d; });
-    for (let i = 0; i < wire.length; i += size) acc.push(wire.slice(i, i + size));
-    const m = acc.finish();
-    assert.equal(text, 'Building the plate.'); assert.equal(m.stop_reason, 'tool_use'); assert.equal(m.model, 'claude-opus-5-5');
-    assert.deepEqual(m.content, [
-      { type: 'thinking', thinking: '', signature: 'EqQB' }, { type: 'text', text: 'Building the plate.' },
-      { type: 'tool_use', id: 'toolu_1', name: 'run_command', input: { command: 'box', values: { w: 64 } } },
-      { type: 'tool_use', id: 'toolu_2', name: 'get_part_summary', input: {} },
-    ]);
-  }
-  const bad = createAccumulator();
-  assert.throws(() => bad.push('event: error\ndata: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}\n\n'), /Overloaded/);
-});
-
-async function serve(handler: ReturnType<typeof createChatHandler>) {
-  const server = createServer((req, res) => {
-    // (Mounted at /api/chat, as the Vite middleware strips it.)
-    req.url = req.url!.replace(/^\/api\/chat/, '') || '/';
-    void handler(req, res, () => { res.statusCode = 404; res.end(); });
-  });
-  await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
-  const { port } = server.address() as { port: number };
-  return { url: `http://127.0.0.1:${port}/api/chat`, close: () => new Promise(r => server.close(r)) };
+/** A fake `claude` process: prints scripted stream-json lines and edits the state file as its MCP server would. */
+function fakeClaude(script: (args: string[], statePath: string) => (string | (() => void))[]) {
+  const spawned: { command: string; args: string[]; cwd: string; killed: boolean }[] = [];
+  const spawn = (command: string, args: string[], o: { cwd: string }) => {
+    const child = new EventEmitter() as any;
+    child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    const rec = { command, args, cwd: o.cwd, killed: false }; spawned.push(rec);
+    child.kill = () => { rec.killed = true; child.stdout.end(); setImmediate(() => child.emit('close', null)); return true; };
+    if (args[0] === '--version') { setImmediate(() => { child.stdout.end('2.1.283 (Claude Code)\n'); child.emit('close', 0); }); return child; }
+    const config = JSON.parse(args[args.indexOf('--mcp-config') + 1]);
+    const steps = script(args, config.mcpServers.cad.env.CAD_CHAT_STATE);
+    (async () => {
+      for (const s of steps) { await new Promise(r => setTimeout(r, 5)); if (rec.killed) return; if (typeof s === 'function') s(); else child.stdout.write(s + '\n'); }
+      child.stdout.end(); child.emit('close', 0);
+    })();
+    return child;
+  };
+  return { spawn: spawn as any, spawned };
 }
 
-test('the dev proxy keeps the key server-side, adds the model and options, and streams the events back', async () => {
-  const off = await serve(createChatHandler({ env: {}, fetchImpl: async () => { throw new Error('no call expected'); } }));
-  try {
-    const st = await (await fetch(`${off.url}/status`)).json();
-    assert.equal(st.enabled, false); assert.equal(st.model, 'claude-opus-5-5'); assert.match(st.reason, /ANTHROPIC_API_KEY/);
-    const res = await fetch(off.url, { method: 'POST', body: '{}' });
-    assert.equal(res.status, 503);
-  } finally { await off.close(); }
+async function serve(handler: ReturnType<typeof createChatServer>) {
+  const server = createServer((req, res) => { void handler(req, res); });
+  await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
+  return { url: `http://127.0.0.1:${(server.address() as { port: number }).port}/api/chat`, close: () => new Promise(r => server.close(r)) };
+}
+async function turn(url: string, body: unknown, signal?: AbortSignal) {
+  const events: TurnEvent[] = [];
+  const res = await fetch(`${url}/turn`, { method: 'POST', body: JSON.stringify(body), signal });
+  const feed = eventParser(e => events.push(e));
+  feed(await res.text());
+  return { status: res.status, events };
+}
 
-  const seen: { url: string; init: RequestInit }[] = [];
-  const sse = 'event: message_stop\ndata: {"type":"message_stop"}\n\n';
-  const fake = (async (url: string, init: RequestInit) => {
-    seen.push({ url, init });
-    return new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(sse)); c.close(); } }), { status: 200, headers: { 'content-type': 'text/event-stream' } });
-  }) as unknown as typeof fetch;
-  const on = await serve(createChatHandler({ env: { ANTHROPIC_API_KEY: 'sk-test' }, fetchImpl: fake }));
+test('the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result', async () => {
+  const plate = rectanglePart(64, 32, 8);
+  const built = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });
+  const sid = '7235de6e-4fc3-4fc4-b479-410846a6528a';
+  const fake = fakeClaude((args, statePath) => [
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS.map(t => `mcp__cad__${t.name}`) }),
+    JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Adding ' } }, session_id: sid, parent_tool_use_id: null }),
+    JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'a hole.' } }, session_id: sid, parent_tool_use_id: null }),
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
+    () => writeFileSync(statePath, JSON.stringify({ doc: built, changed: true, selection: { faces: ['n1.top'], edges: [], bodies: [] } })),
+    JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume_mm3: 15981.876 }] }) }] }] }, session_id: sid }),
+    JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
+  ]);
+  const work = scratch();
+  const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: work }));
   try {
-    assert.deepEqual(await (await fetch(`${on.url}/status`)).json(), { enabled: true, model: 'claude-opus-5-5' });
-    assert.equal((await fetch(on.url, { method: 'POST', body: '{"messages":[]}' })).status, 400);
-    const request = { system: 'sys', tools: [TOOLS[0]], messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }] };
-    const res = await fetch(on.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(request) });
-    assert.equal(res.status, 200); assert.equal(res.headers.get('content-type'), 'text/event-stream');
-    assert.equal(await res.text(), sse);
-    assert.equal(seen.length, 1); assert.equal(seen[0].url, 'https://api.anthropic.com/v1/messages');
-    const headers = seen[0].init.headers as Record<string, string>;
-    assert.equal(headers['x-api-key'], 'sk-test'); assert.equal(headers['anthropic-version'], '2023-06-01'); assert.equal(headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
-    const body = JSON.parse(String(seen[0].init.body));
-    assert.deepEqual(body, { ...upstreamBody(request, {}), system: 'sys' });
-    assert.equal(body.model, 'claude-opus-5-5'); assert.equal(body.stream, true); assert.equal(body.fallbacks, 'default');
-    assert.deepEqual(body.output_config, { effort: 'medium' }); assert.equal('thinking' in body, false);
-  } finally { await on.close(); }
-  // Another model is configurable; one without server-side fallback gets none.
-  assert.equal(upstreamBody({ system: '', tools: [], messages: [] }, { CAD_STUDIO_CHAT_MODEL: 'claude-haiku-5-5' }).model, 'claude-haiku-5-5');
-  assert.equal('fallbacks' in upstreamBody({ system: '', tools: [], messages: [] }, { CAD_STUDIO_CHAT_MODEL: 'claude-haiku-5-5' }), false);
+    assert.deepEqual(await (await fetch(`${srv.url}/status`)).json(), { enabled: true, model: 'claude-opus-5-5', via: '2.1.283 (Claude Code)' });
+    assert.equal((await turn(srv.url, { text: '' })).status, 400);
+    const { events } = await turn(srv.url, { text: 'add a Ø8 hole 6 mm from the corner', doc: plate });
+    assert.deepEqual(events.map(e => e.type), ['text', 'text', 'tool', 'state', 'done']);
+    assert.deepEqual(events[2], { type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } }, summary: 'Hole {"d":8,"x":6,"y":6} → 1 body, 15982 mm³', isError: false });
+    assert.deepEqual((events[3] as { doc: StudioDoc }).doc, built);
+    assert.deepEqual(events[4], { type: 'done', doc: built, selection: { faces: ['n1.top'], edges: [], bodies: [] }, session: sid, end: 'done' });
+    const run = fake.spawned[1];
+    assert.equal(run.command, 'claude'); assert.equal(run.cwd, work);
+    const a = run.args, flag = (f: string) => a[a.indexOf(f) + 1];
+    assert.equal(a[0], '-p'); assert.match(a[1], /Current part: 2 features[\s\S]*add a Ø8 hole/);
+    assert.equal(flag('--output-format'), 'stream-json'); assert.equal(flag('--model'), 'claude-opus-5-5'); assert.equal(flag('--tools'), '');
+    assert.ok(a.includes('--strict-mcp-config')); assert.ok(!a.includes('--resume'));
+    assert.equal(flag('--allowedTools'), TOOLS.map(t => `mcp__cad__${t.name}`).join(','));
+    const mcp = JSON.parse(flag('--mcp-config')).mcpServers.cad;
+    assert.equal(mcp.command, process.execPath); assert.deepEqual(mcp.args, ['/x/cadMcp.mjs']);
+    // The next turn resumes the CLI conversation.
+    await turn(srv.url, { text: 'thanks', doc: built, session: sid });
+    assert.equal(fake.spawned[2].args[fake.spawned[2].args.indexOf('--resume') + 1], sid);
+  } finally { await srv.close(); }
+  assert.deepEqual(claudeArgs({ prompt: 'p', mcpConfig: '{}', model: 'claude-sonnet-5-5', session: 's' }).slice(-2), ['--resume', 's']);
+  assert.match(stateNote(emptyDoc()), /0 features/);
+});
+
+test('the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn', async () => {
+  const missing = (() => { const c = new EventEmitter() as any; c.stdout = new PassThrough(); c.stderr = new PassThrough(); setImmediate(() => c.emit('error', new Error('spawn claude ENOENT'))); return c; }) as any;
+  let srv = await serve(createChatServer({ mcpScript: 'x', spawn: missing, workDir: scratch() }));
+  try {
+    const st = await (await fetch(`${srv.url}/status`)).json();
+    assert.equal(st.enabled, false); assert.match(st.reason, /claude auth login/);
+    const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
+    assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'spawn claude ENOENT' }]);
+  } finally { await srv.close(); }
+  const capped = fakeClaude(() => [JSON.stringify({ type: 'result', subtype: 'error_max_turns', is_error: true, session_id: 's1' })]);
+  srv = await serve(createChatServer({ mcpScript: 'x', spawn: capped.spawn, workDir: scratch() }));
+  try {
+    const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
+    assert.deepEqual(events, [{ type: 'done', session: 's1', end: 'error', error: 'Stopped after 24 steps.' }]);
+  } finally { await srv.close(); }
+  const slow = fakeClaude(() => Array.from({ length: 200 }, () => JSON.stringify({ type: 'system', subtype: 'status' })));
+  srv = await serve(createChatServer({ mcpScript: 'x', spawn: slow.spawn, workDir: scratch() }));
+  try {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 60);
+    await assert.rejects(turn(srv.url, { text: 'hi', doc: emptyDoc() }, controller.signal));
+    await new Promise(r => setTimeout(r, 50));
+    assert.equal(slow.spawned[0].killed, true);
+  } finally { await srv.close(); }
 });
