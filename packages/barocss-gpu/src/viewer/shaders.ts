@@ -5,7 +5,7 @@
 
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80;
 export const OBJECT_BYTES = 176, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
@@ -23,6 +23,10 @@ struct Frame {
   dirs: array<DirLight, ${MAX_DIRECTIONAL}>,
   points: array<PointLight, ${MAX_POINT}>,
   spots: array<SpotLight, ${MAX_SPOT}>,
+  // The shadow-casting directional light (counts.w: its index + 1; 0 none): its view-projection and
+  // normal offset, texel size and depth bias.
+  shadowViewProj: mat4x4f,
+  shadow: vec4f,
 }
 struct Object {
   model: mat4x4f,
@@ -32,6 +36,8 @@ struct Object {
   pick: vec4u,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
+@group(0) @binding(1) var shadowMap: texture_depth_2d;
+@group(0) @binding(2) var shadowSampler: sampler_comparison;
 @group(1) @binding(0) var<uniform> object: Object;
 `;
 
@@ -60,6 +66,19 @@ fn smith(nov: f32, nol: f32, a: f32) -> f32 {
   let gl = nov * sqrt(nol * nol * (1.0 - a2) + a2);
   return 0.5 / max(gv + gl, 1e-5);
 }
+/** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering. */
+fn shadowAt(world: vec3f, n: vec3f) -> f32 {
+  let p = frame.shadowViewProj * vec4f(world + n * frame.shadow.x, 1.0);
+  let uv = vec2f(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
+  if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || p.z > 1.0) { return 1.0; }
+  var lit = 0.0;
+  for (var y = -1; y <= 1; y++) {
+    for (var x = -1; x <= 1; x++) {
+      lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + vec2f(f32(x), f32(y)) * frame.shadow.y, p.z - frame.shadow.z);
+    }
+  }
+  return lit / 9.0;
+}
 fn schlick(f0: vec3f, voh: f32) -> vec3f { return f0 + (vec3f(1.0) - f0) * pow(1.0 - voh, 5.0); }
 fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec3f {
   let h = normalize(v + l);
@@ -86,7 +105,9 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   var c = ambient * base * (1.0 - metallic * 0.5) + object.params.z * base;
   for (var i = 0u; i < frame.counts.x; i++) {
     let d = frame.dirs[i];
-    c += brdf(n, v, normalize(-d.direction.xyz), base, metallic, a) * d.color.rgb * d.color.w * PI;
+    var lit = 1.0;
+    if (frame.counts.w == i + 1u && object.pick.z == 1u) { lit = shadowAt(in.world, n); }
+    c += brdf(n, v, normalize(-d.direction.xyz), base, metallic, a) * d.color.rgb * d.color.w * PI * lit;
   }
   for (var i = 0u; i < frame.counts.y; i++) {
     let p = frame.points[i];

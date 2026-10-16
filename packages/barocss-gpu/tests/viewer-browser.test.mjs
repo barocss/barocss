@@ -205,6 +205,33 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     // (A software rasteriser draws thousands of meshes slowly; the bound is for a hardware adapter.)
     if (!/swiftshader/.test(adapter)) assert.ok(many.ms < 200, `${many.ms} ms per frame`);
 
+    // A shadow on the ground from a light that casts one; none when the box casts none or the ground receives none.
+    const shadow = await p.evaluate(async () => {
+      const { viewer, box } = window.t;
+      viewer.clear();
+      viewer.lights = [{ kind: 'directional', direction: [0.3, -0.8, -1], intensity: 1.5, castShadow: true }];
+      const ground = viewer.add({ positions: [-20, -20, -1, 20, -20, -1, 20, 20, -1, -20, 20, -1], indices: [0, 1, 2, 0, 2, 3] }, { material: { color: '#c0c0c0' } });
+      const cube = viewer.add(box(2, 2, 2), { material: { color: '#4060d0' } });
+      viewer.camera.position = [6, -9, 6]; viewer.camera.target = [0, 0, 0]; viewer.camera.projection = 'perspective';
+      viewer.fit({ min: [-3, -4, -1], max: [3, 2, 1] });
+      const sample = async () => { const img = await viewer.capture(); return { inside: pixel(img, screen([0.5, -1.8, -1])), outside: pixel(img, screen([0.5, -3.5, -1])) }; };
+      const on = await sample();
+      cube.castShadow = false; viewer.requestRender();
+      const noCaster = await sample();
+      cube.castShadow = true; ground.receiveShadow = false;
+      const noReceiver = await sample();
+      ground.receiveShadow = true;
+      window.shadowShot = await viewer.capture();
+      return { on, noCaster, noReceiver };
+    });
+    t.diagnostic(`shadow ${JSON.stringify(shadow)}`);
+    if (process.env.VIEWER_SHOTS) {
+      const png = await p.evaluate(() => { const c = document.createElement('canvas'), img = window.shadowShot; c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(img.data), img.width, img.height), 0, 0); return c.toDataURL('image/png'); });
+      (await import('node:fs')).writeFileSync(path.join(process.env.VIEWER_SHOTS, 'viewer-shadow.png'), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    assert.ok(shadow.on.inside[0] < shadow.on.outside[0] * 0.6, `shadowed ground darker: ${shadow.on.inside} vs ${shadow.on.outside}`);
+    for (const k of ['noCaster', 'noReceiver']) assert.ok(Math.abs(shadow[k].inside[0] - shadow[k].outside[0]) < 12, `${k}: ${shadow[k].inside} vs ${shadow[k].outside}`);
+
     const disposed = await p.evaluate(() => {
       const { viewer } = window.t;
       viewer.dispose(); viewer.dispose();

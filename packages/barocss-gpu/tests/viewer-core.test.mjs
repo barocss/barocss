@@ -111,7 +111,7 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 800);
+  assert.equal(FRAME_BYTES, 880);
   assert.match(surfaceWGSL, new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
   const f = packFrame(cam.viewProjection(1), cam, [
@@ -128,6 +128,11 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.ok(f[16 + 3] === 1, 'perspective flag');
   const out = packOutput({ exposure: 1.5, toneMapping: 'aces' });
   assert.ok(new Float32Array(out, 0, 1)[0] === 1.5 && new Uint32Array(out, 4, 1)[0] === 1);
+  // The shadow-casting light: its index + 1 in counts.w and its view-projection after the spots.
+  const vp = cam.viewProjection(1), sh = packFrame(vp, cam, [{ kind: 'directional', direction: [0, 0, -1] }, { kind: 'directional', direction: [1, 0, -1], castShadow: true }], {}, { viewProjection: vp, normalOffset: 0.1, texel: 1 / 1024, bias: 0.001 });
+  assert.equal(new Uint32Array(sh.buffer)[39], 2);
+  assert.ok(close([...sh.slice(200, 216)], [...vp], 1e-6) && near(sh[216], 0.1, 1e-6));
+  assert.equal(new Uint32Array(packFrame(vp, cam, [{ kind: 'directional', direction: [0, 0, -1], castShadow: true }], {}).buffer)[39], 0, 'no shadow frame, no shadow');
   assert.deepEqual(parseColor('#f80'), [1, 0x88 / 255, 0]);
   assert.throws(() => parseColor('red'), /hex/);
 });

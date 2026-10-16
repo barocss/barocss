@@ -53,6 +53,14 @@ export function orthographicReversed(halfWidth: number, halfHeight: number, near
   return m;
 }
 
+/** Orthographic with standard depth: view depth −near → 0, −far → 1 (the shadow map's). */
+export function orthographic(halfWidth: number, halfHeight: number, near: number, far: number): Mat4 {
+  const m = identity();
+  m[0] = 1 / halfWidth; m[5] = 1 / halfHeight;
+  m[10] = -1 / (far - near); m[14] = -near / (far - near);
+  return m;
+}
+
 export function invert(m: Mat4): Mat4 {
   const a = m, out = new Float64Array(16);
   const b00 = a[0] * a[5] - a[1] * a[4], b01 = a[0] * a[6] - a[2] * a[4], b02 = a[0] * a[7] - a[3] * a[4];

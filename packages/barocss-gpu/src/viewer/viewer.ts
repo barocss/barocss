@@ -2,13 +2,13 @@
 // lived buffers and every pipeline it needs, renders on demand (one frame per animation frame at most),
 // follows the canvas size and pixel ratio, and recreates its device and re-uploads the scene when the
 // device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
-import { boxInFrustum, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
+import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
-import { defaultLights, linear, packFrame, packOutput, parseColor, type Color, type Environment, type Light } from './lights.js';
-import { add, dot, identity, invert, normalMatrix, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
+import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Color, type Environment, type Light, type ShadowFrame } from './lights.js';
+import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 export class ViewerError extends Error {
@@ -28,7 +28,13 @@ export interface Material {
   /** Draw back faces too (lit from their own side). */
   doubleSided?: boolean;
 }
-export interface AddMeshOptions { material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string }
+export interface AddMeshOptions {
+  material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string;
+  /** Casts a shadow from the shadow-casting light (default true). */
+  castShadow?: boolean;
+  /** Darkened by shadows (default true). */
+  receiveShadow?: boolean;
+}
 
 export class Geometry {
   /** @internal */ gpu: { positions: Buffer; normals: Buffer; colors: Buffer; indices: Buffer | null; device: Device } | null = null;
@@ -60,6 +66,8 @@ export class Mesh {
   private _visible: boolean;
   pickable: boolean;
   name: string | undefined;
+  castShadow: boolean;
+  private _receiveShadow: boolean;
   private _outline: Vec3 | null = null;
   /** @internal Which outline colour of the frame (1-based; 0 none). */
   outlineSlot = 0;
@@ -71,6 +79,8 @@ export class Mesh {
     this._material = materialOf(options.material);
     this._visible = options.visible ?? true;
     this.pickable = options.pickable ?? true;
+    this.castShadow = options.castShadow ?? true;
+    this._receiveShadow = options.receiveShadow ?? true;
     this.name = options.name;
     if (options.transform) this.transform = options.transform;
   }
@@ -85,6 +95,8 @@ export class Mesh {
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
   get transparent(): boolean { return this._material.opacity < 1; }
+  get receiveShadow(): boolean { return this._receiveShadow; }
+  set receiveShadow(v: boolean) { this._receiveShadow = v; this.touch(); }
   /** A selection outline around the visible part of the mesh (sRGB colour), or null. */
   get outline(): Vec3 | null { return this._outline; }
   set outline(c: Color | null) { this._outline = c === null ? null : parseColor(c); this.owner.requestRender(); }
@@ -103,7 +115,7 @@ export class Mesh {
     f.set(normalMatrix(this._transform), o + 16);
     f.set([...linear(m.color), m.opacity], o + 32);
     f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
-    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, 0, 0], o + 40);
+    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, this._receiveShadow ? 1 : 0, 0], o + 40);
   }
 }
 
@@ -144,7 +156,7 @@ export interface PickHit {
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
 
-type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'output';
+type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'output';
 /** The scene target: linear, half float (blendable and multisampled everywhere). */
 const SCENE_FORMAT = 'rgba16float';
 
@@ -158,6 +170,8 @@ export class Viewer {
   readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, deviceLosses: 0, cpuMs: 0 };
   /** Selection outline width in CSS pixels. */
   outlineWidth = 2;
+  /** Shadow map size (texels per side) for the shadow-casting directional light. */
+  shadowMapSize = 2048;
   /** Called after a lost device has been replaced and the scene re-uploaded. */
   onRecover: (() => void) | null = null;
 
@@ -167,6 +181,11 @@ export class Viewer {
   private pipelines = new Map<PipelineKey, Pipeline>();
   private frameBuffer!: Buffer;
   private frameGroup!: BindGroup;
+  private shadowFrameBuffer!: Buffer;
+  private shadowFrameGroup!: BindGroup;
+  private shadowSampler!: object;
+  private emptyShadow!: Texture;
+  private shadowMap: Texture | null = null;
   private objectBuffer!: Buffer;
   private objectGroup!: BindGroup;
   private objectCapacity = 0;
@@ -225,11 +244,23 @@ export class Viewer {
     await this.createPipelines();
     this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
     this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
-    this.frameGroup = device.createBindGroup({ layout: this.pipelines.get('lit')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.frameBuffer } }] });
+    this.shadowFrameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shadow frame' });
+    this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+    this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
+    this.shadowMap = null;
+    this.bindFrames();
     this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
     this.targets = null; this.pickTargets = null;
     for (const m of this.meshes) m.dirty = true;
     device.lost.then(info => { if (!this.disposed && this.device === device) this.lose(info.message); });
+  }
+
+  /** The frame bind groups: the scene's samples the shadow map; the shadow pass's must not. */
+  private bindFrames(): void {
+    const layout = this.pipelines.get('lit')!.getBindGroupLayout(0);
+    const group = (buffer: Buffer, map: Texture) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }] });
+    this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow);
+    this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow);
   }
 
   private async createPipelines(): Promise<void> {
@@ -239,7 +270,11 @@ export class Viewer {
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
     }
-    const frameLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform' } }] });
+    const frameLayout = d.createBindGroupLayout({ entries: [
+      { binding: 0, visibility: 3, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: 2, texture: { sampleType: 'depth' } },
+      { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
+    ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
     const vertex = (module: object, all: boolean) => ({
@@ -279,6 +314,11 @@ export class Viewer {
       fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    jobs.push(make('shadow', {
+      vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less', depthBias: 2, depthBiasSlopeScale: 2 },
     }));
     for (const two of [false, true]) jobs.push(make(two ? 'mask2' : 'mask', {
       vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
@@ -467,8 +507,20 @@ export class Viewer {
     return `${mat.unlit ? 'unlit' : 'lit'}${two}${t}` as PipelineKey;
   }
 
-  private writeUniforms(viewProjection: Mat4): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment));
+  /** The shadow-casting light's view of the scene: an orthographic box around it along the light. */
+  private shadowFrame(): ShadowFrame | null {
+    const light = directionalLights(this.lights).find(l => l.castShadow), scene = this.sceneBounds();
+    if (!light || !scene) return null;
+    const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
+    const up: Vec3 = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0], eye = sub(c, scale(d, 2 * r));
+    if (!cross(up, d).some(x => x !== 0)) return null;
+    const viewProjection = multiply(orthographic(r, r, r * 0.9, r * 3.1), lookAt(eye, c, up)), size = this.shadowMapSize;
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005 };
+  }
+
+  private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow));
+    if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
       m.pack(this.objectData, m.slot * OBJECT_STRIDE);
@@ -509,11 +561,31 @@ export class Viewer {
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
-    this.writeUniforms(vp);
+    const shadow = this.shadowFrame();
+    if (shadow && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize)) {
+      this.shadowMap?.destroy();
+      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow map' });
+      this.bindFrames();
+    }
+    this.writeUniforms(vp, shadow);
     this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio)));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();
     const bg = this.background ? linear(this.background) : null;
     const enc = this.device.createCommandEncoder();
+    if (shadow && this.shadowMap) {
+      // Every shadow caster, in view or not.
+      const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
+      sp.setBindGroup(0, this.shadowFrameGroup);
+      sp.setPipeline(this.pipelines.get('shadow')!);
+      for (const m of this.meshes) {
+        if (!m.visible || !m.castShadow || m.transparent || m.geometry.topology !== 'triangles' || !this.upload(m.geometry)) continue;
+        const g = m.geometry.gpu!, data = m.geometry.data;
+        sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+        sp.setVertexBuffer(0, g.positions);
+        if (g.indices) { sp.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); sp.drawIndexed(data.elementCount); } else sp.draw(data.elementCount);
+      }
+      sp.end();
+    }
     const pass = enc.beginRenderPass({
       colorAttachments: [{ view: targets.msaa ? targets.msaa.createView() : sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: bg ? { r: bg[0], g: bg[1], b: bg[2], a: 1 } : { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
       depthStencilAttachment: { view: targets.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
@@ -689,7 +761,8 @@ export class Viewer {
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
-    this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy();
+    this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
+    this.shadowMap?.destroy(); this.emptyShadow?.destroy();
     this.context?.unconfigure();
     this.device?.destroy();
     for (const f of this.waiters.splice(0)) f();
