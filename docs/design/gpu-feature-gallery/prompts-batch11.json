@@ -1,0 +1,21 @@
+{
+  "tool": "built-in image_gen reference-image editing",
+  "references": {
+    "commit": "5b93463f40a1ef2100723148b4797368df40d8de",
+    "issue": "https://github.com/barocss/barocss/issues/2079",
+    "prefix": "https://raw.githubusercontent.com/barocss/barocss/5b93463f40a1ef2100723148b4797368df40d8de/docs/design/cad-roadmap-gallery/2026-10-16/",
+    "jig": "reference-jig-plate-neutral.png",
+    "flange": "reference-flange-neutral.png"
+  },
+  "prompts": [
+    {
+      "board": 26,
+      "prompt": "Edit this exact dual-slot jig plate reference image. Keep its entire part silhouette, exact intended camera/projection/framing, plate thickness, sharp square corners, TWO long rectangular through slots, slot lengths/positions, center bridge and outer/end bridges unchanged. DO NOT redraw a different part, round corners, add holes, bevels or pieces. Change only opaque diffuse base color of the plate from neutral gray to muted deep teal-blue; preserve reference lighting direction and shading relationships. Slot openings still show white background; opaque inner walls are teal diffuse with appropriate darker self-shading. No metallic highlights/environment reflections, no transparency, no floor or cast/contact shadow. White background unchanged. Replace bottom left caption with '26 / JIG PLATE · OPAQUE BASE-COLOR TARGET'. Replace bottom right caption with 'TARGET DESIGN / NOT ACTUAL ENGINE CAPTURE'. Add small footer note if space permits 'Reference-image edit · GPU #779 / #1579'. This is a qualitative material change from an exact supplied CAD design reference, not actual runtime output. Retain maximum geometry fidelity over decorative changes."
+    },
+    {
+      "board": 27,
+      "prompt": "Edit this exact five-opening flange reference image. Preserve maximum geometry and camera fidelity: SAME outer circular profile/perspective, SAME thickness and central bore diameter, EXACTLY four small bolt holes at top,left,right,bottom around the central bore, all five through-openings retain position and aperture silhouettes. No bevel/chamfer additions, no new parts, no rim thickness changes, no hole movement, no scene reorientation. Keep neutral gray opaque fully MATTE diffuse material and white background. Change only intended directional illumination from broadly front/top to a stronger camera-right direction: right-facing exterior/inner cylinder portions become brighter neutral gray while left-facing portions become darker, top remains moderately lit. Smooth diffuse shading only, no specular hotspots, reflections, metallic shine, cast/contact shadows or light shafts. All holes still visibly pass through to white background and remain untinted. Replace bottom left caption with '27 / FLANGE · DIRECTIONAL-LIGHT TARGET'. Replace bottom right with 'TARGET DESIGN / NOT ACTUAL ENGINE CAPTURE'. Add small footer note if space permits 'Reference-image edit · GPU #1579 / #1445'. No exact numeric light-angle or runtime claim. This is the same CAD design reference edited for lighting, not a newly invented flange."
+    }
+  ],
+  "revision": "27 flatten directional top-face response, reverse inner-bore left/right illumination relative to outer cylinder; exact geometry landmarks retained visually"
+}

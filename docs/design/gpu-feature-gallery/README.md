@@ -126,3 +126,28 @@ This gallery now covers 25 distinct feature-result concepts with source/roadmap 
 - General LOD/streaming and postprocessing remain named high-level horizons without a frozen visual acceptance target here. No arbitrary simplification thresholds, bloom, depth-of-field, tone-map or effect API has been invented. Exact future contracts may justify new distinct boards later.
 - Additional generic color, pose, visibility or alpha-order variants would substantially duplicate current outcomes. CAD selection/geometry and GPU display responsibilities stay separate; native edge overlay was coordinated for nonduplication.
 All PNGs are target-design concepts. Only real, separately authorized engine captures and measurements can establish implementation or acceptance.
+
+
+## Practical CAD → GPU visual continuity: the same two parts
+[CAD feature progressions and exact reference assets: #2079](https://github.com/barocss/barocss/issues/2079). The following are edits of those actual reference PNGs, not independently generated substitute parts. They show design continuity only, not execution of a CAD model through a GPU engine.
+
+### 26 — Dual-slot jig plate: opaque base color
+The neutral source has two parallel rectangular through-slots, a center bridge and connected perimeter. The edited result changes the intended opaque diffuse color to teal; sharp corners, slots, silhouette, thickness and camera are retained visually. Feature grounding: [#779](https://github.com/barocss/barocss/issues/779) / [#1579](https://github.com/barocss/barocss/issues/1579). This bounded diffuse target adds no PBR/environment reflection, transparency or cast-shadow claim. CAD composite provenance is #1695/#535/#534; whole-chain current support is not asserted.
+
+Exact CAD design reference:
+![Jig neutral reference](https://raw.githubusercontent.com/barocss/barocss/5b93463f40a1ef2100723148b4797368df40d8de/docs/design/cad-roadmap-gallery/2026-10-16/reference-jig-plate-neutral.png)
+GPU material target edit:
+![Jig opaque color](26-jig-plate-opaque-color.png)
+
+### 27 — Five-opening flange: directional lighting
+The neutral source has one central bore and four cardinal bolt holes, with no hub, bolts or added chamfer. The edit changes intended directional lighting while retaining the gray matte material and all five openings. Grounding: [#1579](https://github.com/barocss/barocss/issues/1579) / [#1445](https://github.com/barocss/barocss/issues/1445). CAD composite provenance is #1677/#534 PART02/06/07/#536 DETAIL03, not a claim of current complete-chain adoption.
+The first lighting draft was rejected: a planar top-face gradient and same-side inner/outer illumination contradicted the directional-light intent. Final top lighting is flatter and bore-wall left/right shading opposes the exterior cylinder, as expected from their opposing normals. No numeric normal/angle/brightness validation is claimed.
+
+Exact CAD design reference:
+![Flange neutral reference](https://raw.githubusercontent.com/barocss/barocss/5b93463f40a1ef2100723148b4797368df40d8de/docs/design/cad-roadmap-gallery/2026-10-16/reference-flange-neutral.png)
+GPU lighting target edit:
+![Flange directional light](27-flange-directional-light.png)
+
+### Continuity evidence limits
+Both exact inputs were downloaded from immutable CAD commit 5b93463f40a1ef2100723148b4797368df40d8de and passed directly as image-generation edit references. Input SHA256: jig 6c2b05b0854aa271655f0bc651233a06b94672b1296ce687c4ee69e5ed830ceb; flange 2baf92a62309ef26e52fe434146cc25d7846997e4ad71addb58cf1200f1237f4.
+Independent CAD and GPU visual reviews checked hole/slot counts, bridges, silhouette, thickness, camera and lighting/material causality. Small generative pixel drift remains possible. Neither image proves exact geometry equality, numerical dimensional continuity, native topology preservation or an executed CAD→GPU pipeline. These two edits use bounded opaque/diffuse feature concepts; they do not inherit the separately marked future PBR proposals elsewhere in this gallery.
