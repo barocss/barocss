@@ -21,6 +21,10 @@ export interface SceneViewOptions {
   segments?: number;
   /** Frame the scene when it is first shown (default true). */
   fit?: boolean;
+  /** Show the scene's background colour (default true). */
+  background?: boolean;
+  /** A transform before every object's placement: the scene inside another world (Z up, millimetres, …). */
+  transform?: ArrayLike<number>;
 }
 export interface SceneView {
   /** The meshes by object id. */
@@ -75,6 +79,7 @@ function placement(d: Draw): Mat4 {
 /** Show a CSS-shaped scene source on a viewer. Throws a SceneViewError when the first source does not compile. */
 export function showScene(viewer: Viewer, source: string, options: SceneViewOptions = {}): SceneView {
   const n = Math.max(8, Math.min(128, Math.round(options.segments ?? 48)));
+  const outer: Mat4 | null = options.transform ? Float64Array.from(options.transform) : null;
   const geometries = new Map<string, Geometry>(), meshes = new Map<string, Mesh>();
   let result: Extract<GpuCompileResult, { ok: true }>;
   let first = true, disposed = false;
@@ -91,13 +96,14 @@ export function showScene(viewer: Viewer, source: string, options: SceneViewOpti
       for (const d of ir.draws) {
         const p = primitive(d, n), place = placement(d);
         used.add(p.key);
-        meshes.set(d.id, viewer.add(geometry(p.key, p.build), { name: d.id, transform: p.local ? multiply(place, p.local) : place, material: { color: d.color as V3, roughness: 0.5 } }));
+        const local = p.local ? multiply(place, p.local) : place;
+        meshes.set(d.id, viewer.add(geometry(p.key, p.build), { name: d.id, transform: outer ? multiply(outer, local) : local, material: { color: d.color as V3, roughness: 0.5 } }));
       }
     }
     // Shapes no longer used are released.
     for (const [key, g] of geometries) if (!used.has(key)) { g.dispose(); geometries.delete(key); }
-    viewer.setBackground(ir.background as V3);
-    if (first && options.fit !== false) { viewer.camera.up = [0, 1, 0]; viewer.fit(); }
+    if (options.background !== false) viewer.setBackground(ir.background as V3);
+    if (first && options.fit !== false) { if (!outer) viewer.camera.up = [0, 1, 0]; viewer.fit(); }
     first = false;
     result = compiled;
   };

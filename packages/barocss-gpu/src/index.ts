@@ -272,3 +272,5 @@ export * from './viewer/index.js';
 // The CSS-shaped scene language shown on the viewer.
 export { showScene, SceneViewError } from './scene-viewer.js';
 export type { SceneView, SceneViewOptions } from './scene-viewer.js';
+export { materialShader } from './material-viewer.js';
+export type { MaterialShaderResult, MaterialUniform } from './material-viewer.js';

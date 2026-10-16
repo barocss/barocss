@@ -59,8 +59,25 @@ test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
       const ring = pixel(img2, screen([1, -2.5, 0]));
       view.dispose();
       const disposed = viewer.meshList.length;
+      // Authored materials on the viewer: a uniform mix, and a ramp along the geometry's u.
+      viewer.setBackground('#000000');
+      const quad = { positions: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], uvs: [0, 0, 1, 0, 1, 1, 0, 1], indices: [0, 1, 2, 0, 2, 3] };
+      const paint = gpu.materialShader('@shader #paint { @uniform amount:float(0,1,.25); @fragment { color:mix(#ff0000,#0000ff,amount); } }', { amount: 0 });
+      const ramp = gpu.materialShader('@shader #ramp { @fragment { color:mix(#000000,#ffffff,surface_u01); } }');
+      const badMaterial = gpu.materialShader('@shader #bad { @fragment { color: nope; } }');
+      viewer.add(quad, { material: { unlit: true, color: '#ffffff', doubleSided: true, shader: paint.shader }, transform: gpu.translation([-1.2, 0, 0]) });
+      viewer.add(quad, { material: { unlit: true, color: '#ffffff', doubleSided: true, shader: ramp.shader }, transform: gpu.translation([1.2, 0, 0]) });
+      Object.assign(viewer.camera, { position: [0, 0, 8], target: [0, 0, 0], up: [0, 1, 0] });
+      const img3 = await viewer.capture();
+      const materials = { usesUV: [paint.usesUV, ramp.usesUV], bad: badMaterial.ok ? null : badMaterial.diagnostics[0].code, red: pixel(img3, screen([-1.2, 0, 0])), dark: pixel(img3, screen([0.35, 0, 0])), bright: pixel(img3, screen([2.05, 0, 0])) };
+      // A scene inside a Z-up world, ten units to the scene unit, on the viewer's own background.
+      viewer.clear();
+      const zUp = gpu.multiply(gpu.rotation([1, 0, 0], Math.PI / 2), [10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1]);
+      const inner = gpu.showScene(viewer, '@scene s { version: 0; box #tall; } #tall { size: 1 2 1; }', { fit: false, background: false, transform: zUp });
+      const tall = inner.meshes.get('tall').bounds;
+      const bg = pixel(await viewer.capture(), [1, 1]);
       viewer.dispose();
-      return { first, after, bad: { ok: bad.ok, codes: bad.diagnostics?.map(d => d.code) }, kept, parts, ring, disposed };
+      return { first, after, bad: { ok: bad.ok, codes: bad.diagnostics?.map(d => d.code) }, kept, parts, ring, disposed, materials, tall, bg };
     });
     t.diagnostic(JSON.stringify(r));
     assert.deepEqual(r.first.ids, ['ball', 'cube']);
@@ -81,6 +98,12 @@ test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
     assert.ok(Math.abs(r.parts.can.max[1] - 1) < 1e-6 && Math.abs(r.parts.can.max[0] - 0.5) < 1e-3);
     assert.ok(r.ring[1] > r.ring[0] + 30, `teal ring ${r.ring}`);
     assert.equal(r.disposed, 0);
+    assert.deepEqual(r.materials.usesUV, [false, true]); assert.equal(r.materials.bad, 'TYPE');
+    assert.deepEqual(r.materials.red, [255, 0, 0], 'the uniform material at amount 0');
+    assert.ok(r.materials.dark[0] < 80 && r.materials.bright[0] > 200, `the ramp along u: ${r.materials.dark} → ${r.materials.bright}`);
+    // The 2-unit Y height of the box stands along Z, ten times larger; the scene's background stays out.
+    assert.ok(Math.abs(r.tall.max[2] - 10) < 1e-6 && Math.abs(r.tall.min[2] + 10) < 1e-6 && Math.abs(r.tall.max[0] - 5) < 1e-6, JSON.stringify(r.tall));
+    assert.deepEqual(r.bg, [0, 0, 0]);
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await new Promise(res => server.close(res)); }
 });
