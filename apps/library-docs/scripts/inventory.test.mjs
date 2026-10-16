@@ -34,9 +34,10 @@ async function mutateJson(path, mutate) {
   await writeFile(path, JSON.stringify(json, null, 2) + '\n');
 }
 
-test('all 12 current manifests match; historical source pin and evidence stay separate', async () => {
+test('all 10 current manifests match; historical source pin and evidence stay separate', async () => {
   const result = await checkCurrentInventory();
-  assert.equal(result.packages.length, 12);
+  assert.equal(result.packages.length, 10);
+  assert.deepEqual(result.retired, ['cad-editor', 'render-editor']);
   assert.equal(result.historicalSourceCommit, sourceCommit);
   assert.notEqual(result.manifestCommit, sourceCommit);
   assert.deepEqual(result, createCurrentInventory(root, historicalBytes, result.manifestCommit));
@@ -73,7 +74,6 @@ test('records exact changed fields including metadata-only held Render', () => {
   assert.deepEqual(inventory.packages.filter(p => p.changesFromSourceSnapshot.length).map(p => [p.slug, p.changesFromSourceSnapshot.map(change => change.field)]), [
     ['kit', ['version']], ['browser', ['version']], ['server', ['version']], ['render', ['version']],
     ['gpu', ['exports', 'scripts', 'publishConfig']], ['cad-interop', ['publishConfig', 'exports', 'scripts']],
-    ['cad-editor', ['scripts']], ['render-editor', ['dependencies']],
   ]);
 });
 

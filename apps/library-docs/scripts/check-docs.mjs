@@ -33,7 +33,7 @@ for (const page of pages) {
   // JSON/CSS downloads use native anchors; verify their built bytes match the source.
   for (const match of text.matchAll(/<a\b[^>]*\s(?::href="withBase\('([^'?#]+\.(?:json|css))'\)"|href="([^"?#]+\.(?:json|css))")[^>]*>/g)) {
     const href = match[1] || match[2];
-    if (!href.startsWith('/examples/')))
+    if (!href.startsWith('/examples/'))
       throw new Error(`Unexpected JSON/CSS download: ${href}`);
     const source = resolve(docs, 'public', `.${href}`);
     const built = resolve(docs, '.vitepress/dist', `.${href}`);
