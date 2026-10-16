@@ -151,3 +151,16 @@ GPU lighting target edit:
 ### Continuity evidence limits
 Both exact inputs were downloaded from immutable CAD commit 5b93463f40a1ef2100723148b4797368df40d8de and passed directly as image-generation edit references. Input SHA256: jig 6c2b05b0854aa271655f0bc651233a06b94672b1296ce687c4ee69e5ed830ceb; flange 2baf92a62309ef26e52fe434146cc25d7846997e4ad71addb58cf1200f1237f4.
 Independent CAD and GPU visual reviews checked hole/slot counts, bridges, silhouette, thickness, camera and lighting/material causality. Small generative pixel drift remains possible. Neither image proves exact geometry equality, numerical dimensional continuity, native topology preservation or an executed CAD→GPU pipeline. These two edits use bounded opaque/diffuse feature concepts; they do not inherit the separately marked future PBR proposals elsewhere in this gallery.
+
+
+## 28 — Same open lofted skin, future PBR/environment appearance
+[CAD three-section loft workflow and exact neutral reference: #2080](https://github.com/barocss/barocss/issues/2080) follows [#847](https://github.com/barocss/barocss/issues/847) and [#952](https://github.com/barocss/barocss/issues/952). This is a single open four-boundary Surface patch, not a capped/thickened solid. No general loft, complete CAD chain, material physicality or runtime support is inferred.
+
+The exact reference PNG was supplied to image-generation editing. The result retains its open front/back arches, two side boundaries, camera and silhouette visually while exploring silver reflective appearance with coherent studio bands. This changes the material/environment appearance stage together; it is **not** a controlled single-roughness comparison. The [E4 future PBR/environment horizon](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e4--scene-service-maturity) supplies scope only. The earlier Khronos PBR/IBL references explain the concept, not a frozen BaroCSS API.
+
+Exact CAD design input:
+![Open loft skin reference](https://raw.githubusercontent.com/barocss/barocss/4093550ee6a48788fca7d44bb8c11c637618d811/docs/design/cad-roadmap-gallery/2026-10-16/reference-lofted-cover-neutral.png)
+Future GPU appearance target:
+![Open loft skin future reflection](28-lofted-skin-future-pbr.png)
+
+Both CAD and GPU reviewers compared actual input/output pixels and accepted the qualitative continuity: no cap, wall, thickness, holes, ribs or additional body was introduced. The two bright bands are reflection cues, not geometry ridges. “Exact CAD reference-image edit” means the exact supplied PNG was used as input, **not** exact mesh, pixel or numerical equivalence. Input SHA256: 4aaa3fd1b320fb6ca59eff697161f70e01f26250c9e3870467560a3051fee455. Geometry/deformation, radiometry, roughness, environment filtering and actual CAD→GPU execution remain untested. This future proposal is separate from bounded diffuse edits26/27.
