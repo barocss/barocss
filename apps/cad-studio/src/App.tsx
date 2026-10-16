@@ -34,6 +34,7 @@ import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, stand
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
+import { SketchHistory } from './sketch/history';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -106,12 +107,14 @@ export function App() {
   useEffect(() => { liveShape.current = sketch?.shape ?? null; }, [sketch?.shape]);
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
   // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
+  const sketchHistory = useRef(new SketchHistory());
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
     const prev = liveShape.current, keep = fresh && prev && shapeNode(prev) ? prev : null;
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
+    if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
     setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: [...(s.done ?? []), keep] } : {}) });
   }, []);
-  useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
+  useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
   const [chat, setChat] = useState(false);
   /** What a chat turn asked to show selected once its part is evaluated. */
@@ -503,14 +506,27 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
+        const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
+        if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...s, shape: back, picked: [], editDim: null }); return; }
+        if (!sketch) { if (e.shiftKey) doRedo(); else doUndo(); }
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
-      if (typing || palette) return;
+      // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
+      const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
+      if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
-      if (sketch) { const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool; if (t) setSketch(s => s && switchTool(s, t)); return; }
+      if (sketch) {
+        const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
+        if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
+        return;
+      }
       if (e.key.toLowerCase() === 'f' && !e.shiftKey) { viewport.current?.fit(); return; }
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());
       if (cmd && !active) { e.preventDefault(); start(cmd); }

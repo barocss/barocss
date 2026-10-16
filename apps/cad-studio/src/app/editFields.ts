@@ -2,6 +2,7 @@
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
 import type { Axis, Dim, ModelNode, SketchNode } from '../engine/doc';
+import { outlineFields } from '../sketch/outlineFields';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
@@ -14,7 +15,7 @@ const num = (v: Dim | undefined) => typeof v === 'number' ? v : NaN;
 const replace = (nodes: Nodes, i: number, node: ModelNode): ModelNode[] => nodes.map((n, k) => k === i ? node : n);
 const axes = (list: string[]) => list.map(v => ({ value: v, label: v.toUpperCase() }));
 
-/** Width, depth and corner of a rectangle; diameter and centre of a circle. */
+/** Width, depth and corner of a rectangle; diameter and centre of a circle; a drawn outline's driving dimensions. */
 function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
   const sk = nodes[s] as SketchNode | undefined, out: EditField[] = [];
   if (!sk || sk.kind !== 'sketch') return out;
@@ -33,6 +34,7 @@ function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
       ...[0, 1].map((k): EditField => ({ kind: 'number', key: prefix + 'cc' + k, label: prefix + 'Centre ' + 'XY'[k], unit: 'mm', get: n => num(circ(n).center[k]),
         set: (n, v) => { const c = [...circ(n).center] as [Dim, Dim]; c[k] = v; return replace(n, s, { ...circ(n), center: c }); } })));
   }
+  out.push(...outlineFields(nodes, s, prefix));
   return out;
 }
 
