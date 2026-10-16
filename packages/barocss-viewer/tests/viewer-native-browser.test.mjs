@@ -5,6 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,11 +14,15 @@ import { build } from 'esbuild';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const page = `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#000}canvas{display:block;width:160px;height:120px}</style><canvas id="c"></canvas>`;
 
+const faces = path.resolve(here, '../../../examples/viewer-qualified-face-scene/fixtures/warped.authentic-request.json');
+
 async function serve() {
+  const faceRequest = await readFile(faces);
   const bundle = await build({ entryPoints: [path.join(here, 'fixtures/native-entry.ts')], bundle: true, format: 'esm', write: false, platform: 'browser', target: 'es2022' });
   const server = createServer((req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
+    if (req.url === '/faces.json') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(faceRequest); return; }
     if (req.url === '/native.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(bundle.outputFiles[0].contents); return; }
     res.writeHead(404); res.end();
   });
@@ -94,7 +99,32 @@ test('native light and UV01 viewers and the native appearance draw on WebGPU', {
         appearance: { lighting: { ambientStrength: 0.3, directionalStrength: 0.7, direction: [0, 0.5, 1] }, materials: seed.materials } });
       out.appearance = lit(await viewer.readPixels(), bgOf(seed));
       out.appearanceState = viewer.getState().surfaceMaterials.length;
+
+      // A document scene with a material on one surface, then qualified Faces and mixed depth.
+      viewer.loadDocument(seed.source.result, seed.source.options);
+      const plain = await viewer.readPixels(), ref = viewer.getState().surfaces[0];
+      viewer.setSurfaceMaterial(ref, seed.materials[1].binding);
+      out.materialChanged = (await viewer.readPixels()).some((v, i) => v !== plain[i]);
+      const request = await (await fetch('/faces.json')).json();
+      viewer.loadQualifiedFaceScene({ version: 0, basis: 'authored-xyz-matches-rhyup', countU: 9, countV: 9,
+        assets: request.assets.map((a, i) => ({ ...a, color: [[0.9, 0.3, 0.2], [0.2, 0.7, 0.3], [0.2, 0.4, 0.9], [0.9, 0.8, 0.2], [0.7, 0.3, 0.8], [0.3, 0.8, 0.8]][i] })),
+        // The Faces span 0–10 mm (one scene unit per mm here).
+        camera: { eye: [22, 18, 30], target: [5, 5, 5], up: [0, 1, 0], fovYDegrees: 45, near: 0.1, far: 200 }, translateScene: [0, 0, 0] });
+      out.faces = lit(await viewer.readPixels(), bgOf(seed));
+      out.facePick = (() => { for (let y = 4; y < 120; y += 4) for (let x = 4; x < 160; x += 4) { const h = viewer.pickQualifiedFace({ xCss: x, yCss: y }); if (h) return h.sourceId ?? true; } return null; })();
       viewer.dispose();
+      // Mixed depth at the demo's scale: a 2 m panel behind a 0.5-unit Sphere.
+      const mixedCanvas = fresh(); mixedCanvas.width = 160; mixedCanvas.height = 120;
+      const mixedViewer = await api.createViewer(mixedCanvas, { mmToSceneUnit: 0.001, background: [0.06, 0.09, 0.12] });
+      mixedViewer.loadMixedDepthScene({ version: 0,
+        sphereSource: '@scene mixed_depth { version:1; background:#101820; sphere #original_sphere; } #original_sphere { radius:0.5; color:#ff0000; translate:0 0 0; rotate-x:0deg; rotate-y:0deg; rotate-z:0deg; }',
+        nativeSource: '@model rational_native { version:0; length-unit:mm; @surface #original_panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,5,5]; knots-v:[-0,-0,11,11]; control-points:[[[-1000,-1000,0],[-1000,1000,0]],[[1000,-1000,0],[1000,1000,0]]]; weights:[[1,1.2],[0.7,1]]; } }',
+        native: { sourceVersion: 0, countU: 17, countV: 17 }, surface: { modelId: 'rational_native', surfaceId: 'original_panel' },
+        surfaceColor: [0.1, 0.2, 1], nativeTranslateScene: [0, 0, -0.75], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 20 },
+        basis: 'authored-xyz-matches-rhyup' });
+      const mixed = await mixedViewer.readPixels(), at = (x, y) => [...mixed.slice((y * 160 + x) * 4, (y * 160 + x) * 4 + 3)];
+      out.mixedCentre = at(80, 60); out.mixedPanel = at(97, 60);
+      mixedViewer.dispose();
       return out;
     });
     t.diagnostic(JSON.stringify(r));
@@ -113,6 +143,10 @@ test('native light and UV01 viewers and the native appearance draw on WebGPU', {
     assert.ok(r.uv01.n > 500 && r.uv01Colors > 20 && r.uv01Pick, 'UV01 materials vary over the surfaces');
     assert.ok(r.appearance.n > 500);
     assert.equal(r.appearanceState, 2);
+    assert.equal(r.materialChanged, true, 'a surface material recolours its surface');
+    assert.ok(r.faces.n > 300 && r.facePick, 'qualified Faces drawn and picked');
+    assert.ok(r.mixedCentre[0] > 150 && r.mixedCentre[2] < 80, 'the red Sphere in front of the panel');
+    assert.ok(r.mixedPanel[2] > r.mixedPanel[0] + 40, 'the blue panel beside and behind it');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await server.close(); }
 });
