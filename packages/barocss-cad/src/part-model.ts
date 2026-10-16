@@ -43,9 +43,9 @@ export type CadPartLoopSegment = { readonly kind: 'line'; readonly start: CadPar
 type Base = { readonly id: string };
 /**
  * Where a sketch lies: its X runs along `xAxis` and its Y along normal × xAxis from `origin`, and its
- * solids grow along `normal` (both directions are unit vectors after normalising). One of the three
- * axes must be vertical (±Z): horizontal planes at any spin and vertical planes facing any heading —
- * every face of a body built upright or turned about Z. Without a plane a sketch lies on XY at Z 0.
+ * solids grow along `normal` (both directions are unit vectors after normalising); any plane, tilted
+ * ones included. A body built on a plane with a vertical axis stays upright (exact, prismatic); on any
+ * other it is a general B-rep. Without a plane a sketch lies on XY at Z 0.
  */
 export interface CadPartSketchPlane { readonly origin: CadPartPoint3; readonly normal: readonly [number, number, number]; readonly xAxis: readonly [number, number, number] }
 /**
@@ -325,7 +325,6 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
   const n = snap(direction(plane.normal, 'normal')), x0 = direction(plane.xAxis, 'xAxis');
   if (Math.abs(dot(x0, n)) > 1e-9) fail('INPUT', 'plane xAxis must be perpendicular to its normal');
   const x = snap(unit(sub(x0, scale(n, dot(x0, n))))), y = snap(cross(n, x));
-  if (![x, y, n].some(a => Math.abs(a[2]) === 1)) fail('CAPABILITY', 'a sketch plane needs one axis vertical (a horizontal or a vertical plane); tilted planes are not supported yet');
   return { m: [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]], o: xyz(plane.origin, 'plane origin') };
 }
 /** A result built on a sketch's own XY, moved onto its plane. */

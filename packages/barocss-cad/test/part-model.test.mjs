@@ -495,7 +495,7 @@ test('ellipse and quartic trims: slanted bodies, cross-drilled bosses, partial p
   assert.ok(turned.massProperties(1).volumeMM3 < 8000 && turned.massProperties(1).volumeMM3 > 8000 - 4 * pi * 60);
 });
 
-test('sketch planes: profiles drawn on a face or a vertical plane at any heading grow along its normal', () => {
+test('sketch planes: profiles drawn on a face, a vertical plane at any heading or a tilted plane grow along its normal', () => {
   const box = [rect('s', 0, 0, 40, 20), extrude('e', 's', 10)];
   const bounds = o => { const b = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }; for (const v of o.brep.vertices) for (let k = 0; k < 3; k++) { b.min[k] = Math.min(b.min[k], v.point[k]); b.max[k] = Math.max(b.max[k], v.point[k]); } return b; };
   // A boss on the +X side face (x = 40): sketch X along +Y, Y up, grown 5 mm outward.
@@ -526,8 +526,18 @@ test('sketch planes: profiles drawn on a face or a vertical plane at any heading
   out = evaluateCadPart(D([{ ...rect('l0', 0, 0, 4, 4), plane: side }, { ...rect('l1', 1, 1, 3, 3), plane: side },
     { id: 'lf', kind: 'loft', sections: [{ sketch: 'l0', z: 0 }, { sketch: 'l1', z: 6 }] }])).output('lf');
   assert.ok(close(bounds(out).min[0], 40) && close(bounds(out).max[0], 46), JSON.stringify(bounds(out)));
-  // Tilted planes, mixed loft planes and a non-perpendicular axis are refused.
-  refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 1, 1], xAxis: [1, 0, 0] } }, extrude('y', 'x', 1)]), 'CAPABILITY', /one axis vertical/);
+  // A plane tilted 30° about X: Booleans, finishes and shells stay exact (planar B-rep).
+  const c30 = Math.cos(pi / 6), s30 = Math.sin(pi / 6), tilt = z => ({ origin: [0, 0, z], normal: [0, -s30, c30], xAxis: [1, 0, 0] });
+  const big = [rect('pl', -20, -20, 40, 40), extrude('pe', 'pl', 40)], tilted = z => [{ ...rect('ts', 0, 0, 20, 10), plane: tilt(z) }, extrude('te', 'ts', 5)];
+  out = evaluateCadPart(D([...big, ...tilted(15), { id: 'td', kind: 'difference', target: 'pe', tool: 'te' }])).output('td');
+  assert.equal(out.representation, 'planar');
+  assert.ok(close(volume(out), 144000 - 1000, 1e-12), String(volume(out)));
+  out = evaluateCadPart(D([...tilted(15), { id: 'tc', kind: 'chamfer', target: 'te', edges: ['te.side0|te.top'], distance: 1 }])).output('tc');
+  assert.ok(close(volume(out), 990, 1e-12));
+  out = evaluateCadPart(D([...tilted(15), { id: 'ts2', kind: 'shell', target: 'te', thickness: 1, open: ['te.top'] }])).output('ts2');
+  assert.ok(close(volume(out), 424, 1e-12));
+  assert.ok(close(bounds(evaluateCadPart(D(tilted(15))).output('te')).max[2], 15 + 10 * s30 + 5 * c30, 1e-9));
+  // Mixed loft planes and a non-perpendicular axis are refused.
   refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [0, 1, 1] } }]), 'INPUT', /perpendicular/);
   refused(D([{ ...rect('a', 0, 0, 4, 4), plane: side }, rect('b', 1, 1, 3, 3), { id: 'lf', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 6 }] }]), 'INPUT', /same plane/);
 });
