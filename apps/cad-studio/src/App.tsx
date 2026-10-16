@@ -19,6 +19,9 @@ import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
 import { InstancePanel } from './ui/InstancePanel';
+import { MatePanel } from './ui/MatePanel';
+import { useAssembly } from './assembly/useAssembly';
+import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
@@ -214,6 +217,12 @@ export function App() {
     })();
     return () => { live = false; };
   }, [doc.instances]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** One undoable change of the instances and their mates together. */
+  const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, instances, mates }); setDirty(true);
+  }, [doc, marker]);
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
   const instancesShown = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   const insertPart = async (file: File) => {
     try {
@@ -393,8 +402,9 @@ export function App() {
     setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
   }, [sketch, ctx, bodies]);
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean) => {
+  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
     if (active) return;
+    if (assembly.pick(hit)) return;
     setPick(hit.point);
     if (hit.direct) {
       const id = hit.direct;
@@ -417,7 +427,7 @@ export function App() {
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [active, measure]);
+  }, [active, measure, assembly]);
   pickRef.current = onPick;
 
   const doUndo = useCallback(() => {
@@ -470,7 +480,7 @@ export function App() {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
-      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
+      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
@@ -484,7 +494,7 @@ export function App() {
   });
 
   const shownBodies = previewBodies ?? bodies;
-  const shownSelection = previewBodies || sketch ? emptySel : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+  const shownSelection = previewBodies || sketch ? emptySel : assembly.draft ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
@@ -502,7 +512,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={instanceSel}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -618,12 +628,15 @@ export function App() {
           onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
           onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
             commitInstances([...list, { ...inst, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
-          onRemove={() => commitInstances(list.filter(i => i.id !== inst.id), [])} />;
+          onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
+          onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
+      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances}
+        onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
-      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && <aside className="card props" aria-label="Selection">
+      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>

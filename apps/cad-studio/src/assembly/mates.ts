@@ -187,7 +187,15 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
         return off > DIR_TOL ? `${dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ')}: they turn ${partName} so this face points ${fmtNum(degBetween(dot(apply(frame, u), v)))}° away from where it must.` : null;
       }
       const d = dirs.find(d => Math.abs(dot(u, d.u) - dot(v, d.v)) > DIR_TOL);
-      return d ? `${label(d.mate)}: on ${partName} its face is ${fmtNum(degBetween(dot(u, d.u)))}° from that mate's face, but their partners are ${fmtNum(degBetween(dot(v, d.v)))}° apart.` : null;
+      if (!d) return null;
+      // The same face (or a parallel one) already pointed by that mate: say how far this one would turn it.
+      const c = dot(u, d.u);
+      if (Math.abs(c) > 1 - DIR_TOL) {
+        const turn = fmtNum(degBetween(dot(v, d.v) * Math.sign(c)));
+        return d.mate.b.face === term.mate.b.face ? `${label(d.mate)}: it already sets which way this face of ${partName} points, and this mate would turn it ${turn}° from there.`
+          : `${label(d.mate)}: it already sets which way a face of ${partName} parallel to this one points, and this mate would turn them ${turn}° from there.`;
+      }
+      return `${label(d.mate)}: on ${partName} its face is ${fmtNum(degBetween(c))}° from that mate's face, but the faces they mate to are ${fmtNum(degBetween(dot(v, d.v)))}° apart.`;
     };
     let v = v0, conflict = misfit(v0);
     if (free(term)) {

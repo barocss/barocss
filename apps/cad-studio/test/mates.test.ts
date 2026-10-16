@@ -77,8 +77,14 @@ test('mates: conflicts are refused with the reason, redundant agreeing mates are
   const r1 = solveAssembly([plate], [m1, turned], tablesFor(base, [plate]));
   assert.equal(r1.problems.length, 1);
   assert.equal(r1.problems[0].mate, 'm2');
-  assert.match(r1.problems[0].reason, /Conflicts with Coincident 1: on plate its face is 180° from that mate's face, but their partners are 0° apart/);
+  assert.match(r1.problems[0].reason, /Conflicts with Coincident 1: it already sets which way a face of plate parallel to this one points, and this mate would turn them 180° from there/);
   assert.deepEqual(r1.instances[0].position, [100, 0, 8], 'the first mate still holds');
+  // The same face mated again to a face at right angles.
+  const twice: Mate = { id: 'm6', kind: 'coincident', a: { part: BASE, face: 'n1.side1' }, b: { part: 'plate', face: 'n1.bottom' } };
+  assert.match(solveAssembly([plate], [m1, twice], tablesFor(base, [plate])).problems[0].reason, /Conflicts with Coincident 1: it already sets which way this face of plate points, and this mate would turn it 90° from there/);
+  // A side face flush on the same top face: the plate's faces are square, their partners the same face.
+  const square: Mate = { id: 'm7', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part: 'plate', face: 'n1.side0' } };
+  assert.match(solveAssembly([plate], [m1, square], tablesFor(base, [plate])).problems[0].reason, /Conflicts with Coincident 1: on plate its face is 90° from that mate's face, but the faces they mate to are 0° apart/);
   // The same faces 3 mm apart while a mate holds them flush.
   const apart: Mate = { id: 'm3', kind: 'distance', distance: 3, a: { part: BASE, face: 'n1.top' }, b: { part: 'plate', face: 'n1.bottom' } };
   const r2 = solveAssembly([plate], [m1, apart], tablesFor(base, [plate]));

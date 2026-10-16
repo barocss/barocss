@@ -9,7 +9,7 @@ import { materialShader, showScene, type MaterialShaderResult, type SceneView } 
 import type { BodyResult } from '../engine/evaluate';
 import { appearanceOf, type RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
-import type { Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import type { OrbitCamera } from './camera';
 import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
 
@@ -40,6 +40,8 @@ export class GpuRenderer implements ViewRenderer {
   /** Placed instances of other parts: their bodies' surfaces and edges. */
   private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
   private instanceSelection: readonly string[] = [];
+  /** Instances' display meshes (for the face under a pick). */
+  private instanceMeshes = new Map<string, DisplayMesh[]>();
   private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
@@ -276,6 +278,7 @@ export class GpuRenderer implements ViewRenderer {
   /** Instances of other parts: lit like bodies, with their edges; the selected ones outlined. */
   setInstances(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void {
     for (const it of this.instances) for (const m of [...it.surfaces, ...it.edges]) { m.remove(); m.geometry.dispose(); }
+    this.instanceMeshes = new Map(items.map(it => [it.id, it.bodies.map(b => b.mesh)]));
     this.instances = items.map(it => ({
       id: it.id,
       surfaces: it.bodies.map(b => this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: 'inst:' + it.id })),
@@ -302,10 +305,19 @@ export class GpuRenderer implements ViewRenderer {
 
   /** The instance under a point. */
   pickInstance(x: number, y: number, camera: OrbitCamera): string | null {
+    return this.pickInstanceFace(x, y, camera)?.id ?? null;
+  }
+
+  /** The instance under a point, and which of its bodies' display faces (by the triangle hit). */
+  pickInstanceFace(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null {
     if (!this.instances.length) return null;
     this.sync(camera);
-    const name = this.viewer.raycast(x, y)?.mesh.name;
-    return name?.startsWith('inst:') ? name.slice(5) : null;
+    const hit = this.viewer.raycast(x, y), name = hit?.mesh.name;
+    if (!hit || !name?.startsWith('inst:')) return null;
+    const it = this.instances.find(i => i.id === name.slice(5)), body = it ? it.surfaces.indexOf(hit.mesh) : -1;
+    const mesh = body >= 0 ? this.instanceMeshes.get(it!.id)?.[body] : undefined;
+    const face = mesh && hit.triangle !== null ? mesh.faceOfVertex[mesh.indices[hit.triangle * 3]] : -1;
+    return { id: name.slice(5), body: Math.max(0, body), face: face ?? -1 };
   }
 
   /** The direct object under a point: a surface hit, else a curve within a few pixels. */

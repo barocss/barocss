@@ -4,9 +4,11 @@ import type { BodyResult } from '../engine/evaluate';
 import { fmt } from '../engine/doc';
 
 /** A placed part: its name, position and rotation (applied on Enter or when a box is left), duplicate, hide, remove. */
-export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove }: {
+export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround }: {
   inst: PartInstance; bodies: BodyResult[] | undefined;
   onChange(next: PartInstance): void; onDuplicate(): void; onRemove(): void;
+  /** Fixes it in place (mates never move it) or frees it. */
+  onGround?(on: boolean): void;
 }) {
   const volume = bodies?.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
   return (
@@ -22,6 +24,7 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove }:
       <div className="row-actions" style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
         <button className="ghost" onClick={onDuplicate}>Duplicate</button>
         <button className="ghost" onClick={() => onChange({ ...inst, hidden: !inst.hidden })}>{inst.hidden ? 'Show' : 'Hide'}</button>
+        {onGround && <button className={'ghost' + (inst.grounded ? ' on' : '')} title="A fixed part stays where it is: mates move the other part" onClick={() => onGround(!inst.grounded)}>{inst.grounded ? 'Unfix' : 'Fix in place'}</button>}
         <button className="ghost" onClick={onRemove}>Remove</button>
       </div>
     </aside>

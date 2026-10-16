@@ -48,7 +48,7 @@ interface Props {
   ghost: Set<number>;
   sketch: SketchState | null;
   gizmo: Gizmo | null;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
@@ -298,8 +298,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current!;
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
-    const instance = r.pickInstance?.(x, y, camera.current) ?? null;
-    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance }, e.shiftKey); return; }
+    const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
+    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance: instance.id, instanceFace: instance.face >= 0 ? { body: instance.body, face: instance.face } : undefined }, e.shiftKey); return; }
     const { face, edge } = pickAt(r, x, y);
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
   };
