@@ -1,6 +1,7 @@
 // Starts the chat server (server/chatServer.ts) on 127.0.0.1:52021; the Vite dev server forwards
 // /api/chat to it. Each turn runs the `claude` CLI with the studio's tools (server/cadMcp.ts).
-//   pnpm chat        (optional: CAD_STUDIO_CHAT_PORT, CAD_STUDIO_CHAT_MODEL, CAD_STUDIO_CLAUDE)
+//   pnpm chat        (optional: CAD_STUDIO_CHAT_PORT, CAD_STUDIO_CHAT_MODEL, CAD_STUDIO_CLAUDE,
+//                     CAD_STUDIO_CHAT_ORIGINS — comma-separated origins allowed besides the studio's own)
 import { build } from 'esbuild';
 import { createServer } from 'node:http';
 import { mkdtempSync } from 'node:fs';

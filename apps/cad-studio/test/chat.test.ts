@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,7 +13,7 @@ import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatSta
 import { checkNode, deleteFeature } from '../src/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
-import { checkImages, claudeArgs, createChatServer, stateNote, summarize, userMessage } from '../server/chatServer';
+import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { simplify, traceImage, traceLoops } from '../src/chat/trace';
 
@@ -214,9 +214,12 @@ async function serve(handler: ReturnType<typeof createChatServer>) {
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   return { url: `http://127.0.0.1:${(server.address() as { port: number }).port}/api/chat`, close: () => new Promise(r => server.close(r)) };
 }
+/** What the studio's page sends through the dev server's proxy. */
+const STUDIO = { origin: 'http://127.0.0.1:52020' };
+const JSON_POST = { ...STUDIO, 'content-type': 'application/json' };
 async function turn(url: string, body: unknown, signal?: AbortSignal) {
   const events: TurnEvent[] = [];
-  const res = await fetch(`${url}/turn`, { method: 'POST', body: JSON.stringify(body), signal });
+  const res = await fetch(`${url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify(body), signal });
   const feed = eventParser(e => events.push(e));
   feed(await res.text());
   return { status: res.status, events };
@@ -238,7 +241,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
   const work = scratch();
   const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: work }));
   try {
-    assert.deepEqual(await (await fetch(`${srv.url}/status`)).json(), { enabled: true, model: 'claude-opus-5-5', via: '2.1.283 (Claude Code)' });
+    assert.deepEqual(await (await fetch(`${srv.url}/status`, { headers: STUDIO })).json(), { enabled: true, model: 'claude-opus-5-5', via: '2.1.283 (Claude Code)' });
     assert.equal((await turn(srv.url, { text: '' })).status, 400);
     const { events } = await turn(srv.url, { text: 'add a Ø8 hole 6 mm from the corner', doc: plate });
     assert.deepEqual(events.map(e => e.type), ['text', 'text', 'tool', 'state', 'done']);
@@ -266,7 +269,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.deepEqual(JSON.parse(fake.spawned[2].stdin).message.content[0].source, { type: 'base64', media_type: 'image/png', data: png });
     const state = fake.lastState;
     assert.deepEqual(state?.images, [{ width: 1, height: 1, background: '#ffffff', layers: [] }]);
-    const refused = await fetch(`${srv.url}/turn`, { method: 'POST', body: JSON.stringify({ text: 'x', doc: built, images: [{ media_type: 'image/svg+xml', data: 'AAAA' }] }) });
+    const refused = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc: built, images: [{ media_type: 'image/svg+xml', data: 'AAAA' }] }) });
     assert.equal(refused.status, 400); assert.match((await refused.json()).error, /PNG, JPEG, WEBP, GIF/);
     assert.equal(fake.spawned.length, 3);
   } finally { await srv.close(); }
@@ -278,7 +281,7 @@ test('the chat server reports a missing CLI, failed turns, and kills the CLI whe
   const missing = (() => { const c = new EventEmitter() as any; c.stdout = new PassThrough(); c.stderr = new PassThrough(); setImmediate(() => c.emit('error', new Error('spawn claude ENOENT'))); return c; }) as any;
   let srv = await serve(createChatServer({ mcpScript: 'x', spawn: missing, workDir: scratch() }));
   try {
-    const st = await (await fetch(`${srv.url}/status`)).json();
+    const st = await (await fetch(`${srv.url}/status`, { headers: STUDIO })).json();
     assert.equal(st.enabled, false); assert.match(st.reason, /claude auth login/);
     const { events } = await turn(srv.url, { text: 'hi', doc: emptyDoc() });
     assert.deepEqual(events, [{ type: 'done', end: 'error', error: 'spawn claude ENOENT' }]);
@@ -421,4 +424,43 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   assert.equal(big.features[0].node.points, undefined);
   const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width_mm: 40, depth: 1, body_depth: 10 }, evaluate);
   assert.match(parse(stroke.content).error, /outline stroke/);
+});
+
+/** A GET with a chosen Host header (fetch always sends the real one). */
+function rawStatus(url: string, host: string) {
+  return new Promise<number>((resolve, reject) => {
+    const u = new URL(url);
+    const req = httpRequest({ hostname: u.hostname, port: u.port, path: u.pathname, headers: { host } }, res => { res.resume(); resolve(res.statusCode ?? 0); });
+    req.on('error', reject); req.end();
+  });
+}
+
+test('the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON', async () => {
+  const fake = fakeClaude(() => [JSON.stringify({ type: 'result', subtype: 'success', is_error: false, session_id: 's' })]);
+  const srv = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: scratch() }));
+  const post = (headers: Record<string, string>, body = JSON.stringify({ text: 'hi', doc: emptyDoc() })) => fetch(`${srv.url}/turn`, { method: 'POST', headers, body });
+  try {
+    // Another page in the browser: a "simple" text/plain POST, or JSON, from its own origin.
+    assert.equal((await post({ origin: 'https://evil.example', 'content-type': 'text/plain' })).status, 403);
+    assert.equal((await post({ origin: 'https://evil.example', 'content-type': 'application/json' })).status, 403);
+    assert.equal((await post({ origin: 'null', 'content-type': 'application/json' })).status, 403);
+    assert.equal((await fetch(`${srv.url}/status`, { headers: { origin: 'http://localhost:3000' } })).status, 403);
+    // No Origin: the Host must be the studio's (the dev proxy keeps it), not this server's own or a rebound name.
+    assert.equal((await fetch(`${srv.url}/status`)).status, 403);
+    assert.equal(await rawStatus(`${srv.url}/status`, 'attacker.example:52021'), 403);
+    assert.equal(await rawStatus(`${srv.url}/status`, '127.0.0.1:52020'), 200);
+    // The studio itself, but not JSON: refused before any claude run.
+    assert.equal((await post({ ...STUDIO, 'content-type': 'text/plain' })).status, 415);
+    assert.equal((await post({ origin: 'http://localhost:4173' })).status, 415);
+    assert.equal(fake.spawned.filter(p => p.args[0] !== '--version').length, 0);
+    assert.equal((await post({ origin: 'http://localhost:52020', 'content-type': 'application/json; charset=utf-8' })).status, 200);
+    assert.equal(fake.spawned.filter(p => p.args[0] !== '--version').length, 1);
+  } finally { await srv.close(); }
+  // Allowed origins are configurable.
+  const other = await serve(createChatServer({ mcpScript: 'x', spawn: fake.spawn, workDir: scratch(), origins: ['http://127.0.0.1:52033'] }));
+  try {
+    assert.equal((await fetch(`${other.url}/status`, { headers: { origin: 'http://127.0.0.1:52033' } })).status, 200);
+    assert.equal((await fetch(`${other.url}/status`, { headers: STUDIO })).status, 403);
+  } finally { await other.close(); }
+  assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
 });

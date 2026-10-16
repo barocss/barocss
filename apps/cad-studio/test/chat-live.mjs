@@ -1,7 +1,8 @@
 // Real end-to-end (not part of the test suite: it spends model usage): the studio in Chromium (WebGPU)
 // → chat panel → chat server → claude CLI → the studio's tools. Start `pnpm chat` first, then
 //   PW_DIR=… CHROME=… node test/chat-live.mjs . <out-dir> test/fixtures/chat-cat.png "이 캐릭터를 실사화해서 입체 피규어로 모델링해줘"
-// It prints the transcript and the feature list and saves a screenshot.
+// It prints the transcript and the feature list and saves a screenshot. Its studio runs on port 52033:
+// start the chat server with CAD_STUDIO_CHAT_ORIGINS=http://127.0.0.1:52033 so it accepts that origin.
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 const [root, out, image, prompt] = process.argv.slice(2);

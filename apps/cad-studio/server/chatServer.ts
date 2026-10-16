@@ -32,6 +32,24 @@ export interface ChatServerOptions {
   spawn?: Spawn;
   /** Where turns run (sessions resume from the same directory). */
   workDir?: string;
+  /** Origins allowed to use the server (default: the studio's dev and preview servers, plus CAD_STUDIO_CHAT_ORIGINS). */
+  origins?: string[];
+}
+
+/** The studio's own origins: the Vite dev server (52020) and preview server (4173), on 127.0.0.1 and localhost. */
+export const DEFAULT_ORIGINS = ['52020', '4173'].flatMap(port => [`http://127.0.0.1:${port}`, `http://localhost:${port}`]);
+
+/**
+ * Whether a request comes from the studio itself. Any web page in the user's browser can reach a
+ * localhost server, and a text/plain POST needs no preflight, so a turn (which runs claude on the user's
+ * account) is refused unless its Origin is one of the studio's; without an Origin (same-origin GETs
+ * through the dev server's proxy) the Host must be the studio's, which also defeats DNS rebinding.
+ */
+export function fromStudio(req: IncomingMessage, origins: readonly string[]): boolean {
+  const origin = req.headers.origin;
+  if (origin !== undefined) return origins.includes(origin);
+  const host = req.headers.host;
+  return !!host && origins.some(o => o.replace(/^https?:\/\//, '') === host);
 }
 
 export type ChatServerEvent =
@@ -115,13 +133,17 @@ export function createChatServer(options: ChatServerOptions) {
     } catch { resolve(null); }
   });
 
+  const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
+    if (!fromStudio(req, origins)) return sendJson(res, 403, { error: 'Only the studio may use the chat server (set CAD_STUDIO_CHAT_ORIGINS to allow another origin).' });
     if (req.method === 'GET' && path === '/status') {
       const v = await claudeVersion();
       return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });
     }
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
+    // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
+    if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
     let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
