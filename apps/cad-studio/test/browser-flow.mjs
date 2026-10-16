@@ -25,6 +25,8 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
 page.on('pageerror', e => errors.push(String(e)));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+// (Leaving with unsaved work asks first; the flow reloads on purpose.)
+page.on('dialog', d => d.accept());
 
 const results = [];
 let step = 0;
@@ -427,6 +429,20 @@ try {
     await page.click('.direct-panel button:text-is("Ruled surface")');
     await page.waitForSelector('[role="alert"], .toast');
     await press('Escape');
+    // The visible curves and surfaces as IGES.
+    const download = page.waitForEvent('download');
+    await page.click('[aria-label="Export IGES"]');
+    assert.match((await download).suggestedFilename(), /\.igs$/);
+  });
+
+  await check('unsaved work comes back after a reload', async () => {
+    const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
+    await page.waitForTimeout(1200);
+    await page.reload();
+    await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
+    await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
+    await page.waitForFunction(n => window.__studioDoc.direct?.objects.length === n, before);
+    await idle();
   });
 
   await check('command palette and light theme', async () => {

@@ -206,3 +206,4 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .ol.direct { color: #8fc9e0; }
 .ol.hidden-obj { opacity: 0.5; }
 .ghost.tiny { height: 20px; padding: 0 8px; font-size: 11px; }
+.toast.recovery .row-actions { display: flex; gap: 6px; margin-top: 8px; }

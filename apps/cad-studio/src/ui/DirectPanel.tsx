@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { directOps, domainsOf, geometryOf, type DirectGeometry } from '../engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, directOps, domainsOf, geometryOf, type DirectGeometry } from '../engine/direct';
 
 /**
  * The tools for selected direct curves and surfaces: one curve (split, knot, trim, reverse, poles), two
@@ -63,7 +63,9 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
   return <div className="render-section">
     <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
     <div className="kv">Domain <b>{t.map(v => Math.round(v * 1e4) / 1e4).join(' … ')}</b></div>
+    <div className="kv">Length <b>{fmtNum(curveLength(direct, id), 4)} mm</b></div>
     <NumberField label="At t" value={at} onChange={setAt} />
+    <Analysis run={() => { const a = analyzeCurve(direct, id, at); return [['Point', a.point.map(v => fmtNum(v, 3)).join(', ')], ['Radius', a.radius === null ? 'straight' : `${fmtNum(a.radius, 4)} mm`]]; }} />
     <div className="row-actions">
       <button className="ghost" onClick={() => run(() => directOps.splitCurve(direct, id, at), added)}>Split</button>
       <button className="ghost" onClick={() => run(() => directOps.insertCurveKnot(direct, id, at))}>Insert knot</button>
@@ -98,6 +100,7 @@ function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGe
       <button className="ghost" onClick={() => run(() => directOps.elevateDegree(direct, id, axis))}>Raise degree</button>
       <button className="ghost" onClick={() => run(() => directOps.reverseSurface(direct, id, axis), added)}>Reverse</button>
     </div>
+    <SurfacePoint id={id} direct={direct} u={u} v={v} />
     <div className="card-title" style={{ marginTop: 8 }}>REGION</div>
     {(['u from', 'u to', 'v from', 'v to'] as const).map((l, k) => <NumberField key={l} label={l} value={box[k]} onChange={x => setBox(b => b.map((y, j) => j === k ? x : y) as typeof b)} />)}
     <button className="ghost" onClick={() => run(() => directOps.surfaceRegion(direct, id, [box[0], box[1]], [box[2], box[3]]), added)}>Extract region</button>
@@ -116,5 +119,26 @@ function Poles({ rows, onEdit }: { rows: { key: string; label: string; point: re
     <label className="field"><span>Point</span><select aria-label="Control point" value={row.key} onChange={e => setPick(e.target.value)}>{rows.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}</select></label>
     {(['xMM', 'yMM', 'zMM'] as const).map((f, k) => <NumberField key={f} lazy label={'XYZ'[k]} value={row.point[k]} onChange={x => onEdit(row.key, { [f]: x })} />)}
     <NumberField lazy label="Weight" value={row.weight} onChange={x => { if (x > 0) onEdit(row.key, { weight: x }); }} />
+  </>;
+}
+
+const fmtNum = (v: number, digits: number) => String(Math.round(v * 10 ** digits) / 10 ** digits);
+
+/** Values of a query at the current inputs, or why it has none there. */
+function Analysis({ run }: { run(): [string, string][] }) {
+  let rows: [string, string][];
+  try { rows = run(); } catch (e) { return <div className="muted small">{e instanceof Error ? e.message : String(e)}</div>; }
+  return <>{rows.map(([k, v]) => <div key={k} className="kv">{k} <b>{v}</b></div>)}</>;
+}
+
+/** A surface at (u, v): point, normal and curvatures. */
+function SurfacePoint({ id, direct, u, v }: { id: string; direct: DirectGeometry; u: [number, number]; v: [number, number] }) {
+  const [at, setAt] = useState<[number, number]>([(u[0] + u[1]) / 2, (v[0] + v[1]) / 2]);
+  useEffect(() => setAt([(u[0] + u[1]) / 2, (v[0] + v[1]) / 2]), [id, u[0], u[1], v[0], v[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <>
+    <div className="card-title" style={{ marginTop: 8 }}>AT (U, V)</div>
+    <NumberField label="u" value={at[0]} onChange={x => setAt([x, at[1]])} />
+    <NumberField label="v" value={at[1]} onChange={x => setAt([at[0], x])} />
+    <Analysis run={() => { const a = analyzeSurface(direct, id, at[0], at[1]); return [['Point', a.point.map(x => fmtNum(x, 3)).join(', ')], ['Normal', a.normal.map(x => fmtNum(x, 4)).join(', ')], ['Mean curvature', `${fmtNum(a.mean, 6)} /mm`], ['Gaussian', `${fmtNum(a.gaussian, 8)} /mm²`]]; }} />
   </>;
 }

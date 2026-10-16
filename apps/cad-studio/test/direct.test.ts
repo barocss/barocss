@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { directDisplay, directOps, domainsOf, emptyDirect, geometryOf, importSource, type DirectGeometry } from '../src/engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importSource, type DirectGeometry } from '../src/engine/direct';
 
 /** A `.barocad` study: an arc, a line above it and a bilinear panel. */
 export const STUDY = `@model study {
@@ -76,4 +76,18 @@ test('direct geometry: surface tools split, extract, reverse, refine; curves mak
   assert.equal(geometryOf(ruled, ruled.objects.find(o => o.id === byName(ruled, 'Ruled surface'))!).kind, 'surface');
   const swept = directOps.sweep(d, byName(d, 'arc'), byName(d, 'top'));
   assert.equal(geometryOf(swept, swept.objects.find(o => o.id === byName(swept, 'Swept surface'))!).kind, 'surface');
+});
+
+test('direct geometry: lengths, curvature and IGES', () => {
+  const d = importSource(emptyDirect(), STUDY, 'study');
+  assert.ok(Math.abs(curveLength(d, byName(d, 'top')) - 20) < 1e-9);
+  // The arc's parabola: at its middle the tangent is along X and the radius (1/curvature) finite.
+  const a = analyzeCurve(d, byName(d, 'arc'), 0.5);
+  assert.ok(Math.abs(a.point[0] - 10) < 1e-9 && Math.abs(a.point[1] - 5) < 1e-9 && Math.abs(a.tangent[0] - 1) < 1e-9 && a.radius! > 0, JSON.stringify(a));
+  assert.equal(analyzeCurve(d, byName(d, 'top'), 0.5).radius, null, 'a line has no radius');
+  const s = analyzeSurface(d, byName(d, 'panel'), 0.5, 0.5);
+  assert.ok(Math.abs(Math.abs(s.normal[2]) - 1) < 1e-12 && s.mean === 0 && s.gaussian === 0);
+  const iges = directIGES(d, 'study');
+  assert.match(iges, /^.{72}S {6}1/m);
+  assert.equal((iges.match(/^ +12[68] /gm) ?? []).length >= 4, true, 'entity 126 curves and 128 surfaces');
 });

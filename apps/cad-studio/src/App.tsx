@@ -14,8 +14,9 @@ import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { RenderPanel } from './ui/RenderPanel';
+import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
-import { directDisplay, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
+import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, readRender, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
@@ -84,6 +85,19 @@ export function App() {
   const [toast, setToast] = useState<FriendlyError | null>(null);
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
+  /** Unsaved work kept from an earlier visit, offered back once. */
+  const [recovery, setRecovery] = useState<Recovery | null>(() => readRecovery());
+  // Keep a recovery copy a moment after each change while unsaved; none once saved.
+  useEffect(() => {
+    if (!dirty) return;
+    const t = setTimeout(() => writeRecovery(fileName, doc), 800);
+    return () => clearTimeout(t);
+  }, [doc, fileName, dirty]);
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => { if (dirty) e.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
   const [ortho, setOrtho] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
   const [ao, setAo] = useState(true);
@@ -312,7 +326,7 @@ export function App() {
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
-  const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); };
+  const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
   const open = async (file: File) => {
     try {
       // A STEP file starts a new part from its solids.
@@ -420,6 +434,10 @@ export function App() {
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
         <button className="tool" aria-label="Export STEP" title="Export STEP (exact solid for other CAD)" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
+        {!!doc.direct?.objects.some(o => !o.hidden) && <button className="tool" aria-label="Export IGES" title="Export the visible curves and surfaces as IGES" onClick={() => {
+          try { downloadBytes(new TextEncoder().encode(directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
+          catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+        }}><Icon name="polyline" /></button>}
         <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
@@ -564,6 +582,15 @@ export function App() {
           { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
         ]} />}
 
+      {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
+        <Icon name="history" className="accent" />
+        <div><div className="toast-title">Unsaved work from {new Date(recovery.savedAt).toLocaleString()}</div>
+          <div className="toast-hint">“{recovery.fileName}” was not saved. Restore it, or discard the copy.</div>
+          <div className="row-actions">
+            <button className="primary" onClick={() => { commit(recovery.doc); setFileName(recovery.fileName); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300); }}>Restore</button>
+            <button className="ghost" onClick={() => { clearRecovery(); setRecovery(null); }}>Discard</button>
+          </div></div>
+      </div>}
       {toast && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>

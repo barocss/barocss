@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -193,4 +193,31 @@ export function domainsOf(d: DirectGeometry, id: string): { kind: 'curve'; t: [n
   if (g.kind === 'curve') return { kind: 'curve', t: curveDomain(g) };
   const dom = surfaceDomain(g);
   return { kind: 'surface', u: dom.u, v: dom.v };
+}
+
+/** A curve's length: the polyline through 4096 samples (about 1e-7 relative for smooth curves). */
+export function curveLength(d: DirectGeometry, id: string): number {
+  const pts = sampleCurve(curveOf(d, id), 4096).map(s => s.point);
+  let l = 0;
+  for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]);
+  return l;
+}
+/** A curve at a parameter: its point, tangent and radius of curvature (null where it is straight). */
+export function analyzeCurve(d: DirectGeometry, id: string, t: number) {
+  const r = evaluateCurveCurvature(curveOf(d, id), t);
+  return { point: r.derivatives.point, tangent: r.unitTangent, curvature: r.curvaturePerMM, radius: r.radiusMM };
+}
+/** A surface at (u, v): its point, normal and mean and Gaussian curvature. */
+export function analyzeSurface(d: DirectGeometry, id: string, u: number, v: number) {
+  const r = evaluateSurfaceCurvature(surfaceOf(d, id), u, v);
+  return { point: r.derivatives.point, normal: r.unitNormal, mean: r.meanCurvaturePerMM, gaussian: r.gaussianCurvaturePerMM2 };
+}
+/** The visible curves and surfaces as one IGES file (at most 16; named by their object ids). */
+export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {
+  const visible = d.objects.filter(o => !o.hidden);
+  if (!visible.length) throw new Error('There are no visible curves or surfaces to export.');
+  if (visible.length > 16) throw new Error('IGES export takes at most 16 curves and surfaces: hide some first.');
+  const objects = visible.map(o => ({ ...geometryOf(d, o), id: o.id }));
+  const model: Model = { name: name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_').slice(0, 64) || 'part', version: 0, lengthUnit: 'mm', objects };
+  return exportIGES(model, objects.map(o => o.id)).iges;
 }
