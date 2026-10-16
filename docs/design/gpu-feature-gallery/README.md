@@ -65,3 +65,16 @@ All four final images were inspected and independently reviewed. Incidental gene
 ![Far clipping](11-camera-far-clipping.png)
 ![Shared geometry](12-shared-geometry-references.png)
 ![Caller time translation](13-caller-time-translation.png)
+
+
+## Parent poses, procedural coordinates and optional repeats
+- Board14 follows [#1227](https://github.com/barocss/barocss/issues/1227): caller-time parent quaternion rotation and derived child poses. The source uses shortest-path normalized-linear interpolation, not slerp or constant angular speed. No clock, physics or exact pose sampling evidence is supplied.
+- Board15 follows [#1231](https://github.com/barocss/barocss/issues/1231): positive componentwise local scale. The ring widens without a topology edit; no negative-scale/mirror support, exact proportions or native geometry mutation is claimed.
+- Board16 follows [#1267](https://github.com/barocss/barocss/issues/1267) / [#1269](https://github.com/barocss/barocss/issues/1269): procedural coordinate fract repeat versus clamp saturation. This is source grammar/binding scope, not texture-sampler wrap support or GPU precision evidence.
+- Board17 follows [#1476](https://github.com/barocss/barocss/issues/1476) / [#1494](https://github.com/barocss/barocss/issues/1494): finite source generation with opt-in zero repeats. Two, zero and three repeated spheres appear beside one fixed anchor. Zero preserves the source declaration but produces no repeated objects. This does not establish runtime instancing, GPU instanced draws or measured allocation/performance.
+All four final images were inspected and independently accepted as qualitative concepts. Board14's incidental specular hotspot was removed before publication. AI-generated matched scenes are not identical pixel/geometry controls.
+
+![14-parent-rotation](14-parent-rotation.png)
+![15-positive-nonuniform-scale](15-positive-nonuniform-scale.png)
+![16-procedural-uv-repeat](16-procedural-uv-repeat.png)
+![17-optional-scene-repeats](17-optional-scene-repeats.png)
