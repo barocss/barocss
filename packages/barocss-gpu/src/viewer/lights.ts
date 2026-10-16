@@ -1,6 +1,6 @@
 // Lights and the frame block they are packed into with the camera (see Frame in shaders.ts).
 import type { Camera } from './camera.js';
-import { normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
+import { invert, normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
 
 /** sRGB colour, 0–1 per channel, or a CSS hex string. */
@@ -40,7 +40,10 @@ export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
 
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1]): Float32Array {
+/** The ground grid as drawn this frame: cell size, cells per major line, fade distance, height; colour (sRGB) and opacity. */
+export interface GridFrame { cell: number; major: number; fade: number; height: number; color: Vec3; opacity: number }
+
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1], grid: GridFrame | null = null): Float32Array {
   const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
@@ -67,6 +70,10 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   o += MAX_SPOT * 16;
   if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); f.set([shadow.normalOffset, shadow.texel, shadow.bias, 0], o + 16); }
   f.set([...viewport, 0], o + 20);
+  if (grid) {
+    f.set(invert(viewProjection), o + 24);
+    f.set([grid.cell, grid.major, grid.fade, grid.height, ...linear(grid.color), grid.opacity], o + 40);
+  }
   return f;
 }
 

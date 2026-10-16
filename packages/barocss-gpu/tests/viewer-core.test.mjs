@@ -118,7 +118,7 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
 });
 
 test('viewer lights: the frame block matches the WGSL layout', () => {
-  assert.equal(FRAME_BYTES, 896);
+  assert.equal(FRAME_BYTES, 992);
   assert.match(surfaceWGSL, new RegExp(`dirs: array<DirLight, ${MAX_DIRECTIONAL}>`));
   const cam = new Camera({ position: [0, -10, 0], target: [0, 0, 0], up: [0, 0, 1] });
   const f = packFrame(cam.viewProjection(1), cam, [
@@ -140,6 +140,10 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.equal(new Uint32Array(sh.buffer)[39], 2);
   assert.ok(close([...sh.slice(200, 216)], [...vp], 1e-6) && near(sh[216], 0.1, 1e-6));
   assert.equal(new Uint32Array(packFrame(vp, cam, [{ kind: 'directional', direction: [0, 0, -1], castShadow: true }], {}).buffer)[39], 0, 'no shadow frame, no shadow');
+  // The grid: the inverse view-projection, then cell, major, fade, height and colour after the viewport.
+  const gf = packFrame(vp, cam, [], {}, null, [640, 480, 2], { cell: 1, major: 10, fade: 60, height: 0, color: [1, 1, 1], opacity: 0.5 });
+  assert.ok(close([...gf.slice(220, 224)], [640, 480, 2, 0]));
+  assert.ok(close([...gf.slice(240, 248)], [1, 10, 60, 0, 1, 1, 1, 0.5], 1e-6));
   assert.deepEqual(parseColor('#f80'), [1, 0x88 / 255, 0]);
   assert.throws(() => parseColor('red'), /hex/);
 });

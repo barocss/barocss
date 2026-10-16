@@ -7,9 +7,9 @@ import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
-import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type Light, type ShadowFrame } from './lights.js';
+import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -131,6 +131,20 @@ function materialOf(m: Material = {}): Required<Omit<Material, 'color'>> & { col
   };
 }
 
+/** The ground grid on the plane across the camera's up axis. */
+export interface GridOptions {
+  visible?: boolean;
+  /** Cell size; by default a power of ten fitted to the view distance. */
+  cell?: number;
+  /** Cells per major line (default 10). */
+  major?: number;
+  color?: Color;
+  /** 0–1 (default 0.5). */
+  opacity?: number;
+  /** Offset of the plane along the up axis (default 0). */
+  height?: number;
+}
+
 export type BackgroundInput = Color | { top: Color; bottom: Color } | 'transparent';
 const backgroundOf = (b: BackgroundInput | undefined): Background => {
   if (b === 'transparent') return null;
@@ -151,6 +165,8 @@ export interface ViewerOptions {
   lights?: Light[];
   environment?: Environment;
   camera?: Partial<Pick<Camera, 'projection' | 'position' | 'target' | 'up' | 'fovY'>>;
+  /** A ground grid (default none). */
+  grid?: boolean | GridOptions;
   /** GPU errors the browser reports outside any check (default: console.error). */
   onError?: (message: string) => void;
 }
@@ -177,7 +193,7 @@ export interface LineHit {
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
 
-type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'output';
+type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'grid' | 'output';
 /** The scene target: linear, half float (blendable and multisampled everywhere). */
 const SCENE_FORMAT = 'rgba16float';
 
@@ -191,6 +207,8 @@ export class Viewer {
   readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, deviceLosses: 0, cpuMs: 0 };
   /** Selection outline width in CSS pixels. */
   outlineWidth = 2;
+  /** The ground grid (change its fields, then requestRender). */
+  grid: GridOptions = { visible: false };
   /** Shadow map size (texels per side) for the shadow-casting directional light. */
   shadowMapSize = 2048;
   /** Called after a lost device has been replaced and the scene re-uploaded. */
@@ -231,6 +249,7 @@ export class Viewer {
     this.camera = new Camera(options.camera);
     this.lights = options.lights ?? defaultLights();
     this.environment = options.environment ?? {};
+    if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
     this.background = backgroundOf(options.background);
     this.pixelRatio = options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
   }
@@ -342,6 +361,14 @@ export class Viewer {
       fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    const gridModule = d.createShaderModule({ code: gridWGSL, label: 'viewer grid' });
+    jobs.push(make('grid', {
+      vertex: { module: gridModule, entryPoint: 'vs' },
+      fragment: { module: gridModule, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
     }));
     jobs.push(make('shadow', {
       vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
@@ -551,8 +578,16 @@ export class Viewer {
     return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005 };
   }
 
+  /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
+  private gridFrame(): GridFrame | null {
+    const g = this.grid;
+    if (!g.visible) return null;
+    const d = Math.max(this.camera.distance, 1e-9), cell = g.cell ?? Math.pow(10, Math.floor(Math.log10(d / 8)));
+    return { cell, major: g.major ?? 10, fade: d * 6, height: g.height ?? 0, color: parseColor(g.color, [0.55, 0.56, 0.6]), opacity: g.opacity ?? 0.5 };
+  }
+
   private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio]));
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio], this.gridFrame()));
     if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
@@ -624,10 +659,15 @@ export class Viewer {
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
     let tris = 0, lines = 0;
+    // Opaque surfaces, the grid (tested against them), then lines and transparent meshes over it.
+    let gridDrawn = !this.grid.visible;
+    const grid = () => { pass.setPipeline(this.pipelines.get('grid')!); pass.setBindGroup(1, this.objectGroup, [0]); current.pipeline = undefined; pass.draw(3); gridDrawn = true; };
     for (const m of [...opaque, ...transparent]) {
+      if (!gridDrawn && (m.geometry.topology === 'lines' || m.transparent)) grid();
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += m.geometry.data.elementCount / 3;
     }
+    if (!gridDrawn) grid();
     pass.end();
     if (outlines.length) {
       // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
@@ -658,8 +698,18 @@ export class Viewer {
   }
 
   private prepareCamera(): Mat4 {
-    this.camera.clip(this.sceneBounds());
+    this.clipCamera();
     return this.camera.viewProjection(this.aspect);
+  }
+
+  /** Clip planes around the scene, and out to the grid's fade distance when the grid shows. */
+  private clipCamera(): void {
+    const c = this.camera;
+    c.clip(this.sceneBounds());
+    const g = this.gridFrame();
+    if (!g) return;
+    if (c.projection === 'perspective') c.near = Math.min(c.near, Math.max(c.distance * 1e-3, 1e-6));
+    else { c.near = Math.min(c.near, -g.fade); c.far = Math.max(c.far, g.fade); }
   }
 
   // ---- Reading back ------------------------------------------------------------------------------
@@ -753,7 +803,7 @@ export class Viewer {
   pickLine(x: number, y: number, radius = 6): LineHit | null {
     this.alive();
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
-    this.camera.clip(this.sceneBounds());
+    this.clipCamera();
     const vp = this.camera.viewProjection(this.aspect);
     let best: LineHit | null = null;
     for (const m of this.meshes) {

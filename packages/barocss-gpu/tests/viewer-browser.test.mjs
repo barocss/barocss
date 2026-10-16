@@ -259,6 +259,34 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     assert.ok(Math.abs(o.top[0] - 0x10) <= 2 && Math.abs(o.top[1] - 0x20) <= 2 && Math.abs(o.top[2] - 0x40) <= 2, `gradient top ${o.top}`);
     for (const k of ['noCaster', 'noReceiver']) assert.ok(Math.abs(shadow[k].inside[0] - shadow[k].outside[0]) < 12, `${k}: ${shadow[k].inside} vs ${shadow[k].outside}`);
 
+    // The ground grid: lines on the plane, coloured axes, empty cells show the background, a box hides it.
+    const grid = await p.evaluate(async () => {
+      const { viewer, box, api } = window.t;
+      viewer.clear(); viewer.environment = {}; viewer.setBackground('#202020');
+      viewer.grid = { visible: true, cell: 1, opacity: 1, color: '#a0a0a0' };
+      viewer.camera.position = [4, -8, 7]; viewer.camera.target = [1, 1, 0];
+      const empty = await viewer.capture();
+      // (A minor line near the camera, below the scene box: the near plane must not cut the grid.)
+      const out = { near: bright(empty, screen([1, -3, 0])), line: bright(empty, screen([2, 0.5, 0])), cell: pixel(empty, screen([2.5, 0.5, 0])), xAxis: pixel(empty, screen([2.5, 0, 0])), yAxis: pixel(empty, screen([0, 2.5, 0])) };
+      viewer.add(box(1, 1, 1), { material: { color: '#3050c0', unlit: true }, transform: api.translation([2, 0.5, 0.5]) });
+      const covered = await viewer.capture();
+      out.hidden = pixel(covered, screen([2, 0.5, 0.02]));
+      window.gridShot = covered;
+      viewer.grid = { visible: false };
+      return out;
+    });
+    t.diagnostic(`grid ${JSON.stringify(grid)}`);
+    if (process.env.VIEWER_SHOTS) {
+      const png = await p.evaluate(() => { const c = document.createElement('canvas'), img = window.gridShot; c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(img.data), img.width, img.height), 0, 0); return c.toDataURL('image/png'); });
+      (await import('node:fs')).writeFileSync(path.join(process.env.VIEWER_SHOTS, 'viewer-grid.png'), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    assert.ok(grid.line > 70, `grid line ${grid.line}`);
+    assert.ok(grid.near > 60, `the grid reaches the bottom of the view: ${grid.near}`);
+    assert.deepEqual(grid.cell, [32, 32, 32, 255], 'inside a cell: the background');
+    assert.ok(grid.xAxis[0] > grid.xAxis[1] + 40, `x axis red ${grid.xAxis}`);
+    assert.ok(grid.yAxis[1] > grid.yAxis[0] + 30, `y axis green ${grid.yAxis}`);
+    assert.deepEqual(grid.hidden.slice(0, 3), [0x30, 0x50, 0xc0], 'the box hides the grid');
+
     const disposed = await p.evaluate(() => {
       const { viewer } = window.t;
       viewer.dispose(); viewer.dispose();
