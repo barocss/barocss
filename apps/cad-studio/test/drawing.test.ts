@@ -8,7 +8,8 @@ import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/dr
 import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
 import { sectionOf } from '../src/drawing/section';
-import { hatch } from '../src/drawing/sheet';
+import { hatch, TITLE_ROOM } from '../src/drawing/sheet';
+import { fitText, textWidth } from '../src/drawing/text';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
@@ -266,4 +267,30 @@ test('hatching stays inside a ring and out of its hole', () => {
 test('an empty part has nothing to draw, and that is not an error', () => {
   const r = projectViews([]);
   assert.ok(!r.ok && r.empty === true && /no body/.test(r.error));
+});
+
+test('title block fields stay in their cells: a long title shrinks, then ends in an ellipsis', () => {
+  const textsOf = (title: string, settings = defaultDrawing()) => {
+    const v = viewsOf(plate()), layout = layoutSheet(v, settings);
+    const svg = sheetSvg(buildSheet(v, layout, settings, { title, date: '2026-10-16' }), 't');
+    const block = svg.slice(svg.indexOf('<g class="title">'), svg.indexOf('</g>', svg.indexOf('<g class="title">')));
+    const texts = [...block.matchAll(/<text[^>]* x="([\d.]+)" y="([\d.]+)" font-size="([\d.]+)"([^>]*)>([^<]*)<\/text>/g)]
+      .map(m => ({ x: Number(m[1]), size: Number(m[3]), end: m[4].includes('text-anchor="end"'), bold: m[4].includes('bold'), text: m[5].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') }));
+    return { texts, layout };
+  };
+  const long = 'Bracket-01 assembly with long descriptive name rev C';
+  const { texts, layout } = textsOf(long), [x0, , x1] = layout.title;
+  for (const t of texts) {
+    const w = textWidth(t.text, t.size, t.bold), from = t.end ? t.x - w : t.x, to = t.end ? t.x : t.x + w;
+    assert.ok(from >= x0 && to <= x1, `${t.text} (${from.toFixed(1)}–${to.toFixed(1)}) inside ${x0}–${x1}`);
+  }
+  const title = texts.find(t => t.bold && t.text.startsWith('Bracket'))!;
+  assert.ok(title.x + textWidth(title.text, title.size, true) <= x0 + 2 + TITLE_ROOM, 'short of the projection symbol');
+  assert.ok(title.size >= 3 && title.text.endsWith('…') && long.startsWith(title.text.slice(0, -1)));
+  // A short title keeps its size; one a little long only shrinks.
+  assert.equal(textsOf('Bracket-01').texts.find(t => t.text === 'Bracket-01')!.size, 5);
+  const mid = fitText('Bracket-01 housing rev C', 5, true, TITLE_ROOM, 3);
+  assert.ok(mid.size < 5 && mid.size >= 3 && mid.text === 'Bracket-01 housing rev C');
+  const cut = fitText('W'.repeat(40), 3.5, true, 26, 2.2);
+  assert.ok(cut.size === 2.2 && cut.text.endsWith('…') && textWidth(cut.text, cut.size, true) <= 26, 'a cell value cut to fit');
 });
