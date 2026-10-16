@@ -154,3 +154,19 @@ test('picking points before edges in screen space, and the Select / Dimension cl
   assert.equal(sketchClick(first, Pt(2), false).editDim, 'dist0_2');
   assert.deepEqual(sketchClick({ ...state, tool: 'select' }, E(3), false).picked, [E(3)]);
 });
+
+test('Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back', async () => {
+  const { rectangleOutline, startPicking } = await import('../src/sketch/select');
+  const rect = { kind: 'rectangle' as const, a: [40, 20] as P2, b: [0, 0] as P2 };
+  const outline = rectangleOutline(rect)!;
+  assert.deepEqual(outline.points, [[0, 0], [40, 0], [40, 20], [0, 20]]);
+  assert.deepEqual(outline.hv, { h: [0, 2], v: [1, 3] });
+  assert.equal(dof(outline), 2);
+  const w = commitDimension(outline, 'len0', 55); assert.ok(w.ok); assert.equal(len(w.shape, 2), 55);
+  assert.equal(rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [0.5, 10] }), null);
+  const s = startPicking({ plane: xyPlane(), tool: 'rectangle', shape: rect }, 'dimension');
+  assert.equal(s.tool, 'dimension'); assert.deepEqual(s.shape, outline);
+  // A finished rectangle is brought back when nothing is current.
+  const back = startPicking({ plane: xyPlane(), tool: 'circle', shape: null, done: [{ kind: 'circle', c: [0, 0], r: 5 }, rect] }, 'select');
+  assert.deepEqual(back.shape, outline); assert.deepEqual(back.done, [{ kind: 'circle', c: [0, 0], r: 5 }]);
+});
