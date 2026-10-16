@@ -200,3 +200,14 @@ The exact input is one connected pulley with one coaxial bore and one circumfere
 Both are exact-reference-input edits, not pixel-exact or native-mesh equivalence. Input SHA256: pedestal 5eab2694284c781f3c7f0d7034d853422c07c95ddf210e9c32e5dc7a635fdf3e; pulley 62ff8138aff4357846a40ab694446de992325a2dacc00526a79a1bc165289de7. Independent visual reviews compare actual inputs and outputs; no native topology, dimensions, normals, radiometry, runtime or executed CAD→GPU pipeline is certified. Published gallery count is32 (01–28,30–33);29 remains withheld.
 
 Review limits:32 retains slight generated planar tone variation; it is not exact Lambert/normal validation.33's bright bore/rim outlines are reflective emphasis, not new chamfers, fillets or a liner. Both final images passed independent CAD-geometry and GPU-appearance review.
+
+
+## 34 — Clevis inner/outer/heel display regions
+[CAD workflow and revised neutral reference #2085](https://github.com/barocss/barocss/issues/2085) supplies the exact input. This is a composite target from #534/#536; limited slot support in #1695 does not establish the complete chain. The revised main perspective is illustrative, not exact coaxial/through-hole projection proof; the CAD workflow's separate top-view inset explains axis intent.
+
+The edit applies the readable-retained-face presentation principle of [#1990](https://github.com/barocss/barocss/issues/1990) to this composite part as a **design proposal**, not proof that #1990 implements arbitrary clevis face classification. Teal outer, blue inner and orange heel regions explain the open gap and rear connection. They add no geometry, material layer, Face ID, selection or measured axis evidence. Two ears, two visible bore mouths, open slot, heel and camera remain visually matched. Existing floor shadows were removed; no shadow capability is asserted.
+
+![Reviewed clevis input](https://raw.githubusercontent.com/barocss/barocss/cb01ea85a3c90eb123038f745fafa797213b30b2/docs/design/cad-roadmap-gallery/2026-10-16/reference-clevis-fork-neutral.png)
+![Clevis face-region target](34-clevis-face-regions.png)
+
+Input SHA256 a7b5ffadcda6ab27c4416f37398eb1e389ed4f6a9dd4583b6e36430dafb4740e. The earlier superseded reference was not used for this published result. Independent review caught a footer covering the near-ear bottom corner; final text was moved and the corner restored against the reviewed input. CAD geometry and GPU visual reviews accepted qualitative continuity, not pixel/mesh equality, exact normals, axis, picking or engine execution. Current published count33 (01–28,30–34);29 remains withheld.
