@@ -39,14 +39,14 @@ export function MatePanel({ assembly, instances, onRefused }: { assembly: Assemb
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
-          : <div className="empty">Click a flat face (coincident, distance, angle) or a round face (concentric) on the part that stays, then one on the part to move. Flat faces end up flush and facing each other.</div>}
+          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
         <div className="row-actions"><button className="ghost" onClick={assembly.cancel}>Cancel</button></div>
       </div>}
       {mates.map((m, i) => {
         const p = problemOf(m.id);
         return <button key={m.id} className={'ol mate' + (sel?.id === m.id ? ' sel' : '')} style={p ? { color: 'var(--warn)' } : undefined}
           title={p ? p.reason : `${refText(m.a)} → ${refText(m.b)}`} onClick={() => assembly.select(sel?.id === m.id ? null : m.id)}>
-          <Icon name={p ? 'link_off' : m.kind === 'concentric' ? 'radio_button_checked' : m.kind === 'distance' ? 'straighten' : m.kind === 'angle' ? 'square_foot' : 'link'} small />
+          <Icon name={p ? 'link_off' : m.kind === 'concentric' ? 'radio_button_checked' : m.kind === 'distance' ? 'straighten' : m.kind === 'angle' ? 'square_foot' : m.kind === 'tangent' ? 'radio_button_unchecked' : 'link'} small />
           {mateLabel(m, i)}{m.kind === 'distance' ? ` · ${fmt(m.distance ?? 0)} mm` : m.kind === 'angle' ? ` · ${fmt(m.angle ?? 0)}°` : ''}<span className="muted"> · {partName(m.b.part)}</span></button>;
       })}
       {sel && <MateEditor key={sel.id} mate={sel} problem={problemOf(sel.id)?.reason} tables={tables} refText={refText}

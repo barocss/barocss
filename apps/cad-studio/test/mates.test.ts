@@ -107,7 +107,7 @@ test('mates: conflicts are refused with the reason, redundant agreeing mates are
     { id: 'x4', kind: 'coincident', a: { part: 'pin', face: 'n1.top' }, b: { part: 'pin', face: 'n1.bottom' } },
   ], tablesFor(base, [pin, fixed]));
   assert.deepEqual(r4.problems.map(p => p.mate), ['x1', 'x2', 'x3', 'x4']);
-  assert.match(r4.problems[0].reason, /flat face and a round face/);
+  assert.match(r4.problems[0].reason, /Concentric needs two round faces/);
   assert.match(r4.problems[1].reason, /fixed, so this mate cannot move it/);
   assert.match(r4.problems[2].reason, /no longer on the part/);
   assert.match(r4.problems[3].reason, /same part/);
@@ -190,4 +190,25 @@ test('mates: an angle turns a part about the axis the other mates leave free', (
   assert.match(solveAssembly([plate], [flat, side, angle], tablesFor(base, [plate])).problems[0].reason, /Conflicts with Coincident 1 and Coincident 2: they hold this face of plate at 0° to its partner/);
   // Out of range is refused before solving.
   assert.match(solveAssembly([plate], [flat, { ...angle, angle: 200 }], tablesFor(base, [plate])).problems[0].reason, /0° to 180°/);
+});
+
+test('mates: tangent puts a round face against a flat one, from either side', () => {
+  const base = starterDoc(), pin = inst('pin', cylinderPart(4, 20), [100, 0, 0]);
+  // A pin lying on the plate: its axis turns flat, 4 mm above the top face.
+  const lie: Mate = { id: 'm1', kind: 'tangent', a: { part: BASE, face: 'n1.top' }, b: { part: 'pin', face: 'n1.side0' } };
+  const r = solveAssembly([pin], [lie], tablesFor(base, [pin]));
+  assert.deepEqual(r.problems, []);
+  assert.ok(near(rotationMatrix(r.instances[0].rotation)[8], 0, 1e-12), 'the axis lies flat');
+  assert.equal(r.instances[0].position[2], 12);
+  const b = boundsOf(r.instances[0]);
+  assert.ok(near(b.min[2], 8, 1e-6) && near(b.max[2], 16, 1e-6), JSON.stringify(b));
+  // A plate's side against a standing (fixed) pin: the face 4 mm from the axis, or behind it with flip.
+  const post = { ...inst('post', cylinderPart(4, 20)), grounded: true }, plate = inst('plate', rectanglePart(20, 10, 4), [30, 0, 0]);
+  const touch: Mate = { id: 'm2', kind: 'tangent', a: { part: 'post', face: 'n1.side0' }, b: { part: 'plate', face: 'n1.side3' } };
+  const t = solveAssembly([post, plate], [touch], tablesFor(base, [post, plate]));
+  assert.deepEqual(t.problems, []);
+  assert.deepEqual(t.instances[1].position, [4, 0, 0]);
+  assert.deepEqual(solveAssembly([post, plate], [{ ...touch, flip: true }], tablesFor(base, [post, plate])).instances[1].position, [-4, 0, 0]);
+  // Two flat faces cannot be tangent.
+  assert.match(solveAssembly([pin], [{ ...lie, b: { part: 'pin', face: 'n1.bottom' } }], tablesFor(base, [pin])).problems[0].reason, /Tangent needs a flat face and a round face/);
 });
