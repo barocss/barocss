@@ -56,27 +56,26 @@ an HTTP native source response until `/release-slow` receives POST, allowing
 the main acceptance runner to check actual request supersession without a
 network race based on guessed timing.
 
-Run proof records native qualification/source copies and actual converted GL
-uploads, exact ref/options/report/getter/budget/allocation refusals, camera
+Run proof records native qualification/source copies, exact
+ref/options/report/getter/budget refusals (state and the captured WebGPU
+pixels; `readPixels` is async and resolves after the frame is drawn), camera
 retention, an independent fixed overlap ray against native cap triangles,
-near/far/full forward/reverse depth controls, edited/four/hole/strip fixtures,
+near/far/full forward/reverse depth controls (the lit near pixel must be
+closer to the near leaf colour than the far one), edited/four/hole/strip fixtures,
 genuine empty versus zero entries, primitive/Shell transitions and Clear.
 Edges remain optional previews with no certified hidden-line claim. A first
 failure remains recorded with completed cases and accepted page state.
 
-`window.__viewerShellProof` exposes public Viewer/gl/copied state, original
+`window.__viewerShellProof` exposes public Viewer/copied state, original
 graphs/text/bytes, parsed fixture map, reference and entry helpers, public
 CAD graph parse/evaluate/update, public Assembly/Model-set Loader, public
-Physics cloth creation, original panel source, public GPU constructors,
-actual buffer readback, seven global resource counters/peaks and allocation
-fault controls. `runProof()` stores/posts `__viewerShellResult`; `dispose()`
-is a separate idempotent cleanup stage. Counters cover temporary overlapping
-old/candidate renderers, rather than one backend's local counts.
+Physics cloth creation, original panel source and the public GPU CPU helpers
+`prepareCamera`/`prepareBooleanShellBuffers`. `runProof()` stores/posts
+`__viewerShellResult`; `dispose()` is a separate idempotent cleanup stage.
 
 The main runner owns the complete browser acceptance, including actual hole
 and disconnected-component pixel witnesses, prior cloth/assembly transitions,
-held URL races, extra exact-input cases, separate actual context loss and
-normal disposal resources0. Lost-context deletion counters0 are not claimed.
+held URL races, extra exact-input cases and normal disposal.
 Source/build/assertion existence, actual execution, native completion,
 Integration and publication remain separate evidence stages.
 
@@ -85,4 +84,4 @@ Integration and publication remain separate evidence stages.
 
 Enable **Inspect mode**, then click the canvas. The host marks the current original graph/feature/output-slot row and shows approximate display depth. GPU colors and Viewer selection stay unchanged. This result describes the lowered filled triangle preview; it does not certify a native face hit, edge pixel, topology or hidden-line result. Ambiguous leaves use the documented global-depth tolerance and deterministic full-reference ordering.
 
-A successful source/view/backing/CSS change clears inspection. A failed candidate retains the accepted row. Empty selection and genuine empty leaves give no hit. Lost/unavailable/disposed presentation refuses inspection; CPU provenance remains separately readable after loss. The host canvas is borderless and axis-aligned so click coordinates use its bounding box. Source and all-transitive compiled verification are separate checkpoints.
+A successful source/view/backing/CSS change clears inspection. A failed candidate retains the accepted row. Empty selection and genuine empty leaves give no hit. A disposed Viewer refuses inspection. The host canvas is borderless and axis-aligned so click coordinates use its bounding box. Source and all-transitive compiled verification are separate checkpoints.

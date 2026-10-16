@@ -13,5 +13,5 @@ VIEWER_MIXED_MATERIAL_EVIDENCE=/tmp/viewer-885-browser.json node examples/viewer
 ```
 
 Open <http://127.0.0.1:52985/> in Chromium. The page records its browser
-result to the evidence file. This verifies one local WebGL2 flow. It does not
+result to the evidence file. This verifies one local WebGPU flow; each Surface material is checked by the lit pixels its own binding changes. It does not
 certify other hardware, performance, Curve shaders or publication.

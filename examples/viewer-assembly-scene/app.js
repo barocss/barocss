@@ -3,7 +3,6 @@ import { loadBaroCadAssembly } from '@barocss/cad-interop/assembly';
 import { loadBaroCadModelSet } from '@barocss/cad-interop/model-set';
 import { updateCadAssembly, resolveCadGeometryReference, sampleCurveWideAdaptive } from '@barocss/cad';
 import { createClothWorld } from '@barocss/physics/cloth';
-import { PrimitiveSceneRendererV2, PrimitiveViewport } from '@barocss/gpu';
 
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 const clone = value => structuredClone(value);
@@ -19,33 +18,9 @@ const list = document.querySelector('#instances'), inspection = document.querySe
 const filter = document.querySelector('#filter');
 const choiceList=document.querySelector('#assembly-choice'),choiceCount=document.querySelector('#assembly-choice-count');
 const applyChoiceButton=document.querySelector('#apply-assembly-choice'),discardChoiceButton=document.querySelector('#discard-assembly-choice');
-const buttons = Object.fromEntries(['revision0','revision1','fit','run-proof','lose-context','dispose']
+const buttons = Object.fromEntries(['revision0','revision1','fit','run-proof','dispose']
   .map(id => [id,document.querySelector('#'+id)]));
-const contexts = new Set(), resources = {}, uploads = [], errors = [], warnings = [];
-let failedBufferAt=0,bufferAttempts=0;
-for (const type of ['Buffer','Program','VertexArray','Framebuffer','Texture','Renderbuffer','Shader']) {
-  const live = new Set(), p=WebGL2RenderingContext.prototype,create=p['create'+type],remove=p['delete'+type];
-  resources[type]=live;
-  p['create'+type]=function(...args) {
-    if(type==='Buffer' && failedBufferAt && ++bufferAttempts===failedBufferAt) return null;
-    const value=create.apply(this,args); if(value) live.add(value); return value;
-  };
-  p['delete'+type]=function(value) { live.delete(value); return remove.call(this,value); };
-}
-const getContext=HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext=function(kind,...args) {
-  const value=getContext.call(this,kind,...args); if(kind==='webgl2' && value) contexts.add(value); return value;
-};
-const bufferData=WebGL2RenderingContext.prototype.bufferData;
-WebGL2RenderingContext.prototype.bufferData=function(target,values,...args) {
-  const result=bufferData.call(this,target,values,...args);
-  if(ArrayBuffer.isView(values)) {
-    const copied=new values.constructor(values.length); this.getBufferSubData(target,0,copied);
-    uploads.push({type:values.constructor.name,values:Array.from(copied),bytes:values.byteLength,
-      exactReadback:same(values,copied)});
-  }
-  return result;
-};
+const errors = [], warnings = [];
 window.addEventListener('error',event=>errors.push(event.message));
 window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn; console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
@@ -57,15 +32,13 @@ const options={native:{sourceVersion:0,countU:3,countV:3,
 const choiceOptions=clone(options);
 const mmToSceneUnit=.05;
 const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10};
-const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
-const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const sameRef=(a,b)=>a?.kind===b?.kind && a?.modelId===b?.modelId
   && (a?.kind==='surface'?a.surfaceId===b.surfaceId:a?.curveId===b?.curveId);
 let viewer=null,assemblies=[],clothWorld=null,nativeSet=null,result=null,running=false,disposed=false;
 let choiceAssembly=null,choiceIDs=[],acceptedChoiceIDs=[],choiceEpoch=0,choiceRowsEpoch=-1;
 const choiceRows=new Map();
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
-const pixels=()=>hash(viewer.readPixels());
+const pixels=async()=>hash(await viewer.readPixels());
 function queryFor(binding) { return {assemblyId:binding.assemblyId,assemblyRevision:binding.assemblyRevision,
   instanceId:binding.instanceId,reference:clone(binding.reference),query:binding.ref.kind==='surface'
     ?{kind:'surface',u:.5,v:.5}:{kind:'curve',parameter:2}}; }
@@ -227,7 +200,7 @@ function render() {
 }
 function action(callback) { if(disposed)return;try{callback();render();}catch(error){display(error.message);} }
 function loadAssembly(revision=0,ids=defaultIDs) {
-  uploads.length=0;viewer.loadAssembly(assemblies[revision],{...clone(options),instanceIds:[...ids]});
+  viewer.loadAssembly(assemblies[revision],{...clone(options),instanceIds:[...ids]});
   const accepted=viewer.getState();syncAssemblyChoice(accepted,true);inspection.textContent='';renderAssemblyChoice(accepted);
   viewer.setView(camera);render();return viewer.getState();
 }
@@ -252,8 +225,9 @@ function project(worldMM) {
   return {xCss:(1+dot(delta,right)/(z*t*canvas.width/canvas.height))*rect.width/2,
     yCss:(1-dot(delta,up)/(z*t))*rect.height/2};
 }
-function hitSamples() {
-  return viewer.getState().assemblyInstances.map(binding=>{
+async function hitSamples() {
+  const samples=[];
+  for(const binding of viewer.getState().assemblyInstances) samples.push(await (async()=>{
     const point=viewer.queryAssemblyInstancePoint(queryFor(binding)),centre=project(point.assemblyPointMM);
     const search=()=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++) {
         const xCss=centre.xCss+dx,yCss=centre.yCss+dy;
@@ -263,32 +237,33 @@ function hitSamples() {
       }return null;};
     const direct=search();if(direct)return {...direct,visibilityControl:'original all-visible state'};
     if(binding.ref.kind==='curve') {
-      const before=viewer.getState(),pixelHash=pixels();let uncovered;
+      const before=viewer.getState(),pixelHash=await pixels();let uncovered;
       try { viewer.setVisibleGeometry(before.visibleGeometry.filter(ref=>ref.kind!=='surface'));uncovered=search(); }
       finally { viewer.setVisibleGeometry(before.visibleGeometry);
         if(before.selectedGeometry)viewer.selectGeometry(before.selectedGeometry); }
-      check(same(before,viewer.getState())&&pixels()===pixelHash,'Visibility hit control did not restore original state');
+      check(same(before,viewer.getState())&&await pixels()===pixelHash,'Visibility hit control did not restore original state');
       if(uncovered)return {...uncovered,visibilityControl:'Surface temporarily hidden to inspect occluded native Curve',restored:true};
     }
     throw Error('No independently projected qualified hit for '+binding.instanceId);
-  });
+  })());
+  return samples;
 }
-function retained(label,callback) {
-  const before=viewer.getState(),pixelHash=pixels(),counts=resourceCounts();let error;
+async function retained(label,callback) {
+  const before=viewer.getState(),pixelHash=await pixels();let error;
   try{callback();}catch(value){error=value;}
   check(error instanceof Error,label+' did not refuse');
-  check(same(before,viewer.getState())&&pixels()===pixelHash&&same(counts,resourceCounts()),label+' changed accepted state/pixels/resources');
+  check(same(before,viewer.getState())&&await pixels()===pixelHash,label+' changed accepted state/pixels');
   result.refusals.push({label,error:error.message,type:error.name,code:error.code??null});
 }
-function witness(assembly) {
+async function witness(assembly) {
   const state=viewer.getState(),points=[],lowered=[];
   check(state.assemblyInstances.length===4 && state.assembly.instances.length===6,'Selected/native capacity conflated');
   for(const binding of state.assemblyInstances) {
     const matrix=authoredWorld(assembly,binding.instanceId);check(near(matrix,binding.worldMatrix,1e-9),'Independent hierarchy matrix differs');
     const local=binding.ref.kind==='surface'?[1,1.5,0]:binding.reference.assetId==='asset_b'?[1,10,0]:[1,0,0];
-    const before=viewer.getState(),pixelHash=pixels(),point=viewer.queryAssemblyInstancePoint(queryFor(binding));
+    const before=viewer.getState(),pixelHash=await pixels(),point=viewer.queryAssemblyInstancePoint(queryFor(binding));
     check(near(point.originalLocalPointMM,local)&&near(point.assemblyPointMM,worldPoint(matrix,local)),'Independent native local/world point differs');
-    check(same(before,viewer.getState())&&pixels()===pixelHash,'Read-only native query changed state/pixels');
+    check(same(before,viewer.getState())&&await pixels()===pixelHash,'Read-only native query changed state/pixels');
     points.push(point);
     const document=assembly.documents.find(value=>value.document.documentId===binding.reference.documentId);
     const resolved=resolveCadGeometryReference(document,binding.reference),original=resolved.geometry;
@@ -299,15 +274,12 @@ function witness(assembly) {
     const raw=original.kind==='surface'?state.packets.find(packet=>packet.modelId===binding.ref.modelId).packet.positions
       :sampleCurveWideAdaptive(original,{chordToleranceMM:.01,maxSegments:64,maxDepth:8,resultIdPrefix:'host_witness'}).pointsMM.flat();
     const expected=[];for(let i=0;i<raw.length;i+=3)expected.push(...worldPoint(matrix,raw.slice(i,i+3)).map(n=>Math.fround(n*mmToSceneUnit)));
-    const upload=uploads.find(value=>value.type==='Float32Array'&&near(value.values,expected,1e-6));
-    check(upload&&upload.exactReadback,'Actual GL native matrix/unit upload differs for '+binding.instanceId);
-    lowered.push({instanceId:binding.instanceId,positions:upload.values,expected,
+    lowered.push({instanceId:binding.instanceId,expected,
       originalSource:resolved.source,originalGeometry:original,
       originalUV:original.kind==='surface'?state.packets.find(packet=>packet.modelId===binding.ref.modelId).packet.parameters:null});
   }
-  check(uploads.every(value=>value.exactReadback),'Original buffer bytes differ');
-  return {revision:assembly.assembly.revision,pixelHash:pixels(),points,lowered,hits:hitSamples(),
-    bindings:state.assemblyInstances,resources:resourceCounts(),glErrors:glErrors()};
+  return {revision:assembly.assembly.revision,pixelHash:await pixels(),points,lowered,hits:await hitSamples(),
+    bindings:state.assemblyInstances};
 }
 async function startClothScene() {
   nativeSet??=await loadBaroCadModelSet({format:'barocad-model-set',version:0,entries:[{aliasId:'cloth_original',
@@ -334,47 +306,45 @@ async function runProof() {
       result.fixtures.push({revision,bytes:bytes.byteLength,sha256:digest});
     }
     const prior=await startClothScene(),forged=clone(assemblies[0]);forged.instances[0].worldMatrix[3]+=1;
-    retained('failed assembly from actual prior cloth',()=>viewer.loadAssembly(forged,clone(options)));
+    await retained('failed assembly from actual prior cloth',()=>viewer.loadAssembly(forged,clone(options)));
     check(same(viewer.getState().clothFrame,prior),'Failed assembly dropped actual prior cloth');
     loadAssembly(0);check(viewer.getState().clothFrame===null&&viewer.getState().modelSet===null,'Successful assembly did not reset old mode');
-    const original=witness(assemblies[0]);result.receipts.push(original);
+    const original=await witness(assemblies[0]);result.receipts.push(original);
     const copied=viewer.getState();copied.assemblyInstances[0].worldMatrix[3]=999;copied.assembly.assembly.parts[0].assets[0].source='changed';
     check(same(viewer.getState().assembly,assemblies[0]),'State copy exposed native assembly');
     const binding=viewer.getState().assemblyInstances[0],query=queryFor(binding),queried=viewer.queryAssemblyInstancePoint(query);
     queried.originalLocalPointMM[0]=999;query.reference.assetId='foreign';
     check(viewer.queryAssemblyInstancePoint(queryFor(binding)).originalLocalPointMM[0]===1,'Caller/result query mutation reached source');
     for(const ids of [[],['child','child'],['foreign'],[...defaultIDs,'parent']])
-      retained('invalid IDs '+JSON.stringify(ids),()=>viewer.loadAssembly(assemblies[1],{...clone(options),instanceIds:ids}));
-    retained('forged world matrix',()=>viewer.loadAssembly(forged,clone(options)));
+      await retained('invalid IDs '+JSON.stringify(ids),()=>viewer.loadAssembly(assemblies[1],{...clone(options),instanceIds:ids}));
+    await retained('forged world matrix',()=>viewer.loadAssembly(forged,clone(options)));
     const report=clone(assemblies[1]);report.report.instanceCount=5;
-    retained('forged report',()=>viewer.loadAssembly(report,clone(options)));
-    retained('units input',()=>viewer.loadAssembly(assemblies[1],{...clone(options),native:{...options.native,unitsPerMillimeter:1}}));
-    retained('unknown option',()=>viewer.loadAssembly(assemblies[1],{...clone(options),extra:true}));
-    retained('unsupported sampling version',()=>viewer.loadAssembly(assemblies[1],{...clone(options),native:{...options.native,sourceVersion:1}}));
+    await retained('forged report',()=>viewer.loadAssembly(report,clone(options)));
+    await retained('units input',()=>viewer.loadAssembly(assemblies[1],{...clone(options),native:{...options.native,unitsPerMillimeter:1}}));
+    await retained('unknown option',()=>viewer.loadAssembly(assemblies[1],{...clone(options),extra:true}));
+    await retained('unsupported sampling version',()=>viewer.loadAssembly(assemblies[1],{...clone(options),native:{...options.native,sourceVersion:1}}));
     let getterCalls=0;const getter=clone(options);Object.defineProperty(getter,'instanceIds',{enumerable:true,get(){getterCalls++;return defaultIDs;}});
-    retained('option accessor',()=>viewer.loadAssembly(assemblies[1],getter));check(getterCalls===0,'Caller getter invoked');
+    await retained('option accessor',()=>viewer.loadAssembly(assemblies[1],getter));check(getterCalls===0,'Caller getter invoked');
     const translated=updateCadAssembly(assemblies[0],{expectedRevision:0,revision:1,
       instanceEdits:[{instanceId:'parent',translationMM:[10000,0,0],rotationDegreesXYZ:[0,0,0]}]});
-    retained('composed GPU translation over10000mm',()=>viewer.loadAssembly(translated,clone(options)));
-    failedBufferAt=5;bufferAttempts=0;try{retained('late fifth buffer allocation',()=>viewer.loadAssembly(assemblies[1],clone(options)));}
-    finally{failedBufferAt=0;}check(bufferAttempts===5,'Late buffer failure not reached');
-    retained('override authored display poses',()=>viewer.applyGeometryMotionFrame(viewer.getState().geometryMotion.frame,
+    await retained('composed GPU translation over10000mm',()=>viewer.loadAssembly(translated,clone(options)));
+    await retained('override authored display poses',()=>viewer.applyGeometryMotionFrame(viewer.getState().geometryMotion.frame,
       viewer.getState().geometryMotion.bindings,{basis:'part-xyz-matches-rhyup'}));
-    retained('reset authored motion',()=>viewer.resetMotion());
-    retained('legacy native projection',()=>viewer.projectNativePoint({...binding.ref,t:2}));
-    retained('assembly material clear',()=>viewer.setSurfaceMaterial(viewer.getState().surfaces[0],null));
-    retained('assembly cloth display',()=>viewer.setClothFrame(prior));
+    await retained('reset authored motion',()=>viewer.resetMotion());
+    await retained('legacy native projection',()=>viewer.projectNativePoint({...binding.ref,t:2}));
+    await retained('assembly material clear',()=>viewer.setSurfaceMaterial(viewer.getState().surfaces[0],null));
+    await retained('assembly cloth display',()=>viewer.setClothFrame(prior));
     const pointQuery=queryFor(binding);
-    retained('stale query revision',()=>viewer.queryAssemblyInstancePoint({...pointQuery,assemblyRevision:1}));
-    retained('unadmitted query instance',()=>viewer.queryAssemblyInstancePoint({...pointQuery,instanceId:'parent'}));
-    retained('foreign full native reference',()=>viewer.queryAssemblyInstancePoint({...pointQuery,reference:{...pointQuery.reference,assetId:'asset_b'}}));
+    await retained('stale query revision',()=>viewer.queryAssemblyInstancePoint({...pointQuery,assemblyRevision:1}));
+    await retained('unadmitted query instance',()=>viewer.queryAssemblyInstancePoint({...pointQuery,instanceId:'parent'}));
+    await retained('foreign full native reference',()=>viewer.queryAssemblyInstancePoint({...pointQuery,reference:{...pointQuery.reference,assetId:'asset_b'}}));
     viewer.setClothFrame(null);viewer.setFluidFrame(null);viewer.selectGeometry(binding.ref);
     viewer.orbit(.01,.01);viewer.pan(.01,0);viewer.zoom(1.02);viewer.fit();viewer.fitGeometry(binding.ref);
     viewer.setVisibleGeometry(viewer.getState().visibleGeometry.filter(ref=>!sameRef(ref,binding.ref)));
     check(viewer.getState().assemblyInstances.length===4,'Hidden instance vanished from native inventory');
-    retained('hidden instance selection',()=>viewer.selectGeometry(binding.ref));
+    await retained('hidden instance selection',()=>viewer.selectGeometry(binding.ref));
     viewer.setVisibleGeometry(viewer.getState().assemblyInstances.map(row=>row.ref));viewer.setView(camera);
-    loadAssembly(1);const edited=witness(assemblies[1]);result.receipts.push(edited);
+    loadAssembly(1);const edited=await witness(assemblies[1]);result.receipts.push(edited);
     check(edited.pixelHash!==original.pixelHash,'Parent revision changed no display pixels');
     check(same(assemblies[0].assembly.parts,assemblies[1].assembly.parts),'Parent edit changed original parts');
     for(let i=0;i<4;i++)check(i<2?!near(original.bindings[i].worldMatrix,edited.bindings[i].worldMatrix)
@@ -385,11 +355,11 @@ async function runProof() {
       curveDisplay:{version:1,chordToleranceMM:.01,maxSegments:64,maxDepth:8}});
     check(viewer.getState().assembly===null&&viewer.getState().assemblyInstances.length===0,'Later native generation retained assembly');
     loadAssembly(0);viewer.clear();check(viewer.getState().assembly===null,'Clear retained assembly');loadAssembly(0);
-    result.contextCount=contexts.size;result.resources=resourceCounts();result.glErrors=glErrors();result.errors=[...errors];result.warnings=[...warnings];
-    check(result.contextCount===1&&result.glErrors.every(n=>n===0)&&errors.length===0&&warnings.length===0,'Context/GL/browser gate failed');
+    result.errors=[...errors];result.warnings=[...warnings];
+    check(errors.length===0&&warnings.length===0,'Browser error gate failed');
     result.getterCalls=getterCalls;result.ok=true;
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.receipts.length});
-    result.resources=resourceCounts();result.errors=[...errors];result.warnings=[...warnings];}
+    result.errors=[...errors];result.warnings=[...warnings];}
   finally{running=false;render();display(result);window.viewerAssemblyProof=result;
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;
@@ -397,17 +367,17 @@ async function runProof() {
 function dispose() {
   if(disposed)return;disposed=true;choiceEpoch++;choiceAssembly=null;choiceIDs=[];acceptedChoiceIDs=[];
   viewer.dispose();viewer.dispose();clothWorld?.dispose();render();
-  const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,glErrors:glErrors(),errors,warnings};
+  const receipt={status:viewer.getState().status,errors,warnings};
   if(result)result.disposal=receipt;display(receipt);return receipt;
 }
 try {
   assemblies=await Promise.all([0,1].map(revision=>loadBaroCadAssembly(new URL('/assembly-revision'+revision+'.json',location.href).href)));
-  viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});loadAssembly(0);
+  viewer=await createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});loadAssembly(0);
   window.viewerAssemblyProbe={viewer,assemblies,options,defaultIDs,camera,mmToSceneUnit,canvas,loadAssembly,queryFor,
     stageAssemblyChoice,applyAssemblyChoice,discardAssemblyChoice,render,get assemblyChoice(){return assemblyChoiceSnapshot();},
-    showPoint,runProof,startClothScene,pixels,resourceCounts,glErrors,uploads,errors,warnings,retained,dispose,
+    showPoint,runProof,startClothScene,pixels,errors,warnings,retained,dispose,
     authoredWorld,worldPoint,project,hitSamples,witness,updateCadAssembly,resolveCadGeometryReference,
-    loadBaroCadAssembly,loadBaroCadModelSet,PrimitiveSceneRendererV2,PrimitiveViewport,
+    loadBaroCadAssembly,loadBaroCadModelSet,
     fixtures:['/assembly-revision0.json','/assembly-revision1.json'],get result(){return result;}};
   display('Ready: four selected instances from six original native instances, revision0.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
@@ -416,8 +386,6 @@ discardChoiceButton.addEventListener('click',()=>action(()=>discardAssemblyChoic
 for(const revision of [0,1])buttons['revision'+revision].addEventListener('click',()=>action(()=>loadAssembly(revision)));
 buttons.fit.addEventListener('click',()=>action(()=>viewer.fit()));buttons['run-proof'].addEventListener('click',runProof);
 buttons.dispose.addEventListener('click',dispose);
-buttons['lose-context'].addEventListener('click',()=>[...contexts][0]?.getExtension('WEBGL_lose_context')?.loseContext());
-canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost; original CPU assembly inspection remains available.');});
 filter.addEventListener('change',()=>action(()=>{const selected=viewer.getState().selectedGeometry;
   if(selected&&filter.value!=='all'&&selected.kind!==filter.value)viewer.selectGeometry(null);}));
 canvas.addEventListener('click',event=>action(()=>{const rect=canvas.getBoundingClientRect(),hit=viewer.pickGeometry(

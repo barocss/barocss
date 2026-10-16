@@ -44,28 +44,21 @@ The server also serves the original authored fixture as
 
 `window.viewerClothProbe` exposes the public Viewer/world, genuine copied
 `frames[0..240]`, producer snapshots0/60/240, `frameFromState`, front/back
-cameras, qualified `ref`, native reload helper, pose helper, public GPU
-constructors for method-argument instrumentation, actual GL uploads/draws,
-pixel/resource/error snapshots, `runProof()` and `dispose()`. Frame inputs and
-`getState().clothFrame` remain separate copies. The public constructors allow
-an acceptance runner to observe F64 scene arguments without private renderer
-reflection. Buffer instrumentation independently reads actual GL buffer data.
+cameras, qualified `ref`, native reload helper, pose helper, async pixel
+snapshots (`pixelInfo()` awaits the WebGPU `readPixels` capture of the drawn
+frame), errors, `runProof()` and `dispose()`. Frame inputs and
+`getState().clothFrame` remain separate copies.
 
 Run proof records source preservation, step0/60/240 hashes, independent native
-and cloth depth controls, canonical upload bytes, copy/idempotence checks,
-malformed/identity/stale/area/F32/allocation refusals, retaining camera/pose
+and cloth depth controls, copy/idempotence checks,
+malformed/identity/stale/area/F32 refusals, retaining camera/pose
 routes, qualified material and genuine256-fluid compatibility, native source
 replacement, explicit reset and30 distinct submission timings after warmup.
-Test-only buffer readback is disabled for the timing samples; resource/draw
-counters remain. The timing measures Viewer submission wall time. It excludes solver time,
+The timing measures Viewer submission wall time. It excludes solver time,
 completion wait and any GPU execution/FPS claim. A first failure remains in
 the result with completed case counts and no implicit disposal, so it can be
 inspected before repair.
 
 Dispose releases the Viewer and the caller-owned Physics worlds and records
-the remaining seven GL resource classes; it is separate from context-loss
-testing. Lose context invokes the actual `WEBGL_lose_context` extension.
-The lost Viewer retains copied CPU cloth metadata until disposal, while GPU
-mutations refuse. Use a separate fresh page for that lifecycle check to keep
-normal disposal and lost-context evidence distinct. Browser execution, native
+the disposed status and browser errors. Browser execution, native
 author completion, Integration and publication require separate receipts.

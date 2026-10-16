@@ -14,7 +14,7 @@ Y-up, public approximate picking/visibility/camera/fit and readonly authored
 display poses. Repeated original parts have distinct Viewer namespaces. The
 list does not edit placement, and assembly mode refuses display-motion
 overrides and legacy unqualified native measurements/projection. Native
-inspection remains available for hidden instances and after context loss.
+inspection remains available for hidden instances.
 
 The `child` Curve lies on the opaque `surface_grandchild` boundary. Existing
 native picking can report it occluded. Use the Surface's Show checkbox to
@@ -49,8 +49,7 @@ call the old revision helper's separate `setView`. Even equal IDs perform real
 admission. Success clears Viewer primary selection/measurement layers under the
 existing API contract, shows all chosen bindings, resets the draft and clears
 old host point inspection. Failure keeps the prior accepted scene and draft and
-shows the original error. Fatal recovery can make presentation unavailable;
-this host does not promise framebuffer rollback.
+shows the original error.
 
 A complete original content pin and host epoch guard the draft and row actions.
 A known successful revision load resets the draft after admission, before its
@@ -59,10 +58,8 @@ source content is detected on the next explicit render or action; no unseen
 identical-reload history or global observer is claimed. Detached or replaced
 chooser and accepted-binding callbacks refuse stale input.
 
-After real loss or unavailable presentation, retained CPU metadata still permits
-staging and Discard. Apply remains disabled and direct Apply refuses, including
-an equal-ID choice. Caller restoration does not resume GPU mutation. Clear or
-another source mode empties the panel. Dispose clears its local pins/draft and
+Apply needs a ready Viewer: otherwise it is disabled and direct Apply refuses,
+including an equal-ID choice. Clear or another source mode empties the panel. Dispose clears its local pins/draft and
 blocks new chooser calls before fresh Viewer reads; existing disposed-state
 diagnostic rendering remains separate.
 
@@ -105,25 +102,25 @@ scene used by atomic replacement checks; no native packet is fabricated.
 
 Run proof consumes public Loader results, checks fixture hashes, independently
 composes authored Rz*Ry*Rx hierarchy matrices, compares analytical fixture
-local/world points and actual GL upload readback, records declared visibility
-hit controls, and verifies parent edits affect descendants while roots and
-original parts remain unchanged. It checks exact options/IDs/getter/forged
-matrix/report/translation/allocation refusal retention, camera/selection and
-visibility, query copies, and successful native mode replacement/Clear.
+local/world points, records declared visibility hit controls, and verifies
+parent edits affect descendants while roots and original parts remain
+unchanged. It checks exact options/IDs/getter/forged matrix/report/translation
+refusal retention (state and the captured WebGPU pixels; `readPixels` is async
+and resolves after the frame is drawn), camera/selection and visibility, query
+copies, and successful native mode replacement/Clear.
 An actual public Physics step0 cloth scene supplies the previous derived
 frame for failed-retention and successful-reset admission. This is one bridge
 consumer, not a cloth numerical campaign.
 
 `window.viewerAssemblyProbe` exposes public Viewer, original `assemblies`,
 default IDs/options/camera, native query/list helpers, original fixture URLs,
-public Loader/CAD `updateCadAssembly`/reference resolution, public GPU
-constructors, actual GL upload readback, resources/errors and `runProof()`.
+public Loader/CAD `updateCadAssembly`/reference resolution, errors and
+`runProof()`.
 The first runtime failure remains recorded with completed receipts and the
 accepted page state. Main acceptance additionally covers pending URL races,
-posed-only bounds, extra exact-input gates and separate actual context loss.
+posed-only bounds and extra exact-input gates.
 
 Dispose is separate from Run proof. It performs idempotent Viewer cleanup,
-disposes the caller-owned cloth world and records all seven resource classes.
-Use a separate fresh page for actual `WEBGL_lose_context`, retained CPU
-source/query and mutation refusal before disposal. Native completion,
+disposes the caller-owned cloth world and records the disposed status and
+browser errors. Native completion,
 Integration and publication require separate evidence.
