@@ -314,3 +314,25 @@ test('a finished sketch node comes back as its shapes: the kept outline with its
   // And profiles again to the same node.
   assert.deepEqual(profileOf([shapes.shape!, ...shapes.done]), r);
 });
+
+test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)', async () => {
+  const { rectangleOutline } = await import('../src/sketch/select');
+  const { shapeNode } = await import('../src/sketch/loops');
+  const { editFields } = await import('../src/app/editFields');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const outline = rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [40, 20] })!;
+  assert.deepEqual(shapeNode(outline), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] });
+  // A typed width keeps it a rectangle; the editor then offers width, depth and corner.
+  const wide = (commitDimension(outline, 'len0', 55) as { shape: Polygon }).shape;
+  const node = shapeNode(wide)!;
+  assert.deepEqual(node, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [55, 20] });
+  const d = withNode(withNode(emptyDoc(), node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.deepEqual(editFields(d.nodes, 1).map(f => f.label).slice(0, 4), ['Width', 'Depth', 'Corner X', 'Corner Y']);
+  // A removed H/V edge or an explicit rule makes it an outline again.
+  assert.equal(shapeNode(removeConstraint(outline, 'v:1'))!.profile, 'polygon');
+  const fixed = ok(applyConstraint(outline, [Pt(2)], 'fix'));
+  assert.equal(shapeNode(fixed)!.profile, 'polygon');
+  assert.ok(shapeNode(fixed)!.outline?.rules?.length);
+  // A line-tool outline of the same shape stays a polygon.
+  assert.equal(shapeNode(close([[0, 0], [40, 0], [40, 20], [0, 20]]))!.profile, 'polygon');
+});

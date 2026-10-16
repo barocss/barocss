@@ -21,12 +21,31 @@ export function shapeNode(s: SketchShape): SketchNode | null {
   if (s.kind === 'circle') return { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r };
   if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null;
   if (!s.closed || s.pending) return null;
+  const rect = rectangleNode(s); if (rect) return rect;
   // Straight convex outlines keep the polygon path (all features); concave or curved ones become a line + arc loop.
   const node: SketchNode = !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points)
     ? { kind: 'sketch', profile: 'polygon', points: s.points }
     : { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points as P2[], s.bulges) };
   const outline = outlineOf(s);
   return outline ? { ...node, outline } : node;
+}
+
+/**
+ * A Rectangle-tool outline that is still exactly a rectangle (four straight edges kept horizontal and
+ * vertical, nothing else but edge lengths, which its width and depth carry) is saved as a rectangle, so the
+ * feature editor offers its width, depth and corner; null otherwise.
+ */
+export function rectangleNode(s: Extract<SketchShape, { kind: 'polygon' }>): SketchNode | null {
+  if (!s.fromRectangle || s.points.length !== 4 || s.bulges?.some(Boolean)) return null;
+  if ([s.radii, s.tangents, s.equalRadii, s.concentric, s.rules].some(v => v && (Array.isArray(v) ? v.length : Object.keys(v).length))) return null;
+  const hv = s.hv, p = s.points, eq = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+  if (!hv || hv.h.length + hv.v.length !== 4 || ![0, 1, 2, 3].every(i => hv.h.includes(i) || hv.v.includes(i))) return null;
+  const aligned = hv.h.includes(0)
+    ? eq(p[0][1], p[1][1]) && eq(p[1][0], p[2][0]) && eq(p[2][1], p[3][1]) && eq(p[3][0], p[0][0])
+    : eq(p[0][0], p[1][0]) && eq(p[1][1], p[2][1]) && eq(p[2][0], p[3][0]) && eq(p[3][1], p[0][1]);
+  if (!aligned) return null;
+  const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] };
 }
 
 /** A constrained outline as the sketch node keeps it (null when nothing constrains it). */

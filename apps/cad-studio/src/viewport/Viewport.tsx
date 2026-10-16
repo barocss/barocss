@@ -26,7 +26,9 @@ export type SketchShape =
       /** Arc pairs [lower, higher segment index] with the same radius / the same centre. */
       equalRadii?: [number, number][]; concentric?: [number, number][];
       /** Horizontal / vertical edges (kept from closing on), explicit constraints and point distances (sketch/rules.ts). */
-      hv?: { h: number[]; v: number[] }; rules?: SketchRule[] }
+      hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
+      /** Drawn with the Rectangle tool: saved as a rectangle again while it still is one (see sketch/loops.ts). */
+      fromRectangle?: true }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
