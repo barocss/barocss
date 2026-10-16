@@ -25,7 +25,9 @@ The example does not rebuild the CAD fixture or copy its bounds algorithm.
 It reads both files through the public Loader HTTP reader and validates CAD
 bounds with public APIs. It verifies a weighted Curve control max Y of 4 mm
 versus sampled max Y below 3.5 mm, current display pose, an edited document
-revision, refusal and Viewer-owned resource cleanup.
+revision, refusal and disposal. The Viewer is created with
+`await createViewer(...)` and draws with WebGPU; the page compares
+`await viewer.readPixels()` captures before and after selection.
 
 With Node 22 and built `@barocss/cad`, `@barocss/gpu`,
 `@barocss/cad-interop` and `@barocss/viewer`, run:

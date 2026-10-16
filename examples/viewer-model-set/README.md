@@ -2,7 +2,8 @@
 
 This example reads two source0 files through Loader. Both files use native Model
 `wide_model`, Curve `wide_64` and Surface `shared_panel`. The Viewer keeps
-those IDs and displays all four objects in one WebGL2 canvas through GPU v2.
+those IDs and displays all four objects in one WebGPU canvas through the
+`@barocss/gpu/viewer` core; the page awaits `createViewer` and `readPixels`.
 The aliases `asset_a` and `asset-b` become Viewer model IDs `asset_a` and
 `asset.b`; the original aliases and source URLs stay in `getState().modelSet`.
 

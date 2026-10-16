@@ -2,7 +2,7 @@ import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
 const canvas = document.querySelector('#view');
 const stateElement = document.querySelector('#state');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
 const source = await (await fetch('/two-surfaces.barocad')).text();
 viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
 const refs = viewer.getState().surfaces;

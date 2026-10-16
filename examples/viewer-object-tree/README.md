@@ -11,7 +11,7 @@ are disabled, while visibility and Fit remain available. Changing the filter
 clears an excluded selection, cancels active display gestures and discards a
 numeric draft. An eligible selection and accepted display poses are retained.
 Reload and Clear retain the host's filter preference. The filter is disabled
-while the document is unavailable, after context loss and after disposal.
+while the document is unavailable and after disposal.
 The properties panel shows source identity and revision, not computed physical
 properties. No editor internal or new library API is used.
 
@@ -26,7 +26,8 @@ Open <http://127.0.0.1:52935/>. Select a row or click a displayed object.
 Hide a row, isolate a body, fit visible geometry, reload or clear. Hidden
 bodies stay in the document inventory. A rejected action keeps the accepted
 scene and reports an error. The host owns DOM, HTTP, canvas and listeners.
-Viewer owns one WebGL2 context and its GPU resources. The source is authored
+Viewer owns the canvas WebGPU context and its GPU resources; the host awaits
+`createViewer` before wiring controls. The source is authored
 XYZ/mm; the host explicitly declares that XYZ matches right-handed Y-up.
 The display scale is 0.11 scene units per mm, so a translation can meet the
 input limit yet exceed the Viewer's GPU scene bound. That refusal also keeps
@@ -36,8 +37,8 @@ Use each row's `Include … in fit set` checkbox to choose 2 through 4 visible
 bodies, then click Fit set. This frames their conservative original native
 control-hull bounds with their current display poses. It keeps the primary
 selection, source and poses. The pick filter does not change fit membership.
-Hiding a member removes it; showing it does not re-add it. Reload, Clear,
-context loss and Dispose clear membership. Membership changes discard pending
+Hiding a member removes it; showing it does not re-add it. Reload, Clear
+and Dispose clear membership. Membership changes discard pending
 pose drafts with a status notice. Apply or Discard a numeric draft before
 Fit set. Clear fit set removes only the host membership.
 
@@ -95,7 +96,7 @@ primary selection and fit set remain. Modified, repeated or composing Escape
 and events from editable controls are ignored. Without an active preview,
 the host leaves Escape to the existing controls. Dispose removes this listener.
 
-The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
-Viewer-created WebGL resources for an actual browser lifecycle check. Its Lose
-context button invokes the browser's `WEBGL_lose_context` extension to check
-that the move handle is removed after context loss.
+The optional `?proof` route exposes `window.viewerObjectTreeProbe` and a JSON
+proof panel. Its pixel hashes and drag-preview pixel comparisons come from
+`await viewer.readPixels()` WebGPU captures. Its Check buttons exercise
+refusals, non-Y poses and nonuniform scale; Dispose viewer checks teardown.

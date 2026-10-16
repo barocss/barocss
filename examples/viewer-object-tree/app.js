@@ -16,31 +16,7 @@ const proofControls = document.querySelector('#proof-controls');
 const buttons = Object.fromEntries(['fit-all', 'show-all', 'hide-all', 'reload', 'clear']
   .map(id => [id, document.querySelector('#' + id)]));
 const proof = new URLSearchParams(location.search).has('proof');
-const contexts = new Set(), resources = {};
-if (proof) {
-  const getContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-    const context = getContext.call(this, kind, ...args);
-    if (kind === 'webgl2' && context) contexts.add(context);
-    return context;
-  };
-  for (const kind of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-    const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-    const create = prototype['create' + kind], remove = prototype['delete' + kind];
-    resources[kind] = live;
-    prototype['create' + kind] = function (...args) {
-      const value = create.apply(this, args);
-      if (value) live.add(value);
-      return value;
-    };
-    prototype['delete' + kind] = function (value) {
-      live.delete(value);
-      return remove.call(this, value);
-    };
-  }
-}
-
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.11, background: [0.015, 0.02, 0.03] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.11, background: [0.015, 0.02, 0.03] });
 const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 1,
   curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
 const options = { native, basis: 'authored-xyz-matches-rhyup',
@@ -290,16 +266,21 @@ function translationEditor(state, selected, revision, epoch) {
   section.append(actions);
   return section;
 }
-function publishProof(state) {
+let proofPublication = 0;
+async function publishProof(state) {
   if (!proof) return;
   proofControls.hidden = false;
+  const publication = ++proofPublication;
   let pixelHash = null;
   const hitSamples = [];
   if (state.status === 'ready') {
-    const bytes = viewer.readPixels();
-    let value = 2166136261;
-    for (const byte of bytes) value = Math.imul(value ^ byte, 16777619) >>> 0;
-    pixelHash = value;
+    try {
+      const bytes = await viewer.readPixels();
+      let value = 2166136261;
+      for (const byte of bytes) value = Math.imul(value ^ byte, 16777619) >>> 0;
+      pixelHash = value;
+    } catch { /* The Viewer was cleared or disposed before the frame was read. */ }
+    if (publication !== proofPublication) return;
     const camera = JSON.stringify(state.camera);
     if (sampleCamera !== camera) {
       sampleCamera = null;
@@ -358,9 +339,7 @@ function publishProof(state) {
       yCss: yawHandle.hidden ? null : Number.parseFloat(yawHandle.style.top),
       dragging: activeYaw !== null },
     yawPreviewReport,
-    pixelHash, hitSamples, refusalReport, nonYReport, nonuniformReport, contexts: contexts.size,
-    glErrors: [...contexts].map(context => context.getError()),
-    resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
+    pixelHash, hitSamples, refusalReport, nonYReport, nonuniformReport,
   }, null, 2);
 }
 function render() {
@@ -511,7 +490,7 @@ moveHandle.addEventListener('pointerdown', event => {
       motionHash: JSON.stringify(state.geometryMotion), mmToSceneUnit: state.mmToSceneUnit,
       rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, projection,
       proofState: proof ? JSON.stringify(state) : null,
-      proofPixels: proof ? viewer.readPixels() : null };
+      proofPixels: proof ? viewer.readPixels().catch(() => null) : null };
     previewReport = null;
     moveHandle.dataset.dragging = 'true';
     event.preventDefault();
@@ -533,10 +512,12 @@ moveHandle.addEventListener('pointermove', event => {
   moveHandle.style.left = drag.projection.xCss + dx + 'px';
   moveHandle.style.top = drag.projection.yCss + dy + 'px';
   if (proof) {
-    const pixels = viewer.readPixels();
-    previewReport = { dx, dy, stateSame: JSON.stringify(viewer.getState()) === drag.proofState,
-      pixelsSame: pixels.length === drag.proofPixels.length
-        && pixels.every((byte, index) => byte === drag.proofPixels[index]) };
+    const stateSame = JSON.stringify(viewer.getState()) === drag.proofState;
+    Promise.all([drag.proofPixels, viewer.readPixels()]).then(([before, pixels]) => {
+      previewReport = { dx, dy, stateSame, pixelsSame: before !== null && pixels.length === before.length
+        && pixels.every((byte, index) => byte === before[index]) };
+      publishProof(viewer.getState());
+    }).catch(() => {});
   }
   event.preventDefault();
   publishProof(viewer.getState());
@@ -648,7 +629,7 @@ yawHandle.addEventListener('pointerdown', event => {
       motionHash: JSON.stringify(state.geometryMotion), yaw,
       rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
       proofState: proof ? JSON.stringify(state) : null,
-      proofPixels: proof ? viewer.readPixels() : null };
+      proofPixels: proof ? viewer.readPixels().catch(() => null) : null };
     yawPreviewReport = null;
     yawHandle.dataset.dragging = 'true';
     event.preventDefault();
@@ -670,10 +651,12 @@ yawHandle.addEventListener('pointermove', event => {
   yawHandle.style.left = drag.baseX + dx + 'px';
   yawHandle.style.top = drag.baseY + 'px';
   if (proof) {
-    const pixels = viewer.readPixels();
-    yawPreviewReport = { dx, dy, stateSame: JSON.stringify(viewer.getState()) === drag.proofState,
-      pixelsSame: pixels.length === drag.proofPixels.length
-        && pixels.every((byte, index) => byte === drag.proofPixels[index]) };
+    const stateSame = JSON.stringify(viewer.getState()) === drag.proofState;
+    Promise.all([drag.proofPixels, viewer.readPixels()]).then(([before, pixels]) => {
+      yawPreviewReport = { dx, dy, stateSame, pixelsSame: before !== null && pixels.length === before.length
+        && pixels.every((byte, index) => byte === before[index]) };
+      publishProof(viewer.getState());
+    }).catch(() => {});
   }
   event.preventDefault();
   say('Y yaw preview: ' + (drag.yaw + dx / 2).toFixed(2) + '°');
@@ -732,10 +715,6 @@ for (const type of ['pointercancel', 'lostpointercapture']) {
     say('Y yaw cancelled: ' + type + '.', true);
   }, { signal: listener.signal });
 }
-canvas.addEventListener('webglcontextlost', () => {
-  cancelDrag(); cancelYaw(); const notice = render();
-  say('Display handles unavailable: WebGL2 context lost.' + (notice ? ' ' + notice : ''), true);
-}, { signal: listener.signal });
 async function reload() {
   if (activeDrag) { cancelDrag(); renderHandle(viewer.getState()); }
   if (activeYaw) { cancelYaw(); renderYawHandle(viewer.getState()); }
@@ -820,14 +799,8 @@ function dispose() {
   say('Viewer disposed.' + (notice ? ' ' + notice : ''));
 }
 if (proof) {
-  document.querySelector('#lose-context-proof').addEventListener('click', () => {
-    const context = [...contexts][0];
-    const extension = context?.getExtension('WEBGL_lose_context');
-    if (extension) extension.loseContext();
-    else say('WEBGL_lose_context is unavailable.', true);
-  }, { signal: listener.signal });
-  document.querySelector('#check-nonuniform').addEventListener('click', () => {
-    const before = viewer.getState(), beforePixels = viewer.readPixels();
+  document.querySelector('#check-nonuniform').addEventListener('click', async () => {
+    const before = viewer.getState(), beforePixels = await viewer.readPixels();
     const motion = before.geometryMotion;
     const binding = motion?.bindings.find(value => sameRef(value.ref, before.selectedGeometry));
     if (!binding) { say('Nonuniform check needs a selected display pose.', true); return; }
@@ -839,15 +812,15 @@ if (proof) {
       const unavailable = !properties.querySelector('.translation-editor')
         && status.textContent.includes('not uniform');
       viewer.applyGeometryMotionFrame(motion.frame, motion.bindings, { basis: motion.basis });
-      const after = viewer.getState(), afterPixels = viewer.readPixels();
+      const after = viewer.getState(), afterPixels = await viewer.readPixels();
       nonuniformReport = { unavailable, restored: JSON.stringify(before) === JSON.stringify(after)
         && beforePixels.length === afterPixels.length
         && beforePixels.every((byte, index) => byte === afterPixels[index]) };
       render(); say('Nonuniform scale unavailable; restored=' + nonuniformReport.restored);
     } catch (error) { render(); say('Nonuniform check refused: ' + error.message, true); }
   }, { signal: listener.signal });
-  document.querySelector('#check-non-y').addEventListener('click', () => {
-    const before = viewer.getState(), beforePixels = viewer.readPixels();
+  document.querySelector('#check-non-y').addEventListener('click', async () => {
+    const before = viewer.getState(), beforePixels = await viewer.readPixels();
     const motion = before.geometryMotion;
     const binding = motion?.bindings.find(value => sameRef(value.ref, before.selectedGeometry));
     if (!binding) { say('Non-Y check needs a selected display pose.', true); return; }
@@ -860,15 +833,15 @@ if (proof) {
       const unavailable = !properties.querySelector('.translation-editor')
         && status.textContent.includes('not a pure Y-axis pose');
       viewer.applyGeometryMotionFrame(motion.frame, motion.bindings, { basis: motion.basis });
-      const after = viewer.getState(), afterPixels = viewer.readPixels();
+      const after = viewer.getState(), afterPixels = await viewer.readPixels();
       nonYReport = { unavailable, restored: JSON.stringify(before) === JSON.stringify(after)
         && beforePixels.length === afterPixels.length
         && beforePixels.every((byte, index) => byte === afterPixels[index]) };
       render(); say('Non-Y pose unavailable; restored=' + nonYReport.restored);
     } catch (error) { render(); say('Non-Y check refused: ' + error.message, true); }
   }, { signal: listener.signal });
-  document.querySelector('#check-refusals').addEventListener('click', () => {
-    const before = viewer.getState(), beforePixels = viewer.readPixels();
+  document.querySelector('#check-refusals').addEventListener('click', async () => {
+    const before = viewer.getState(), beforePixels = await viewer.readPixels();
     const failures = [];
     const hidden = before.documentBodies.find(body => !shown(before, body.ref));
     if (hidden) {
@@ -892,7 +865,7 @@ if (proof) {
       if (status.dataset.error === 'true' && status.textContent.includes('This property panel is stale.'))
         failures.push('detached-panel');
     }
-    const after = viewer.getState(), afterPixels = viewer.readPixels();
+    const after = viewer.getState(), afterPixels = await viewer.readPixels();
     refusalReport = { failures, retained: JSON.stringify(before) === JSON.stringify(after)
       && beforePixels.length === afterPixels.length
       && beforePixels.every((byte, index) => byte === afterPixels[index]) };
@@ -903,9 +876,6 @@ if (proof) {
     { signal: listener.signal });
 }
 window.addEventListener('beforeunload', dispose, { signal: listener.signal });
-window.viewerObjectTreeProbe = { viewer, reload, dispose,
-  contextCount: () => contexts.size,
-  resourceCounts: () => Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
-  glError: () => [...contexts].map(context => context.getError()) };
+window.viewerObjectTreeProbe = { viewer, reload, dispose };
 render();
 reload();

@@ -9,29 +9,9 @@ const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 1677
 const canvas = document.querySelector('#view');
 const label = document.querySelector('#length');
 const status = document.querySelector('#status');
-const contexts = new Set(), browserErrors = [], resources = {};
+const browserErrors = [];
 window.addEventListener('error', event => browserErrors.push(event.message));
 window.addEventListener('unhandledrejection', event => browserErrors.push(String(event.reason)));
-const getContext = HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-  const context = getContext.call(this, kind, ...args);
-  if (kind === 'webgl2' && context) contexts.add(context);
-  return context;
-};
-for (const type of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-  const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-  resources[type] = live;
-  const create = prototype[`create${type}`], remove = prototype[`delete${type}`];
-  prototype[`create${type}`] = function (...args) {
-    const value = create.apply(this, args);
-    if (value) live.add(value);
-    return value;
-  };
-  prototype[`delete${type}`] = function (value) {
-    live.delete(value);
-    return remove.call(this, value);
-  };
-}
 
 const areaOptions = { region: null, absoluteToleranceMM2: 1e-6, relativeTolerance: 1e-8,
   maximumEvaluations: 16384, maximumSubdivisions: 128, maximumDepth: 8 };
@@ -59,7 +39,7 @@ try {
     `Original revision ${index + 1} Surface area was not validated`);
     return { cad, reference, area, source };
   });
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   let current = null;
   const checkBinding = () => {
     const state = viewer.getState();
@@ -97,7 +77,7 @@ try {
     return positionLabel();
   };
   const firstAnchor = adopt(measurements[0]);
-  const initialHash = hash(viewer.readPixels());
+  const initialHash = hash(await viewer.readPixels());
   assert(firstAnchor && firstAnchor.documentBody?.bodyId === 'plane_body'
     && firstAnchor.xCss >= 0 && firstAnchor.xCss <= canvas.clientWidth
     && firstAnchor.yCss >= 0 && firstAnchor.yCss <= canvas.clientHeight
@@ -119,9 +99,9 @@ try {
     && Math.abs(parseFloat(label.style.left) - cameraAnchor.xCss) < 0.1,
   'Caller label did not follow the camera');
   const ref = checkBinding();
-  const beforeSelectionHash = hash(viewer.readPixels());
+  const beforeSelectionHash = hash(await viewer.readPixels());
   viewer.selectGeometry(ref);
-  const selectedHash = hash(viewer.readPixels());
+  const selectedHash = hash(await viewer.readPixels());
   assert(selectedHash !== beforeSelectionHash && same(viewer.getState().selectedGeometry, ref),
     'Surface selection did not update Viewer display');
   viewer.applyGeometryMotionFrame({ contextId: 'surface-area', timeSeconds: 1,
@@ -129,7 +109,7 @@ try {
   [{ contextId: 'surface-area', targetId: 'plane', ref }],
   { basis: 'part-xyz-matches-rhyup' });
   const posedAnchor = positionLabel();
-  const posedHash = hash(viewer.readPixels());
+  const posedHash = hash(await viewer.readPixels());
   assert(posedAnchor && Math.abs(posedAnchor.xCss - cameraAnchor.xCss) > 1
     && same(posedAnchor.point.pointMM, firstAnchor.point.pointMM)
     && JSON.stringify(measurements[0].area) === originalArea
@@ -137,7 +117,7 @@ try {
   'Display pose changed original area or did not move the caller label');
 
   const secondAnchor = adopt(measurements[1]);
-  const revision2Hash = hash(viewer.readPixels());
+  const revision2Hash = hash(await viewer.readPixels());
   assert(secondAnchor && viewer.getState().document.document.revision === 2
     && label.textContent.includes('12.000000 mm²')
     && label.textContent.includes('document revision 2')
@@ -161,7 +141,7 @@ try {
     try { candidate(); } catch { refused++; }
   }
   assert(refused === candidates.length && same(viewer.getState(), stableState)
-    && hash(viewer.readPixels()) === stableHash && label.textContent === stableLabel
+    && hash(await viewer.readPixels()) === stableHash && label.textContent === stableLabel
     && same([label.style.left, label.style.top], stablePosition)
     && measurements[1].source === documents[1].document.assets.find(asset => asset.id === 'asset_0').source,
   'Invalid area or projection candidate changed accepted state, source, label or pixels');
@@ -184,13 +164,9 @@ try {
     && viewer.getState().document === null && label.style.display === 'none',
   'Clear retained the old Surface or label');
   viewer.dispose(); viewer.dispose();
-  const remaining = Object.fromEntries(Object.entries(resources).map(([type, live]) => [type, live.size]));
-  const glError = [...contexts][0]?.getError();
-  assert(contexts.size === 1 && contexts.has(getContext.call(canvas, 'webgl2'))
-    && glError === 0 && Object.values(remaining).every(count => count === 0)
-    && document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
+  assert(document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
     && browserErrors.length === 0,
-  `WebGL2 or disposal failed: ${JSON.stringify({ contexts: contexts.size, glError, remaining, browserErrors })}`);
+  `Disposal failed: ${JSON.stringify({ browserErrors })}`);
   const result = { ok: true, references: measurements.map(value => value.reference),
     areaMM2: measurements.map(value => value.area.areaEstimateMM2),
     estimatorMM2: measurements.map(value => value.area.errorEstimateMM2),
@@ -202,12 +178,11 @@ try {
     cameraAnchor: { xCss: cameraAnchor.xCss, yCss: cameraAnchor.yCss },
     posedAnchor: { xCss: posedAnchor.xCss, yCss: posedAnchor.yCss },
     secondAnchor: { xCss: secondAnchor.xCss, yCss: secondAnchor.yCss },
-    refused, hiddenRefused, clearedRefused, contextCount: contexts.size,
-    glError, remaining, browserErrors,
-    limits: 'Two actual canonical revisions of one unposed parametric Surface; local Chromium WebGL2; estimator is heuristic and global error is not certified.' };
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+    refused, hiddenRefused, clearedRefused, browserErrors,
+    limits: 'Two actual canonical revisions of one unposed parametric Surface; local Chromium WebGPU; estimator is heuristic and global error is not certified.' };
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   const restoredAnchor = adopt(measurements[1]);
-  assert(restoredAnchor && contexts.size === 1 && hash(viewer.readPixels()) !== 0,
+  assert(restoredAnchor && hash(await viewer.readPixels()) !== 0,
     'Visible revision 2 Surface did not return after teardown');
   result.restoredScene = true;
   window.addEventListener('pagehide', () => viewer.dispose(), { once: true });

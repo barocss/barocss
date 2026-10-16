@@ -5,7 +5,7 @@ const output = document.querySelector('#state');
 const lit = new URLSearchParams(location.search).get('lighting') === 'directional';
 const lightingInput = lit ? { ambientStrength: 0.12, directionalStrength: 0.78,
   direction: [0.8, 0.4, -0.7] } : null;
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09],
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09],
   ...(lightingInput ? { lighting: lightingInput } : {}) });
 const sources = Object.fromEntries(await Promise.all(['mixed', 'curves-only', 'wide-64'].map(async name =>
   [name, await (await fetch(`/${name}.barocad`)).text()])));

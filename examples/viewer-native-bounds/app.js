@@ -9,29 +9,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const canvas = document.querySelector('#view'), label = document.querySelector('#length');
 const status = document.querySelector('#status');
-const contexts = new Set(), browserErrors = [], resources = {};
+const browserErrors = [];
 window.addEventListener('error', event => browserErrors.push(event.message));
 window.addEventListener('unhandledrejection', event => browserErrors.push(String(event.reason)));
-const getContext = HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
-  const context = getContext.call(this, kind, ...args);
-  if (kind === 'webgl2' && context) contexts.add(context);
-  return context;
-};
-for (const type of ['Buffer', 'Program', 'VertexArray', 'Framebuffer', 'Texture', 'Renderbuffer', 'Shader']) {
-  const live = new Set(), prototype = WebGL2RenderingContext.prototype;
-  resources[type] = live;
-  const create = prototype[`create${type}`], remove = prototype[`delete${type}`];
-  prototype[`create${type}`] = function (...args) {
-    const value = create.apply(this, args);
-    if (value) live.add(value);
-    return value;
-  };
-  prototype[`delete${type}`] = function (value) {
-    live.delete(value);
-    return remove.call(this, value);
-  };
-}
 
 const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
   curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
@@ -72,11 +52,11 @@ const posedCorner = point => {
   const [x, y, z] = point;
   return [(0.3 - 0.8 * y) * 0.15, (0.2 + 1.2 * x) * 0.15, z * 0.15];
 };
-const retained = (viewer, action, name) => {
-  const state = viewer.getState(), pixels = hash(viewer.readPixels());
+const retained = async (viewer, action, name) => {
+  const state = viewer.getState(), pixels = hash(await viewer.readPixels());
   let refused = false;
   try { action(); } catch { refused = true; }
-  assert(refused && same(viewer.getState(), state) && hash(viewer.readPixels()) === pixels,
+  assert(refused && same(viewer.getState(), state) && hash(await viewer.readPixels()) === pixels,
     `${name} changed accepted state or pixels`);
 };
 let viewer;
@@ -99,7 +79,7 @@ try {
     && bounds[1][1].boundsMM.max[2] > bounds[0][1].boundsMM.max[2],
   'Actual weighted Curve and edited loft bounds are missing');
 
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   const empty = viewer.getState();
   let emptyRefused = false;
   try { viewer.fitNativeDocumentBody({ ref: { kind: 'curve', modelId: 'loft_bounds_asset',
@@ -149,14 +129,14 @@ try {
     && !same(bodySetCamera, nativeCamera) && !same(bodySetCamera, displayedSetCamera),
   'Two-body original hull did not determine an independent union camera');
   viewer.fitNativeDocumentBody(curveFit);
-  const firstHash = hash(viewer.readPixels());
+  const firstHash = hash(await viewer.readPixels());
   let hit = null;
   for (let y = 5; y < canvas.height && !hit; y += 3)
     for (let x = 5; x < canvas.width && !hit; x += 3)
       hit = viewer.pickGeometry({ xCss: x, yCss: y }, { curveTolerancePx: 4 });
   assert(hit?.kind === 'curve' || hit?.kind === 'surface', 'Original bounds camera has no visible geometry hit');
   viewer.selectGeometry(curveRef);
-  const selectedHash = hash(viewer.readPixels());
+  const selectedHash = hash(await viewer.readPixels());
   assert(same(viewer.getState().selectedGeometry, curveRef) && selectedHash !== firstHash,
     'Qualified Curve selection failed');
   const beforePoseBounds = JSON.stringify(bounds[0]);
@@ -184,46 +164,46 @@ try {
   const surfaceCamera = viewer.getState().camera;
   assert(inCamera(corners(bounds[0][1].boundsMM).map(point => point.map(value => value * 0.15)), surfaceCamera)
     && !same(surfaceCamera, posedCamera), 'Original Surface body bounds did not fit');
-  retained(viewer, () => viewer.fitNativeDocumentBody({ ...curveFit, extra: true }), 'Extra field');
+  await retained(viewer, () => viewer.fitNativeDocumentBody({ ...curveFit, extra: true }), 'Extra field');
   let getterCalls = 0;
   const getter = { ...curveFit };
   Object.defineProperty(getter, 'documentRevision', { enumerable: true, get() { getterCalls++; return 1; } });
-  retained(viewer, () => viewer.fitNativeDocumentBody(getter), 'Accessor');
+  await retained(viewer, () => viewer.fitNativeDocumentBody(getter), 'Accessor');
   assert(getterCalls === 0, 'Native fit evaluated a getter');
-  retained(viewer, () => viewer.fitNativeDocumentBody({ ref: { ...curveRef, modelId: 'foreign' },
+  await retained(viewer, () => viewer.fitNativeDocumentBody({ ref: { ...curveRef, modelId: 'foreign' },
     documentRevision: 1 }), 'Unknown body');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef] }),
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef] }),
     'One body in set');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef, curveRef] }),
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef, curveRef] }),
     'Duplicate bodies in set');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
     refs: [curveRef, surfaceRef, curveRef, surfaceRef, curveRef] }), 'Five bodies in set');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, extra: true }),
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, extra: true }),
     'Extra body-set field');
   const sparseRefs = [curveRef, , surfaceRef];
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: sparseRefs }),
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: sparseRefs }),
     'Sparse body-set refs');
   let setGetterCalls = 0;
   const getterRefs = [curveRef, surfaceRef];
   Object.defineProperty(getterRefs, '0', { enumerable: true, get() { setGetterCalls++; return curveRef; } });
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: getterRefs }),
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: getterRefs }),
     'Accessor body-set ref');
   assert(setGetterCalls === 0, 'Body-set fit evaluated an accessor');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
     refs: [{ ...curveRef, modelId: 'foreign' }, surfaceRef] }), 'Foreign body in set');
-  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+  await retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
     refs: [{ ...curveRef, curveId: 'missing' }, surfaceRef] }), 'Unknown body in set');
   viewer.setVisibleGeometry([surfaceRef]);
-  retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Hidden body');
-  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Hidden body in set');
+  await retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Hidden body');
+  await retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Hidden body in set');
   viewer.setVisibleGeometry([curveRef, surfaceRef]);
   assert(viewer.getState().documentBodies.length === 2, 'Visibility changed original body inventory');
   viewer.loadDocument(documents[1], request);
   const bodies2 = viewer.getState().documentBodies;
   const curveFit2 = { ref: bodies2[0].ref, documentRevision: 2 };
   const bodySetFit2 = { refs: bodies2.map(body => body.ref), documentRevision: 2 };
-  retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Stale revision');
-  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Stale body-set revision');
+  await retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Stale revision');
+  await retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Stale body-set revision');
   viewer.fitNativeDocumentBodies(bodySetFit2);
   const revisedSetCamera = viewer.getState().camera;
   const revisedCorners = bounds[1].flatMap(value => corners(value.boundsMM)
@@ -239,35 +219,23 @@ try {
   'Revision2 fit lost original bounds or changed caller documents');
   const source = documents[1].document.assets[0].source;
   viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
-  retained(viewer, () => viewer.fitNativeDocumentBody(curveFit2), 'Non-document scene');
-  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit2), 'Non-document scene for body set');
+  await retained(viewer, () => viewer.fitNativeDocumentBody(curveFit2), 'Non-document scene');
+  await retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit2), 'Non-document scene for body set');
   viewer.loadDocument(documents[1], request);
   viewer.fitNativeDocumentBody(curveFit2);
   viewer.clear();
-  const clearState = viewer.getState(), clearHash = hash(viewer.readPixels());
+  const clearState = viewer.getState(), clearHash = hash(await viewer.readPixels());
   let clearRefused = false;
   try { viewer.fitNativeDocumentBody(curveFit2); } catch { clearRefused = true; }
-  assert(clearRefused && same(viewer.getState(), clearState) && hash(viewer.readPixels()) === clearHash,
+  assert(clearRefused && same(viewer.getState(), clearState) && hash(await viewer.readPixels()) === clearHash,
     'Cleared Viewer accepted a native document fit');
   let clearSetRefused = false;
   try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { clearSetRefused = true; }
   assert(clearSetRefused && same(viewer.getState(), clearState)
-    && hash(viewer.readPixels()) === clearHash,
+    && hash(await viewer.readPixels()) === clearHash,
   'Cleared Viewer accepted a native document body-set fit');
   viewer.loadDocument(documents[1], request);
   viewer.fitNativeDocumentBody(curveFit2);
-  const beforeLossCamera = viewer.getState().camera;
-  canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
-  let contextLostRefused = false;
-  try { viewer.fitNativeDocumentBody(curveFit2); } catch { contextLostRefused = true; }
-  assert(contextLostRefused && viewer.getState().status === 'context-lost'
-    && same(viewer.getState().camera, beforeLossCamera),
-  'Lost WebGL2 context accepted a native document fit');
-  let contextLostSetRefused = false;
-  try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { contextLostSetRefused = true; }
-  assert(contextLostSetRefused && viewer.getState().status === 'context-lost'
-    && same(viewer.getState().camera, beforeLossCamera),
-  'Lost WebGL2 context accepted a native document body-set fit');
   viewer.dispose(); viewer.dispose();
   let disposedRefused = false;
   try { viewer.fitNativeDocumentBody(curveFit2); } catch { disposedRefused = true; }
@@ -277,12 +245,8 @@ try {
   try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { disposedSetRefused = true; }
   assert(disposedSetRefused && viewer.getState().status === 'disposed',
     'Disposed Viewer accepted a native document body-set fit');
-  const remaining = Object.fromEntries(Object.entries(resources).map(([type, live]) => [type, live.size]));
-  const glError = [...contexts][0]?.getError();
-  assert(contexts.size === 1 && contexts.has(getContext.call(canvas, 'webgl2')) && glError === 0
-    && Object.values(remaining).every(count => count === 0)
-    && document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
-    && browserErrors.length === 0, 'Viewer resource/context/browser error');
+  assert(document.querySelectorAll('canvas').length === 1 && document.body.contains(canvas)
+    && browserErrors.length === 0, 'Viewer canvas/browser error');
   const result = { ok: true, documentIds: bounds.map(entry => entry[0].reference.documentId),
     bodyIds: request.bodyIds, controlMaximumYMM: 4, sampledMaximumYMM: sampleMaximumY,
     curveBoundsRevision1: bounds[0][0].boundsMM, curveBoundsRevision2: bounds[1][0].boundsMM,
@@ -293,18 +257,16 @@ try {
       posedSet: posedSetCamera, revision2Set: revisedSetCamera },
     firstHash, selectedHash, screenHitKind: hit.kind,
     refused: ['empty', 'extra', 'getter', 'unknown', 'hidden', 'stale', 'non-document',
-      'clear', 'context-lost', 'disposed'], contextLostRefused, disposedRefused,
-    getterCalls, setGetterCalls, emptySetRefused, clearSetRefused,
-    contextLostSetRefused, disposedSetRefused,
+      'clear', 'disposed'], disposedRefused,
+    getterCalls, setGetterCalls, emptySetRefused, clearSetRefused, disposedSetRefused,
     bodySetRefused: ['one', 'duplicate', 'five', 'extra', 'sparse', 'getter', 'foreign', 'unknown',
-      'hidden', 'stale', 'non-document', 'clear', 'context-lost', 'disposed'],
-    sourceUnchanged: true, oneContext: contexts.size === 1,
-    glError, remaining, browserErrors,
-    limits: 'One current body or an explicit set of 2..4 visible current CAD document Curve/Surface bodies; original positive-rational control-pole hull; local Chromium WebGL2; neither tight extrema nor global floating containment is certified.' };
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
+      'hidden', 'stale', 'non-document', 'clear', 'disposed'],
+    sourceUnchanged: true, browserErrors,
+    limits: 'One current body or an explicit set of 2..4 visible current CAD document Curve/Surface bodies; original positive-rational control-pole hull; local Chromium WebGPU; neither tight extrema nor global floating containment is certified.' };
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   viewer.loadDocument(documents[1], request);
   viewer.fitNativeDocumentBodies(bodySetFit2);
-  assert(contexts.size === 1 && hash(viewer.readPixels()) !== 0,
+  assert(hash(await viewer.readPixels()) !== 0,
     'Visible revision2 body did not return after teardown');
   label.textContent = `Two original body hulls · revision 2 · Curve max Z ${bounds[1][0].boundsMM.max[2]} mm`;
   label.style.left = '20px'; label.style.top = '20px'; label.style.display = 'block';

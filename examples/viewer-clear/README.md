@@ -1,8 +1,9 @@
 # Explicit Viewer clear
 
-This compiled Viewer/GPU browser flow starts with a genuine blank WebGL2
-frame, loads native source0 mixed Surface/Curve geometry, selects and poses it,
-measures original native points, clears the scene, changes the empty camera
+This compiled Viewer/GPU browser flow awaits `createViewer`, starts with a
+genuine blank WebGPU frame (captured with `await viewer.readPixels()`), loads
+native source0 mixed Surface/Curve geometry, selects and poses it, measures
+original native points, clears the scene, changes the empty camera
 and size, refuses an invalid load, supersedes an older URL load, reloads a
 qualified two-file model set, clears it and disposes the Viewer. Native source
 and IDs are never replaced with fake geometry.

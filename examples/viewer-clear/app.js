@@ -3,7 +3,7 @@ import { loadBaroCadModelSet } from '../../packages/barocss-cad-interop/dist/mod
 
 const canvas = document.querySelector('#view');
 const output = document.querySelector('#status');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.025, 0.045, 0.075] });
+const viewer = await createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.025, 0.045, 0.075] });
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const nativeOptions = { sourceVersion: 0, countU: 8, countV: 8,
@@ -15,7 +15,7 @@ try {
   assert(viewer.getState().status === 'empty', 'Fresh Viewer must be empty');
   viewer.clear();
   const initial = viewer.getState();
-  const blank = viewer.readPixels();
+  const blank = await viewer.readPixels();
   const blankHash = hash(blank);
   assert(initial.status === 'empty' && blank.length === 800 * 480 * 4, 'Explicit blank frame missing');
   const pixel = Array.from(blank.slice(0, 4));
@@ -24,7 +24,7 @@ try {
   const nativeSource = await (await fetch('/mixed.barocad')).text();
   viewer.loadNative(nativeSource, nativeOptions);
   const nativeState = viewer.getState();
-  const nativeHash = hash(viewer.readPixels());
+  const nativeHash = hash(await viewer.readPixels());
   assert(nativeState.status === 'ready' && nativeState.surfaces.length === 2
     && nativeState.curves.length === 2 && nativeHash !== blankHash, 'Native scene did not replace blank');
   const surface = nativeState.surfaces[0];
@@ -40,10 +40,10 @@ try {
     { ...surface, u: 0, v: 0 }, { ...surface, u: 1, v: 1 });
   assert(measured.distanceMM > 0, 'Native measurement missing before clear');
   const cameraBeforeClear = viewer.getState().camera;
-  const posedHash = hash(viewer.readPixels());
+  const posedHash = hash(await viewer.readPixels());
   viewer.clear();
   const cleared = viewer.getState();
-  const clearedHash = hash(viewer.readPixels());
+  const clearedHash = hash(await viewer.readPixels());
   assert(cleared.status === 'empty' && cleared.native === null && cleared.modelSet === null
     && cleared.surfaces.length === 0 && cleared.curves.length === 0 && cleared.packets.length === 0
     && cleared.selected === null && cleared.selectedGeometry === null && cleared.motion === null
@@ -59,7 +59,7 @@ try {
   viewer.selectGeometry(null);
   viewer.orbit(0.2, 0.1);
   viewer.resize(640, 400);
-  assert(viewer.readPixels().length === 640 * 400 * 4
+  assert((await viewer.readPixels()).length === 640 * 400 * 4
     && viewer.pick(20, 20) === null
     && viewer.pickGeometry({ xCss: 20, yCss: 20 }) === null,
   'Empty viewport controls failed');
@@ -67,18 +67,18 @@ try {
   try { viewer.fit(); } catch { fitRefused = true; }
   assert(fitRefused, 'Empty fit accepted');
   const beforeInvalid = viewer.getState();
-  const pixelsBeforeInvalid = hash(viewer.readPixels());
+  const pixelsBeforeInvalid = hash(await viewer.readPixels());
   let invalidRefused = false;
   try { viewer.loadNative('invalid', nativeOptions); } catch { invalidRefused = true; }
   assert(invalidRefused && JSON.stringify(viewer.getState()) === JSON.stringify(beforeInvalid)
-    && hash(viewer.readPixels()) === pixelsBeforeInvalid, 'Invalid load changed blank scene');
+    && hash(await viewer.readPixels()) === pixelsBeforeInvalid, 'Invalid load changed blank scene');
 
   const pending = viewer.loadNativeUrl('/slow.barocad', nativeOptions);
   viewer.clear();
   let supersededRefused = false;
   try { await pending; } catch (error) { supersededRefused = error.name === 'AbortError'; }
   assert(supersededRefused && viewer.getState().status === 'empty'
-    && hash(viewer.readPixels()) === pixelsBeforeInvalid, 'Older URL request restored cleared scene');
+    && hash(await viewer.readPixels()) === pixelsBeforeInvalid, 'Older URL request restored cleared scene');
 
   const set = await loadBaroCadModelSet({ format: 'barocad-model-set', version: 0,
     entries: [{ aliasId: 'asset_a', url: 'model-a.barocad', options: wideOptions },
@@ -89,10 +89,10 @@ try {
   assert(modelState.status === 'ready' && modelState.modelSet?.entries.length === 2
     && modelState.surfaces.length === 2 && modelState.curves.length === 2,
   'Qualified model set did not reload from blank viewport');
-  const modelHash = hash(viewer.readPixels());
+  const modelHash = hash(await viewer.readPixels());
   assert(modelHash !== pixelsBeforeInvalid, 'Model set did not change blank pixels');
   viewer.clear();
-  const finalBlankHash = hash(viewer.readPixels());
+  const finalBlankHash = hash(await viewer.readPixels());
   assert(viewer.getState().status === 'empty' && viewer.getState().modelSet === null,
     'Model-set clear failed');
   viewer.dispose();

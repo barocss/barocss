@@ -63,7 +63,6 @@ const files = new Map([
   ...fixtureFiles,
   ['/document.cad-document.json', { body: documentBytes, type: 'application/json' }],
   ...originalDocument.assets.map((asset, index) => ['/asset-' + index + '.barocad', { body: asset.source, type: 'text/plain' }]),
-  ['/uniform-primary.source0.css', { body: await readFile(resolve(root, 'examples/viewer-uniform-curve-scene/fixtures/primary_quintic.source0.css')), type: 'text/plain' }],
   ['/fixture-manifest.json', { body: JSON.stringify(fixtureManifest, null, 2), type: 'application/json' }],
   ['/', { body: await readFile(resolve(directory, 'index.html')), type: 'text/html' }],
   ...await Promise.all([0, 1].map(async revision => ['/assembly-revision' + revision + '.json', { body: await readFile(resolve(root, 'examples/gpu-scene/fixtures/assembly-revision' + revision + '.json')), type: 'application/json' }])),

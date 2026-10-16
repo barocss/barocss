@@ -32,7 +32,7 @@ try {
   }
   assert(ready, 'Curve server did not start: ' + logs);
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
-    args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+    args: ['--enable-unsafe-webgpu'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
@@ -56,7 +56,7 @@ try {
   assert.deepEqual(pageErrors, [], 'Unhandled browser errors');
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   await writeFile(join(dir, 'curve-picking.json'),
-    JSON.stringify({ head, browser: 'Chromium WebGL2 SwiftShader', viewport: [1280, 800],
+    JSON.stringify({ head, browser: 'Chromium WebGPU', viewport: [1280, 800],
       dpr: 1, reports, pageErrors, disclaimer:
       'Current-build timing and repeatability only; not an A/B improvement or hardware-GPU measurement' },
     null, 2) + '\n');
