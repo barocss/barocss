@@ -14,6 +14,8 @@ export interface Environment {
   sky?: Color; ground?: Color; ambient?: number;
   exposure?: number;
   toneMapping?: 'none' | 'aces';
+  /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
+  ambientOcclusion?: { radius?: number; strength?: number } | false;
 }
 
 export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Vec3 {
@@ -68,13 +70,24 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   return f;
 }
 
+/** A vertical gradient (sRGB) behind the scene; null: transparent. */
+export type Background = { top: Vec3; bottom: Vec3 } | null;
+/** What the ambient occlusion needs of the camera: the inverse projection and pixels per world unit. */
+export interface OcclusionFrame { inverseProjection: Mat4; radius: number; pixelsPerUnit: number; perspective: boolean }
+
 /** The output block (see Output in shaders.ts): outline colours are sRGB, the width in device pixels. */
-export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2): ArrayBuffer {
+export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null): ArrayBuffer {
   const b = new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
   f[0] = env.exposure ?? 1;
   u[1] = env.toneMapping === 'aces' ? 1 : 0;
   f[2] = outlineWidth;
   u[3] = Math.min(outlines.length, MAX_OUTLINES);
   outlines.slice(0, MAX_OUTLINES).forEach((c, i) => f.set([...c, 1], 4 + i * 4));
+  const o = 4 + MAX_OUTLINES * 4;
+  if (background) { f.set([...background.top, 1], o); f.set([...background.bottom, 1], o + 4); }
+  if (ao && env.ambientOcclusion) {
+    f.set(ao.inverseProjection, o + 8);
+    f.set([ao.radius, env.ambientOcclusion.strength ?? 1, ao.pixelsPerUnit, ao.perspective ? 1 : -1], o + 24);
+  }
   return b;
 }

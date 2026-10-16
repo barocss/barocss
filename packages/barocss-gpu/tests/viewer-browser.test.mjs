@@ -233,8 +233,18 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       cube.castShadow = true; ground.receiveShadow = false;
       const noReceiver = await sample();
       ground.receiveShadow = true;
-      window.shadowShot = await viewer.capture();
-      return { on, noCaster, noReceiver };
+      // Ambient occlusion darkens the ground where it meets the cube, not the open ground; a gradient behind.
+      // (A light that leaves the ground below white, so darkening shows.)
+      viewer.lights = [{ kind: 'directional', direction: [0.3, -0.8, -1], intensity: 0.7 }];
+      const foot = screen([0.2, -1.08, -1]), open = screen([-3, 1.5, -1]);
+      const plain = await viewer.capture();
+      viewer.environment = { ambientOcclusion: { radius: 0.6, strength: 1 } };
+      viewer.setBackground({ top: '#102040', bottom: '#405060' });
+      const ao = await viewer.capture();
+      const occluded = { foot: [pixel(plain, foot), pixel(ao, foot)], open: [pixel(plain, open), pixel(ao, open)], top: pixel(ao, [2, 1]), bottom: pixel(ao, [2, ao.height - 1]) };
+      viewer.lights = [{ kind: 'directional', direction: [0.3, -0.8, -1], intensity: 1.5, castShadow: true }];
+      window.shadowShot = ao;
+      return { on, noCaster, noReceiver, occluded };
     });
     t.diagnostic(`shadow ${JSON.stringify(shadow)}`);
     if (process.env.VIEWER_SHOTS) {
@@ -242,6 +252,11 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       (await import('node:fs')).writeFileSync(path.join(process.env.VIEWER_SHOTS, 'viewer-shadow.png'), Buffer.from(png.split(',')[1], 'base64'));
     }
     assert.ok(shadow.on.inside[0] < shadow.on.outside[0] * 0.6, `shadowed ground darker: ${shadow.on.inside} vs ${shadow.on.outside}`);
+    const o = shadow.occluded;
+    assert.ok(o.foot[1][0] < o.foot[0][0] - 15, `occlusion at the foot: ${o.foot}`);
+    assert.ok(Math.abs(o.open[1][0] - o.open[0][0]) <= 3, `no occlusion on open ground: ${o.open}`);
+    // (The ground covers the bottom of the view; the top row is the gradient's top colour.)
+    assert.ok(Math.abs(o.top[0] - 0x10) <= 2 && Math.abs(o.top[1] - 0x20) <= 2 && Math.abs(o.top[2] - 0x40) <= 2, `gradient top ${o.top}`);
     for (const k of ['noCaster', 'noReceiver']) assert.ok(Math.abs(shadow[k].inside[0] - shadow[k].outside[0]) < 12, `${k}: ${shadow[k].inside} vs ${shadow[k].outside}`);
 
     const disposed = await p.evaluate(() => {

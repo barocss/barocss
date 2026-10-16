@@ -7,7 +7,7 @@ import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
-import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Color, type Environment, type Light, type ShadowFrame } from './lights.js';
+import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
@@ -131,11 +131,19 @@ function materialOf(m: Material = {}): Required<Omit<Material, 'color'>> & { col
   };
 }
 
+export type BackgroundInput = Color | { top: Color; bottom: Color } | 'transparent';
+const backgroundOf = (b: BackgroundInput | undefined): Background => {
+  if (b === 'transparent') return null;
+  if (b && typeof b === 'object' && !Array.isArray(b) && 'top' in b) return { top: parseColor(b.top), bottom: parseColor(b.bottom) };
+  const c = parseColor(b as Color | undefined, [0.12, 0.125, 0.135]);
+  return { top: c, bottom: c };
+};
+
 export interface ViewerOptions {
   /** 4× multisampling (default true). */
   antialias?: boolean;
-  /** Canvas background (sRGB); 'transparent' composites the canvas over the page. */
-  background?: Color | 'transparent';
+  /** Canvas background (sRGB): a colour, a vertical gradient, or 'transparent' (the page shows through). */
+  background?: BackgroundInput;
   /** Device pixels per CSS pixel; default devicePixelRatio, capped at 2. */
   pixelRatio?: number;
   /** Orbit controls on the canvas (default true), with options. */
@@ -216,14 +224,14 @@ export class Viewer {
   private disposed = false;
   private recovering: Promise<void> | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private background: Vec3 | null;
+  private background: Background;
   private pixelRatio: number;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly options: ViewerOptions) {
     this.camera = new Camera(options.camera);
     this.lights = options.lights ?? defaultLights();
     this.environment = options.environment ?? {};
-    this.background = options.background === 'transparent' ? null : parseColor(options.background, [0.12, 0.125, 0.135]);
+    this.background = backgroundOf(options.background);
     this.pixelRatio = options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
   }
 
@@ -325,7 +333,8 @@ export class Viewer {
       },
       fragment: { module: modules.line, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
       primitive: { topology: 'triangle-list' },
-      depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal' },
+      // Lines test depth but do not write it: no occlusion halos around them.
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
     for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
@@ -345,7 +354,7 @@ export class Viewer {
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
     }));
-    const output = d.createShaderModule({ code: outputWGSL, label: 'viewer output' });
+    const output = d.createShaderModule({ code: outputWGSL(this.options.antialias !== false), label: 'viewer output' });
     jobs.push(d.createRenderPipelineAsync({
       label: 'viewer output', layout: 'auto',
       vertex: { module: output, entryPoint: 'vs' },
@@ -425,7 +434,8 @@ export class Viewer {
     this.requestRender();
   }
 
-  setBackground(color: Color): void { this.background = parseColor(color); this.requestRender(); }
+  /** A new background; switching to or from 'transparent' takes effect after the next device setup. */
+  setBackground(background: BackgroundInput): void { this.background = backgroundOf(background); this.requestRender(); }
 
   // ---- Size and frames ----------------------------------------------------------------------------
 
@@ -472,10 +482,10 @@ export class Viewer {
     const samples = this.options.antialias === false ? 1 : SAMPLES;
     const msaa = samples > 1 ? this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer msaa' }) : null;
     const scene = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer scene' });
-    const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer depth' });
+    const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer depth' });
     const mask = this.device.createTexture({ size: [w, h], format: 'r32uint', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer outline mask' });
     const maskDepth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer outline depth' });
-    const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }] });
+    const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }] });
     this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, output };
     return this.targets;
   }
@@ -514,8 +524,9 @@ export class Viewer {
         transparent.push({ m, d: dot(sub(c, eye), forward) });
       } else opaque.push(m);
     }
-    // Opaque by pipeline then geometry (fewer state changes); transparent far to near.
-    const key = (m: Mesh) => this.pipelineKey(m, false);
+    // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
+    // it, so they come after the surfaces), then transparent far to near.
+    const key = (m: Mesh) => (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false);
     opaque.sort((a, b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
     transparent.sort((a, b) => b.d - a.d);
     return { opaque, transparent: transparent.map(t => t.m), culled };
@@ -588,9 +599,8 @@ export class Viewer {
       this.bindFrames();
     }
     this.writeUniforms(vp, shadow);
-    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio)));
+    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame())));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();
-    const bg = this.background ? linear(this.background) : null;
     const enc = this.device.createCommandEncoder();
     if (shadow && this.shadowMap) {
       // Every shadow caster, in view or not.
@@ -607,8 +617,9 @@ export class Viewer {
       sp.end();
     }
     const pass = enc.beginRenderPass({
-      colorAttachments: [{ view: targets.msaa ? targets.msaa.createView() : sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: bg ? { r: bg[0], g: bg[1], b: bg[2], a: 1 } : { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
-      depthStencilAttachment: { view: targets.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      colorAttachments: [{ view: targets.msaa ? targets.msaa.createView() : sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
+      // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
+      depthStencilAttachment: { view: targets.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
     });
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
@@ -637,6 +648,13 @@ export class Viewer {
     if (capture) enc.copyTextureToBuffer({ texture: out }, { buffer: capture, bytesPerRow: Math.ceil((out.width * 4) / 256) * 256 }, [out.width, out.height]);
     this.device.queue.submit([enc.finish()]);
     Object.assign(this.stats, { frames: this.stats.frames + 1, drawCalls: opaque.length + transparent.length, culled, triangles: tris, lines });
+  }
+
+  private occlusionFrame() {
+    const ao = this.environment.ambientOcclusion, scene = this.sceneBounds();
+    if (!ao || !scene) return null;
+    const proj = this.camera.projectionMatrix(this.aspect);
+    return { inverseProjection: invert(proj), radius: ao.radius ?? boxRadius(scene) / 12, pixelsPerUnit: proj[5] * this.canvas.height / 2, perspective: this.camera.projection === 'perspective' };
   }
 
   private prepareCamera(): Mat4 {
