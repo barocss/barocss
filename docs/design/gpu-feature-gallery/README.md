@@ -30,3 +30,11 @@ Shadows, environmental reflections, physically based materials and postprocessin
 
 ## Publication
 Only docs/design/gpu-feature-gallery/ on branch design/gpu-feature-gallery-20261016. Base develop snapshot 88c3342e208e721be859089372bd09d12e5173ae was read, never modified. No application/package source changes. Prompts are in prompts.json.
+
+## Additional reviewed targets
+- Board04: [opaque material color uniform #779](https://github.com/barocss/barocss/issues/779). Intended base-color change, fixed camera/geometry/light. No PBR or texture support inferred.
+- Board05: [authored light color #1445](https://github.com/barocss/barocss/issues/1445) / [directional profile #1579](https://github.com/barocss/barocss/issues/1579). Intended light RGB change on neutral matte materials. Not a colorimetric measurement.
+Both images were inspected and independently accepted as qualitative concepts. Existing capture and geometry-drift limitations apply.
+
+![Opaque color uniform](04-opaque-material-uniform.png)
+![Authored light color](05-authored-light-color.png)
