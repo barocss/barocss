@@ -61,7 +61,36 @@ The only page error in the whole run is the C1 TypeError. The cases that were no
 as expected are the findings below. Where a mismatch came from my own expected value, I fixed the
 probe and did not report it.
 
-## Fifth pass — status of every finding on `d5fa5fa6` (current)
+## Sixth pass — after the hand-over fixes (2026-10-16, `review/cad-gpu-engine-2026-10-14`, current)
+
+Run on the branch after S4, A3, U4, U5, U1, D2, D1/D4 landed (and origin/develop merged):
+
+| Probe | As expected |
+|---|---|
+| UI (`ui-probe.mjs`, real Chromium, WebGPU) | **73/73** (UN2 = A3 and UN4 = U5 now pass; U83 finds Delete feature) |
+| Engine | **125/126** (E15 only: the kernel still takes a hole loop across the outer loop; the app refuses it) |
+| Constraints and mates | **42/42** |
+| Drawing / Drawing SVG-PDF | **19/19**, **20/20** |
+| Smoke | **14/14** (S4 cases N6, N6b refused with reasons) |
+| Follow-up (`followup-probe.ts`, new) | **22/22** after one fix (Q2 below) |
+
+`followup-probe.ts` covers what landed after `d5fa5fa6` against its edges: S4 (a hole 0.5 mm from the
+edge, touching it, a boss moved further out, a diameter grown past the plate), A3 (origin plane on a
+face, mixed with face-to-face, distance between origin planes), lock mates (carried along; a
+conflicting mate refused), U1 (renumbered mates and drawing dimensions, refused sketch delete, empty
+part), D2 (three solids, a union of two solids of one file), D1/D4 (turned, moved and scaled tori, the
+planar starter plate unchanged) and tolerance text.
+
+- **Q2 [sketch-constraints] — fixed**: a hole *touching* the outline's edge from inside (x 56, r 4 on a 60
+  wide plate) was neither cut nor refused. `profileOf` tested only the ring's first sample, which lay on
+  the plate's edge, so the circle became a region inside the plate (volume 7500, no hole). It now tests a
+  sample off the other ring's boundary: the hole cuts (7248.67 mm³).
+- **Q16 [core] — low, open**: an import node whose `solids` count disagrees with the file (only by
+  editing a saved file by hand) names its bodies `part0…` while the kernel gives one body `b0`. The app
+  always records the count it read.
+- Q22: a ± value ≤ 0 or an empty fit would print oddly, but the editor and `readDrawing` refuse both.
+
+## Fifth pass — status of every finding on `d5fa5fa6`
 
 Final run on `d5fa5fa6`:
 

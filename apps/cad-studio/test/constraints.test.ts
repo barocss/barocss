@@ -439,6 +439,9 @@ test('a dimension may not push an attached circle across the outline or off it; 
   // A circle already across the edge (attached as drawn) is refused when the sketch is finished.
   const r = profileOf([{ ...plate, circles: [{ c: [58, 12], r: 4 }] }]);
   assert.ok('error' in r && /overlap/.test(r.error), JSON.stringify(r));
+  // A hole touching the edge from inside (its first sample on the edge) is still a hole.
+  const touching = profileOf([{ ...plate, circles: [{ c: [56, 12], r: 4 }] }]);
+  assert.ok('node' in touching && touching.node.holes?.length === 1 && !touching.node.regions, JSON.stringify(touching));
   // Drawn shapes: a circle across the plate's edge, with a sample exactly on it.
   const d = profileOf([{ kind: 'rectangle', a: [0, 0], b: [60, 25] }, { kind: 'circle', c: [58, 12], r: 4 }]);
   assert.ok('error' in d, JSON.stringify(d));

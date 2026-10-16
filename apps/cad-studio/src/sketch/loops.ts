@@ -150,7 +150,10 @@ export function profileOf(shapes: SketchShape[]): { node: SketchNode } | { error
   // Overlapping shapes would silently become a cut or a bump depending on where each starts: refuse them.
   for (let i = 0; i < rings.length; i++) for (let j = i + 1; j < rings.length; j++)
     if (ringsOverlap(rings[i], rings[j])) return { error: `Shapes ${i + 1} and ${j + 1} overlap: draw them as one outline, or put one in its own sketch.` };
-  const depth = rings.map((ring, i) => rings.filter((other, j) => j !== i && inside(ring[0], other)).length);
+  // (Tested at a point of the ring off the other's boundary: a hole touching the outline's edge from inside
+  // has its first sample on that edge.)
+  const within = (ring: P2[], other: P2[]) => inside(ring.find(p => ringDistance(p, other) > 1e-6) ?? ring[0], other);
+  const depth = rings.map((ring, i) => rings.filter((other, j) => j !== i && within(ring, other)).length);
   if (depth.some(d => d > 1)) return { error: 'A shape inside a hole is not supported yet: draw it as its own sketch.' };
   const outers = closed.filter((_, i) => depth[i] === 0), holes = closed.filter((_, i) => depth[i] === 1);
   if (!outers.length) return { error: 'Every shape lies inside another: draw the outer shape so it encloses the others.' };
