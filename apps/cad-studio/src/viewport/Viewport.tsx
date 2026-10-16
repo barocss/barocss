@@ -54,6 +54,8 @@ interface Props {
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
   /** Render settings (the Render workspace), or null for the modelling look. */
   render?: RenderSettings | null;
+  /** Bodies moved by an offset (the Render workspace's animation), by body index. */
+  offsets?: Map<number, Vec3>;
   /** Direct curves and surfaces, and the selected ones. */
   direct?: DirectDisplay[];
   directSelection?: string[];
@@ -84,7 +86,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const viewState = (): ViewState => ({
     hoverFace: hover.current.face, hoverEdge: hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
-    offsets: new Map(), ghostBodies: propsRef.current.ghost,
+    offsets: propsRef.current.offsets ?? new Map(), ghostBodies: propsRef.current.ghost,
   });
 
   const request = () => {
@@ -120,7 +122,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     r.setState(viewState()); request();
   }, [props.bodies, backend]);
 
-  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost]);
+  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);

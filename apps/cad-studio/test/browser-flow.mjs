@@ -384,6 +384,16 @@ try {
       await page.click('[aria-label="Export image"]');
       assert.match((await download).suggestedFilename(), /\.png$/);
     }
+    // An animation: the body moves 30 mm along X over two seconds.
+    await page.fill('[aria-label="Time"]', '0');
+    await page.click('.timeline button:text-is("Set key")');
+    await page.fill('[aria-label="Time"]', '2');
+    await page.fill('[aria-label="Offset X"]', '30');
+    await page.click('.timeline button:text-is("Set key")');
+    const track = await page.evaluate(() => Object.values(window.__studioDoc.render.animation.tracks)[0]);
+    assert.deepEqual(track.map(k => [k.t, k.offset[0]]), [[0, 0], [2, 30]]);
+    await page.click('[aria-label="Play"]'); await page.waitForTimeout(400); await page.click('[aria-label="Pause"]');
+    assert.ok(Number(await page.inputValue('[aria-label="Time"]')) > 0, 'time ran while playing');
     // Props from a CSS scene, and an authored @shader material on the body.
     await page.click('.render-panel [role="tab"]:text-is("Source")');
     await page.click('.render-panel button:text-is("Example")');
@@ -403,7 +413,7 @@ try {
     assert.equal(Object.values(shaded.appearances)[0].shader, 'material1');
     // Undo takes the saved view back; Model returns to the modelling look.
     await page.evaluate(() => document.activeElement?.blur());
-    for (let k = 0; k < 6; k++) await press('Meta+z');
+    for (let k = 0; k < 8; k++) await press('Meta+z');
     await page.waitForFunction(() => !window.__studioDoc.render?.camera);
     await page.click('.mode button:text-is("Model")');
     await page.waitForSelector('[aria-label="Selection"]');

@@ -14,10 +14,11 @@ import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { RenderPanel } from './ui/RenderPanel';
+import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
-import { defaultRender, readRender, type RenderSettings } from './engine/render';
+import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
 import { settleShape } from './sketch/settle';
@@ -68,6 +69,10 @@ export function App() {
   const [sketch, setSketch] = useState<SketchState | null>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
+  /** The Render workspace's animation: the time shown, whether it plays, and the camera the turntable turns from. */
+  const [time, setTime] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const turnFrom = useRef<RenderCamera | null>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
   const [sketchError, setSketchError] = useState<string | null>(null);
@@ -174,6 +179,33 @@ export function App() {
     if (select) setDirectSel(select);
   }, [doc, marker]);
   const directShown = useMemo(() => directDisplay(doc.direct), [doc.direct]);
+  // Playing: time runs (looping), the bodies follow their keys and a turntable turns the camera.
+  useEffect(() => {
+    if (!playing) return;
+    let raf = 0, last = performance.now();
+    const step = (now: number) => {
+      const dt = (now - last) / 1000; last = now;
+      setTime(t => (t + dt) % Math.max(0.1, render.animation.duration));
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, render.animation.duration]);
+  useEffect(() => {
+    if (!rendering || !render.animation.turntable || !turnFrom.current) return;
+    viewport.current?.setCamera({ ...turnFrom.current, yaw: turnFrom.current.yaw + (2 * Math.PI * time) / render.animation.duration });
+  }, [time, rendering, render.animation.turntable, render.animation.duration]);
+  const play = (on: boolean) => {
+    if (on) turnFrom.current = viewport.current?.getCamera() ?? null;
+    else if (turnFrom.current && render.animation.turntable) { viewport.current?.setCamera(turnFrom.current); }
+    setPlaying(on);
+  };
+  const animatedOffsets = useMemo(() => {
+    if (!rendering || !Object.keys(render.animation.tracks).length) return undefined;
+    const at = offsetsAt(render.animation, time), out = new Map<number, Vec3>();
+    bodies.forEach((b, i) => { const o = at.get(b.key); if (o) out.set(i, o); });
+    return out;
+  }, [rendering, render.animation, time, bodies]);
   const exportImage = async () => {
     const png = await viewport.current?.capture();
     if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
@@ -206,7 +238,7 @@ export function App() {
   }, [active, commit]);
 
   const start = useCallback((cmd: Command) => {
-    setPalette(false); setRendering(false);
+    setPalette(false); setRendering(false); setPlaying(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (cmd.action === 'sketch') {
@@ -398,7 +430,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -421,7 +453,7 @@ export function App() {
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
-          <button className={!sketch && !rendering ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); }}>Model</button>
+          <button className={!sketch && !rendering ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); }}>Model</button>
           <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · Z ${sketch.planeZ}` : 'Sketch'}</button>
           <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(true); }}>Render</button>
         </div>
@@ -546,7 +578,13 @@ export function App() {
         <span>{TOOLS.map(t => <Kbd key={t.key}>{t.key}</Kbd>)} tools</span><span><Kbd>Enter</Kbd> finish → extrude</span><span><Kbd>Esc</Kbd> exit</span>
       </div>}
 
-      {!sketch && !active && <div className="card history" aria-label="History">
+      {rendering && !sketch && (() => {
+        const i = selectedBodies(selection)[0], b = i !== undefined ? bodies[i] : undefined, ref = b ? refOf(b) : null, node = ref ? evaluated.nodes[ref.node] : null;
+        return <Timeline animation={render.animation} time={time} playing={playing} bodyKey={b?.key ?? null}
+          bodyLabel={node && ref ? featureLabel(node, ref.node, evaluated.nodes) : b?.key ?? ''}
+          onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })} />;
+      })()}
+      {!sketch && !active && !rendering && <div className="card history" aria-label="History">
         <span className="card-title inline">HISTORY</span>
         {doc.nodes.map((n, i) => n.kind === 'sketch' ? null : (
           <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to edit · double-click to roll back here`}

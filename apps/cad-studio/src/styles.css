@@ -207,3 +207,11 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .ol.hidden-obj { opacity: 0.5; }
 .ghost.tiny { height: 20px; padding: 0 8px; font-size: 11px; }
 .toast.recovery .row-actions { display: flex; gap: 6px; margin-top: 8px; }
+.timeline { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 10px; max-width: min(860px, calc(100% - 140px)); flex-wrap: wrap; font-size: 11px; z-index: 5; }
+.timeline .scrub { width: 220px; accent-color: var(--accent); }
+.timeline .mono { font: 500 11px var(--mono); color: var(--text); }
+.timeline input.dur, .timeline input.off { width: 56px; height: 24px; padding: 0 4px; border-radius: 4px; border: 1px solid #4a4d53; background: var(--bg); color: var(--text); }
+.timeline .check-inline { display: flex; align-items: center; gap: 4px; color: var(--muted); }
+.timeline .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+.timeline .key-chip { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 10px; padding: 0 6px; }
+.timeline .link { border: 0; background: transparent; color: var(--text); font: 500 11px var(--mono); cursor: pointer; padding: 0; }

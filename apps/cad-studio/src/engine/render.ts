@@ -38,6 +38,36 @@ export interface RenderSettings {
   /** Props: a CSS-shaped scene source (Y up) placed in the part's Z-up world, sceneScale mm to its unit. */
   scene: string;
   sceneScale: number;
+  animation: RenderAnimation;
+}
+
+/** Keyframed body moves (linear between keys, held before the first and after the last) and a turntable. */
+export interface RenderKey { t: number; offset: [number, number, number] }
+export interface RenderAnimation {
+  /** Seconds. */
+  duration: number;
+  /** By body key, keys in time order. */
+  tracks: Record<string, RenderKey[]>;
+  /** One camera turn about the target over the duration. */
+  turntable: boolean;
+}
+
+/** Each animated body's offset at a time. */
+export function offsetsAt(a: RenderAnimation, t: number): Map<string, [number, number, number]> {
+  const out = new Map<string, [number, number, number]>();
+  for (const [key, keys] of Object.entries(a.tracks)) {
+    if (!keys.length) continue;
+    if (t <= keys[0].t) { out.set(key, keys[0].offset); continue; }
+    const last = keys[keys.length - 1];
+    if (t >= last.t) { out.set(key, last.offset); continue; }
+    const i = keys.findIndex(k => k.t > t), a0 = keys[i - 1], a1 = keys[i], k = (t - a0.t) / (a1.t - a0.t || 1);
+    out.set(key, [0, 1, 2].map(j => a0.offset[j] + (a1.offset[j] - a0.offset[j]) * k) as [number, number, number]);
+  }
+  return out;
+}
+/** A track with a key set at a time (replacing a key at the same time). */
+export function withKey(keys: readonly RenderKey[], key: RenderKey): RenderKey[] {
+  return [...keys.filter(k => Math.abs(k.t - key.t) > 1e-6), key].sort((a, b) => a.t - b.t);
 }
 
 /** A material to start from: a mix of two colours by a uniform. */
@@ -71,6 +101,7 @@ export const defaultRender = (): RenderSettings => ({
   materials: {},
   scene: '',
   sceneScale: 10,
+  animation: { duration: 4, tracks: {}, turntable: false },
 });
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -112,6 +143,15 @@ export function readRender(v: unknown): RenderSettings {
     materials: Object.fromEntries(Object.entries(obj(o.materials)).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].length <= 65536).slice(0, 32)),
     scene: typeof o.scene === 'string' && o.scene.length <= 65536 ? o.scene : '',
     sceneScale: num(o.sceneScale, 1e-3, 1e4, 10),
+    animation: (() => {
+      const a = obj(o.animation), duration = num(a.duration, 0.1, 600, 4), tracks: Record<string, RenderKey[]> = {};
+      for (const [k, keys] of Object.entries(obj(a.tracks))) {
+        if (!Array.isArray(keys)) continue;
+        tracks[k] = keys.slice(0, 256).map(x => obj(x)).filter(x => typeof x.t === 'number' && Number.isFinite(x.t))
+          .map(x => ({ t: num(x.t, 0, duration, 0), offset: vec(x.offset, [0, 0, 0]) })).sort((p, q) => p.t - q.t);
+      }
+      return { duration, tracks, turntable: a.turntable === true };
+    })(),
     camera: cam ? { target: vec(cam.target, [0, 0, 0]), distance: num(cam.distance, 1e-3, 1e6, 160), yaw: num(cam.yaw, -1e3, 1e3, 0), pitch: num(cam.pitch, -1.57, 1.57, 0.4), fovY: num(cam.fovY, 0.05, 2.5, 0.56), ortho: cam.ortho === true } : null,
   };
 }
