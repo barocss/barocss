@@ -41,7 +41,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.match(tool.name, /^[a-z_]+$/); assert.ok(tool.description.length > 40, tool.name);
     assert.equal(tool.input_schema.type, 'object'); assert.equal(tool.input_schema.additionalProperties, false, tool.name);
   }
-  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'select']));
+  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'select', 'get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']));
   const run = TOOLS.find(t => t.name === 'run_command')!;
   assert.deepEqual((run.input_schema.properties as any).command.enum, CHAT_COMMANDS);
   assert.deepEqual(new Set(Object.keys(COMMAND_DOCS)), new Set(CHAT_COMMANDS));
@@ -463,4 +463,59 @@ test('the chat server refuses other sites: Origin or Host must be the studio’s
     assert.equal((await fetch(`${other.url}/status`, { headers: STUDIO })).status, 403);
   } finally { await other.close(); }
   assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
+});
+
+test('assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver', async () => {
+  // The base part: a 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
+  let s = await stateOf(rectanglePart(64, 32, 8));
+  let r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
+  r = await runTool(s, 'add_part', { name: 'Pin' }, evaluate); s = r.state;
+  assert.equal(parse(r.content).part, 'p1');
+  r = await runTool(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } }, evaluate); s = r.state;
+  assert.ok(!r.isError, r.content); assert.equal(parse(r.content).part, 'p1');
+  assert.equal(s.doc.nodes.length, 3); assert.equal(s.doc.instances![0].doc.nodes.length, 2);
+  assert.match(parse((await runTool(s, 'run_command', { part: 'p9', command: 'box' }, evaluate)).content).error, /No part "p9"; parts: base, p1/);
+  const asm = parse((await runTool(s, 'get_assembly', { faces_of: 'p1' }, evaluate)).content);
+  const pinSide = asm.instances[0].faces.find((f: any) => f.kind.startsWith('round (outer')).name;
+  const hole = parse((await runTool(s, 'get_assembly', { faces_of: 'base' }, evaluate)).content).base.faces.find((f: any) => f.kind.startsWith('round (inner')).name;
+  // Concentric: the pin on the hole's axis; coincident: its bottom flush on the plate's top.
+  r = await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: hole }, b: { part: 'p1', face: pinSide } }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  assert.deepEqual(parse(r.content).freedom_left, { turns: 1, slides: 1 });
+  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'p1', face: 'n1.bottom' }, b: { part: 'base', face: 'n1.top' } }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  // (b was the fixed base part: swapped, so the pin moves.)
+  assert.deepEqual(s.doc.mates![1].b, { part: 'p1', face: 'n1.bottom' });
+  const pin = s.doc.instances![0];
+  assert.deepEqual([pin.position[0], pin.position[1], pin.position[2]], [32, 16, 8]);
+  // A third mate that contradicts them is refused with the solver's reason; nothing changes.
+  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.top' } }, evaluate);
+  assert.ok(r.isError); assert.match(parse(r.content).error, /Conflicts with/); assert.equal(r.state.doc.mates!.length, 2);
+  assert.match(parse((await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: pinSide } }, evaluate)).content).error, /Concentric needs two round faces/);
+  assert.match(parse((await runTool(s, 'add_mate', { kind: 'distance', a: { part: 'base', face: 'nope' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate)).content).error, /"nope" is not a flat or round face of base/);
+  // A distance mate instead: edit it and the pin follows.
+  r = await runTool(s, 'delete_mate', { id: 'm2' }, evaluate); s = r.state;
+  r = await runTool(s, 'add_mate', { kind: 'distance', distance: 5, a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate); s = r.state;
+  assert.equal(s.doc.instances![0].position[2], 13);
+  r = await runTool(s, 'edit_mate', { id: s.doc.mates![1].id, distance: 2 }, evaluate); s = r.state;
+  assert.equal(s.doc.instances![0].position[2], 10);
+  // Editing the base part re-solves: a thicker plate lifts the pin with its top.
+  r = await runTool(s, 'edit_feature', { index: 1, values: { h: 12 } }, evaluate); s = r.state;
+  assert.ok(!r.isError, r.content); assert.equal(s.doc.instances![0].position[2], 14);
+  // A copy, grounded, placed by hand; grounding a mated part is refused.
+  r = await runTool(s, 'add_part', { name: 'Spare pin', copy_of: 'p1', position: [80, 0, 0], grounded: true }, evaluate); s = r.state;
+  assert.equal(s.doc.instances![1].doc.nodes.length, 2); assert.equal(s.doc.instances![1].grounded, true);
+  assert.match(parse((await runTool(s, 'place_part', { part: 'p1', grounded: true }, evaluate)).content).error, /mates move Pin/);
+  const summary = parse((await runTool(s, 'get_assembly', {}, evaluate)).content);
+  assert.deepEqual(summary.instances.map((i: any) => [i.id, i.name, i.bodies]), [['p1', 'Pin', 1], ['p2', 'Spare pin', 1]]);
+  assert.deepEqual(summary.instances[0].world_bounds, { min: [28, 12, 14], max: [36, 20, 34] });
+  assert.equal(summary.mates.length, 2);
+  r = await runTool(s, 'delete_part', { part: 'p1' }, evaluate);
+  assert.equal(r.state.doc.instances!.length, 1); assert.equal(r.state.doc.mates!.length, 0);
+  // The transcript's lines for assembly results.
+  assert.equal(summarize('add_mate', JSON.stringify({ ok: true, did: 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0', parts: [] }), false), 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0');
+  assert.equal(summarize('get_assembly', JSON.stringify(summary), false), '3 parts, 2 mates');
+  // The schemas: part tools take "part"; select does not.
+  assert.ok((TOOLS.find(t => t.name === 'run_command')!.input_schema.properties as any).part);
+  assert.equal((TOOLS.find(t => t.name === 'select')!.input_schema.properties as any).part, undefined);
 });
