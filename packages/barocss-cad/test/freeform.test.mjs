@@ -146,6 +146,18 @@ test('part model: a revolved body is curved, keeps its closed-form mass and take
   assert.ok(near(half.massProperties(1000).volumeMM3, TORUS / 4, 1e-12));
 });
 
+test('cones against any plane: conic cuts in closed form (hyperbolas beside the axis, ellipses at an angle)', () => {
+  const k = revolveProfile({ id: 'v', profile: [[0, 0], [12, 0], [4, 14], [0, 14]].map(p => ({ kind: 'line', start: p })), axis: yAxis, angleDegrees: 360 });
+  const tilt = (b, deg) => { const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180); return transformBrep(b, { matrix: [1, 0, 0, 0, c, -s, 0, s, c], offset: [0, 4, 0] }); };
+  const V = Math.PI * 14 / 3 * (144 + 48 + 16);
+  for (const [name, B] of [['a box beside the axis', box([3, -5, -20], [20, 30, 20])], ['a slab tilted 30°', tilt(box([-30, -2, -30], [30, 2, 30]), 30)], ['a half space tilted 60°', tilt(box([-30, 0, -30], [30, 30, 30]), 60)]]) {
+    const vol = op => { const r = booleanAnalytic(k, B, op), report = checkBrep(r); assert.equal(report.valid, true, `${name} ${op}: ${report.issues}`); return brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+    const u = vol('union'), i = vol('intersection'), d = vol('difference'), vb = brepMassProperties(B, 1000).volumeMM3;
+    // Volume identities, to the 32-per-quarter mesh's error.
+    assert.ok(Math.abs(u + i - V - vb) < 2e-3 * V && Math.abs(d + i - V) < 2e-3 * V, `${name}: ${u} ${i} ${d}`);
+  }
+});
+
 test('freeform faces on one surface: copies, turned copies and overlapping partial turns', () => {
   const rotY = (b, deg) => { const c = Math.cos(deg * pi / 180), s = Math.sin(deg * pi / 180); return transformBrep(b, { matrix: [c, 0, s, 0, 1, 0, -s, 0, c] }); };
   const half = id => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 });

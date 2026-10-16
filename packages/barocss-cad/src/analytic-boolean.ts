@@ -549,7 +549,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
         return true;
       }
       const dAxis = dot(sub(R.c, P.o), P.n);
-      if (Math.abs(along) <= 1e-12 && Math.abs(dAxis) <= tol) {
+      if (Math.abs(along) <= 1e-9 && Math.abs(dAxis) <= tol) {
         // Through the axis: the profile on the two meridians in the plane.
         const m0 = unit(cross(R.a, P.n)), pr = R.profile;
         // A meridian along a patch's own edge (a seam in the cutting plane) is left to the general path.
@@ -564,6 +564,29 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
           }
         }
         return true;
+      }
+      // A cone (a line profile) and any other plane: a conic, at angle θ the height where the ruling
+      // meets the plane — n·(c + a h + e(θ)(ρ₀ + k h)) = d, linear in h.
+      const pr = R.profile;
+      if (pr.kind === 'line' && R.patch) {
+        const dh = pr.q[1] - pr.p[1];
+        if (Math.abs(dh) > 1e-12) {
+          const k = (pr.q[0] - pr.p[0]) / dh, rho0 = pr.p[0] - k * pr.p[1], d = dot(P.n, P.o) - dot(P.n, R.c), na = dot(P.n, R.a);
+          // Through the apex the plane meets the cone in rulings, not a curve in θ: the general path.
+          if (Math.abs(k) > 1e-12 && Math.abs(dot(sub(add(R.c, scale(R.a, -rho0 / k)), P.o), P.n)) <= 10 * tol) return false;
+          // Parallel to the axis a cylinder's plane meets it in rulings too.
+          if (Math.abs(k) <= 1e-12 && Math.abs(na) <= 1e-9) return false;
+          const at = (th: number): P3 => {
+            const e = add(scale(R.e1, Math.cos(th)), scale(R.e2, Math.sin(th))), ne = dot(P.n, e), den = na + k * ne;
+            if (Math.abs(den) < 1e-12) return [Infinity, Infinity, Infinity];
+            const h = (d - rho0 * ne) / den; return add(R.c, add(scale(R.a, h), scale(e, rho0 + k * h)));
+          };
+          const th0 = R.patch.th0;
+          for (const [l, h] of onPatches(at, th0 - 1e-9, th0 + R.patch.span + 1e-9))
+            for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true), intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true)))
+              if (len(sub(at(b), at(a))) > tol) addCut({ kind: 'param', at, t0: a, t1: b, exact: true });
+          return true;
+        }
       }
       // A sphere and any plane: a circle.
       if (R.profile.kind === 'arc' && Math.abs(R.profile.c[0]) <= tol) {
