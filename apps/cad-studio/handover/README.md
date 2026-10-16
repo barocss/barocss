@@ -84,6 +84,43 @@ QA probes (from the tester lane, now in `test/qa/`, report in `test/qa/REPORT.md
   length; removed-features count; overlapping sketch shapes refused (no silent cut); fillet/chamfer wider than
   its wall refused; unions touching only at an edge/point refused; honest message for curved-face union failures.
 
+### Usability pass (2026-10-17, `review/cad-gpu-engine-2026-10-14`, local commits only)
+
+The owner's bar: cad-studio should feel like a commercial CAD tool (mouse-driven handles everywhere, no
+beginner-ish tools, one consistent icon set). What landed, one commit each (`git log 134071aa..`):
+- **Handles everywhere**: every shape (box … prism) has a puck to slide it and arrows for its sizes, when made
+  and when edited (a shape's solid remembers its command and values, `made`, and edits as itself — Edit Box,
+  Edit Sphere); hole centre puck, blind depth, counterbore size/depth; shell wall; split plane; linear pattern
+  spacing and count; circular pattern axis puck and spread arc; revolve angle arc; fillet/chamfer limits.
+  Picking a face or edge edits the feature it came from (each of several holes).
+- **Shapes**: sphere, cone/frustum, torus, tube, wedge, polygon prism beside box and cylinder, in a top
+  shapes bar; a shape follows the pointer onto the ground or an upward face until a click, or is dragged from
+  the bar and dropped.
+- **Faces as inputs**: Extrude on a picked flat face (push/pull, its outline fitted back to lines and arcs,
+  holes too); Fillet/Chamfer on a picked face take all its edges; Align puts a face on another body's face
+  (turning by quarter turns when needed) or a body on the floor; Mirror across any face's plane.
+- **Bodies**: Browser panel at the left (eye, colour dot, rename, sketches, parts, curves); per-body name,
+  colour and visibility (`StudioDoc.bodies`, keyed by the body's first feature, so they survive added
+  features and renumbering); right-click Hide / Show only this / Show all / Delete; Delete key; Duplicate (⌘D)
+  as a separate body; patterns can make separate bodies.
+- **Inspect and view**: view cube; section view (kernel split, display only, cut faces lit); interference
+  check; centre of mass and surface area; `?` lists keys and mouse.
+- **Sketch**: object snaps (ends, middles, centres, quadrants, model corners/edge middles/hole centres in the
+  plane, origin).
+- **Speed and fixes**: dragging a handle on a feature under fillets previews the part up to that feature
+  while moving and the whole part on pause; command previews have their own kernel cache and no mass
+  properties; selections follow re-evaluation by name; the key listener always sees the newest selection;
+  New part clears instance/direct/measure picks; F stays Fit view, Fillet is Shift F.
+- **Icons**: one generated system in `src/ui/cadIcons.tsx` (shared isometric projection, opaque three-tone
+  faces mixed into `--icon-bg`, accent `--icon-ac`); check them with `test/qa/icon-sheet.tsx` (renders a sheet).
+
+Verified at `ab879125`: unit 163/163, type-check and lint clean, browser flow 59/59 (WebGPU). The flow takes
+`FLOW_ONLY=<regex>` to run the first step and the matching ones.
+
+Still open from this pass: kernel fillet ~140 ms per evaluation (dragging a fillet's own radius waits on it);
+a GPU clipping plane would make the section view instant; sketch trim/offset/construction lines; the
+QA `test/qa/ui-probe.mjs` predates the new sketch flow (Finish no longer opens Extrude).
+
 ## 4. Open items (not done)
 
 QA stopped after its fifth pass on `d5fa5fa6` (see `test/qa/REPORT.md`): every routed finding is fixed there and
@@ -115,7 +152,7 @@ Open, with IDs as in the report:
   `analytic-boolean.ts` `cutPair`/`march`.
 - **E15 (kernel)** the kernel still accepts a `holes` loop that crosses the outer loop (the app refuses it).
 - **W1 (rest)** overlapping shapes in one sketch are refused; an actual union of them is not implemented.
-- **X1** no interference check between mated parts (decision pending; most CAD tools allow it).
+- **X1** interference between bodies of the part: done (Inspect › Interference); between placed instances still not.
 - Sketch solver: about 16 points per outline; each placed circle costs helper points, so two fully placed
   holes nearly reach it ("Too many points…").
 - Drawings: one section only (parallel to the front view), no dimensions on the section or iso view.
