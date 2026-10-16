@@ -1,6 +1,7 @@
 // End-to-end flow in a real Chromium: starts the Vite dev server, drives the studio like a user,
 // asserts on visible state and writes a screenshot per step.
-//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] node test/browser-flow.mjs [out-dir]
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] node test/browser-flow.mjs [out-dir]
+// The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
@@ -16,8 +17,10 @@ mkdirSync(out, { recursive: true });
 
 const server = await createServer({ root, configFile: join(root, 'vite.config.ts'), server: { port: 52031, strictPort: false }, logLevel: 'error' });
 await server.listen();
-const url = server.resolvedUrls.local[0];
-const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const renderer = process.env.FLOW_RENDERER ?? 'webgpu';
+const url = server.resolvedUrls.local[0] + (renderer === 'webgl2' ? '?renderer=webgl2' : '');
+// WebGPU on the machine's adapter; the WebGL2 run uses SwiftShader (which offers no WebGPU adapter).
+const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: (process.env.FLOW_RENDERER ?? 'webgpu') === 'webgl2' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
 page.on('pageerror', e => errors.push(String(e)));
@@ -41,7 +44,10 @@ const canvasCenter = async () => { const b = await page.locator('canvas').boundi
 
 try {
   await page.goto(url);
-  await check('starter plate loads', async () => { await idle(); assert.match(await outliner(), /Hole Ø8/); });
+  await check('starter plate loads', async () => {
+    await idle(); assert.match(await outliner(), /Hole Ø8/);
+    await page.waitForSelector(`.viewport[data-renderer="${renderer}"]`, { timeout: 15000 });
+  });
 
   await check('new part and box', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();

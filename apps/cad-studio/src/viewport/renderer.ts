@@ -16,6 +16,18 @@ export interface ViewState {
   ghostBodies: Set<number>;
 }
 export type ThemeName = 'dark' | 'light';
+/** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
+export interface ViewRenderer {
+  aoEnabled: boolean;
+  setTheme(name: ThemeName): void;
+  setBodies(results: BodyResult[]): void;
+  setState(view: ViewState): void;
+  render(camera: OrbitCamera, view: ViewState): void;
+  pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
+  pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
+  bounds(): { min: Vec3; max: Vec3 } | null;
+  dispose?(): void;
+}
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }
 const THEMES: Record<ThemeName, Theme> = {
@@ -131,7 +143,7 @@ interface GpuBody {
   buffers: WebGLBuffer[]; result: BodyResult;
 }
 
-export class Renderer {
+export class Renderer implements ViewRenderer {
   readonly gl: WebGL2RenderingContext;
   private mesh: WebGLProgram; private line: WebGLProgram; private grid: WebGLProgram; private shadow: WebGLProgram; private bg: WebGLProgram; private ao: WebGLProgram;
   private bodies: GpuBody[] = [];

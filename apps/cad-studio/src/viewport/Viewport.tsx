@@ -2,7 +2,8 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { GpuRenderer } from './gpuRenderer';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
@@ -48,7 +49,9 @@ const snap = (v: number) => Math.round(v);
 
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(props, ref) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const renderer = useRef<Renderer | null>(null);
+  const renderer = useRef<ViewRenderer | null>(null);
+  const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
+  const theme = useRef<ThemeName>('dark'), ao = useRef(true);
   const camera = useRef(new OrbitCamera());
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
@@ -80,10 +83,20 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     });
   };
 
+  // WebGPU (the @barocss/gpu viewer) when the browser has it, else WebGL2; ?renderer=webgl2 forces the latter.
   useEffect(() => {
-    try { renderer.current = new Renderer(canvas.current!); } catch (e) { setError(String(e)); return; }
-    const observer = new ResizeObserver(request); observer.observe(canvas.current!);
-    return () => observer.disconnect();
+    let live = true, observer: ResizeObserver | null = null;
+    const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
+      if (!live) { r.dispose?.(); return; }
+      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current;
+      observer = new ResizeObserver(request); observer.observe(canvas.current!);
+      setBackend(name);
+    };
+    const webgl = () => { try { start(new Renderer(canvas.current!), 'webgl2'); } catch (e) { setError(String(e)); } };
+    const forced = new URLSearchParams(location.search).get('renderer');
+    if (forced !== 'webgl2' && 'gpu' in navigator) GpuRenderer.create(canvas.current!).then(r => start(r, 'webgpu'), webgl);
+    else webgl();
+    return () => { live = false; observer?.disconnect(); renderer.current?.dispose?.(); renderer.current = null; };
   }, []);
 
   useEffect(() => {
@@ -91,7 +104,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     r.setBodies(props.bodies);
     if (!fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
     r.setState(viewState()); request();
-  }, [props.bodies]);
+  }, [props.bodies, backend]);
 
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo]);
@@ -106,8 +119,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       camera.current.frameRect(min, max, z, insets.left / w, insets.right / w); request();
     },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
-    setTheme(name) { renderer.current?.setTheme(name); request(); },
-    setAo(on) { if (renderer.current) renderer.current.aoEnabled = on; request(); },
+    setTheme(name) { theme.current = name; renderer.current?.setTheme(name); request(); },
+    setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
@@ -362,7 +375,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   return (
-    <div className="viewport">
+    <div className="viewport" data-renderer={backend ?? undefined}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
