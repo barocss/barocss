@@ -6,7 +6,7 @@ Current product naming is cad-studio. Historical issue titles may mention cad-ed
 
 ## Choose a feature
 - **Concrete issue/source-backed concepts:** 01 directional light, 02 point range, 03 UV source update, 04 material color, 05 light color, 07 surface UV, 08 depth, 10 FOV, 11 far clipping, 12 shared geometry, 13 translation, 14 parent rotation, 15 positive scale, 16 procedural repeat, 17 optional source repeats, 23 native boundary overlay. These include CPU/source stages; none are actual GPU captures.
-- **Future graphics/design proposals:** 06 alpha composition, 09 shadows, 18 PBR roughness, 19 environment lighting, 20 alpha cutout, 21 morph, 22 skeleton skinning, 24 spotlight cone. Broad roadmap names do not freeze APIs or establish implementation.
+- **Future graphics/design proposals:** 06 alpha composition, 09 shadows, 18 PBR roughness, 19 environment lighting, 20 alpha cutout, 21 morph, 22 skeleton skinning, 24 spotlight cone, 25 material sidedness. Broad roadmap names do not freeze APIs or establish implementation.
 
 ## Evidence and scope (2026-10-16)
 - [GPU Engine Roadmap](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap): E3 UV textures; E4 later material/light maturity; postprocessing/backend acceptance separate.
@@ -111,3 +111,18 @@ Both images were inspected and independently visually reviewed. The spotlight dr
 
 ![Native boundary overlay](23-native-boundary-overlay.png)
 ![Future spotlight cone](24-future-spotlight-cone.png)
+
+
+## Future material sidedness
+Board25 follows E4's named material side modes. With a back-facing plane held in the same intended view, front-face-only display culls it and two-sided display admits it. The background cube is an occlusion reference. No thickness, transparency, changed camera, normal reversal algorithm, lighting model, exact winding/API or current support is inferred. Flat plane color deliberately avoids a back-face lighting promise. [Khronos sidedness semantics](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#double-sided) are a conceptual reference only, not an imported BaroCSS contract. Independently visually reviewed as a qualitative future proposal.
+
+![Future material sidedness](25-future-material-sidedness.png)
+
+## Coverage checkpoint and remaining evidence
+This gallery now covers 25 distinct feature-result concepts with source/roadmap citations, including separately marked future proposals. It does not claim all GPU engineering work is complete.
+- Nonvisual contracts still need their actual implementation/evidence: source and resource identity/copies, typed validation/refusal, buffer/texture ownership and budgets, atomic replacement/retention, disposal, device loss/recovery, backend fallback eligibility, import/export provenance and consumer integration.
+- Selection/raycast accuracy, barycentrics/UV/normal identity, numeric precision, depth/edge tolerances, color/energy calibration, actual pixels, lifecycle behavior, allocation and performance cannot be established by these generated images.
+- Correct frustum culling, resource sharing and hardware instancing need behavioral/resource evidence; additional unchanged-result pictures would not demonstrate the optimization. Existing boards cover visible occlusion, repeated source objects and shared-definition changes without making those claims.
+- General LOD/streaming and postprocessing remain named high-level horizons without a frozen visual acceptance target here. No arbitrary simplification thresholds, bloom, depth-of-field, tone-map or effect API has been invented. Exact future contracts may justify new distinct boards later.
+- Additional generic color, pose, visibility or alpha-order variants would substantially duplicate current outcomes. CAD selection/geometry and GPU display responsibilities stay separate; native edge overlay was coordinated for nonduplication.
+All PNGs are target-design concepts. Only real, separately authorized engine captures and measurements can establish implementation or acceptance.
