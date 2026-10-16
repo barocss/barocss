@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "83aea5001b2d7a9e25b0c771a3a162946d53ac64",
+  "manifestCommit": "0773b0ef9c851a3a0ab38e600f84709a3885619f",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "retired": [
+    "canvas2d",
     "cad-editor",
     "render-editor"
   ],
@@ -295,13 +296,13 @@
     {
       "slug": "gpu",
       "directory": "packages/barocss-gpu",
-      "manifestSha256": "6ae98e4ac19041997000761bad17cb5164e604ba503e7bac848bfced86be9f18",
+      "manifestSha256": "d4efe2f58a63bd07dc623a59273a18485ed5a1ce8c7467b40d667874c3040d78",
       "manifest": {
         "name": "@barocss/gpu",
         "version": "0.0.0",
         "private": false,
         "type": "module",
-        "description": "Experimental bounded CSS scene compiler and WebGL2 SDF renderer",
+        "description": "Experimental bounded CSS scene compiler and WebGPU viewer",
         "license": "MIT",
         "dependencies": {
           "@barocss/cad": "workspace:*"
@@ -332,9 +333,9 @@
           "lint": "eslint src",
           "type-check": "tsc --noEmit",
           "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/viewer-core.test.mjs",
           "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
-          "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
+          "test:browser": "node --test --test-concurrency=1 tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
         },
         "publishConfig": {
           "access": "public",
@@ -357,6 +358,11 @@
         }
       },
       "changesFromSourceSnapshot": [
+        {
+          "field": "description",
+          "before": "Experimental bounded CSS scene compiler and WebGL2 SDF renderer",
+          "after": "Experimental bounded CSS scene compiler and WebGPU viewer"
+        },
         {
           "field": "exports",
           "before": {
@@ -398,9 +404,9 @@
             "lint": "eslint src",
             "type-check": "tsc --noEmit",
             "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-directional-light-webgpu-viewport.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/native-point-light-webgpu-viewport.test.mjs tests/native-surface-uv01-webgpu-viewport.test.mjs tests/qualified-face-dispose-completeness.test.mjs tests/qualified-face-handoff.test.mjs tests/webgpu-canvas-claims.test.mjs tests/viewer-core.test.mjs",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/native-point-light-program-wgsl.test.mjs tests/viewer-core.test.mjs",
             "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
-            "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
+            "test:browser": "node --test --test-concurrency=1 tests/viewer-browser.test.mjs tests/scene-viewer-browser.test.mjs"
           }
         },
         {
@@ -1808,55 +1814,6 @@
           }
         }
       ]
-    },
-    {
-      "slug": "canvas2d",
-      "directory": "packages/barocss-canvas2d",
-      "manifestSha256": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202",
-      "manifest": {
-        "name": "@barocss/canvas2d",
-        "version": "0.0.0-experimental",
-        "private": false,
-        "type": "module",
-        "description": "Bounded retained WebGL2 canvas for logical-pixel 2D scenes",
-        "license": "MIT",
-        "exports": {
-          ".": {
-            "types": "./src/index.ts",
-            "import": "./src/index.ts"
-          },
-          "./document": {
-            "types": "./src/document.ts",
-            "import": "./src/document.ts"
-          }
-        },
-        "main": "./src/index.ts",
-        "types": "./src/index.ts",
-        "files": [
-          "dist",
-          "README.md",
-          "LICENSE"
-        ],
-        "scripts": {
-          "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
-        },
-        "publishConfig": {
-          "access": "public",
-          "main": "./dist/index.js",
-          "types": "./dist/index.d.ts",
-          "exports": {
-            ".": {
-              "types": "./dist/index.d.ts",
-              "import": "./dist/index.js"
-            },
-            "./document": {
-              "types": "./dist/document.d.ts",
-              "import": "./dist/document.js"
-            }
-          }
-        }
-      },
-      "changesFromSourceSnapshot": []
     },
     {
       "slug": "viewer",
