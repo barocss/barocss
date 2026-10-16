@@ -20,6 +20,8 @@ import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app
 import { DirectPanel } from './ui/DirectPanel';
 import { InstancePanel } from './ui/InstancePanel';
 import { DrawingWorkspace } from './ui/DrawingWorkspace';
+import { ChatPanel } from './ui/ChatPanel';
+import { resolveNames, type NameSelection } from './chat/tools';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
@@ -111,6 +113,9 @@ export function App() {
   }, []);
   useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
   const [palette, setPalette] = useState(false);
+  const [chat, setChat] = useState(false);
+  /** What a chat turn asked to show selected once its part is evaluated. */
+  const chatSelection = useRef<NameSelection | null>(null);
   const [cursor, setCursor] = useState<Vec3 | null>(null);
   const [toast, setToast] = useState<FriendlyError | null>(null);
   const [fileName, setFileName] = useState('Bracket-01');
@@ -176,7 +181,7 @@ export function App() {
     engine.evaluate(evaluated, revision.current++).then(result => {
       if (!live || !result) return;
       setBusy(false); setLastMs(result.ms);
-      if (result.ok) { setBodies(result.bodies); setSelection(emptySel); }
+      if (result.ok) { setBodies(result.bodies); setSelection(chatSelection.current ? resolveNames(result.bodies, chatSelection.current).selection : emptySel); chatSelection.current = null; }
       else setToast(result.error);
     });
     return () => { live = false; };
@@ -573,6 +578,7 @@ export function App() {
         </div>
         <div className="grow" />
         {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
+        <button className={'tool' + (chat ? ' on' : '')} aria-label="Chat" title="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></button>
         <button className="tool" aria-label="Undo" title="Undo (⌘Z)" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" title="Redo (⇧⌘Z)" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
         <button className="tool" aria-label="New part" title="New part" onClick={() => { commit(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
@@ -743,6 +749,10 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
+      {chat && !rendering && !drawing && <ChatPanel base={() => evaluated} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
+        blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
+        onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} />}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
       {menu && <ContextMenu at={menu.at} title={menu.title} ctx={{ ...ctx, selection: menu.selection }} onClose={() => setMenu(null)}
         onRun={c => { setMenu(null); start(c); }}

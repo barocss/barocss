@@ -772,6 +772,65 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
   });
 
+  await check('chat builds a plate through a mocked chat server', async () => {
+    // The chat server's replies are scripted (it runs the claude CLI with the studio's tools for real).
+    const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
+    const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
+    const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'run_command', input: { command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
+    for (const [x, y] of [[6, 6], [58, 6], [6, 26], [58, 26]]) {
+      nodes.push({ kind: 'hole', parent: { node: nodes.length - 1, side: 'solid' }, center: [x, y], radius: 4 });
+      events.push({ type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x, y } }, summary: 'Hole', isError: false }, { type: 'state', doc: docOf(nodes) });
+    }
+    nodes.push({ kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
+    const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
+    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
+      { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
+    const requests = [];
+    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.route(turnUrl, r => {
+      const body = r.request().postDataJSON(); requests.push(body);
+      const reply = requests.length === 1 ? events : [{ type: 'text', delta: requests.length === 2 ? 'You’re welcome.' : 'That drawing shows the same plate.' }, { type: 'done', session: body.session, end: 'done' }];
+      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
+    });
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Chat"]');
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Done:")', { timeout: 30000 });
+    await page.waitForFunction(() => /Fillet R2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
+    assert.equal(await page.locator('.chat-tool').count(), 6);
+    assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*${expected} mm³`));
+    assert.equal(requests[0].doc.nodes.length, 0); assert.equal(requests[0].session, undefined);
+    // The next message resumes the same CLI conversation and leaves the part as it is.
+    await input.fill('thanks'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
+    assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    // An attached drawing goes with the next message, scaled and as base64, shown as a thumbnail.
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('[aria-label="Remove plate.png"]'); assert.equal(await page.locator('[aria-label="Attached images"]').count(), 0);
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('.chat-input button:text-is("Send")');
+    await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
+    assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
+    assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
+    assert.match(requests[2].text, /image/);
+    assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
+    // One undo takes the whole first turn back.
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
+    await page.click('[aria-label="Close chat"]');
+    await page.unroute(statusUrl); await page.unroute(turnUrl);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
