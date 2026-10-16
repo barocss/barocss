@@ -127,6 +127,26 @@ function textAlong(at: XY, dir: XY, text: string): Mark {
 export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>): Mark[] {
   const marks: Mark[] = [];
   const place = toSheet(v, r.dim.place);
+  if (r.kind === 'angle') {
+    // An arc about the vertex through the placement, between the two rays; arrows at its ends, extension
+    // lines out from the edges when the arc lies beyond them, the value just outside its middle.
+    const X = toSheet(v, r.vertex), R = Math.hypot(place[0] - X[0], place[1] - X[1]);
+    const f: XY = [r.from[0], -r.from[1]], g: XY = [-r.from[1], -r.from[0]], theta = r.value * Math.PI / 180;
+    const u: XY = [f[0] * R, f[1] * R], w: XY = [g[0] * R, g[1] * R];
+    const at = (t: number): XY => [X[0] + u[0] * Math.cos(t) + w[0] * Math.sin(t), X[1] + u[1] * Math.cos(t) + w[1] * Math.sin(t)];
+    const tangent = (t: number): XY => [-u[0] * Math.sin(t) + w[0] * Math.cos(t), -u[1] * Math.sin(t) + w[1] * Math.cos(t)];
+    marks.push({ kind: 'arc', center: X, u, v: w, t0: 0, t1: theta, pen: 'thin' });
+    const t0 = tangent(0), t1 = tangent(theta);
+    marks.push(arrow(at(0), [-t0[0], -t0[1]]), arrow(at(theta), t1));
+    for (const dir of [r.from, r.to]) {
+      // The extension along a ray reaches out from the edge end lying along it (none along the ray behind it).
+      const d: XY = [dir[0], -dir[1]], reach = Math.max(0, ...r.ends.map(e => { const E = toSheet(v, e), q = (E[0] - X[0]) * d[0] + (E[1] - X[1]) * d[1]; return Math.abs((E[0] - X[0]) * d[1] - (E[1] - X[1]) * d[0]) < 1e-6 * (1 + Math.abs(q)) ? q : 0; }));
+      if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin' });
+    }
+    const mid = at(theta / 2), out = unit(sub(mid, X));
+    marks.push({ kind: 'text', at: add(add(mid, out, 2.5), [0, 1.2]), text: r.text, size: TEXT, anchor: out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle' });
+    return marks;
+  }
   if (r.kind === 'linear') {
     const A = toSheet(v, r.a), B = toSheet(v, r.b), orient = r.dim.orient;
     const d: XY = orient === 'horizontal' ? [1, 0] : orient === 'vertical' ? [0, 1] : unit(sub(B, A)), n: XY = [-d[1], d[0]];

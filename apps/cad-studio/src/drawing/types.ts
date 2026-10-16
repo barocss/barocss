@@ -16,7 +16,11 @@ export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3 }
 /** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm). */
 export type DrawingDimension =
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
-  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY };
+  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY }
+  /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
+  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY };
+/** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
+export interface EdgeRef { edge: string; near: Vec3 }
 
 export interface DrawingSettings {
   sheet: 'A4' | 'A3';

@@ -511,9 +511,11 @@ try {
       // The width between two corners of the front view, placed below it; the hole's diameter from the top view.
       await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
       await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40);
-      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 2, null, { timeout: 5000 });
-      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8']);
-      assert.equal(await page.locator('.dw svg [data-dim]').count(), 2);
+      // The front view's lower right corner: its bottom and right edges, the angle placed inside.
+      await press('a'); await clickView('front', 40, 0); await clickView('front', 64, 5); await clickView('front', 58, 3);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 3, null, { timeout: 5000 });
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8', '90°']);
+      assert.equal(await page.locator('.dw svg [data-dim]').count(), 3);
       // A dimension in the isometric view is refused with the reason.
       await press('d'); await clickView('iso', 0, 0);
       assert.match(await page.locator('.dw-hint').innerText(), /front, top and right views/);
@@ -526,8 +528,8 @@ try {
       await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
       await page.waitForFunction(() => /Hole Ø12/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
       await page.click('.mode button:text-is("Drawing")');
-      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12', null, { timeout: 20000 });
-      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 2); assert.equal(saved.sheet, 'A4');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12,90°', null, { timeout: 20000 });
+      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 3); assert.equal(saved.sheet, 'A4');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.match(svgFile.suggestedFilename(), /\.svg$/);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);

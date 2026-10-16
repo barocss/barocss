@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { brepsFor } from '../src/engine/evaluate';
-import { starterDoc, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { layoutSheet, scaleLabel, toSheet } from '../src/drawing/views';
-import { orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
+import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
 import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
 import type { PartInstance } from '../src/engine/doc';
@@ -181,4 +181,32 @@ test('placed instances are drawn too, their edges named under the instance id', 
   const d: DrawingDimension = { id: 'd1', view: 'top', kind: 'diameter', edge: hole.name, near: [...hole.circle!.center] as [number, number, number], place: [130, 40] };
   const r = resolveDimension(v, d); assert.ok(r.ok && r.kind === 'diameter', JSON.stringify(r)); assert.equal(r.text, 'Ø8'); assert.ok(near(r.center[0], 112), String(r.center));
   assert.equal(viewsOf({ ...part, instances: [{ ...inst, hidden: true }] }).front.max[0], 64, 'a hidden instance is left out');
+});
+
+test('an angle between two lines reads the sector it is placed in', () => {
+  const x: [[number, number], [number, number]] = [[0, 0], [10, 0]], diag: [[number, number], [number, number]] = [[0, 0], [10, 10]];
+  const deg = (p: [number, number]) => Math.round(angleBetween(x, diag, p)!.degrees * 1e6) / 1e6;
+  assert.equal(deg([10, 4]), 45); assert.equal(deg([-2, 6]), 135); assert.equal(deg([-5, -1]), 45); assert.equal(deg([3, -6]), 135);
+  assert.deepEqual(angleBetween(x, diag, [10, 4])!.vertex, [0, 0]);
+  assert.equal(angleBetween(x, [[0, 5], [10, 5]], [1, 1]), null, 'parallel lines have none');
+});
+
+test('an angle dimension on a triangular prism reads its corner from the model and draws an arc', () => {
+  const tri = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [0, 30]] }), { kind: 'extrude', sketch: 0, height: 5 });
+  const v = viewsOf(tri);
+  const lines = v.top.edges.filter(e => e.kind === 'line' && e.ends && Math.abs(e.ends[0][2] - 5) < 1e-9 && Math.abs(e.ends[1][2] - 5) < 1e-9);
+  const base = lines.find(e => e.ends!.every(p => Math.abs(p[1]) < 1e-9))!, slope = lines.find(e => e.ends!.some(p => Math.abs(p[0] - 40) < 1e-9) && e.ends!.some(p => Math.abs(p[1] - 30) < 1e-9))!;
+  assert.ok(base && slope);
+  const mid = (e: typeof base) => [0, 1, 2].map(k => (e.ends![0][k] + e.ends![1][k]) / 2) as [number, number, number];
+  const d: DrawingDimension = { id: 'a1', view: 'top', kind: 'angle', a: { edge: base.name, near: mid(base) }, b: { edge: slope.name, near: mid(slope) }, place: [30, 3] };
+  const r = resolveDimension(v, d);
+  assert.ok(r.ok && r.kind === 'angle', JSON.stringify(r));
+  assert.equal(r.text, '36.87°'); assert.ok(near(r.vertex[0], 40) && near(r.vertex[1], 0));
+  const settings: DrawingSettings = { ...defaultDrawing(), dimensions: [d] };
+  const svg = sheetSvg(buildSheet(v, layoutSheet(v, settings), settings, { title: 't', date: 'd' }), 't');
+  assert.match(svg, />36.87°<\/text>/);
+  assert.match(svg.slice(svg.indexOf('data-dim="a1"')), /^[^]*?A\d/, 'an arc in the dimension');
+  // On the other side of the corner it reads the supplement.
+  const other = resolveDimension(v, { ...d, place: [50, 3] });
+  assert.ok(other.ok && other.text === '143.13°');
 });

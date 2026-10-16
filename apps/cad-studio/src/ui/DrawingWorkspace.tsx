@@ -11,22 +11,24 @@ import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { sheetPdf } from '../drawing/pdf';
 import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
-import { edgeAt, inView, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
-import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
+import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
+import { VIEW_IDS, type DimPoint, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
 import '../drawing/drawing.css';
 
-type Tool = 'select' | 'linear' | 'diameter' | 'radius';
+type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
   { tool: 'linear', label: 'Linear dimension', icon: 'straighten', key: 'D', hint: 'Click two points (edge ends, circle centres) or one straight edge, then where the dimension goes' },
   { tool: 'diameter', label: 'Diameter', icon: 'radio_button_unchecked', key: 'Ø', hint: 'Click a circle, then where its diameter goes' },
   { tool: 'radius', label: 'Radius', icon: 'line_end_circle', key: 'R', hint: 'Click a circle or an arc, then where its radius goes' },
+  { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
 ];
 type Pending =
   | { kind: 'linear'; view: ViewId; a: DimPoint; b?: DimPoint }
-  | { kind: 'diameter' | 'radius'; view: ViewId; edge: string; near: Vec3 };
+  | { kind: 'diameter' | 'radius'; view: ViewId; edge: string; near: Vec3 }
+  | { kind: 'angle'; view: ViewId; a: EdgeRef; b?: EdgeRef };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 interface Hover { q: XY; view: ViewId; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
@@ -103,7 +105,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (!views) return;
     setMessage(null);
     // Where a dimension goes is read in its own view, wherever the pointer is.
-    const placing = pending && (pending.kind !== 'linear' || pending.b);
+    const placing = pending && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     const place = placing && layout ? fromSheet(layout.views[pending.view], h.q) : h.at;
     if (h.view === 'iso' && !placing) { setMessage('Dimensions go on the front, top and right views.'); return; }
     const pr = views[placing ? pending.view : h.view];
@@ -125,6 +127,21 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         setPending({ kind: 'linear', view: h.view, a: { edge: h.edge.name, at: 'end', near: [...p] as Vec3 }, b: { edge: h.edge.name, at: 'end', near: [...q] as Vec3 } }); return;
       }
       setMessage(pending ? 'Click an edge end or a circle centre.' : 'Click an edge end, a circle centre or a straight edge.'); return;
+    }
+    if (tool === 'angle') {
+      if (pending?.kind === 'angle' && pending.b) {
+        commitDims([...settings.dimensions, { id: newDimensionId(settings.dimensions), view: pending.view, kind: 'angle', a: pending.a, b: pending.b, place }]);
+        setPending(null); return;
+      }
+      // (A straight edge under the pointer, even near its ends.)
+      const e = h.edge ?? edgeAt(pr, h.at, 6 * mmPerPx() / (layout?.views[h.view].scale ?? 1));
+      if (!e || !e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette')) { setMessage('Click a straight edge.'); return; }
+      const ref: EdgeRef = { edge: e.name, near: [0, 1, 2].map(k => (e.ends![0][k] + e.ends![1][k]) / 2) as Vec3 };
+      if (!pending || pending.kind !== 'angle') { setPending({ kind: 'angle', view: h.view, a: ref }); return; }
+      if (pending.view !== h.view) { setMessage('Pick the second edge in the same view.'); return; }
+      const a = resolveLine(pr, pending.a), b = resolveLine(pr, ref);
+      if (!a || !b || !angleBetween(a, b, h.at)) { setMessage('These edges are parallel here — pick one that meets the first at an angle.'); return; }
+      setPending({ ...pending, b: ref }); return;
     }
     if (tool === 'diameter' || tool === 'radius') {
       if (pending && pending.kind === tool) {
@@ -187,7 +204,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.metaKey || e.ctrlKey) return;
       if (e.key === 'Escape') { if (pending) cancel(); else { setSelected(null); setTool('select'); } return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(selected); return; }
-      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius' } as Record<string, Tool>)[e.key.toLowerCase()];
+      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle' } as Record<string, Tool>)[e.key.toLowerCase()];
       if (t) { setTool(t); setPending(null); setMessage(null); }
     };
     window.addEventListener('keydown', onKey);
@@ -216,7 +233,11 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (!layout || !views) return '';
     const parts: string[] = [];
     const v = hover ? layout.views[hover.view] : null;
-    const placing = pending && hover && (pending.kind !== 'linear' || pending.b);
+    const placing = pending && hover && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
+    if (pending?.kind === 'angle') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
+      const l = resolveLine(views[pending.view], ref);
+      if (l) parts.push(`<g class="dw-hover">${marksSvg([{ kind: 'line', a: toSheet(layout.views[pending.view], l[0]), b: toSheet(layout.views[pending.view], l[1]), pen: 'visible' }])}</g>`);
+    }
     if (pending?.kind === 'linear') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
       const q = toSheet(layout.views[pending.view], pointIn(views[pending.view], ref)); parts.push(`<circle class="dw-pick" cx="${q[0]}" cy="${q[1]}" r="0.9"/>`);
     }
@@ -224,13 +245,14 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       const at = fromSheet(layout.views[pending.view], hover.q);
       const d: DrawingDimension = pending.kind === 'linear'
         ? { id: 'preview', view: pending.view, kind: 'linear', a: pending.a, b: pending.b!, orient: orientFor(pointIn(views[pending.view], pending.a), pointIn(views[pending.view], pending.b!), at), place: at }
+        : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
       const r = resolveDimension(views, d);
       if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(layout.views[pending.view], r))}</g>`);
     } else if (hover && v && tool !== 'select') {
       if (hover.snap && tool === 'linear') { const q = toSheet(v, hover.snap.at); parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`); }
       else if (hover.edge && (tool !== 'linear' || !pending)) {
-        const ok = tool === 'linear' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(views[hover.view], hover.edge);
+        const ok = tool === 'linear' || tool === 'angle' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(views[hover.view], hover.edge);
         if (ok) parts.push(`<g class="dw-hover">${marksSvg(hover.edge.pieces.map(p => curveMark(v, p.curve, 'visible')))}</g>`);
       }
     }
@@ -244,7 +266,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today() }), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected]);
 
-  const hint = message ?? (pending ? (pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
 
   return (
@@ -291,7 +313,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
             <span className="muted" />
             <button className="tool tiny" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></button>
           </div>)}
-          {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius) and click in a view. Values come from the model in mm and follow it as it changes.</div>}
+          {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius, <Kbd>A</Kbd> angle) and click in a view. Values come from the model in mm and follow it as it changes.</div>}
           {lost.length > 0 && <div className="empty" style={{ color: 'var(--warn)' }}>{lost.length} dimension{lost.length > 1 ? 's' : ''} lost {lost.length > 1 ? 'their' : 'its'} reference (the part changed).</div>}
         </div>
 
@@ -306,7 +328,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
         <span>{hint}</span>
         {selected && <span><Kbd>Del</Kbd> remove</span>}
-        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> tools</span>
+        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> tools</span>
       </div>
     </div>
   );
