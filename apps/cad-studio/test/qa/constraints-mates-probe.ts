@@ -5,7 +5,7 @@
 import { settleShape } from '../../src/sketch/settle';
 import { applyConstraint, commitDimension, constraintEntries, removeConstraint, solveShape, type Polygon, type SketchPick } from '../../src/sketch/rules';
 import { profileOf } from '../../src/sketch/loops';
-import { evaluateDoc, evaluatePart } from '../../src/engine/evaluate';
+import { evaluatePart } from '../../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
 import { faceTableOf } from '../../src/assembly/faces';
 import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';

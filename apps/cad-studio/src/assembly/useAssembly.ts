@@ -81,7 +81,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     setProblems(r.problems); setFreedom(r.freedom);
     const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
     if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
-  }, [solve, instances, mates]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [solve, instances, mates]);
 
   const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === part)?.grounded, [instances]);
   const faceOf = (ref: MateRef) => tables.get(ref.part)?.[ref.face];

@@ -66,7 +66,7 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
   const dom = domainsOf(direct, id), t = dom.kind === 'curve' ? dom.t : [0, 1] as [number, number];
   const mid = (t[0] + t[1]) / 2;
   const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]);
-  useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
   return <div className="render-section">
     <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
@@ -94,7 +94,7 @@ function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGe
   const [at, setAt] = useState(mid);
   const [box, setBox] = useState<[number, number, number, number]>([u[0], u[1], v[0], v[1]]);
   useEffect(() => { setAt(mid); }, [id, axis, mid]);
-  useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
   return <div className="render-section">
     {g.kind === 'surface' && <div className="kv">Degree <b>{g.degreeU} × {g.degreeV}</b></div>}
@@ -142,7 +142,7 @@ function Analysis({ run }: { run(): [string, string][] }) {
 /** A surface at (u, v): point, normal and curvatures. */
 function SurfacePoint({ id, direct, u, v }: { id: string; direct: DirectGeometry; u: [number, number]; v: [number, number] }) {
   const [at, setAt] = useState<[number, number]>([(u[0] + u[1]) / 2, (v[0] + v[1]) / 2]);
-  useEffect(() => setAt([(u[0] + u[1]) / 2, (v[0] + v[1]) / 2]), [id, u[0], u[1], v[0], v[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setAt([(u[0] + u[1]) / 2, (v[0] + v[1]) / 2]), [id, u[0], u[1], v[0], v[1]]);
   return <>
     <div className="card-title" style={{ marginTop: 8 }}>AT (U, V)</div>
     <NumberField label="u" value={at[0]} onChange={x => setAt([x, at[1]])} />

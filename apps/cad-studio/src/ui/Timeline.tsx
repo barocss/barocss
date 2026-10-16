@@ -14,7 +14,7 @@ export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime,
   const keys = bodyKey ? animation.tracks[bodyKey] ?? [] : [];
   const now = bodyKey ? offsetsAt(animation, time).get(bodyKey) ?? [0, 0, 0] : [0, 0, 0];
   const [offset, setOffset] = useState<[number, number, number]>(now as [number, number, number]);
-  useEffect(() => setOffset(now as [number, number, number]), [bodyKey, time, animation]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setOffset(now as [number, number, number]), [bodyKey, time, animation]);
   const setKey = () => { if (bodyKey) onChange({ ...animation, tracks: { ...animation.tracks, [bodyKey]: withKey(keys, { t: round(time), offset }) } }); };
   const removeKey = (t: number) => {
     if (!bodyKey) return;

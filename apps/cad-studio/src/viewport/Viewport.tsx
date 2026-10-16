@@ -161,7 +161,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   // (By content: the list is rebuilt on every render.)
   const instanceFacesKey = JSON.stringify(props.instanceFaces ?? []);
-  useEffect(() => { renderer.current?.setInstanceFaces?.(JSON.parse(instanceFacesKey)); request(); }, [instanceFacesKey, props.instances, backend]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { renderer.current?.setInstanceFaces?.(JSON.parse(instanceFacesKey)); request(); }, [instanceFacesKey, props.instances, backend]);
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,

@@ -506,7 +506,7 @@ try {
       const ps = document.querySelector('.vp-overlay polyline.sk-shape:not(.open)').getAttribute('points').trim().split(/\s+/).map(p => p.split(',').map(Number));
       return [ps.reduce((a, p) => a + p[0], 0) / ps.length + r.left, ps.reduce((a, p) => a + p[1], 0) / ps.length + r.top];
     }); };
-    let [x, y] = await centre();
+    const [x, y] = await centre();
     await clickAt(cx - 150, cy + 80); await clickAt(x, y);
     await page.locator('.dim-edit').press('v'); await page.locator('.dim-edit').fill('12'); await page.locator('.dim-edit').press('Enter');
     const list = await page.locator('.sk-panel [role=list]').innerText();

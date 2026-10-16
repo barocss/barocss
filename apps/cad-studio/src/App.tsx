@@ -176,7 +176,6 @@ export function App() {
   }, [bodies]);
 
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, marker]);
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
@@ -242,7 +241,7 @@ export function App() {
       if (live) setInstanceBodies(next);
     })();
     return () => { live = false; };
-  }, [doc.instances]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [doc.instances]);
   /** One undoable change of the instances and their mates together. */
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);

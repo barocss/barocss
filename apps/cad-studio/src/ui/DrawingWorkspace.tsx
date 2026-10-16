@@ -72,7 +72,6 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const svg = useRef<SVGSVGElement>(null);
 
   // Project the part (and its shown instances) whenever they change; of the drawing settings only tangent edges change the views.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
     let live = true; setBusy(true);
@@ -250,11 +249,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   };
 
   const remove = useCallback((id: string) => {
-    if (settings.notes?.some(n => n.id === id)) { const notes = settings.notes.filter(n => n.id !== id), { notes: _, ...rest } = settings; onChange(notes.length ? { ...rest, notes } : rest); }
+    if (settings.notes?.some(n => n.id === id)) { const notes = settings.notes.filter(n => n.id !== id), rest = { ...settings }; delete rest.notes; onChange(notes.length ? { ...rest, notes } : rest); }
     else commitDims(settings.dimensions.filter(d => d.id !== id));
     setSelected(null); setNoteDraft(null);
   },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [settings]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -284,7 +282,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => { if (sheet) downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf'); };
-  useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]);
 
   // What follows the cursor: the snap, the hovered edge, and the dimension being placed or dragged.
   const overlay = useMemo(() => {
@@ -358,14 +356,14 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <div className="card-title">SHEET {busy && views && <span className="muted">updating…</span>}</div>
         <label className="field"><span>Size</span><select aria-label="Sheet size" value={settings.sheet} onChange={e => onChange({ ...settings, sheet: e.target.value as 'A4' })}>
           <option value="A4">A4 landscape</option><option value="A3">A3 landscape</option></select></label>
-        <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const { scale: _, ...rest } = settings; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
+        <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const rest = { ...settings }; delete rest.scale; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
           <option value="auto">Auto{layout && settings.scale === undefined ? ` (${scaleLabel(layout.scale)})` : ''}</option>
           {SCALES.map(s => <option key={s} value={s}>{scaleLabel(s)}</option>)}</select></label>
         <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></select></label>
         <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
         <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!settings.section} onChange={e => {
-          const { section: _, ...rest } = settings;
+          const rest = { ...settings }; delete rest.section;
           // By default through the middle of the part, front to back.
           onChange(e.target.checked && views ? { ...rest, section: { y: Math.round((views.top.min[1] + views.top.max[1]) / 2 * 100) / 100 } } : rest);
         }} /></label>
@@ -374,10 +372,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
           onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange({ ...settings, section: { y } }); setSectionY(null); }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
         {settings.section && section && !section.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {section.error}</div>}
-        <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const { tangent: _, ...rest } = settings; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
-        <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const { centers: _, ...rest } = settings; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
+        <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
+        <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
-          onBlur={() => { if (titleDraft !== null) { const { title: _, ...rest } = settings; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
+          onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
 
@@ -396,7 +394,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         {selDim && <>
           <div className="card-title" style={{ marginTop: 8 }}>TOLERANCE</div>
           <label className="field"><span>Kind</span><select aria-label="Tolerance" value={selDim.tol?.kind ?? 'none'} onChange={e => {
-            const k = e.target.value, { tol: _, ...rest } = selDim;
+            const k = e.target.value, rest = { ...selDim }; delete rest.tol;
             const tol: Tolerance | null = k === 'symmetric' ? { kind: 'symmetric', value: 0.1 } : k === 'deviation' ? { kind: 'deviation', upper: 0.1, lower: 0 } : k === 'fit' ? { kind: 'fit', code: selDim.kind === 'diameter' ? 'H7' : 'h7' } : null;
             setTolDraft({}); commitDims(settings.dimensions.map(d => d.id === selDim.id ? (tol ? { ...rest, tol } : rest) as DrawingDimension : d));
           }}><option value="none">None</option><option value="symmetric">± symmetric</option><option value="deviation">Upper / lower</option><option value="fit">Fit (H7, h6 …)</option></select></label>
@@ -408,7 +406,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
               const ok = next.kind === 'fit' ? /^[A-Za-z]{1,2}\d{1,2}$/.test(next.code) : next.kind === 'symmetric' ? Number.isFinite(next.value) && next.value > 0 : Number.isFinite(next.upper) && Number.isFinite(next.lower) && next.upper >= next.lower;
               if (ok) commitDims(settings.dimensions.map(d => d.id === selDim.id ? { ...d, tol: next } as DrawingDimension : d));
               else setMessage(next.kind === 'fit' ? 'A fit is a letter or two and a grade, as H7 or js6.' : next.kind === 'symmetric' ? 'A ± tolerance is a number above 0.' : 'The upper deviation must not be below the lower.');
-              setTolDraft(m => { const { [key]: _, ...rest } = m; return rest; });
+              setTolDraft(m => { const rest = { ...m }; delete rest[key]; return rest; });
             };
             return <label key={key} className="field"><span>{label}</span><input aria-label={`Tolerance ${label}`} type={key === 'code' ? 'text' : 'number'} step="any" value={shown}
               onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>;

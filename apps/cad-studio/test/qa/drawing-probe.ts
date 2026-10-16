@@ -28,8 +28,6 @@ const r2 = (v: readonly number[]) => v.map(x => Math.round(x * 1000) / 1000);
 function lines(v: DrawingViews, id: ViewId, visible: boolean) {
   return v[id].edges.flatMap(e => e.pieces.filter(p => p.visible === visible).map(p => ({ name: e.name, c: p.curve })));
 }
-const isLine = (c: ProjectedCurve, x0: number, y0: number, x1: number, y1: number, tol = 1e-3) => c.kind === 'line' &&
-  ((Math.hypot(c.a[0] - x0, c.a[1] - y0) < tol && Math.hypot(c.b[0] - x1, c.b[1] - y1) < tol) || (Math.hypot(c.a[0] - x1, c.a[1] - y1) < tol && Math.hypot(c.b[0] - x0, c.b[1] - y0) < tol));
 /** Whether the union of line pieces covers the segment (x0,y0)-(x1,y1) (sampled). */
 function covers(list: { c: ProjectedCurve }[], x0: number, y0: number, x1: number, y1: number) {
   for (let k = 0; k <= 20; k++) {

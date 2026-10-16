@@ -27,11 +27,10 @@ page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.
 page.on('dialog', d => d.accept());
 
 const rows = [];
-let n = 0;
 /** One case: fn returns { expected, actual, ok, note? }; a throw is recorded as the actual result. */
 async function probe(id, name, fn) {
   if (only && !only.test(id)) return;
-  n++; errors = [];
+  errors = [];
   let r;
   try { r = await fn(); } catch (e) { r = { ok: false, actual: 'THREW: ' + String(e.message ?? e).split('\n')[0] }; }
   const shot = join(out, `${id}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase().slice(0, 50)}.png`);
@@ -60,8 +59,8 @@ async function bodyProps(k = 0) {
   await page.locator('.outliner .ol').nth(k).click(); await page.waitForTimeout(150);
   const t = await page.locator('[aria-label="Selection"]').innerText();
   const num = re => { const m = re.exec(t); return m ? Number(m[1].replace(/,/g, '')) : null; };
-  const b = /Bounds\s*([\d.\-]+) × ([\d.\-]+) × ([\d.\-]+)/.exec(t);
-  return { volume: num(/Volume\s*([\d.,\-]+) mm³/), mass: num(/Mass\s*([\d.,\-]+) g/), faces: num(/Faces\s*(\d+)/), bounds: b ? b.slice(1).map(Number) : null };
+  const b = /Bounds\s*([\d.-]+) × ([\d.-]+) × ([\d.-]+)/.exec(t);
+  return { volume: num(/Volume\s*([\d.,-]+) mm³/), mass: num(/Mass\s*([\d.,-]+) g/), faces: num(/Faces\s*(\d+)/), bounds: b ? b.slice(1).map(Number) : null };
 }
 async function makeBox(w, d, h, x, y, z) {
   await press('b'); await hudReady();
@@ -279,7 +278,7 @@ try {
     await press(' '); await page.locator('.palette input').fill('chamfer'); await press('Enter'); await hudReady(); await setField('Distance', 8); await press('Enter'); await idle(); await page.waitForTimeout(300);
     const before = (await bodyProps(0)).volume;
     const ch = (await doc()).nodes.length - 1;
-    const faceName = await page.evaluate(i => { const b = window.__studioDoc; return `n${i}.face`; }, ch);
+    const faceName = `n${ch}.face`;
     const sel = await page.evaluate(nm => window.__studioSelectFace(nm), faceName);
     const panel = await page.locator('[aria-label="Selection"]').innerText();
     await press('s'); await page.waitForTimeout(400);
@@ -605,7 +604,7 @@ try {
     const e = await addMate([['base', 'n2.face'], [blk, 'n1.bottom']]);
     await page.waitForTimeout(1500);
     const toast = (await page.locator('.toast[role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ');
-    const i = await instPos(blk), shown = await page.evaluate(() => document.querySelectorAll('.ol.instance').length);
+    const i = await instPos(blk);
     const vol = await page.locator('[aria-label="Instance"]').innerText().catch(() => '');
     return { ok: !!e || (!toast && /Bodies\s*1/.test(vol)), expected: 'the block lies on the chamfer, or the mate is refused with the reason', actual: { mateError: e, rotation: i.rotation, position: i.position, toast, instancePanel: vol.replace(/\s+/g, ' ').slice(0, 120), mates: (await doc()).mates?.length } };
   });

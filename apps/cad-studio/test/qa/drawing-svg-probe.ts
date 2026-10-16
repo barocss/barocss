@@ -4,7 +4,7 @@
 // centre marks, hidden lines, instances, the title block and the PDF's stroke count are checked too.
 //   node test/qa/run-engine-probe.mjs drawing-svg-probe.ts
 import { brepsFor } from '../../src/engine/evaluate';
-import { emptyDoc, rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
+import { rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
 import { projectViews } from '../../src/drawing/project';
 import { layoutSheet, toSheet } from '../../src/drawing/views';
 import { buildSheet, PENS } from '../../src/drawing/sheet';
