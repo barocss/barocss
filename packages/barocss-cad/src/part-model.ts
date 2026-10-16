@@ -48,7 +48,11 @@ type Base = { readonly id: string };
  * every face of a body built upright or turned about Z. Without a plane a sketch lies on XY at Z 0.
  */
 export interface CadPartSketchPlane { readonly origin: CadPartPoint3; readonly normal: readonly [number, number, number]; readonly xAxis: readonly [number, number, number] }
-type Placed = { readonly plane?: CadPartSketchPlane };
+/**
+ * `regions`: more closed loops of material beside the profile; `holes`: closed loops cut from them (a
+ * plate with windows, two bosses at once). Only straight extrudes take them.
+ */
+type Placed = { readonly plane?: CadPartSketchPlane; readonly regions?: readonly (readonly CadPartLoopSegment[])[]; readonly holes?: readonly (readonly CadPartLoopSegment[])[] };
 export type CadPartFeature = Base & (
   | ({ readonly kind: 'sketch'; readonly profile: 'rectangle'; readonly min: CadPartPoint2; readonly max: CadPartPoint2 } & Placed)
   | ({ readonly kind: 'sketch'; readonly profile: 'circle'; readonly center: CadPartPoint2; readonly radius: CadPartDim } & Placed)
@@ -154,7 +158,7 @@ interface Part {
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
-type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
+type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
 const lineOnly = (s: PrismaticSolid) => s.slabs.every(x => x.regions.every(r => [r.outer, ...r.holes].every(ring => ring.every(g => g.kind === 'line'))));
@@ -235,7 +239,13 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
     try {
       if (f.kind === 'sketch') {
         const frame = f.plane === undefined ? undefined : frameOf(f.plane as CadPartSketchPlane, xyz, fail);
-        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}) };
+        const loops = (key: 'regions' | 'holes') => {
+          const list = f[key] as unknown;
+          if (list === undefined) return {};
+          if (!Array.isArray(list) || list.length > CadPartLimits.edges) fail('INPUT', `${key} must list up to 64 loops`);
+          return { [key]: (list as unknown[]).map((segments, i) => sketchOuter({ profile: 'loop', segments }, xy, dim, (code, detail) => fail(code, `${key}[${i}]: ${detail}`))) };
+        };
+        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}), ...loops('regions'), ...loops('holes') };
         keys.set(at, JSON.stringify(result));
       } else {
         const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at });
@@ -356,10 +366,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
       const h = dim(f.height as CadPartDim, 'height'), from = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from');
       if (h === 0) fail('PARAMETER', 'height must not be zero');
-      const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
+      const { outer, frame, regions, holes } = sketch as Extract<Result, { kind: 'sketch' }>;
       const draft = f.draft === undefined ? 0 : f.draft as unknown;
       if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
-      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
+      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
+      if (regions?.length || holes?.length) fail('CAPABILITY', 'a drafted extrude takes one loop (no regions or holes) yet');
       // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
       // away from the sketch plane either way).
       return placed(frame, () => {
@@ -372,6 +383,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'revolve': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', `${f.kind} takes a sketch of one loop (no regions or holes) yet`);
       const ax = f.axis as { origin?: CadPartPoint2; direction?: unknown } | undefined;
       if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y')) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" }');
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
@@ -452,6 +464,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', `${f.kind} takes a sketch of one loop (no regions or holes) yet`);
       const path = f.path as unknown;
       if (!Array.isArray(path) || !path.length || path.length > CadPartLimits.copies) fail('INPUT', 'path must list 1 to 64 steps');
       const steps = (path as unknown[]).map((st, i): { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' } => {
@@ -475,6 +488,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (!isRecord(sec) || typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch`);
         const sketch = ref(sec.sketch, 'sketch').result;
         if (sketch.kind !== 'sketch') fail('REFERENCE', `${sec.sketch} is not a sketch`);
+        if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', 'loft sections are sketches of one loop (no regions or holes) yet');
         const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
         return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame };
       });

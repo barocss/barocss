@@ -531,3 +531,23 @@ test('sketch planes: profiles drawn on a face or a vertical plane at any heading
   refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [0, 1, 1] } }]), 'INPUT', /perpendicular/);
   refused(D([{ ...rect('a', 0, 0, 4, 4), plane: side }, rect('b', 1, 1, 3, 3), { id: 'lf', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 6 }] }]), 'INPUT', /same plane/);
 });
+
+test('sketch regions and holes: one extrude makes a windowed plate and a separate boss', () => {
+  const square = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(start => ({ kind: 'line', start }));
+  const ring = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
+  const plate = { ...rect('s', 0, 0, 60, 40), regions: [square(70, 0, 80, 10)], holes: [square(10, 10, 20, 30), ring(40, 20, 5)] };
+  const out = evaluateCadPart(D([plate, extrude('e', 's', 4)])).output('e');
+  assert.equal(out.representation, 'upright');
+  assert.ok(close(volume(out), (2400 + 100 - 200 - 25 * pi) * 4, 1e-9), String(volume(out)));
+  const names = out.brep.faces.map(f => f.name);
+  assert.equal(new Set(names).size, names.length, 'unique face names');
+  for (const n of ['e.side0', 'e.region0.side0', 'e.hole0.side0', 'e.hole1.side0', 'e.top', 'e.bottom']) assert.ok(names.some(x => x === n || x.startsWith(n + '#')), n);
+  assert.equal(out.bodyCount, 2, 'the plate and the boss');
+  // On a side plane too; other features take one loop.
+  const side = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
+  const onSide = evaluateCadPart(D([{ ...rect('t', 0, 0, 20, 10), plane: side, holes: [ring(10, 5, 2)] }, extrude('w', 't', 3)])).output('w');
+  assert.ok(close(volume(onSide), (200 - 4 * pi) * 3, 1e-9));
+  refused(D([plate, { id: 'd', kind: 'extrude', sketch: 's', height: 4, draft: 5 }]), 'CAPABILITY', /drafted extrude takes one loop/);
+  refused(D([plate, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }]), 'CAPABILITY', /revolve takes a sketch of one loop/);
+  refused(D([{ ...rect('x', 0, 0, 1, 1), holes: 'no' }]), 'INPUT', /holes must list/);
+});

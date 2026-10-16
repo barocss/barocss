@@ -68,16 +68,18 @@ const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(
  * walls are named `tag.side<i>` (i: the authored segment) and `tag.hole<h>.side<i>`, caps `tag.top`
  * and `tag.bottom`.
  */
-export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string }): PrismaticSolid {
+export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string }): PrismaticSolid {
   const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag;
   // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
   const loop = (segments: readonly ProfileSegmentInput[], prefix: string) => {
     const built = buildProfileLoop(segments, budget), n = built.segments.length;
     return built.segments.map((s, k) => toCurve2(s, tag === undefined ? undefined : `${prefix}.side${built.reversed ? n - 1 - k : k}`));
   };
-  const outer = loop(input.outer, String(tag)), holes = (input.holes ?? []).map((h, i) => loop(h, `${tag}.hole${i}`));
-  // The outer boundary minus the holes (holes may touch or cross it; the difference is exact either way).
-  const tol = curveTolerance([outer, ...holes]), regions = booleanCurveRegions([outer], holes, 'difference', tol);
+  // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}`.
+  const outers = [loop(input.outer, String(tag)), ...(input.regions ?? []).map((r, i) => loop(r, `${tag}.region${i}`))];
+  const holes = (input.holes ?? []).map((h, i) => loop(h, `${tag}.hole${i}`));
+  // The outer boundaries minus the holes (holes may touch or cross them; the difference is exact either way).
+  const tol = curveTolerance([...outers, ...holes]), regions = booleanCurveRegions(outers, holes, 'difference', tol);
   const caps = tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];
   return normalize([{ z0, z1, regions }], tol, caps);
 }
