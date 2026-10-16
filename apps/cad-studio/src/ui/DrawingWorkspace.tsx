@@ -15,6 +15,7 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { VIEW_IDS, type DimPoint, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
+import type { SectionResult } from '../drawing/section';
 import '../drawing/drawing.css';
 
 type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle';
@@ -39,6 +40,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
   const [views, setViews] = useState<DrawingViews | null>(null);
+  /** Section A–A as last projected (or why it could not be cut). */
+  const [section, setSection] = useState<SectionResult | null>(null);
+  const [sectionY, setSectionY] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
   const [tool, setTool] = useState<Tool>('select');
@@ -55,17 +59,18 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
     let live = true; setBusy(true);
-    engine.drawing(model, { tangentEdges: !!settings.tangent }).then(r => {
+    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}) }).then(r => {
       if (!live) return;
       setBusy(false);
-      if (r.ok) { setViews(r.views); setError(null); } else { setViews(null); setError(r.error); }
+      if (r.ok) { setViews(r.views); setSection(r.section ?? null); setError(null); } else { setViews(null); setSection(null); setError(r.error); }
     });
     return () => { live = false; };
-  }, [engine, model, settings.tangent]);
+  }, [engine, model, settings.tangent, settings.section?.y]);
 
   const title = settings.title ?? fileName;
-  const layout = useMemo(() => views && layoutSheet(views, settings), [views, settings]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today() }), [views, layout, settings, title]);
+  const cut = settings.section && section?.ok ? section : undefined;
+  const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today() }, cut), [views, layout, settings, title, cut]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
@@ -220,9 +225,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       const q = toSheet(layout.views[view], [u, v]), p = new DOMPoint(q[0], q[1]).matrixTransform(m); return { x: p.x, y: p.y };
     };
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
-      hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])) };
+      hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
+      section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
-  }, [layout, sheet, views]);
+  }, [layout, sheet, views, section]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => { if (sheet) downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf'); };
@@ -263,7 +269,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today() }), selected);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today() }, cut), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected]);
 
   const hint = message ?? (pending ? (pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
@@ -299,6 +305,16 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></select></label>
         <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
+        <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!settings.section} onChange={e => {
+          const { section: _, ...rest } = settings;
+          // By default through the middle of the part, front to back.
+          onChange(e.target.checked && views ? { ...rest, section: { y: Math.round((views.top.min[1] + views.top.max[1]) / 2 * 100) / 100 } } : rest);
+        }} /></label>
+        {settings.section && <label className="field"><span>Cut at Y</span><span className="num"><input type="number" step="any" aria-label="Section Y" value={sectionY ?? settings.section.y}
+          onChange={e => setSectionY(e.target.value)}
+          onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange({ ...settings, section: { y } }); setSectionY(null); }}
+          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
+        {settings.section && section && !section.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {section.error}</div>}
         <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const { tangent: _, ...rest } = settings; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
         <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const { centers: _, ...rest } = settings; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}

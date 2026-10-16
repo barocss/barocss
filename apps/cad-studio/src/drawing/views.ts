@@ -27,12 +27,14 @@ export const TITLE_BLOCK = { width: 120, height: 32 };
 /** Space between views, and around them inside the drawing area (room for dimensions). */
 const GAP = 22, PAD = 14;
 
-export interface ViewPlacement { id: ViewId; scale: number; origin: XY; box: [number, number, number, number] }
+export interface ViewPlacement { id: ViewId | 'section'; scale: number; origin: XY; box: [number, number, number, number] }
 export interface SheetLayout {
   size: [number, number]; scale: number; fits: boolean;
   frame: [number, number, number, number];
   title: [number, number, number, number];
   views: Record<ViewId, ViewPlacement>;
+  /** Section A–A: under the front view, in projection with it. */
+  section?: ViewPlacement;
 }
 
 /** A view point (model mm in the view's frame) on the sheet (mm, y down). */
@@ -47,7 +49,8 @@ const CELLS: Record<DrawingSettings['projection'], Record<ViewId, [number, numbe
 /** The orthographic views that share a column's horizontal or a row's vertical mapping. */
 const SHARED_U: ViewId[] = ['front', 'top'], SHARED_V: ViewId[] = ['front', 'right'];
 
-export function layoutSheet(views: DrawingViews, settings: DrawingSettings): SheetLayout {
+/** `section`: the extent of section A–A (view coordinates), when the sheet has one. */
+export function layoutSheet(views: DrawingViews, settings: DrawingSettings, section?: { min: readonly number[]; max: readonly number[] }): SheetLayout {
   const [W, H] = SHEETS[settings.sheet];
   const frame: SheetLayout['frame'] = [MARGIN, MARGIN, W - MARGIN, H - MARGIN];
   const title: SheetLayout['title'] = [frame[2] - TITLE_BLOCK.width, frame[3] - TITLE_BLOCK.height, frame[2], frame[3]];
@@ -67,9 +70,11 @@ export function layoutSheet(views: DrawingViews, settings: DrawingSettings): She
     rowH[r] = Math.max(rowH[r], e.v[1] - e.v[0]);
   }
   for (const k of [0, 1]) { if (colU[k][0] < colU[k][1]) colW[k] = Math.max(colW[k], colU[k][1] - colU[k][0]); if (rowV[k][0] < rowV[k][1]) rowH[k] = Math.max(rowH[k], rowV[k][1] - rowV[k][0]); }
-  const fitsAt = (s: number) => s * (colW[0] + colW[1]) + GAP <= area[2] - area[0] && s * (rowH[0] + rowH[1]) + GAP <= area[3] - area[1];
+  // Section A–A takes a third row, under the front view's column.
+  const secH = section ? section.max[1] - section.min[1] : 0, extraH = (s: number) => section ? s * secH + GAP : 0;
+  const fitsAt = (s: number) => s * (colW[0] + colW[1]) + GAP <= area[2] - area[0] && s * (rowH[0] + rowH[1]) + GAP + extraH(s) <= area[3] - area[1];
   const scale = settings.scale ?? SCALES.find(fitsAt) ?? SCALES[SCALES.length - 1];
-  const totalW = scale * (colW[0] + colW[1]) + GAP, totalH = scale * (rowH[0] + rowH[1]) + GAP;
+  const totalW = scale * (colW[0] + colW[1]) + GAP, totalH = scale * (rowH[0] + rowH[1]) + GAP + extraH(scale);
   const x0 = area[0] + Math.max(0, (area[2] - area[0] - totalW) / 2), y0 = area[1] + Math.max(0, (area[3] - area[1] - totalH) / 2);
   const colX = [x0, x0 + scale * colW[0] + GAP], rowY = [y0, y0 + scale * rowH[0] + GAP];
   const placed = {} as Record<ViewId, ViewPlacement>;
@@ -81,5 +86,10 @@ export function layoutSheet(views: DrawingViews, settings: DrawingSettings): She
       : rowY[r] + (scale * rowH[r] - scale * (e.v[1] - e.v[0])) / 2 + scale * e.v[1];
     placed[id] = { id, scale, origin: [ox, oy], box: [ox + scale * e.u[0], oy - scale * e.v[1], ox + scale * e.u[1], oy - scale * e.v[0]] };
   }
-  return { size: [W, H], scale, fits: fitsAt(scale), frame, title, views: placed };
+  let sectionAt: ViewPlacement | undefined;
+  if (section) {
+    const ox = placed.front.origin[0], oy = rowY[1] + scale * rowH[1] + GAP + scale * section.max[1];
+    sectionAt = { id: 'section', scale, origin: [ox, oy], box: [ox + scale * section.min[0], oy - scale * section.max[1], ox + scale * section.max[0], oy - scale * section.min[1]] };
+  }
+  return { size: [W, H], scale, fits: fitsAt(scale), frame, title, views: placed, ...(sectionAt ? { section: sectionAt } : {}) };
 }

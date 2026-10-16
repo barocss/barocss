@@ -3,7 +3,10 @@ import { projectBrepHiddenLines, type Brep } from '@barocss/cad';
 import { VIEWS } from './views';
 import { VIEW_IDS, type DrawingViews } from './types';
 
-export type DrawingResult = { ok: true; views: DrawingViews; ms: number } | { ok: false; error: string };
+import type { SectionResult } from './section';
+
+/** `section`: section A–A when asked for (it can fail on its own: the views still come). */
+export type DrawingResult = { ok: true; views: DrawingViews; ms: number; section?: SectionResult } | { ok: false; error: string };
 
 export function projectViews(breps: readonly Brep[], prefixes?: readonly string[], options: { tangentEdges?: boolean } = {}): DrawingResult {
   const t0 = performance.now();

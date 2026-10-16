@@ -7,6 +7,8 @@ import { layoutSheet, scaleLabel, toSheet } from '../src/drawing/views';
 import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
 import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
+import { sectionOf } from '../src/drawing/section';
+import { hatch } from '../src/drawing/sheet';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
@@ -224,4 +226,39 @@ test('tangent edges show as thin lines when asked for, and the setting reads bac
   const top = sheet.groups.find(g => g.role === 'view' && g.view === 'top')!;
   assert.ok(top.marks.some(m => m.kind === 'line' && m.pen === 'thin'), 'a thin line in the top view');
   assert.equal(readDrawing({ tangent: true }).tangent, true); assert.equal(readDrawing({ tangent: 'yes' }).tangent, undefined);
+});
+
+test('section A–A: the plate cut through its hole, the cut faces hatched, the cutting plane in the top view', () => {
+  const doc = plate(), r = sectionOf(doc, 16);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // Cut through the hole: two cut faces either side of it, 28 mm wide and 8 mm high each.
+  assert.equal(r.rings.length, 2);
+  const spans = r.rings.map(ring => [Math.min(...ring.map(p => p[0])), Math.max(...ring.map(p => p[0])), Math.min(...ring.map(p => p[1])), Math.max(...ring.map(p => p[1]))].map(x => Math.round(x * 1e6) / 1e6)).sort((a, b) => a[0] - b[0]);
+  assert.deepEqual(spans, [[0, 28, 0, 8], [36, 64, 0, 8]]);
+  assert.deepEqual([r.projection.min, r.projection.max], [[0, 0], [64, 8]]);
+  const v = viewsOf(doc), settings: DrawingSettings = { ...defaultDrawing(), section: { y: 16 } };
+  const layout = layoutSheet(v, settings, r.projection);
+  assert.ok(layout.section && layout.section.box[1] > layout.views.front.box[3], 'under the front view');
+  assert.ok(near(toSheet(layout.section!, [10, 0])[0], toSheet(layout.views.front, [10, 0])[0]), 'in projection with it');
+  const sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }, r), svg = sheetSvg(sheet, 't');
+  assert.ok(svg.includes('>SECTION A–A</text>')); assert.equal((svg.match(/>A<\/text>/g) ?? []).length, 2, 'A at both ends of the cutting plane');
+  const g = sheet.groups.find(x => x.role === 'section')!;
+  assert.ok(g.marks.filter(m => m.kind === 'line' && m.pen === 'thin').length > 10, 'hatched');
+  assert.ok(g.marks.every(m => !('pen' in m) || m.pen !== 'hidden'), 'a section shows no hidden lines');
+  // Behind the whole part: nothing to show; in front of it: the whole part.
+  const none = sectionOf(doc, 40); assert.ok(!none.ok && /Nothing/.test(none.error));
+  const all = sectionOf(doc, -5); assert.ok(all.ok && all.rings.length === 0);
+  assert.deepEqual(readDrawing({ section: { y: 3 } }).section, { y: 3 }); assert.equal(readDrawing({ section: { y: 'x' } }).section, undefined);
+});
+
+test('hatching stays inside a ring and out of its hole', () => {
+  const sq = (a: number, b: number): [number, number][] => [[a, a], [b, a], [b, b], [a, b]];
+  const lines = hatch([sq(0, 10), sq(4, 6)], 1).filter((m): m is Extract<Mark, { kind: 'line' }> => m.kind === 'line');
+  assert.ok(lines.length > 10);
+  for (const m of lines) for (const t of [0.25, 0.5, 0.75]) {
+    const p = [m.a[0] + (m.b[0] - m.a[0]) * t, m.a[1] + (m.b[1] - m.a[1]) * t];
+    assert.ok(p[0] >= -1e-9 && p[0] <= 10 + 1e-9 && p[1] >= -1e-9 && p[1] <= 10 + 1e-9, 'inside');
+    assert.ok(!(p[0] > 4 + 1e-9 && p[0] < 6 - 1e-9 && p[1] > 4 + 1e-9 && p[1] < 6 - 1e-9), 'not in the hole');
+    assert.ok(Math.abs(Math.abs((m.b[1] - m.a[1]) / (m.b[0] - m.a[0])) - 1) < 1e-9, 'at 45°');
+  }
 });

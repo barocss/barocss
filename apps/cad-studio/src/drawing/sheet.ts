@@ -1,6 +1,6 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
-import type { ProjectedCurve } from '@barocss/cad';
+import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { resolveDimension, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement } from './views';
@@ -20,13 +20,14 @@ export type Mark =
   | { kind: 'fill'; points: XY[] }
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension'; id?: string; view?: ViewId; marks: Mark[] }
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section'; id?: string; view?: ViewId; marks: Mark[] }
 export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[] }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }): Sheet {
+/** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -50,6 +51,15 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     let below = y1;
     for (const g of groups) if (g.role === 'dimension' && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
     groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
+  }
+  if (section && layout.section && settings.section) {
+    // Section A–A under the front view's name (dimensions under the front view push it down).
+    const front = groups.find(g => g.role === 'label' && g.view === 'front')!.marks[0] as Extract<Mark, { kind: 'text' }>;
+    const shift = Math.max(0, front.at[1] + 6 - layout.section.box[1]), at = layout.section;
+    const placed = { ...at, origin: [at.origin[0], at.origin[1] + shift] as XY, box: [at.box[0], at.box[1] + shift, at.box[2], at.box[3] + shift] as [number, number, number, number] };
+    groups.push({ role: 'section', marks: sectionMarks({ ...layout, section: placed }, views, section, settings.section.y) });
+    const [x0, , x1, y1] = placed.box;
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, y1 + 7], text: 'SECTION A–A', size: 2.5, anchor: 'middle' }] });
   }
   return { size: [W, H], groups, dimensions };
 }
@@ -197,3 +207,43 @@ function textUp(e: XY): XY {
 }
 
 const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, k) => [c[0] + r * Math.cos(k * Math.PI / 6), c[1] + r * Math.sin(k * Math.PI / 6)] as XY);
+
+/**
+ * Section A–A: the cut part's visible edges (sections show no hidden lines), its cut faces hatched at
+ * 45°, and in the top view the cutting plane — a chain line, thick at its ends, with arrows pointing the
+ * way the section is seen (+Y) and the letter A at each end.
+ */
+function sectionMarks(layout: SheetLayout, views: DrawingViews, section: { projection: BrepProjection; rings: XY[][] }, y: number): Mark[] {
+  const v = layout.section!, marks: Mark[] = [];
+  for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
+  marks.push(...hatch(section.rings.map(r => r.map(q => toSheet(v, q))), 2.5));
+  const top = layout.views.top, pr = views.top, k = 6 / top.scale;
+  const a = toSheet(top, [pr.min[0] - k, y]), b = toSheet(top, [pr.max[0] + k, y]);
+  marks.push({ kind: 'line', a, b, pen: 'center' });
+  for (const [end, inward] of [[a, 1], [b, -1]] as const) {
+    marks.push({ kind: 'line', a: end, b: [end[0] + inward * 5, end[1]], pen: 'frame' });
+    const foot: XY = [end[0] + inward * 2, end[1]], tip: XY = [foot[0], foot[1] - 7];
+    marks.push({ kind: 'line', a: foot, b: [tip[0], tip[1] + ARROW], pen: 'thin' }, arrow(tip, [0, -1]));
+    marks.push({ kind: 'text', at: [tip[0] - inward * 2.5, tip[1] + 2], text: 'A', size: TEXT, anchor: inward > 0 ? 'end' : 'start', bold: true });
+  }
+  return marks;
+}
+
+/** Parallel hatch lines `spacing` apart at 45° over rings (even–odd: holes stay clear). */
+export function hatch(rings: XY[][], spacing: number): Mark[] {
+  // In coordinates turned by −45°, the hatch lines are horizontal: scan them and pair the crossings.
+  const c = Math.SQRT1_2, to = (p: XY): XY => [c * p[0] + c * p[1], -c * p[0] + c * p[1]], back = (q: XY): XY => [c * q[0] - c * q[1], c * q[0] + c * q[1]];
+  const rs = rings.map(r => r.map(to)), ys = rs.flat().map(p => p[1]);
+  if (!ys.length) return [];
+  const marks: Mark[] = [], lo = Math.min(...ys), hi = Math.max(...ys);
+  for (let yy = Math.ceil(lo / spacing) * spacing; yy <= hi; yy += spacing) {
+    const xs: number[] = [];
+    for (const r of rs) for (let i = 0; i < r.length; i++) {
+      const p = r[i], q = r[(i + 1) % r.length];
+      if ((p[1] <= yy) !== (q[1] <= yy)) xs.push(p[0] + (yy - p[1]) / (q[1] - p[1]) * (q[0] - p[0]));
+    }
+    xs.sort((m, n) => m - n);
+    for (let i = 0; i + 1 < xs.length; i += 2) if (xs[i + 1] - xs[i] > 1e-9) marks.push({ kind: 'line', a: back([xs[i], yy]), b: back([xs[i + 1], yy]), pen: 'thin' });
+  }
+  return marks;
+}

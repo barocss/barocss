@@ -34,6 +34,8 @@ export interface DrawingSettings {
   centers?: boolean;
   /** Tangent edges (a fillet's boundaries) as thin lines (not shown by default). */
   tangent?: boolean;
+  /** Section A–A: the part cut by the plane Y = y, seen like the front view, under it (none: no section). */
+  section?: { y: number };
   /** The title block's part name (default: the file name). */
   title?: string;
   dimensions: DrawingDimension[];
@@ -51,6 +53,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),
+    ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)) : [],
   };
