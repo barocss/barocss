@@ -5,8 +5,8 @@
 Current product naming is cad-studio. Historical issue titles may mention cad-editor or render-editor; those links establish engine feature provenance, not a proposal to restore the old editors.
 
 ## Choose a feature
-- **Concrete issue/source-backed concepts:** 01 directional light, 02 point range, 03 UV source update, 04 material color, 05 light color, 07 surface UV, 08 depth, 10 FOV, 11 far clipping, 12 shared geometry, 13 translation, 14 parent rotation, 15 positive scale, 16 procedural repeat, 17 optional source repeats. These include CPU/source stages; none are actual GPU captures.
-- **Future graphics/design proposals:** 06 alpha composition, 09 shadows, 18 PBR roughness, 19 environment lighting, 20 alpha cutout, 21 morph, 22 skeleton skinning. Broad roadmap names do not freeze APIs or establish implementation.
+- **Concrete issue/source-backed concepts:** 01 directional light, 02 point range, 03 UV source update, 04 material color, 05 light color, 07 surface UV, 08 depth, 10 FOV, 11 far clipping, 12 shared geometry, 13 translation, 14 parent rotation, 15 positive scale, 16 procedural repeat, 17 optional source repeats, 23 native boundary overlay. These include CPU/source stages; none are actual GPU captures.
+- **Future graphics/design proposals:** 06 alpha composition, 09 shadows, 18 PBR roughness, 19 environment lighting, 20 alpha cutout, 21 morph, 22 skeleton skinning, 24 spotlight cone. Broad roadmap names do not freeze APIs or establish implementation.
 
 ## Evidence and scope (2026-10-16)
 - [GPU Engine Roadmap](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap): E3 UV textures; E4 later material/light maturity; postprocessing/backend acceptance separate.
@@ -102,3 +102,12 @@ These are separately labeled future design explorations, not frozen specificatio
 ![Future alpha cutout](20-future-alpha-cutout.png)
 ![Future morph](21-future-morph-deformation.png)
 ![Future skeleton](22-future-skeletal-deformation.png)
+
+
+## Native boundary presentation and future spot lighting
+- Board23 follows [#1995](https://github.com/barocss/barocss/issues/1995), a distinct native boundary overlay display target. Filled convex geometry remains authoritative; only visible face boundaries are overlaid, with no tessellation diagonals or x-ray hidden lines. CAD design lane confirmed this comparison is not duplicated by its selection/face concepts. This visual is not an exact native edge-count/identity test or proof of depth bias, line width, DPR readability, picking, WebGPU parity or current consumer acceptance. Line darkness/thickness is illustrative; actual source contract uses a bounded shared-depth line path with its own acceptance gates.
+- Board24 follows the explicitly named spot-light horizon in [roadmap authored lights](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#actual-light-entity-requirement--1445). A narrower/wider illumination footprint on an unobstructed receiver explores cone spread only. [Khronos spot-light semantics](https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md#spot) are conceptual guidance, not BaroCSS API adoption. No angle, inner/outer transition, photometric unit, distance attenuation, energy mapping, bloom, volumetric beam or current spot implementation is claimed. It remains a **future design proposal**.
+Both images were inspected and independently visually reviewed. The spotlight draft's extra object and floor were removed to isolate the intended light footprint.
+
+![Native boundary overlay](23-native-boundary-overlay.png)
+![Future spotlight cone](24-future-spotlight-cone.png)
