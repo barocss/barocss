@@ -1,7 +1,7 @@
 // Lights and the frame block they are packed into with the camera (see Frame in shaders.ts).
 import type { Camera } from './camera.js';
 import { normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_POINT, MAX_SPOT } from './shaders.js';
+import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
 
 /** sRGB colour, 0–1 per channel, or a CSS hex string. */
 export type Color = Vec3 | string;
@@ -58,10 +58,13 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   return f;
 }
 
-/** The output block (see Output in shaders.ts). */
-export function packOutput(env: Environment): ArrayBuffer {
-  const b = new ArrayBuffer(16);
-  new Float32Array(b, 0, 1)[0] = env.exposure ?? 1;
-  new Uint32Array(b, 4, 1)[0] = env.toneMapping === 'aces' ? 1 : 0;
+/** The output block (see Output in shaders.ts): outline colours are sRGB, the width in device pixels. */
+export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2): ArrayBuffer {
+  const b = new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
+  f[0] = env.exposure ?? 1;
+  u[1] = env.toneMapping === 'aces' ? 1 : 0;
+  f[2] = outlineWidth;
+  u[3] = Math.min(outlines.length, MAX_OUTLINES);
+  outlines.slice(0, MAX_OUTLINES).forEach((c, i) => f.set([...c, 1], 4 + i * 4));
   return b;
 }

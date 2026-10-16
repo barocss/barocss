@@ -132,14 +132,18 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32 }
   return o;
 }
 @fragment fn fs(in: POut) -> Ids { return Ids(object.pick.x, in.clip.z); }
+// The outline mask: which outline (1-based; 0 none) covers each visible pixel.
+@fragment fn fsMask(in: POut) -> @location(0) u32 { return object.pick.y; }
 `;
 
-/** Exposure, tone mapping and sRGB encoding of the (premultiplied, linear) scene for the canvas. */
-export const OUTPUT_BYTES = 16;
+/** Exposure, tone mapping, selection outlines and sRGB encoding of the (premultiplied, linear) scene. */
+export const MAX_OUTLINES = 8;
+export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16;
 export const outputWGSL = /* wgsl */ `
-struct Output { exposure: f32, toneMapping: u32, pad0: f32, pad1: f32 }
+struct Output { exposure: f32, toneMapping: u32, outlineWidth: f32, outlines: u32, colors: array<vec4f, ${MAX_OUTLINES}> }
 @group(0) @binding(0) var scene: texture_2d<f32>;
 @group(0) @binding(1) var<uniform> output: Output;
+@group(0) @binding(2) var mask: texture_2d<u32>;
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
   let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
   return vec4f(p * 2.0 - 1.0, 0.0, 1.0);
@@ -150,10 +154,39 @@ fn encode(c: vec3f) -> vec3f {
   return select(1.055 * pow(x, vec3f(1.0 / 2.4)) - 0.055, x * 12.92, x <= vec3f(0.0031308));
 }
 @fragment fn fs(@builtin(position) at: vec4f) -> @location(0) vec4f {
-  let s = textureLoad(scene, vec2i(at.xy), 0);
-  if (s.a <= 0.0) { return vec4f(0.0); }
-  var c = s.rgb / s.a * output.exposure;
-  if (output.toneMapping == 1u) { c = aces(c); }
-  return vec4f(encode(c) * s.a, s.a);
+  let p = vec2i(at.xy);
+  let s = textureLoad(scene, p, 0);
+  var c = vec3f(0.0);
+  var a = s.a;
+  if (s.a > 0.0) {
+    c = s.rgb / s.a * output.exposure;
+    if (output.toneMapping == 1u) { c = aces(c); }
+    c = encode(c);
+  }
+  if (output.outlines > 0u) {
+    // Outside an outlined region, within the outline width of it: full colour, fading over the last pixel.
+    let here = textureLoad(mask, p, 0).r;
+    let size = vec2i(textureDimensions(mask));
+    let r = i32(ceil(output.outlineWidth + 0.5));
+    var nearest = 1e9;
+    var which = 0u;
+    for (var dy = -r; dy <= r; dy++) {
+      for (var dx = -r; dx <= r; dx++) {
+        let d = length(vec2f(f32(dx), f32(dy)));
+        if (d >= nearest) { continue; }
+        let q = clamp(p + vec2i(dx, dy), vec2i(0), size - 1);
+        let m = textureLoad(mask, q, 0).r;
+        if (m != 0u && m != here) { nearest = d; which = m; }
+      }
+    }
+    if (which != 0u) {
+      let o = output.colors[which - 1u];
+      // (Outline colours are sRGB already.)
+      let k = clamp(output.outlineWidth + 0.5 - nearest, 0.0, 1.0) * o.a;
+      if (s.a > 0.0) { c = mix(c, o.rgb, k); a = max(a, k); } else { c = o.rgb; a = k; }
+    }
+  }
+  // (c is sRGB, not premultiplied; the canvas takes premultiplied alpha.)
+  return vec4f(c * a, a);
 }
 `;

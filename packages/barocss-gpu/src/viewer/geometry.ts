@@ -14,12 +14,15 @@ export interface GeometryInput {
   indices?: ArrayLike<number>;
   /** Triangles (default) or line segments. */
   topology?: 'triangles' | 'lines';
+  /** An id per triangle (a CAD face, say), reported by picking. */
+  faces?: ArrayLike<number>;
 }
 
 export interface PreparedGeometry {
   topology: 'triangles' | 'lines';
   positions: Float32Array; normals: Float32Array; colors: Uint8Array;
   indices: Uint32Array | Uint16Array | null;
+  faces: Uint32Array | null;
   vertexCount: number; elementCount: number;
   bounds: Box3 | null;
 }
@@ -41,16 +44,25 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     normals = Float32Array.from(input.normals);
     if (normals.length !== positions.length) throw new RangeError('normals must match positions');
   } else normals = topology === 'lines' ? new Float32Array(positions.length) : vertexNormals(positions, indices);
-  const colors = new Uint8Array(vertexCount * 4).fill(255);
-  if (input.colors) {
-    const c = input.colors, k = c.length === vertexCount * 4 ? 4 : c.length === vertexCount * 3 ? 3 : 0;
-    if (!k) throw new RangeError('colors must hold three or four numbers per vertex');
-    for (let v = 0; v < vertexCount; v++) {
-      for (let j = 0; j < 3; j++) colors[v * 4 + j] = Math.round(srgbToLinear(Math.min(1, Math.max(0, c[v * k + j]))) * 255);
-      if (k === 4) colors[v * 4 + 3] = Math.round(Math.min(1, Math.max(0, c[v * k + 3])) * 255);
-    }
+  let faces: Uint32Array | null = null;
+  if (input.faces) {
+    if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new RangeError('faces must hold one id per triangle');
+    faces = Uint32Array.from(input.faces);
   }
-  return { topology, positions, normals, colors, indices, vertexCount, elementCount, bounds: boxOfPositions(positions) };
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), indices, faces, vertexCount, elementCount, bounds: boxOfPositions(positions) };
+}
+
+/** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */
+export function vertexColors(c: ArrayLike<number> | undefined, vertexCount: number): Uint8Array {
+  const colors = new Uint8Array(vertexCount * 4).fill(255);
+  if (!c) return colors;
+  const k = c.length === vertexCount * 4 ? 4 : c.length === vertexCount * 3 ? 3 : 0;
+  if (!k) throw new RangeError('colors must hold three or four numbers per vertex');
+  for (let v = 0; v < vertexCount; v++) {
+    for (let j = 0; j < 3; j++) colors[v * 4 + j] = Math.round(srgbToLinear(Math.min(1, Math.max(0, c[v * k + j]))) * 255);
+    if (k === 4) colors[v * 4 + 3] = Math.round(Math.min(1, Math.max(0, c[v * k + 3])) * 255);
+  }
+  return colors;
 }
 
 /** Area-weighted normals of the triangles around each vertex. */

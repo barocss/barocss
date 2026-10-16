@@ -5,11 +5,11 @@
 import { boxInFrustum, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { prepareGeometry, rayTriangles, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { prepareGeometry, rayTriangles, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 import { defaultLights, linear, packFrame, packOutput, parseColor, type Color, type Environment, type Light } from './lights.js';
 import { add, dot, identity, invert, normalMatrix, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -36,6 +36,12 @@ export class Geometry {
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
   get topology(): 'triangles' | 'lines' { return this.data.topology; }
   get bounds(): Box3 | null { return this.data.bounds; }
+  /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
+  setColors(colors: ArrayLike<number> | null): void {
+    this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
+    if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
+    this.owner.requestRender();
+  }
   /** Release the GPU buffers (meshes using it stop drawing). */
   dispose(): void { this.disposed = true; this.release(); this.owner.requestRender(); }
   /** @internal */ release(): void {
@@ -54,6 +60,9 @@ export class Mesh {
   private _visible: boolean;
   pickable: boolean;
   name: string | undefined;
+  private _outline: Vec3 | null = null;
+  /** @internal Which outline colour of the frame (1-based; 0 none). */
+  outlineSlot = 0;
   /** Pick id (1-based; 0 is empty space). */
   readonly id: number;
 
@@ -76,6 +85,9 @@ export class Mesh {
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
   get transparent(): boolean { return this._material.opacity < 1; }
+  /** A selection outline around the visible part of the mesh (sRGB colour), or null. */
+  get outline(): Vec3 | null { return this._outline; }
+  set outline(c: Color | null) { this._outline = c === null ? null : parseColor(c); this.owner.requestRender(); }
   /** The world box of the mesh (its geometry box through its transform). */
   get bounds(): Box3 | null {
     if (this.worldBox === undefined) this.worldBox = this.geometry.bounds ? transformBox(this._transform, this.geometry.bounds) : null;
@@ -91,7 +103,7 @@ export class Mesh {
     f.set(normalMatrix(this._transform), o + 16);
     f.set([...linear(m.color), m.opacity], o + 32);
     f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
-    new Uint32Array(f.buffer).set([this.id, 0, 0, 0], o + 40);
+    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, 0, 0], o + 40);
   }
 }
 
@@ -124,13 +136,15 @@ export interface PickHit {
   point: Vec3;
   /** The triangle of the mesh's geometry under the pixel, when a ray finds it. */
   triangle: number | null;
+  /** That triangle's face id (GeometryInput.faces), when the geometry has them. */
+  face: number | null;
   /** Reversed depth of the pixel (1 near, 0 far). */
   depth: number;
 }
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
 
-type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'output';
+type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'output';
 /** The scene target: linear, half float (blendable and multisampled everywhere). */
 const SCENE_FORMAT = 'rgba16float';
 
@@ -142,6 +156,8 @@ export class Viewer {
   lights: Light[];
   environment: Environment;
   readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, deviceLosses: 0, cpuMs: 0 };
+  /** Selection outline width in CSS pixels. */
+  outlineWidth = 2;
   /** Called after a lost device has been replaced and the scene re-uploaded. */
   onRecover: (() => void) | null = null;
 
@@ -155,7 +171,7 @@ export class Viewer {
   private objectGroup!: BindGroup;
   private objectCapacity = 0;
   private objectData = new Float32Array(0);
-  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; output: BindGroup } | null = null;
+  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; output: BindGroup } | null = null;
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; read: Buffer } | null = null;
   private meshes: Mesh[] = [];
@@ -261,6 +277,12 @@ export class Viewer {
     for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
       vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
       fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    for (const two of [false, true]) jobs.push(make(two ? 'mask2' : 'mask', {
+      vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
+      fragment: { module: modules.pick, entryPoint: 'fsMask', targets: [{ format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
     }));
@@ -386,13 +408,15 @@ export class Viewer {
   private ensureTargets(): NonNullable<Viewer['targets']> {
     const w = this.canvas.width, h = this.canvas.height, t = this.targets;
     if (t && t.width === w && t.height === h) return t;
-    t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy();
+    t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy();
     const samples = this.options.antialias === false ? 1 : SAMPLES;
     const msaa = samples > 1 ? this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer msaa' }) : null;
     const scene = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer scene' });
     const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer depth' });
-    const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }] });
-    this.targets = { width: w, height: h, msaa, scene, depth, output };
+    const mask = this.device.createTexture({ size: [w, h], format: 'r32uint', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer outline mask' });
+    const maskDepth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer outline depth' });
+    const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }] });
+    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, output };
     return this.targets;
   }
 
@@ -435,8 +459,9 @@ export class Viewer {
     return { opaque, transparent: transparent.map(t => t.m), culled };
   }
 
-  private pipelineKey(m: Mesh, pick: boolean): PipelineKey {
+  private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
     const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? 'T' : '';
+    if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return (t ? 'lineT' : 'line');
     return `${mat.unlit ? 'unlit' : 'lit'}${two}${t}` as PipelineKey;
@@ -452,7 +477,7 @@ export class Viewer {
     if (hi >= 0) this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
   }
 
-  private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean): void {
+  private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean | 'mask'): void {
     const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
@@ -465,11 +490,27 @@ export class Viewer {
     else pass.draw(data.elementCount);
   }
 
+  /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
+  private outlineColors(): Vec3[] {
+    const colors: Vec3[] = [], key = (c: Vec3) => c.join(',');
+    for (const m of this.meshes) {
+      let slot = 0;
+      if (m.outline && m.visible) {
+        let i = colors.findIndex(c => key(c) === key(m.outline!));
+        if (i < 0 && colors.length < MAX_OUTLINES) { colors.push(m.outline); i = colors.length - 1; }
+        slot = (i < 0 ? colors.length - 1 : i) + 1;
+      }
+      if (slot !== m.outlineSlot) { m.outlineSlot = slot; m.dirty = true; }
+    }
+    return colors;
+  }
+
   private draw(capture: Buffer | null): void {
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
+    const outlines = this.outlineColors();
     this.writeUniforms(vp);
-    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment)));
+    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio)));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();
     const bg = this.background ? linear(this.background) : null;
     const enc = this.device.createCommandEncoder();
@@ -485,6 +526,17 @@ export class Viewer {
       if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += m.geometry.data.elementCount / 3;
     }
     pass.end();
+    if (outlines.length) {
+      // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
+      const mask = enc.beginRenderPass({
+        colorAttachments: [{ view: targets.mask.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+        depthStencilAttachment: { view: targets.maskDepth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      });
+      mask.setBindGroup(0, this.frameGroup);
+      const cur: { pipeline?: Pipeline } = {};
+      for (const m of [...opaque, ...transparent]) if (m.geometry.topology === 'triangles' && (!m.transparent || m.outlineSlot)) this.drawMesh(mask, m, cur, 'mask');
+      mask.end();
+    }
     const show = enc.beginRenderPass({ colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
     show.setPipeline(this.pipelines.get('output')!);
     show.setBindGroup(0, targets.output);
@@ -567,7 +619,8 @@ export class Viewer {
     // The triangle: a ray through the pixel in the mesh's own space.
     const ray = this.camera.ray(ndcX, ndcY, this.aspect), inv = invert(mesh.transform);
     const hit = rayTriangles(mesh.geometry.data, transformPoint(inv, ray.origin), transformDirection(inv, ray.direction));
-    return { mesh, point, triangle: hit ? hit.triangle : null, depth };
+    const faces = mesh.geometry.data.faces;
+    return { mesh, point, triangle: hit ? hit.triangle : null, face: hit && faces ? faces[hit.triangle] : null, depth };
   }
 
   private ensurePickTargets() {

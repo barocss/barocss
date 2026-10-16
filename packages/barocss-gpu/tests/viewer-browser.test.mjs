@@ -59,7 +59,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       };
       const canvas = document.getElementById('c');
       const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#202020', camera: { position: [6, -9, 6], target: [0, 0, 0], up: [0, 0, 1] } });
-      const red = viewer.add(box(2, 2, 2), { name: 'red', material: { color: '#d03020', roughness: 0.5 } });
+      const red = viewer.add({ ...box(2, 2, 2), faces: Array.from({ length: 12 }, (_, i) => 10 + Math.floor(i / 2)) }, { name: 'red', material: { color: '#d03020', roughness: 0.5 } });
       const blue = viewer.add(box(1.5, 1.5, 1.5), { name: 'blue', material: { color: '#0000ff', unlit: true }, transform: api.translation([3.5, 0, 0]) });
       const glass = viewer.add({ positions: [-3, -1, -1, -1.5, -1, -1, -1.5, -1, 1, -3, -1, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'glass', material: { color: '#00ff00', opacity: 0.5, unlit: true, doubleSided: true } });
       const edges = viewer.add({ positions: [-1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1], indices: [0, 1, 1, 2, 2, 3, 3, 0], topology: 'lines' }, { name: 'edges', material: { color: '#ffffff', unlit: true } });
@@ -100,12 +100,44 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const empty = await viewer.pick(2, 2);
       // Several at once queue on one read buffer.
       const many = await Promise.all([0, 1, 2, 3].map(() => viewer.pick(...screen([0, 0, 1]))));
-      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle }, side: side?.mesh.name, empty, many: many.map(h => h?.mesh.name) };
+      return { top: top && { name: top.mesh.name, point: top.point, tri: top.triangle, face: top.face }, side: side?.mesh.name, empty, many: many.map(h => h?.mesh.name) };
     });
     t.diagnostic(JSON.stringify(picks));
     assert.equal(picks.top.name, 'red');
     assert.ok(Math.abs(picks.top.point[2] - 1) < 0.02 && Math.abs(picks.top.point[0] - 0.2) < 0.05, `point ${picks.top.point}`);
     assert.ok(picks.top.tri === 8 || picks.top.tri === 9, `triangle ${picks.top.tri} on the top side`);
+    assert.equal(picks.top.face, 14, 'the face id of the top side');
+
+    // A face recoloured through its vertex colours; an outline around the visible part of a mesh.
+    const marked = await p.evaluate(async () => {
+      const { viewer, red, blue } = window.t;
+      // Vertex colours multiply the material colour: a white material shows them as they are.
+      const colors = Array.from({ length: 24 }, (_, v) => v >= 16 && v < 20 ? [1, 0.85, 0] : [0.82, 0.19, 0.13]).flat();
+      red.material = { color: '#ffffff' };
+      red.geometry.setColors(colors);
+      red.outline = '#00e0ff';
+      await viewer.frame();
+      const img = await viewer.capture();
+      // Walk right from the front of the red box to its silhouette (background lies between it and blue).
+      const [cx, cy] = screen([0, -1, 0]).map(Math.round), reddish = c => c[0] > 100 && c[0] > c[1] + 40;
+      let x = cx; while (x < img.width - 1 && reddish(pixel(img, [x + 1, cy]))) x++;
+      const out = pixel(img, [x + 2, cy]), far = pixel(img, [x + 9, cy]);
+      // Under the blue box (in front of nothing) no outline; blue keeps its colour.
+      const blueMid = pixel(img, screen([3.5, -0.75, 0]));
+      window.marked = img;
+      red.geometry.setColors(null); red.outline = null; red.material = { color: '#d03020' };
+      return { top: pixel(img, screen([0, 0, 1])), out, far, blueMid };
+    });
+    t.diagnostic(JSON.stringify(marked));
+    if (process.env.VIEWER_SHOTS) {
+      // The marked frame, as a PNG made in the page.
+      const png = await p.evaluate(() => { const c = document.createElement('canvas'), img = window.marked; c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(img.data), img.width, img.height), 0, 0); return c.toDataURL('image/png'); });
+      (await import('node:fs')).writeFileSync(path.join(process.env.VIEWER_SHOTS, 'viewer-marked.png'), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    assert.ok(marked.top[0] > 200 && marked.top[1] > 150 && marked.top[2] < 60, `yellow top ${marked.top}`);
+    assert.ok(marked.out[2] > 120 && marked.out[1] > 100 && marked.out[0] < 80, `outline just outside ${marked.out}`);
+    assert.deepEqual(marked.far, [32, 32, 32, 255], 'background beyond the outline');
+    assert.deepEqual(marked.blueMid.slice(0, 3), [0, 0, 255]);
     assert.equal(picks.side, 'blue');
     assert.equal(picks.empty, null);
     assert.deepEqual(picks.many, ['red', 'red', 'red', 'red']);
