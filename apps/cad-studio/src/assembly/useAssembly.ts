@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { FaceClient } from './faceClient';
-import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from './mates';
+import { flattenAssembly } from './flatten';
+import { BASE, kindsFor, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from './mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
@@ -19,6 +20,8 @@ export interface Assembly {
   start(): void; cancel(): void; setDraft(patch: Partial<MateDraft>): void; select(id: string | null): void;
   /** A viewport click while adding a mate (true: it was taken). */
   pick(hit: Hit): boolean;
+  /** Locks a part to another (or the base part) where it stands now; the reason when it cannot be. */
+  lock(part: string, to: string): string | null;
   /** Picks a face by name while adding a mate (an origin plane: `origin:xy`, `origin:xz`, `origin:yz`). */
   pickFace(ref: MateRef): void;
   /** Changes a mate, re-solving; the reason when it cannot be met (nothing changes then). */
@@ -58,7 +61,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   useEffect(() => {
     if (!instances.length) return;
     let live = true;
-    Promise.all([client.table(evaluated), ...instances.map(i => client.table(i.doc))]).then(ts => {
+    Promise.all([client.table(evaluated), ...instances.map(i => client.table(flattenAssembly(i.doc)))]).then(ts => {
       if (live) setTables(new Map([[BASE, ts[0]], ...instances.map((i, k) => [i.id, ts[k + 1]] as [string, FaceTable])]));
     });
     return () => { live = false; };
@@ -163,6 +166,16 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
     pick, edit, pickFace: ref => addPick({ ref }),
+    lock: (part, to) => {
+      const b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
+      if (!b || (to !== BASE && !a)) return 'Pick the part to lock it to.';
+      const used = new Set(mates.map(m => m.id));
+      let n = mates.length + 1; while (used.has(`m${n}`)) n++;
+      const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
+      const r = solve(instances, [...mates, mate]), problem = r.problems.find(p => p.mate === mate.id);
+      if (problem) return problem.reason;
+      commit(r.instances, [...mates, mate]); setSelected(mate.id); return null;
+    },
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
       const by = mates.filter(m => m.b.part === id);

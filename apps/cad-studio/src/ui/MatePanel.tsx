@@ -21,7 +21,7 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
 export function MatePanel({ assembly, instances, instance, onRefused }: { assembly: Assembly; instances: PartInstance[]; instance?: string; onRefused(reason: string): void }) {
   const { mates, problems, draft, tables } = assembly;
   const partName = (part: string) => part === BASE ? 'Base part' : instances.find(i => i.id === part)?.name ?? part;
-  const refText = (r: MateRef) => `${partName(r.part)} · ${faceLabel(r.face, tables.get(r.part))}`;
+  const refText = (r: MateRef) => r.face ? `${partName(r.part)} · ${faceLabel(r.face, tables.get(r.part))}` : partName(r.part);
   const sel = mates.find(m => m.id === assembly.selected) ?? null;
   const problemOf = (id: string) => problems.find(p => p.mate === id);
   // What the selected part can still do: fixed, placed by typed numbers, or its mates' remaining freedom.
@@ -37,12 +37,13 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
     <aside className="card props" aria-label="Mates">
       <div className="card-title">MATES <span className="muted">{mates.length || ''}</span>
         {!draft && <button className="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</button>}</div>
+      {instance && !draft && <LockRow instance={instance} instances={instances} onLock={to => { const why = assembly.lock(instance, to); if (why) onRefused(why); }} />}
       {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
         <label className="field"><span>Type</span>
           <select aria-label="Mate type" value={draft.kind} onChange={e => assembly.setDraft({ kind: e.target.value as MateKind | 'auto' })}>
             <option value="auto">Auto</option>
-            {(Object.keys(KIND_LABEL) as MateKind[]).map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
+            {(Object.keys(KIND_LABEL) as MateKind[]).filter(k => k !== 'lock').map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
           </select></label>
         {draft.kind === 'distance' && <NumberField label="Distance" value={draft.distance} onCommit={v => assembly.setDraft({ distance: v })} />}
         {draft.kind === 'angle' && <NumberField label="Angle" unit="°" value={draft.angle} onCommit={v => assembly.setDraft({ angle: v })} />}
@@ -59,7 +60,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
         const p = problemOf(m.id);
         return <button key={m.id} className={'ol mate' + (sel?.id === m.id ? ' sel' : '')} style={p ? { color: 'var(--warn)' } : undefined}
           title={p ? p.reason : `${refText(m.a)} → ${refText(m.b)}`} onClick={() => assembly.select(sel?.id === m.id ? null : m.id)}>
-          <Icon name={p ? 'link_off' : m.kind === 'concentric' ? 'radio_button_checked' : m.kind === 'distance' ? 'straighten' : m.kind === 'angle' ? 'square_foot' : m.kind === 'tangent' ? 'radio_button_unchecked' : 'link'} small />
+          <Icon name={p ? 'link_off' : m.kind === 'concentric' ? 'radio_button_checked' : m.kind === 'distance' ? 'straighten' : m.kind === 'angle' ? 'square_foot' : m.kind === 'tangent' ? 'radio_button_unchecked' : m.kind === 'lock' ? 'lock' : 'link'} small />
           {mateLabel(m, i)}{m.kind === 'distance' ? ` · ${fmt(m.distance ?? 0)} mm` : m.kind === 'angle' ? ` · ${fmt(m.angle ?? 0)}°` : ''}<span className="muted"> · {partName(m.b.part)}</span></button>;
       })}
       {sel && <MateEditor key={sel.id} mate={sel} problem={problemOf(sel.id)?.reason} tables={tables} refText={refText}
@@ -87,7 +88,8 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
         }}>{kinds.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select></label>
       {mate.kind === 'distance' && <NumberField label="Distance" value={mate.distance ?? 0} onCommit={v => onEdit({ distance: v })} />}
       {mate.kind === 'angle' && <NumberField label="Angle" unit="°" value={mate.angle ?? 0} onCommit={v => onEdit({ angle: v })} />}
-      {mate.kind === 'concentric'
+      {mate.kind === 'lock' ? <div className="empty">Moves with {refText(mate.a)} as one piece, where it stood when locked.</div>
+        : mate.kind === 'concentric'
         ? <label className="field"><span>Axes</span>
           <select aria-label="Mate axes" value={mate.flip === undefined ? 'either' : mate.flip ? 'reversed' : 'same'}
             onChange={e => onEdit({ flip: e.target.value === 'either' ? undefined : e.target.value === 'reversed' })}>
@@ -98,6 +100,21 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
       {problem && <div className="hud-error" role="status"><div className="hud-error-title">Not met</div>{problem}</div>}
       <div className="row-actions"><button className="ghost" onClick={onDelete}>Delete mate</button></div>
     </div>
+  );
+}
+
+/** Locks the selected part to another part (or the base part) where it stands. */
+function LockRow({ instance, instances, onLock }: { instance: string; instances: PartInstance[]; onLock(to: string): void }) {
+  const [to, setTo] = useState(BASE);
+  return (
+    <label className="field"><span>Lock to</span>
+      <span style={{ display: 'flex', gap: 6, minWidth: 0 }}>
+        <select aria-label="Lock to" value={to} onChange={e => setTo(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+          <option value={BASE}>Base part</option>
+          {instances.filter(i => i.id !== instance).map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+        </select>
+        <button type="button" className="ghost" onClick={() => onLock(to)}>Lock</button>
+      </span></label>
   );
 }
 
