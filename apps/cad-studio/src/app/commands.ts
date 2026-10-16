@@ -166,7 +166,6 @@ export const commands: Command[] = [
   { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'taper transition blend sections ruled', available: () => ok, action: 'sketch' },
   // Sketch a section; finishing it sweeps it along a run, a bend and a run.
   { id: 'pipe', label: 'Pipe', icon: 'conversion_path', group: 'create', keywords: 'sweep tube bend path rail handle', available: () => ok, action: 'sketch' },
-  { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'blend sections', available: notYet('Loft to solid') },
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),

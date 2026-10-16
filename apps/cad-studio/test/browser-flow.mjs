@@ -327,8 +327,25 @@ try {
     assert.match(await outliner(), /1 body/); await iso();
   });
 
+  await check('measure between two faces of a box', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
+    await press(' '); await page.locator('.palette input').fill('measure'); await press('Enter');
+    await page.waitForSelector('[aria-label="Measurement"]'); await page.waitForTimeout(300);
+    assert.ok(await page.evaluate(n => window.__studioPickFace(n), `n${ext}.bottom`));
+    const card = page.locator('[aria-label="Measurement"]');
+    await page.waitForFunction(() => /Normal distance/.test(document.querySelector('[aria-label="Measurement"]')?.textContent ?? ''));
+    const text = await card.innerText();
+    const h = (await doc()).nodes[ext].height;
+    assert.match(text, new RegExp(`Distance\\s*${h} mm`)); assert.match(text, /Angle\s*0°/);
+    assert.equal(await page.locator('.measure-line').count(), 1);
+  });
+
   await check('command palette and light theme', async () => {
-    await press('Escape'); await press(' '); await page.locator('.palette input').fill('loft');
+    await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
+    await press(' '); await page.locator('.palette input').fill('draft');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);
     await page.locator('.palette input').fill('fillet');
     assert.match(await page.locator('.palette-list').innerText(), /Select edges of one body to round/);

@@ -3,11 +3,12 @@
 // `x#2`: a cylinder wall in halves) shown as one face; display edges are the real B-rep edges minus
 // seams and smooth (tangent) joints, with connected pieces between the same two faces joined. Faces and
 // edges carry their persistent B-rep names, which features use to refer to them.
-import { tessellateBrep, type Brep } from '@barocss/cad';
+import { faceGeometry, revolutionOf, tessellateBrep, type Brep } from '@barocss/cad';
 
 export type Vec3 = [number, number, number];
 
-export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number }
+/** `radius`: a cylinder's or a sphere's. */
+export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
   positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
@@ -75,6 +76,14 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     }
     const names = [...new Set(members.map(m => baseName(nameOf.get(m))))];
     addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), meshFace.get(root)!.kind === 'planar' ? 'plane' : 'curved', pos, nor, idx);
+    if (meshFace.get(root)!.kind !== 'planar') {
+      // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).
+      const face = brep.faces.find(f => f.id === root)!;
+      let radius: number | undefined;
+      try { const g = faceGeometry(face); if (g.kind === 'cylinder') radius = g.r; } catch { /* a general surface */ }
+      if (radius === undefined) { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
+      if (radius !== undefined) b.faces[b.faces.length - 1].radius = radius;
+    }
   }
 
   // Vertex normal of a B-rep face at a position, to hide smooth (tangent) joints.

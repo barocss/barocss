@@ -31,6 +31,8 @@ button { font: inherit; color: inherit; }
 .dim-chip { fill: #121315; stroke: var(--accent); }
 .dim-text { fill: #fff; font: 500 12px var(--mono); }
 .gz-handle { stroke: #101113; stroke-width: 1.5; }
+.measure-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.measure-point { fill: var(--accent); stroke: #101113; stroke-width: 1; }
 
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px); }
 .card-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; font: 600 11px var(--sans); letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
@@ -38,6 +40,8 @@ button { font: inherit; color: inherit; }
 .empty { color: var(--muted); font-size: 11px; line-height: 1.5; }
 .kv { display: flex; justify-content: space-between; gap: 10px; color: #9a9ea6; font-size: 11px; padding: 2px 0; }
 .kv b { font: 500 11px var(--mono); color: var(--text); }
+.kv select { font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; max-width: 60%; }
+.measure-item + .measure-item { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
 .topbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 2; }
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; }

@@ -40,6 +40,8 @@ interface Props {
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
   onDimClick?(key: string): void;
+  /** A measured distance: a dimension line between the closest points. */
+  measureLine?: { a: Vec3; b: Vec3; label: string } | null;
 }
 
 const snap = (v: number) => Math.round(v);
@@ -335,6 +337,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       const cur = sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
+    }
+    const ml = props.measureLine;
+    if (ml) {
+      const a = cam.project(ml.a, w, h), b = cam.project(ml.b, w, h), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, tw = Math.max(52, ml.label.length * 7 + 14);
+      items.push(<g key="measure"><line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="measure-line" />
+        <circle cx={a[0]} cy={a[1]} r={3.5} className="measure-point" /><circle cx={b[0]} cy={b[1]} r={3.5} className="measure-point" />
+        <rect x={mx - tw / 2} y={my - 24} width={tw} height={20} rx={4} className="dim-chip" /><text x={mx} y={my - 10} textAnchor="middle" className="dim-text">{ml.label}</text></g>);
     }
     const dr = drag.current;
     if (dr.mode === 'box' && dr.x0 !== undefined) {

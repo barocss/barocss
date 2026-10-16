@@ -5,6 +5,7 @@ import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
 import { commands, refOf, selectedBodies, type Command, type Ctx, type Selection, type Values } from './app/commands';
+import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { Viewport, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
@@ -78,10 +79,15 @@ export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
   const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
+  // Measuring: up to two picked faces or edges (null: not measuring).
+  const [measure, setMeasure] = useState<MeasurePick[] | null>(null);
+  const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
+  useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
   const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
   const revision = useRef(1);
   const fileInput = useRef<HTMLInputElement>(null);
+  const pickRef = useRef<(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => void>(() => {});
 
   useEffect(() => { document.documentElement.dataset.theme = theme; viewport.current?.setTheme(theme); try { localStorage.setItem('cad-studio-theme', theme); } catch { /* storage unavailable */ } }, [theme]);
   useEffect(() => { viewport.current?.setAo(ao); }, [ao]);
@@ -97,6 +103,11 @@ export function App() {
     };
     (window as unknown as { __studioSelectFace: (name: string) => boolean }).__studioSelectFace = name => {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { setSelection({ faces: [{ body: b, face: i }], edges: [], bodies: [] }); return true; } }
+      return false;
+    };
+    // A click on a named face, as the viewport reports it (measure picks go through it).
+    (window as unknown as { __studioPickFace: (name: string) => boolean }).__studioPickFace = name => {
+      for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { pickRef.current({ face: { body: b, face: i }, edge: null, point: null }, false); return true; } }
       return false;
     };
   }, [bodies]);
@@ -164,7 +175,11 @@ export function App() {
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies);
       viewport.current?.frameSketch(min, max, planeZ, SKETCH_INSETS); return;
     }
-    if (cmd.action === 'measure') { setToast({ title: 'Measure', hint: 'Select a face or an edge; its size appears in the Selection card.', detail: '' }); return; }
+    if (cmd.action === 'measure') {
+      // Start from what is selected (one face or edge), then click what to measure to.
+      const first: MeasurePick[] = selection.faces[0] ? [{ body: selection.faces[0].body, face: selection.faces[0].face }] : selection.edges[0] ? [{ body: selection.edges[0].body, edge: selection.edges[0].edge }] : [];
+      setMeasure(first); setSelection(emptySel); setEditNode(null); return;
+    }
     if (!cmd.fields) {
       const candidate = cmd.build!(ctx, {});
       engine.evaluate(candidate, revision.current++).then(result => {
@@ -236,6 +251,11 @@ export function App() {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => {
     if (active) return;
     setPick(hit.point);
+    if (measure) {
+      if (!hit.face && !hit.edge) return;
+      const p: MeasurePick = hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
+      setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
+    }
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       if (additive) {
@@ -245,7 +265,8 @@ export function App() {
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [active]);
+  }, [active, measure]);
+  pickRef.current = onPick;
 
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
@@ -289,7 +310,7 @@ export function App() {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
-      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else setSelection(emptySel); return; }
+      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
@@ -303,7 +324,9 @@ export function App() {
   });
 
   const shownBodies = previewBodies ?? bodies;
-  const shownSelection = previewBodies || sketch ? emptySel : selection;
+  const shownSelection = previewBodies || sketch ? emptySel : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+  const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
+  const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
   const gizmo = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
     const b = bodies[selectedBodies(active.ctx.selection)[0]]; const { min, max } = b.mesh.bounds;
@@ -324,6 +347,7 @@ export function App() {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
         }); }}
+        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
         onContextMenu={(at, hit) => {
           if (active || sketch) return;
@@ -387,16 +411,37 @@ export function App() {
       </aside>
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} />}
-      {!sketch && <aside className="card props" aria-label="Selection">
+      {!sketch && measure && <aside className="card props" aria-label="Measurement">
+        <div className="card-title">MEASURE <button className="tool tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></button></div>
+        {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
+          <div className="kv">{k ? 'To' : 'From'} <b>{it.label}</b></div>
+          {it.length !== undefined && <div className="kv">Length <b>{fmt(Math.round(it.length * 100) / 100)} mm</b></div>}
+          {it.area !== undefined && <div className="kv">Area <b>{fmt(Math.round(it.area * 100) / 100)} mm²</b></div>}
+          {it.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(it.radius * 1000) / 1000)} mm</b></div>}
+        </div>; })}
+        {measured && <>
+          <div className="card-title" style={{ marginTop: 10 }}>BETWEEN</div>
+          <div className="kv">Distance <b>{fmt(Math.round(measured.distance * 1000) / 1000)} mm</b></div>
+          {measured.normalDistance !== undefined && <div className="kv">Normal distance <b>{fmt(Math.round(measured.normalDistance * 1000) / 1000)} mm</b></div>}
+          {measured.angle !== undefined && <div className="kv">Angle <b>{fmt(Math.round(measured.angle * 100) / 100)}°</b></div>}
+          <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => fmt(Math.round((v - measured.a[k]) * 100) / 100)).join(', ')}</b></div>
+        </>}
+        <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
+      </aside>}
+      {!sketch && !measure && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
           {sel1.face.kind === 'plane' && <div className="kv">Normal <b>{sel1.face.normal.map(v => fmt(Math.round(v * 1000) / 1000)).join(', ')}</b></div>}
           <div className="kv">Area <b>{fmt(Math.round(sel1.face.areaMM2 * 100) / 100)} mm²</b></div>
+          {sel1.face.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(sel1.face.radius * 1000) / 1000)} mm</b></div>}
         </>) : sel1?.kind === 'edge' && sel1.edge ? (<>
           <div className="card-title">SELECTION · EDGE</div>
-          <div className="kv">Type <b>{sel1.edge.straight ? 'Line' : 'Curve'}</b></div>
-          {sel1.edge.straight && <div className="kv">Length <b>{fmt(Math.round(Math.hypot(...sel1.edge.b.map((v, k) => v - sel1.edge!.a[k]) as [number, number, number]) * 100) / 100)} mm</b></div>}
+          {(() => { const it = measureItem(sel1.body.mesh, { body: selection.edges[0].body, edge: selection.edges[0].edge }); return <>
+            <div className="kv">Type <b>{it.label}</b></div>
+            {it.length !== undefined && <div className="kv">Length <b>{fmt(Math.round(it.length * 100) / 100)} mm</b></div>}
+            {it.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(it.radius * 1000) / 1000)} mm</b></div>}
+          </>; })()}
           {sel1.edge.axis && <div className="kv">Direction <b>{sel1.edge.axis.toUpperCase()}</b></div>}
         </>) : null}
         {selBodies.length > 0 && <>
@@ -404,7 +449,8 @@ export function App() {
           {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds; return <div key={b.key}>
             <div className="kv">Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></div>
             {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
-            {b.massG !== null && <div className="kv">Mass · Al 6061 <b>{fmt(Math.round(b.massG * 10) / 10)} g</b></div>}
+            {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * density.gPerCm3 / 100) / 10)} g</b></div>}
+            <label className="kv">Material <select aria-label="Material" value={material} onChange={e => setMaterial(e.target.value)}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
           </div>; })}
         </>}
@@ -468,6 +514,13 @@ export function App() {
     </div>
   );
 }
+
+/** Densities in g/cm³ for the mass shown with a body. */
+const MATERIALS = [
+  { id: 'al6061', label: 'Aluminium 6061', gPerCm3: 2.70 }, { id: 'steel', label: 'Steel (mild)', gPerCm3: 7.85 }, { id: 'ss304', label: 'Stainless 304', gPerCm3: 8.00 },
+  { id: 'brass', label: 'Brass', gPerCm3: 8.50 }, { id: 'ti64', label: 'Titanium Ti-6Al-4V', gPerCm3: 4.43 }, { id: 'abs', label: 'ABS', gPerCm3: 1.04 },
+  { id: 'pla', label: 'PLA', gPerCm3: 1.24 }, { id: 'pa12', label: 'Nylon PA12', gPerCm3: 1.01 },
+];
 
 function iconFor(n: ModelNode) {
   return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', sweep: 'conversion_path', loft: 'filter_list', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
