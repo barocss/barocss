@@ -30,7 +30,7 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
                 {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
               : <span className="num"><input ref={i === 0 ? el => { first.current = el; } : undefined} type="number" step={f.kind === 'count' ? 1 : 'any'} min={f.min} max={f.max}
                 value={String(active.values[f.key] ?? '')} onChange={e => onChange(f.key, e.target.value === '' ? '' : Number(e.target.value))} />
-                {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}</span>}
+                {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}{f.kind === 'ratio' && <em>×</em>}</span>}
           </label>))}
       </div>
       {active.preview === 'error' && active.error && <div className="hud-error" role="status">

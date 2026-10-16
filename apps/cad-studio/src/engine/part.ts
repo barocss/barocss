@@ -22,7 +22,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
     case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, ...(node.pivot ? { pivot: node.pivot } : {}) };
     // Studio mirrors keep the original, as a mirror copy beside it.
     case 'mirror': return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: true };
-    case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor };
+    case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), axis: node.axis, at: node.at };

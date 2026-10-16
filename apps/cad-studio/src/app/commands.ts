@@ -13,7 +13,7 @@ export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selectio
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
-  | { key: string; label: string; kind: 'mm' | 'count' | 'deg'; min?: number; max?: number; step?: number }
+  | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio'; min?: number; max?: number; step?: number }
   | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] }
 ) & { when?: (values: Values) => boolean };
 export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
@@ -275,6 +275,14 @@ export const commands: Command[] = [
     // About the axis through the body's centre (where the gizmo sits); nothing turned until typed or dragged.
     defaults: ctx => { const c = centreOf(oneBody(ctx)); return { axis: 'z', angle: 0, px: c[0], py: c[1], pz: c[2] }; },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
+  },
+  {
+    id: 'scale', label: 'Scale', icon: 'cad-scale', hint: 'Grow or shrink a body about its centre: drag the gizmo’s cube or type the factor', group: 'modify', keywords: 'resize enlarge shrink factor',
+    available: ctx => oneBody(ctx) ? ok : no('Select one body to scale.'),
+    fields: () => [{ key: 'factor', label: 'Factor', kind: 'ratio', min: 0.01, max: 1000 },
+      { key: 'px', label: 'Pivot X', kind: 'mm' }, { key: 'py', label: 'Pivot Y', kind: 'mm' }, { key: 'pz', label: 'Pivot Z', kind: 'mm' }],
+    defaults: ctx => { const c = centreOf(oneBody(ctx)); return { factor: 1, px: c[0], py: c[1], pz: c[2] }; },
+    build: (ctx, v) => withNode(ctx.doc, { kind: 'scale', parent: refOf(oneBody(ctx)!), factor: Number(v.factor), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
   {
     id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a coordinate plane', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',

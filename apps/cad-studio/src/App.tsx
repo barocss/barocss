@@ -613,7 +613,7 @@ export function App() {
   // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
   // of the evaluated body); let go, the kernel preview of the values runs.
   const dragFrom = useRef<Values | null>(null);
-  const cmdBody = active && (active.cmd.id === 'move' || active.cmd.id === 'rotate') && selectedBodies(active.ctx.selection).length === 1 ? selectedBodies(active.ctx.selection)[0] : undefined;
+  const cmdBody = active && (active.cmd.id === 'move' || active.cmd.id === 'rotate' || active.cmd.id === 'scale') && selectedBodies(active.ctx.selection).length === 1 ? selectedBodies(active.ctx.selection)[0] : undefined;
   const gizmo: TransformGizmo | null = active && cmdBody !== undefined && bodies[cmdBody] ? (() => {
     const { min, max } = bodies[cmdBody].mesh.bounds, values = active.values;
     const begin = () => dragFrom.current ?? (dragFrom.current = values);
@@ -628,6 +628,16 @@ export function App() {
         onMove: (delta, done) => {
           const from = begin(), next: Vec3 = [Number(from.x) + delta[0], Number(from.y) + delta[1], Number(from.z) + delta[2]];
           show({ x: next[0], y: next[1], z: next[2] }, previewMatrix({ kind: 'move', delta: next }), done);
+        } };
+    }
+    if (active.cmd.id === 'scale') {
+      // Scale: the cubes grow or shrink the body about the pivot (its centre by default).
+      const pivot: Vec3 = [Number(values.px), Number(values.py), Number(values.pz)];
+      return { origin: pivot, scale: true,
+        onScale: (factor, done) => {
+          const from = begin(), k = Math.round(Number(from.factor) * factor * 100) / 100, m = new Float64Array(16);
+          m[0] = m[5] = m[10] = k; m[15] = 1; m[12] = pivot[0] * (1 - k); m[13] = pivot[1] * (1 - k); m[14] = pivot[2] * (1 - k);
+          show({ factor: k }, m, done);
         } };
     }
     // Rotate: about the pivot, in 15° steps (Shift: 1°).

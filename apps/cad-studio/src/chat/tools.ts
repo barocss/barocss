@@ -37,6 +37,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   shell: { selection: 'faces to open (all of one body), or bodies: [one body] for a closed hollow', values: { t: 'wall thickness' } },
   move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ', ax: 'to X (the box corner; the HUD keeps it with ΔX — give one of the two)', ay: 'to Y', az: 'to Z' } },
   rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z', angle: 'degrees', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
+  scale: { selection: 'bodies: [one body]', values: { factor: 'uniform factor (1 = unchanged)', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy (through the origin); keeps the original' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original' } },
   'circular-pattern': { selection: 'bodies: [one body]', values: { axis: 'z (even full turn) | x | y (quarter turns)', count: 'copies including the original' } },

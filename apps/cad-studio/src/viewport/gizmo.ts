@@ -19,6 +19,9 @@ export interface TransformGizmo {
   onMove?(delta: Vec3, done: boolean): void;
   /** The whole turn from the drag's start (degrees, right-handed about the axis). */
   onTurn?(axis: Axis3, degrees: number, done: boolean): void;
+  /** Uniform scale: a cube at the centre and one along each axis; `onScale` gets the factor from the drag's start (×, 0.05 steps; Shift: 0.01). */
+  scale?: boolean;
+  onScale?(factor: number, done: boolean): void;
 }
 /** One dimension dragged along a direction: `value` at the start, `toValue` maps the mm moved to the new value. */
 export interface FeatureHandle {
@@ -32,7 +35,7 @@ export interface FeatureHandle {
   format(value: number): string;
   onDrag(value: number, done: boolean): void;
 }
-export type GizmoHit = { kind: 'move' | 'turn'; axis: Axis3 } | { kind: 'plane'; axes: [Axis3, Axis3] } | { kind: 'handle'; index: number };
+export type GizmoHit = { kind: 'move' | 'turn'; axis: Axis3 } | { kind: 'plane'; axes: [Axis3, Axis3] } | { kind: 'handle'; index: number } | { kind: 'scale'; axis: Axis3 | null };
 /** Screen projection, the camera's forward direction, and `size`: world mm that make the gizmo's full size on screen there. */
 export interface Projector { project(p: Vec3): XY; forward: Vec3; size: number }
 
@@ -61,7 +64,9 @@ export function layout(g: TransformGizmo, P: Projector) {
     const points = Array.from({ length: 19 }, (_, i) => { const a = (0.06 + 0.88 * i / 18) * Math.PI / 2; return P.project(at(g.origin, [[unitAxis(u), su * r * Math.cos(a)], [unitAxis(v), sv * r * Math.sin(a)]])); });
     return { axis, points };
   });
-  return { origin: o, arrows, planes, arcs };
+  // Scale cubes: one at the centre, one along each axis (all uniform).
+  const cubes = g.scale ? [{ axis: null as Axis3 | null, at: o }, ...([0, 1, 2] as Axis3[]).map(axis => ({ axis: axis as Axis3 | null, at: P.project(at(g.origin, [[unitAxis(axis), 0.8 * s]])) }))] : [];
+  return { origin: o, arrows, planes, arcs, cubes };
 }
 /** Rodrigues: v turned by `a` radians about the unit axis k. */
 function turn(v: Vec3, k: Vec3, a: number): Vec3 {
@@ -94,6 +99,7 @@ export function hitTest(p: XY, g: TransformGizmo | null, handles: readonly Featu
     for (const q of L.planes) if (insidePolygon(p, q.points)) consider({ kind: 'plane', axes: q.axes }, 0, 1);
     for (const a of L.arrows) consider({ kind: 'move', axis: a.axis }, Math.min(segDist(p, a.from, a.to), Math.hypot(p[0] - a.to[0], p[1] - a.to[1]) - 4), 7);
     for (const r of L.arcs) consider({ kind: 'turn', axis: r.axis }, polyDist(p, r.points) + 0.5, 7);
+    for (const c of L.cubes) consider({ kind: 'scale', axis: c.axis }, Math.max(Math.abs(p[0] - c.at[0]), Math.abs(p[1] - c.at[1])) - (c.axis === null ? 2 : 0), 8);
   }
   handles.forEach((h, index) => { const l = handleLayout(h, P); consider({ kind: 'handle', index }, Math.min(l.points ? polyDist(p, l.points) : segDist(p, l.from, l.to), Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 4), 8); });
   return best;
@@ -119,6 +125,17 @@ export function dragTurn(from: XY, to: XY, centre: Vec3, axis: Axis3, P: Project
   // Screen y runs down: a counter-clockwise sweep on screen is clockwise in math axes. Seen from the
   // axis's tip (axis towards the camera) a right-handed turn sweeps counter-clockwise.
   return -P.forward[axis] >= 0 ? -d : d;
+}
+/**
+ * A scale factor for a screen drag on a scale cube: along an axis cube, the share of the cube's own distance
+ * from the centre that the pointer moved out (or in) along it; at the centre, the drag up and right.
+ */
+export function dragScale(from: XY, to: XY, origin: Vec3, axis: Axis3 | null, P: Projector): number {
+  const o = P.project(origin);
+  if (axis === null) return Math.max(0.01, 1 + ((to[0] - from[0]) - (to[1] - from[1])) / GIZMO_PX);
+  const c = P.project(at(origin, [[unitAxis(axis), 0.8 * P.size]])), dx = c[0] - o[0], dy = c[1] - o[1], l2 = dx * dx + dy * dy;
+  if (l2 < 64) return 1;
+  return Math.max(0.01, 1 + ((to[0] - from[0]) * dx + (to[1] - from[1]) * dy) / l2);
 }
 /** Degrees turned about any axis through `centre` for a screen drag (as dragTurn, for a direction not along X, Y or Z). */
 export function dragAbout(from: XY, to: XY, centre: Vec3, axis: Vec3, P: Projector): number {

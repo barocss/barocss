@@ -16,7 +16,7 @@ const SPECS: Record<string, Spec> = {
   translate: { parent: 'ref', offset: 'dim3' },
   rotate: { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num', 'pivot?': 'dim3' },
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
-  scale: { parent: 'ref', factor: 'pos' },
+  scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num', count: 'count' },
   union: { left: 'ref', right: 'ref' },

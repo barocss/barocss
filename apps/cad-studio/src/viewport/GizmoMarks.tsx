@@ -39,7 +39,13 @@ export function gizmoMarks(g: TransformGizmo | null, handles: readonly FeatureHa
         <line x1={a.from[0]} y1={a.from[1]} x2={base[0]} y2={base[1]} stroke={color} strokeWidth={on ? 3 : 2} strokeLinecap="round" />
         <polygon points={pts(head)} fill={color} stroke="#000" strokeOpacity={0.3} strokeWidth={0.8} /></g>);
     }
-    items.push(<circle key="go" cx={L.origin[0]} cy={L.origin[1]} r={3.5} className="gizmo-origin" />);
+    for (const c of L.cubes) {
+      const on = same(hot, { kind: 'scale', axis: c.axis }), half = c.axis === null ? 7 : 5, color = on ? HOT : c.axis === null ? '#e8e9eb' : AXIS_COLORS[c.axis];
+      if (c.axis !== null) items.push(<line key={'gsl' + c.axis} x1={L.origin[0]} y1={L.origin[1]} x2={c.at[0]} y2={c.at[1]} stroke={color} strokeOpacity={0.6} strokeWidth={1.5} strokeDasharray="3 3" />);
+      items.push(<rect key={'gs' + c.axis} x={c.at[0] - half} y={c.at[1] - half} width={half * 2} height={half * 2} rx={1.5} fill={color} stroke="#000" strokeOpacity={0.4} strokeWidth={1}
+        className="gizmo-scale" data-gizmo={'scale' + (c.axis === null ? '' : 'XYZ'[c.axis])} />);
+    }
+    if (!L.cubes.length) items.push(<circle key="go" cx={L.origin[0]} cy={L.origin[1]} r={3.5} className="gizmo-origin" />);
   }
   handles.forEach((h, index) => {
     const { from, to, points } = handleLayout(h, P), on = same(hot, { kind: 'handle', index });

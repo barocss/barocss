@@ -38,7 +38,8 @@ export type ModelNode = SketchNode
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
-  | { kind: 'scale'; parent: BodyRef; factor: number }
+  /** About `pivot` (none: the origin). */
+  | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number }
   | { kind: 'union'; left: BodyRef; right: BodyRef }

@@ -13,7 +13,7 @@ import type { SketchRule } from '../sketch/terms';
 import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
 import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAbout, dragAlong, dragPlane, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
@@ -113,7 +113,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; origin?: Vec3 }>({ mode: null, x: 0, y: 0, moved: false });
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null }>({ cursor: null });
@@ -277,6 +277,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
       else { const dir: Vec3 = [0, 0, 0]; dir[hit.axis] = 1; delta[hit.axis] = snapTo(dragAlong(d.from!, [x, y], o, dir, P), step); }
       d.delta = delta; g.onMove?.(delta, done); return;
+    }
+    if (hit.kind === 'scale') {
+      const k = dragScale(d.from!, [x, y], d.origin ?? g.origin, hit.axis, P), step = shift ? 0.01 : 0.05;
+      d.factor = Math.max(step, Math.round(k / step) * step); g.onScale?.(d.factor, done); return;
     }
     // A turn adds up the sweep step by step, so it can go past half a turn.
     d.turned = (d.turned ?? 0) + dragTurn(d.last!, [x, y], g.origin, hit.axis, P); d.last = [x, y];
@@ -540,7 +544,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const g = drag.current.mode === 'gizmo' ? drag.current : null, hit = g?.hit;
       const readout = !g || !hit ? null : { at: [g.x, g.y] as [number, number], text: hit.kind === 'handle' ? (props.handles?.[hit.index] ? `${props.handles[hit.index].label} ${props.handles[hit.index].format(g.value ?? g.start ?? 0)}` : '')
         : hit.kind === 'move' ? `Δ${'XYZ'[hit.axis]} ${fmtLen(g.delta?.[hit.axis] ?? 0)} mm`
-        : hit.kind === 'plane' ? hit.axes.map(a => `Δ${'XYZ'[a]} ${fmtLen(g.delta?.[a] ?? 0)}`).join('  ') + ' mm' : `${'XYZ'[hit.axis]} ${fmtLen(g.degrees ?? 0)}°` };
+        : hit.kind === 'plane' ? hit.axes.map(a => `Δ${'XYZ'[a]} ${fmtLen(g.delta?.[a] ?? 0)}`).join('  ') + ' mm'
+        : hit.kind === 'scale' ? `× ${String(Math.round((g.factor ?? 1) * 100) / 100)}` : `${'XYZ'[hit.axis]} ${fmtLen(g.degrees ?? 0)}°` };
       items.push(...gizmoMarks(props.gizmo, props.handles ?? [], projector(), g ? hit ?? null : gizmoHot.current, readout));
     }
     // Axis triad, bottom-left, following the camera.
