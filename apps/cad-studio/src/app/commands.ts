@@ -25,7 +25,14 @@ export interface Command {
   build?(ctx: Ctx, values: Values): StudioDoc;
   /** Commands without a build run a UI action (sketch mode, measure, …). */
   action?: 'sketch' | 'measure';
+  /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
+  handles?(ctx: Ctx, values: Values): HandleSpec[];
 }
+/**
+ * A value dragged in the viewport: an arrow at `at` along `dir`; the value becomes start + mm × `scale`
+ * (default 1), in steps of `step` (default 1; Shift: a tenth), not below `min`.
+ */
+export interface HandleSpec { key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number }
 
 export function refOf(body: BodyResult): BodyRef {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key);
@@ -62,6 +69,25 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
 /** The selected edges, when they all belong to one body. */
+const unit3 = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+/**
+ * A fillet or chamfer's size, dragged into the corner of the first picked edge (against its faces'
+ * normals), from where the rounded or cut face crosses the bisector: r / sin(φ/2) − r in for a fillet of
+ * radius r, d · cos(φ/2) for a chamfer of distance d, φ the angle between the faces inside the body.
+ */
+function edgeHandle(ctx: Ctx, key: string, size: number, kind: 'fillet' | 'chamfer'): HandleSpec[] {
+  const sel = edgesOfOneBody(ctx), e = sel?.edges[0]; if (!sel || !e) return [];
+  const n = e.faces.map(f => sel.body.mesh.faces[f]?.normal).filter((x): x is [number, number, number] => !!x);
+  if (n.length !== 2) return [];
+  const into = unit3([-(n[0][0] + n[1][0]), -(n[0][1] + n[1][1]), -(n[0][2] + n[1][2])]);
+  const half = (Math.PI - Math.acos(Math.max(-1, Math.min(1, n[0][0] * n[1][0] + n[0][1] * n[1][1] + n[0][2] * n[1][2])))) / 2;
+  const off = !(size > 0) ? 0 : kind === 'fillet' ? size / Math.sin(half) - size : size * Math.cos(half);
+  const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2 + into[k] * off) as [number, number, number];
+  // (Dragging it in moves the face in by that much per mm of size: scale back to the size.)
+  const perMm = kind === 'fillet' ? 1 / Math.sin(half) - 1 : Math.cos(half);
+  return [{ key, at: mid, dir: into, scale: perMm > 1e-3 ? 1 / perMm : 1, min: 0.1, step: 0.5 }];
+}
+
 function edgesOfOneBody(ctx: Ctx) {
   const sel = ctx.selection.edges; if (!sel.length || sel.some(e => e.body !== sel[0].body)) return null;
   const body = ctx.bodies[sel[0].body];
@@ -85,6 +111,11 @@ export const commands: Command[] = [
       if (top && top.normal[2] > 0.99) return { w: 16, d: 16, h: 16, x: r1(top.centroid[0] - 8), y: r1(top.centroid[1] - 8), z: r1(top.centroid[2]) };
       const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity);
       return { w: 32, d: 32, h: 16, x: Number.isFinite(right) ? r1(right + 16) : 0, y: 0, z: 0 };
+    },
+    // Width, depth and height: an arrow on the +X, +Y and +Z faces.
+    handles: (_, v) => {
+      const [w, d, h, x, y, z] = ['w', 'd', 'h', 'x', 'y', 'z'].map(k => Number(v[k]));
+      return [{ key: 'w', at: [x + w, y + d / 2, z + h / 2], dir: [1, 0, 0], min: 1 }, { key: 'd', at: [x + w / 2, y + d, z + h / 2], dir: [0, 1, 0], min: 1 }, { key: 'h', at: [x + w / 2, y + d / 2, z + h], dir: [0, 0, 1], min: 1 }];
     },
     build: (ctx, v) => {
       const x = Number(v.x), y = Number(v.y), z = Number(v.z);
@@ -123,6 +154,13 @@ export const commands: Command[] = [
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
       return { d: 8, x: r1(p[a]), y: r1(p[b]) };
     },
+    // The diameter, at the rim along the face's first axis.
+    handles: (ctx, v) => {
+      const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
+      const [a, b] = HOLE_PLANE[h.axis].map(k => 'xyz'.indexOf(k)), at: [number, number, number] = [...face.centroid] as [number, number, number], dir: [number, number, number] = [0, 0, 0];
+      at[a] = Number(v.x) + Number(v.d) / 2; at[b] = Number(v.y); dir[a] = 1;
+      return [{ key: 'd', at, dir, scale: 2, min: 0.5, step: 0.5 }];
+    },
     build: (ctx, v) => {
       const f = ctx.selection.faces[0], body = ctx.bodies[f.body], { axis, side } = holeAxis(body.mesh.faces[f.face].normal)!;
       // Through by default; the side is kept so a later depth edit drills in from the picked face.
@@ -138,6 +176,7 @@ export const commands: Command[] = [
     },
     fields: () => [{ key: 'distance', label: 'Distance', kind: 'mm', min: 0.1 }],
     defaults: () => ({ distance: 2 }),
+    handles: (ctx, v) => edgeHandle(ctx, 'distance', Number(v.distance), 'chamfer'),
     build: (ctx, v) => {
       const { body, edges } = edgesOfOneBody(ctx)!;
       return withNode(ctx.doc, { kind: 'chamfer', parent: refOf(body), edges: edges.flatMap(e => e.names), distance: Number(v.distance) });
@@ -152,6 +191,7 @@ export const commands: Command[] = [
     },
     fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }],
     defaults: () => ({ radius: 3 }),
+    handles: (ctx, v) => edgeHandle(ctx, 'radius', Number(v.radius), 'fillet'),
     build: (ctx, v) => {
       const { body, edges } = edgesOfOneBody(ctx)!;
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: edges.flatMap(e => e.names), radius: Number(v.radius) });

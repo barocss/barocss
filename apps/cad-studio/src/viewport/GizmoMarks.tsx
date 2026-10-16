@@ -44,8 +44,9 @@ export function gizmoMarks(g: TransformGizmo | null, handles: readonly FeatureHa
   handles.forEach((h, index) => {
     const { from, to } = handleLayout(h, P), on = same(hot, { kind: 'handle', index }), head = cone(from, to, on ? 13 : 11, on ? 5 : 4);
     items.push(<g key={'gh' + h.id} className={'gizmo-handle' + (on ? ' hot' : '')} data-handle={h.id}>
-      <line x1={from[0]} y1={from[1]} x2={head[2][0]} y2={head[2][1]} strokeWidth={on ? 2.6 : 1.8} strokeLinecap="round" strokeDasharray={on ? undefined : '3 3'} />
-      <polygon points={pts(head)} /><circle cx={from[0]} cy={from[1]} r={2.8} /></g>);
+      <line x1={from[0]} y1={from[1]} x2={head[2][0]} y2={head[2][1]} stroke="#000" strokeOpacity={0.35} strokeWidth={on ? 5 : 4} strokeLinecap="round" />
+      <line x1={from[0]} y1={from[1]} x2={head[2][0]} y2={head[2][1]} strokeWidth={on ? 3 : 2} strokeLinecap="round" />
+      <polygon points={pts(head)} /><circle cx={from[0]} cy={from[1]} r={3.5} /></g>);
   });
   if (readout) {
     const w = Math.max(48, readout.text.length * 7 + 16);

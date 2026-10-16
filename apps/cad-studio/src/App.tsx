@@ -8,7 +8,7 @@ import type { Vec3 } from './engine/mesh';
 import { commands, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
-import { Viewport, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
+import { Viewport, type FeatureHandle, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
@@ -32,7 +32,7 @@ import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeomet
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, toWorld, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
@@ -322,10 +322,20 @@ export function App() {
     return () => { live = false; clearTimeout(t); };
   }, [active?.values, active?.cmd, engine]);
 
+  // Apply while the preview is still computing (just after a drag or a typed value) waits for it.
+  const applyWhenReady = useRef<Command | null>(null);
   const apply = useCallback(() => {
-    if (!active?.cmd.build || active.preview !== 'ok') return;
+    if (!active?.cmd.build) return;
+    if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
+    applyWhenReady.current = null;
+    if (active.preview !== 'ok') return;
     commit(active.cmd.build(active.ctx, active.values)); setActive(null); setPreviewBodies(null); setSketch(null);
   }, [active, commit]);
+  // (Only for the command it was asked for: cancelled or replaced, it is forgotten.)
+  useEffect(() => {
+    if (applyWhenReady.current && applyWhenReady.current !== active?.cmd) applyWhenReady.current = null;
+    else if (applyWhenReady.current && active?.preview !== 'busy') apply();
+  }, [active?.preview, active?.cmd, apply]);
 
   const start = useCallback((cmd: Command) => {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
@@ -417,6 +427,12 @@ export function App() {
         { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400, when: v => v.make === 'loft' },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : []),
         ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' && v.make === 'extrude' }] : [])],
+      // The distance: an arrow from the profile's middle along the sketch normal (into the body for a cut).
+      handles: (_, v) => {
+        if (String(v.make).startsWith('revolve') || (v.op === 'cut' && v.make === 'extrude' && v.depth === 'through')) return [];
+        const n = sketch.plane.normal, sign = v.op === 'cut' ? -1 : 1, c = toWorld(sketch.plane, profileMiddle(node)), h = Number(v.h);
+        return [{ key: 'h', at: [c[0] + n[0] * sign * h, c[1] + n[1] * sign * h, c[2] + n[2] * sign * h], dir: [n[0] * sign, n[1] * sign, n[2] * sign], min: 1 }];
+      },
       defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bendDeg: 90, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, placedNode);
@@ -602,9 +618,9 @@ export function App() {
           show({ x: next[0], y: next[1], z: next[2] }, previewMatrix({ kind: 'move', delta: next }), done);
         } };
     }
-    // Rotate: about the pivot; X and Y turn in quarter turns only (as the kernel does), Z in 15° steps.
+    // Rotate: about the pivot, in 15° steps (Shift: 1°).
     const pivot: Vec3 = [Number(values.px), Number(values.py), Number(values.pz)];
-    return { origin: pivot, turn: [0, 1, 2], turnSnap: axis => axis === 2 ? 15 : 90,
+    return { origin: pivot, turn: [0, 1, 2],
       onTurn: (axis, degrees, done) => {
         const from = begin(), name = 'xyz'[axis], angle = from.axis === name ? Number(from.angle) + degrees : degrees;
         show({ axis: name, angle }, previewMatrix({ kind: 'turn', axis, degrees: angle, centre: pivot }), done);
@@ -613,6 +629,16 @@ export function App() {
   // Let go: the dragged look stays until the preview of the final values is in, then the preview shows.
   useEffect(() => { if (bodyDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setBodyDrag(null); }, [previewBodies, bodyDrag, active]);
   useEffect(() => { setBodyDrag(null); dragFrom.current = null; }, [active?.cmd.id]);
+  // The active command's dimension handles: dragging one sets that value (the preview follows).
+  const handles: FeatureHandle[] = active?.cmd.handles && !sketch ? active.cmd.handles(active.ctx, active.values).flatMap(h => {
+    const field = (active.cmd.fields?.(active.ctx) ?? []).find(f => f.key === h.key), value = Number(active.values[h.key]);
+    if (!field || !Number.isFinite(value)) return [];
+    const step = h.step ?? 1;
+    return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value,
+      toValue: (start: number, mm: number) => Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step),
+      format: (v: number) => `${fmt(v)} mm`,
+      onDrag: (v: number) => setActive(a => a && a.values[h.key] !== v ? { ...a, values: { ...a.values, [h.key]: v }, preview: 'busy' } : a) }];
+  }) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
@@ -650,7 +676,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} instancePreview={instancePreview} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
@@ -903,6 +929,13 @@ const MATERIALS = [
 function iconFor(n: ModelNode) {
   return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', sweep: 'conversion_path', loft: 'filter_list', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
+}
+
+/** The middle of a sketch profile in its plane's coordinates (the average of its corners, a circle's centre). */
+function profileMiddle(n: SketchNode): [number, number] {
+  const pts: (readonly unknown[])[] = n.profile === 'rectangle' ? [n.min, n.max] : n.profile === 'circle' ? [n.center] : n.profile === 'polygon' ? n.points : n.segments.map(s => s.start);
+  const xs = pts.map(p => Number(p[0])).filter(Number.isFinite), ys = pts.map(p => Number(p[1])).filter(Number.isFinite);
+  return [xs.reduce((a, b) => a + b, 0) / (xs.length || 1), ys.reduce((a, b) => a + b, 0) / (ys.length || 1)];
 }
 
 function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void }) {

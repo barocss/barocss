@@ -1082,6 +1082,35 @@ try {
     await page.unroute(statusUrl); await page.unroute(turnUrl);
   });
 
+  await check('drag a dimension handle (box width), and turn a body 45° about X with the Rotate gizmo', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await page.waitForSelector('[data-handle="w"]', { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const ends = sel => page.evaluate(sel => { const l = document.querySelector(sel); const g = n => Number(l.getAttribute(n)); return [[g('x1'), g('y1')], [g('x2'), g('y2')]]; }, sel);
+    const [a, b] = await ends('[data-handle="w"] line:nth-of-type(2)'), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + m[0] + (b[0] - a[0]) * 1.5, svg.y + m[1] + (b[1] - a[1]) * 1.5, { steps: 8 }); await page.mouse.up();
+    await page.waitForFunction(() => Number(document.querySelector('.hud input')?.value) > 32, null, { timeout: 5000 });
+    await press('Enter'); await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    // The box's top face picks its body for Rotate.
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioSelectFace('n1.top'), null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('rotate'); await press('Enter'); await hudReady();
+    await page.waitForSelector('[data-gizmo=turnX]', { timeout: 5000 });
+    const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
+    const q = await page.evaluate(() => { const ps = document.querySelector('[data-gizmo=turnX] polyline:nth-of-type(2)').getAttribute('points').trim().split(' ').map(p => p.split(',').map(Number)); return ps[ps.length >> 1]; });
+    const r = Math.hypot(q[0] - o[0], q[1] - o[1]), a0 = Math.atan2(q[1] - o[1], q[0] - o[0]);
+    await page.mouse.move(svg.x + q[0], svg.y + q[1]); await page.mouse.down();
+    for (let k = 1; k <= 12; k++) await page.mouse.move(svg.x + o[0] + r * Math.cos(a0 - k * Math.PI / 48), svg.y + o[1] + r * Math.sin(a0 - k * Math.PI / 48));
+    await page.mouse.up();
+    await page.waitForFunction(() => [...document.querySelectorAll('.hud input')].some(i => Math.abs(Number(i.value)) === 45), null, { timeout: 5000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate' && window.__studioDoc.nodes.at(-1).axis === 'x', null, { timeout: 15000 });
+    const turned = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
+    assert.deepEqual([Math.abs(turned.angleDegrees), turned.pivot.length], [45, 3]);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && !/error/i.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('rotate-x-45');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
