@@ -162,6 +162,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const t = (z - origin[2]) / dir[2]; if (t < 0) return null;
     return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, z];
   };
+  /**
+   * The edge or else the face under a pixel. Over a face an edge must be within 4 px (a thin face such as
+   * a plate's side stays pickable); elsewhere within 6 px.
+   */
+  const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null } => {
+    const under = r.pickFace(x, y, camera.current, viewState());
+    const edge = r.pickEdge(x, y, camera.current, viewState(), under ? 4 : 6);
+    return { face: edge ? null : under, edge };
+  };
   /** The sketch plane's coordinates under a pixel. */
   const sketchPoint = (x: number, y: number, w: number, h: number, plane: SketchPlane): [number, number] | null => {
     const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
@@ -238,8 +247,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       request(); return;
     }
-    const face = r.pickFace(x, y, camera.current, viewState());
-    const edge = r.pickEdge(x, y, camera.current, viewState());
+    const { face, edge } = pickAt(r, x, y);
     const prev = hover.current;
     const next = { face: edge ? null : face, edge };
     if (JSON.stringify(prev) !== JSON.stringify(next)) { hover.current = next; r.setState(viewState()); request(); }
@@ -254,8 +262,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const { x, y, w, h } = local(e);
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
-      const r = renderer.current!; const edge = r.pickEdge(x, y, camera.current, viewState());
-      const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
+      const { face, edge } = pickAt(renderer.current!, x, y);
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
@@ -291,8 +298,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstance?.(x, y, camera.current) ?? null;
     if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance }, e.shiftKey); return; }
-    const edge = r.pickEdge(x, y, camera.current, viewState());
-    const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
+    const { face, edge } = pickAt(r, x, y);
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
   };
 
