@@ -480,6 +480,9 @@ export function App() {
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
+  // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
+  // and face references into it, so they close first (U4).
+  const replaceDoc = (next: StudioDoc) => { cancel(); commit(next); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
   const open = async (file: File) => {
     try {
@@ -489,7 +492,7 @@ export function App() {
         // Read it before replacing the current part: a file the kernel cannot read keeps the part.
         const read = await engine.part(next, revision.current++);
         if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
-        commit(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
+        replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
       // A CAD source adds its curves and surfaces to the part as direct geometry.
@@ -501,7 +504,7 @@ export function App() {
       }
       const parsed = JSON.parse(await file.text()) as StudioDoc;
       if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
-      commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
+      replaceDoc({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
       setTimeout(() => viewport.current?.fit(), 300);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
@@ -613,7 +616,7 @@ export function App() {
         <button className={'tool' + (chat ? ' on' : '')} aria-label="Chat" title="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></button>
         <button className="tool" aria-label="Undo" title="Undo (⌘Z)" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" title="Redo (⇧⌘Z)" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
-        <button className="tool" aria-label="New part" title="New part" onClick={() => { commit(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
+        <button className="tool" aria-label="New part" title="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
         <button className="tool" aria-label="Open" title="Open a .bcad model or a STEP file, or add a .barocad source's curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
