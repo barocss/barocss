@@ -2,7 +2,7 @@
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
 import {
-  applyConstraint, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
+  applyConstraint, circleDimensionKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
 } from '../sketch/rules';
 import './constraints.css';
@@ -13,7 +13,7 @@ const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }
   { kind: 'equal', sym: '=', label: 'Equal', short: 'Equal' }, { kind: 'coincident', sym: '◎', label: 'Coincident', short: 'Centre' }, { kind: 'fix', sym: '⚓', label: 'Fix', short: 'Fix' },
 ];
 
-const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
+const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;
 
 export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim }: {
   shape: Polygon; picked: readonly SketchPick[];
@@ -22,7 +22,9 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
   const [refused, setRefused] = useState<string | null>(null);
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
-  const twoPoints = picked.length === 2 && picked.every(p => p.kind === 'point') ? pointDimensionKeys(picked[0].i, picked[1].i) : null;
+  const point = picked.find(p => p.kind === 'point'), circle = picked.find(p => p.kind === 'circle');
+  const twoPoints = picked.length === 2 && picked.every(p => p.kind === 'point') ? pointDimensionKeys(picked[0].i, picked[1].i)
+    : picked.length === 2 && point && circle ? circleDimensionKeys(point.i, circle.i) : null;
   const apply = (kind: ConstraintKind) => {
     const r = applyConstraint(s, picked, kind);
     if (!r.ok) { setRefused(r.reason); return; }
@@ -41,7 +43,7 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
         onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
     {twoPoints && <div className="cons-tools cons-dims" role="group" aria-label="Dimensions between the points">
-      <button type="button" aria-label="Distance between the points" title="Straight distance" onClick={() => onEditDim(dim ?? twoPoints.dist)}><b>⤢</b><span>Distance</span></button>
+      <button type="button" aria-label="Distance between the points" title="Straight distance" onClick={() => onEditDim(circle ? twoPoints.dist : dim ?? twoPoints.dist)}><b>⤢</b><span>Distance</span></button>
       <button type="button" aria-label="Horizontal distance" title="Distance along the sketch X axis" onClick={() => onEditDim(twoPoints.dx)}><b>↔</b><span>Horizontal</span></button>
       <button type="button" aria-label="Vertical distance" title="Distance along the sketch Y axis" onClick={() => onEditDim(twoPoints.dy)}><b>↕</b><span>Vertical</span></button>
     </div>}

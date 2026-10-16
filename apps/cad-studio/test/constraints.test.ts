@@ -336,3 +336,58 @@ test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension whil
   // A line-tool outline of the same shape stays a polygon.
   assert.equal(shapeNode(close([[0, 0], [40, 0], [40, 20], [0, 20]]))!.profile, 'polygon');
 });
+
+test('a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited', async () => {
+  const { sketchClick, attachCircle, pickSketch } = await import('../src/sketch/select');
+  const { profileOf, shapeNode } = await import('../src/sketch/loops');
+  const { sketchShapes } = await import('../src/sketch/reopen');
+  const { editFields } = await import('../src/app/editFields');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const plate = (commitDimension(close([[0, 0], [40, 0], [40, 20], [0, 20]]), 'len0', 40) as { shape: Polygon }).shape;
+  const hole = { kind: 'circle' as const, c: [12, 9] as P2, r: 3 };
+  // The Dimension tool: point 1, then the finished circle, opens the distance to its centre and attaches the circle.
+  let state: SketchState = { plane: xyPlane(), tool: 'dimension', shape: plate, done: [hole] };
+  const project = (u: number, v: number) => [u * 10, 400 - v * 10];
+  assert.deepEqual(pickSketch(plate, project, 150, 310, state.done), { kind: 'circle', i: 0, done: true });
+  state = sketchClick(state, Pt(0), false);
+  state = sketchClick(state, { kind: 'circle', i: 0, done: true }, false);
+  assert.equal(state.editDim, 'cdist0_0'); assert.deepEqual(state.done, []);
+  let s = state.shape as Polygon;
+  assert.deepEqual(s.circles, [{ c: [12, 9], r: 3 }]);
+  assert.equal(dimensionKey(s, [Pt(0), { kind: 'circle', i: 0 }]), 'cdist0_0');
+  assert.match(constraintOptions(s, [{ kind: 'circle', i: 0 }]).fix ?? '', /circle takes dimensions/);
+  // Horizontal 10 and vertical 6 from point 1: the centre lands there; the rest of the plate is 1 DOF (its height).
+  const before = dof(s);
+  s = (commitDimension(s, 'cdx0_0', 10) as { shape: Polygon }).shape;
+  s = (commitDimension(s, 'cdy0_0', 6) as { shape: Polygon }).shape;
+  assert.deepEqual(s.circles![0].c, [10, 6]); assert.equal(dof(s), before - 2);
+  const d = commitDimension(s, 'cdia0', 8); assert.ok(d.ok); s = d.shape; assert.equal(s.circles![0].r, 4);
+  assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail),
+    ['Horizontal distance point 1 – circle 1 = 10', 'Vertical distance point 1 – circle 1 = 6']);
+  // A distance the plate cannot give conflicts; dimensioning the centre again over-defines.
+  assert.match((commitDimension(s, 'cdist0_0', 50) as { reason: string }).reason, /conflict/);
+  // The profile: the plate with the circle as its hole, and the outline keeps the circle and its rules.
+  const r = profileOf([s]); assert.ok('node' in r);
+  assert.equal(r.node.holes?.length, 1); assert.deepEqual(r.node.outline?.circles, [{ c: [10, 6], r: 4 }]);
+  let doc = withNode(withNode(emptyDoc(), r.node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.ok(evaluateDoc(doc, 2).ok);
+  // Reopened: the circle comes back on the outline, not beside it.
+  const back = sketchShapes(r.node);
+  assert.deepEqual((back.shape as Polygon).circles, [{ c: [10, 6], r: 4 }]); assert.deepEqual(back.done, []);
+  // The feature editor moves the hole by its horizontal distance.
+  const f = editFields(doc.nodes, 1).find(x => x.label === 'Horizontal distance point 1 – circle 1')!;
+  assert.ok(f && f.kind === 'number'); assert.equal(f.get(doc.nodes), 10);
+  const nodes = f.kind === 'number' ? f.set(doc.nodes, 25) : doc.nodes;
+  assert.deepEqual((nodes[0] as { outline: { circles: unknown } }).outline.circles, [{ c: [25, 6], r: 4 }]);
+  doc = { ...doc, nodes }; assert.ok(evaluateDoc(doc, 2).ok);
+  assert.equal(attachCircle({ plane: xyPlane(), tool: 'select', shape: plate, done: [] }, 0), null);
+  void shapeNode;
+});
+
+test('Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it', async () => {
+  const { startPicking, rectangleOutline } = await import('../src/sketch/select');
+  const rect = { kind: 'rectangle' as const, a: [0, 0] as P2, b: [40, 20] as P2 }, hole = { kind: 'circle' as const, c: [10, 10] as P2, r: 3 };
+  const s = startPicking({ plane: xyPlane(), tool: 'circle', shape: hole, done: [rect] }, 'dimension');
+  assert.deepEqual(s.shape, rectangleOutline(rect)); assert.deepEqual(s.done, [hole]);
+});

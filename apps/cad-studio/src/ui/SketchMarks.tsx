@@ -2,6 +2,7 @@
 // arrows and a value chip, double-click to edit), glyphs of explicit constraints, the picked and hovered
 // points and edges, and the inline dimension editor.
 import type { ReactNode } from 'react';
+import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, sampleSegment, type P2 } from '../sketch/profile';
 import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '../sketch/rules';
 import type { Project } from '../sketch/select';
@@ -12,7 +13,9 @@ export interface MarkHandlers {
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number): void;
 }
-interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined }
+interface Args extends MarkHandlers { shape: Polygon; project: Project; picked: readonly SketchPick[]; hover: SketchPick | null; editDim: string | null | undefined;
+  /** The sketch's finished shapes (a finished circle can be hovered and picked to dimension it). */
+  done?: readonly SketchShape[] }
 /** `under`: drawn beneath the outline's own labels (the picked / hovered highlight); `svg`: on top. */
 export interface Marks { under: ReactNode[]; svg: ReactNode[]; html: ReactNode }
 
@@ -29,7 +32,7 @@ export function drivingKeys(s: Polygon): Set<string> {
   return keys;
 }
 
-export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimClick, onDimEdit, onDimCommit }: Args): Marks {
+export function sketchMarks({ shape: s, project, picked, hover, editDim, done = [], onDimClick, onDimEdit, onDimCommit }: Args): Marks {
   const n = s.points.length, P = (p: readonly number[]): XY => { const q = project(p[0], p[1]); return [q[0], q[1]]; };
   const pts = s.points.map(P), centroid: XY = [pts.reduce((a, p) => a + p[0], 0) / n, pts.reduce((a, p) => a + p[1], 0) / n];
   const svg: ReactNode[] = [], under: ReactNode[] = [], anchors = new Map<string, XY>();
@@ -43,8 +46,17 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
   const outward = (a: XY, b: XY): XY => { const u = unit(a, b), nrm: XY = [-u[1], u[0]], m: XY = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     return (m[0] + nrm[0] - centroid[0]) ** 2 + (m[1] + nrm[1] - centroid[1]) ** 2 >= (m[0] - nrm[0] - centroid[0]) ** 2 + (m[1] - nrm[1] - centroid[1]) ** 2 ? nrm : [-nrm[0], -nrm[1]]; };
 
+  const ring = (c: readonly number[], r: number) => Array.from({ length: 73 }, (_, k) => P([c[0] + r * Math.cos(k * Math.PI / 36), c[1] + r * Math.sin(k * Math.PI / 36)]));
+  const circleOf = (p: SketchPick) => { if (p.done) { const d = done[p.i]; return d?.kind === 'circle' ? d : null; } return s.circles?.[p.i] ?? null; };
+  // The outline's attached circles, with their diameter (double-click to edit).
+  (s.circles ?? []).forEach((c, j) => {
+    const q = P(c.c);
+    under.push(<polyline key={'ci' + j} points={ring(c.c, c.r).map(p => p.join(',')).join(' ')} className="sk-shape" />, <circle key={'cc' + j} cx={q[0]} cy={q[1]} r={2.5} className="sk-point" />);
+  });
+
   // Picked and hovered entities.
   const mark = (p: SketchPick, cls: string) => {
+    if (p.kind === 'circle') { const c = circleOf(p); if (c) under.push(<polyline key={cls + 'c' + (p.done ? 'd' : '') + p.i} points={ring(c.c, c.r).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />); return; }
     if (p.kind === 'point') { const q = pts[p.i]; if (q) under.push(<circle key={cls + 'p' + p.i} cx={q[0]} cy={q[1]} r={7} className={'sk-pick-point ' + cls} />); }
     else if (p.i < n) under.push(<polyline key={cls + 'e' + p.i} points={edgePath(p.i).map(q => q.join(',')).join(' ')} className={'sk-pick-edge ' + cls} />);
   };
@@ -85,6 +97,17 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
       arrow(m, u, 'ra' + key); chip(add(m, u, 30), 'R' + fmt(v), key, true);
     }
   }
+  // Circle diameters and centre distances from outline points.
+  (s.circles ?? []).forEach((c, j) => { const e = P([c.c[0] + c.r * Math.SQRT1_2, c.c[1] + c.r * Math.SQRT1_2]); chip([e[0] + 26, e[1] - 12], 'Ø' + fmt(c.r * 2), 'cdia' + j, false); });
+  (s.rules ?? []).forEach(r => {
+    if (r.kind !== 'cdist' && r.kind !== 'cdx' && r.kind !== 'cdy') return;
+    const c = s.circles?.[r.circle], a = s.points[r.a]; if (!c || !a) return;
+    const key = `${r.kind}${r.a}_${r.circle}`;
+    if (r.kind === 'cdist') { linear(pts[r.a], P(c.c), r.value, key); return; }
+    const m = r.kind === 'cdx' ? 0 : 1, o = 1 - m, far = Math.max(a[o], c.c[o]);
+    const at = (p: readonly number[]) => P(m === 0 ? [p[0], far] : [far, p[1]]);
+    linear(pts[r.a], P(c.c), r.value, key, [at(a), at(c.c)]);
+  });
   (s.rules ?? []).forEach(r => {
     if ((r.kind !== 'distance' && r.kind !== 'dx' && r.kind !== 'dy') || !pts[r.a] || !pts[r.b]) return;
     if (r.kind === 'distance') { linear(pts[r.a], pts[r.b], r.value, `dist${r.a}_${r.b}`); return; }
@@ -139,12 +162,13 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
   let html: ReactNode = null;
   if (editDim) {
     const v = dimensionValue(s, editDim);
-    const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim);
-    const at = anchors.get(editDim) ?? (g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
+    const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim), cd = /^(?:cdist|cdx|cdy)(\d+)_(\d+)$/.exec(editDim);
+    const centreOf = (j: number) => s.circles?.[j] ? P(s.circles[j].c) : null;
+    const at = anchors.get(editDim) ?? (cd ? (() => { const a = pts[+cd[1]], b = centreOf(+cd[2]); return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })() : g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
       html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}
-        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
+        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d || cd ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         style={{ left: at[0] - 42, top: at[1] - 13 }}
         onFocus={e => e.currentTarget.select()}
         onKeyDown={e => {
@@ -153,7 +177,10 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
           if (e.key === 'Enter') { e.preventDefault(); const v = Number(e.currentTarget.value); onDimCommit?.(editDim, v); e.currentTarget.blur(); }
           else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
           // Between two points: A aligned, H horizontal, V vertical.
-          else if (d && /^[ahv]$/i.test(e.key)) { e.preventDefault(); onDimEdit?.(({ a: 'dist', h: 'dx', v: 'dy' } as const)[e.key.toLowerCase() as 'a' | 'h' | 'v'] + d[1] + '_' + d[2]); }
+          else if ((d || cd) && /^[ahv]$/i.test(e.key)) {
+            e.preventDefault(); const k = e.key.toLowerCase() as 'a' | 'h' | 'v', ref = (d ?? cd)!;
+            onDimEdit?.((cd ? { a: 'cdist', h: 'cdx', v: 'cdy' } : { a: 'dist', h: 'dx', v: 'dy' })[k] + ref[1] + '_' + ref[2]);
+          }
         }}
         onBlur={() => onDimEdit?.(null)} />;
     }

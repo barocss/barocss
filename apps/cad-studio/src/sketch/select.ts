@@ -1,6 +1,6 @@
 // Picking outline points and edges in the viewport (screen pixels), and what a click does with the
 // Select and Dimension tools.
-import type { SketchState } from '../viewport/Viewport';
+import type { SketchShape, SketchState } from '../viewport/Viewport';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, distanceKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
 
@@ -13,8 +13,11 @@ const toSegment = (p: readonly number[], a: readonly number[], b: readonly numbe
   return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 };
 
-/** The outline point within `pointPx` of (x, y), else the nearest edge within `edgePx`; null when nothing is near. */
-export function pickSketch(s: Polygon, project: Project, x: number, y: number, pointPx = 9, edgePx = 7): SketchPick | null {
+/**
+ * The outline point within `pointPx` of (x, y), else the nearest edge or circle (its rim or centre: the
+ * outline's own circles, then the sketch's finished circles in `done`) within `edgePx`; null when nothing is near.
+ */
+export function pickSketch(s: Polygon, project: Project, x: number, y: number, done: readonly SketchShape[] = [], pointPx = 9, edgePx = 7): SketchPick | null {
   const n = s.points.length, at = [x, y];
   let best: SketchPick | null = null, bestD = pointPx;
   for (let i = 0; i < n; i++) { const q = project(s.points[i][0], s.points[i][1]), d = Math.hypot(q[0] - x, q[1] - y); if (d <= bestD) { bestD = d; best = { kind: 'point', i }; } }
@@ -25,7 +28,24 @@ export function pickSketch(s: Polygon, project: Project, x: number, y: number, p
     const pts = [...sampleSegment(a, b, s.bulges?.[i] ?? 0, 16), b].map(p => project(p[0], p[1]));
     for (let k = 0; k + 1 < pts.length; k++) { const d = toSegment(at, pts[k], pts[k + 1]); if (d <= bestD) { bestD = d; best = { kind: 'edge', i }; } }
   }
+  if (best) return best;
+  const circleDistance = (c: readonly number[], r: number) => {
+    const ring = Array.from({ length: 49 }, (_, k) => project(c[0] + r * Math.cos(k * Math.PI / 24), c[1] + r * Math.sin(k * Math.PI / 24)));
+    let d = Infinity; for (let k = 0; k + 1 < ring.length; k++) d = Math.min(d, toSegment(at, ring[k], ring[k + 1]));
+    const q = project(c[0], c[1]); return Math.min(d, Math.hypot(q[0] - x, q[1] - y));
+  };
+  (s.circles ?? []).forEach((c, i) => { const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i }; } });
+  if (best) return best;
+  done.forEach((c, i) => { if (c.kind !== 'circle') return; const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i, done: true }; } });
   return best;
+}
+
+/** A finished circle of the sketch (`done` index) moved onto the outline, so its centre can be dimensioned from it. */
+export function attachCircle(s: SketchState, doneIndex: number): { state: SketchState; circle: number } | null {
+  const shape = s.shape, c = s.done?.[doneIndex];
+  if (!isSettled(shape) || c?.kind !== 'circle') return null;
+  const circles = [...(shape.circles ?? []), { c: [c.c[0], c.c[1]] as [number, number], r: c.r }];
+  return { state: { ...s, shape: { ...shape, circles }, done: s.done!.filter((_, k) => k !== doneIndex) }, circle: circles.length - 1 };
 }
 
 /** The selection after a click: replace, or toggle with Shift; empty space clears it. */
@@ -41,15 +61,24 @@ export function nextPicks(picks: readonly SketchPick[], hit: SketchPick | null, 
  * the distance between them.
  */
 export function sketchClick(s: SketchState, hit: SketchPick | null, additive: boolean): SketchState {
+  // A finished circle that is picked joins the outline first.
+  if (hit?.kind === 'circle' && hit.done) { const a = attachCircle(s, hit.i); if (!a) return { ...s, picked: [], editDim: null }; s = a.state; hit = { kind: 'circle', i: a.circle }; }
   const shape = s.shape;
   if (!isSettled(shape)) return { ...s, picked: [], editDim: null };
   if (s.tool !== 'dimension') return { ...s, picked: nextPicks(s.picked ?? [], hit, additive), editDim: null };
   if (!hit) return { ...s, picked: [], editDim: null };
+  if (hit.kind === 'circle') {
+    // A point then a circle: the distance to its centre; a circle alone: its diameter.
+    const point = (s.picked ?? []).find(p => p.kind === 'point');
+    return point ? { ...s, picked: [], editDim: `cdist${point.i}_${hit.i}` } : { ...s, picked: [hit], editDim: 'cdia' + hit.i };
+  }
   if (hit.kind === 'edge') {
     const line = (i: number) => !shape.bulges?.[i], prev = (s.picked ?? []).find(p => p.kind === 'edge');
     if (prev && prev.i !== hit.i && line(prev.i) && line(hit.i)) return { ...s, picked: [], editDim: angleKey(prev.i, hit.i) };
     return { ...s, picked: line(hit.i) ? [hit] : [], editDim: (line(hit.i) ? 'len' : 'rad') + hit.i };
   }
+  const ring = (s.picked ?? []).find(p => p.kind === 'circle');
+  if (ring) return { ...s, picked: [], editDim: `cdist${hit.i}_${ring.i}` };
   const first = (s.picked ?? []).find(p => p.kind === 'point');
   if (first && first.i !== hit.i) return { ...s, picked: [], editDim: distanceKey(shape, first.i, hit.i) };
   return { ...s, picked: [hit], editDim: null };
@@ -69,6 +98,11 @@ export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, {
 export function startPicking(s: SketchState, tool: 'select' | 'dimension'): SketchState {
   let shape = s.shape, done = s.done ?? [];
   if (shape?.kind === 'polygon' && shape.pending) shape = { ...shape, pending: false };
+  // A circle or slot drawn last goes beside the outline; the last finished outline or rectangle is edited.
+  if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
+    const k = done.map(d => d.kind === 'rectangle' || isSettled(d)).lastIndexOf(true);
+    if (k >= 0) { done = [...done.slice(0, k), ...done.slice(k + 1), shape]; shape = s.done![k]; }
+  }
   const last = done[done.length - 1];
   if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = done.slice(0, -1); }
   if (shape?.kind === 'rectangle') shape = rectangleOutline(shape) ?? shape;

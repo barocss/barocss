@@ -28,7 +28,9 @@ export type SketchShape =
       /** Horizontal / vertical edges (kept from closing on), explicit constraints and point distances (sketch/rules.ts). */
       hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
       /** Drawn with the Rectangle tool: saved as a rectangle again while it still is one (see sketch/loops.ts). */
-      fromRectangle?: true }
+      fromRectangle?: true;
+      /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
+      circles?: { c: [number, number]; r: number }[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
@@ -256,7 +258,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
       propsRef.current.onCursor(p ? toWorld(sk.plane, [snap(p[0]), snap(p[1])]) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
-      if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y) : null;
+      if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
         if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
@@ -299,7 +301,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
       const c: [number, number] = [snap(p[0]), snap(p[1])];
       const s = liveShape.current;
-      if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y) : null, e.shiftKey); return; }
+      if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (sk.tool === 'rectangle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
@@ -415,7 +417,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         if (s.r > 0) { const e = P(s.b[0], s.b[1] + s.r); items.push(label(e[0] + 34, e[1], 'W ' + fmtLen(s.r * 2), 'slot-width')); }
       } else if (s?.kind === 'polygon') {
         const pts = s.points.map(p => P(p[0], p[1])); const cur = sketchDraft.current.cursor;
-        const marks = isSettled(s) ? sketchMarks({ shape: s, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking(sk) ? sketchDraft.current.hover ?? null : null, editDim: sk.editDim,
+        const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking(sk) ? sketchDraft.current.hover ?? null : null, editDim: sk.editDim,
           onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit }) : null;
         const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
         const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;

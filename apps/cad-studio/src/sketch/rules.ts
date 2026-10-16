@@ -7,12 +7,15 @@ import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineCo
 import { edgeAngle, type SketchRule } from './terms';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
-/** A picked outline point or segment (line or arc) by index. */
-export interface SketchPick { kind: 'point' | 'edge'; i: number }
+/**
+ * A picked outline point, segment (line or arc) or circle by index. A circle is one of the outline's
+ * circles (`circles`), or with `done` a finished circle shape of the sketch (`done` index) not yet attached.
+ */
+export interface SketchPick { kind: 'point' | 'edge' | 'circle'; i: number; done?: true }
 export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendicular' | 'equal' | 'fix' | 'coincident';
 
 export const isSettled = (s: SketchShape | null | undefined): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;
-export const samePick = (a: SketchPick, b: SketchPick) => a.kind === b.kind && a.i === b.i;
+export const samePick = (a: SketchPick, b: SketchPick) => a.kind === b.kind && a.i === b.i && !a.done === !b.done;
 const isArc = (s: Polygon, i: number) => !!s.bulges?.[i];
 const isLine = (s: Polygon, i: number) => i >= 0 && i < s.points.length && !isArc(s, i);
 const edgeName = (s: Polygon, i: number) => `${isArc(s, i) ? 'arc' : 'edge'} ${i + 1}`;
@@ -24,6 +27,7 @@ export const hvOf = (s: Polygon) => s.hv ?? inferredHV(s.points as P2[], s.bulge
 
 export const constraintsOf = (s: Polygon): OutlineConstraints => ({
   lengths: s.lengths, radii: s.radii, tangents: s.tangents, equalRadii: s.equalRadii, concentric: s.concentric, hv: hvOf(s), rules: s.rules,
+  circles: s.circles?.map(c => c.c),
 });
 
 const solved = new WeakMap<Polygon, SolveResult>();
@@ -46,21 +50,25 @@ export function checkEdit(candidate: Polygon, prev: Polygon | null, what = 'That
   if (!r.ok) return { ok: false, reason: `${what}: ${r.reason}` };
   if (prev && redundancy(r) > redundancy(solveShape(prev)))
     return { ok: false, reason: `${what} is already implied by the other constraints — adding it would over-define the sketch` };
-  const shape: Polygon = { ...candidate, points: r.points, bulges: r.bulges };
+  const shape: Polygon = { ...candidate, points: r.points, bulges: r.bulges, ...(candidate.circles ? { circles: candidate.circles.map((c, j) => ({ ...c, c: r.circles[j] ?? c.c })) } : {}) };
   solved.set(shape, r);
   return { ok: true, shape, report: r };
 }
 
 function split(s: Polygon, picks: readonly SketchPick[]) {
   const points = picks.filter(p => p.kind === 'point').map(p => p.i), edges = picks.filter(p => p.kind === 'edge').map(p => p.i);
-  return { points, edges, lines: edges.filter(i => !isArc(s, i)), arcs: edges.filter(i => isArc(s, i)) };
+  return { points, edges, lines: edges.filter(i => !isArc(s, i)), arcs: edges.filter(i => isArc(s, i)), circles: picks.filter(p => p.kind === 'circle' && !p.done).map(p => p.i) };
 }
 const hasRule = (s: Polygon, test: (r: SketchRule) => boolean) => (s.rules ?? []).some(test);
 const pairRule = (kind: SketchRule['kind'], a: number, b: number) => (r: SketchRule) =>
-  r.kind === kind && 'a' in r && ((r.a === a && r.b === b) || (r.a === b && r.b === a));
+  r.kind === kind && 'b' in r && ((r.a === a && r.b === b) || (r.a === b && r.b === a));
 
 /** Why each constraint cannot apply to the selection (null: it can). */
 export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Record<ConstraintKind, string | null> {
+  if (picks.some(p => p.kind === 'circle')) {
+    const why = 'A circle takes dimensions: its diameter, or its centre from an outline point (Dimension)';
+    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident: why };
+  }
   const { points, edges, lines, arcs } = split(s, picks), hv = hvOf(s);
   const onlyLines = (min: number, max = Infinity) => points.length === 0 && arcs.length === 0 && lines.length >= min && lines.length <= max;
   const axis = (key: 'h' | 'v', name: string) => !onlyLines(1) ? 'Select one or more straight edges'
@@ -87,7 +95,9 @@ function pointOnArcEnd(s: Polygon, point: number, arc: number): string | null {
 
 /** The selection's dimension: an edge's length, an arc's radius, or the distance between two points (null: none). */
 export function dimensionKey(s: Polygon, picks: readonly SketchPick[]): string | null {
-  const { points, edges } = split(s, picks);
+  const { points, edges, circles } = split(s, picks);
+  if (circles.length === 1 && !edges.length && points.length <= 1) return points.length ? `cdist${points[0]}_${circles[0]}` : `cdia${circles[0]}`;
+  if (circles.length) return null;
   if (edges.length === 1 && !points.length) return (isArc(s, edges[0]) ? 'rad' : 'len') + edges[0];
   if (points.length === 2 && !edges.length) return distanceKey(s, points[0], points[1]);
   if (edges.length === 2 && !points.length && edges.every(i => !isArc(s, i))) return angleKey(edges[0], edges[1]);
@@ -149,6 +159,13 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
 
 /** A dimension's current value in the drawing (len<i>, rad<i>, dist / dx / dy <a>_<b>). */
 export function dimensionValue(s: Polygon, key: string): number | null {
+  const c = parseCircleKey(key);
+  if (c) {
+    const circle = s.circles?.[c.j]; if (!circle) return null;
+    if (c.kind === 'cdia') return circle.r * 2;
+    const a = s.points[c.a]; if (!a) return null;
+    return c.kind === 'cdist' ? Math.hypot(circle.c[0] - a[0], circle.c[1] - a[1]) : Math.abs(circle.c[c.kind === 'cdx' ? 0 : 1] - a[c.kind === 'cdx' ? 0 : 1]);
+  }
   const d = parseKey(key), n = s.points.length; if (!d) return null;
   if (d.kind === 'ang') return isLine(s, d.a) && isLine(s, d.b) && d.a !== d.b ? edgeAngle(s.points as P2[], d.a, d.b).degrees : null;
   if ('a' in d) {
@@ -161,17 +178,30 @@ export function dimensionValue(s: Polygon, key: string): number | null {
 }
 /** Whether a dimension is driving (locked). */
 export function isDriving(s: Polygon, key: string): boolean {
+  const c = parseCircleKey(key);
+  if (c) return c.kind === 'cdia' ? false : hasRule(s, r => r.kind === c.kind && r.a === c.a && r.circle === c.j);
   const d = parseKey(key); if (!d) return false;
   if (d.kind === 'ang') return hasRule(s, r => r.kind === 'angle' && r.a === d.a && r.b === d.b);
-  if ('a' in d) { const kind = ruleKind[d.kind]; return hasRule(s, r => r.kind === kind && 'a' in r && r.a === d.a && r.b === d.b); }
+  if ('a' in d) { const kind = ruleKind[d.kind]; return hasRule(s, r => r.kind === kind && 'b' in r && r.a === d.a && r.b === d.b); }
   return (d.kind === 'rad' ? s.radii : s.lengths)?.[d.i] !== undefined;
 }
+type CircleDim = { kind: 'cdist' | 'cdx' | 'cdy'; a: number; j: number } | { kind: 'cdia'; j: number };
+/** Circle dimension keys: cdist / cdx / cdy <point>_<circle>, cdia<circle>. */
+function parseCircleKey(key: string): CircleDim | null {
+  const d = /^(cdist|cdx|cdy)(\d+)_(\d+)$/.exec(key); if (d) return { kind: d[1] as 'cdist' | 'cdx' | 'cdy', a: Number(d[2]), j: Number(d[3]) };
+  const r = /^cdia(\d+)$/.exec(key); return r ? { kind: 'cdia', j: Number(r[1]) } : null;
+}
+/** The straight, horizontal and vertical dimension keys from point `a` to the outline's circle `j`. */
+export const circleDimensionKeys = (a: number, j: number) => ({ dist: `cdist${a}_${j}`, dx: `cdx${a}_${j}`, dy: `cdy${a}_${j}` });
+const circleDimName = { cdist: 'Distance', cdx: 'Horizontal distance', cdy: 'Vertical distance' } as const;
 function parseKey(key: string): { kind: 'len' | 'rad'; i: number } | { kind: PointDim | 'ang'; a: number; b: number } | null {
   const g = /^ang(\d+)_(\d+)$/.exec(key); if (g) return { kind: 'ang', a: Number(g[1]), b: Number(g[2]) };
   const m = /^(len|rad)(\d+)$/.exec(key); if (m) return { kind: m[1] as 'len' | 'rad', i: Number(m[2]) };
   const d = /^(dist|dx|dy)(\d+)_(\d+)$/.exec(key); return d ? { kind: d[1] as PointDim, a: Number(d[2]), b: Number(d[3]) } : null;
 }
 export function dimensionLabel(s: Polygon, key: string): string {
+  const c = parseCircleKey(key);
+  if (c) return c.kind === 'cdia' ? `Diameter of circle ${c.j + 1}` : `${circleDimName[c.kind]} point ${c.a + 1} – circle ${c.j + 1}`;
   const d = parseKey(key); if (!d) return key;
   if (d.kind === 'ang') return `Angle edge ${d.a + 1} – edge ${d.b + 1}`;
   return 'a' in d ? `${pointDimName[d.kind]} point ${d.a + 1} – point ${d.b + 1}` : d.kind === 'rad' ? `Radius of arc ${d.i + 1}` : `Length of edge ${d.i + 1}`;
@@ -179,6 +209,15 @@ export function dimensionLabel(s: Polygon, key: string): string {
 
 /** Sets a driving dimension to `value` mm (adding it if new): the solved outline, or why it is refused. */
 export function commitDimension(s: Polygon, key: string, value: number): EditResult {
+  const c = parseCircleKey(key);
+  if (c) {
+    if (!s.circles?.[c.j] || (c.kind !== 'cdia' && !s.points[c.a])) return { ok: false, reason: 'Unknown dimension' };
+    if (!Number.isFinite(value) || value < 0.001) return { ok: false, reason: 'A dimension must be greater than 0' };
+    const what = `${dimensionLabel(s, key)} = ${round(value)}`, base = { ...s, hv: hvOf(s) };
+    if (c.kind === 'cdia') return checkEdit({ ...base, circles: s.circles.map((x, j) => j === c.j ? { ...x, r: value / 2 } : x) }, s, what);
+    const rules = (s.rules ?? []).filter(r => !(r.kind === c.kind && r.a === c.a && r.circle === c.j));
+    return checkEdit({ ...base, rules: [...rules, { kind: c.kind, a: c.a, circle: c.j, value }] }, s, what);
+  }
   const d = parseKey(key); if (!d) return { ok: false, reason: 'Unknown dimension' };
   if (d.kind === 'ang') {
     if (!isLine(s, d.a) || !isLine(s, d.b) || d.a === d.b) return { ok: false, reason: 'Unknown dimension' };
@@ -191,7 +230,7 @@ export function commitDimension(s: Polygon, key: string, value: number): EditRes
   if ('i' in d && (d.i >= s.points.length || (d.kind === 'rad') !== isArc(s, d.i))) return { ok: false, reason: 'Unknown dimension' };
   const what = `${dimensionLabel(s, key)} = ${round(value)}`, base = { ...s, hv: hvOf(s) };
   if ('a' in d) {
-    const kind = ruleKind[d.kind], rules = (s.rules ?? []).filter(r => !(r.kind === kind && r.a === d.a && r.b === d.b));
+    const kind = ruleKind[d.kind], rules = (s.rules ?? []).filter(r => !(r.kind === kind && 'b' in r && r.a === d.a && r.b === d.b));
     return checkEdit({ ...base, rules: [...rules, { kind, a: d.a, b: d.b, value }] }, s, what);
   }
   const field = d.kind === 'rad' ? 'radii' : 'lengths';
@@ -199,7 +238,7 @@ export function commitDimension(s: Polygon, key: string, value: number): EditRes
 }
 
 export interface ConstraintEntry { id: string; label: string; detail: string; removable: boolean; involves: SketchPick[] }
-const E = (i: number): SketchPick => ({ kind: 'edge', i }), P = (i: number): SketchPick => ({ kind: 'point', i });
+const E = (i: number): SketchPick => ({ kind: 'edge', i }), P = (i: number): SketchPick => ({ kind: 'point', i }), C = (i: number): SketchPick => ({ kind: 'circle', i });
 
 /** Every constraint of a closed outline, in a stable order, with what each one involves. */
 export function constraintEntries(s: Polygon): ConstraintEntry[] {
@@ -220,6 +259,7 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'equal') add(id, 'Equal length', `edge ${r.a + 1} = edge ${r.b + 1}`, [E(r.a), E(r.b)]);
     else if (r.kind === 'fix') add(id, 'Fixed', `point ${r.point + 1}`, [P(r.point)]);
     else if (r.kind === 'coincident') add(id, 'Coincident', `point ${r.point + 1} · arc ${r.arc + 1} centre`, [P(r.point), E(r.arc)]);
+    else if (r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') add(id, circleDimName[r.kind], `point ${r.a + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [P(r.a), C(r.circle)]);
     else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);
   });
