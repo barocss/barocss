@@ -23,7 +23,11 @@ export type SketchRule =
   /** A driving angle in degrees between two straight edges (at their shared point when they meet). */
   | { kind: 'angle'; a: number; b: number; value: number }
   /** A driving distance (straight, along X, along Y) from point `a` to the centre of the outline's circle `circle`. */
-  | { kind: 'cdist' | 'cdx' | 'cdy'; a: number; circle: number; value: number };
+  | { kind: 'cdist' | 'cdx' | 'cdy'; a: number; circle: number; value: number }
+  /** A driving distance from a horizontal (axis 1: measured along Y) or vertical (axis 0: along X) straight edge to a circle's centre. */
+  | { kind: 'cedge'; edge: number; circle: number; axis: 0 | 1; value: number }
+  /** A driving distance (straight, along X, along Y) between the centres of two of the outline's circles. */
+  | { kind: 'ccdist' | 'ccdx' | 'ccdy'; a: number; b: number; value: number };
 
 const angle = (v: P2) => Math.atan2(v[1], v[0]);
 const wrap = (a: number) => { const w = Math.atan2(Math.sin(a), Math.cos(a)); return w === -Math.PI ? Math.PI : w; };
@@ -91,6 +95,10 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
       distance(k, 'p' + r.a, points[r.a], 'p' + r.b, points[r.b], r.kind === 'distance' ? null : r.kind === 'dx' ? 0 : 1, r.value);
     else if ((r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') && point(r.a) && r.circle >= 0 && r.circle < circles.length)
       distance(k, 'p' + r.a, points[r.a], centre(r.circle), circles[r.circle], r.kind === 'cdist' ? null : r.kind === 'cdx' ? 0 : 1, r.value);
+    else if (r.kind === 'cedge' && line(r.edge) && r.circle >= 0 && r.circle < circles.length)
+      distance(k, 'p' + r.edge, points[r.edge], centre(r.circle), circles[r.circle], r.axis, r.value);
+    else if ((r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') && r.a !== r.b && r.a >= 0 && r.b >= 0 && r.a < circles.length && r.b < circles.length)
+      distance(k, centre(r.a), circles[r.a], centre(r.b), circles[r.b], r.kind === 'ccdist' ? null : r.kind === 'ccdx' ? 0 : 1, r.value);
     else if (r.kind === 'angle' && line(r.a) && line(r.b)) {
       const e = edgeAngle(points, r.a, r.b);
       constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angleRad: wrap(e.sign * r.value * Math.PI / 180 + e.flip * Math.PI) });

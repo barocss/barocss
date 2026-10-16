@@ -521,6 +521,36 @@ try {
     await iso();
   });
 
+  await check('holes placed from an edge and from each other', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 150, cy - 80); await clickAt(cx + 150, cy + 80);
+    await press('c'); await clickAt(cx - 80, cy + 20); await page.mouse.move(cx - 70, cy + 20); await clickAt(cx - 60, cy + 20);
+    await press('c'); await clickAt(cx + 60, cy - 10); await page.mouse.move(cx + 70, cy - 10); await clickAt(cx + 80, cy - 10);
+    // Dimension: the bottom edge (screen bottom, kept horizontal), then the first circle.
+    await press('d'); await clickAt(cx, cy + 80); await clickAt(cx - 60, cy + 20);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance edge 1 – circle 1');
+    await page.locator('.dim-edit').fill('10'); await page.locator('.dim-edit').press('Enter');
+    // The first circle (moved), then the second: their distance; H makes it horizontal.
+    const [x, y] = await page.evaluate(() => {
+      const r = document.querySelector('.vp-overlay').getBoundingClientRect();
+      const ps = document.querySelector('.vp-overlay polyline.sk-shape:not(.open)').getAttribute('points').trim().split(/\s+/).map(p => p.split(',').map(Number));
+      return [ps.reduce((a, p) => a + p[0], 0) / ps.length + r.left, ps.reduce((a, p) => a + p[1], 0) / ps.length + r.top];
+    });
+    await clickAt(x, y); await clickAt(cx + 80, cy - 10);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance circle 1 – circle 2');
+    await page.locator('.dim-edit').press('h'); await page.locator('.dim-edit').fill('30'); await page.locator('.dim-edit').press('Enter');
+    const list = await page.locator('.sk-panel [role=list]').innerText();
+    assert.match(list, /Distance\s*edge 1 – circle 1 = 10/); assert.match(list, /Horizontal distance\s*circle 1 – circle 2 = 30/);
+    await snap('holes-from-edge-and-each-other');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const n0 = (await doc()).nodes[0], [c1, c2] = n0.outline.circles;
+    assert.equal(n0.holes?.length, 2);
+    assert.ok(Math.abs(c1.c[1] - n0.outline.points[0][1] - 10) < 1e-6 && Math.abs(Math.abs(c2.c[0] - c1.c[0]) - 30) < 1e-6, JSON.stringify(n0.outline));
+    await iso();
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();

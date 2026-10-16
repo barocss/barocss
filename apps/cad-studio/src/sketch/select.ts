@@ -2,7 +2,7 @@
 // Select and Dimension tools.
 import type { SketchShape, SketchState } from '../viewport/Viewport';
 import { sampleSegment, type P2 } from './profile';
-import { angleKey, distanceKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
+import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
 
 /** Plane coordinates → screen pixels. */
 export type Project = (u: number, v: number) => readonly number[];
@@ -68,11 +68,16 @@ export function sketchClick(s: SketchState, hit: SketchPick | null, additive: bo
   if (s.tool !== 'dimension') return { ...s, picked: nextPicks(s.picked ?? [], hit, additive), editDim: null };
   if (!hit) return { ...s, picked: [], editDim: null };
   if (hit.kind === 'circle') {
-    // A point then a circle: the distance to its centre; a circle alone: its diameter.
-    const point = (s.picked ?? []).find(p => p.kind === 'point');
-    return point ? { ...s, picked: [], editDim: `cdist${point.i}_${hit.i}` } : { ...s, picked: [hit], editDim: 'cdia' + hit.i };
+    // After a point, a horizontal / vertical edge or another circle: the distance to its centre; alone: its diameter.
+    const prev = (s.picked ?? [])[0];
+    if (prev?.kind === 'point') return { ...s, picked: [], editDim: `cdist${prev.i}_${hit.i}` };
+    if (prev?.kind === 'circle' && prev.i !== hit.i) return { ...s, picked: [], editDim: circlePairKeys(prev.i, hit.i).dist };
+    const fromEdge = prev?.kind === 'edge' ? edgeCircleKey(shape, prev.i, hit.i) : null;
+    return fromEdge ? { ...s, picked: [], editDim: fromEdge } : { ...s, picked: [hit], editDim: 'cdia' + hit.i };
   }
   if (hit.kind === 'edge') {
+    const circle = (s.picked ?? []).find(p => p.kind === 'circle'), toCircle = circle ? edgeCircleKey(shape, hit.i, circle.i) : null;
+    if (toCircle) return { ...s, picked: [], editDim: toCircle };
     const line = (i: number) => !shape.bulges?.[i], prev = (s.picked ?? []).find(p => p.kind === 'edge');
     if (prev && prev.i !== hit.i && line(prev.i) && line(hit.i)) return { ...s, picked: [], editDim: angleKey(prev.i, hit.i) };
     return { ...s, picked: line(hit.i) ? [hit] : [], editDim: (line(hit.i) ? 'len' : 'rad') + hit.i };
