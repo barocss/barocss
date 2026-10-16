@@ -40,7 +40,10 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   const mates = useMemo(() => doc.mates ?? [], [doc.mates]);
   const [tables, setTables] = useState<Map<string, FaceTable>>(new Map());
   const [problems, setProblems] = useState<Problem[]>([]);
-  const [draft, setDraftState] = useState<MateDraft | null>(null);
+  const [draft, setDraftView] = useState<MateDraft | null>(null);
+  // The draft as of the last pick, ahead of React's re-render (two picks can come before it).
+  const draftRef = useRef<MateDraft | null>(null);
+  const setDraftState = useCallback((next: MateDraft | null) => { draftRef.current = next; setDraftView(next); }, []);
   const [selected, setSelected] = useState<string | null>(null);
 
   // The faces of the base part (as evaluated) and of each instance's part, once there is an assembly.
@@ -95,6 +98,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   const pick = (hit: Hit): boolean => {
+    const draft = draftRef.current;
     if (!draft) return false;
     let p: MatePick | null = null;
     // A display face may join coplanar faces ("a+b"): the first that is a mateable face names it.
@@ -141,7 +145,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     mates, problems, tables, draft, selected,
     start: () => { setDraftState({ kind: 'auto', distance: 10, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
-    setDraft: patch => setDraftState(d => d && { ...d, ...patch }),
+    setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
     pick, edit,
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
