@@ -17,28 +17,33 @@ if (!compiled.ok) {
   throw new Error(compiled.diagnostics[0].message);
 }
 console.log(compiled.ir.pipeline); // 'sdf'
-// compiled.execution includes the scene and generated shaders. No WebGL call occurred.
+// compiled.execution includes the scene and generated shaders. No GPU call occurred.
 ```
 
 The source must contain exactly one scene and unique ASCII object IDs. Source0 admits sphere and box. Numeric dimensions and translations use scene units without unit suffixes. `size` gives full box extents. CSS inheritance, classes, URLs and arbitrary expressions are outside this language.
 
-## Mount one renderer
+## Show it on the viewer
 
-Create a `<canvas id="preview" width="640" height="360"></canvas>` in the browser host. Continue in the same module:
+Create a `<canvas id="preview" style="width:640px;height:360px"></canvas>` in the browser host. Continue in the same module:
 
 ```ts
-import { mountScene } from '@barocss/gpu';
+import { createViewer, showScene } from '@barocss/gpu';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#preview');
 if (!canvas) throw new Error('Preview canvas is missing');
-const renderer = mountScene(canvas, source);
-const edited = renderer.update(source.replace('radius: .7', 'radius: .9'));
-if (!edited.ok) console.error(edited.error.message);
+const viewer = await createViewer(canvas, { camera: { position: [2, 1.6, 3], target: [0, 0, 0], up: [0, 1, 0] } });
+const view = showScene(viewer, source);
+console.log([...view.meshes.keys()]); // ['ball', 'block']
+const edited = view.update(source.replace('radius: .7', 'radius: .9'));
+if (!edited.ok) console.error(edited.diagnostics[0].message);
 // Call on host teardown:
-renderer.dispose();
+view.dispose();
+viewer.dispose();
 ```
 
-Mounting validates input, requests WebGL2, compiles shaders and draws one synchronous frame. It creates no animation timer. The host owns the canvas and event integration. The renderer owns its program, vertex array and context-loss listener.
+`createViewer(canvas, options?)` resolves to a `Viewer` once it has a WebGPU adapter, device and canvas context. It rejects with a `ViewerError` (`webgpu-unavailable`, `no-adapter` or `no-context`) when the browser cannot provide one. The viewer draws on demand, at most one frame per animation frame, follows the canvas's CSS size and pixel ratio, and attaches orbit controls unless `controls: false`. The host owns the canvas and its layout.
+
+`showScene(viewer, source, options?)` compiles the source, adds one mesh per object (named by its ID) with its placement and color, sets the scene background and frames the scene once. A first source that does not compile throws a `SceneViewError` carrying the diagnostics. `view.update(source)` returns `{ok:true}` or `{ok:false,diagnostics}`; a refused edit keeps the shown scene. `view.dispose()` removes its meshes and geometry; `viewer.dispose()` releases the device and listeners.
 
 ## Opt in to rotation and more primitives
 
@@ -49,16 +54,16 @@ const tilted = `
 `;
 const source1 = compileGpu({ kind: 'scene', source: tilted, sourceVersion: 1 });
 if (!source1.ok) throw new Error(source1.diagnostics[0].message);
-const renderer1 = mountScene(canvas, tilted, undefined, { sourceVersion: 1 });
-renderer1.dispose();
+const view1 = showScene(viewer, tilted);
+view1.dispose();
 ```
 
-Use a separate lifecycle for each mount. Source1 adds rigid rotation and its bounded cylinder, capsule, rounded-box and torus kinds. Rotation uses explicit degrees and the X→Y→Z order. The selected source version remains fixed for that renderer's updates.
+`compileGpu` needs the explicit `sourceVersion: 1` option. `showScene` selects source1 itself when the header declares `version: 1;`, and compiles every later `update` the same way. Source1 adds rigid rotation and its bounded cylinder, capsule, rounded-box and torus kinds. Rotation uses explicit degrees and the X→Y→Z order. Each scene view owns its meshes; dispose one before showing another on the same viewer.
 
 Next: [retain accepted state on failure](./guides#replace-a-scene-safely), [limits](./limits), and the [repository source host](./examples).
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
+Source snapshot: local Git `e532fc3037f9c1e13819b61d63de06164c50128f` (the WebGPU viewer; the earlier renderers were removed after `5f5ad866205a21510ac69552e704cc162fa253b5`). `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

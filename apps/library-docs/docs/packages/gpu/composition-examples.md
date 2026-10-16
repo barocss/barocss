@@ -2,7 +2,7 @@
 
 These three editable examples combine the language features explained in the [scene guide](./language) and [material guide](./material-language). Open a sample, change one value, then select **Run input**. Use **Reset example** to restore its complete input.
 
-They use local `@barocss/gpu` version `0.0.0` at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. Scene inputs select source1 explicitly. The material uses `mesh-opaque-fragment-v0` and a host-controlled `amount`. The browser needs WebGL2; a separate source-package host needs a TypeScript-capable bundler.
+They use local `@barocss/gpu` version `0.0.0` at source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`, drawn on the WebGPU viewer. Scene inputs select source1 in their `version: 1;` header. The material uses `mesh-opaque-fragment-v0` and a host-controlled `amount`. The browser needs WebGPU; a separate source-package host needs a TypeScript-capable bundler. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`.
 
 ## Shared rounded-box styles and ID overrides
 
@@ -77,21 +77,22 @@ The torus starts with its axis along local Y and its ring in local XZ. X rotatio
 2. Change the capsule `end` to `0 1 0`. Run. Both segments grow from the same local start. Their segment midpoints move, while the object translations stay unchanged.
 3. Set `end` to `0 -.65 0`. Run. This equals `start`, so the compiler refuses the unusable center segment. It does not replace the accepted scene.
 
-Each declaration remains a separate SDF primitive. Their overlap does not create a CAD Boolean result, shared topology or a certified Body. See [rotation and coordinate order](./language#rotation-and-coordinate-order) and the [property reference](./language#property-reference).
+Each declaration remains a separate primitive, shown as its own mesh. Their overlap does not create a CAD Boolean result, shared topology or a certified Body. See [rotation and coordinate order](./language#rotation-and-coordinate-order) and the [property reference](./language#property-reference).
 
-The browser host mounts either complete scene with:
+The browser host shows either complete scene with:
 
 ```ts
-import { mountScene } from '@barocss/gpu';
+import { createViewer, showScene } from '@barocss/gpu';
 
 // canvas belongs to your host; source is a complete scene above.
-const renderer = mountScene(canvas, source, undefined, { sourceVersion: 1 });
-const changed = renderer.update(editedSource);
-if (!changed.ok) console.error(changed.error.message);
-// On host teardown: renderer.dispose();
+const viewer = await createViewer(canvas);
+const view = showScene(viewer, source);
+const changed = view.update(editedSource);
+if (!changed.ok) console.error(changed.diagnostics[0].message);
+// On host teardown: view.dispose(); viewer.dispose();
 ```
 
-Mounting and each accepted update draw one frame. The host controls editing and lifetime; these static arrangements create no orbit or animation clock.
+The viewer draws on demand: showing and each accepted update request one frame. The host controls editing and lifetime; the scenes create no animation clock. The viewer's orbit controls change only the camera.
 
 ## Compose a material transition window {#material-transition-window}
 
@@ -130,6 +131,6 @@ The transition begins at amount1/3 and reaches its warm endpoint at amount2/3. B
 2. Compare amounts0, .5 and1. Geometry stays unchanged; only the bound material color changes.
 3. Reverse the literal edges to `smoothstep(.75,.25,...)`. Run. The compiler returns `RANGE` because the edges are not ordered. Keep the previously accepted material.
 
-The shader declares one float uniform, `amount`, with range0..1 and default0. The host binds it through `setMaterial({material,uniforms:{amount}})` on an admitted mesh renderer. Compile before adoption, and handle the result before changing accepted host state. The [material setup and cleanup recipe](./material-language#complete-blend-material) shows this lifetime.
+The shader declares one float uniform, `amount`, with range0..1 and default0. The host binds it with `mesh.material = { color: [1, 1, 1], shader: bindingShader(validateMeshMaterialBinding({material,uniforms:{amount}})) }` on a mesh it added to the viewer. Compile before adoption, and handle the result before changing accepted host state. The [material setup and cleanup recipe](./material-language#complete-blend-material) shows this lifetime.
 
 This program combines existing functions; it adds no UV input, texture access, geometry or clock. Read [individual function examples](./function-examples) and [range analysis](./material-language#range-analysis-explains-refusals) when changing the expression.

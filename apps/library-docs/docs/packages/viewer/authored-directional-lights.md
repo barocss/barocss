@@ -1,6 +1,6 @@
 # Authored directional lights on native documents
 
-Use `createNativeDirectionalLightWebGPUViewer` for a complete original CAD document with authored colored directional lights. This is an explicit asynchronous, required-WebGPU facade. The synchronous `createViewer` path remains separate; there is no implicit WebGL fallback, injected device or prepared-token API.
+Use `createNativeDirectionalLightWebGPUViewer` for a complete original CAD document with authored colored directional lights. This is an explicit asynchronous, required-WebGPU facade. The `createViewer` path (also asynchronous and WebGPU now) remains separate; there is no fallback renderer, injected device or prepared-token API.
 
 ## Availability and scope
 

@@ -1,9 +1,10 @@
 import * as ViewerSampleAPI from '@barocss/viewer';
 
-export function createViewerExample(canvas, source) {
+export async function createViewerExample(canvas, source) {
   const priorTabIndex = canvas.getAttribute('tabindex');
   const priorTouchAction = canvas.style.touchAction;
-  const viewer = ViewerSampleAPI.createViewer(canvas, {
+  // The Viewer draws with WebGPU through the @barocss/gpu viewer; creation is asynchronous.
+  const viewer = await ViewerSampleAPI.createViewer(canvas, {
     mmToSceneUnit: 0.001,
     background: [0.04, 0.06, 0.1],
   });
@@ -23,7 +24,7 @@ export function createViewerExample(canvas, source) {
     const grid = sampled?.report.grid;
     const centerVertex = grid ? Math.floor(grid.countU / 2) * grid.countV + Math.floor(grid.countV / 2) : 0;
     return {
-      backend: '@barocss/viewer using its WebGL2 backend',
+      backend: '@barocss/viewer on the @barocss/gpu WebGPU viewer',
       status: state.status,
       surfaces: state.surfaces,
       midpointMM: sampled?.packet.positions.slice(centerVertex * 3, centerVertex * 3 + 3) ?? null,

@@ -62,7 +62,7 @@ export async function bundleViewerDisplayPose(app = defaultApp, platform = 'brow
     preset: createHash('sha256').update(await readFile(resolve(app, 'scripts/snippets/viewer-display-pose.json'))).digest('hex') };
   const provenance = { sourcePin: profile.sourcePin, verifiedBlobs: Object.keys(profile.files).length,
     ownSourceInputs: ownInputs.length, ownDistInputs: 0, appInputHashes, host: platform === 'browser' ? 'Public Viewer native points, displayed pose, projection and triangle selection' : 'Public CAD CPU consumer and app pose math only; no Viewer or browser execution',
-    oldVisualPinUnchanged: '5f5ad866205a21510ac69552e704cc162fa253b5' };
+    visualPin: 'e532fc3037f9c1e13819b61d63de06164c50128f' };
   await writeFile(resolve(consumers, `${consumerName}-${platform}-metafile.json`), JSON.stringify(result.metafile, null, 2) + '\n');
   return { result, provenance };
 }

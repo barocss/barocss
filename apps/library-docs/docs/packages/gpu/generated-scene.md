@@ -184,7 +184,7 @@ For each row, the application constructs eight local corners and twelve edges. I
 
 This drawing is neither a public bounds-API result nor a mesh or native geometry. Rotation of a sphere's diagnostic cube does not demonstrate a change to an actual sphere surface. The viewport/clipping information refers to these projected corners; it is not a shader visibility test or certified containment result.
 
-The host retains the whole compiled result and both shader strings. It does not link or execute those shaders and initializes no WebGL or WebGPU backend. The existing `mountScene` overloads retain Source0/1 support; passing `{sourceVersion:2}` or casting this scene into that renderer is not a supported bridge. An independently admitted rendering host would need its own contract and execution evidence.
+The host retains the whole compiled result and both shader strings. It does not link or execute those shaders and initializes no WebGL or WebGPU backend. `showScene` shows Source0/1 only; passing a Source2 text or casting this scene into it is not a supported bridge. An independently admitted rendering host would need its own contract and execution evidence.
 
 ## Refusal, copies and lifetime
 

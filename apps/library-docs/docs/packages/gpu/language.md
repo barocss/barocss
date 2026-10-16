@@ -1,12 +1,12 @@
 # GPU scene language
 
-The scene language declares simple 3D objects and assigns their properties. The compiler resolves the declarations on the CPU. `mountScene` draws the accepted scene with a WebGL2 signed-distance-field (SDF) renderer. Start with the [live scene example](/playground#gpu-scene), then change one property at a time.
+The scene language declares simple 3D objects and assigns their properties. The compiler resolves the declarations on the CPU. `showScene(viewer, source)` shows the accepted scene on the WebGPU viewer: each object becomes a tessellated mesh with its placement and color. Start with the [live scene example](/playground#gpu-scene), then change one property at a time.
 
-This page describes source0 and source1 at local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
+This page describes source0 and source1 at local source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`; the grammar is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
 
 ## Typed Source2 generation
 
-Use [Generate a scene with typed inputs](./generated-scene) for the separate `4dcb0ebb` Source2 compiler with `@param`, `@repeat` and `@when`. Its application displays coefficient-based diagnostic boxes and does not execute the derived shaders. This page keeps its older Source0/1 parser and `mountScene` contracts.
+Use [Generate a scene with typed inputs](./generated-scene) for the separate `4dcb0ebb` Source2 compiler with `@param`, `@repeat` and `@when`. Its application displays coefficient-based diagnostic boxes and does not execute the derived shaders. This page keeps its older Source0/1 parser and `showScene` contracts.
 
 ## Practice styles and local transforms
 
@@ -16,10 +16,10 @@ The [GPU composition examples](./composition-examples) show type styles with ID 
 
 | Input | Purpose | CPU entry | Drawing entry |
 | --- | --- | --- | --- |
-| Source0/1 `@scene` text | Declare SDF primitives and their style | `parseScene`, `compileGpu` | `mountScene` |
-| `@shader` text | Set an opaque mesh fragment color | `compileMeshMaterial` | `MeshRenderer.setMaterial` |
-| `EngineSceneV0` data | Prepare CPU hierarchy, transforms, bounds and draws | `prepareEngineScene` | No general Engine renderer in this source snapshot |
-| CAD `@model` text | Define CAD geometry in model units | `compileCadModel` from CAD | Tessellate, convert, then mount an admitted mesh |
+| Source0/1 `@scene` text | Declare primitives and their style | `parseScene`, `compileGpu` | `showScene(viewer, source)` |
+| `@shader` text | Set an opaque mesh fragment color | `compileMeshMaterial` | `mesh.material = { shader }` from `materialShader` or `bindingShader` |
+| `EngineSceneV0` data | Prepare CPU hierarchy, transforms, bounds and draws | `prepareEngineScene` | Add its prepared geometry with `viewer.add` |
+| CAD `@model` text | Define CAD geometry in model units | `compileCadModel` from CAD | Tessellate, convert, then `viewer.add` the mesh |
 
 The scene format does not embed a material block. The [material language](./material-language) changes a mesh color. It does not create scene objects. The CPU Engine data format does not parse `@scene` text.
 
@@ -46,12 +46,12 @@ sphere { radius: .65; color: #F1AA55; }
 
 The orange sphere is on the left. The blue box is on the right. The box has full extents `1 × 1.5 × .8`. Its local rotation is `[20,35,-10]` degrees. The sphere has radius `.65`, so its diameter is `1.3` scene units.
 
-The source does not specify a camera. With the default camera, the renderer looks from `[0,0,6]` toward negative Z. The background is dark blue. See the [rendered image and exact input](./examples#rotated-box-and-sphere).
+The source does not specify a camera. `showScene` frames the scene once along the viewer camera's current direction; the playground's camera starts at `[2,1.6,3]` looking at the origin. The background is dark blue. See the [rendered image and exact input](./examples#rotated-box-and-sphere).
 
-Use explicit source1 options for this input:
+Compile with the explicit source1 option, then show the same text:
 
 ```ts
-import { compileGpu, mountScene } from '@barocss/gpu';
+import { compileGpu, createViewer, showScene } from '@barocss/gpu';
 
 // source is the complete text above. canvas is an HTMLCanvasElement.
 const compiled = compileGpu({ kind: 'scene', source, sourceVersion: 1 });
@@ -60,13 +60,12 @@ console.log(compiled.ir.pipeline);       // 'sdf'
 console.log(compiled.ir.schemaVersion);  // 2
 console.log(compiled.ir.draws.length);    // 2
 
-canvas.width = 800;
-canvas.height = 500;
-const renderer = mountScene(canvas, source, undefined, { sourceVersion: 1 });
-// Call renderer.dispose() when the host removes this view.
+const viewer = await createViewer(canvas, { camera: { position: [2, 1.6, 3], target: [0, 0, 0], up: [0, 1, 0] } });
+const view = showScene(viewer, source);
+// Call view.dispose() and viewer.dispose() when the host removes this view.
 ```
 
-Compilation needs no canvas or WebGL context. Mounting needs an available WebGL2 context.
+Compilation needs no canvas or GPU device. Showing needs WebGPU (`createViewer` rejects with a `ViewerError` without it). The IR keeps the name `sdf` and `compileScene` still generates signed-distance-field shader text; the viewer does not run it and draws tessellated meshes instead.
 
 ## Source versions
 
@@ -75,10 +74,10 @@ Compilation needs no canvas or WebGL context. Mounting needs an available WebGL2
 | Required header | `version: 0;` | `version: 1;` |
 | Shapes | `sphere`, `box` | `sphere`, `box`, `cylinder`, `capsule`, `rounded-box`, `torus` |
 | Object rotation | No rotation properties | `rotate-x`, `rotate-y`, `rotate-z` |
-| Host option | Omit source options | Pass `{sourceVersion: 1}` |
+| Host option | Omit source options | Pass `{sourceVersion: 1}` to `compileGpu`/`parseScene`; `showScene` reads the header |
 | Render IR | SDF schema version1 | SDF schema version2 |
 
-`parseScene(source)` and `mountScene(canvas, source)` use source0. A `version: 1;` declaration does not change the host parser mode. Pass the explicit option as well. `sourceVersion: 0` is not an accepted explicit option; omit the option for source0.
+`parseScene(source)` and `compileGpu({kind:'scene',source})` use source0. A `version: 1;` declaration does not change their parser mode; pass the explicit option as well. `showScene` is the exception: it passes `sourceVersion: 1` itself when the header declares `version: 1;`. `sourceVersion: 0` is not an accepted explicit option; omit the option for source0.
 
 ```ts
 import { parseScene } from '@barocss/gpu';
@@ -222,7 +221,7 @@ The rounded box's `size` is its outer size. The rounding radius must be positive
 
 The torus axis is local Y, and its centerline is in local XZ. It requires `0 < minor-radius < major-radius` and `major-radius + minor-radius <= 1000`. Float32 radii must retain a positive hole. Capsule endpoints must retain a usable nonzero separation after Float32 conversion.
 
-In this preset, X rotation90deg turns the ring toward the default camera. Change its minor radius from`.15` to`.55` to create an intentional refusal: its major and minor radii would be equal. The compiler returns `VALIDATION`; a live renderer retains its accepted scene while the context is usable. See the [six-shape image and edit steps](./examples#compare-all-six-source1-primitives).
+In this preset, X rotation90deg turns the ring toward the default camera. Change its minor radius from`.15` to`.55` to create an intentional refusal: its major and minor radii would be equal. The compiler returns `VALIDATION`; `view.update` returns those diagnostics and keeps the shown scene. See the [six-shape image and edit steps](./examples#compare-all-six-source1-primitives).
 
 ## Compile and inspect errors before drawing
 
@@ -257,20 +256,20 @@ This input returns an error because `radius` is not a box property. The diagnost
 | Give capsule equal endpoints | Refused: unusable center segment |
 | Set torus minor radius equal to major radius | Refused: no positive ring hole |
 
-## Update an existing renderer
+## Update a shown scene
 
 ```ts
-const before = renderer.scene;
-const update = renderer.update(source.replace('radius: .65;', 'radius: 0;'));
+const before = view.result;
+const update = view.update(source.replace('radius: .65;', 'radius: 0;'));
 if (!update.ok) {
-  console.log(update.error.message);
-  console.assert(renderer.scene === before);
+  console.log(update.diagnostics[0].message);
+  console.assert(view.result === before);
 }
 ```
 
-The renderer prepares and draws a candidate before adopting it. A refused source update retains the previously accepted scene. If a candidate draw fails, it attempts to restore the previous frame. A lost WebGL context requires a new mount; frame restoration is not guaranteed after context loss.
+`view.update` compiles the candidate before changing anything. A refused source returns its diagnostics and keeps the shown meshes and the previously accepted result. An accepted source replaces the view's meshes and releases shapes no longer used. A lost GPU device is replaced by the viewer, which re-uploads the scene.
 
-There is one synchronous frame per accepted update. The renderer creates no animation timer. The host controls edits, scheduling, resizing and disposal. `setCamera` is a separate transaction; camera data does not belong in the scene text.
+The viewer draws on demand (at most one frame per animation frame); it creates no animation clock for the scene. The host controls edits, resizing and disposal. The camera is viewer state (`viewer.camera`, `viewer.fit()`, orbit controls); camera data does not belong in the scene text.
 
 ## Budgets and supported rendering
 
@@ -282,15 +281,15 @@ There is one synchronous frame per accepted update. The renderer creates no anim
 | Style rules | 128 |
 | Total style declarations | 512 |
 | AST nodes | 4,096 |
-| Generated fragment source | 64KiB |
-| SDF steps per ray | 128 |
-| Ray travel / hit epsilon | 100 / .001 scene units |
-| Canvas dimension / area | 4,096 per side / 4,194,304 pixels |
+| Generated fragment source (`compileScene`) | 64KiB |
+| SDF steps per ray in that generated shader | 128 |
+| Ray travel / hit epsilon in that generated shader | 100 / .001 scene units |
+| Tessellation in `showScene` | `segments` 8–128 around a curved primitive (default 48) |
 
-The scene renderer chooses the nearest primitive distance. It is not a CAD Boolean solver or a triangle exporter. It has fixed SDF shading and opaque colors. Material expressions, texture coordinates, alpha, arbitrary meshes and scene hierarchy are outside this grammar. Use a mesh API or a CPU Engine API for its own stated contract.
+`showScene` tessellates each primitive separately; overlapping objects intersect as meshes and are not merged. It is not a CAD Boolean solver. Each mesh is opaque with its scene color and the viewer's metal–roughness lighting. Material expressions, texture coordinates, alpha, arbitrary meshes and scene hierarchy are outside this grammar. Use a mesh API or a CPU Engine API for its own stated contract.
 
 ## API profile
 
-This page describes source0 and source1 for local experimental `@barocss/gpu` version0.0.0 at the source snapshot stated above. Read the [scene input rules](./language#choose-the-correct-language) and [scene compiler contracts](./api#scene-compiler-and-live-renderer) before constructing compiler inputs. A browser host needs WebGL2 and a TypeScript-capable bundler for the local source package.
+This page describes source0 and source1 for local experimental `@barocss/gpu` version0.0.0 at the source snapshot stated above. Read the [scene input rules](./language#choose-the-correct-language) and [scene compiler contracts](./api#scene-compiler) before constructing compiler inputs. A browser host needs WebGPU and a TypeScript-capable bundler for the local source package.
 
 [Examples](./examples) · [Material language](./material-language) · [API](./api) · [Limits](./limits)

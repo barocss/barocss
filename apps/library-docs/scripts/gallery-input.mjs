@@ -29,9 +29,9 @@ export async function visualEntry() {
     const fragment = await readFile(resolve(app, `scripts/snippets/hosts/${name}.mjs`), 'utf8');
     const importPattern = /^import .+ from ['"][^'"]+['"];?\s*$/gm;
     const imports = fragment.match(importPattern) || [];
-    if (!imports.length || !fragment.includes(`export function ${factory}(`)) throw Error(`Invalid host factory: ${name}`);
+    if (!imports.length || !new RegExp(`^export (async )?function ${factory}\\(`, 'm').test(fragment)) throw Error(`Invalid host factory: ${name}`);
     // Each authored module retains a private closure and its bare public imports.
-    const body = fragment.replace(importPattern, '').replace(/^export function /gm, 'function ');
+    const body = fragment.replace(importPattern, '').replace(/^export (async )?function /gm, '$1function ');
     fragments.push(`${imports.join('\n')}\nconst ${factory} = (() => {\n${body}\nreturn ${factory};\n})();`);
   }
   const directory = resolve(app, 'docs/.vitepress/cache');

@@ -33,7 +33,8 @@ const source = `@model panel_demo {
   }
 }`;
 const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
-const viewer = createViewer(canvas, {
+// The Viewer draws with WebGPU: creation is asynchronous and rejects without WebGPU.
+const viewer = await createViewer(canvas, {
   mmToSceneUnit: 0.001, background: [0.04, 0.06, 0.1],
 });
 let acceptedSource = source;
@@ -73,7 +74,7 @@ window.addEventListener('pagehide', () => {
 
 At scale 0.001, 1000 native mm becomes one scene unit. The 3×3 sample produces 9 display vertices and 8 triangles. Original source, Model, weights, knots and IDs remain native authority; the sampled mesh is derived display data. `getState()` returns a copy that cannot mutate the accepted Viewer.
 
-Change both X=100 poles to120 in the live example and run the candidate. The native midpoint becomes `[60,0,20]` mm. A degree of0 is invalid. Native admission refusal keeps the accepted source and references while the display remains live; a lost or unavailable GPU context has a different recovery boundary.
+Change both X=100 poles to120 in the live example and run the candidate. The native midpoint becomes `[60,0,20]` mm. A degree of0 is invalid. Native admission refusal keeps the accepted source and references while the display remains live. A lost GPU device is replaced by the GPU viewer core; an unavailable WebGPU makes `createViewer` reject.
 
 ## Fit, clear and reload
 
@@ -92,8 +93,9 @@ if (surface?.kind === 'surface') {
 }
 const hit = viewer.pick(120, 80); // Canvas-local CSS pixels.
 if (hit) viewer.select(hit.ref);
+const pixels = await viewer.readPixels(); // RGBA of the next drawn frame, rows from the top.
 ```
 
 Original U/V has no length unit and follows the native knot domain. A native query evaluates the original Surface at explicit parameters. A screen pick selects a sampled triangle and approximate parameters; it is not a certified native ray intersection. Keep native XYZ, displayed pose and rendered image separate. Use model-qualified references because a local Surface ID can occur in different Models.
 
-The Viewer sample above uses genuine WebGL2 presentation. The [CAD Surface image in the playground](/playground#cad-surface) uses a separate direct GPU mesh path. Each display API retains its own supported mode, limits and lifecycle.
+The Viewer sample above draws with WebGPU through the `@barocss/gpu` viewer core. The [CAD Surface image in the playground](/playground#cad-surface) adds its mesh to that core directly with `viewer.add`, without this package's native admission. Each display API retains its own supported mode, limits and lifecycle. The panel image was captured from the earlier WebGL2 presenter.

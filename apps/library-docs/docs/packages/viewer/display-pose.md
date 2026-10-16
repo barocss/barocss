@@ -6,7 +6,7 @@
 
 The actual image shows the panel after applying the 90° display pose. The application readout below it reports native measurement and midpoint coordinates, rounded to three decimal places. That DOM text is separate from the native canvas frame; the pose changes presentation while the native midpoint remains `[50,0,20]` mm.
 
-This guide uses experimental `@barocss/viewer` version `0.0.0-experimental` at fixed source profile `5f5ad866205a21510ac69552e704cc162fa253b5`. Use a matching TypeScript-capable browser consumer and WebGL2. Source availability, CPU calculations, actual Viewer presentation and publication are separate stages.
+This guide uses experimental `@barocss/viewer` version `0.0.0-experimental` at fixed source profile `e532fc3037f9c1e13819b61d63de06164c50128f`, which draws with the `@barocss/gpu` WebGPU viewer core (the pose API is unchanged since `5f5ad866205a21510ac69552e704cc162fa253b5`). Use a matching TypeScript-capable browser consumer and WebGPU. Source availability, CPU calculations, actual Viewer presentation and publication are separate stages.
 
 The public method names `applyMotionFrame` and `resetMotion` accept caller-owned display data. The pose actions import no Motion package, start no clock and perform no native geometry edit. `timeSeconds:0` is supplied frame metadata, not a request to advance a simulation.
 
@@ -103,7 +103,7 @@ const canvas = document.createElement('canvas');
 canvas.width = 640; canvas.height = 420;
 canvas.style.cssText = 'display:block;width:640px;height:420px';
 document.body.append(canvas);
-const viewer = createViewer(canvas, {
+const viewer = await createViewer(canvas, {
   mmToSceneUnit: .001, background: [.04,.06,.1],
 });
 const measure = () => viewer.measureNativeSurfacePoints(
@@ -171,10 +171,10 @@ The submitted quaternion `[0,0,0,2]` failed the component range check; it did no
 
 Try a non-unit quaternion such as `[0,0,0,0]` in a non-null pose recipe. The public pose admission refuses it. An original probe parameter outside `[0,1]` also refuses through the public native query. Do not invent one stable Viewer error code from the explanatory message; reached loader/CAD/GPU causes retain their own errors.
 
-For this application, a rejected candidate should leave the accepted Viewer, native data and frame available. The host can compare copied `getState()` values with recursive `Object.is` and compare every actual `readPixels()` byte around a refusal. That measures one live operation. It is not a universal transaction guarantee for context loss, allocation failure or every Viewer mode.
+For this application, a rejected candidate should leave the accepted Viewer, native data and frame available. The host can compare copied `getState()` values with recursive `Object.is` and compare every actual `await readPixels()` byte around a refusal. That measures one live operation. It is not a universal transaction guarantee for device loss, allocation failure or every Viewer mode.
 
 The public pose bounds are 1..4 target records, timeSeconds 0..3600, translation components within ±10000 mm, positive scale components .001..100, and a unit quaternion within norm tolerance `1e-9`. Bindings must cover the actual displayed targets with matching context and qualified references. Assemblies keep their authored instance poses and refuse this override/reset route. Native load counts are integers 2..17 per Surface axis; this example uses 3.
 
-Dispose the Viewer on setup failure and teardown. Remove caller-owned listeners or dispose pointer/keyboard adapters before releasing their Viewer. A context-lost or unavailable frame is a different boundary from a source refusal. Application create/dispose/listener counters describe calls, not measured deletion of every native GPU object.
+Dispose the Viewer on setup failure and teardown. Remove caller-owned listeners or dispose pointer/keyboard adapters before releasing their Viewer. An unavailable WebGPU (`createViewer` rejects) is a different boundary from a source refusal. Application create/dispose counters describe calls, not measured deletion of every native GPU object.
 
 [Viewer examples](./examples) · [Coordinate and frame conventions](/concepts/coordinates) · [Viewer limits](./limits)

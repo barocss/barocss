@@ -46,12 +46,12 @@ Viewer camera controls change the display, not native CAD source. Physics uses m
 
 The CAD curve plot and Physics projection use the browser's native Canvas2D context. They do not execute the BaroCSS Canvas2D package. Canvas2D samples use the package's public renderer, display tree and, where needed, its document entry. A second entry in one package is not a second library.
 
-The procedural UV shaders use public GPU compilation, binding and lowering in an app-owned WebGL2 quad host. That host owns drawing, controls, clock and cleanup; it is not automatically a package Engine renderer. Viewer tasks use the view's direct public API. The integrated Surface task specifically teaches the CAD native-to-sampled-packet-to-GPU boundary.
+The procedural UV shaders use public GPU compilation, binding and lowering in an app-owned WebGL2 quad host. That host owns drawing, controls, clock and cleanup; it is application code, not a package renderer. GPU scene, Surface and material tasks draw on the `@barocss/gpu` WebGPU viewer (`createViewer`, `showScene`, `viewer.add`). Viewer tasks use the `@barocss/viewer` public API, which draws on that same viewer core. The integrated Surface task specifically teaches the CAD native-to-sampled-packet-to-GPU boundary.
 
 ## Use the APIs in your application
 
 Package guides supply complete public imports, inputs and lifecycle. Source entries need a TypeScript-capable application build. Choose the matching source profile and requirements from [versions and availability](./versions); the catalog does not update package APIs or release status.
 
-Browser APIs that mount a view, attach controls or load local fonts need their documented DOM host. GPU, public Canvas2D and Viewer drawing require WebGL2. Native curve and Physics plots need a browser Canvas2D context. Numeric compilation, geometry evaluation and world stepping can run separately from display.
+Browser APIs that mount a view, attach controls or load local fonts need their documented DOM host. GPU and Viewer drawing require WebGPU; public Canvas2D drawing and the procedural UV shader hosts require WebGL2. Native curve and Physics plots need a browser Canvas2D context. Numeric compilation, geometry evaluation and world stepping can run separately from display.
 
 Continue with [CAD examples](../packages/cad/examples), [GPU examples](../packages/gpu/examples), [Canvas2D examples](../packages/canvas2d/examples), [Physics examples](../packages/physics/examples) or [coordinates and units](./coordinates).

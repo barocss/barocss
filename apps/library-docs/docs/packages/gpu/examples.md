@@ -2,7 +2,7 @@
 
 Start the [visual playground](/playground). It runs the real source APIs in your browser. Choose **GPU scene** to edit shapes, or **GPU material** to change the color of a CAD-derived mesh. Each example shows its input, accepted result and diagnostics.
 
-The original scene and mesh-material examples below describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
+The scene and mesh-material examples below describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `e532fc3037f9c1e13819b61d63de06164c50128f`, where the WebGPU viewer is the only renderer. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images were captured from the earlier renderers at `5f5ad866205a21510ac69552e704cc162fa253b5`; the playground draws the same inputs on the viewer, so shading and framing differ.
 
 ## Procedural UV plasma
 
@@ -32,13 +32,13 @@ Use the [public CPU evaluation example](./cpu-material-evaluation) to inspect li
 
 Open the [playground](/playground) and select a sample. Edit its complete source, then select **Run input**. Use **Reset example** to restore the original input. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation.
 
-The API code below belongs in a browser host with a TypeScript-capable bundler. WebGL2 is required for the scene, surface and material views. The host owns the canvas, controls and source editing. It displays compilation or rendering errors when an input cannot be adopted.
+The API code below belongs in a browser host with a TypeScript-capable bundler. WebGPU is required for the scene, surface and material views; `createViewer` rejects with a `ViewerError` without it. The host owns the canvas, controls and source editing. It displays compilation or rendering errors when an input cannot be adopted.
 
 ## Rotated box and sphere
 
 ![Actual GPU source1 scene: orange sphere beside rotated blue box](/examples/gpu-scene.png)
 
-This image shows the source1 SDF renderer. The left object is an orange sphere. The right object is a rotated blue box. Both come from the following complete source:
+This image shows the source1 scene (captured from the earlier SDF renderer). The left object is an orange sphere. The right object is a rotated blue box. Both come from the following complete source:
 
 ```css
 @scene shapes {
@@ -64,10 +64,12 @@ The declaration block creates `ball` and `block`. Style blocks change their prop
 The portal makes this call:
 
 ```ts
-import { mountScene } from '@barocss/gpu';
+import { createViewer, showScene } from '@barocss/gpu';
 
-const renderer = mountScene(canvas, source, undefined, { sourceVersion: 1 });
-console.log(renderer.scene.objects.map(object => ({
+const viewer = await createViewer(canvas, { camera: { position: [2, 1.6, 3], target: [0, 0, 0], up: [0, 1, 0] } });
+const view = showScene(viewer, source);
+const scene = view.result.execution.kind === 'sdf' ? view.result.execution.scene : null;
+console.log(scene?.objects.map(object => ({
   id: object.id,
   type: object.type,
   translate: object.translate,
@@ -88,14 +90,14 @@ Expected accepted data:
 
 1. Change `rotate-y: 35deg` to `rotate-y: 0deg`. Run the input. The box's orientation changes, while its size and translation stay the same.
 2. Change the sphere radius from`.65` to`.9`. Run the input. The sphere grows; its center stays at `[-1.1,0,0]`.
-3. Change its radius to0. Run the input. The renderer refuses the candidate and retains the previously accepted scene while the context is live.
+3. Change its radius to0. Run the input. `view.update` refuses the candidate with its diagnostics and keeps the previously accepted scene.
 4. Select **Reset example** to restore the exact original source.
 
-A `version: 1` header alone does not change a source0 parser. Pass the explicit source1 option when mounting. A rotation such as `20rad` is refused because this grammar requires degrees. Read the [complete scene language](./language) for all six shapes, defaults, cascade and errors.
+A `version: 1` header alone does not change `parseScene` or `compileGpu`; pass the explicit source1 option to them. `showScene` reads the header itself. A rotation such as `20rad` is refused because this grammar requires degrees. Read the [complete scene language](./language) for all six shapes, defaults, cascade and errors.
 
 ## Compare all six source1 primitives
 
-Open [GPU six shapes](/playground#gpu-six-shapes). This source1 scene compares all six admitted SDF shapes with the default camera:
+Open [GPU six shapes](/playground#gpu-six-shapes). This source1 scene compares all six admitted shapes:
 
 ![Actual source1 SDF scene showing six distinct primitives in two rows](/examples/gpu-six-shapes.png)
 
@@ -108,7 +110,7 @@ Open [GPU six shapes](/playground#gpu-six-shapes). This source1 scene compares a
 | Bottom center | `case` / rounded-box | Pink | Full outer size`1 × .8 × .6`, rounding radius`.1` |
 | Bottom right | `ring` / torus | Yellow | Major radius`.55`, minor radius`.15`, outside diameter1.4 |
 
-The box has Y rotation25deg. The torus has X rotation90deg, which turns its ring toward the camera. These rotations change orientation, not authored dimensions. This is an SDF rendering example, not a native CAD geometry or Boolean certificate.
+The box has Y rotation25deg. The torus has X rotation90deg, which turns its ring toward the camera. These rotations change orientation, not authored dimensions. The viewer draws each shape as a tessellated mesh; this is not a native CAD geometry or Boolean certificate.
 
 The complete input is:
 
@@ -131,11 +133,11 @@ The complete input is:
 #ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; color: #F0D670; }
 ```
 
-The host uses the same public call as the first scene example: `mountScene(canvas, source, undefined, {sourceVersion: 1})`. The result contains six objects in declaration order. Each reports its ID, type, translation and rotation. The source name is `sixShapes`.
+The host uses the same public call as the first scene example: `showScene(viewer, source)`. The result contains six objects in declaration order. Each reports its ID, type, translation and rotation. The source name is `sixShapes`.
 
 1. Set the ring's `rotate-x` to0deg and run. Its plane returns to local XZ, making the camera view more edge-on.
 2. Set the capsule's `end` to`0 .8 0` and run. Its center segment grows from`.8` to1.2; the two hemispherical ends retain radius`.25`.
-3. Set the ring's minor radius to`.55`. Run. Equal major/minor radii are refused, because no positive ring hole remains. The live view retains its accepted scene while the context is usable.
+3. Set the ring's minor radius to`.55`. Run. Equal major/minor radii are refused, because no positive ring hole remains. The live view keeps its accepted scene.
 4. Reset the example to restore the exact six-shape source.
 
 The [scene grammar](./language#source1-shapes-in-one-complete-input) explains each shape's Float32 boundary checks and the required source1 option.
@@ -148,7 +150,7 @@ The two images show the same CAD-derived mesh with two admitted uniform values:
 | --- | --- |
 | ![Actual opaque mesh material with amount0](/examples/gpu-material.png) | ![Actual same opaque mesh material with amount1](/examples/gpu-material-amount1.png) |
 
-The geometry stays the same. A real MeshRenderer draws it. The material changes its opaque fragment color:
+The geometry stays the same. The WebGPU viewer draws it. The material changes its opaque fragment color:
 
 ```css
 @shader #blend {
@@ -163,24 +165,23 @@ The geometry stays the same. A real MeshRenderer draws it. The material changes 
 The portal supplies amount0 initially. The **Material amount** slider supplies a value from0 to1; the visible label shows `amount=value`. At.5, the easing ratio is.5. Color mixing happens in linear color, so the displayed midpoint need not equal the arithmetic mean of the input RGB bytes.
 
 ```ts
-import { compileMeshMaterial } from '@barocss/gpu';
+import { compileMeshMaterial, validateMeshMaterialBinding, bindingShader } from '@barocss/gpu';
 
 const compiled = compileMeshMaterial(source);
 if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
 
 function setAmount(amount: number) {
-  const result = renderer.setMaterial({
-    material: compiled.material,
-    uniforms: { amount }
-  });
-  if (!result.ok) throw result.error;
+  // Throws on an unknown or out-of-range uniform; the drawn material stays.
+  const binding = validateMeshMaterialBinding({ material: compiled.material, uniforms: { amount } });
+  // White: the mesh colour multiplies the shader's colour.
+  mesh.material = { color: [1, 1, 1], shader: bindingShader(binding) };
 }
 setAmount(0);
 setAmount(.5);
 setAmount(1);
 ```
 
-This function assumes the mesh renderer from the next section. A material source creates no geometry and no timer. The host owns the uniform values and scheduling. Read the [material grammar and complete function table](./material-language).
+This function assumes the `mesh` that `viewer.add` returned in the next section. `materialShader(source, { amount })` compiles and lowers in one call instead, but clamps the amount into its declared range. A material source creates no geometry and no timer. The host owns the uniform values and scheduling. Read the [material grammar and complete function table](./material-language).
 
 For separate complete inputs for all11functions, read [GPU function examples](./function-examples). The cosine sample uses a complete cycle: amounts0, .5 and1 produce ratios1, 0 and1. The clamp sample limits its mix ratio to.25 through.75, so those amounts produce ratios.25, .5 and.75. Both use the same admitted mesh and host-controlled amount contract.
 
@@ -189,14 +190,14 @@ For separate complete inputs for all11functions, read [GPU function examples](./
 | Change | Expected result |
 | --- | --- |
 | Bind `{amount: .5}` | Accepted |
-| Bind `{amount: 2}` | Refused: outside the declared0..1 range |
-| Bind `{missing: .5}` | Refused: unknown uniform name |
+| Bind `{amount: 2}` | `validateMeshMaterialBinding` refuses: outside the declared0..1 range (`materialShader` clamps it to1) |
+| Bind `{missing: .5}` | `validateMeshMaterialBinding` refuses: unknown uniform name |
 | Bind `{}` | Uses the declared amount default0 |
 | Change `mix` to `unknown` | Compile failure with `SYNTAX` code |
 | Use declared range-1..1 directly as the `mix` ratio | Compile failure with `RANGE` code |
 | Change output to `color: amount;` | Compile failure with `TYPE` code |
 
-Changing amount0 to1 changes the color endpoint. A candidate containing `unknown()` is refused by the compiler and supplies no replacement material. Keep the accepted binding after a refused edit. `setMaterial(null)` clears the material. Clear overlays and face/object selections before adopting an opaque material.
+Changing amount0 to1 changes the color endpoint. A candidate containing `unknown()` is refused by the compiler and supplies no replacement material. Keep the accepted binding after a refused edit. `mesh.material = { shader: null }` returns to the plain colour.
 
 ## CAD surface to a rendered mesh
 
@@ -218,9 +219,9 @@ The surface and material examples use the same source geometry. The packet is a 
 }
 ```
 
-Native surface coordinates use millimeters. The renderer uses scene units. Conversion occurs once in `MeshOptions.mmToSceneUnit`; it does not change the source coefficients.
+Native surface coordinates use millimeters. The viewer uses scene units. Conversion occurs once, in the mesh transform (scale `mmToSceneUnit`, then translate); it does not change the source coefficients.
 
-The following public-import code performs the compile, sample and mount sequence. `canvas` must be an `HTMLCanvasElement`; `cadSource` is the complete source above. This minimal mount omits the host's optional sampled grid overlay.
+The following public-import code performs the compile, sample and show sequence. `canvas` must be an `HTMLCanvasElement`; `cadSource` is the complete source above. This minimal host omits the playground's sampled grid lines.
 
 ```ts
 import {
@@ -228,7 +229,7 @@ import {
   evaluateSurface,
   tessellateSurface
 } from '@barocss/cad';
-import { mountMesh } from '@barocss/gpu';
+import { createViewer } from '@barocss/gpu';
 
 const compiled = compileCadModel(cadSource, { sourceVersion: 0 });
 if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
@@ -244,27 +245,21 @@ console.log(evaluateSurface(surface, .5, .5));
 console.log(sampled.report.vertexCount, sampled.report.triangleCount);
 console.log(sampled.report.certified);
 
-canvas.width = 800;
-canvas.height = 500;
-const renderer = mountMesh(canvas, sampled.packet, {
-  mmToSceneUnit: .12,
-  translate: [-.7,-.45,0],
-  color: [.22,.65,.85],
+const viewer = await createViewer(canvas, {
   background: [.063,.094,.125],
-  camera: {
-    eye: [2,1.6,3],
-    target: [0,0,0],
-    up: [0,1,0],
-    fovYDegrees: 45,
-    near: .01,
-    far: 100
-  }
+  camera: { position: [2,1.6,3], target: [0,0,0], up: [0,1,0], fovY: 45 }
 });
+const s = .12, [x, y, z] = [-.7,-.45,0];
+const mesh = viewer.add(
+  { positions: sampled.packet.positions, normals: sampled.packet.normals, indices: sampled.packet.indices },
+  { material: { color: [.22,.65,.85], doubleSided: true }, transform: [s,0,0,0, 0,s,0,0, 0,0,s,0, x,y,z,1] }
+);
+viewer.fit();
 ```
 
 At U=.5 and V=.5, the weighted surface point is `[7.7,5.2,1]` millimeters. The17×17 sampling grid creates289vertices and512triangles. The report's `certified` field is false. Sampled deviation is an observation, not a proof of maximum error over the continuous surface.
 
-The eye, target, clipping and translation values use scene units. The up vector is dimensionless. A source Z value of4mm contributes`.48` scene units before translation at the scale`.12`.
+The camera position, target and translation values use scene units; `fovY` is in degrees. The up vector is dimensionless. The viewer fits its clip planes to the scene each frame, and `fit()` frames the mesh along the camera's direction. A source Z value of4mm contributes`.48` scene units before translation at the scale`.12`.
 
 Change one weight and run the surface input. The native point and packet change. Change only a material uniform and the packet geometry stays the same. Read the [CAD language](/packages/cad/language) for knots, coefficients, weights and original-domain rules.
 
@@ -296,9 +291,9 @@ const candidate = compileMeshMaterial('@shader #bad { @fragment { color: unknown
 if (!candidate.ok) console.log(candidate.diagnostics); // SYNTAX: unsupported function.
 ```
 
-The `timeSeconds` uniform has min0, max2 and default0. It lowers to the generated name `mat_u_0`; renderer bindings use the declared name `timeSeconds`. The compiler and lowerer create no timer, canvas or frame. The host supplies the time value and adopts the result through `setMaterial`. Read [caller time and cleanup](./material-language#supply-caller-time-on-demand) for that lifecycle.
+The `timeSeconds` uniform has min0, max2 and default0. It lowers to the generated name `mat_u_0`; bindings use the declared name `timeSeconds`. The compiler and lowerer create no timer, canvas or frame. The host supplies the time value and adopts the result by assigning `mesh.material = { color: [1, 1, 1], shader: bindingShader(binding) }`. Read [caller time and cleanup](./material-language#supply-caller-time-on-demand) for that lifecycle.
 
-The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Engine scene prepares hierarchy and query data; it does not supply a general Engine renderer in this API profile. Read [CPU Engine guide](./guides#prepare-a-general-engine-scene-on-cpu) when using that separate format.
+Scene sources (`showScene`) and CAD mesh packets (`viewer.add`) have separate inputs and share one viewer. A CPU Engine scene prepares hierarchy and query data; add its prepared geometry to a viewer to draw it. Read [CPU Engine guide](./guides#prepare-a-general-engine-scene-on-cpu) when using that separate format.
 
 [Scene language](./language) · [Material language](./material-language) · [Quickstart](./quickstart) · [API](./api) · [Limits](./limits)
 
@@ -307,4 +302,4 @@ The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Eng
 
 [Woven grid](./weave-shader), [contour bands](./contour-shader) and [halftone dots](./halftone-shader) are separate complete material programs. Each guide explains its source, controls, numerical checks and actual browser image. Open its language sample to edit the program and inspect the result.
 
-These examples reuse the Manual's public repeating-UV material profile and its app-owned WebGL2 quad. The host supplies phase and Play/Pause. Compilation and CPU evaluation create no clock or renderer. The displayed patterns change color, not native geometry.
+These examples reuse the Manual's public repeating-UV material profile and its app-owned WebGL2 quad (application code, not a package renderer). The host supplies phase and Play/Pause. Compilation and CPU evaluation create no clock or renderer. The displayed patterns change color, not native geometry.

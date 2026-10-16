@@ -2,9 +2,9 @@
 
 [Run and edit an actual example](/playground#gpu-scene). Read the [language reference](./language) and [material language](./material-language). Compare the input with [captured result images](./examples).
 
-`@barocss/gpu` compiles a bounded scene language, prepares display geometry, and provides original WebGL2 renderers for its admitted preview profiles. Its manifest version is `0.0.0`.
+`@barocss/gpu` compiles a bounded scene language, prepares display geometry, and draws with one WebGPU viewer (`createViewer`, also at `@barocss/gpu/viewer`). Its manifest version is `0.0.0`.
 
-Use the SDF path for a small scene of spheres, boxes and the explicit source1 primitives. Use the mesh path for a CAD PreviewPacket. Use the general Engine APIs for CPU geometry, hierarchy, rays, clips and binding preparation. These paths have different inputs and limits.
+Use `showScene(viewer, source)` for a small scene of spheres, boxes and the explicit source1 primitives. Use `viewer.add` for a CAD PreviewPacket or any other triangle or line geometry, and `materialShader`/`bindingShader` to colour it with an authored material. Use the general Engine APIs for CPU geometry, hierarchy, rays, clips and binding preparation. These paths have different inputs and limits, and share one viewer.
 
 | Task | Start here |
 | --- | --- |
@@ -13,11 +13,11 @@ Use the SDF path for a small scene of spheres, boxes and the explicit source1 pr
 | Handle edits and resource cleanup | [Update guide](./guides#replace-a-scene-safely) |
 | Choose an exported function or data type | [API](./api) |
 | Find a runnable repository host | [Examples](./examples) |
-| Diagnose refusal or context loss | [Limits and errors](./limits) |
+| Diagnose refusal or device loss | [Limits and errors](./limits) |
 
 ## Typed generated source
 
-Use [Generated scene](./generated-scene) to compile the separate Source2 typed-parameter, finite-repeat and conditional-object profile. Its live example shows transformed diagnostic boxes from selected coefficients. The existing Source0/1 SDF renderers and original examples retain their stated source snapshot; this newer compiler does not add a Source2 mount or general Engine graphics runtime.
+Use [Generated scene](./generated-scene) to compile the separate Source2 typed-parameter, finite-repeat and conditional-object profile. Its live example shows transformed diagnostic boxes from selected coefficients. `showScene` shows Source0/1 only; this newer compiler does not add Source2 drawing or a general Engine graphics runtime.
 
 ## Source, mesh and image
 
@@ -27,12 +27,12 @@ The package's workspace root and `/source` entries both select `src/index.ts`. U
 
 ## Current Engine boundary
 
-The fixed parent exposes CPU Engine preparation and query APIs. It does **not** export the general Engine renderer from [#1183](https://github.com/barocss/barocss/issues/1183) or its textured renderer from [#1184](https://github.com/barocss/barocss/issues/1184). Their latest receipts describe prepared browser fixtures with actual graphics acceptance unrun. Do not use those isolated branches as an available public runtime.
+The package exposes CPU Engine preparation and query APIs. It does **not** export the general Engine renderer from [#1183](https://github.com/barocss/barocss/issues/1183) or its textured renderer from [#1184](https://github.com/barocss/barocss/issues/1184); draw prepared Engine geometry by adding it to the viewer. The earlier WebGL2 renderers (`mountScene`, `mountMesh` and the other `mount*` scenes and viewports) are removed.
 
 Read the shared [coordinate](../../concepts/coordinates), [ownership](../../concepts/ownership) and [version](../../concepts/versions) contracts before combining packages.
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
+Source snapshot: local Git `e532fc3037f9c1e13819b61d63de06164c50128f` (the WebGPU viewer; the earlier renderers were removed after `5f5ad866205a21510ac69552e704cc162fa253b5`). `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

@@ -10,7 +10,7 @@ The first fluid layer requires exactly 256 finite Float64 XYZ metre positions an
 
 ## Refusal handling
 
-Keep accepted source/model/references distinct from proposed loads and sampled packets. Correct unknown/stale pins, hidden references, invalid cameras and incompatible modes before retrying. Recoverable presentation refusal and unavailable/context-lost presentation are distinct; do not mark new authoring accepted because a CPU candidate was prepared.
+Keep accepted source/model/references distinct from proposed loads and sampled packets. Correct unknown/stale pins, hidden references, invalid cameras and incompatible modes before retrying. A refused load and an unavailable GPU (`createViewer` rejects without WebGPU) are distinct; do not mark new authoring accepted because a CPU candidate was prepared. A lost device is replaced by the GPU viewer core, not by the host.
 
 Control `onError` reports failed gestures/keys to the host. The host owns DOM pointer capture, focus, touch-action, pending URL cancellation and adapter disposal. Remove those resources on close. Retired Motion examples remain historical; pose APIs here do not imply an active package or clock.
 
