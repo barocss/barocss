@@ -221,6 +221,38 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     // (A software rasteriser draws thousands of meshes slowly; the bound is for a hardware adapter.)
     if (!/swiftshader/.test(adapter)) assert.ok(many.ms < 200, `${many.ms} ms per frame`);
 
+    // A colour map: a checker on a quad, exact up close; far away (repeated) its mips blend the squares.
+    const tex = await p.evaluate(async () => {
+      const { viewer } = window.t;
+      viewer.clear();
+      const N = 64, data = new Uint8Array(N * N * 4);
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const red = ((x >> 3) + (y >> 3)) % 2 === 0; data.set(red ? [255, 0, 0, 255] : [255, 255, 255, 255], (y * N + x) * 4); }
+      const checker = viewer.createTexture({ width: N, height: N, data });
+      const quad = (x0, x1, z0, z1, y, rep) => ({ positions: [x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1], uvs: [0, rep, rep, rep, rep, 0, 0, 0], indices: [0, 1, 2, 0, 2, 3] });
+      viewer.add(quad(-2, 2, -2, 2, 0, 1), { material: { map: checker, unlit: true, color: '#ffffff', doubleSided: true } });
+      viewer.camera.projection = 'perspective'; viewer.camera.position = [0, -10, 0]; viewer.camera.target = [0, 0, 0]; viewer.camera.up = [0, 0, 1];
+      viewer.fit({ min: [-2, 0, -2], max: [2, 0, 2] });
+      const at = (u, v) => screen([u * 4 - 2, 0, 2 - v * 4]);
+      const img = await viewer.capture();
+      const near = { red: pixel(img, at(1 / 16, 1 / 16)), white: pixel(img, at(3 / 16, 1 / 16)), red2: pixel(img, at(3 / 16, 3 / 16)) };
+      // A long floor with the checker repeated: far rows fall below one texel per pixel.
+      viewer.clear();
+      const floor = viewer.add({ positions: [-50, 0, 0, 50, 0, 0, 50, 400, 0, -50, 400, 0], uvs: [0, 0, 25, 0, 25, 200, 0, 200], indices: [0, 1, 2, 0, 2, 3] }, { material: { map: viewer.createTexture({ width: N, height: N, data }), unlit: true, color: '#ffffff', doubleSided: true } });
+      viewer.camera.position = [0, -5, 3]; viewer.camera.target = [0, 30, 0];
+      const far = await viewer.capture();
+      // Across the middle of the floor at that depth (its edges blend with the background).
+      const row = [], y = Math.round(screen([0, 300, 0])[1]), x0 = Math.ceil(screen([-30, 300, 0])[0]), x1 = Math.floor(screen([30, 300, 0])[0]);
+      for (let x = x0; x <= x1; x++) row.push(pixel(far, [x, y])[1]);
+      floor.remove();
+      return { near, farGreen: row };
+    });
+    assert.deepEqual(tex.near.red.slice(0, 3), [255, 0, 0]);
+    assert.deepEqual(tex.near.white.slice(0, 3), [255, 255, 255]);
+    assert.deepEqual(tex.near.red2.slice(0, 3), [255, 0, 0]);
+    // Mip-filtered far away: the squares average out (no full red or full white speckle).
+    const spread = Math.max(...tex.farGreen) - Math.min(...tex.farGreen);
+    assert.ok(tex.farGreen.length > 10 && spread < 30 && tex.farGreen.every(g => g > 150 && g < 225), `far checker filtered: ${tex.farGreen.join(',')}`);
+
     // Ten thousand boxes as instances of one mesh: one draw, a colour each, picks name the instance.
     const inst = await p.evaluate(async () => {
       const { viewer, box } = window.t;

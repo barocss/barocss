@@ -9,7 +9,7 @@ import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type Geo
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -34,6 +34,29 @@ export interface Material {
    * black) and as dark as the opacity — a ground under a model, say.
    */
   shadowOnly?: boolean;
+  /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
+  map?: ImageTexture | null;
+}
+
+/** Pixels for a texture: an image, a canvas or a bitmap, or RGBA bytes rows top to bottom. */
+export type TextureSource = ImageBitmap | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | { width: number; height: number; data: Uint8Array | Uint8ClampedArray };
+export interface TextureOptions {
+  /** Colour data in sRGB (default true); false for data maps. */
+  srgb?: boolean;
+  /** A mip chain filtered down from the image (default true). */
+  mipmaps?: boolean;
+  wrap?: 'repeat' | 'clamp';
+  filter?: 'linear' | 'nearest';
+}
+
+/** A texture the viewer keeps (with its source, to upload again after a device loss). */
+export class ImageTexture {
+  /** @internal */ gpu: { texture: Texture; group: BindGroup; device: Device } | null = null;
+  disposed = false;
+  constructor(readonly source: TextureSource, readonly options: Required<TextureOptions>, private readonly owner: Viewer) {}
+  get width(): number { return this.source.width; }
+  get height(): number { return this.source.height; }
+  dispose(): void { this.disposed = true; this.gpu?.texture.destroy(); this.gpu = null; this.owner.requestRender(); }
 }
 export interface AddMeshOptions {
   material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string;
@@ -68,7 +91,7 @@ function packInstances(input: InstancesInput): { count: number; data: ArrayBuffe
 
 export class Geometry {
   /** @internal Triangles: positions, normals, colours, indices. Lines: positions holds the segment instances. */
-  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; indices: Buffer | null; device: Device } | null = null;
+  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; indices: Buffer | null; device: Device } | null = null;
   disposed = false;
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
   get topology(): 'triangles' | 'lines' { return this.data.topology; }
@@ -84,7 +107,7 @@ export class Geometry {
   dispose(): void { this.disposed = true; this.release(); this.owner.requestRender(); }
   /** @internal */ release(): void {
     if (!this.gpu) return;
-    this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.indices?.destroy();
+    this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.uvs?.destroy(); this.gpu.indices?.destroy();
     this.gpu = null;
   }
 }
@@ -94,7 +117,7 @@ export class Mesh {
   /** @internal */ dirty = true;
   private worldBox: Box3 | null | undefined;
   private _transform: Mat4 = identity();
-  private _material: Required<Omit<Material, 'color'>> & { color: Vec3 };
+  private _material: Required<Omit<Material, 'color' | 'map'>> & { color: Vec3; map: ImageTexture | null };
   private _visible: boolean;
   pickable: boolean;
   name: string | undefined;
@@ -168,10 +191,10 @@ export class Mesh {
   }
 }
 
-function materialOf(m: Material = {}): Required<Omit<Material, 'color'>> & { color: Vec3 } {
+function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map'>> & { color: Vec3; map: ImageTexture | null } {
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false,
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null,
   };
 }
 
@@ -271,6 +294,12 @@ export class Viewer {
   private shadowSampler!: object;
   private emptyShadow!: Texture;
   private shadowMap: Texture | null = null;
+  private materialLayout!: object;
+  /** A white texel: the colour map of a material without one. */
+  private white!: { texture: Texture; group: BindGroup };
+  private mipPipelines = new Map<string, Pipeline>();
+  private mipSampler!: object;
+  private textures = new Set<ImageTexture>();
   /** The one identity instance plain meshes draw with. */
   private identityInstance!: Buffer;
   private objectBuffer!: Buffer;
@@ -334,6 +363,11 @@ export class Viewer {
     this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
     this.shadowFrameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shadow frame' });
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+    this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
+    this.mipPipelines.clear();
+    const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
+    device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
+    this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: white.createView() }, { binding: 1, resource: this.mipSampler }] }) };
     this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
     device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
@@ -367,6 +401,9 @@ export class Viewer {
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
+    // Surfaces add the material's colour map.
+    this.materialLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } }] });
+    const surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
     const instance = { arrayStride: INSTANCE_STRIDE, stepMode: 'instance', attributes: [
       ...[0, 1, 2, 3].map(k => ({ shaderLocation: 3 + k, offset: k * 16, format: 'float32x4' })), { shaderLocation: 7, offset: 64, format: 'unorm8x4' },
     ] };
@@ -374,13 +411,14 @@ export class Viewer {
     // Surfaces: position, normal, colour, instance. Pick, mask and shadow passes: position, instance.
     const vertex = (module: object) => ({
       module, entryPoint: 'vs',
-      buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, { arrayStride: 4, attributes: [{ shaderLocation: 2, offset: 0, format: 'unorm8x4' }] }, instance],
+      buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, { arrayStride: 4, attributes: [{ shaderLocation: 2, offset: 0, format: 'unorm8x4' }] }, instance,
+        { arrayStride: 8, attributes: [{ shaderLocation: 8, offset: 0, format: 'float32x2' }] }],
     });
     const positionOnly = (module: object) => ({ module, entryPoint: 'vs', buffers: [position, instance] });
     // Premultiplied colour over the target.
     const blend = { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' } };
     const ms = { count: this.options.antialias === false ? 1 : SAMPLES };
-    const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout, ...desc }).then(p => { this.pipelines.set(key, p); });
+    const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
     const jobs: Promise<void>[] = [];
     d.pushErrorScope('validation');
     for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true]) {
@@ -523,6 +561,57 @@ export class Viewer {
   /** A new background; switching to or from 'transparent' takes effect after the next device setup. */
   setBackground(background: BackgroundInput): void { this.background = backgroundOf(background); this.requestRender(); }
 
+  /** A texture from an image, canvas, bitmap or RGBA bytes, for Material.map. */
+  createTexture(source: TextureSource, options: TextureOptions = {}): ImageTexture {
+    this.alive();
+    if (!(source.width > 0 && source.height > 0)) throw new RangeError('A texture needs a width and height');
+    if ('data' in source && source.data.length !== source.width * source.height * 4) throw new RangeError('Texture data must hold width × height RGBA bytes');
+    const t = new ImageTexture(source, { srgb: options.srgb ?? true, mipmaps: options.mipmaps ?? true, wrap: options.wrap ?? 'repeat', filter: options.filter ?? 'linear' }, this);
+    this.textures.add(t);
+    return t;
+  }
+
+  /** The material bind group of a colour map: uploaded (with its mips) on first use and after a device loss. */
+  private mapGroup(map: ImageTexture | null): BindGroup {
+    if (!map || map.disposed) return this.white.group;
+    if (map.gpu && map.gpu.device === this.device) return map.gpu.group;
+    const o = map.options, src = map.source, w = src.width, h = src.height, format = o.srgb ? 'rgba8unorm-srgb' : 'rgba8unorm';
+    const levels = o.mipmaps ? Math.floor(Math.log2(Math.max(w, h))) + 1 : 1;
+    const texture = this.device.createTexture({ size: [w, h], format, mipLevelCount: levels, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST | TextureUsage.RENDER_ATTACHMENT, label: 'viewer map' });
+    if ('data' in src) this.device.queue.writeTexture({ texture }, src.data, { bytesPerRow: w * 4 }, [w, h]);
+    else this.device.queue.copyExternalImageToTexture({ source: src }, { texture }, [w, h]);
+    if (levels > 1) this.generateMips(texture, format, levels);
+    const sampler = this.device.createSampler({
+      addressModeU: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge', addressModeV: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge',
+      magFilter: o.filter, minFilter: o.filter, mipmapFilter: o.filter, ...(o.filter === 'linear' && o.mipmaps ? { maxAnisotropy: 8 } : {}),
+    });
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }] });
+    map.gpu = { texture, group, device: this.device };
+    return group;
+  }
+
+  /** Fill a texture's mip levels, each a filtered half of the one above. */
+  private generateMips(texture: Texture, format: string, levels: number): void {
+    let pipeline = this.mipPipelines.get(format);
+    if (!pipeline) {
+      const module = this.device.createShaderModule({ code: mipWGSL, label: 'viewer mips' });
+      // (Synchronous creation: mips are made while drawing.)
+      pipeline = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: 'viewer mips', layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.mipPipelines.set(format, pipeline);
+    }
+    const enc = this.device.createCommandEncoder();
+    for (let level = 1; level < levels; level++) {
+      const group = this.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: texture.createView({ baseMipLevel: level - 1, mipLevelCount: 1 }) }, { binding: 1, resource: this.mipSampler },
+      ] });
+      const pass = enc.beginRenderPass({ colorAttachments: [{ view: texture.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+      pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.draw(3); pass.end();
+    }
+    this.device.queue.submit([enc.finish()]);
+  }
+
   // ---- Size and frames ----------------------------------------------------------------------------
 
   get aspect(): number { return this.canvas.width / Math.max(1, this.canvas.height); }
@@ -587,11 +676,11 @@ export class Viewer {
       return b;
     };
     g.gpu = data.topology === 'lines'
-      ? { device: d, positions: buffer(new Uint8Array(segmentInstances(data)), BufferUsage.VERTEX, 'segments'), normals: null, colors: null, indices: null }
+      ? { device: d, positions: buffer(new Uint8Array(segmentInstances(data)), BufferUsage.VERTEX, 'segments'), normals: null, colors: null, uvs: null, indices: null }
       : {
         device: d,
         positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
-        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
+        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: buffer(data.uvs, BufferUsage.VERTEX, 'uvs'), indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
       };
     return true;
   }
@@ -673,7 +762,10 @@ export class Viewer {
   private drawTriangles(pass: RenderPass, m: Mesh, full: boolean): void {
     const g = m.geometry.gpu!, data = m.geometry.data, n = m.instanceCount;
     pass.setVertexBuffer(0, g.positions);
-    if (full) { pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); pass.setVertexBuffer(3, this.instanceBuffer(m)); }
+    if (full) {
+      pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); pass.setVertexBuffer(3, this.instanceBuffer(m)); pass.setVertexBuffer(4, g.uvs!);
+      pass.setBindGroup(2, this.mapGroup(m.material.map ?? null));
+    }
     else pass.setVertexBuffer(1, this.instanceBuffer(m));
     if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
     else pass.draw(data.elementCount, n);
@@ -1000,7 +1092,9 @@ export class Viewer {
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy();
+    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy();
+    for (const t of this.textures) t.dispose();
+    this.textures.clear();
     this.context?.unconfigure();
     this.device?.destroy();
     for (const f of this.waiters.splice(0)) f();

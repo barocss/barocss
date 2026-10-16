@@ -57,19 +57,24 @@ fn instanceNormal(i: Instance, n: vec3f) -> vec3f {
 `;
 
 export const surfaceWGSL = common + /* wgsl */ `
+// The material's colour map (a white texel when it has none), sRGB-decoded by its format.
+@group(2) @binding(0) var map: texture_2d<f32>;
+@group(2) @binding(1) var mapSampler: sampler;
 struct VOut {
   @builtin(position) clip: vec4f,
   @location(0) world: vec3f,
   @location(1) normal: vec3f,
   @location(2) color: vec4f,
+  @location(3) uv: vec2f,
 }
-@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance) -> VOut {
+@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance, @location(8) uv: vec2f) -> VOut {
   var o: VOut;
   let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
   o.clip = frame.viewProj * world;
   o.world = world.xyz;
   o.normal = (object.normalMatrix * vec4f(instanceNormal(inst, normal), 0.0)).xyz;
   o.color = color * inst.color * object.color;
+  o.uv = uv;
   return o;
 }
 
@@ -107,11 +112,13 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 }
 
 @fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f {
+  let texel = textureSample(map, mapSampler, in.uv);
+  let alpha = in.color.a * texel.a;
   var n = normalize(in.normal);
   if (!front) { n = -n; }
   // Perspective: toward the eye; orthographic: against the view direction.
   let v = select(-frame.forward.xyz, normalize(frame.eye.xyz - in.world), frame.eye.w > 0.5);
-  let base = in.color.rgb;
+  let base = in.color.rgb * texel.rgb;
   let metallic = clamp(object.params.x, 0.0, 1.0);
   let rough = clamp(object.params.y, 0.04, 1.0);
   let a = rough * rough;
@@ -142,10 +149,14 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
     if (s.position.w > 0.0) { let q = clamp(1.0 - pow(dist / s.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
     c += brdf(n, v, l, base, metallic, a) * s.color.rgb * s.color.w * fall * PI;
   }
-  return vec4f(c * in.color.a, in.color.a);
+  return vec4f(c * alpha, alpha);
 }
 
-@fragment fn fsUnlit(in: VOut) -> @location(0) vec4f { return vec4f(in.color.rgb * in.color.a, in.color.a); }
+@fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {
+  let texel = textureSample(map, mapSampler, in.uv);
+  let a = in.color.a * texel.a;
+  return vec4f(in.color.rgb * texel.rgb * a, a);
+}
 // A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   var lit = 1.0;
@@ -376,4 +387,19 @@ fn occlusion(p: vec2i, d: f32) -> f32 {
   // (c is sRGB, not premultiplied; the canvas takes premultiplied alpha.)
   return vec4f(c * a, a);
 }
+`;
+
+/** Each mip level of a texture from the one above it (a linear-filtered half-size copy). */
+export const mipWGSL = /* wgsl */ `
+@group(0) @binding(0) var src: texture_2d<f32>;
+@group(0) @binding(1) var samp: sampler;
+struct M { @builtin(position) pos: vec4f, @location(0) uv: vec2f }
+@vertex fn vs(@builtin(vertex_index) i: u32) -> M {
+  let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
+  var o: M;
+  o.pos = vec4f(p * 2.0 - 1.0, 0.0, 1.0);
+  o.uv = vec2f(p.x, 1.0 - p.y);
+  return o;
+}
+@fragment fn fs(in: M) -> @location(0) vec4f { return textureSampleLevel(src, samp, in.uv, 0.0); }
 `;

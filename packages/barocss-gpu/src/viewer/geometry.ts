@@ -8,6 +8,8 @@ export interface GeometryInput {
   positions: ArrayLike<number>;
   /** Per vertex; computed (smooth over shared vertices) when left out. */
   normals?: ArrayLike<number>;
+  /** Texture coordinates, two per vertex (for Material.map). */
+  uvs?: ArrayLike<number>;
   /** sRGB colours per vertex, 0–1: three (rgb) or four (rgba) numbers each. */
   colors?: ArrayLike<number>;
   /** Triangles (or segment pairs for lines); vertices in order when left out. */
@@ -22,7 +24,7 @@ export interface GeometryInput {
 
 export interface PreparedGeometry {
   topology: 'triangles' | 'lines';
-  positions: Float32Array; normals: Float32Array; colors: Uint8Array;
+  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
   edges: Uint32Array | null;
@@ -57,7 +59,9 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new RangeError('edges must hold one id per segment');
     edges = Uint32Array.from(input.edges);
   }
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions) };
+  const uvs = input.uvs ? Float32Array.from(input.uvs) : new Float32Array(vertexCount * 2);
+  if (uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions) };
 }
 
 /** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */

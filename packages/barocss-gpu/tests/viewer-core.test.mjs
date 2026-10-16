@@ -105,6 +105,9 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
   assert.ok(hit && hit.triangle === 2 && near(hit.t, 4), JSON.stringify(hit));
   assert.equal(rayTriangles(g, [5, 5, 5], [0, 0, -1]), null);
   assert.deepEqual(g.bounds, { min: [0, 0, 0], max: [1, 1, 1] });
+  // Texture coordinates: two per vertex, zeros when left out.
+  assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], uvs: [0, 0, 1] }), /two numbers per vertex/);
+  assert.deepEqual([...prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3] }).uvs], [0, 0, 0, 0, 0, 0, 0, 0]);
   // A face id per triangle.
   assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7] }), /one id per triangle/);
   assert.deepEqual([...prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7, 7] }).faces], [7, 7]);

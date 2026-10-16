@@ -21,7 +21,10 @@ export interface CommandEncoder {
   copyTextureToBuffer(source: object, destination: object, size: object): void;
   finish(): object;
 }
-export interface Queue { writeBuffer(buffer: Buffer, offset: number, data: ArrayBufferView, dataOffset?: number, size?: number): void; submit(commands: object[]): void; onSubmittedWorkDone(): Promise<void> }
+export interface Queue {
+  writeBuffer(buffer: Buffer, offset: number, data: ArrayBufferView, dataOffset?: number, size?: number): void;
+  writeTexture(destination: object, data: ArrayBufferView, layout: object, size: object): void;
+  copyExternalImageToTexture(source: object, destination: object, size: object): void; submit(commands: object[]): void; onSubmittedWorkDone(): Promise<void> }
 export interface ShaderModule { getCompilationInfo(): Promise<{ messages: readonly { type: string; message: string; lineNum: number }[] }> }
 export interface Device {
   readonly limits: Record<string, number>;
@@ -29,6 +32,7 @@ export interface Device {
   readonly lost: Promise<{ reason: string; message: string }>;
   onuncapturederror: ((e: { error: { message: string } }) => void) | null;
   createBuffer(descriptor: { size: number; usage: number; mappedAtCreation?: boolean; label?: string }): Buffer;
+  createSampler(descriptor: object): object;
   createTexture(descriptor: object): Texture;
   createShaderModule(descriptor: { code: string; label?: string }): ShaderModule;
   createRenderPipelineAsync(descriptor: object): Promise<Pipeline>;
