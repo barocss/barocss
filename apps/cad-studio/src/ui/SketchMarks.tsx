@@ -94,6 +94,23 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
     linear(pts[r.a], pts[r.b], r.value, `${r.kind}${r.a}_${r.b}`, [at(a), at(b)]);
   });
 
+  /** Where an angle between straight edges a and b is drawn: an arc at their shared point, else midway between them. */
+  const angleMark = (a: number, b: number): { at: XY; arc?: string } => {
+    const v = (a + 1) % n === b ? b : (b + 1) % n === a ? a : -1;
+    if (v < 0) { const ma = mid(a), mb = mid(b); return { at: [(ma[0] + mb[0]) / 2, (ma[1] + mb[1]) / 2] }; }
+    const o = pts[v], far = (i: number) => pts[i === v ? (i + 1) % n : i];
+    const ua = unit(o, far(a)), ub = unit(o, far(b)), r = 34;
+    const delta = Math.atan2(ua[0] * ub[1] - ua[1] * ub[0], ua[0] * ub[0] + ua[1] * ub[1]);
+    const bis = unit([0, 0], [ua[0] + ub[0], ua[1] + ub[1]]), p0 = add(o, ua, r), p1 = add(o, ub, r);
+    return { at: add(o, Math.hypot(bis[0], bis[1]) ? bis : [-ua[1], ua[0]], r + 22), arc: `M${p0[0]},${p0[1]}A${r},${r} 0 0 ${delta > 0 ? 1 : 0} ${p1[0]},${p1[1]}` };
+  };
+  (s.rules ?? []).forEach(r => {
+    if (r.kind !== 'angle' || r.a >= n || r.b >= n) return;
+    const m = angleMark(r.a, r.b), key = `ang${r.a}_${r.b}`;
+    if (m.arc) svg.push(<path key={'ar' + key} d={m.arc} className="dim-line" fill="none" />);
+    chip(m.at, fmt(r.value) + '°', key, true);
+  });
+
   // Glyphs of explicit constraints, stacked along each edge past its H/V chip.
   const stack = new Map<string, number>();
   const glyph = (at: XY, text: string, key: string, title: string) => {
@@ -122,8 +139,8 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
   let html: ReactNode = null;
   if (editDim) {
     const v = dimensionValue(s, editDim);
-    const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim);
-    const at = anchors.get(editDim) ?? (d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
+    const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim);
+    const at = anchors.get(editDim) ?? (g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
       html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}

@@ -197,3 +197,33 @@ test('horizontal and vertical distances between points, also when the points lin
   const apart = commitDimension(removeConstraint(tall, 'v:1'), 'dx1_2', 12); assert.ok(apart.ok, !apart.ok ? apart.reason : '');
   assert.ok(Math.abs(Math.abs(apart.shape.points[2][0] - apart.shape.points[1][0]) - 12) < 1e-6, JSON.stringify(apart.shape.points));
 });
+
+test('angle dimensions between two lines: at a shared corner, between separate edges, out of range refused', async () => {
+  const { angleKey, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  const { edgeAngle } = await import('../src/sketch/terms');
+  let s = quad();
+  // Edges 1 and 2 meet at point 2: the corner between them.
+  assert.equal(dimensionKey(s, [E(0), E(1)]), 'ang0_1');
+  assert.equal(angleKey(3, 0), 'ang0_3');
+  const corner = (q: Polygon) => edgeAngle(q.points as P2[], 0, 1).degrees;
+  assert.ok(Math.abs(dimensionValue(s, 'ang0_1')! - corner(s)) < 1e-9 && corner(s) > 75 && corner(s) < 85, String(corner(s)));
+  assert.equal(dimensionLabel(s, 'ang0_1'), 'Angle edge 1 – edge 2');
+  const before = dof(s);
+  const r = commitDimension(s, 'ang0_1', 60); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  assert.ok(Math.abs(corner(s) - 60) < 1e-6, String(corner(s)));
+  assert.equal(dof(s), before - 1);
+  assert.deepEqual(constraintEntries(s).filter(c => c.label === 'Angle').map(c => c.detail), ['edge 1 ∠ edge 2 = 60°']);
+  // The corner at point 1 between the closing edge 4 and edge 1 (edge 4 ends there).
+  const w = commitDimension(s, 'ang0_3', 80); assert.ok(w.ok, !w.ok ? w.reason : '');
+  assert.ok(Math.abs(edgeAngle(w.shape.points as P2[], 0, 3).degrees - 80) < 1e-6);
+  // A rectangle's corner is already 90°: an angle there over-defines; 0° and 180° are refused.
+  const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  assert.ok(Math.abs(dimensionValue(rect, 'ang1_2')! - 90) < 1e-9);
+  assert.match((commitDimension(rect, 'ang1_2', 90) as { reason: string }).reason, /over-define/);
+  assert.match((commitDimension(rect, 'ang1_2', 180) as { reason: string }).reason, /between 0° and 180°/);
+  // Dimension tool: a line, then another line, opens their angle.
+  const state: SketchState = { plane: xyPlane(), tool: 'dimension', shape: rect };
+  const first = sketchClick(state, E(1), false);
+  assert.equal(first.editDim, 'len1');
+  assert.equal(sketchClick(first, E(2), false).editDim, 'ang1_2');
+});
