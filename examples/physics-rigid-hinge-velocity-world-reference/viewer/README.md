@@ -12,12 +12,14 @@ node examples/physics-rigid-hinge-velocity-world-reference/viewer/server.mjs sou
 
 The server prints its localhost URL. Open it and use Play, Pause, One frame and Reset. Replay ends at1200/10s. The recorded joint limit was first reached at197/1.641666667s; these are different events.
 
-`compiled` uses genuine locally emitted public Viewer/CAD/CAD-interop/GPU publish maps. It requires the provider builds described below. Source mode uses public source exports without source aliases. The page never imports Physics.
+`compiled` uses genuine locally emitted public Viewer/CAD/CAD-interop/GPU publish maps. It requires the CAD, CAD-interop, GPU and Viewer `build:library` outputs. Source mode uses public source exports without source aliases. The page never imports Physics.
 
 ## Reproducible preparation
 
 The extractor reads only committed archives and authenticates original bytes, accepted frames and body-bit correspondence. Extraction is saved-data preparation, not a replay of the numerical qualification. Do not rerun completed physical campaigns.
 
-After the authored consumer, data and driver are committed: `source-freeze.mjs` records complete source closure; `build-providers.mjs` performs actual owned CAD, CAD-interop, GPU and Viewer builds with measured exit/log receipts; `prepare-native.mjs` authenticates emitted closure and freezes source/compiled browser bundles. Only then run `browser-driver.mjs` with a new output directory. Keep first failures and bounded recovery evidence if a flow fails. See CONTRACT.md for the exact selected screen/control scope.
+The page draws with the WebGPU Viewer: each session awaits `createViewer`, and Reset waits for the new session before presenting frame 0 (a newer Reset or disposal wins). There is no WebGL context loss path any more. `node controller-check.mjs` checks the controller and clock with fake sessions.
+
+The earlier freeze chain (`source-freeze.mjs`, `build-providers.mjs`, `prepare-native.mjs`, `resource-probe.mjs`, `browser-driver.mjs`) asserted committed source/emitted/bundle hash ledgers and WebGL2 resource counts and context loss of the old renderer. It can no longer match and was removed. `source-ledger.json`, `emitted-ledger.json`, `bundle-receipts.json`, `provider-integration-snapshot.json`, `development-peer-types.json` and `evidence/` remain as historical records of that WebGL2 run; see CONTRACT.md for its selected screen/control scope.
 
 No package export, root manifest or lock is changed. All generated package dist output is ignored and local. This work does not establish public HINGE2 support, Box3D parity, full-engine quality, release or integrated Save/Open/recovery.

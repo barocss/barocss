@@ -17,16 +17,6 @@ const pixelHash = pixels => pixels.reduce((hash, value) =>
 let viewer, controller, cadWorld;
 let generation = 0, renderVersion = 0;
 const solverTiming = createTimingRecorder(), renderTiming = createTimingRecorder();
-canvas.addEventListener('webglcontextlost', event => {
-  event.preventDefault();
-  renderVersion++;
-  controller?.dispose();
-  controller = undefined;
-  for (const control of [mode, toggle, step, reset, stale]) control.disabled = true;
-  status.textContent = 'WebGL2 문맥을 잃었습니다. 복구 후 장면을 다시 만듭니다.';
-  window.fluidCadState = { contextLost: true };
-});
-canvas.addEventListener('webglcontextrestored', () => location.reload());
 
 try {
   const modelSet = await loadBaroCadModelSet({ format: 'barocad-model-set', version: 0,
@@ -37,7 +27,7 @@ try {
   const current = { sourceText: source, currentRevision: 'shelfRev1' };
   const request = { sourceVersion: 0, sourceRevision: 'shelfRev1', modelId: 'fluid_shelf',
     surfaceId: 'shelf', kind: 'static', proxy: 'box', minimumHalfExtentM: 0.01 };
-  viewer = createViewer(canvas, { mmToSceneUnit: 0.001,
+  viewer = await createViewer(canvas, { mmToSceneUnit: 0.001,
     background: [0.035, 0.065, 0.105] });
   viewer.loadModelSet(modelSet);
   viewer.setView({ eye: [0.9, 0.85, 1.35], target: [0.35, 0.25, 0.25], up: [0, 1, 0],
@@ -68,8 +58,7 @@ try {
         density: { ...state.diagnostics }, sha256: sha,
         bodyId: obstacle?.bodyId ?? null, lossLabel: obstacle?.lossLabel ?? null,
         sourceRevision: obstacle?.sourceRevision ?? null,
-        timing,
-        glError: canvas.getContext('webgl2').getError() };
+        timing };
     }).catch(error => { status.textContent = String(error); });
   };
   const start = () => {
@@ -94,17 +83,19 @@ try {
   toggle.addEventListener('click', () => controller.isRunning() ? controller.pause() : controller.play());
   step.addEventListener('click', () => controller.step());
   reset.addEventListener('click', () => controller.reset());
-  stale.addEventListener('click', () => {
+  stale.addEventListener('click', async () => {
     if (!cadWorld) return;
+    // readPixels waits for a frame, so hold playback while the check compares two captures.
+    if (controller.isRunning()) controller.pause();
     const previous = cadWorld.getState();
-    const beforePixels = pixelHash(viewer.readPixels());
+    const beforePixels = pixelHash(await viewer.readPixels());
     let refused = false;
     try { cadWorld.step(1 / 120, { sourceText: source, currentRevision: 'shelfRev2' }); }
     catch (error) { refused = error.code === 'STALE_SOURCE'; }
     const next = cadWorld.getState();
     if (!refused || next.stepIndex !== previous.stepIndex
       || next.positionsM.some((value, index) => value !== previous.positionsM[index])
-      || pixelHash(viewer.readPixels()) !== beforePixels) {
+      || pixelHash(await viewer.readPixels()) !== beforePixels) {
       throw new Error('Stale CAD source changed the accepted scene');
     }
     window.fluidCadStaleProof = { refused, retainedStep: next.stepIndex,

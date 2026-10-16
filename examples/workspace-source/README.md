@@ -24,8 +24,9 @@ node examples/workspace-source/serve.mjs --output /tmp/barocss-source-1010
 ```
 
 Open `http://127.0.0.1:52935/`. The initial flow compiles a native Surface, displays
-it with the own GPU renderer, measures native points, clears it, and restores it.
-The page keeps the Surface visible. Clear, Restore and Dispose use the Viewer
+it with the WebGPU Viewer, measures native points, clears it, and restores it.
+The page keeps the Surface visible. Pixel hashes come from the awaited
+`viewer.readPixels()` WebGPU capture. Clear, Restore and Dispose use the Viewer
 public APIs. Run source flow creates a new Viewer after disposal. Proof is in
 `window.sourceProof` and `host.json`. The CPU flow also changes a Canvas display
 tree, compiles a GPU material, and runs exactly one Physics cloth API step.

@@ -2,7 +2,7 @@
 
 This bounded consumer compiles the original `two-surfaces.barocad` source through `@barocss/cad`. The optional Physics CAD adapter admits `rational_panel` as a dynamic enclosing sphere and `flat_panel` as a static control-net box with 0.01 m minimum half-extents. It gives both qualified Physics and Viewer target IDs, reports proxy loss, and converts original XYZ millimetres to simulation metres at exactly 0.001. It does not edit the native source or claim exact NURBS collision.
 
-The page uses the real WebGL Viewer for original weighted Surfaces. Its separate SVG side view shows derived collision shapes, position and contact. The host applies accepted Physics poses back to Viewer in millimetres. A revision-change control refuses the old binding before stepping and leaves both Physics and Viewer states unchanged. **Re-admit proxies** rebuilds the world under the new revision. The revision button changes a host token while source bytes remain the same; the compiled probe also checks changed source bytes.
+The page uses the real WebGPU Viewer for original weighted Surfaces. Its separate SVG side view shows derived collision shapes, position and contact. The host applies accepted Physics poses back to Viewer in millimetres. A revision-change control refuses the old binding before stepping and leaves both Physics and Viewer states unchanged. **Re-admit proxies** rebuilds the world under the new revision. The revision button changes a host token while source bytes remain the same; the compiled probe also checks changed source bytes.
 
 With Node 22 in this workspace, build the CAD, GPU and Viewer dependencies, then start the page. Physics source is bundled by the example server; no separate Physics build is needed for the page:
 

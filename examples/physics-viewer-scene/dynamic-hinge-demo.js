@@ -4,7 +4,7 @@ import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 const DT = 1 / 120;
 const BODY_IDS = ['part:a', 'part:b'];
 const $ = (id) => document.getElementById(id);
-const viewer = createViewer($('viewer'), { mmToSceneUnit: 0.001,
+const viewer = await createViewer($('viewer'), { mmToSceneUnit: 0.001,
   background: [0.035, 0.065, 0.105] });
 const source = await (await fetch('/two-surfaces.barocad')).text();
 viewer.loadNative(source, { sourceVersion: 0, countU: 12, countV: 12 });

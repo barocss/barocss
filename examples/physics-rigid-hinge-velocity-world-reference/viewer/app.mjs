@@ -47,8 +47,6 @@ for (const [index, id] of ids.entries()) {
 
 window.hingeRecordedReady = false;
 let controller = null;
-canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); controller?.contextLost(); });
-canvas.addEventListener('webglcontextrestored', () => controller?.contextRestored());
 window.addEventListener('pagehide', () => controller?.dispose());
 
 window.hingeRecordedReadyPromise = (async () => {
@@ -60,13 +58,13 @@ window.hingeRecordedReadyPromise = (async () => {
     document.querySelector('#time').textContent = frame ? frame.timeSeconds.toFixed(6) + ' s' : '—';
     document.querySelector('#cursor').value = String(snapshot.cursor ?? 0);
     document.querySelector('#limit').textContent = snapshot.cursor !== null && snapshot.cursor >= 197 ? '관절 한계: 197번째 기록에서 도달' : '관절 한계: 아직 도달 전';
-    status.textContent = snapshot.disposed ? '화면 종료' : snapshot.contextLost ? snapshot.restoredAvailable ? '화면 복원 가능 · 처음 버튼을 누르세요.' : '화면 연결 끊김 · 표시 상태 불명' : !snapshot.displayKnown ? '표시 상태 불명 · 마지막 확인 기록을 유지합니다.' : snapshot.playing ? '기록 재생 중' : snapshot.ended ? '기록 재생 완료 · 1200 / 10 s' : '기록 일시 정지';
+    status.textContent = snapshot.disposed ? '화면 종료' : !snapshot.displayKnown ? '표시 상태 불명 · 마지막 확인 기록을 유지합니다.' : snapshot.playing ? '기록 재생 중' : snapshot.ended ? '기록 재생 완료 · 1200 / 10 s' : '기록 일시 정지';
     document.querySelector('#error').textContent = snapshot.errors.at(-1)?.message ?? '';
-    document.querySelector('#play').disabled = !snapshot.displayKnown || snapshot.disposed || snapshot.contextLost || snapshot.ended || snapshot.playing;
+    document.querySelector('#play').disabled = !snapshot.displayKnown || snapshot.disposed || snapshot.ended || snapshot.playing;
     document.querySelector('#pause').disabled = !snapshot.playing;
-    document.querySelector('#one-step').disabled = !snapshot.displayKnown || snapshot.disposed || snapshot.contextLost || snapshot.ended;
-    document.querySelector('#reset').disabled = snapshot.disposed || snapshot.contextLost && !snapshot.restoredAvailable;
-    document.querySelector('#cursor').disabled = snapshot.disposed || snapshot.contextLost;
+    document.querySelector('#one-step').disabled = !snapshot.displayKnown || snapshot.disposed || snapshot.ended;
+    document.querySelector('#reset').disabled = snapshot.disposed;
+    document.querySelector('#cursor').disabled = snapshot.disposed;
     if (!frame) return;
     for (let index = 0; index < 2; index++) {
       const pair = frame.pairs?.[index], joint = frame.joints[index];
@@ -87,8 +85,8 @@ window.hingeRecordedReadyPromise = (async () => {
     }
   }
   controller = createRecordedController({recording, validateFrame: validateRecordedFrame, makeViewerFrame, onChange: render,
-    createSession() {
-      const viewer = createViewer(canvas, {mmToSceneUnit: .001, background: [.055, .075, .105]});
+    async createSession() {
+      const viewer = await createViewer(canvas, {mmToSceneUnit: .001, background: [.055, .075, .105]});
       try { viewer.setPackets(geometry.packets); viewer.setView(structuredClone(CAMERA)); }
       catch (error) { viewer.dispose(); throw error; }
       return {viewer, bindings: geometry.bindings};
@@ -105,7 +103,7 @@ window.hingeRecordedReadyPromise = (async () => {
   document.querySelector('#one-step').addEventListener('click', () => controller.oneStep());
   document.querySelector('#reset').addEventListener('click', () => controller.reset());
   document.querySelector('#cursor').addEventListener('input', event => controller.seek(Number(event.currentTarget.value)));
-  if (!controller.initialize()) throw new Error('Recorded Viewer initial submission failed');
+  if (!(await controller.initialize())) throw new Error('Recorded Viewer initial submission failed');
   window.hingeRecordedReady = true;
   return controller.getSnapshot();
 })().catch(error => { const diagnostic = errorDiagnostic(error); window.hingeRecordedStartupError = {name: diagnostic.name, message: diagnostic.message}; status.textContent = '기록 화면을 시작하지 못했습니다.'; document.querySelector('#error').textContent = '자료 또는 화면 초기화 오류. 오류 기록을 확인하세요.'; throw error; });

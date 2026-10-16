@@ -43,11 +43,11 @@ function fixture() {
     invalid(index) { invalidFrame = index; }, stale(value) { staleSurface = value; }, reject(error) { submissionError = error; }};
 }
 const receipts = [];
-function check(name, run) { run(); receipts.push({name, passed: true}); }
+async function check(name, run) { await run(); receipts.push({name, passed: true}); }
 
-check('invalid frame and stale bindings retain last confirmed cursor', () => {
+await check('invalid frame and stale bindings retain last confirmed cursor', async () => {
   const f = fixture(), c = f.controller;
-  assert.equal(c.initialize(), true); assert.equal(c.seek(60), true);
+  assert.equal(await c.initialize(), true); assert.equal(c.seek(60), true);
   const presentations = c.getSnapshot().presentationCount;
   f.invalid(61); assert.equal(c.oneStep(), false);
   assert.equal(c.getSnapshot().cursor, 60); assert.equal(c.getSnapshot().displayKnown, true);
@@ -58,47 +58,47 @@ check('invalid frame and stale bindings retain last confirmed cursor', () => {
   assert.equal(c.getSnapshot().errors.at(-1).diagnostic.message, 'Recorded binding is stale');
   c.dispose(); assert.equal(f.queue.count(), 0);
 });
-check('submission refusal preserves cursor and makes display unknown', () => {
+await check('submission refusal preserves cursor and makes display unknown', async () => {
   const f = fixture(), c = f.controller;
-  c.initialize(); c.seek(1);
+  await c.initialize(); c.seek(1);
   const error = new Error('fake renderer failure'); error.code = 'FAKE_RENDERER'; f.reject(error);
   assert.equal(c.oneStep(), false); assert.equal(c.getSnapshot().cursor, 1);
   assert.equal(c.getSnapshot().displayedCursor, null); assert.equal(c.play(), false);
   assert.deepEqual(c.getSnapshot().errors.at(-1).diagnostic, {name: 'Error', code: 'FAKE_RENDERER', message: 'fake renderer failure'});
-  f.reject(null); assert.equal(c.reset(), true); assert.equal(c.getSnapshot().cursor, 0);
+  f.reject(null); assert.equal(await c.reset(), true); assert.equal(c.getSnapshot().cursor, 0);
   assert.equal(f.sessions[0].disposals, 1); assert.equal(c.getSnapshot().sessionSerial, 2); c.dispose();
 });
-check('context restore requires explicit reset and disposal is idempotent', () => {
+await check('reset recreates the session, a newer reset wins and disposal is idempotent', async () => {
   const f = fixture(), c = f.controller;
-  c.initialize(); c.seek(60); c.play(); assert.equal(f.queue.count(), 1);
-  c.contextLost(); assert.equal(f.queue.count(), 0); assert.equal(c.getSnapshot().cursor, 60);
-  assert.equal(c.getSnapshot().displayKnown, false); assert.equal(c.reset(), false);
-  c.contextRestored(); assert.equal(f.sessions.length, 1); assert.equal(c.play(), false);
-  assert.equal(c.reset(), true); assert.equal(f.sessions.length, 2); assert.equal(c.getSnapshot().playing, false);
+  await c.initialize(); c.seek(60); c.play(); assert.equal(f.queue.count(), 1);
+  const superseded = c.reset(), latest = c.reset();
+  assert.equal(await superseded, false); assert.equal(await latest, true);
+  assert.equal(f.sessions.length, 3); assert.equal(f.sessions[1].disposals, 1); assert.equal(c.getSnapshot().sessionSerial, 2);
+  assert.equal(c.getSnapshot().playing, false); assert.equal(c.getSnapshot().cursor, 0);
   c.play(); c.dispose(); c.dispose(); assert.equal(f.queue.count(), 0);
-  assert.equal(f.sessions[0].disposals, 1); assert.equal(f.sessions[1].disposals, 1);
+  assert.equal(f.sessions[0].disposals, 1); assert.equal(f.sessions[2].disposals, 1);
   const count = c.getSnapshot().presentationCount;
-  assert.equal(c.oneStep(), false); assert.equal(c.seek(1), false); assert.equal(c.reset(), false); assert.equal(c.play(), false);
+  assert.equal(c.oneStep(), false); assert.equal(c.seek(1), false); assert.equal(await c.reset(), false); assert.equal(c.play(), false);
   assert.equal(c.getSnapshot().presentationCount, count); assert.equal(c.getSnapshot().cursor, 0);
   assert.equal(c.getViewerState().status, 'disposed'); assert.throws(() => c.readPixels(), /unavailable/);
 });
-check('catch-up presents all intermediate frames with a bound of eight', () => {
+await check('catch-up presents all intermediate frames with a bound of eight', async () => {
   const f = fixture(), c = f.controller;
-  c.initialize(); c.play(); f.queue.tick(0); f.queue.tick(1000);
+  await c.initialize(); c.play(); f.queue.tick(0); f.queue.tick(1000);
   assert.equal(c.getSnapshot().cursor, 8); assert.equal(c.getClockStats().advances, 8);
   assert.deepEqual(f.sessions[0].submitted, Array.from({length: 9}, (_, index) => index * (1 / 120)));
   c.pause(); assert.equal(f.queue.count(), 0); c.dispose();
 });
-check('natural end presents 1200 exactly once and cancels RAF', () => {
+await check('natural end presents 1200 exactly once and cancels RAF', async () => {
   const f = fixture(), c = f.controller;
-  c.initialize(); c.play(); f.queue.tick(0);
+  await c.initialize(); c.play(); f.queue.tick(0);
   for (let index = 1; index <= 1200; index++) f.queue.tick(index * (1000 / 120));
   assert.equal(c.getSnapshot().cursor, 1200); assert.equal(c.getSnapshot().timeSeconds, 10);
   assert.equal(c.getSnapshot().presentationCount, 1201); assert.equal(c.getClockStats().advances, 1200);
   assert.equal(c.getClockStats().stopReason, 'end'); assert.equal(f.queue.count(), 0);
   assert.equal(c.oneStep(), false); assert.equal(c.play(), false); assert.equal(c.getSnapshot().presentationCount, 1201); c.dispose();
 });
-check('clock rejects failed advance and cancels handle zero', () => {
+await check('clock rejects failed advance and cancels handle zero', () => {
   const queue = scheduler(); let calls = 0;
   const clock = createPlaybackClock({dt: 1 / 120, lastIndex: 1200, advance() { calls++; return false; },
     requestFrame: callback => queue.requestFrame(callback), cancelFrame: id => queue.cancelFrame(id)});
@@ -106,7 +106,7 @@ check('clock rejects failed advance and cancels handle zero', () => {
   clock.play(); queue.tick(0); queue.tick(1000 / 120);
   assert.equal(calls, 1); assert.equal(clock.getStats().cursor, 0); assert.equal(clock.getStats().stopReason, 'error'); assert.equal(queue.count(), 0); clock.dispose();
 });
-check('unknown thrown payload is not serialized or read', () => {
+await check('unknown thrown payload is not serialized or read', () => {
   let traps = 0;
   const unknown = new Proxy({}, {get() { traps++; throw new Error('unexpected read'); }, getPrototypeOf() { traps++; throw new Error('unexpected prototype'); }});
   assert.deepEqual(errorDiagnostic(unknown), {name: 'UnknownThrown', code: null, message: 'Unknown thrown value'});
