@@ -188,6 +188,7 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
     out.drawing = { ...doc.drawing, dimensions };
   }
   if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, removed, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, removed, map) } };
+  if (doc.bodies) out.bodies = renameKeys(doc.bodies, removed, map);
   return { doc: prefixDoc(out, next.length), removed: [...removed].sort((a, b) => a - b), droppedDimensions };
 }
 

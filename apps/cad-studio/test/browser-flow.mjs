@@ -56,7 +56,7 @@ try {
   await check('new part and box', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
-    assert.match(await history(), /Extrude 16/);
+    assert.match(await history(), /Box 32×32×16/);
   });
 
   await check('second box and union', async () => {
@@ -75,7 +75,7 @@ try {
   await check('hole on a supported plate', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
     await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
@@ -86,7 +86,7 @@ try {
 
   await check('feature editor changes the sketch a feature is made from', async () => {
     const bounds = () => page.locator('.props').innerText();
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    await page.locator('.history .hs', { hasText: 'Box 64' }).click();
     const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
     assert.equal(await ed('Width').inputValue(), '64');
     await ed('Width').fill(''); await ed('Width').fill('80');
@@ -102,7 +102,7 @@ try {
   await check('any hole size works; a hole off the body explains itself', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('100'); await field('Depth Y').fill('60'); await field('Height Z').fill('5'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Extrude 5/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Box 100×60×5/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
     // Ø6 on 100 × 60 used to be refused (non-dyadic chart parameters); numeric policy v1 certifies it.
@@ -685,10 +685,10 @@ try {
     await page.click('.mode button:text-is("Model")');
     await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     // (Once the new plate is evaluated — the outliner lists evaluated bodies — its top face can be picked.)
-    await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
     await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
@@ -753,7 +753,7 @@ try {
   await check('delete a feature from its editor; undo brings it back', async () => {
     const nodes = (await doc()).nodes.length;
     // A feature a later one uses (the plate, under the hole) is refused with the reason.
-    await page.locator('.history .hs', { hasText: 'Extrude' }).first().click();
+    await page.locator('.history .hs', { hasText: 'Box' }).first().click();
     await page.locator('.node-editor button[aria-label="Delete feature"]').click();
     await page.waitForFunction(() => /Cannot delete .*used by feature/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
     assert.equal((await doc()).nodes.length, nodes);
@@ -1158,7 +1158,7 @@ try {
   await check('Extrude a picked face: E pulls the box top up, joined to the box', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     // (Once the new box is evaluated: new bodies clear what was picked on the old ones.)
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
     await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
     await press('e'); await hudReady();
@@ -1175,7 +1175,7 @@ try {
 
   await check('Hole: drag its centre puck on the face, then round the bottom face’s edges with Fillet', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
     await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady();
@@ -1238,7 +1238,7 @@ try {
 
   await check('a box under a fillet keeps up while its width is dragged, then the fillet follows', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
     await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Shift+F'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
@@ -1276,6 +1276,23 @@ try {
     const t = (await doc()).nodes.at(-1);
     assert.equal(t.offset[2], 16, 'up onto the 16 mm box');
     await snap('align');
+  });
+
+  await check('the browser: rename a body, colour it, hide and show it', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol').first().dblclick();
+    await page.locator('.ol-name-edit').fill('Base'); await press('Enter');
+    await page.waitForFunction(() => /Base/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.locator('.outliner .ol').first().click();
+    await page.locator('.swatch[aria-label="Colour #4a90d9"]').click();
+    await page.waitForFunction(() => window.__studioDoc.bodies?.b1?.color === '#4a90d9', null, { timeout: 5000 });
+    await snap('coloured');
+    await page.locator('.ol-eye').first().click();
+    await page.waitForFunction(() => window.__studioDoc.bodies?.b1?.hidden === true && document.querySelector('.ol-row.hidden-obj'), null, { timeout: 5000 });
+    await page.locator('.ol-eye').first().click();
+    await page.waitForFunction(() => !window.__studioDoc.bodies?.b1?.hidden, null, { timeout: 5000 });
+    assert.deepEqual((await doc()).bodies, { b1: { name: 'Base', color: '#4a90d9' } });
   });
 
   await check('command palette and light theme', async () => {

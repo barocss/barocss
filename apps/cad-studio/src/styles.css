@@ -75,7 +75,27 @@ button { font: inherit; color: inherit; }
 
 .right-col { position: absolute; right: 12px; top: 50px; width: 248px; display: flex; flex-direction: column; gap: 10px; z-index: 2; max-height: calc(100vh - 120px); }
 .outliner, .props { padding: 10px; overflow: auto; }
-.outliner { max-height: 34vh; flex-shrink: 0; }
+/* The browser: left, beside the tool rail. */
+.outliner { position: absolute; left: 64px; top: 50px; width: 212px; max-height: calc(100vh - 260px); z-index: 2; }
+.outliner.closed { width: auto; }
+.outliner .card-title { display: flex; align-items: center; gap: 6px; }
+.outliner .card-title .muted { flex: 1; }
+.ol-head { margin: 8px 0 2px; color: var(--muted); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+.ol-row { display: flex; align-items: center; gap: 4px; border-radius: 5px; }
+.ol-row.sel { background: rgba(245, 197, 66, 0.12); }
+.ol-row .ol { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ol-eye { width: 22px; height: 22px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.ol-eye:hover { background: #34363b; color: var(--text); }
+.ol-swatch { width: 9px; height: 9px; flex: none; border-radius: 3px; background: #b9bdc4; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
+.ol-name-edit { flex: 1; min-width: 0; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg); color: var(--text); font: 400 12px var(--sans); }
+.hidden-obj .ol { opacity: 0.5; }
+.kv-input { width: 132px; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid #4a4d53; background: var(--bg); color: var(--text); font: 400 12px var(--sans); }
+.swatches { display: inline-flex; flex-wrap: wrap; gap: 3px; justify-content: flex-end; max-width: 150px; }
+.swatch { position: relative; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
+.swatch.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+.swatch.none { background: linear-gradient(135deg, #b9bdc4 45%, #d9534f 46%, #d9534f 54%, #b9bdc4 55%); }
+.swatch.pick { background: conic-gradient(#d9534f, #e8d44d, #5cb85c, #4a90d9, #8e6bd8, #d9534f); overflow: hidden; }
+.swatch.pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .ol { display: flex; align-items: center; gap: 6px; width: 100%; height: 26px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); text-align: left; cursor: pointer; }
 .ol:hover { background: #2e3034; }
 .ol.sel { background: var(--accent-soft); color: #f3d98f; }
@@ -129,7 +149,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .palette-list li.off { opacity: 0.55; }
 .pl-reason { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.toast { position: absolute; left: 66px; top: 50px; max-width: 380px; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+.toast { position: absolute; left: 66px; bottom: 44px; max-width: 380px; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: #f0cf73; stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }

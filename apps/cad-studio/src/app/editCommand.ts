@@ -1,7 +1,7 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
-import { featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
+import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf } from './profiles';
@@ -93,7 +93,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
     available: () => ok,
     fields: (): Field[] => fields.map(f => f.kind === 'choice' ? { key: f.key, label: f.label, kind: 'choice' as const, options: f.options } : { key: f.key, label: f.label, kind: (f.kind === 'number' && f.unit === '°' ? 'deg' : 'mm') as 'deg' | 'mm' }),
     defaults: (ctx: Ctx) => Object.fromEntries(fields.map(f => [f.key, f.get(ctx.doc.nodes) as number | string])),
-    build: (ctx, v) => ({ ...ctx.doc, nodes: edited(ctx.doc.nodes, index, v) }),
+    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v)) }),
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);

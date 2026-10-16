@@ -22,6 +22,8 @@ export interface SketchOutline {
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
+/** A body's own look in the modelling view (see StudioDoc.bodies). */
+export interface BodyLook { name?: string; color?: string; hidden?: boolean }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 export interface Made { command: string; values: Record<string, number | string> }
 type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef };
@@ -86,6 +88,11 @@ export interface StudioDoc {
   instances?: PartInstance[];
   /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
   drawing?: DrawingSettings;
+  /**
+   * Bodies' own names, colours and visibility, by the feature each body was first made by (`b<node>`, with
+   * `_<side>` for a split's or an import's parts): they stay with a body as features are added to it.
+   */
+  bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
 }
@@ -194,8 +201,32 @@ export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectan
   }
 }
 
+/**
+ * Nodes edited by hand (the feature editor, a feature's own fields): a shape's solid whose sketch or
+ * itself changed is no longer what its shape values make, so it stops remembering them.
+ */
+export function dropStaleMade(before: readonly ModelNode[], after: ModelNode[]): ModelNode[] {
+  const same = (i: number) => JSON.stringify(before[i]) === JSON.stringify(after[i]);
+  return after.map((n, i) => (n.kind === 'extrude' || n.kind === 'revolve') && n.made && (!same(i) || !same(n.sketch)) ? (({ made: _made, ...rest }) => rest as ModelNode)(n) : n);
+}
+/** A shape command's solid by its shape and main sizes: Box 32×32×16, Cylinder Ø16×24, Sphere Ø20 … */
+export function shapeLabel(made: Made): string {
+  const v = (k: string) => fmt(Number(made.values[k])), d = (k: string) => fmt(Number(made.values[k]) * 2);
+  switch (made.command) {
+    case 'box': return `Box ${v('w')}×${v('d')}×${v('h')}`;
+    case 'cylinder': return `Cylinder Ø${d('r')}×${v('h')}`;
+    case 'sphere': return `Sphere Ø${d('r')}`;
+    case 'cone': return Number(made.values.rt) > 0 ? `Frustum Ø${d('r')}–Ø${d('rt')}×${v('h')}` : `Cone Ø${d('r')}×${v('h')}`;
+    case 'torus': return `Torus Ø${d('R')}×Ø${d('r')}`;
+    case 'tube': return `Tube Ø${d('r')}/Ø${d('ri')}×${v('h')}`;
+    case 'wedge': return `Wedge ${v('w')}×${v('d')}×${v('h')}`;
+    case 'prism': return `Prism ${v('n')}-sided ${v('s')}×${v('h')}`;
+    default: return made.command;
+  }
+}
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
+  if ((node.kind === 'extrude' || node.kind === 'revolve') && node.made) return shapeLabel(node.made);
   switch (node.kind) {
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

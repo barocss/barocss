@@ -16,6 +16,10 @@ export interface ViewState {
   /** Bodies shown moved by a matrix (column-major 4 × 4) while a gizmo drags them (WebGPU; WebGL2 shows its move only). */
   transforms?: Map<number, Float64Array>;
   ghostBodies: Set<number>;
+  /** Bodies' own colours (0…1 RGB) in the modelling view, by index; the rest are the theme's grey. */
+  bodyColors?: Map<number, [number, number, number]>;
+  /** Bodies hidden in the browser: not drawn, not picked. */
+  hiddenBodies?: Set<number>;
 }
 export type ThemeName = 'dark' | 'light';
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
@@ -339,11 +343,13 @@ export class Renderer implements ViewRenderer {
     gl.uniform1f(this.u(this.mesh, 'uPick'), 0); gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base); gl.uniform1f(this.u(this.mesh, 'uAmb'), t.amb);
     const order = this.bodies.map((_, i) => i).sort((a, b) => Number(view.ghostBodies.has(a)) - Number(view.ghostBodies.has(b)));
     for (const bi of order) {
+      if (view.hiddenBodies?.has(bi)) continue;
       const b = this.bodies[bi]; const ghost = view.ghostBodies.has(bi);
       gl.depthMask(!ghost);
       gl.uniform3fv(this.u(this.mesh, 'uOffset'), view.offsets.get(bi) ?? [0, 0, 0]);
       gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : 0);
       gl.uniform1f(this.u(this.mesh, 'uGhost'), ghost ? 1 : 0);
+      gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
       gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
     }
     gl.depthMask(true); gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -351,6 +357,7 @@ export class Renderer implements ViewRenderer {
     gl.useProgram(this.line); gl.uniformMatrix4fv(this.u(this.line, 'uVP'), false, vp);
     gl.uniform2f(this.u(this.line, 'uViewport'), w / 2, h / 2); gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
     for (const [bi, b] of this.bodies.entries()) {
+      if (view.hiddenBodies?.has(bi)) continue;
       gl.uniform3fv(this.u(this.line, 'uOffset'), view.offsets.get(bi) ?? [0, 0, 0]);
       gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], view.ghostBodies.has(bi) ? 0.35 : 0.9);
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
@@ -393,7 +400,7 @@ export class Renderer implements ViewRenderer {
     gl.uniformMatrix4fv(this.u(this.mesh, 'uVP'), false, camera.viewProjection()); gl.uniformMatrix4fv(this.u(this.mesh, 'uView'), false, camera.view());
     gl.uniform1f(this.u(this.mesh, 'uPick'), 1);
     this.bodies.forEach((b, bi) => {
-      if (view.ghostBodies.has(bi)) return;
+      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi)) return;
       gl.uniform3fv(this.u(this.mesh, 'uOffset'), view.offsets.get(bi) ?? [0, 0, 0]); gl.uniform1f(this.u(this.mesh, 'uBodyId'), bi);
       gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
     });
@@ -409,7 +416,7 @@ export class Renderer implements ViewRenderer {
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius = 6): EdgeRef | null {
     const cw = this.canvas.clientWidth, ch = this.canvas.clientHeight; let best: EdgeRef | null = null; let bestD = radius;
     this.bodies.forEach((b, bi) => {
-      if (view.ghostBodies.has(bi)) return;
+      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi)) return;
       const o = view.offsets.get(bi) ?? [0, 0, 0]; const L = b.result.mesh.edgeLines; const E = b.result.mesh.edgeOfSegment;
       for (let s = 0; s < L.length; s += 6) {
         const p = camera.project([L[s] + o[0], L[s + 1] + o[1], L[s + 2] + o[2]], cw, ch);

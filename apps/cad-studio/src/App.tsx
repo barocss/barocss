@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedDoc, type PartInstance } from './engine/doc';
-import { emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
+import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -28,6 +28,7 @@ import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/typ
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
+import { BODY_COLOURS, bodyName, lastFeature, lookOf, rgbOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
@@ -154,6 +155,9 @@ export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
   const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
+  /** The body whose name is being typed in the browser (its key). */
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [browserOpen, setBrowserOpen] = useState(() => { try { return localStorage.getItem('cad-studio.browser') !== 'closed'; } catch { return true; } });
   // Measuring: up to two picked faces or edges (null: not measuring).
   const [measure, setMeasure] = useState<MeasurePick[] | null>(null);
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
@@ -480,7 +484,7 @@ export function App() {
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
     if (sketch.editNode !== undefined) {
-      const at = sketch.editNode, next = { ...doc, nodes: doc.nodes.map((n, k) => k === at ? placedNode : n) };
+      const at = sketch.editNode, next = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? placedNode : n)) };
       engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
       return;
     }
@@ -676,6 +680,9 @@ export function App() {
         onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
   };
   const shownBodies = bodyDrag ? bodies : previewBodies ?? bodies;
+  // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
+  const bodyColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color; return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; })), [shownBodies, doc]);
+  const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
@@ -803,7 +810,7 @@ export function App() {
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
-        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
+        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot} bodyColors={bodyColors} hiddenBodies={hiddenBodies}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -875,18 +882,36 @@ export function App() {
           </div>))}
       </nav>
 
-      <div className="right-col">
-      <aside className="card outliner" aria-label="Outliner">
-        <div className="card-title">OUTLINER <span className="muted">{shownBodies.length} bod{shownBodies.length === 1 ? 'y' : 'ies'}</span></div>
+      <aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Outliner">
+        <div className="card-title">BROWSER <span className="muted">{shownBodies.length} bod{shownBodies.length === 1 ? 'y' : 'ies'}</span>
+          <button className="tool tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></button></div>
+        {browserOpen && <>
+        {bodies.length > 0 && <div className="ol-head">Bodies</div>}
         {bodies.map((b, i) => {
-          const ref = refOf(b); const node = evaluated.nodes[ref.node];
-          const sel = selectedBodies(selection).includes(i);
-          return <button key={b.key} className={'ol' + (sel ? ' sel' : '')} onClick={e => { setDirectSel([]); setSelection(prev => {
+          const sel = selectedBodies(selection).includes(i), look = lookOf(doc, b);
+          const pick = (e: React.MouseEvent) => { setDirectSel([]); setInstanceSel([]); setSelection(prev => {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
-          }); }}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side.startsWith('part') ? `solid ${Number(ref.side.slice(4)) + 1}` : ref.side}</span>}</button>;
+          }); };
+          return <div key={b.key} className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')}>
+            <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
+              onClick={() => { commit(withLook(doc, b, { hidden: !look.hidden })); if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
+            <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
+            {renaming === b.key
+              ? <input className="ol-name-edit" autoFocus defaultValue={bodyName(doc, b)} aria-label="Body name"
+                onKeyDown={e => { if (e.key === 'Enter') { commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); } else if (e.key === 'Escape') setRenaming(null); e.stopPropagation(); }}
+                onBlur={e => { if (e.currentTarget.value.trim() !== bodyName(doc, b)) commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); }} />
+              : <button className={'ol' + (sel ? ' sel' : '')} onClick={pick} onDoubleClick={() => setRenaming(b.key)} title="Double-click to rename">
+                {bodyName(doc, b)}{(() => { const last = lastFeature(doc, b); return last ? <span className="muted"> · {last}</span> : null; })()}</button>}
+          </div>;
         })}
+        {freeSketches.length > 0 && <div className="ol-head">Sketches</div>}
+        {freeSketches.map(k => <div key={'s' + k} className={'ol-row' + (selection.sketches?.includes(k) ? ' sel' : '')}>
+          <span className="ol-eye"><Icon name="cad-sketch" small /></span>
+          <button className={'ol' + (selection.sketches?.includes(k) ? ' sel' : '')} onClick={e => pickProfile(k, e.shiftKey)}>Sketch {k + 1}</button></div>)}
+        {!!doc.instances?.length && <div className="ol-head">Parts placed</div>}
         {(doc.instances ?? []).map(inst => <button key={inst.id} className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
           onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>)}
+        {!!doc.direct?.objects.length && <div className="ol-head">Curves and surfaces</div>}
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}
           onClick={e => {
@@ -895,7 +920,9 @@ export function App() {
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
+        </>}
       </aside>
+      <div className="right-col">
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
@@ -954,7 +981,17 @@ export function App() {
         </>) : null}
         {selBodies.length > 0 && <>
           <div className="card-title" style={{ marginTop: sel1 ? 10 : 0 }}>BODY{selBodies.length > 1 ? ` · ${selBodies.length} selected` : ''}</div>
-          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds; return <div key={b.key}>
+          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds, look = lookOf(doc, b); return <div key={b.key}>
+            <label className="kv">Name <input className="kv-input" aria-label="Name" key={b.key + bodyName(doc, b)} defaultValue={bodyName(doc, b)}
+              onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }}
+              onBlur={e => { const v = e.currentTarget.value.trim(); if (v !== bodyName(doc, b)) commit(withLook(doc, b, { name: v })); }} /></label>
+            <div className="kv">Colour <span className="swatches" role="group" aria-label="Colour">
+              <button className={'swatch none' + (look.color ? '' : ' on')} aria-label="No colour" data-tip="Default grey" onClick={() => commit(withLook(doc, b, { color: undefined }))} />
+              {BODY_COLOURS.map(c => <button key={c} className={'swatch' + (look.color === c ? ' on' : '')} style={{ background: c }} aria-label={'Colour ' + c} onClick={() => commit(withLook(doc, b, { color: c }))} />)}
+              <label className="swatch pick" data-tip="Any colour" style={look.color && !(BODY_COLOURS as readonly string[]).includes(look.color) ? { background: look.color } : undefined}>
+                <input type="color" aria-label="Any colour" value={look.color ?? '#bcc0c7'} onChange={e => commit(withLook(doc, b, { color: e.target.value }))} /></label>
+            </span></div>
+            <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
             <div className="kv">Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></div>
             {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
             {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * density.gPerCm3 / 100) / 10)} g</b></div>}
@@ -964,7 +1001,7 @@ export function App() {
         </>}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge; Shift-click adds more of the same (edges to round, faces to open). For a Boolean, Shift-click a second body in the Outliner.</div>}
         {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
-          const next = { ...doc, nodes };
+          const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
       </aside>}
