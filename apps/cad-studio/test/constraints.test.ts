@@ -288,3 +288,29 @@ test('a finished outline keeps its constraints in the sketch node; the feature e
   d = { ...d, nodes };
   assert.ok(evaluateDoc(d, 2).ok);
 });
+
+test('a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes', async () => {
+  const { sketchShapes, loopShape } = await import('../src/sketch/reopen');
+  const { shapeNode, profileOf } = await import('../src/sketch/loops');
+  const { outlineSegments } = await import('../src/sketch/profile');
+  // A constrained outline round-trips with every constraint.
+  let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
+  const back = sketchShapes(shapeNode(s)!).shape as Polygon;
+  assert.deepEqual(back.points, s.points); assert.deepEqual(back.lengths, { 0: 60 }); assert.deepEqual(back.hv, s.hv);
+  assert.equal(dof(back), dof(s));
+  // A line + arc loop gives back its points and bulges; one full arc is a circle.
+  const pts: P2[] = [[0, 0], [30, 0], [30, 20], [0, 20]], bulges = [0, 0.4, 0, -0.3];
+  const loop = loopShape(outlineSegments(pts, bulges)) as Polygon;
+  assert.deepEqual(loop.points, pts);
+  loop.bulges!.forEach((b, i) => assert.ok(Math.abs(b - bulges[i]) < 1e-9, `${b} vs ${bulges[i]}`));
+  assert.deepEqual(loopShape([{ kind: 'arc', start: [15, 5], center: [10, 5], direction: 'ccw' }]), { kind: 'circle', c: [10, 5], r: 5 });
+  // A plate with a hole and a separate boss: the main rectangle first, then the region and the hole.
+  const r = profileOf([{ kind: 'rectangle', a: [0, 0], b: [40, 20] }, { kind: 'circle', c: [20, 10], r: 4 }, { kind: 'circle', c: [60, 10], r: 5 }]);
+  assert.ok('node' in r);
+  const shapes = sketchShapes(r.node);
+  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20] });
+  assert.deepEqual(shapes.done.map(d => d.kind), ['circle', 'circle']);
+  // And profiles again to the same node.
+  assert.deepEqual(profileOf([shapes.shape!, ...shapes.done]), r);
+});

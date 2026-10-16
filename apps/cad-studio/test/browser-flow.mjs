@@ -470,6 +470,26 @@ try {
     await page.click('.toast [aria-label="Dismiss"]'); await press('Escape');
   });
 
+  await check('a finished sketch reopens from the feature editor with its constraints and is written back in place', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    await page.fill('#sk-len0', '60'); await page.evaluate(() => document.activeElement?.blur());
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    await page.click('[aria-label="Edit sketch"]');
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Length\s*edge 1 = 60/);
+    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Select/);
+    await page.fill('#sk-len0', '45'); await page.evaluate(() => document.activeElement?.blur());
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 45, null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes.length, 2, JSON.stringify(d.nodes.map(n => n.kind)));
+    assert.equal(await page.locator('.sk-panel').count(), 0);
+    const [p0, p1] = d.nodes[0].points; assert.ok(Math.abs(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) - 45) < 1e-6);
+    await iso();
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();

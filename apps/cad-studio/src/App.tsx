@@ -35,6 +35,7 @@ import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
 import { SketchHistory } from './sketch/history';
+import { sketchShapes } from './sketch/reopen';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -361,13 +362,28 @@ export function App() {
     viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   }, [sketch, bodies]);
 
+  /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
+  const editSketch = (index: number) => {
+    const node = doc.nodes[index]; if (node?.kind !== 'sketch') return;
+    const { shape, done } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
+    setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
+    setSketch(startPicking({ plane, tool: 'select', shape, done, base: null, editNode: index }, 'select'));
+    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+  };
   const finishSketch = useCallback(() => {
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
-    const profile = profileOf([...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]);
+    // A reopened sketch keeps its main profile first (the first outer shape is the main one).
+    const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
+    const profile = profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
     const node = profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
+    if (sketch.editNode !== undefined) {
+      const at = sketch.editNode, next = { ...doc, nodes: doc.nodes.map((n, k) => k === at ? placedNode : n) };
+      engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
+      return;
+    }
     const base = sketch.base ?? null;
     // How deep a cut must go to leave the base body on the far side: its farthest corner behind the
     // sketch plane, and a millimetre more.
@@ -425,7 +441,7 @@ export function App() {
     };
     setSketch(null);
     setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
-  }, [sketch, ctx, bodies]);
+  }, [sketch, ctx, bodies, doc, marker, commit, engine]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
     if (active) return;
@@ -651,7 +667,7 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}
@@ -717,7 +733,7 @@ export function App() {
           </div>; })}
         </>}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge. Shift-click to pick bodies for a Boolean.</div>}
-        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onClose={() => setEditNode(null)} />}
@@ -810,7 +826,7 @@ function iconFor(n: ModelNode) {
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
-function NodeEditor({ nodes, index, onApply, onClose }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void }) {
+function NodeEditor({ nodes, index, onApply, onClose, onEditSketch }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -821,6 +837,7 @@ function NodeEditor({ nodes, index, onApply, onClose }: { nodes: ModelNode[]; in
   return (
     <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <button className="tool tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></button></div>
+      {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
         <label key={f.key} className="field"><span>{f.label}</span>
           {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}</span>
