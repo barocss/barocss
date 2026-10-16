@@ -13,12 +13,19 @@ export type XY = [number, number];
  * at) or a circle's centre.
  */
 export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3 }
-/** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm). */
-export type DrawingDimension =
+/** A dimension's tolerance: ± one value, an upper and a lower deviation, or a fit (H7, h6, …). */
+export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviation'; upper: number; lower: number } | { kind: 'fit'; code: string };
+/** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance. */
+export type DrawingDimension = ({ tol?: Tolerance }) & (
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
   | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
-  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY };
+  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
+/**
+ * A note: lines of text with their top left at `at` (sheet mm), and optionally a leader to a point
+ * of a view (`leader.at` in the view's model coordinates, so it follows the view).
+ */
+export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
 export interface EdgeRef { edge: string; near: Vec3 }
 
@@ -39,6 +46,7 @@ export interface DrawingSettings {
   /** The title block's part name (default: the file name). */
   title?: string;
   dimensions: DrawingDimension[];
+  notes?: DrawingNote[];
 }
 
 export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection: 'third', hidden: true, dimensions: [] });
@@ -55,8 +63,21 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.tangent === true ? { tangent: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
-    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)) : [],
+    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)).map(x => {
+      const { tol, ...rest } = x; const t = readTolerance(tol); return (t ? { ...rest, tol: t } : rest) as DrawingDimension;
+    }) : [],
+    ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
   };
+}
+
+const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
+const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);
+function readTolerance(t: unknown): Tolerance | null {
+  const x = t as Tolerance | undefined, num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+  if (x?.kind === 'symmetric' && num(x.value) && x.value > 0) return { kind: 'symmetric', value: x.value };
+  if (x?.kind === 'deviation' && num(x.upper) && num(x.lower) && x.upper >= x.lower) return { kind: 'deviation', upper: x.upper, lower: x.lower };
+  if (x?.kind === 'fit' && typeof x.code === 'string' && /^[A-Za-z]{1,2}\d{1,2}$/.test(x.code)) return { kind: 'fit', code: x.code };
+  return null;
 }
 
 export type DrawingViews = Record<ViewId, BrepProjection>;

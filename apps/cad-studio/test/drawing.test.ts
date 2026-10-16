@@ -8,7 +8,7 @@ import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/dr
 import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
 import { sectionOf } from '../src/drawing/section';
-import { hatch, TITLE_ROOM } from '../src/drawing/sheet';
+import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '../src/drawing/sheet';
 import { fitText, textWidth } from '../src/drawing/text';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
@@ -293,4 +293,49 @@ test('title block fields stay in their cells: a long title shrinks, then ends in
   assert.ok(mid.size < 5 && mid.size >= 3 && mid.text === 'Bracket-01 housing rev C');
   const cut = fitText('W'.repeat(40), 3.5, true, 26, 2.2);
   assert.ok(cut.size === 2.2 && cut.text.endsWith('…') && textWidth(cut.text, cut.size, true) <= 26, 'a cell value cut to fit');
+});
+
+test('tolerances: ± and fits follow the value, deviations stack after it; they print in SVG and PDF', () => {
+  assert.equal(toleranceText({ kind: 'symmetric', value: 0.1 }), '±0.1');
+  assert.equal(toleranceText({ kind: 'deviation', upper: 0.1, lower: -0.05 }), '+0.1/-0.05');
+  assert.equal(toleranceText({ kind: 'deviation', upper: 0, lower: -0.2 }, '°'), '0/-0.2°');
+  assert.equal(toleranceText({ kind: 'fit', code: 'H7' }), 'H7');
+  const sym = valueMarks([100, 50], 0, 'middle', '64', { kind: 'symmetric', value: 0.1 });
+  assert.equal(sym.length, 1); assert.ok(sym[0].kind === 'text' && sym[0].text === '64 ±0.1');
+  const dev = valueMarks([100, 50], 0, 'middle', '64', { kind: 'deviation', upper: 0.1, lower: -0.05 }).filter((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+  assert.deepEqual(dev.map(m => m.text), ['64', '+0.1', '-0.05']);
+  assert.ok(dev[1].at[1] < dev[0].at[1] && dev[2].at[1] > dev[1].at[1], 'the upper deviation raised above the lower');
+  assert.ok(dev[1].size < dev[0].size && near(dev[1].at[0], dev[2].at[0]) && dev[1].at[0] > dev[0].at[0] + textWidth('64', dev[0].size, false));
+  const middle = (dev[0].at[0] + dev[1].at[0] + textWidth('-0.05', dev[2].size, false)) / 2;
+  assert.ok(Math.abs(middle - 100) < 0.01, 'the whole label centred');
+  // Rotated (a vertical dimension): the stack turns with it.
+  const up = valueMarks([0, 0], 90, 'start', '8', { kind: 'deviation', upper: 0.2, lower: 0 }).filter((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+  assert.ok(up.every(m => m.angle === 90) && up[1].at[1] < up[0].at[1] && up[1].at[0] < up[2].at[0]);
+  const v = viewsOf(plate()), base = withDims();
+  const settings: DrawingSettings = { ...base, dimensions: base.dimensions.map(d => d.id === 'd1' ? { ...d, tol: { kind: 'symmetric', value: 0.1 } } : { ...d, tol: { kind: 'fit', code: 'H7' } }) };
+  const sheet = buildSheet(v, layoutSheet(v, settings), settings, { title: 't', date: 'd' });
+  const svg = sheetSvg(sheet, 't');
+  assert.match(svg, />64 ±0.1<\/text>/); assert.match(svg, />Ø8 H7<\/text>/);
+  const pdf = Array.from(sheetPdf(sheet, 't'), b => String.fromCharCode(b)).join('');
+  assert.match(pdf, /\(64 \\2610\.1\) Tj/, '± in WinAnsi');
+  const back = readDrawing(JSON.parse(JSON.stringify(settings)));
+  assert.deepEqual(back.dimensions.map(d => d.tol), [{ kind: 'symmetric', value: 0.1 }, { kind: 'fit', code: 'H7' }]);
+  assert.equal(readDrawing({ dimensions: [{ ...settings.dimensions[0], tol: { kind: 'symmetric', value: -1 } }] }).dimensions[0].tol, undefined);
+});
+
+test('notes: lines of text on the sheet, a leader that follows its view, kept in the file', () => {
+  const v = viewsOf(plate()), settings: DrawingSettings = { ...defaultDrawing(), notes: [
+    { id: 'n1', text: 'ALL EDGES BROKEN 0.5\nMATERIAL AL 6061', at: [20, 160] },
+    { id: 'n2', text: 'THROUGH', at: [140, 60], leader: { view: 'top', at: [36, 16] } },
+  ] };
+  const layout = layoutSheet(v, settings), sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }), svg = sheetSvg(sheet, 't');
+  assert.ok(svg.includes('>ALL EDGES BROKEN 0.5</text>') && svg.includes('>MATERIAL AL 6061</text>'));
+  assert.equal((svg.match(/data-dim="n[12]"/g) ?? []).length, 2, 'selectable like dimensions');
+  const lead = noteMarks(layout, settings.notes![1]), tip = toSheet(layout.views.top, [36, 16]);
+  const arrowHead = lead.find((m): m is Extract<Mark, { kind: 'fill' }> => m.kind === 'fill')!;
+  assert.ok(near(arrowHead.points[0][0], tip[0]) && near(arrowHead.points[0][1], tip[1]), 'the arrow on the view point');
+  const texts = noteMarks(layout, settings.notes![0]).filter((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+  assert.equal(texts.length, 2); assert.ok(texts[1].at[1] > texts[0].at[1]);
+  assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(settings))).notes, settings.notes);
+  assert.equal(readDrawing({ notes: [{ id: 'x', text: 3, at: [0, 0] }] }).notes, undefined);
 });
