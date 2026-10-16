@@ -101,6 +101,8 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === 'get_part_summary') return `${j.feature_count} features, ${j.bodies?.length ?? 0} bodies`;
   if (name === 'select') return `selected ${[...(j.selected?.faces ?? []), ...(j.selected?.edges ?? []), ...(j.selected?.bodies ?? [])].length}`;
+  if (name === 'get_assembly') return `${(j.instances?.length ?? 0) + 1} parts, ${j.mates?.length ?? 0} mates${j.problems?.length ? `, ${j.problems.length} unmet` : ''}`;
+  if (typeof j.did === 'string' && !Array.isArray(j.bodies)) return `${j.did}${j.unmet_mates?.length ? ` (${j.unmet_mates.length} unmet mate${j.unmet_mates.length > 1 ? 's' : ''})` : ''}`;
   if (Array.isArray(j.bodies)) {
     const v = j.bodies.reduce((s: number, b: { volume_mm3: number | null }) => s + (b.volume_mm3 ?? 0), 0);
     return `${j.did} → ${j.bodies.length} bod${j.bodies.length === 1 ? 'y' : 'ies'}, ${r0(v)} mm³`;
