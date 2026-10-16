@@ -88,6 +88,8 @@ function cylinder(c: number, r: number, z0: number, z1: number, rt = r, opts: { 
 const block = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, opts: { accent?: (i: number) => boolean } = {}) =>
   prism([[x0, z0], [x1, z0], [x1, z1], [x0, z1]], y0, y1, opts);
 
+/** Points one clicks, as small accent dots. */
+const dots = (pts: XY[]) => <g>{pts.map(([x, y], k) => <circle key={k} cx={x} cy={y} r={1.7} className="acf" stroke="none" />)}</g>;
 // Flat (2D) parts share these: a 1.5 stroke, round ends, filled heads.
 const arrow = (from: XY, to: XY, accent = true): ReactNode[] => [accent ? ac(d([from, to], false), 's') : line(d([from, to], false), 's'), <g key="h">{head(from, to, 3.6, accent)}</g>];
 
@@ -180,6 +182,14 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     out.push(line([5, 0, 1, 2].map(k => isoPath([bottom[k], top[k]], false)).join(''), 'v'));
     return out;
   })()}</>,
+  // Sketch tools: flat drawings with their defining points (the points you click) in the accent colour.
+  'cad-sk-rect': <>{face('M4.5 7h15v10h-15z', 0.12)}{line('M4.5 7h15v10h-15z')}{dots([[4.5, 7], [19.5, 17]])}</>,
+  'cad-sk-circle': <><circle cx="12" cy="12" r="7.5" style={tone(0.12)} /><circle cx="12" cy="12" r="7.5" />{ghost('M12 12l5.3-5.3')}{dots([[12, 12], [17.3, 6.7]])}</>,
+  'cad-sk-line': <>{line('M4 18L9 7l6 8 5-9')}{dots([[4, 18], [9, 7], [15, 15], [20, 6]])}</>,
+  'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,
+  'cad-sk-slot': <><path d="M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z" style={tone(0.12)} />{line('M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z')}{ghost('M8 12h8')}{dots([[8, 12], [16, 12]])}</>,
+  'cad-sk-select': <>{ghost('M4 15l7-9 9 7')}<path d="M10 9.5l9 3.6-3.9 1.3 2.6 3.7-1.7 1.2-2.6-3.7-2.6 3z" style={acTone} className="ac" strokeWidth={1.2} />{dots([[4, 15]])}</>,
+  'cad-sk-dim': <>{line('M5 17V9M19 17V9')}{ac('M5 12h14')}<g>{head([9, 12], [5, 12], 3.2)}{head([15, 12], [19, 12], 3.2)}</g>{ghost('M5 19h14')}</>,
   // Booleans: the result shaded in the accent colour.
   'cad-union': <><path d={BA + 'A6.5 6.5 0 1 0 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 1 0 12 6.23'} /></>,
   'cad-subtract': <><path d={BA + 'A6.5 6.5 0 0 1 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 0 1 12 6.23'} />{ghost('M12 6.23A6.5 6.5 0 1 1 12 17.77')}</>,

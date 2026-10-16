@@ -46,13 +46,13 @@ import { SketchHistory } from './sketch/history';
 import { sketchShapes } from './sketch/reopen';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
-  { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
-  { tool: 'circle', key: 'C', label: 'Circle', icon: 'circle', hint: 'Click centre, then radius' },
-  { tool: 'polygon', key: 'L', label: 'Line', icon: 'polyline', hint: 'Click points, click the first point to close · A switches to arcs' },
-  { tool: 'arc', key: 'A', label: 'Arc', icon: 'line_curve', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
-  { tool: 'slot', key: 'O', label: 'Slot', icon: 'pill', hint: 'Click both centres, then the width' },
-  { tool: 'select', key: 'S', label: 'Select', icon: 'arrow_selector_tool', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
-  { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'straighten', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
+  { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'cad-sk-rect', hint: 'Click two corners' },
+  { tool: 'circle', key: 'C', label: 'Circle', icon: 'cad-sk-circle', hint: 'Click centre, then radius' },
+  { tool: 'polygon', key: 'L', label: 'Line', icon: 'cad-sk-line', hint: 'Click points, click the first point to close · A switches to arcs' },
+  { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
+  { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
+  { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
+  { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'cad-sk-dim', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
 /** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
 const SKETCH_INSETS = { left: 64, right: 272 };
