@@ -4,19 +4,23 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { FaceClient } from './faceClient';
-import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Mate, type MateKind, type MateRef, type Problem } from './mates';
+import { BASE, kindsFor, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from './mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
-export interface MateDraft { kind: MateKind | 'auto'; distance: number; flip: boolean; picks: MatePick[]; error?: string }
+export interface MateDraft { kind: MateKind | 'auto'; distance: number; angle: number; flip: boolean; picks: MatePick[]; error?: string }
 type Hit = { face: { body: number; face: number } | null; instance?: string; instanceFace?: { body: number; face: number } };
 
 export interface Assembly {
   mates: Mate[]; problems: Problem[]; tables: Map<string, FaceTable>;
+  /** What each mated instance can still do (see Solved.freedom). */
+  freedom: Record<string, Freedom>;
   draft: MateDraft | null; selected: string | null;
   start(): void; cancel(): void; setDraft(patch: Partial<MateDraft>): void; select(id: string | null): void;
   /** A viewport click while adding a mate (true: it was taken). */
   pick(hit: Hit): boolean;
+  /** Picks a face by name while adding a mate (an origin plane: `origin:xy`, `origin:xz`, `origin:yz`). */
+  pickFace(ref: MateRef): void;
   /** Changes a mate, re-solving; the reason when it cannot be met (nothing changes then). */
   edit(id: string, patch: Partial<Mate>): string | null;
   remove(id: string): void;
@@ -24,8 +28,11 @@ export interface Assembly {
   ground(id: string, on: boolean): string | null;
   /** The mates without those on a part (when it is removed). */
   without(part: string): Mate[];
-  /** What to outline while adding a mate. */
-  highlight: { faces: { body: number; face: number }[]; instances: string[] };
+  /**
+   * What to show picked: the faces clicked while adding a mate, else the selected mate's two faces —
+   * base part faces (`faces`), instance faces, and the instances to outline while adding.
+   */
+  highlight: { faces: { body: number; face: number }[]; instanceFaces: { id: string; body: number; face: number }[]; instances: string[] };
 }
 
 export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit }: {
@@ -40,6 +47,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   const mates = useMemo(() => doc.mates ?? [], [doc.mates]);
   const [tables, setTables] = useState<Map<string, FaceTable>>(new Map());
   const [problems, setProblems] = useState<Problem[]>([]);
+  const [freedom, setFreedom] = useState<Record<string, Freedom>>({});
   const [draft, setDraftView] = useState<MateDraft | null>(null);
   // The draft as of the last pick, ahead of React's re-render (two picks can come before it).
   const draftRef = useRef<MateDraft | null>(null);
@@ -58,13 +66,16 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
 
   const solve = useCallback((list: readonly PartInstance[], ms: readonly Mate[]) => solveAssembly(list, ms, p => tables.get(p)), [tables]);
 
-  // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows. The
-  // result replaces the document in place (it is the same state, solved), so undo skips it.
+  // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows, and
+  // one whose part moved is carried along with it. The result replaces the document in place (it is the
+  // same state, solved), so undo skips it.
+  const lastSolved = useRef<readonly PartInstance[] | undefined>(undefined);
   useEffect(() => {
-    if (!mates.length) { setProblems([]); return; }
-    const r = solve(instances, mates);
+    if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
+    const r = solveAssembly(instances, mates, p => tables.get(p), lastSolved.current);
     if (r.pending) return;
-    setProblems(r.problems);
+    lastSolved.current = r.instances;
+    setProblems(r.problems); setFreedom(r.freedom);
     const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
     if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
   }, [solve, instances, mates]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -86,7 +97,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const kinds = kindsFor(fa, fb), kind = d.kind === 'auto' ? kinds[0] ?? 'coincident' : d.kind;
     const used = new Set(mates.map(m => m.id));
     let n = mates.length + 1; while (used.has(`m${n}`)) n++;
-    const mate: Mate = { id: `m${n}`, kind, a: first.ref, b: second.ref, ...(kind === 'distance' ? { distance: d.distance } : {}), ...(kind !== 'concentric' && d.flip ? { flip: true } : {}) };
+    const mate: Mate = { id: `m${n}`, kind, a: first.ref, b: second.ref, ...(kind === 'distance' ? { distance: d.distance } : {}), ...(kind === 'angle' ? { angle: d.angle } : {}), ...(kind !== 'concentric' && d.flip ? { flip: true } : {}) };
     const why = mateRefusal(mate, fa, fb);
     if (why) return { ...d, picks: [d.picks[0]], error: why };
     const r = solve(instances, [...mates, mate]);
@@ -111,11 +122,15 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       const name = named(BASE, bodies[hit.face.body]?.mesh.faces[hit.face.face]?.name);
       if (name) p = { ref: { part: BASE, face: name }, body: hit.face.body, face: hit.face.face };
     }
-    if (!p) return true;
-    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return true; }
+    if (p) addPick(p);
+    return true;
+  };
+  const addPick = (p: MatePick) => {
+    const draft = draftRef.current;
+    if (!draft) return;
+    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
     const next = { ...draft, error: undefined, picks: draft.picks.length >= 2 ? [p] : [...draft.picks, p] };
     setDraftState(next.picks.length === 2 ? finish(next) : next);
-    return true;
   };
   const pickRef = useRef(pick); pickRef.current = pick;
 
@@ -142,12 +157,12 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   return {
-    mates, problems, tables, draft, selected,
-    start: () => { setDraftState({ kind: 'auto', distance: 10, flip: false, picks: [] }); setSelected(null); },
+    mates, problems, tables, freedom, draft, selected,
+    start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
-    pick, edit,
+    pick, edit, pickFace: ref => addPick({ ref }),
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
       const by = mates.filter(m => m.b.part === id);
@@ -155,9 +170,21 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       commit(instances.map(i => i.id === id ? { ...i, grounded: on || undefined } : i), mates); return null;
     },
     without: part => mates.filter(m => m.a.part !== part && m.b.part !== part),
-    highlight: {
-      faces: (draft?.picks ?? []).flatMap(p => p.body !== undefined && p.face !== undefined ? [{ body: p.body, face: p.face }] : []),
-      instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => p.ref.part),
-    },
+    highlight: (() => {
+      const sel = mates.find(m => m.id === selected), refs = draft ? draft.picks.map(p => p.ref) : sel ? [sel.a, sel.b] : [];
+      // A face by name on the part's evaluated bodies (display faces may join coplanar faces: "a+b").
+      const locate = (ref: MateRef) => {
+        for (const [body, b] of (ref.part === BASE ? bodies : instanceBodies.get(ref.part)?.bodies ?? []).entries()) {
+          const face = b.mesh.faces.findIndex(f => f.name.split('+').includes(ref.face));
+          if (face >= 0) return { body, face };
+        }
+        return null;
+      };
+      return {
+        faces: refs.filter(r => r.part === BASE).flatMap(r => { const at = locate(r); return at ? [at] : []; }),
+        instanceFaces: refs.filter(r => r.part !== BASE).flatMap(r => { const at = locate(r); return at ? [{ id: r.part, ...at }] : []; }),
+        instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => p.ref.part),
+      };
+    })(),
   };
 }

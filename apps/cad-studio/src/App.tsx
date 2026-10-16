@@ -34,6 +34,7 @@ import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, stand
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
+import { SketchHistory } from './sketch/history';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -106,12 +107,14 @@ export function App() {
   useEffect(() => { liveShape.current = sketch?.shape ?? null; }, [sketch?.shape]);
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
   // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
+  const sketchHistory = useRef(new SketchHistory());
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
     const prev = liveShape.current, keep = fresh && prev && shapeNode(prev) ? prev : null;
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
+    if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
     setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: [...(s.done ?? []), keep] } : {}) });
   }, []);
-  useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
+  useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
   const [chat, setChat] = useState(false);
   /** What a chat turn asked to show selected once its part is evaluated. */
@@ -190,7 +193,8 @@ export function App() {
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
 
   const commit = useCallback((next: StudioDoc) => {
-    const dropped = marker !== null ? doc.nodes.length - marker : 0;
+    // Counted as the History bar shows them: sketches are part of the feature made from them.
+    const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
@@ -382,20 +386,21 @@ export function App() {
       fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }, { value: 'loft', label: 'Loft to a top section' }] },
         { key: 'h', label: 'Distance', kind: 'mm', min: 1, when: v => !String(v.make).startsWith('revolve') && !(v.op === 'cut' && v.make === 'extrude' && v.depth === 'through') }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.make === 'extrude' },
         // The revolve angle, or a pipe's bend angle (360: a quarter bend).
-        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') || v.make === 'pipe' },
+        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') },
+        { key: 'bendDeg', label: 'Angle', kind: 'deg', min: 1, max: 270, step: 15, when: v => v.make === 'pipe' },
         { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1, when: v => v.make === 'pipe' }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }], when: v => v.make === 'pipe' },
         { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }], when: v => v.make === 'loft' },
         { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400, when: v => v.make === 'loft' },
         { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400, when: v => v.make === 'loft' },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : []),
         ...(base ? [{ key: 'depth', label: 'Depth', kind: 'choice' as const, options: [{ value: 'distance', label: 'Distance' }, { value: 'through', label: 'Through all' }], when: (v: Values) => v.op === 'cut' && v.make === 'extrude' }] : [])],
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bendDeg: 90, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join', depth: 'distance' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, placedNode);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
         // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
         const height = cut && v.make === 'extrude' && v.depth === 'through' ? through : Number(v.h); const from = cut ? -height : 0;
-        // A pipe: a run of Distance, a bend of the radius and the revolve angle (90° by default), a run again.
+        // A pipe: a run of Distance, a bend of the radius and its own angle (90° by default), a run again.
         // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
         let e = v.make === 'loft'
           ? (() => {
@@ -406,7 +411,7 @@ export function App() {
             const secs = [{ sketch: s, z: 0 }, ...(mid > 0 ? [{ sketch: s + 2, z: z1 / 2 }] : []), { sketch: s + 1, z: z1 }];
             return withNode(t, { kind: 'loft', sections: cut ? [...secs].reverse() : secs, ...(mid > 0 ? { smooth: true } : {}) }); })()
           : v.make === 'pipe'
-          ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.deg) >= 360 ? 90 : Number(v.deg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
+          ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
           : String(v.make).startsWith('revolve')
           ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
           // With a draft a cut goes down from the face, so its walls lean in away from the opening.
@@ -465,6 +470,9 @@ export function App() {
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
         const name = file.name.replace(/\.(step|stp)$/i, ''), next = withNode(emptyDoc(), { kind: 'import', name, step: await file.text() });
+        // Read it before replacing the current part: a file the kernel cannot read keeps the part.
+        const read = await engine.part(next, revision.current++);
+        if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
         commit(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
@@ -498,14 +506,27 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        // While sketching, ⌘Z steps through the outline's edits (constraints, dimensions, values).
+        const back = sketch ? (e.shiftKey ? sketchHistory.current.redo(liveShape.current) : sketchHistory.current.undo(liveShape.current)) : null;
+        if (back) { liveShape.current = back; setSketchError(null); setSketch(s => s && { ...s, shape: back, picked: [], editDim: null }); return; }
+        if (!sketch) { if (e.shiftKey) doRedo(); else doUndo(); }
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
-      if (typing || palette) return;
+      // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
+      const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
+      if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
-      if (sketch) { const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool; if (t) setSketch(s => s && switchTool(s, t)); return; }
+      if (sketch) {
+        const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
+        if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
+        return;
+      }
       if (e.key.toLowerCase() === 'f' && !e.shiftKey) { viewport.current?.fit(); return; }
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());
       if (cmd && !active) { e.preventDefault(); start(cmd); }
@@ -515,7 +536,9 @@ export function App() {
   });
 
   const shownBodies = previewBodies ?? bodies;
-  const shownSelection = previewBodies || sketch ? emptySel : assembly.draft ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+  // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
+  const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
+  const shownSelection = previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
@@ -533,7 +556,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel}
+        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -662,7 +685,7 @@ export function App() {
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
-      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances}
+      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
@@ -701,7 +724,7 @@ export function App() {
       </aside>}
       </div>
 
-      {drawing && <DrawingWorkspace engine={engine} doc={evaluated} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
+      {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
 
       {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 
@@ -720,7 +743,7 @@ export function App() {
         <span className="card-title inline">HISTORY</span>
         {doc.nodes.map((n, i) => n.kind === 'sketch' ? null : (
           <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to edit · double-click to roll back here`}
-            onClick={() => setEditNode(i)} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}>
+            onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}>
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
         <button className="marker" aria-label="Roll forward to the end" title="Rollback marker · click to roll forward" onClick={() => setMarker(null)} />
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}

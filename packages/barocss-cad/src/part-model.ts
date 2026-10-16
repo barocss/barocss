@@ -21,7 +21,7 @@ import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
-import { finishBrepEdges } from './edge-finish.js';
+import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
@@ -33,7 +33,7 @@ import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
-import { add, cross, dot, scale, sub, unit } from './vec3.js';
+import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -552,7 +552,11 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
-  if (a.kind === 'upright' && b.kind === 'upright') return { kind: 'upright', solid: booleanPrismatic(a.solid, b.solid, op) };
+  if (a.kind === 'upright' && b.kind === 'upright') {
+    const solid = booleanPrismatic(a.solid, b.solid, op);
+    if (touchingLumps(solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
+    return { kind: 'upright', solid };
+  }
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
   const B = b.kind === 'upright' ? (lineOnly(b.solid) ? brepFromPrismatic(b.solid, { id: at + '_b' }) : null) : b.brep;
   if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: booleanPolyhedra(A, B, op, { id: at }) };
@@ -563,6 +567,33 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
     if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: analytic Boolean: /, ''));
     throw cause;
   }
+}
+/**
+ * Whether separate lumps of an upright solid meet only along an edge or at a point (the analytic and
+ * polyhedral Booleans refuse such results; the upright section Boolean would keep them as one body).
+ */
+function touchingLumps(solid: PrismaticSolid): boolean {
+  if (solid.slabs.length < 2 && solid.slabs.every(s => s.regions.length < 2)) return false;
+  const brep = brepFromPrismatic(solid, { id: 'touch' });
+  if (brep.bodies.length < 2) return false;
+  const shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)!]));
+  const loopBody = new Map(brep.loops.map(l => [l.id, faceBody.get(l.face)!])), edgeBody = new Map<string, string>();
+  for (const c of brep.coedges) edgeBody.set(c.edge, loopBody.get(c.loop)!);
+  const point = new Map(brep.vertices.map(v => [v.id, v.point])), vertexBody = new Map<string, string>();
+  for (const e of brep.edges) for (const v of e.vertices) vertexBody.set(v, edgeBody.get(e.id)!);
+  let size = 1; for (const v of brep.vertices) for (const x of v.point) size = Math.max(size, Math.abs(x));
+  const tol = 1e-9 * size;
+  // A vertex of one lump on a vertex or a straight edge of another.
+  const onSegment = (p: Point, a: Point, b: Point) => {
+    const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / Math.max(dot(ab, ab), 1e-300)));
+    return len(sub(p, add(a, scale(ab, t)))) <= tol;
+  };
+  for (const v of brep.vertices) for (const e of brep.edges) {
+    if (edgeBody.get(e.id) === vertexBody.get(v.id)) continue;
+    const q = e.curve.controlPoints;
+    if (e.curve.degree === 1 && q.length === 2 ? onSegment(v.point, q[0], q[1]) : e.vertices.some(w => len(sub(point.get(w)!, v.point)) <= tol)) return true;
+  }
+  return false;
 }
 const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8 }).volumeMM3 : 0;
 
@@ -966,6 +997,11 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
     return { n, w: unit(cross(n, dir)) }; // w: into the face, perpendicular to the edge
   });
   const [s1, s2] = sides, convex = dot(s2.w, s1.n) < 0;
+  // Cutting, the chamfer must fit on both faces: d at most each face's reach across the edge.
+  if (convex) {
+    const walls = uses.map((c, k) => faceReach(source, faceOf(c.loop).id, P, sides[k].w)), tol = 1e-6 * Math.max(1, ...P.map(Math.abs), ...Q.map(Math.abs));
+    if (walls.some(w => d > w + tol)) fail('PARAMETER', `edge ${edge.name}: chamfer ${d} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
+  }
   const corner = (X: Point) => {
     const A1 = add(X, scale(s1.w, d)), A2 = add(X, scale(s2.w, d)), M = scale(add(A1, A2), 0.5);
     // Grown about the chamfer line so no wedge face lies on a face of the body.

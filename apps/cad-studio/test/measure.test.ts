@@ -30,8 +30,18 @@ test('measure: a cylinder face shows its radius, its rim an arc of that radius a
   const rim = m.edges.findIndex(x => !x.straight), it = measureItem(m, { body: 0, edge: rim });
   assert.equal(it.label, 'Arc', JSON.stringify(it));
   assert.ok(near(it.radius!, 5, 1e-3), String(it.radius));
-  // The polyline of the rim is a little shorter than the circle (the display tessellation).
-  assert.ok(it.length! > 2 * Math.PI * 5 * 0.99 && it.length! <= 2 * Math.PI * 5 + 1e-9, String(it.length));
+  // The rim's length is the circle's (r·θ over its samples), not the shorter display polyline.
+  assert.ok(near(it.length!, 2 * Math.PI * 5, 1e-5), String(it.length));
+});
+
+test('errors: a too-steep draft and a zero angle name their cause', async () => {
+  const { friendly } = await import('../src/engine/errors');
+  assert.equal(friendly('n1: the draft closes a straight wall before the top (steeper than the profile allows)').title, 'The draft is too steep for this height');
+  assert.equal(friendly('n1: angleDegrees must be in (0, 360]').title, 'The angle must be between 1° and 360°');
+  // A suspected touch from the curved-face Boolean says it may be an unsupported overlap; the exact
+  // upright check stays certain.
+  assert.equal(friendly('n5: B-rep: analytic Boolean: the result is not a manifold solid (edge 2 has 3 uses; the inputs touch along an edge or at a vertex)').title, 'These bodies could not be joined into one solid');
+  assert.equal(friendly('n4: the bodies touch along an edge or at a vertex only; the result is not a manifold solid').title, 'The bodies only touch along an edge or a point');
 });
 
 test('measure: between two bodies, the closest points span the gap', () => {

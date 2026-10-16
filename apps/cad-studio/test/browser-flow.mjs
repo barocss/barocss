@@ -379,6 +379,97 @@ try {
     assert.equal(Math.max(...xs) - Math.min(...xs), 40); assert.equal(Math.max(...ys) - Math.min(...ys), 40); await iso();
   });
 
+  await check('horizontal and vertical distances between two points', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    const corners = [[-150, -80], [150, -80], [130, 80], [-160, 90]];
+    for (const [dx, dy] of [...corners, corners[0]]) await clickAt(cx + dx, cy + dy);
+    const value = async (label) => Number(await page.inputValue(`[aria-label="${label}"]`));
+    // Select two points; the panel offers their straight, horizontal and vertical distance.
+    await press('s'); await clickAt(cx + 150, cy - 80);
+    await page.keyboard.down('Shift'); await clickAt(cx - 160, cy + 90); await page.keyboard.up('Shift');
+    await page.click('[aria-label="Horizontal distance"]');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Horizontal distance point 2 – point 4');
+    await page.locator('.dim-edit').fill('55'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 2 X') - await value('Point 4 X')) - 55) < 1e-3);
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Horizontal distance\s*point 2 – point 4 = 55/);
+    // The Dimension tool on two points opens their distance; V turns it vertical.
+    await press('d'); await clickAt(cx - 150, cy - 80); await clickAt(cx + 130, cy + 80);
+    await page.locator('.dim-edit').press('v');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Vertical distance point 1 – point 3');
+    await page.locator('.dim-edit').fill('30'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 1 Y') - await value('Point 3 Y')) - 30) < 1e-3);
+    assert.match(await status(), /3 DOF/); await snap('axis-distances');
+    await press('Escape');
+  });
+
+  await check('an angle between two lines from the Dimension tool', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // A line opens its length; a second line opens the angle between them.
+    await press('d'); await clickAt(cx, cy - 80);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Length of edge 1');
+    await clickAt(cx + 140, cy);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Angle edge 1 – edge 2');
+    await page.locator('.dim-edit').fill('75'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Angle\s*edge 1 ∠ edge 2 = 75°/);
+    assert.match(await status(), /4 DOF/);
+    const p = async (i, k) => Number(await page.inputValue(`[aria-label="Point ${i} ${k}"]`));
+    const u = [await p(1, 'X') - await p(2, 'X'), await p(1, 'Y') - await p(2, 'Y')], w = [await p(3, 'X') - await p(2, 'X'), await p(3, 'Y') - await p(2, 'Y')];
+    const deg = Math.acos((u[0] * w[0] + u[1] * w[1]) / Math.hypot(...u) / Math.hypot(...w)) * 180 / Math.PI;
+    assert.ok(Math.abs(deg - 75) < 0.01, String(deg));
+    await snap('angle'); await press('Escape');
+  });
+
+  await check('undo and redo step through constraint edits while sketching', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    const list = () => page.locator('.sk-panel [role=list]').innerText();
+    await press('s'); await clickAt(cx + 140, cy); await page.click('[aria-label="Vertical"]');
+    assert.match(await list(), /Vertical\s*edge 2/); assert.match(await status(), /4 DOF/);
+    await page.click('[aria-label="Remove Horizontal edge 1"]'); assert.match(await status(), /5 DOF/);
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); assert.match(await list(), /Horizontal\s*edge 1/); assert.match(await status(), /4 DOF/);
+    await press('Meta+z'); assert.doesNotMatch(await list(), /Vertical/); assert.match(await status(), /5 DOF/);
+    await press('Meta+Shift+z'); assert.match(await list(), /Vertical\s*edge 2/);
+    // Nothing left to undo while sketching leaves the model behind the sketch alone.
+    await press('Meta+z'); await press('Meta+z'); await press('Meta+z');
+    assert.ok(await page.locator('.sk-panel').count() > 0); assert.doesNotMatch(await list(), /Vertical/);
+    await press('Escape');
+  });
+
+  await check('tool keys leave a number box; a finished outline keeps its dimensions; overlapping shapes are refused', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // Typing a length leaves focus in its box; a tool key still switches the tool and leaves the box.
+    await page.fill('#sk-len0', '60'); await press('r');
+    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Rectangle/);
+    assert.notEqual(await page.evaluate(() => document.activeElement?.tagName), 'INPUT');
+    await press('s'); assert.equal(await page.inputValue('#sk-len0'), '60', 'outline back after S');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes[0].outline?.lengths?.[0], 60, 'outline kept in the sketch node');
+    // The feature editor offers the outline's driving dimension.
+    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    const ed = page.locator('.node-editor .field', { has: page.locator('span:text-is("Length of edge 1")') }).locator('input');
+    assert.equal(await ed.inputValue(), '60', 'feature editor length');
+    await ed.fill(''); await ed.fill('50'); await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 50, null, { timeout: 15000 });
+    const n0 = (await doc()).nodes[0], [p0, p1] = n0.points;
+    assert.ok(Math.abs(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) - 50) < 1e-6, JSON.stringify(n0.points));
+    await press('Escape');
+    // Two crossing rectangles in one sketch: refused with the reason, the sketch stays open.
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    await clickAt(cx - 120, cy - 60); await clickAt(cx + 40, cy + 60); await clickAt(cx - 20, cy - 100); await clickAt(cx + 140, cy + 20);
+    await press('Enter');
+    assert.match(await page.locator('.toast[role=alert]').innerText(), /Shapes 1 and 2 overlap/);
+    assert.ok(await page.locator('.sk-panel').count() > 0);
+    await page.click('.toast [aria-label="Dismiss"]'); await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
@@ -464,7 +555,12 @@ try {
 
   await check('draw a plate: standard views, dimensions that follow the model, SVG and PDF', async () => {
     const fs = await import('node:fs');
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    // An empty part: the sheet says there is nothing to draw, and no error is raised.
+    await page.click('[aria-label="New part"]'); await page.click('.mode button:text-is("Drawing")');
+    await page.waitForFunction(() => /no body to draw/.test(document.querySelector('.dw-paper')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/Could not draw/.test(await page.locator('.toast').allInnerTexts().then(t => t.join(' '))), 'no error toast for an empty part');
+    await page.click('.mode button:text-is("Model")');
+    await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
@@ -487,9 +583,11 @@ try {
       // The width between two corners of the front view, placed below it; the hole's diameter from the top view.
       await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
       await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40);
-      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 2, null, { timeout: 5000 });
-      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8']);
-      assert.equal(await page.locator('.dw svg [data-dim]').count(), 2);
+      // The front view's lower right corner: its bottom and right edges, the angle placed inside.
+      await press('a'); await clickView('front', 40, 0); await clickView('front', 64, 5); await clickView('front', 58, 3);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 3, null, { timeout: 5000 });
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8', '90°']);
+      assert.equal(await page.locator('.dw svg [data-dim]').count(), 3);
       // A dimension in the isometric view is refused with the reason.
       await press('d'); await clickView('iso', 0, 0);
       assert.match(await page.locator('.dw-hint').innerText(), /front, top and right views/);
@@ -502,12 +600,18 @@ try {
       await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
       await page.waitForFunction(() => /Hole Ø12/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
       await page.click('.mode button:text-is("Drawing")');
-      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12', null, { timeout: 20000 });
-      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 2); assert.equal(saved.sheet, 'A4');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12,90°', null, { timeout: 20000 });
+      // Section A–A through the hole (the middle of the plate by default): two cut faces either side of it.
+      await page.click('[aria-label="Section A–A"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.section?.rings === 2, null, { timeout: 20000 });
+      assert.equal((await doc()).drawing.section.y, 16);
+      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 3); assert.equal(saved.sheet, 'A4');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.match(svgFile.suggestedFilename(), /\.svg$/);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);
       assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12<\/text>/); assert.match(svg, />64<\/text>/); assert.match(svg, />1:1<\/text>/);
+      assert.match(svg, /stroke-dasharray="8 1.5 1.5 1.5"/, 'centre lines on the hole');
+      assert.ok(svg.includes('>SECTION A–A</text>'), 'the section on the sheet');
       const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
       const pdf = fs.readFileSync(await pdfFile.path()); fs.writeFileSync(join(out, 'drawing.pdf'), pdf);
       assert.equal(pdf.subarray(0, 8).toString(), '%PDF-1.4');
@@ -520,6 +624,12 @@ try {
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     assert.match(await outliner(), /1 body/); await iso();
+    // A .step file the kernel cannot read is refused with its reason, and the open part stays.
+    const garbage = join(out, 'garbage.step'); (await import('node:fs')).writeFileSync(garbage, 'hello');
+    const before = (await doc()).nodes.length;
+    await page.locator('input[aria-label="Model file"]').setInputFiles(garbage);
+    await page.waitForFunction(() => /Could not open this file/.test(document.body.textContent ?? ''), null, { timeout: 20000 });
+    assert.equal((await doc()).nodes.length, before); assert.match(await outliner(), /Import holed-box/);
   });
 
   await check('measure between two faces of a box', async () => {
@@ -699,6 +809,30 @@ try {
     assert.match(await page.locator('.ol.mate.sel').innerText(), /Distance 2/);
     await page.click('[aria-label="Mates"] button:text-is("Delete mate")');
     assert.deepEqual((await mates()).map(m => m.kind), ['coincident']);
+    // An angle between the two side faces turns the copy about Z only (it stays flush on top).
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    await page.selectOption('[aria-label="Mate type"]', 'angle');
+    await page.fill('[aria-label="Mate angle"]', '30'); await press('Enter');
+    assert.ok(await pickFace(ids[0], 'n1.side0')); assert.ok(await pickFace(ids[1], 'n1.side0'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 2);
+    [br, copy] = await placed();
+    const turn = (a, b) => ((b.r[2] - a.r[2]) % 360 + 540) % 360 - 180;
+    // Facing each other at 0°, so 30° away from that is 150° between the two parts' turns.
+    assert.equal(Math.abs(turn(br, copy)), 150, `${br.r} ${copy.r}`);
+    assert.deepEqual([copy.r[0], copy.r[1], copy.p[2]], [0, 0, 11]);
+    // Turn the fixed bracket: the copy turns with it and keeps the angle.
+    await page.locator('.ol.instance').first().click();
+    await page.fill('[aria-label="Instance Z"] >> nth=1', '90'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].rotation[2] === 90);
+    await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
+    // What each part can still do: the bracket is fixed; flush and at an angle, the copy only slides.
+    assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /fixed in place/);
+    await page.locator('.ol.instance').nth(1).click();
+    assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /free: 2 slides$/);
+    // With the instance still selected, a History chip opens the feature editor.
+    await page.locator('.history .hs').first().click();
+    await page.waitForSelector('.node-editor');
+    await page.click('[aria-label="Close editor"]');
     await page.evaluate(() => document.activeElement?.blur());
   });
 

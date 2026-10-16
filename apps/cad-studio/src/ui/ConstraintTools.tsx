@@ -2,7 +2,7 @@
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
 import {
-  applyConstraint, constraintEntries, constraintOptions, dimensionKey, removeConstraint, samePick,
+  applyConstraint, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
 } from '../sketch/rules';
 import './constraints.css';
@@ -22,6 +22,7 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
   const [refused, setRefused] = useState<string | null>(null);
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
+  const twoPoints = picked.length === 2 && picked.every(p => p.kind === 'point') ? pointDimensionKeys(picked[0].i, picked[1].i) : null;
   const apply = (kind: ConstraintKind) => {
     const r = applyConstraint(s, picked, kind);
     if (!r.ok) { setRefused(r.reason); return; }
@@ -36,9 +37,14 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
     <div className="cons-tools" role="group" aria-label="Constraints for the selection">
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
         title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b><span>{t.short}</span></button>)}
-      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, or two points'}
+      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, two straight edges (angle), or two points'}
         onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
+    {twoPoints && <div className="cons-tools cons-dims" role="group" aria-label="Dimensions between the points">
+      <button type="button" aria-label="Distance between the points" title="Straight distance" onClick={() => onEditDim(dim ?? twoPoints.dist)}><b>⤢</b><span>Distance</span></button>
+      <button type="button" aria-label="Horizontal distance" title="Distance along the sketch X axis" onClick={() => onEditDim(twoPoints.dx)}><b>↔</b><span>Horizontal</span></button>
+      <button type="button" aria-label="Vertical distance" title="Distance along the sketch Y axis" onClick={() => onEditDim(twoPoints.dy)}><b>↕</b><span>Vertical</span></button>
+    </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
     <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length}</div>
     <div role="list" aria-label="Constraints">

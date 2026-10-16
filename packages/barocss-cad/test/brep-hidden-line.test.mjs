@@ -98,6 +98,25 @@ test('one body hides another behind it', () => {
   }
 });
 
+test('prefixes tell copies of one part apart', () => {
+  const beside = part([{ id: 'n0', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { id: 'n1', kind: 'extrude', sketch: 'n0', height: 10 }]);
+  const pr = projectBrepHiddenLines([...cylinder(), ...beside], FRONT, { prefixes: ['', 'inst1/'] });
+  const own = pr.edges.map(e => e.name).filter(n => !n.startsWith('inst1/')), copy = pr.edges.map(e => e.name).filter(n => n.startsWith('inst1/'));
+  assert.ok(own.length > 0); assert.deepEqual(copy.map(n => n.slice('inst1/'.length)).sort(), [...own].sort(), 'the same names under the prefix');
+});
+
+test('tangent edges on request: the fillet boundary with the top, not the seams of one surface', () => {
+  const box = part([{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 'n0', height: 20 }, { id: 'n2', kind: 'fillet', target: 'n1', edges: ['n1.side0|n1.top'], radius: 6 }]);
+  assert.equal(projectBrepHiddenLines(box, TOP).edges.filter(e => e.tangent).length, 0, 'off by default');
+  const pr = projectBrepHiddenLines(box, TOP, { tangentEdges: true });
+  const tangent = pr.edges.filter(e => e.tangent && e.pieces.some(p => p.visible));
+  assert.equal(tangent.length, 1, tangent.map(e => e.name).join());
+  const [p] = tangent[0].pieces; assert.equal(p.curve.kind, 'line');
+  assert.ok(lineIs(p.curve, [0, 6], [40, 6], 1e-6), 'where the fillet meets the top, 6 mm in');
+  // A cylinder's two halves meet smoothly on one surface: never a tangent edge.
+  assert.equal(projectBrepHiddenLines(cylinder(), ISO, { tangentEdges: true }).edges.filter(e => e.tangent).length, 0);
+});
+
 test('an up direction along the view direction is refused', () => {
   assert.throws(() => projectBrepHiddenLines(cylinder(), { toward: [0, 0, 1], up: [0, 0, 2] }), /parallel/);
 });

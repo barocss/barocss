@@ -7,6 +7,7 @@ type P2 = [number, number];
 type Doc = Parameters<typeof solveXYNumericalSketch>[0];
 export type KernelConstraint = Doc['constraints'][number];
 export type KernelSegment = Doc['segments'][number];
+export type KernelPoint = Doc['points'][number];
 
 export type SketchRule =
   /** Two straight edges at 0° / 180° (parallel) or ±90° (perpendicular), whichever is nearest the drawing. */
@@ -17,8 +18,10 @@ export type SketchRule =
   | { kind: 'fix'; point: number; at: P2 }
   /** A point on the centre of an arc (segment `arc`). */
   | { kind: 'coincident'; point: number; arc: number }
-  /** A driving distance between two points. */
-  | { kind: 'distance'; a: number; b: number; value: number };
+  /** A driving distance between two points: straight, or along the sketch's X (`dx`) or Y (`dy`) axis. */
+  | { kind: 'distance' | 'dx' | 'dy'; a: number; b: number; value: number }
+  /** A driving angle in degrees between two straight edges (at their shared point when they meet). */
+  | { kind: 'angle'; a: number; b: number; value: number };
 
 const angle = (v: P2) => Math.atan2(v[1], v[0]);
 const wrap = (a: number) => { const w = Math.atan2(Math.sin(a), Math.cos(a)); return w === -Math.PI ? Math.PI : w; };
@@ -31,13 +34,29 @@ export function ruleAngle(kind: 'parallel' | 'perpendicular', points: readonly P
 }
 
 /**
- * Solver segments and constraints for the rules. Point i is `p<i>`, straight edge i `s<i>`, arc i's centre
- * `c<i>`; a distance adds its own segment between its points. Rules that no longer fit the outline (an
- * edge that became an arc, a point that is gone) are skipped.
+ * The angle between straight edges a and b as a user reads it: when they share a point, between the edges
+ * going out from it; otherwise between their drawn directions. `degrees` is in [0, 180], `sign` the turn
+ * from a to b, and `flip` how many half turns (−1, 0, 1) the drawn directions add to it.
  */
-export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], bulges: readonly number[]): { segments: KernelSegment[]; constraints: KernelConstraint[] } {
+export function edgeAngle(points: readonly P2[], a: number, b: number): { degrees: number; sign: number; flip: number } {
+  const n = points.length, dir = (i: number): P2 => [points[(i + 1) % n][0] - points[i][0], points[(i + 1) % n][1] - points[i][1]];
+  // From the shared point, an edge that ends there runs backwards.
+  const fa = (a + 1) % n === b ? 1 : 0, fb = !fa && (b + 1) % n === a ? 1 : 0;
+  const u = dir(a), w = dir(b), su: P2 = fa ? [-u[0], -u[1]] : u, sw: P2 = fb ? [-w[0], -w[1]] : w;
+  const t = wrap(angle(sw) - angle(su));
+  return { degrees: Math.abs(t) * 180 / Math.PI, sign: t < 0 ? -1 : 1, flip: fb - fa };
+}
+
+/**
+ * Solver segments and constraints for the rules. Point i is `p<i>`, straight edge i `s<i>`, arc i's centre
+ * `c<i>`; a distance adds its own segment between its points. An axis distance adds two helper points
+ * beside its points (each tied to its point across the axis, the first at a set offset) and the measured
+ * segment between them, so it never collapses when the points line up. Rules that no longer fit the
+ * outline (an edge that became an arc, a point that is gone) are skipped.
+ */
+export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], bulges: readonly number[]): { points: KernelPoint[]; segments: KernelSegment[]; constraints: KernelConstraint[] } {
   const n = points.length, line = (i: number) => i >= 0 && i < n && !bulges[i], arc = (i: number) => i >= 0 && i < n && !!bulges[i], point = (i: number) => i >= 0 && i < n;
-  const segments: KernelSegment[] = [], constraints: KernelConstraint[] = [];
+  const helpers: KernelPoint[] = [], segments: KernelSegment[] = [], constraints: KernelConstraint[] = [];
   rules.forEach((r, k) => {
     const id = 'u' + k;
     if ((r.kind === 'parallel' || r.kind === 'perpendicular') && line(r.a) && line(r.b))
@@ -48,7 +67,21 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
     else if (r.kind === 'distance' && point(r.a) && point(r.b) && r.a !== r.b) {
       segments.push({ id: 'd' + k, startPointId: 'p' + r.a, endPointId: 'p' + r.b });
       constraints.push({ id, kind: 'length', segmentId: 'd' + k, lengthMM: r.value });
+    } else if (r.kind === 'angle' && line(r.a) && line(r.b)) {
+      const e = edgeAngle(points, r.a, r.b);
+      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angleRad: wrap(e.sign * r.value * Math.PI / 180 + e.flip * Math.PI) });
+    } else if ((r.kind === 'dx' || r.kind === 'dy') && point(r.a) && point(r.b) && r.a !== r.b) {
+      // Measured along axis m; the helpers sit 10 mm past both points across it (axis o).
+      const m = r.kind === 'dx' ? 0 : 1, o = 1 - m, a = points[r.a], b = points[r.b];
+      const across = Math.max(a[o], b[o]) + 10, along = Math.abs(b[m] - a[m]) >= 0.01 ? b[m] : a[m] + r.value;
+      const at = (u: number, v: number): P2 => m === 0 ? [u, v] : [v, u];
+      helpers.push({ id: 'ha' + k, position: at(a[m], across) }, { id: 'hb' + k, position: at(along, across) });
+      const tie = m === 0 ? 'vertical' : 'horizontal', run = m === 0 ? 'horizontal' : 'vertical';
+      segments.push({ id: 'xa' + k, startPointId: 'p' + r.a, endPointId: 'ha' + k }, { id: 'xb' + k, startPointId: 'p' + r.b, endPointId: 'hb' + k },
+        { id: 'xm' + k, startPointId: 'ha' + k, endPointId: 'hb' + k });
+      constraints.push({ id: id + 'a', kind: tie, segmentId: 'xa' + k }, { id: id + 'o', kind: 'length', segmentId: 'xa' + k, lengthMM: across - a[o] },
+        { id: id + 'b', kind: tie, segmentId: 'xb' + k }, { id: id + 'r', kind: run, segmentId: 'xm' + k }, { id, kind: 'length', segmentId: 'xm' + k, lengthMM: r.value });
     }
   });
-  return { segments, constraints };
+  return { points: helpers, segments, constraints };
 }
