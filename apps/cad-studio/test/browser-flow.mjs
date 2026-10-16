@@ -611,6 +611,22 @@ try {
     assert.match(await outliner(), /1 body/); await iso();
   });
 
+  await check('a selected box shows its dimension arrows; dragging the width edits the feature', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
+    await page.waitForFunction(() => window.__studioSelectFace('n1.top'), null, { timeout: 15000 });
+    await page.waitForSelector('[data-handle="w"]', { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const [a, b] = await page.evaluate(() => { const l = document.querySelector('[data-handle="w"] line:nth-of-type(2)'); const g = n => Number(l.getAttribute(n)); return [[g('x1'), g('y1')], [g('x2'), g('y2')]]; });
+    const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + m[0] + (b[0] - a[0]), svg.y + m[1] + (b[1] - a[1]), { steps: 8 }); await page.mouse.up();
+    await page.waitForFunction(() => /Edit Extrude/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].max[0] > 32, null, { timeout: 15000 });
+    assert.equal((await doc()).nodes.length, 2, 'the feature itself changed: no new node');
+  });
+
   await check('round two edges at once: the second added with Shift', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioPickEdge('n1.side0|n1.top'), null, { timeout: 15000 });

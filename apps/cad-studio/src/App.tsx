@@ -28,6 +28,7 @@ import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/typ
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
+import { editCommand } from './app/editCommand';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
@@ -641,8 +642,16 @@ export function App() {
   useEffect(() => { if (bodyDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setBodyDrag(null); }, [previewBodies, bodyDrag, active]);
   useEffect(() => { setBodyDrag(null); dragFrom.current = null; handleDrag.current = null; }, [active?.cmd.id]);
   // The active command's dimension handles: dragging one sets that value (the preview follows).
-  const handles: FeatureHandle[] = active?.cmd.handles && !sketch ? active.cmd.handles(active.ctx, active.values).flatMap(h => {
-    const field = (active.cmd.fields?.(active.ctx) ?? []).find(f => f.key === h.key), value = Number(active.values[h.key]);
+  // With nothing running, the selected body's feature (or the one open in the feature editor) offers its
+  // dimensions as handles: dragging one starts editing that feature.
+  const idleEdit = useMemo(() => {
+    if (active || sketch || rendering || drawing || measure || assembly.draft || instanceSel.length) return null;
+    const one = selectedBodies(selection), index = editNode ?? (one.length === 1 && bodies[one[0]] ? refOf(bodies[one[0]]).node : null);
+    return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes);
+  }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, marker]);
+  const handleCmd = active?.cmd ?? idleEdit, handleValues = active ? active.values : idleEdit?.defaults?.(ctx) ?? {}, handleCtx = active?.ctx ?? ctx;
+  const handles: FeatureHandle[] = handleCmd?.handles && !sketch ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
+    const field = (handleCmd.fields?.(handleCtx, handleValues) ?? []).find(f => f.key === h.key), value = Number(handleValues[h.key]);
     if (!field || !Number.isFinite(value)) return [];
     const step = h.step ?? 1;
     return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value, ...(h.arc ? { arc: h.arc } : {}),
@@ -654,7 +663,9 @@ export function App() {
         // Past the side where a value failed: held at the last good one.
         if (hd.wall && Math.sign(v - hd.lastOk) === hd.wall) v = hd.lastOk;
         if (done) hd.dragging = false;
-        setActive(a => a && a.values[h.key] !== v ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a);
+        // An idle handle opens its feature's edit as the drag starts.
+        setActive(a => a ? (a.values[h.key] !== v ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a)
+          : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, { [h.key]: v }), preview: 'busy', ctx: { ...handleCtx } });
       } }];
   }) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
