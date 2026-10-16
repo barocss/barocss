@@ -11,7 +11,7 @@ const enginePin = '3a7b7ea2712c739f1d7bbc8774301f821027e9e6';
 const provider = resolve(process.env.CAD_MODEL_ROOT ?? root), mode = process.argv[2] ?? 'source';
 assert.ok(['source', 'emitted'].includes(mode));
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
-const ts = require('typescript'), digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const path = resolve(app, 'docs/public/examples/modeling-chamfer-split.ts'), snippet = readFileSync(path, 'utf8');
 const page = readFileSync(resolve(app, 'docs/packages/cad/modeling.md'), 'utf8');
 const engine = readFileSync(resolve(provider, 'packages/barocss-cad/src/modeling.ts'), 'utf8');
@@ -25,12 +25,7 @@ const receiptText = git('packages/barocss-cad/test/modeling-chamfer-split-eviden
 const { source, cold } = receipt.actual;
 for (const [state, expected] of [[source.baseline,[3032,3032]],[source.moved,[1516,4548]],[source.backEdit,[1496,4488]],[source.z,[3072,2992]],[cold.reopened,[1496,4488]],[cold.reedited,[2992,2992]]]) assert.deepEqual([state.negativeMM3,state.positiveMM3],expected);
 assert.equal(source.futureReuseAfterRefusal,true); assert.equal(source.modelCalls+cold.modelCalls,8); assert.equal(source.tessellations,2);
-const transport=readFileSync(resolve(root,'packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-split/baseline-transport.json'));
-assert.deepEqual({bytes:transport.length,sha256:digest(transport)},source.transport);
 assert.ok(page.includes(enginePin));
-const ui=readFileSync(resolve(root,'packages/barocss-cad-editor/src/react/modeling-editor.tsx'),'utf8');
-for (const term of ['<option value="chamfer-split">Split a beveled part</option>',"useState<CadEditorModelingExample>('cut-chamfer')","useState<CadEditorModelingSplitAxis>('z')","if (event.target.value === 'chamfer-split') setSplitAxis('x')","{example === 'horizontal-split' && <option value=\"y\">",'splitAt · selected-axis split coordinate','disabled={busy || (!!accepted && !replaceExample)}',"setSplitAxis(event.target.value as CadEditorModelingSplitAxis); setReplaceExample(false);"]) assert.ok(ui.includes(term),term);
-const syntax=ts.transpileModule(ui,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX},fileName:'modeling-editor.tsx',reportDiagnostics:true}); assert.equal(syntax.diagnostics?.length??0,0);
 const entry=resolve(provider,`packages/barocss-cad/${mode==='source'?'src/index.ts':'dist/index.d.ts'}`);
 const directory=mkdtempSync(join(tmpdir(),'cad-chamfer-split-doc-types-'));
 try {
@@ -39,4 +34,4 @@ try {
   writeFileSync(config,JSON.stringify({compilerOptions:{strict:true,noEmit:true,target:'ES2022',module:'NodeNext',moduleResolution:'NodeNext',skipLibCheck:true,types:[],paths:{'@barocss/cad':[entry]}},files}));
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'-p',config],{stdio:'inherit'});
 } finally {rmSync(directory,{recursive:true,force:true});}
-console.log(JSON.stringify({ok:true,scope:'six public example/snippet types, exact provider pin/receipt/transport and TSX syntax only',mode,typedExampleFiles:6,enginePin,engineReceiptSHA256:digest(receiptText),entrySHA256:digest(readFileSync(entry)),modelingSourceSHA256:digest(engine),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));
+console.log(JSON.stringify({ok:true,scope:'six public example/snippet types and exact provider pin/receipt only',mode,typedExampleFiles:6,enginePin,engineReceiptSHA256:digest(receiptText),entrySHA256:digest(readFileSync(entry)),modelingSourceSHA256:digest(engine),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));

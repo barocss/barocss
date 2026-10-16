@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createNativeExtrusionPreviewAcceptanceV1 } from '../dist/index.js';
 
-const fixture = fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
 const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
 const authored = () => JSON.parse(readFileSync(fixture, 'utf8'));
 

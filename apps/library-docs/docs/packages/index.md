@@ -1,6 +1,6 @@
 # Library catalog
 
-Choose the package that owns your task. These 12 entries come from the fixed source manifests. A public-access manifest does not prove an npm release.
+Choose the package that owns your task. These 10 entries come from the fixed source manifests. A public-access manifest does not prove an npm release.
 
 | Library | Task | Source version | Default entry |
 | --- | --- | --- | --- |
@@ -14,16 +14,12 @@ Choose the package that owns your task. These 12 entries come from the fixed sou
 | [@barocss/canvas2d](/packages/canvas2d/) | Retained 2D scenes and WebGL2 display | `0.0.0-experimental` | `./src/index.ts` |
 | [@barocss/viewer](/packages/viewer/) | Reusable native-model viewing facade | `0.0.0-experimental` | `./src/index.ts` |
 | [@barocss/physics](/packages/physics/) | Bounded simulation profiles and derived output | `0.0.0-experimental` | `./src/index.ts` |
-| [@barocss/cad-editor](/packages/cad-editor/) | Native CAD authoring components | `0.0.0-experimental` | `./src/index.ts` |
-| [@barocss/render-editor](/packages/render-editor/) | Scene document authoring components | `0.0.0-experimental` | `./src/index.ts` |
 
 ## Start a workflow
 
 - Native geometry → copied display packet → GPU: [CAD](/packages/cad/guides), [Interop](/packages/cad-interop/guides), [GPU](/packages/gpu/guides).
 - Native geometry → interactive display: [Viewer](/packages/viewer/guides).
 - Logical-pixel scene → own 2D renderer: [Canvas2D](/packages/canvas2d/guides).
-- Native authoring → source save/open: [CAD Editor](/packages/cad-editor/guides).
-- Scene authoring → scene save/open: [Render Editor](/packages/render-editor/guides).
 - UI document → React → CSS host: [Render](/packages/render/guides).
 
 ## Verify entry points
@@ -39,9 +35,7 @@ These are actual development export keys at the fixed commit. Compiled maps and 
 - **@barocss/canvas2d**: `.`, `./document`. `packages/barocss-canvas2d/package.json` (Manifest; local source).
 - **@barocss/viewer**: `.`. `packages/barocss-viewer/package.json` (Manifest; local source).
 - **@barocss/physics**: `.`, `./cad-proxy`, `./replay`, `./fluid`, `./cloth`, `./fluid-cad`. `packages/barocss-physics/package.json` (Manifest; local source).
-- **@barocss/cad-editor**: `.`, `./react`, `./styles.css`. `packages/barocss-cad-editor/package.json` (Manifest; local source).
-- **@barocss/render-editor**: `.`, `./react`, `./style.css`. `packages/barocss-render-editor/package.json` (Manifest; local source).
 
-Motion was retired locally. Spatial and Interaction remain capability requirements; neither is a package in this inventory.
+Modeling and rendering authoring live in the CAD Studio app (`apps/cad-studio`); the former CAD Editor and Render Editor packages were retired unpublished. Motion was retired locally. Spatial and Interaction remain capability requirements; neither is a package in this inventory.
 
-[Read version stages](/concepts/versions) before choosing a runtime. GPU/CAD/Interop/Canvas2D/Viewer/Physics/editor package publication is unverified in this manual. Render has a historical exact0.12.0 publication and consumer receipt under [#478](https://github.com/barocss/barocss/issues/478).
+[Read version stages](/concepts/versions) before choosing a runtime. GPU/CAD/Interop/Canvas2D/Viewer/Physics package publication is unverified in this manual. Render has a historical exact0.12.0 publication and consumer receipt under [#478](https://github.com/barocss/barocss/issues/478).

@@ -47,7 +47,7 @@ for (const [label, slug, mutate] of [
   ['held Render version', 'render', manifest => { manifest.version = '99.0.0'; }],
   ['development exports', 'cad-interop', manifest => { manifest.exports['./unexpected'] = './src/unexpected.ts'; }],
   ['published exports', 'cad-interop', manifest => { manifest.publishConfig.exports['./unexpected'] = './dist/unexpected.js'; }],
-  ['dependencies', 'render-editor', manifest => { manifest.dependencies['@barocss/gpu'] = '99.0.0'; }],
+  ['dependencies', 'viewer', manifest => { manifest.dependencies = { ...manifest.dependencies, '@barocss/gpu': '99.0.0' }; }],
 ]) {
   test(`refuses unreviewed ${label} drift`, async t => {
     const directory = await fixture(t);

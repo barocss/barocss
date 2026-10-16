@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 const app=resolve(import.meta.dirname,'..'), root=resolve(app,'../..');
 const enginePin='d9d0aa93fdaf6700fd30282bc91656e40e59baf1';
 const provider=resolve(process.env.CAD_MODEL_ROOT??root),mode=process.argv[2]??'source';assert.ok(['source','emitted'].includes(mode));
-const require=createRequire(resolve(process.env.REPO_DEPS_ROOT??root,'package.json')),ts=require('typescript');
+const require=createRequire(resolve(process.env.REPO_DEPS_ROOT??root,'package.json'));
 const digest=b=>createHash('sha256').update(b).digest('hex');
 const file=resolve(app,'docs/public/examples/modeling-dimensions.ts'),snippet=readFileSync(file,'utf8'),page=readFileSync(resolve(app,'docs/packages/cad/modeling.md'),'utf8');
 for(const[,region]of page.matchAll(/^<<< .*modeling-dimensions\.ts#([^\s]+)$/gm))assert.ok(snippet.includes(`// #region ${region}\n`)&&snippet.includes(`// #endregion ${region}\n`));
@@ -21,10 +21,6 @@ const modeling=readFileSync(resolve(provider,'packages/barocss-cad/src/modeling.
 const receiptText=git('packages/barocss-cad/test/modeling-dimensions-evidence/verification.json'),receipt=JSON.parse(receiptText),{source,cold}=receipt.actual;
 assert.equal(receipt.observedTotalModelCalls,9);assert.equal(source.tessellations,1);assert.equal(receipt.attempts.length,2);assert.equal(source.literalPredecessorBodyParity,true);
 for(const[state,expected]of [[source.baseline,[3032,3032]],[source.offset,[3790,2274]],[source.wider,[4548,3032]],[source.recovered,[3790,3790]],[cold.reopened,[3790,3790]],[cold.reedited,[4548,3032]]])assert.deepEqual([state.negativeMM3,state.positiveMM3],expected);
-const transfer=readFileSync(resolve(root,'packages/barocss-cad-editor/scripts/fixtures/modeling-dimensions/baseline-native.json'));assert.deepEqual({bytes:transfer.length,sha256:digest(transfer)},source.transfer);
-const ui=readFileSync(resolve(root,'packages/barocss-cad-editor/src/react/modeling-editor.tsx'),'utf8');
-for(const term of ['<option value="derived-split">Keep a beveled split centered</option>','width · rail X size','offset · X displacement from center',"useState<CadEditorModelingExample>('cut-chamfer')",'disabled={busy || (!!accepted && !replaceExample)}',"setExample(event.target.value as CadEditorModelingExample); setReplaceExample(false);"])assert.ok(ui.includes(term),term);
-assert.equal(ts.transpileModule(ui,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX},fileName:'modeling-editor.tsx',reportDiagnostics:true}).diagnostics?.length??0,0);
 const entry=resolve(provider,`packages/barocss-cad/${mode==='source'?'src/index.ts':'dist/index.d.ts'}`),directory=mkdtempSync(join(tmpdir(),'cad-dimensions-doc-types-'));
 try{const files=[file,resolve(app,'scripts/snippets/modeling-api.ts'),...['modeling-intersection.ts','modeling-split.ts','modeling-cardinal-split.ts','modeling-chamfer-chain.ts','modeling-chamfer-split.ts'].map(p=>resolve(app,'docs/public/examples',p))],config=join(directory,'tsconfig.json');writeFileSync(config,JSON.stringify({compilerOptions:{strict:true,noEmit:true,target:'ES2022',module:'NodeNext',moduleResolution:'NodeNext',skipLibCheck:true,types:[],paths:{'@barocss/cad':[entry]}},files}));execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'-p',config],{stdio:'inherit'});}finally{rmSync(directory,{recursive:true,force:true});}
-console.log(JSON.stringify({ok:true,scope:'seven public example/snippet types, source/receipt/transfer pins and two stale guide corrections; no native execution',mode,typedExampleFiles:7,enginePin,engineReceiptSHA256:digest(receiptText),modelingSourceSHA256:digest(modeling),entrySHA256:digest(readFileSync(entry)),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));
+console.log(JSON.stringify({ok:true,scope:'seven public example/snippet types, source/receipt pins and two stale guide corrections; no native execution',mode,typedExampleFiles:7,enginePin,engineReceiptSHA256:digest(receiptText),modelingSourceSHA256:digest(modeling),entrySHA256:digest(readFileSync(entry)),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));

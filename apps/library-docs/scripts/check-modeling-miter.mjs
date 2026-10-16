@@ -6,11 +6,10 @@ import { createRequire } from 'node:module';
 import { readFileSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { runInNewContext } from 'node:vm';
 const app=resolve(import.meta.dirname,'..'), root=resolve(app,'../..');
 const enginePin='a7bec3dd9f280b827200e2a6e34fc5bafed26e49';
 const provider=resolve(process.env.CAD_MODEL_ROOT??root),mode=process.argv[2]??'source';assert.ok(['source','emitted'].includes(mode));
-const require=createRequire(resolve(process.env.REPO_DEPS_ROOT??root,'package.json')),ts=require('typescript');
+const require=createRequire(resolve(process.env.REPO_DEPS_ROOT??root,'package.json'));
 const digest=b=>createHash('sha256').update(b).digest('hex');
 const file=resolve(app,'docs/public/examples/modeling-miter.ts'),snippet=readFileSync(file,'utf8'),page=readFileSync(resolve(app,'docs/packages/cad/modeling.md'),'utf8');
 for(const[,region]of page.matchAll(/^<<< .*modeling-miter\.ts#([^\s]+)$/gm))assert.ok(snippet.includes(`// #region ${region}\n`)&&snippet.includes(`// #endregion ${region}\n`));
@@ -23,21 +22,6 @@ const receiptText=git('packages/barocss-cad/test/modeling-miter-evidence/verific
 assert.equal(receipt.attempts.length,1);assert.equal(receipt.attempts[0].modelCalls,8);assert.equal(source.tessellations,2);
 for(const[state,expected]of [[source.baseline,[2304,3840]],[source.moved,[3840,2304]],[source.recovered,[3072,3072]],[cold.reopened,[3072,3072]],[cold.reedited,[2304,3840]],[source.chamferParent,[3008,3008]]])assert.deepEqual([state.negativeMM3,state.positiveMM3],expected);
 assert.equal(source.refusal.code,'SELECTION');assert.equal(source.refusal.cause.sectionDimension,-1);assert.equal(source.tangent.sectionDimension,1);assert.equal(source.futureReuseAfterRefusal,true);
-const transfer=readFileSync(resolve(root,'packages/barocss-cad-editor/scripts/fixtures/modeling-miter/baseline-transport.json'));assert.deepEqual({bytes:transfer.length,sha256:digest(transfer)},source.transport);
-const ui=readFileSync(resolve(root,'packages/barocss-cad-editor/src/react/modeling-editor.tsx'),'utf8');
-for(const term of ['<option value="miter-split">Split a 45° XY miter</option>','cutPosition · X + Y threshold',"useState<CadEditorModelingExample>('cut-chamfer')",'disabled={busy || (!!accepted && !replaceExample)}',"setExample(event.target.value as CadEditorModelingExample); setReplaceExample(false);","(example === 'horizontal-split' || example === 'chamfer-split') &&"] )assert.ok(ui.includes(term),term);
-// Evaluate the actual UI predicate in isolation; no React or browser execution.
-const uiTree=ts.createSourceFile('modeling-editor.tsx',ui,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
-let miterPredicate;
-const visit=node=>{if(ts.isVariableDeclaration(node)&&node.name.getText(uiTree)==='miterSplit')miterPredicate=node.initializer.getText(uiTree);ts.forEachChild(node,visit);};visit(uiTree);assert.ok(miterPredicate);
-const classify=(node,source='model')=>runInNewContext(`(${miterPredicate})`,{accepted:{source,features:['sketch','extrude','split'].map(kind=>({kind})),parameters:{cutPosition:24}},snapshot:{authoredText:JSON.stringify({nodes:[{kind:'sketch'},{kind:'extrude'},node]})}});
-assert.equal(classify({kind:'split',plane:'x+y'}),true);
-assert.equal(classify({kind:'split',axis:'x'}),false);
-assert.equal(classify({kind:'split',axis:'y'}),false);
-assert.equal(classify({kind:'split',axis:'z'}),false);
-assert.equal(classify({kind:'split',plane:'x-y'}),false);
-assert.equal(classify({kind:'split',plane:'x+y'},'legacy'),false);
-assert.equal(ts.transpileModule(ui,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX},fileName:'modeling-editor.tsx',reportDiagnostics:true}).diagnostics?.length??0,0);
 const entry=resolve(provider,`packages/barocss-cad/${mode==='source'?'src/index.ts':'dist/index.d.ts'}`),directory=mkdtempSync(join(tmpdir(),'cad-miter-doc-types-'));
 try{const files=[file,resolve(app,'scripts/snippets/modeling-api.ts'),...['modeling-intersection.ts','modeling-split.ts','modeling-cardinal-split.ts','modeling-chamfer-chain.ts','modeling-chamfer-split.ts','modeling-dimensions.ts'].map(p=>resolve(app,'docs/public/examples',p))],config=join(directory,'tsconfig.json');writeFileSync(config,JSON.stringify({compilerOptions:{strict:true,noEmit:true,target:'ES2022',module:'NodeNext',moduleResolution:'NodeNext',skipLibCheck:true,types:[],paths:{'@barocss/cad':[entry]}},files}));execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'-p',config],{stdio:'inherit'});}finally{rmSync(directory,{recursive:true,force:true});}
-console.log(JSON.stringify({ok:true,scope:'eight public example/snippet types, provider receipt/transport pins, fixed-miter versus arbitrary-plane guide boundary; no native execution',mode,typedExampleFiles:8,actualUiLabelPredicateCases:6,enginePin,engineReceiptSHA256:digest(receiptText),modelingSourceSHA256:digest(modeling),entrySHA256:digest(readFileSync(entry)),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));
+console.log(JSON.stringify({ok:true,scope:'eight public example/snippet types, provider receipt pins, fixed-miter versus arbitrary-plane guide boundary; no native execution',mode,typedExampleFiles:8,enginePin,engineReceiptSHA256:digest(receiptText),modelingSourceSHA256:digest(modeling),entrySHA256:digest(readFileSync(entry)),downloadSHA256:digest(snippet),nativeCampaignRun:false},null,2));

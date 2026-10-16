@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../dist/index.js';
 import { createNativeExtrusionPreviewSessionV1 } from '../dist/native-extrusion-preview-session-v1.js';
 
-const fixture = fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
 const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
 const ownedDocument = () => JSON.parse(readFileSync(fixture, 'utf8'));
 const leaf = result => result.features.find(row => row.featureId === 'extrusion_feature').evaluation;

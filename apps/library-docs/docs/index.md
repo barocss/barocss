@@ -21,9 +21,9 @@ features:
   - title: Draw and inspect
     details: GPU, Canvas2D and Viewer provide distinct rendering and interaction contracts.
     link: /packages/gpu/
-  - title: Build an authoring tool
-    details: CAD Editor and Render Editor keep native authoring and scene authoring separate.
-    link: /packages/cad-editor/
+  - title: View a scene
+    details: Viewer loads a native model into an interactive display with its own camera and picking.
+    link: /packages/viewer/
   - title: Render data as UI
     details: Render converts a supported UI document to React. CSS tools retain their existing guides.
     link: /packages/render/

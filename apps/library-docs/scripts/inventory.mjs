@@ -9,6 +9,8 @@ const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 export const sourceCommit = '5f5ad866205a21510ac69552e704cc162fa253b5';
 const slugs = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor'];
+// Deleted after their features moved to apps/cad-studio; their historical records stay checked.
+export const retiredSlugs = Object.freeze(['cad-editor', 'render-editor']);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd });
 
@@ -26,12 +28,13 @@ export function createCurrentInventory(repository, historicalBytes, commit) {
     const before = JSON.parse(beforeBytes);
     const expectedHistorical = { slug, directory, name: before.name, version: before.version, private: before.private ?? null, manifestSha256: hash(beforeBytes), developmentExports: before.exports, publishConfig: before.publishConfig ?? null };
     if (!isDeepStrictEqual(historical.packages[index], expectedHistorical)) throw new Error(`Historical manifest evidence changed: ${slug}`);
+    if (retiredSlugs.includes(slug)) return null;
     const bytes = git(repository, 'show', `${commit}:${path}`);
     const manifest = JSON.parse(bytes);
     const changes = Object.keys({ ...before, ...manifest }).filter(key => !isDeepStrictEqual(before[key], manifest[key])).map(field => ({ field, before: before[field] ?? null, after: manifest[field] ?? null }));
     return { slug, directory, manifestSha256: hash(bytes), manifest, changesFromSourceSnapshot: changes };
-  });
-  return { schemaVersion: 1, purpose: 'Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.', manifestCommit: commit, historicalSourceCommit: sourceCommit, historicalInventorySha256: hash(historicalBytes), packages };
+  }).filter(Boolean);
+  return { schemaVersion: 1, purpose: 'Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.', manifestCommit: commit, historicalSourceCommit: sourceCommit, historicalInventorySha256: hash(historicalBytes), retired: [...retiredSlugs], packages };
 }
 
 export async function checkCurrentInventory(repository = root, application = app) {
