@@ -54,3 +54,14 @@ Both final PNGs were visually inspected and independently accepted as target con
 
 ![Shared-depth target](08-shared-depth-occlusion.png)
 ![Future shadow target](09-future-cast-shadow.png)
+
+## Camera, shared resources and explicit time
+- Boards10/11 use [pinned MeshCamera source](https://github.com/barocss/barocss/blob/88c3342e208e721be859089372bd09d12e5173ae/packages/barocss-gpu/src/camera.ts): perspective fovYDegrees and near/far planes are explicit. Narrow/wide FOV changes projected scale at fixed intended eye/target; far clipping removes a fully distant object without changing near objects. No orthographic API, exact numerical FOV, depth error or real renderer capture is claimed.
+- Board12 follows [#1182](https://github.com/barocss/barocss/issues/1182) and [pinned scene source](https://github.com/barocss/barocss/blob/88c3342e208e721be859089372bd09d12e5173ae/packages/barocss-gpu/src/engine-scene.ts): three mesh nodes reference one geometry catalog definition. A new complete scene changes the shared definition while intended node poses remain. This is not an in-place mutable buffer API, GPU instanced draw, measured shared buffer allocation or speed claim.
+- Board13 follows [#1221](https://github.com/barocss/barocss/issues/1221): caller-owned explicit time yields a derived translation pose while original geometry/source remains. No automatic playback, clock, physics, motion blur or actual sampled render is claimed. Perspective-facing sides may change as the cube translates at fixed world rotation.
+All four final images were inspected and independently reviewed. Incidental generated background shadows were removed from10/11/13 before publication.
+
+![Perspective FOV](10-perspective-field-of-view.png)
+![Far clipping](11-camera-far-clipping.png)
+![Shared geometry](12-shared-geometry-references.png)
+![Caller time translation](13-caller-time-translation.png)
