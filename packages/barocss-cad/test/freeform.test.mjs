@@ -170,6 +170,17 @@ test('a plane turned off a cylinder\'s axis by rounding meets it in rulings (fou
   assert.ok(Math.abs(u + i - V - VB) < 2e-3 * V && Math.abs(d + i - V) < 2e-3 * V, `${u} ${i} ${d}`);
 });
 
+test('a curve crossing between two faces is traced on both, short pieces by an edge included (found by fuzzing)', () => {
+  // A cone and a tilted torus: their curve crosses the cone's seam just below its top, leaving a piece
+  // 0.04 mm long on the other half that no grid seed reached; the crossing seeds it.
+  const cone = transformBrep(revolveProfile({ id: 'k', profile: [[0, 0], [5.068465637974441, 0], [5.760948109556921, 3.028882715385407], [0, 3.028882715385407]].map(p => ({ kind: 'line', start: p })), axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 3, 1.5] });
+  const ring = revolveProfile({ id: 't', profile: [{ kind: 'arc', start: [8.793091643601656, 0], center: [7.069483011960983, 0], direction: 'ccw' }], axis: yAxis, angleDegrees: 360 });
+  const tilted = transformBrep(transformBrep(ring, { matrix: [0, 1, 0, 1, 0, 0, 0, 0, 1], offset: [-0.5, 1.5, -4] }), { matrix: [0.7330749320581729, -0.6801478839104811, 0, 0.6801478839104811, 0.7330749320581729, 0, 0, 0, 1], offset: [0, 0, 0] });
+  const vol = op => { const out = booleanAnalytic(cone, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+  const u = vol('union'), i = vol('intersection'), d = vol('difference'), va = brepMassProperties(cone, 1000, { segmentsPerQuarter: 32 }).volumeMM3, vb = brepMassProperties(tilted, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+  assert.ok(Math.abs(u + i - va - vb) < 2e-3 * vb && Math.abs(d + i - va) < 2e-3 * va, `${u} ${i} ${d}`);
+});
+
 test('freeform faces on one surface: copies, turned copies and overlapping partial turns', () => {
   const rotY = (b, deg) => { const c = Math.cos(deg * pi / 180), s = Math.sin(deg * pi / 180); return transformBrep(b, { matrix: [c, 0, s, 0, 1, 0, -s, 0, c] }); };
   const half = id => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 });

@@ -92,6 +92,11 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   readonly skip?: (x: Point) => boolean;
   /** At most this many marching steps in all (default 200 000), so a degenerate pair fails, not hangs. */
   readonly budget?: number;
+  /**
+   * Points known to be on the intersection (where a curve found on a neighbouring patch crosses into
+   * these): traced first, so a short piece by a patch's edge is not missed between grid seeds.
+   */
+  readonly seeds?: readonly Point[];
 }): IntersectionChain[] {
   const n = options.grid ?? 24, h = options.step, tol = options.tolerance;
   let budget = options.budget ?? 200000;
@@ -121,6 +126,12 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       const s = onBoth(A, B, project(A, x, a.uv[0]), project(B, x, b.uv[0]));
       if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) seeds.push(s);
     }
+  }
+  // Given points first: each from the nearest grid point of either patch.
+  if (options.seeds?.length) {
+    const nearest = (G: { p: XY; x: Point }[][], x: Point) => { let best = G[0][0]; for (const row of G) for (const c of row) if (len(sub(c.x, x)) < len(sub(best.x, x))) best = c; return best.p; };
+    const given = options.seeds.flatMap(x => { const s = onBoth(A, B, project(A, x, nearest(GA, x)), project(B, x, nearest(GB, x))); return s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9) ? [s] : []; });
+    seeds.unshift(...given);
   }
   const chains: IntersectionChain[] = [];
   const covered = (x: Point) => chains.some(c => c.points.some((p, i) => { if (len(sub(p, x)) <= 2 * h) return true; const q = c.points[i + 1]; if (!q) return false; const d = sub(q, p), t = Math.max(0, Math.min(1, dot(sub(x, p), d) / (dot(d, d) || 1))); return len(sub(add(p, scale(d, t)), x)) <= h; }));
