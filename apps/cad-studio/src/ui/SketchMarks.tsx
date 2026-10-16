@@ -65,9 +65,9 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
     const back = add(tip, dir, -8), side: XY = [-dir[1] * 3.5, dir[0] * 3.5];
     svg.push(<path key={key} d={`M${tip[0]},${tip[1]}L${back[0] + side[0]},${back[1] + side[1]}L${back[0] - side[0]},${back[1] - side[1]}Z`} className="dim-arrow" />);
   };
-  /** A linear dimension a–b, its line offset outwards with extension lines. */
-  const linear = (a: XY, b: XY, value: number, key: string) => {
-    const o = outward(a, b), a2 = add(a, o, 26), b2 = add(b, o, 26), u = unit(a2, b2);
+  /** A linear dimension a–b (measured between `ends`, default a and b), its line offset outwards with extension lines from a and b. */
+  const linear = (a: XY, b: XY, value: number, key: string, ends: [XY, XY] = [a, b]) => {
+    const o = outward(ends[0], ends[1]), a2 = add(ends[0], o, 26), b2 = add(ends[1], o, 26), u = unit(a2, b2);
     svg.push(<line key={'dx1' + key} x1={a[0] + o[0] * 4} y1={a[1] + o[1] * 4} x2={a2[0] + o[0] * 5} y2={a2[1] + o[1] * 5} className="dim-ext" />,
       <line key={'dx2' + key} x1={b[0] + o[0] * 4} y1={b[1] + o[1] * 4} x2={b2[0] + o[0] * 5} y2={b2[1] + o[1] * 5} className="dim-ext" />,
       <line key={'dl' + key} x1={a2[0]} y1={a2[1]} x2={b2[0]} y2={b2[1]} className="dim-line" />);
@@ -85,7 +85,31 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
       arrow(m, u, 'ra' + key); chip(add(m, u, 30), 'R' + fmt(v), key, true);
     }
   }
-  (s.rules ?? []).forEach(r => { if (r.kind === 'distance' && pts[r.a] && pts[r.b]) linear(pts[r.a], pts[r.b], r.value, `dist${r.a}_${r.b}`); });
+  (s.rules ?? []).forEach(r => {
+    if ((r.kind !== 'distance' && r.kind !== 'dx' && r.kind !== 'dy') || !pts[r.a] || !pts[r.b]) return;
+    if (r.kind === 'distance') { linear(pts[r.a], pts[r.b], r.value, `dist${r.a}_${r.b}`); return; }
+    // Along an axis: measured between the points carried across to the far side of both.
+    const a = s.points[r.a], b = s.points[r.b], m = r.kind === 'dx' ? 0 : 1, o = 1 - m, far = Math.max(a[o], b[o]);
+    const at = (p: readonly number[]) => P(m === 0 ? [p[0], far] : [far, p[1]]);
+    linear(pts[r.a], pts[r.b], r.value, `${r.kind}${r.a}_${r.b}`, [at(a), at(b)]);
+  });
+
+  /** Where an angle between straight edges a and b is drawn: an arc at their shared point, else midway between them. */
+  const angleMark = (a: number, b: number): { at: XY; arc?: string } => {
+    const v = (a + 1) % n === b ? b : (b + 1) % n === a ? a : -1;
+    if (v < 0) { const ma = mid(a), mb = mid(b); return { at: [(ma[0] + mb[0]) / 2, (ma[1] + mb[1]) / 2] }; }
+    const o = pts[v], far = (i: number) => pts[i === v ? (i + 1) % n : i];
+    const ua = unit(o, far(a)), ub = unit(o, far(b)), r = 34;
+    const delta = Math.atan2(ua[0] * ub[1] - ua[1] * ub[0], ua[0] * ub[0] + ua[1] * ub[1]);
+    const bis = unit([0, 0], [ua[0] + ub[0], ua[1] + ub[1]]), p0 = add(o, ua, r), p1 = add(o, ub, r);
+    return { at: add(o, Math.hypot(bis[0], bis[1]) ? bis : [-ua[1], ua[0]], r + 22), arc: `M${p0[0]},${p0[1]}A${r},${r} 0 0 ${delta > 0 ? 1 : 0} ${p1[0]},${p1[1]}` };
+  };
+  (s.rules ?? []).forEach(r => {
+    if (r.kind !== 'angle' || r.a >= n || r.b >= n) return;
+    const m = angleMark(r.a, r.b), key = `ang${r.a}_${r.b}`;
+    if (m.arc) svg.push(<path key={'ar' + key} d={m.arc} className="dim-line" fill="none" />);
+    chip(m.at, fmt(r.value) + '°', key, true);
+  });
 
   // Glyphs of explicit constraints, stacked along each edge past its H/V chip.
   const stack = new Map<string, number>();
@@ -115,12 +139,12 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
   let html: ReactNode = null;
   if (editDim) {
     const v = dimensionValue(s, editDim);
-    const d = /^dist(\d+)_(\d+)$/.exec(editDim);
-    const at = anchors.get(editDim) ?? (d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
+    const d = /^(?:dist|dx|dy)(\d+)_(\d+)$/.exec(editDim), g = /^ang(\d+)_(\d+)$/.exec(editDim);
+    const at = anchors.get(editDim) ?? (g ? angleMark(+g[1], +g[2]).at : d ? (() => { const a = pts[+d[1]], b = pts[+d[2]]; return a && b ? [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY : null; })()
       : (() => { const i = Number(editDim.slice(3)); return i < n ? add(mid(i), outward(pts[i], pts[(i + 1) % n]), 26) : null; })());
     if (v !== null && at) {
       html = <input key={editDim} className="dim-edit" type="number" step="any" autoFocus defaultValue={fmt(v)} aria-label={dimensionLabel(s, editDim)}
-        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'} · Esc cancels`}
+        title={`${dimensionLabel(s, editDim)}${isDriving(s, editDim) ? '' : ' · Enter adds it as a driving dimension'}${d ? ' · H horizontal, V vertical, A aligned' : ''} · Esc cancels`}
         style={{ left: at[0] - 42, top: at[1] - 13 }}
         onFocus={e => e.currentTarget.select()}
         onKeyDown={e => {
@@ -128,6 +152,8 @@ export function sketchMarks({ shape: s, project, picked, hover, editDim, onDimCl
           // Committing blurs at once, so keys that follow reach the app even before the editor unmounts.
           if (e.key === 'Enter') { e.preventDefault(); const v = Number(e.currentTarget.value); onDimCommit?.(editDim, v); e.currentTarget.blur(); }
           else if (e.key === 'Escape') { e.preventDefault(); onDimEdit?.(null); }
+          // Between two points: A aligned, H horizontal, V vertical.
+          else if (d && /^[ahv]$/i.test(e.key)) { e.preventDefault(); onDimEdit?.(({ a: 'dist', h: 'dx', v: 'dy' } as const)[e.key.toLowerCase() as 'a' | 'h' | 'v'] + d[1] + '_' + d[2]); }
         }}
         onBlur={() => onDimEdit?.(null)} />;
     }

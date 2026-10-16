@@ -357,6 +357,71 @@ try {
     await iso();
   });
 
+  await check('a rectangle takes a typed dimension and a constraint', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 120, cy - 70); await clickAt(cx + 120, cy + 70);
+    await press('d'); assert.match(await status(), /2 DOF/);
+    // The rectangle is an outline now: its bottom edge (screen top) takes a length typed in the viewport.
+    await clickAt(cx, cy + 70);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Length of edge 1');
+    await page.locator('.dim-edit').fill('40'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '40'); assert.match(await status(), /1 DOF/);
+    // Its right edge made equal to the width: a square.
+    await press('s'); await clickAt(cx - 120, cy - 70 + 20); // the left edge, still where it was drawn
+    assert.match(await page.locator('.cons-sel').innerText(), /edge 4/);
+    await page.keyboard.down('Shift'); await clickAt(cx - 60, cy + 70); await page.keyboard.up('Shift');
+    await page.click('[aria-label="Equal"]'); assert.match(await status(), /Fully defined/);
+    assert.equal(await page.inputValue('#sk-len3'), '40');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    assert.equal(Math.max(...xs) - Math.min(...xs), 40); assert.equal(Math.max(...ys) - Math.min(...ys), 40); await iso();
+  });
+
+  await check('horizontal and vertical distances between two points', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    const corners = [[-150, -80], [150, -80], [130, 80], [-160, 90]];
+    for (const [dx, dy] of [...corners, corners[0]]) await clickAt(cx + dx, cy + dy);
+    const value = async (label) => Number(await page.inputValue(`[aria-label="${label}"]`));
+    // Select two points; the panel offers their straight, horizontal and vertical distance.
+    await press('s'); await clickAt(cx + 150, cy - 80);
+    await page.keyboard.down('Shift'); await clickAt(cx - 160, cy + 90); await page.keyboard.up('Shift');
+    await page.click('[aria-label="Horizontal distance"]');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Horizontal distance point 2 – point 4');
+    await page.locator('.dim-edit').fill('55'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 2 X') - await value('Point 4 X')) - 55) < 1e-3);
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Horizontal distance\s*point 2 – point 4 = 55/);
+    // The Dimension tool on two points opens their distance; V turns it vertical.
+    await press('d'); await clickAt(cx - 150, cy - 80); await clickAt(cx + 130, cy + 80);
+    await page.locator('.dim-edit').press('v');
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Vertical distance point 1 – point 3');
+    await page.locator('.dim-edit').fill('30'); await page.locator('.dim-edit').press('Enter');
+    assert.ok(Math.abs(Math.abs(await value('Point 1 Y') - await value('Point 3 Y')) - 30) < 1e-3);
+    assert.match(await status(), /3 DOF/); await snap('axis-distances');
+    await press('Escape');
+  });
+
+  await check('an angle between two lines from the Dimension tool', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // A line opens its length; a second line opens the angle between them.
+    await press('d'); await clickAt(cx, cy - 80);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Length of edge 1');
+    await clickAt(cx + 140, cy);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Angle edge 1 – edge 2');
+    await page.locator('.dim-edit').fill('75'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Angle\s*edge 1 ∠ edge 2 = 75°/);
+    assert.match(await status(), /4 DOF/);
+    const p = async (i, k) => Number(await page.inputValue(`[aria-label="Point ${i} ${k}"]`));
+    const u = [await p(1, 'X') - await p(2, 'X'), await p(1, 'Y') - await p(2, 'Y')], w = [await p(3, 'X') - await p(2, 'X'), await p(3, 'Y') - await p(2, 'Y')];
+    const deg = Math.acos((u[0] * w[0] + u[1] * w[1]) / Math.hypot(...u) / Math.hypot(...w)) * 180 / Math.PI;
+    assert.ok(Math.abs(deg - 75) < 0.01, String(deg));
+    await snap('angle'); await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
@@ -438,6 +503,59 @@ try {
     assert.match(download.suggestedFilename(), /\.step$/);
     const path = await download.path(), text = (await import('node:fs')).readFileSync(path, 'utf8');
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
+  });
+
+  await check('draw a plate: standard views, dimensions that follow the model, SVG and PDF', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    // (Once the new plate is evaluated — the outliner lists evaluated bodies — its top face can be picked.)
+    await page.waitForFunction(() => /Extrude 8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      const sheet = await page.evaluate(() => window.__studioDrawing());
+      assert.equal(sheet.scale, 1); assert.equal(sheet.hidden.front, 2, 'the hole is two hidden lines in the front view'); assert.equal(sheet.hidden.top, 0);
+      const clickView = async (view, u, v) => {
+        const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]);
+        await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y);
+      };
+      // The width between two corners of the front view, placed below it; the hole's diameter from the top view.
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
+      await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 2, null, { timeout: 5000 });
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8']);
+      assert.equal(await page.locator('.dw svg [data-dim]').count(), 2);
+      // A dimension in the isometric view is refused with the reason.
+      await press('d'); await clickView('iso', 0, 0);
+      assert.match(await page.locator('.dw-hint').innerText(), /front, top and right views/);
+      await press('Escape');
+      // A bigger hole in the model: the diameter follows it.
+      await page.click('.mode button:text-is("Model")');
+      await page.locator('.history .hs', { hasText: 'Hole Ø8' }).click();
+      const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
+      await ed('Diameter').fill(''); await ed('Diameter').fill('12');
+      await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
+      await page.waitForFunction(() => /Hole Ø12/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12', null, { timeout: 20000 });
+      const saved = (await doc()).drawing; assert.equal(saved.dimensions.length, 2); assert.equal(saved.sheet, 'A4');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.match(svgFile.suggestedFilename(), /\.svg$/);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);
+      assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12<\/text>/); assert.match(svg, />64<\/text>/); assert.match(svg, />1:1<\/text>/);
+      assert.match(svg, /stroke-dasharray="8 1.5 1.5 1.5"/, 'centre lines on the hole');
+      const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
+      const pdf = fs.readFileSync(await pdfFile.path()); fs.writeFileSync(join(out, 'drawing.pdf'), pdf);
+      assert.equal(pdf.subarray(0, 8).toString(), '%PDF-1.4');
+    } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
   await check('open a STEP file as a new part', async () => {

@@ -154,3 +154,76 @@ test('picking points before edges in screen space, and the Select / Dimension cl
   assert.equal(sketchClick(first, Pt(2), false).editDim, 'dist0_2');
   assert.deepEqual(sketchClick({ ...state, tool: 'select' }, E(3), false).picked, [E(3)]);
 });
+
+test('Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back', async () => {
+  const { rectangleOutline, startPicking } = await import('../src/sketch/select');
+  const rect = { kind: 'rectangle' as const, a: [40, 20] as P2, b: [0, 0] as P2 };
+  const outline = rectangleOutline(rect)!;
+  assert.deepEqual(outline.points, [[0, 0], [40, 0], [40, 20], [0, 20]]);
+  assert.deepEqual(outline.hv, { h: [0, 2], v: [1, 3] });
+  assert.equal(dof(outline), 2);
+  const w = commitDimension(outline, 'len0', 55); assert.ok(w.ok); assert.equal(len(w.shape, 2), 55);
+  assert.equal(rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [0.5, 10] }), null);
+  const s = startPicking({ plane: xyPlane(), tool: 'rectangle', shape: rect }, 'dimension');
+  assert.equal(s.tool, 'dimension'); assert.deepEqual(s.shape, outline);
+  // A finished rectangle is brought back when nothing is current.
+  const back = startPicking({ plane: xyPlane(), tool: 'circle', shape: null, done: [{ kind: 'circle', c: [0, 0], r: 5 }, rect] }, 'select');
+  assert.deepEqual(back.shape, outline); assert.deepEqual(back.done, [{ kind: 'circle', c: [0, 0], r: 5 }]);
+});
+
+test('horizontal and vertical distances between points, also when the points line up', async () => {
+  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  // A quadrilateral whose points 2 and 4 share neither X nor Y.
+  let s = close([[0, 0], [40, 0], [36, 21], [3, 23]]);
+  assert.deepEqual(pointDimensionKeys(3, 1), { dist: 'dist1_3', dx: 'dx1_3', dy: 'dy1_3' });
+  assert.equal(dimensionLabel(s, 'dx1_3'), 'Horizontal distance point 2 – point 4');
+  assert.equal(dimensionValue(s, 'dx1_3'), 37); assert.equal(dimensionValue(s, 'dy1_3'), 23);
+  const before = dof(s);
+  const h = commitDimension(s, 'dx1_3', 30); assert.ok(h.ok, !h.ok ? h.reason : ''); s = h.shape;
+  assert.ok(Math.abs(Math.abs(s.points[1][0] - s.points[3][0]) - 30) < 1e-6, JSON.stringify(s.points));
+  assert.equal(dof(s), before - 1);
+  const v = commitDimension(s, 'dy1_3', 15); assert.ok(v.ok, !v.ok ? v.reason : ''); s = v.shape;
+  assert.ok(Math.abs(Math.abs(s.points[1][1] - s.points[3][1]) - 15) < 1e-6);
+  assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail),
+    ['Horizontal distance point 2 – point 4 = 30', 'Vertical distance point 2 – point 4 = 15']);
+  // Points 1 and 2 lie on one horizontal edge: their vertical distance is 0 there, and a horizontal one is the edge length again (redundant once locked).
+  const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  const w = commitDimension(rect, 'dx0_2', 55); assert.ok(w.ok, !w.ok ? w.reason : '');
+  assert.equal(len(w.shape, 0), 55);
+  const again = commitDimension(w.shape, 'len0', 55);
+  assert.match(!again.ok ? again.reason : '', /over-define/);
+  // Points straight above each other (dx 0 as drawn) take a horizontal distance without collapsing.
+  const tall = close([[0, 0], [30, 0], [30, 20], [0, 20]]);
+  const apart = commitDimension(removeConstraint(tall, 'v:1'), 'dx1_2', 12); assert.ok(apart.ok, !apart.ok ? apart.reason : '');
+  assert.ok(Math.abs(Math.abs(apart.shape.points[2][0] - apart.shape.points[1][0]) - 12) < 1e-6, JSON.stringify(apart.shape.points));
+});
+
+test('angle dimensions between two lines: at a shared corner, between separate edges, out of range refused', async () => {
+  const { angleKey, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  const { edgeAngle } = await import('../src/sketch/terms');
+  let s = quad();
+  // Edges 1 and 2 meet at point 2: the corner between them.
+  assert.equal(dimensionKey(s, [E(0), E(1)]), 'ang0_1');
+  assert.equal(angleKey(3, 0), 'ang0_3');
+  const corner = (q: Polygon) => edgeAngle(q.points as P2[], 0, 1).degrees;
+  assert.ok(Math.abs(dimensionValue(s, 'ang0_1')! - corner(s)) < 1e-9 && corner(s) > 75 && corner(s) < 85, String(corner(s)));
+  assert.equal(dimensionLabel(s, 'ang0_1'), 'Angle edge 1 – edge 2');
+  const before = dof(s);
+  const r = commitDimension(s, 'ang0_1', 60); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
+  assert.ok(Math.abs(corner(s) - 60) < 1e-6, String(corner(s)));
+  assert.equal(dof(s), before - 1);
+  assert.deepEqual(constraintEntries(s).filter(c => c.label === 'Angle').map(c => c.detail), ['edge 1 ∠ edge 2 = 60°']);
+  // The corner at point 1 between the closing edge 4 and edge 1 (edge 4 ends there).
+  const w = commitDimension(s, 'ang0_3', 80); assert.ok(w.ok, !w.ok ? w.reason : '');
+  assert.ok(Math.abs(edgeAngle(w.shape.points as P2[], 0, 3).degrees - 80) < 1e-6);
+  // A rectangle's corner is already 90°: an angle there over-defines; 0° and 180° are refused.
+  const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  assert.ok(Math.abs(dimensionValue(rect, 'ang1_2')! - 90) < 1e-9);
+  assert.match((commitDimension(rect, 'ang1_2', 90) as { reason: string }).reason, /over-define/);
+  assert.match((commitDimension(rect, 'ang1_2', 180) as { reason: string }).reason, /between 0° and 180°/);
+  // Dimension tool: a line, then another line, opens their angle.
+  const state: SketchState = { plane: xyPlane(), tool: 'dimension', shape: rect };
+  const first = sketchClick(state, E(1), false);
+  assert.equal(first.editDim, 'len1');
+  assert.equal(sketchClick(first, E(2), false).editDim, 'ang1_2');
+});

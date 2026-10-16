@@ -19,6 +19,8 @@ import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
 import { InstancePanel } from './ui/InstancePanel';
+import { DrawingWorkspace } from './ui/DrawingWorkspace';
+import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import type { Mate } from './assembly/mates';
@@ -29,7 +31,7 @@ import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
-import { sketchClick } from './sketch/select';
+import { sketchClick, startPicking } from './sketch/select';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -56,8 +58,7 @@ function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, numbe
 }
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
-  // Select and Dimension work on the current outline: it stays.
-  if (tool === 'select' || tool === 'dimension') return { ...s, tool, picked: [], editDim: null, shape: s.shape?.kind === 'polygon' && s.shape.pending ? { ...s.shape, pending: false } : s.shape };
+  if (tool === 'select' || tool === 'dimension') return startPicking(s, tool);
   s = { ...s, picked: [], editDim: null };
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
@@ -85,6 +86,8 @@ export function App() {
   const [sketch, setSketch] = useState<SketchState | null>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
+  /** The Drawing workspace: the part's dimensioned 2D views on a sheet. */
+  const [drawing, setDrawing] = useState(false);
   /** The Render workspace's animation: the time shown, whether it plays, and the camera the turntable turns from. */
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -193,6 +196,11 @@ export function App() {
   const commitRender = useCallback((next: RenderSettings) => {
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc({ ...doc, render: next }); setDirty(true);
+  }, [doc, marker]);
+  /** One undoable change of the drawing settings (the model stays). */
+  const commitDrawing = useCallback((next: DrawingSettings) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, drawing: next }); setDirty(true);
   }, [doc, marker]);
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
@@ -303,7 +311,7 @@ export function App() {
   }, [active, commit]);
 
   const start = useCallback((cmd: Command) => {
-    setPalette(false); setRendering(false); setPlaying(false);
+    setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (cmd.action === 'sketch') {
@@ -464,7 +472,7 @@ export function App() {
       }
       const parsed = JSON.parse(await file.text()) as StudioDoc;
       if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
-      commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
+      commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
       setTimeout(() => viewport.current?.fit(), 300);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
@@ -487,6 +495,7 @@ export function App() {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+      if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
@@ -550,9 +559,10 @@ export function App() {
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
-          <button className={!sketch && !rendering ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); }}>Model</button>
+          <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
           <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</button>
-          <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(true); }}>Render</button>
+          <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setDrawing(false); setRendering(true); }}>Render</button>
+          <button className={drawing ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); }}>Drawing</button>
         </div>
         <div className="grow" />
         {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
@@ -684,6 +694,8 @@ export function App() {
         }} onClose={() => setEditNode(null)} />}
       </aside>}
       </div>
+
+      {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
 
       {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 

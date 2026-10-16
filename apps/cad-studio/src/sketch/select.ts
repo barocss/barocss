@@ -2,7 +2,7 @@
 // Select and Dimension tools.
 import type { SketchState } from '../viewport/Viewport';
 import { sampleSegment, type P2 } from './profile';
-import { distanceKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
+import { angleKey, distanceKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
 
 /** Plane coordinates → screen pixels. */
 export type Project = (u: number, v: number) => readonly number[];
@@ -36,16 +36,41 @@ export function nextPicks(picks: readonly SketchPick[], hit: SketchPick | null, 
 }
 
 /**
- * A click with the Select tool picks; with the Dimension tool an edge or arc opens its dimension and two
- * points (one click each) open the distance between them.
+ * A click with the Select tool picks; with the Dimension tool an edge or arc opens its dimension, a second
+ * straight edge after a straight edge opens the angle between them, and two points (one click each) open
+ * the distance between them.
  */
 export function sketchClick(s: SketchState, hit: SketchPick | null, additive: boolean): SketchState {
   const shape = s.shape;
   if (!isSettled(shape)) return { ...s, picked: [], editDim: null };
   if (s.tool !== 'dimension') return { ...s, picked: nextPicks(s.picked ?? [], hit, additive), editDim: null };
   if (!hit) return { ...s, picked: [], editDim: null };
-  if (hit.kind === 'edge') return { ...s, picked: [], editDim: (shape.bulges?.[hit.i] ? 'rad' : 'len') + hit.i };
+  if (hit.kind === 'edge') {
+    const line = (i: number) => !shape.bulges?.[i], prev = (s.picked ?? []).find(p => p.kind === 'edge');
+    if (prev && prev.i !== hit.i && line(prev.i) && line(hit.i)) return { ...s, picked: [], editDim: angleKey(prev.i, hit.i) };
+    return { ...s, picked: line(hit.i) ? [hit] : [], editDim: (line(hit.i) ? 'len' : 'rad') + hit.i };
+  }
   const first = (s.picked ?? []).find(p => p.kind === 'point');
   if (first && first.i !== hit.i) return { ...s, picked: [], editDim: distanceKey(shape, first.i, hit.i) };
   return { ...s, picked: [hit], editDim: null };
+}
+
+/** A rectangle as a closed four-edge outline (counter-clockwise from its lower-left corner) with its H/V edges kept; null when degenerate. */
+export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, { kind: 'rectangle' }>): Polygon | null {
+  const x0 = Math.min(r.a[0], r.b[0]), x1 = Math.max(r.a[0], r.b[0]), y0 = Math.min(r.a[1], r.b[1]), y1 = Math.max(r.a[1], r.b[1]);
+  if (x1 - x0 < 1 || y1 - y0 < 1) return null;
+  return { kind: 'polygon', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] } };
+}
+
+/**
+ * Switching to Select or Dimension: the current shape stays (a rectangle becomes an outline so its edges
+ * take constraints and dimensions); with none, the last finished outline or rectangle comes back to edit.
+ */
+export function startPicking(s: SketchState, tool: 'select' | 'dimension'): SketchState {
+  let shape = s.shape, done = s.done ?? [];
+  if (shape?.kind === 'polygon' && shape.pending) shape = { ...shape, pending: false };
+  const last = done[done.length - 1];
+  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = done.slice(0, -1); }
+  if (shape?.kind === 'rectangle') shape = rectangleOutline(shape) ?? shape;
+  return { ...s, tool, picked: [], editDim: null, shape, done };
 }

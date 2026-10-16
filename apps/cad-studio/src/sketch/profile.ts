@@ -162,7 +162,7 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
   const extra = ruleTerms(c.rules ?? [], points, bulges);
-  if (n + arcs.length + extra.segments.length > 16) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (16 points / 16 segments)' };
+  if (n + arcs.length + extra.points.length > 16 || n + arcs.length + extra.segments.length > 16) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (16 points / 16 segments)' };
   const centres = new Map(arcs.map(i => [i, arcOf(points[i], points[(i + 1) % n], bulges[i]).center]));
   const straight = (i: number) => i >= 0 && i < n && !bulges[i];
   const hv = c.hv ? { h: c.hv.h.filter(straight), v: c.hv.v.filter(straight) } : inferredHV(points, bulges);
@@ -188,7 +188,7 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   ];
   const result = solveXYNumericalSketch({
     format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v0', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
-    points: [...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! }))],
+    points: [...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points],
     segments, constraints, branchGuards: [],
   });
   if (!result.ok) {

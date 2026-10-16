@@ -48,6 +48,7 @@ export type ModelNode = SketchNode
 
 import type { RenderSettings } from './render';
 import type { DirectGeometry } from './direct';
+import type { DrawingSettings } from '../drawing/types';
 import type { Mate } from '../assembly/mates';
 
 export interface StudioDoc {
@@ -63,6 +64,8 @@ export interface StudioDoc {
   direct?: DirectGeometry;
   /** Other parts placed beside this one (a simple assembly). */
   instances?: PartInstance[];
+  /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
+  drawing?: DrawingSettings;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
 }

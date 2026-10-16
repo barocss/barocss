@@ -1,4 +1,4 @@
-import { evaluateCadPart, type CadPartSnapshot, exportStep } from '@barocss/cad';
+import { evaluateCadPart, type Brep, type CadPartSnapshot, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -68,4 +68,16 @@ export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
     const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id) === key);
     return output ? output.exportStl() : null;
   } catch { return null; }
+}
+
+/**
+ * The part's visible bodies and its shown instances' as B-reps (for drawings), with a name prefix for
+ * each (an instance's `<id>/`, so its edges are told apart), or the reason they cannot be evaluated.
+ */
+export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
+  try {
+    const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of evaluateCadPart(toPartDocument(placedDoc(inst))).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    return { breps, prefixes };
+  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
