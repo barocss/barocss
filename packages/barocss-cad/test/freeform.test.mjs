@@ -158,6 +158,18 @@ test('cones against any plane: conic cuts in closed form (hyperbolas beside the 
   }
 });
 
+test('a plane turned off a cylinder\'s axis by rounding meets it in rulings (found by fuzzing)', () => {
+  // A cylinder about Y and a box turned about Y: the box's sides are parallel to the axis but for
+  // rounding; treated as an ellipse taller than the model, one ruling cut was lost.
+  const r = 5.439361105673015, h = 3.6700852524954826;
+  const cyl = transformBrep(revolveProfile({ id: 'v', profile: [[0, 0], [r, 0], [r, h], [0, h]].map(p => ({ kind: 'line', start: p })), axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [2.5, 2, 0] });
+  const c = 0.851120938799842, s = 0.5249696634439706, turned = transformBrep(box([-2.5, -0.5, -5.5], [2, 3, 2]), { matrix: [c, 0, s, 0, 1, 0, -s, 0, c], offset: [0, 0, 0] });
+  const V = Math.PI * r * r * h, VB = 4.5 * 3.5 * 7.5;
+  const vol = op => { const out = booleanAnalytic(cyl, turned, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+  const u = vol('union'), i = vol('intersection'), d = vol('difference');
+  assert.ok(Math.abs(u + i - V - VB) < 2e-3 * V && Math.abs(d + i - V) < 2e-3 * V, `${u} ${i} ${d}`);
+});
+
 test('freeform faces on one surface: copies, turned copies and overlapping partial turns', () => {
   const rotY = (b, deg) => { const c = Math.cos(deg * pi / 180), s = Math.sin(deg * pi / 180); return transformBrep(b, { matrix: [c, 0, s, 0, 1, 0, -s, 0, c] }); };
   const half = id => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 });

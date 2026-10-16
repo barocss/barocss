@@ -537,7 +537,8 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const withPlane = (P: Plane, R: Revolution): boolean => {
       const fp = P === A ? fa : fb, fr = P === A ? fb : fa;
       const along = dot(P.n, R.a);
-      if (Math.abs(Math.abs(along) - 1) <= 1e-12) {
+      const reach = Math.max(...(R.profile.kind === 'line' ? [R.profile.p[0], R.profile.q[0]] : [R.profile.c[0] + R.profile.r]), tol);
+      if (Math.sqrt(Math.max(0, 1 - along * along)) * reach <= tol) {
         // Square to the axis: circles where the profile reaches the plane's height.
         const h0 = dot(sub(P.o, R.c), R.a), pr = R.profile;
         // (A circle where the profile only touches the plane — a fillet's tangent edge — is no cut.)
@@ -698,15 +699,18 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     return;
   }
   const [P, C] = (A.kind === 'plane' ? [A, B] : [B, A]) as [Plane, Cylinder];
-  const along = dot(P.n, C.a);
-  if (Math.abs(along) <= 1e-12) {
-    const delta = dot(P.n, sub(C.c, P.o));
+  const along = dot(P.n, C.a), extent = Math.max(len(sub(fa.max, fa.min)), len(sub(fb.max, fb.min)), C.r);
+  // Parallel to the axis to within the tolerance over the faces (a plane turned by rounding meets the
+  // cylinder in its rulings, not in an ellipse taller than the model).
+  if (Math.abs(along) * extent <= tol) {
+    const n = unit(sub(P.n, scale(C.a, along))), delta = dot(n, sub(C.c, P.o));
     if (Math.abs(delta) > C.r + tol) return;
-    const foot = sub(C.c, scale(P.n, delta)), w = cross(C.a, P.n), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
+    const foot = sub(C.c, scale(n, delta)), w = unit(cross(C.a, n)), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
     for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
     return;
   }
-  if (Math.abs(Math.abs(along) - 1) <= 1e-12) {
+  // Square to the axis to within the tolerance across the cylinder: a cross-section circle.
+  if (Math.sqrt(Math.max(0, 1 - along * along)) * C.r <= tol) {
     const h0 = (dot(P.n, P.o) - dot(P.n, C.c)) / along, centre = add(C.c, scale(C.a, h0));
     circleCuts(centre, C.a, C.e1, C.r, C.ref - Math.PI);
     return;
@@ -1066,7 +1070,9 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     const mid = midOf(k), key = Math.min(a, b) + ':' + Math.max(a, b), list = between.get(key) ?? [];
     // The same curve from either face: a parametric piece's midpoint depends on the face that
     // parametrized it, so it is looked for on the other copy rather than compared.
-    let e = list.find(i => len(sub(edges[i].mid, mid)) <= 10 * tol || onCurve(edges[i].k, mid, 10 * tol) !== null);
+    // A traced curve is within its tracing tolerance of the exact one it copies.
+    const loose = (x: Curve3) => x.kind === 'param' && !x.exact;
+    let e = list.find(i => { const eps = (loose(k) || loose(edges[i].k) ? 100 : 10) * tol; return len(sub(edges[i].mid, mid)) <= eps || onCurve(edges[i].k, mid, eps) !== null; });
     if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid }); list.push(e); between.set(key, list); }
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };
