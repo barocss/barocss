@@ -189,6 +189,7 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,
   'cad-sk-slot': <><path d="M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z" style={tone(0.12)} />{line('M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z')}{ghost('M8 12h8')}{dots([[8, 12], [16, 12]])}</>,
   'cad-sk-select': <>{ghost('M4 15l7-9 9 7')}<path d="M10 9.5l9 3.6-3.9 1.3 2.6 3.7-1.7 1.2-2.6-3.7-2.6 3z" style={acTone} className="ac" strokeWidth={1.2} />{dots([[4, 15]])}</>,
+  'cad-sk-construction': <><path d="M4 18L20 6" strokeDasharray="2.4 2.2" className="ac" /><circle cx="12" cy="12" r="5.5" strokeDasharray="2.4 2.2" strokeOpacity={0.6} />{dots([[4, 18], [20, 6]])}</>,
   'cad-sk-dim': <>{line('M5 17V9M19 17V9')}{ac('M5 12h14')}<g>{head([9, 12], [5, 12], 3.2)}{head([15, 12], [19, 12], 3.2)}</g>{ghost('M5 19h14')}</>,
   // Booleans: the result shaded in the accent colour.
   'cad-union': <><path d={BA + 'A6.5 6.5 0 1 0 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 1 0 12 6.23'} /></>,

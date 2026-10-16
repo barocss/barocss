@@ -1370,6 +1370,20 @@ try {
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
+  await check('construction: a dashed reference line is snapped to, kept out of the profile and kept with the sketch', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('x');
+    await page.waitForSelector('[aria-label="Construction"].on', { timeout: 3000 });
+    const [cx, cy] = await canvasCenter();
+    await press('l'); await clickAt(cx - 120, cy - 60); await clickAt(cx + 120, cy + 60);
+    await press('x'); await press('r'); await clickAt(cx - 80, cy - 40); await clickAt(cx + 80, cy + 40);
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.construction').length >= 1, null, { timeout: 5000 });
+    await snap('construction');
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const node = (await doc()).nodes[0];
+    assert.equal(node.profile, 'rectangle'); assert.equal(node.construction?.length, 1);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

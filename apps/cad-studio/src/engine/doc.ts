@@ -26,7 +26,8 @@ export interface SketchOutline {
 export interface BodyLook { name?: string; color?: string; hidden?: boolean }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 export interface Made { command: string; values: Record<string, number | string> }
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef };
+/** `construction`: reference shapes drawn in the sketch (the sketcher's own form), not part of the profile. */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[] };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)

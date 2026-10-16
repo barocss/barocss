@@ -135,7 +135,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
 .hs.rolled { opacity: 0.35; }
 .marker { width: 4px; height: 26px; border: 0; border-radius: 2px; background: var(--accent); margin: 0 4px; cursor: pointer; }
-.hint-bar { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 7px 12px; display: flex; align-items: center; gap: 14px; color: var(--text-2); font-size: 11px; z-index: 2; }
+.hint-bar { position: absolute; left: 50%; top: 46px; transform: translateX(-50%); white-space: nowrap; padding: 7px 12px; display: flex; align-items: center; gap: 14px; color: var(--text-2); font-size: 11px; z-index: 2; }
 .hint-title { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--accent); }
 
 .corner-left { position: absolute; left: 66px; bottom: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
@@ -320,3 +320,4 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .vp-overlay .sk-osnap text { fill: #4fd1c5; font: 600 10px var(--sans); paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 3px; }
 .ol.clash { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; }
 .ol.clash .ms { color: #f0ad4e; }
+.vp-overlay .sk-shape.construction { stroke-dasharray: 5 4; fill: none !important; opacity: 0.75; }

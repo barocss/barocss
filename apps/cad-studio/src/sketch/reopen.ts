@@ -53,5 +53,5 @@ export function sketchShapes(node: SketchNode): { shape: SketchShape | null; don
   // Circles the outline keeps come back on it, not beside it.
   const attached = node.outline?.circles ?? [], same = (s: SketchShape) => s.kind === 'circle' && attached.some(c => Math.hypot(c.c[0] - s.c[0], c.c[1] - s.c[1]) < 1e-6 && Math.abs(c.r - s.r) < 1e-6);
   const done = [...(node.regions ?? []), ...(node.holes ?? [])].map(loopShape).filter((s): s is SketchShape => !!s && !same(s));
-  return { shape: mainShape(node), done };
+  return { shape: mainShape(node), done: [...done, ...((node.construction ?? []) as SketchShape[])] };
 }

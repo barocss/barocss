@@ -140,7 +140,9 @@ const inside = (p: P2, ring: P2[]) => {
  * One sketch node of the closed shapes: a shape inside another is a hole of it, the others are regions;
  * the first region is the main profile. A shape inside a hole (an island) is refused for now.
  */
-export function profileOf(shapes: SketchShape[]): { node: SketchNode } | { error: string } {
+export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: string } {
+  // (Construction shapes are references: they make no part of the profile.)
+  let shapes = all.filter(s => !s.construction);
   // An outline's attached circles are shapes of the profile beside it (holes inside it, regions outside).
   shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c): SketchShape => ({ kind: 'circle', c: c.c, r: c.r }))] : [s]);
   const closed = shapes.map(s => ({ s, node: shapeNode(s) })).filter((x): x is { s: SketchShape; node: SketchNode } => !!x.node);

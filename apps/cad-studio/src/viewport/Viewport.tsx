@@ -21,7 +21,8 @@ import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } f
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
-export type SketchShape =
+/** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
+export type SketchShape = (
   | { kind: 'rectangle'; a: [number, number]; b: [number, number] }
   | { kind: 'circle'; c: [number, number]; r: number }
   | { kind: 'polygon'; points: [number, number][]; closed: boolean; bulges?: number[]; pending?: boolean;
@@ -35,7 +36,8 @@ export type SketchShape =
       fromRectangle?: true;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
       circles?: { c: [number, number]; r: number }[] }
-  | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
+  | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number }
+) & { construction?: true };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
 export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null } }
@@ -43,7 +45,9 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   /** Outline points and edges picked with the Select tool; the dimension open in the viewport editor (len<i>, rad<i>, dist<a>_<b>). */
   picked?: SketchPick[]; editDim?: string | null;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
-  editNode?: number }
+  editNode?: number;
+  /** New shapes are drawn as construction (references) while this is on (X). */
+  construct?: boolean }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
 
@@ -523,24 +527,24 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         items.push(<g key={'g' + key}><rect x={m[0] - 8} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0]} y={m[1] - 15} textAnchor="middle" className="cons-text">{kind}</text></g>);
       };
       // Shapes finished earlier in this sketch (regions and holes of one profile).
-      (sk.done ?? []).forEach((d, i) => items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className="sk-shape done" />));
+      (sk.done ?? []).forEach((d, i) => items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={'sk-shape done' + (d.construction ? ' construction' : '')} />));
       const s = sk.shape;
       if (s?.kind === 'rectangle') {
         const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];
         const pts = [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)];
-        items.push(<polygon key="r" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />);
+        items.push(<polygon key="r" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
         pts.forEach((p, i) => items.push(<circle key={'rp' + i} cx={p[0]} cy={p[1]} r={3} className="sk-point" />));
         if (x1 > x0 && y1 > y0) { glyph([x0, y0], [x1, y0], 'b'); glyph([x1, y0], [x1, y1], 'r'); }
         const top = P((x0 + x1) / 2, y0), side = P(x1, (y0 + y1) / 2);
         items.push(label(top[0], top[1] + 20, String(x1 - x0), 'width'), label(side[0] + 36, side[1], String(y1 - y0), 'height'));
       } else if (s?.kind === 'circle') {
         const pts = Array.from({ length: 72 }, (_, i) => P(s.c[0] + s.r * Math.cos(i / 36 * Math.PI), s.c[1] + s.r * Math.sin(i / 36 * Math.PI)));
-        items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />);
+        items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />);
         const cc = P(s.c[0], s.c[1]); items.push(<circle key="cc" cx={cc[0]} cy={cc[1]} r={3} className="sk-point" />);
         const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'Ø' + s.r * 2, 'diameter'));
       } else if (s?.kind === 'slot') {
         const ring = s.r > 0 ? sampleSlot(s.a, s.b, s.r).map(p => P(p[0], p[1])) : [P(s.a[0], s.a[1]), P(s.b[0], s.b[1])];
-        items.push(s.r > 0 ? <polygon key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
+        items.push(s.r > 0 ? <polygon key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
           : <polyline key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         const a = P(s.a[0], s.a[1]), b = P(s.b[0], s.b[1]);
         items.push(<line key="slc" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="sk-guide" />,
@@ -554,7 +558,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
           onDimClick: props.onDimClick, onDimEdit: props.onDimEdit, onDimCommit: props.onDimCommit }) : null;
         const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
         const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
-        items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
+        items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         if (marks) items.push(...marks.under);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));

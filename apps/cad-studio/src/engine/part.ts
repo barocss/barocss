@@ -11,7 +11,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
   const at = { id: id(index) };
   switch (node.kind) {
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
-    case 'sketch': { const profile = { ...node }; delete profile.outline; delete profile.on; return { ...at, ...profile } as CadPartFeature; }
+    case 'sketch': { const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; return { ...at, ...profile } as CadPartFeature; }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
     case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angleDegrees: node.angleDegrees };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };

@@ -74,8 +74,9 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   s = { ...s, picked: [], editDim: null };
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
-  // A closed shape stays in the sketch beside the next one.
-  return { ...s, tool, shape: null, ...(s.shape && shapeNode(s.shape) ? { done: [...(s.done ?? []), s.shape] } : {}) };
+  // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
+  const keep = s.shape && (shapeNode(s.shape) || (s.shape.construction && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
+  return { ...s, tool, shape: null, ...(keep ? { done: [...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }] } : {}) };
 };
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
@@ -126,8 +127,11 @@ export function App() {
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
   // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
   const sketchHistory = useRef(new SketchHistory());
+  const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
-    const prev = liveShape.current, keep = fresh && prev && shapeNode(prev) ? prev : null;
+    const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction) ? prev : null;
+    // A new shape is construction while the mode is on; the one being drawn stays what it began as.
+    if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
     if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
     setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: [...(s.done ?? []), keep] } : {}) });
@@ -513,7 +517,8 @@ export function App() {
     const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
     const profile = profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
-    const node = profile.node;
+    // Construction shapes are kept with the sketch (they come back when it is reopened).
+    const refs = shapes.filter(x => x.construction), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
     if (sketch.editNode !== undefined) {
@@ -748,6 +753,7 @@ export function App() {
       if (e.key === '?') { e.preventDefault(); setHelp(true); return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
       if (sketch) {
+        if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && { ...s, construct: !s.construct }); return; }
         const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
         if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
         return;
@@ -979,6 +985,8 @@ export function App() {
             <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} data-tip={t.label} data-tip-key={t.key} aria-label={t.label}
               onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
           <div className="sep" />
+          <button className={'tool' + (sketch.construct ? ' on' : '')} data-tip="Construction" data-tip-key="X" data-tip-desc="Draw references: dashed shapes to snap to, not part of the profile" aria-label="Construction"
+            onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></button>
           <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
           <div key={g} className="tool-group">
@@ -1128,7 +1136,7 @@ export function App() {
 
       {sketch && !active && <div className="card hint-bar">
         {(() => { const t = TOOLS.find(x => x.tool === sketch.tool)!; return <><span className="hint-title"><Icon name={t.icon} small />{t.label}</span><span>{t.hint}</span></>; })()}
-        <span>{TOOLS.map(t => <Kbd key={t.key}>{t.key}</Kbd>)} tools</span><span><Kbd>Enter</Kbd> finish → extrude</span><span><Kbd>Esc</Kbd> exit</span>
+        <span>{TOOLS.map(t => <Kbd key={t.key}>{t.key}</Kbd>)} tools</span><span><Kbd>X</Kbd> construction</span><span><Kbd>Enter</Kbd> finish</span><span><Kbd>Esc</Kbd> exit</span>
       </div>}
 
       {rendering && !sketch && (() => {
