@@ -1,6 +1,5 @@
-import { mountNativePointLightWebGPUViewport } from '@barocss/gpu';
-import type { NativePointLightWebGPUOptions, NativePointLightWebGPUStatus,
-  NativePointLightWebGPUViewport, UpdateResult } from '@barocss/gpu';
+import { mountNativeBackend, pointDrawing } from './native-backend.js';
+import type { NativeBackend, UpdateResult, ViewerWebGPUOptions, ViewerWebGPUStatus } from './native-backend.js';
 import type { ViewerGeometryRef } from './index.js';
 import { ViewerNativePointLightError, copyOwn, freezeOwn, prepareLightCandidate, refKey, refuse } from './native-point-light-candidate.js';
 import type { ViewerNativePointLightInput, ViewerNativePointLightAccepted,
@@ -11,7 +10,7 @@ export interface ViewerNativePointLightWebGPU {
   readonly originals: ViewerNativePointLightInput;
   readonly accepted: ViewerNativePointLightAccepted;
   readonly selected: ViewerGeometryRef | null;
-  readonly status: NativePointLightWebGPUStatus;
+  readonly status: ViewerWebGPUStatus;
   replace(input: unknown): Promise<UpdateResult>;
   resize(width: number, height: number): Promise<UpdateResult>;
   readPixels(): Promise<Uint8Array>;
@@ -28,10 +27,10 @@ function failure(cause: unknown): UpdateResult {
 }
 /** Explicit required-WebGPU consumer. Existing createViewer and Editor paths are unchanged. */
 export async function createNativePointLightWebGPUViewer(canvas: HTMLCanvasElement, input: unknown,
-  options: NativePointLightWebGPUOptions): Promise<ViewerNativePointLightWebGPU> {
+  options: ViewerWebGPUOptions): Promise<ViewerNativePointLightWebGPU> {
   let current: LightCandidate = prepareLightCandidate(input, 1, null);
-  let backend: NativePointLightWebGPUViewport;
-  try { backend = await mountNativePointLightWebGPUViewport(canvas, current.gpuRequest, options); }
+  let backend: NativeBackend;
+  try { backend = await mountNativeBackend(canvas, current.gpuRequest, options, request => request as typeof current.gpuRequest, pointDrawing); }
   catch (cause) { throw gpuError(cause); }
   try {
     if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during initial presentation');
@@ -102,7 +101,7 @@ export async function createNativePointLightWebGPUViewer(canvas: HTMLCanvasEleme
         let token: object | undefined;
         try {
           token = enter(); const started = epoch;
-          let picked: Awaited<ReturnType<NativePointLightWebGPUViewport['pick']>>;
+          let picked: Awaited<ReturnType<NativeBackend['pick']>>;
           try { picked = await backend.pick(x, y); } catch (cause) { throw gpuError(cause); }
           check(started); checkReady();
           if (picked.generation !== current.accepted.generation) refuse('STATE', 'Picked generation differs from accepted native metadata');

@@ -1,9 +1,9 @@
 /** Example-only original-composition codec and editor lifetime. No renderer injection. */
 import { parseBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '../../packages/barocss-cad-interop/src/document.js';
 import { compileMeshMaterial, prepareNativeDirectionalLights } from '../../packages/barocss-gpu/src/index.js';
-import type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirectionalLightWebGPUOptions } from '../../packages/barocss-gpu/src/index.js';
+import type { NativeDirectionalLightV0, NativeDirectionalLightsV0 } from '../../packages/barocss-gpu/src/index.js';
 import { createNativeDirectionalLightWebGPUViewer } from '../../packages/barocss-viewer/src/index.js';
-import type { ViewerNativeDirectionalLightInput, ViewerNativeDirectionalLightWebGPU, ViewerGeometryRef } from '../../packages/barocss-viewer/src/index.js';
+import type { ViewerNativeDirectionalLightInput, ViewerNativeDirectionalLightWebGPU, ViewerGeometryRef, ViewerWebGPUOptions } from '../../packages/barocss-viewer/src/index.js';
 
 const FILE_LIMIT = 4 * 1024 * 1024;
 const encoder = new TextEncoder();
@@ -152,7 +152,7 @@ export function createSeedInput(): ViewerNativeDirectionalLightInput {
       ] }, context: { mmToSceneUnit: 1, background: [.035, .045, .065] } };
 }
 
-export function createLightEditorController(canvas: HTMLCanvasElement, options: NativeDirectionalLightWebGPUOptions) {
+export function createLightEditorController(canvas: HTMLCanvasElement, options: ViewerWebGPUOptions) {
   let viewer: ViewerNativeDirectionalLightWebGPU | null = null;
   let draft: NativeDirectionalLightsV0 | null = null, selectedLightId: string | null = null;
   let pending = false, closed = false, epoch = 0, nextId = 1, error: unknown = null;

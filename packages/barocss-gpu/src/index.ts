@@ -30,7 +30,7 @@ export {mountMeshScene,MeshSceneRenderer} from './mesh-scene-renderer.js';
 export type {MeshSceneEntry,MeshSceneOptions,MeshSceneTransform,MeshSceneBounds} from './mesh-scene-renderer.js';
 export {mountPrimitiveViewport,PrimitiveViewport,mountPrimitiveScene,PrimitiveSceneRenderer,mountPrimitiveSceneV1,PrimitiveSceneRendererV1,mountPrimitiveSceneV2,PrimitiveSceneRendererV2} from './primitive-scene-renderer.js';
 export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene-renderer.js';
-export {compileMeshMaterial,validateMeshMaterialIR,lowerMeshMaterial,MeshMaterialError} from './mesh-material.js';
+export {compileMeshMaterial,validateMeshMaterialIR,validateMeshMaterialBinding,lowerMeshMaterial,MeshMaterialError} from './mesh-material.js';
 export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './mesh-material.js';
 export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial} from './mesh-material.js';
 export type {EngineUVMaterialExpression,EngineUVMaterialIR,LoweredEngineUVMaterial} from './mesh-material.js';
@@ -55,11 +55,11 @@ export type {UniformCurvePreview,UniformCurvePreviewInput,UniformCurvePreviewDia
 export {prepareSelectedUniformCurvePreview,validateSelectedUniformCurvePreview} from './uniform-curve-preview.js';
 export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from './uniform-curve-preview.js';
 
-export {prepareMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
+export {prepareMixedDepthFrame,resolveMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
 export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mixed-depth-frame.js';
 export {mountMixedDepthScene,MixedDepthRenderer} from './mixed-depth-renderer.js';
 
-export {prepareQualifiedFaceScene,QualifiedFaceSceneError} from './qualified-face-scene.js';
+export {prepareQualifiedFaceScene,resolveQualifiedFaceScene,QualifiedFaceSceneError} from './qualified-face-scene.js';
 export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnosticCode} from './qualified-face-scene.js';
 export {mountQualifiedFaceScene,QualifiedFaceSceneRenderer,handoffQualifiedFaceToPrimitiveViewport} from './qualified-face-scene-renderer.js';
 
@@ -269,5 +269,5 @@ export * from './viewer/index.js';
 // The CSS-shaped scene language shown on the viewer.
 export { showScene, SceneViewError } from './scene-viewer.js';
 export type { SceneView, SceneViewOptions } from './scene-viewer.js';
-export { materialShader } from './material-viewer.js';
+export { materialShader, bindingShader, uv01Shader } from './material-viewer.js';
 export type { MaterialShaderResult, MaterialUniform } from './material-viewer.js';
