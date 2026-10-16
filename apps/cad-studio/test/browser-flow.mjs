@@ -167,6 +167,31 @@ try {
   const snap = (name) => page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}.png`) });
   const iso = async () => { await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400); };
 
+  await check('sketch on a side face cuts a window through; shapes inside a shape are holes', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
+    let [cx, cy] = await canvasCenter(); await clickAt(cx, cy);
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('s'); await page.waitForFunction(() => /SKETCH · Y 0 · on face/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 40, cy - 25); await clickAt(cx + 40, cy + 25); await snap('front-face-sketch');
+    await press('Enter'); await hudReady();
+    await field('Operation').selectOption('cut'); await field('Depth').selectOption('through');
+    assert.equal(await field('Distance').count(), 0, 'a through cut has no distance');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Subtract/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    let d = await doc(); const sk = d.nodes.find(n => n.kind === 'sketch' && n.plane);
+    assert.deepEqual(sk.plane.normal, [0, -1, 0]); assert.equal(d.nodes.at(-1).kind, 'difference');
+    await iso(); await snap('window-through');
+    // A plate with a bore: a rectangle and a circle inside it, one sketch.
+    await page.click('[aria-label="New part"]'); await press('s'); [cx, cy] = await canvasCenter();
+    await press('r'); await clickAt(cx - 120, cy - 80); await clickAt(cx + 120, cy + 80);
+    await press('c'); await clickAt(cx, cy); await page.mouse.move(cx + 20, cy); await page.mouse.move(cx + 30, cy); await page.mouse.click(cx + 30, cy);
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    d = await doc(); assert.equal(d.nodes[0].profile, 'rectangle'); assert.equal(d.nodes[0].holes?.length, 1); await iso();
+  });
+
   await check('slot sketch extrudes as a curved body', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('o');
     const [cx, cy] = await canvasCenter();
