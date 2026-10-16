@@ -38,6 +38,7 @@ export interface ViewRenderer {
   setInstances?(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
+  setInstanceFaces?(faces: readonly { id: string; body: number; face: number }[]): void;
 }
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }

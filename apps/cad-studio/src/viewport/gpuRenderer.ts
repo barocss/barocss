@@ -42,6 +42,8 @@ export class GpuRenderer implements ViewRenderer {
   private instanceSelection: readonly string[] = [];
   /** Instances' display meshes (for the face under a pick). */
   private instanceMeshes = new Map<string, DisplayMesh[]>();
+  /** Faces of instances shown picked (mate faces). */
+  private instanceFaces: readonly { id: string; body: number; face: number }[] = [];
   private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
@@ -293,14 +295,26 @@ export class GpuRenderer implements ViewRenderer {
     const r = this.settings, env = r?.environment;
     for (const it of this.instances) {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
-      for (const m of it.surfaces) {
+      it.surfaces.forEach((m, bi) => {
         m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader) }
-          : { color: this.theme.base, metallic: 0, roughness: 0.62, opacity: 1, shader: null };
+          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: null };
         m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
-      }
+        // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
+        const mesh = this.instanceMeshes.get(it.id)?.[bi];
+        if (!mesh) return;
+        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, 0.42), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        const colors = new Float32Array(mesh.positions.length);
+        for (let v = 0; v < colors.length / 3; v++) colors.set(picked.has(mesh.faceOfVertex[v]) ? on : base, v * 3);
+        m.geometry.setColors(colors);
+      });
       for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
     }
     this.viewer.requestRender();
+  }
+
+  /** Shows faces of instances as picked. */
+  setInstanceFaces(faces: readonly { id: string; body: number; face: number }[]): void {
+    this.instanceFaces = faces; this.paintInstances();
   }
 
   /** The instance under a point. */

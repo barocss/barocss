@@ -80,6 +80,8 @@ interface Props {
   /** Placed instances of other parts, and the selected ones. */
   instances?: { id: string; bodies: BodyResult[] }[];
   instanceSelection?: string[];
+  /** Faces of instances shown picked (mate faces). */
+  instanceFaces?: { id: string; body: number; face: number }[];
 }
 
 const snap = (v: number) => Math.round(v);
@@ -151,6 +153,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
+  // (By content: the list is rebuilt on every render.)
+  const instanceFacesKey = JSON.stringify(props.instanceFaces ?? []);
+  useEffect(() => { renderer.current?.setInstanceFaces?.(JSON.parse(instanceFacesKey)); request(); }, [instanceFacesKey, props.instances, backend]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
