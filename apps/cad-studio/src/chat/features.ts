@@ -3,6 +3,8 @@
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
 // it used), renumbering the later ones and the persistent face and edge names that carry their index.
 import { leafBodies, parentsOf, prefixDoc, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
+import { BASE, mateLabel } from '../assembly/mates';
+import type { DrawingDimension } from '../drawing/types';
 
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
@@ -137,8 +139,26 @@ function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
   return n;
 }
 
-/** The document without feature `index` (and the sketches only it used), or why it cannot go. */
-export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; removed: number[] } | { error: string } {
+/** A drawing dimension's edge names, renamed (null when one of them is gone). */
+function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {
+  if ('edge' in d) { const edge = rename(d.edge); return edge === null ? null : { ...d, edge }; }
+  const a = rename(d.a.edge), b = rename(d.b.edge);
+  return a === null || b === null ? null : { ...d, a: { ...d.a, edge: a }, b: { ...d.b, edge: b } } as DrawingDimension;
+}
+/** Records by body key (`b<i>`, `b<i>_<side>`), renumbered; the removed features' bodies dropped. */
+function renameKeys<T>(rec: Record<string, T>, removed: Set<number>, map: (i: number) => number): Record<string, T> {
+  return Object.fromEntries(Object.entries(rec).flatMap(([k, v]) => {
+    const m = /^b(\d+)(_.*)?$/.exec(k);
+    return !m ? [[k, v]] : removed.has(Number(m[1])) ? [] : [[`b${map(Number(m[1]))}${m[2] ?? ''}`, v]];
+  }));
+}
+
+/**
+ * The document without feature `index` (and the sketches only it used), or why it cannot go. Everything
+ * that names features by index follows: later nodes, mates on the part's own faces, drawing dimensions
+ * (those that measured a removed feature are dropped: `droppedDimensions`) and render settings by body.
+ */
+export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; removed: number[]; droppedDimensions: number } | { error: string } {
   const nodes = doc.nodes;
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
   const users = (i: number) => nodes.flatMap((n, k) => parentsOf(n).includes(i) ? [k] : []);
@@ -152,6 +172,20 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   for (const i of kept) for (const name of named(nodes[i])) for (const m of name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)) {
     if (removed.has(Number(m[1]))) return { error: `Feature ${i} refers to the face or edge "${name}" made by feature ${m[1]}; delete or edit feature ${i} first.` };
   }
-  const next = kept.map(i => renumber(nodes[i], old => newIndex.get(old) ?? old));
-  return { doc: prefixDoc({ ...doc, nodes: next }, next.length), removed: [...removed].sort((a, b) => a - b) };
+  const map = (old: number) => newIndex.get(old) ?? old;
+  const gone = (name: string) => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].find(m => removed.has(Number(m[1])))?.[1];
+  for (const [k, mate] of (doc.mates ?? []).entries()) for (const r of [mate.a, mate.b]) {
+    const by = r.part === BASE ? gone(r.face) : undefined;
+    if (by !== undefined) return { error: `${mateLabel(mate, k)} uses the face "${r.face}" made by feature ${by}; delete that mate first.` };
+  }
+  const next = kept.map(i => renumber(nodes[i], map));
+  const out: StudioDoc = { ...doc, nodes: next };
+  if (doc.mates) out.mates = doc.mates.map(m => ({ ...m, ...[m.a, m.b].reduce((o, r, j) => ({ ...o, [j ? 'b' : 'a']: r.part === BASE ? { ...r, face: renameIds(r.face, map) } : r }), {}) }));
+  let droppedDimensions = 0;
+  if (doc.drawing) {
+    const dimensions = doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => gone(name) !== undefined ? null : renameIds(name, map)); if (!r) droppedDimensions++; return r ? [r] : []; });
+    out.drawing = { ...doc.drawing, dimensions };
+  }
+  if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, removed, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, removed, map) } };
+  return { doc: prefixDoc(out, next.length), removed: [...removed].sort((a, b) => a - b), droppedDimensions };
 }

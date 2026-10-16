@@ -708,6 +708,25 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  await check('delete a feature from its editor; undo brings it back', async () => {
+    const nodes = (await doc()).nodes.length;
+    // A feature a later one uses (the plate, under the hole) is refused with the reason.
+    await page.locator('.history .hs', { hasText: 'Extrude' }).first().click();
+    await page.locator('.node-editor button[aria-label="Delete feature"]').click();
+    await page.waitForFunction(() => /Cannot delete .*used by feature/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
+    assert.equal((await doc()).nodes.length, nodes);
+    // The hole the drawing measured: the hole and its Ø dimension go, the plate and the other dimensions stay.
+    await page.locator('.history .hs', { hasText: 'Hole Ø12' }).click();
+    await page.locator('.node-editor button[aria-label="Delete feature"]').click(); await idle();
+    await page.waitForFunction(n => window.__studioDoc.nodes.length === n - 1, nodes, { timeout: 15000 });
+    assert.doesNotMatch(await page.locator('.history').innerText(), /Hole/);
+    await page.waitForFunction(() => /Removed 1 drawing dimension/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
+    assert.deepEqual((await doc()).drawing.dimensions.map(d => d.kind), ['linear', 'angle']);
+    await press('Escape'); await press('Meta+z'); await idle();
+    await page.waitForFunction(n => window.__studioDoc.nodes.length === n, nodes, { timeout: 15000 });
+    assert.match(await page.locator('.history').innerText(), /Hole Ø12/);
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());

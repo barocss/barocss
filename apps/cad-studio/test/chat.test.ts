@@ -16,6 +16,8 @@ import { serveMcp } from '../server/cadMcp';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { simplify, traceImage, traceLoops } from '../src/chat/trace';
+import { defaultRender } from '../src/engine/render';
+import { defaultDrawing } from '../src/drawing/types';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -518,4 +520,21 @@ test('assembly tools: a pin added as its own part, built, mated into a plate’s
   // The schemas: part tools take "part"; select does not.
   assert.ok((TOOLS.find(t => t.name === 'run_command')!.input_schema.properties as any).part);
   assert.equal((TOOLS.find(t => t.name === 'select')!.input_schema.properties as any).part, undefined);
+});
+
+test('deleting a feature renumbers the mates on the part, drawing dimensions and render keys; refuses a mate on its faces', () => {
+  let doc = rectanglePart(10, 10, 5);
+  doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
+  const mate = (face: string) => ({ id: 'm1', kind: 'coincident' as const, a: { part: 'base', face }, b: { part: 'p', face: 'origin:xy' } });
+  const dim = (edge: string) => ({ id: 'd' + edge, view: 'front' as const, kind: 'radius' as const, edge, near: [0, 0, 0] as [number, number, number], place: [0, 0] as [number, number] });
+  const render = { ...defaultRender(), appearances: { b1: { ...defaultRender().defaultAppearance }, b3: { ...defaultRender().defaultAppearance } } };
+  const full = { ...doc, mates: [mate('n3.top')], drawing: { ...defaultDrawing(), dimensions: [dim('n1.side0|n1.side1'), dim('n3.side0|n3.side1')] }, render };
+  const del = deleteFeature(full, 1);
+  assert.ok(!('error' in del), JSON.stringify(del));
+  assert.equal(del.doc.mates![0].a.face, 'n1.top');
+  assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n1.side0|n1.side1']);
+  assert.equal(del.droppedDimensions, 1);
+  assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b1']);
+  const blocked = deleteFeature({ ...full, mates: [mate('n1.top')] }, 1);
+  assert.ok('error' in blocked && /Coincident 1 uses the face "n1.top"/.test(blocked.error), JSON.stringify(blocked));
 });

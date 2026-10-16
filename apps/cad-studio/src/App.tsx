@@ -22,6 +22,7 @@ import { InstancePanel } from './ui/InstancePanel';
 import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
 import { resolveNames, type NameSelection } from './chat/tools';
+import { deleteFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
@@ -480,6 +481,18 @@ export function App() {
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
+  // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
+  const deleteNode = (index: number) => {
+    if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
+    const label = featureLabel(doc.nodes[index], index, doc.nodes), r = deleteFeature(doc, index);
+    if ('error' in r) { setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return; }
+    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
+      commit(r.doc);
+      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
+    });
+  };
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   const replaceDoc = (next: StudioDoc) => { cancel(); commit(next); };
@@ -739,7 +752,7 @@ export function App() {
         {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
-        }} onClose={() => setEditNode(null)} />}
+        }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
       </aside>}
       </div>
 
@@ -829,7 +842,7 @@ function iconFor(n: ModelNode) {
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
-function NodeEditor({ nodes, index, onApply, onClose, onEditSketch }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void }) {
+function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -838,7 +851,7 @@ function NodeEditor({ nodes, index, onApply, onClose, onEditSketch }: { nodes: M
   const fields = editFields(draft, index).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const changed = draft !== nodes;
   return (
-    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); }}>
+    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete(); }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <button className="tool tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></button></div>
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
@@ -848,6 +861,7 @@ function NodeEditor({ nodes, index, onApply, onClose, onEditSketch }: { nodes: M
             : <input type="checkbox" className="check" aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
         </label>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
+      <button className="ghost danger" aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>
       {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );

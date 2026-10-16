@@ -191,6 +191,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .node-editor .field { grid-template-columns: 104px minmax(0, 1fr); }
 .node-editor .check { width: 16px; height: 16px; justify-self: start; accent-color: var(--accent); }
 .node-editor .row-actions { display: flex; gap: 6px; }
+.node-editor .danger { align-self: flex-start; color: var(--warn); }
 .node-editor .num input { padding-right: 28px; -moz-appearance: textfield; }
 .node-editor .num input::-webkit-inner-spin-button, .node-editor .num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .render-panel .tabs { display: flex; gap: 2px; margin: 0 0 8px; border-bottom: 1px solid var(--line); }
