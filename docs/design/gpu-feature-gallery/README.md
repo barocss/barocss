@@ -4,6 +4,10 @@
 
 Current product naming is cad-studio. Historical issue titles may mention cad-editor or render-editor; those links establish engine feature provenance, not a proposal to restore the old editors.
 
+## Choose a feature
+- **Concrete issue/source-backed concepts:** 01 directional light, 02 point range, 03 UV source update, 04 material color, 05 light color, 07 surface UV, 08 depth, 10 FOV, 11 far clipping, 12 shared geometry, 13 translation, 14 parent rotation, 15 positive scale, 16 procedural repeat, 17 optional source repeats. These include CPU/source stages; none are actual GPU captures.
+- **Future graphics/design proposals:** 06 alpha composition, 09 shadows, 18 PBR roughness, 19 environment lighting, 20 alpha cutout, 21 morph, 22 skeleton skinning. Broad roadmap names do not freeze APIs or establish implementation.
+
 ## Evidence and scope (2026-10-16)
 - [GPU Engine Roadmap](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap): E3 UV textures; E4 later material/light maturity; postprocessing/backend acceptance separate.
 - [#1579](https://github.com/barocss/barocss/issues/1579): authored directional-light qualified Surface WebGPU viewport. Board01 changes intended light direction only. Legacy opaque/diffuse profile; no cast shadows, PBR, reflective environment or actual device claim.
@@ -87,3 +91,14 @@ Both final images were inspected and independently accepted as physically cohere
 
 ![Future PBR roughness](18-future-pbr-roughness.png)
 ![Future environment lighting](19-future-environment-lighting.png)
+
+
+## Future alpha discard and deformation
+- Board20 follows the roadmap material/alpha-test horizon and [E4](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e4--scene-service-maturity). Retained regions stay opaque; discarded regions reveal the untouched scene. This is not tinted blending, CAD hole geometry or an alpha sampler extension to the current opaque texture profile. [Khronos alpha semantics](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#alpha-coverage) are conceptual guidance only; thresholds, edge antialiasing, depth behavior, API and pixel proof remain unspecified. Initial geometric-looking rim cues were removed.
+- Board21 follows [E5 skeleton/morph targets](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e5--assets-and-dynamic-scenes). One continuous one-hole shape develops a local bulge, distinct from rigid transform or topology replacement. [Khronos morph semantics](https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_017_SimpleMorphTarget.html) describe weighted attribute displacement as a concept; no BaroCSS weights, API, vertex correspondence, exact interpolation or volume/thickness preservation is asserted.
+- Board22 follows the same E5 skeleton horizon and [Khronos skinning concepts](https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_020_Skins.html). A connected sleeve deforms around a changed joint pose. The yellow guide is explanatory annotation, not an x-ray/editor rendering feature. Skinning algorithm, bone lengths, weights, exact bind matrices, physical volume preservation and runtime are unverified and unclaimed. Incidental generated shadows and wrinkle cues were removed; the bent guide segment was shortened after review to avoid a selective stretching cue. Remaining generative proportion drift is not skeletal length or weight evidence.
+These are separately labeled future design explorations, not frozen specifications or current capability. Final images received independent qualitative visual review.
+
+![Future alpha cutout](20-future-alpha-cutout.png)
+![Future morph](21-future-morph-deformation.png)
+![Future skeleton](22-future-skeletal-deformation.png)
