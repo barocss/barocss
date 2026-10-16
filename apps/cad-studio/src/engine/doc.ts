@@ -9,8 +9,16 @@ export interface BodyRef { node: number; side: Side }
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
-/** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only). */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][] };
+/**
+ * The closed outline a polygon / loop profile was drawn from, with its constraints and driving dimensions
+ * (see sketch/rules.ts): lengths and radii by segment, tangent joints, arc pairs, kept H/V edges, rules.
+ */
+export interface SketchOutline {
+  points: [number, number][]; bulges?: number[]; lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
+  equalRadii?: [number, number][]; concentric?: [number, number][]; hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
+}
+/** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -47,6 +55,7 @@ export type ModelNode = SketchNode
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
 
 import type { RenderSettings } from './render';
+import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
 import type { Mate } from '../assembly/mates';

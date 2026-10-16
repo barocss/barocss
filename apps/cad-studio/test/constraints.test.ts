@@ -239,3 +239,52 @@ test('sketch history steps back and forward through outline edits, and only over
   assert.equal(h.undo(c), b); h.push(b, a); assert.equal(h.redo(a), null);
   assert.equal(h.undo(quad()), null); assert.equal(h.canUndo, false);
 });
+
+test('overlapping shapes in one sketch are refused with a reason, never cut or crashed', async () => {
+  const { profileOf } = await import('../src/sketch/loops');
+  const rect = (a: P2, b: P2) => ({ kind: 'rectangle' as const, a, b }), circle = (c: P2, r: number) => ({ kind: 'circle' as const, c, r });
+  const refused = (shapes: Parameters<typeof profileOf>[0]) => { const r = profileOf(shapes); assert.ok('error' in r, JSON.stringify(r)); return (r as { error: string }).error; };
+  // U43, U41, U42: two crossing rectangles; a circle across the top or the right edge.
+  assert.match(refused([rect([0, 0], [10, 10]), rect([5, 5], [15, 15])]), /Shapes 1 and 2 overlap/);
+  assert.match(refused([rect([0, 0], [40, 20]), circle([20, 19], 5)]), /overlap/);
+  assert.match(refused([rect([0, 0], [40, 20]), circle([38, 10], 5)]), /overlap/);
+  // Two circles 12 apart; C1: each shape's first point inside the other.
+  assert.match(refused([circle([0, 0], 10), circle([12, 0], 10)]), /overlap/);
+  assert.match(refused([circle([0, 0], 10), rect([5, -3], [20, 3])]), /overlap/);
+  // A hole fully inside and a separate region still work.
+  const ok2 = profileOf([rect([0, 0], [40, 20]), circle([20, 10], 5), circle([60, 10], 5)]);
+  assert.ok('node' in ok2 && ok2.node.holes?.length === 1 && ok2.node.regions?.length === 1);
+});
+
+test('a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions', async () => {
+  const { shapeNode } = await import('../src/sketch/loops');
+  const { featureOf } = await import('../src/engine/part');
+  const { editFields } = await import('../src/app/editFields');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
+  s = (commitDimension(s, 'dist0_2', 65) as { shape: Polygon }).shape;
+  const node = shapeNode(s)!;
+  assert.equal(node.profile, 'polygon');
+  assert.deepEqual(node.outline?.hv, { h: [0, 2], v: [1, 3] });
+  assert.deepEqual(node.outline?.lengths, { 0: 60 });
+  assert.deepEqual(node.outline?.rules, [{ kind: 'distance', a: 0, b: 2, value: 65 }]);
+  // The kernel takes the solved profile only.
+  assert.equal('outline' in (featureOf(node, 0) as object), false);
+  let d = withNode(withNode(emptyDoc(), node), { kind: 'extrude', sketch: 0, height: 5 });
+  assert.ok(evaluateDoc(d, 2).ok);
+  const fields = editFields(d.nodes, 1).filter(f => f.kind === 'number');
+  const len = fields.find(f => f.label === 'Length of edge 1')!, dist = fields.find(f => f.label === 'Distance point 1 – point 3')!;
+  assert.ok(len && dist, fields.map(f => f.label).join(', '));
+  assert.equal(len.get(d.nodes), 60); assert.ok(Math.abs(dist.get(d.nodes) - 65) < 1e-9);
+  // Width 40 with the diagonal held at 65: the height follows.
+  const nodes = len.kind === 'number' ? len.set(d.nodes, 40) : d.nodes;
+  const pts = (nodes[0] as { points: P2[] }).points, h = Math.max(...pts.map(p => p[1])) - Math.min(...pts.map(p => p[1]));
+  assert.ok(Math.abs(h - Math.sqrt(65 ** 2 - 40 ** 2)) < 1e-6, JSON.stringify(pts));
+  assert.equal((nodes[0] as { outline: { lengths: Record<number, number> } }).outline.lengths[0], 40);
+  // A value the constraints cannot take (longer than the diagonal) changes nothing.
+  assert.equal(len.kind === 'number' && len.set(nodes, 70), nodes);
+  d = { ...d, nodes };
+  assert.ok(evaluateDoc(d, 2).ok);
+});

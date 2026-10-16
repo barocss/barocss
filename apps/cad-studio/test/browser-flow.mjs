@@ -440,6 +440,36 @@ try {
     await press('Escape');
   });
 
+  await check('tool keys leave a number box; a finished outline keeps its dimensions; overlapping shapes are refused', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // Typing a length leaves focus in its box; a tool key still switches the tool and leaves the box.
+    await page.fill('#sk-len0', '60'); await press('r');
+    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Rectangle/);
+    assert.notEqual(await page.evaluate(() => document.activeElement?.tagName), 'INPUT');
+    await press('s'); assert.equal(await page.inputValue('#sk-len0'), '60', 'outline back after S');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes[0].outline?.lengths?.[0], 60, 'outline kept in the sketch node');
+    // The feature editor offers the outline's driving dimension.
+    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    const ed = page.locator('.node-editor .field', { has: page.locator('span:text-is("Length of edge 1")') }).locator('input');
+    assert.equal(await ed.inputValue(), '60', 'feature editor length');
+    await ed.fill(''); await ed.fill('50'); await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 50, null, { timeout: 15000 });
+    const n0 = (await doc()).nodes[0], [p0, p1] = n0.points;
+    assert.ok(Math.abs(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) - 50) < 1e-6, JSON.stringify(n0.points));
+    await press('Escape');
+    // Two crossing rectangles in one sketch: refused with the reason, the sketch stays open.
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    await clickAt(cx - 120, cy - 60); await clickAt(cx + 40, cy + 60); await clickAt(cx - 20, cy - 100); await clickAt(cx + 140, cy + 20);
+    await press('Enter');
+    assert.match(await page.locator('.toast[role=alert]').innerText(), /Shapes 1 and 2 overlap/);
+    assert.ok(await page.locator('.sk-panel').count() > 0);
+    await page.click('.toast [aria-label="Dismiss"]'); await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
