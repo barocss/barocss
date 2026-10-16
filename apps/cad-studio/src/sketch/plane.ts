@@ -21,6 +21,12 @@ export const standardPlane = (kind: PlaneKind): SketchPlane =>
 /** A plane moved along its normal. */
 export const offsetPlane = (p: SketchPlane, d: number): SketchPlane =>
   d ? { ...p, origin: [0, 1, 2].map(k => mm(p.origin[k] + p.normal[k] * d)) as Vec3 } : p;
+/** A plane tipped about its own X axis (through its origin) by degrees: positive tips its normal towards its Y. */
+export function tiltPlane(p: SketchPlane, degrees: number): SketchPlane {
+  if (!degrees) return p;
+  const a = degrees * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), y = yAxisOf(p);
+  return { ...p, normal: clean([0, 1, 2].map(k => p.normal[k] * c + y[k] * s) as Vec3) };
+}
 /** The XY plane at height z (the default sketch plane, z 0). */
 export const xyPlane = (z = 0): SketchPlane => ({ origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] });
 export const isDefaultPlane = (p: SketchPlane) => p.normal[2] === 1 && p.xAxis[0] === 1 && p.origin.every(c => c === 0);

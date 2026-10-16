@@ -11,7 +11,7 @@ type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number): void }) {
+export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void }) {
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className="field" key={id}><span>{label}</span>
@@ -51,13 +51,16 @@ export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: Sketc
         const anchor = sketch.anchor ?? { kind: 'xy' as const, offset: 0 };
         return <div className="sk-plane">
           <label className="field"><span>Plane</span>
-            <select aria-label="Sketch plane" value={anchor.kind} onChange={e => onPlace(e.target.value as SketchAnchor['kind'], anchor.offset)}>
+            <select aria-label="Sketch plane" value={anchor.kind} onChange={e => onPlace(e.target.value as SketchAnchor['kind'], anchor.offset, anchor.angle)}>
               {anchor.face && <option value="face">Selected face</option>}
               <option value="xy">XY (top)</option><option value="xz">XZ (front)</option><option value="yz">YZ (right)</option>
             </select></label>
           <label className="field"><span>Offset</span>
             <span className="num"><input aria-label="Plane offset" type="number" step="any" value={round(anchor.offset)}
-              onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) <= 10000) onPlace(anchor.kind, v); }} /><em>mm</em></span></label>
+              onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) <= 10000) onPlace(anchor.kind, v, anchor.angle); }} /><em>mm</em></span></label>
+          <label className="field"><span>Angle</span>
+            <span className="num"><input aria-label="Plane angle" type="number" step={5} min={-89} max={89} value={round(anchor.angle ?? 0)}
+              onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v) && Math.abs(v) < 90) onPlace(anchor.kind, anchor.offset, v); }} /><em>°</em></span></label>
         </div>;
       })()}
       {!s && <div className="empty">Pick a tool on the left and click on the plane. Points snap to 1 mm.</div>}

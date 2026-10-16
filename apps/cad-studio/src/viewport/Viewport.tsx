@@ -23,7 +23,7 @@ export type SketchShape =
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
-export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null } }
+export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null } }
 export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }

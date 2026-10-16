@@ -23,7 +23,7 @@ import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeomet
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, xyPlane, type SketchPlane } from './sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
@@ -319,11 +319,11 @@ export function App() {
   }, [ctx, selection, bodies, engine, commit]);
 
   /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
-  const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number) => {
+  const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
     if (!sketch) return;
     const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
-    const plane = offsetPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), offset);
-    setSketch({ ...sketch, plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset } });
+    const plane = offsetPlane(tiltPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), angle), offset);
+    setSketch({ ...sketch, plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
     const [min, max] = sketchRegion(bodies, plane);
     viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   }, [sketch, bodies]);

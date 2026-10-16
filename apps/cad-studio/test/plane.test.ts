@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, tiltPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { profileOf } from '../src/sketch/loops';
@@ -91,4 +91,11 @@ test('coordinate planes read as their views, and offsets move along the normal',
   assert.equal(planeLabel(offsetPlane(standardPlane('xy'), 12.5)), 'Z 12.5');
   assert.equal(planeLabel(offsetPlane(standardPlane('xz'), 10)), 'Y -10', 'XZ faces −Y');
   assert.equal(planeLabel(offsetPlane(planeOfFace([1, 0, 0], [64, 0, 0])!, 5)), 'X 69');
+});
+
+test('a plane tipped about its X axis keeps X and turns its normal towards Y', () => {
+  const t = tiltPlane(standardPlane('xy'), 30), c = Math.cos(Math.PI / 6), s = Math.sin(Math.PI / 6);
+  assert.ok(near(t.normal, [0, s, c]) && near(t.xAxis, [1, 0, 0]));
+  assert.equal(planeLabel(t), '30° tilted plane');
+  assert.ok(near(toWorld(t, [0, 10]), [0, 10 * c, -10 * s]), 'its Y tips down as the normal tips towards +Y');
 });
