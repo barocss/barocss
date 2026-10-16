@@ -22,6 +22,8 @@ export interface SketchOutline {
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
+/** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
+export interface Made { command: string; values: Record<string, number | string> }
 type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
@@ -31,9 +33,9 @@ export type SketchNode =
 
 export type ModelNode = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
-  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number }
+  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
-  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number] }
+  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim] }

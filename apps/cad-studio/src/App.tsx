@@ -653,6 +653,14 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  /** A command's button (the rail, the shapes bar): its tooltip says what it does or why it cannot run; shapes drag onto the model. */
+  const toolButton = (c: Command) => {
+    const a = c.available(ctx);
+    return <button key={c.id} className={'tool' + (active?.cmd.id === c.id ? ' on' : '') + (a.ok ? '' : ' off')} aria-label={c.label}
+      data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}
+      {...(c.place && a.ok ? { draggable: true, onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; },
+        onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
+  };
   const shownBodies = bodyDrag ? bodies : previewBodies ?? bodies;
   // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
@@ -713,7 +721,8 @@ export function App() {
     return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes);
   }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, marker]);
   const handleCmd = active?.cmd ?? idleEdit, handleValues = active ? active.values : idleEdit?.defaults?.(ctx) ?? {}, handleCtx = active?.ctx ?? ctx;
-  const handles: FeatureHandle[] = handleCmd?.handles && !sketch ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
+  // (None while a new shape is still being placed: the click that places it must not grab one.)
+  const handles: FeatureHandle[] = handleCmd?.handles && !sketch && !active?.placing ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
     const fields = handleCmd.fields?.(handleCtx, handleValues) ?? [], field = fields.find(f => f.key === h.key), value = Number(handleValues[h.key]);
     if (!field || !Number.isFinite(value)) return [];
     const step = h.step ?? 1, snap = (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step));
@@ -809,6 +818,8 @@ export function App() {
         <label className="doc-tab"><span className="sr">File name</span>
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
+        {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
+        {!sketch && !rendering && !drawing && <div className="shapes" role="toolbar" aria-label="Shapes">{commands.filter(c => c.place).map(toolButton)}</div>}
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
@@ -846,13 +857,7 @@ export function App() {
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}
-            {commands.filter(c => c.group === g).map(c => {
-              const a = c.available(ctx);
-              return <button key={c.id} className={'tool' + (active?.cmd.id === c.id ? ' on' : '') + (a.ok ? '' : ' off')} aria-label={c.label}
-                data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}
-                {...(c.place && a.ok ? { draggable: true, onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; },
-                  onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
-            })}
+            {commands.filter(c => c.group === g && !c.place).map(toolButton)}
           </div>))}
       </nav>
 

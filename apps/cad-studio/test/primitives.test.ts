@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc } from '../src/engine/doc';
-import { commands, type Ctx } from '../src/app/commands';
+import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
+import { emptyDoc, type ModelNode } from '../src/engine/doc';
+import { commands, type Ctx, type Values } from '../src/app/commands';
+import { editCommand } from '../src/app/editCommand';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 function make(id: string, values: Record<string, number> = {}) {
@@ -40,4 +41,31 @@ test('primitive sizes that cannot be made say why', () => {
     const cmd = commands.find(c => c.id === id)!;
     assert.throws(() => cmd.build!(ctx, { ...cmd.defaults!(ctx), ...v }), /smaller/);
   }
+});
+
+test('a placed shape edits as itself later: its command, values, arrows and puck, rebuilt in place', () => {
+  const sphere = commands.find(c => c.id === 'sphere')!, doc = sphere.build!(ctx, { ...sphere.defaults!(ctx), r: 10, x: 0, y: 0, z: 0 });
+  const edit = editCommand(1, doc.nodes)!, bodies = (evaluateDoc(doc, 1) as { bodies: BodyResult[] }).bodies;
+  const ectx: Ctx = { doc, bodies, selection: { faces: [], edges: [], bodies: [0] } };
+  assert.equal(edit.label, 'Edit Sphere');
+  assert.deepEqual(edit.handles!(ectx, edit.defaults!(ectx)).map(h => h.key), ['x', 'r']);
+  const next = edit.build!(ectx, { ...edit.defaults!(ectx), r: 15, x: 30 });
+  assert.equal(next.nodes.length, 2);
+  assert.deepEqual([(next.nodes[1] as { made: { values: Values } }).made.values.r, (next.nodes[1] as { made: { values: Values } }).made.values.x], [15, 30]);
+  close((evaluateDoc(next, 2) as { bodies: BodyResult[] }).bodies[0].volumeMM3!, 4 / 3 * Math.PI * 15 ** 3);
+  // Changed by hand since (the revolve's angle): its own fields instead.
+  const hand = { ...doc, nodes: [doc.nodes[0], { ...doc.nodes[1], angleDegrees: 180 } as ModelNode] };
+  assert.notEqual(editCommand(1, hand.nodes)?.label, 'Edit Sphere');
+});
+
+test('Shell has a wall arrow when made and when edited', () => {
+  const box = commands.find(c => c.id === 'box')!, doc = box.build!(ctx, { ...box.defaults!(ctx), x: 0, y: 0, z: 0 });
+  const b0 = (evaluateDoc(doc, 1) as { bodies: BodyResult[] }).bodies, top = b0[0].mesh.faces.findIndex(f => f.normal[2] > 0.99);
+  const shell = commands.find(c => c.id === 'shell')!, sctx: Ctx = { doc, bodies: b0, selection: { faces: [{ body: 0, face: top }], edges: [], bodies: [] } };
+  const [h] = shell.handles!(sctx, { t: 2 });
+  assert.deepEqual([h.key, h.dir], ['t', [-0, -0, -1]]);
+  const shelled = shell.build!(sctx, { t: 2 }), b1 = (evaluateDoc(shelled, 2) as { bodies: BodyResult[] }).bodies;
+  const edit = editCommand(2, shelled.nodes)!, ectx: Ctx = { doc: shelled, bodies: b1, selection: { faces: [], edges: [], bodies: [0] } };
+  const [eh] = edit.handles!(ectx, edit.defaults!(ectx));
+  assert.equal(eh.key, 't');
 });

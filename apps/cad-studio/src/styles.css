@@ -54,6 +54,9 @@ button { font: inherit; color: inherit; }
 .doc-tab { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 4px 0 8px; border-radius: 5px; background: #2a2c30; }
 .doc-tab input { background: transparent; border: 0; color: var(--text); font: 400 12px var(--sans); outline: none; }
 .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--accent); margin-right: 4px; }
+.shapes { display: flex; gap: 1px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--line-soft); }
+.shapes .tool { width: 30px; height: 30px; }
+.shapes .tool[draggable='true'] { cursor: grab; }
 .mode { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: #2a2c30; }
 .mode button { height: 24px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #9a9ea6; cursor: pointer; }
 .mode button.on { background: #3c3e43; color: var(--text); }

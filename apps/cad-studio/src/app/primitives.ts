@@ -2,7 +2,7 @@
 // feature): sphere, cone (or frustum), torus, tube, wedge and regular polygon prism. They stand on Z = At Z
 // at the given X, Y, to the right of what is there by default.
 import { withNode, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
-import type { Command, Ctx, Values } from './commands';
+import type { Command, Ctx, HandleSpec, Values } from './commands';
 
 const ok = { ok: true as const };
 const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -18,6 +18,13 @@ function turned(doc: StudioDoc, sketch: ModelNode): StudioDoc {
 }
 const circleLoop = (cx: number, cy: number, r: number): LoopSegment[] => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
 
+type V3 = [number, number, number];
+const n = (v: Values, ...keys: string[]) => keys.map(k => Number(v[k]));
+/** A puck at (x, y, z) that slides the shape on its plane (its X and Y values). */
+export const puck = (at: V3): HandleSpec => ({ key: 'x', at, dir: [1, 0, 0], pair: { key: 'y', dir: [0, 1, 0] } });
+const arrow = (key: string, at: V3, dir: V3, extra: Partial<HandleSpec> = {}): HandleSpec => ({ key, at, dir, min: 0.5, step: 0.5, ...extra });
+const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
+
 /** Placed with its centre (axis) at the pointer. */
 const centred = (v: Values, [x, y, z]: [number, number, number]): Values => ({ ...v, x, y, z });
 
@@ -28,6 +35,7 @@ export const primitives: Command[] = [
     fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.5 }, ...at],
     defaults: ctx => ({ r: 10, ...beside(ctx, 14) }),
     place: centred,
+    handles: (_, v) => { const [r, x, y, z] = n(v, 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + r], X)]; },
     // A half disc right of the axis, from the bottom pole to the top one.
     build: (ctx, v) => { const r = Number(v.r); return turned(ctx.doc, { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, 0], center: [0, r], direction: 'ccw' }, { kind: 'line', start: [0, 2 * r] }], plane: upright(v) }); },
   },
@@ -37,6 +45,7 @@ export const primitives: Command[] = [
     fields: () => [{ key: 'r', label: 'Base radius', kind: 'mm', min: 0.5 }, { key: 'rt', label: 'Top radius', kind: 'mm', min: 0 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, ...at],
     defaults: ctx => ({ r: 10, rt: 0, h: 20, ...beside(ctx, 14) }),
     place: centred,
+    handles: (_, v) => { const [r, rt, h, x, y, z] = n(v, 'r', 'rt', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z], X), arrow('rt', [x + rt, y, z + h], X, { min: 0 }), arrow('h', [x, y, z + h], Z)]; },
     build: (ctx, v) => {
       const r = Number(v.r), rt = Number(v.rt), h = Number(v.h);
       const points: [number, number][] = rt > 0 ? [[0, 0], [r, 0], [rt, h], [0, h]] : [[0, 0], [r, 0], [0, h]];
@@ -49,6 +58,7 @@ export const primitives: Command[] = [
     fields: () => [{ key: 'R', label: 'Ring radius', kind: 'mm', min: 1 }, { key: 'r', label: 'Tube radius', kind: 'mm', min: 0.5 }, ...at],
     defaults: ctx => ({ R: 20, r: 5, ...beside(ctx, 30) }),
     place: centred,
+    handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
     build: (ctx, v) => {
       const R = Number(v.R), r = Number(v.r);
       if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
@@ -61,6 +71,7 @@ export const primitives: Command[] = [
     fields: () => [{ key: 'r', label: 'Outer radius', kind: 'mm', min: 1 }, { key: 'ri', label: 'Inner radius', kind: 'mm', min: 0.1 }, { key: 'h', label: 'Length', kind: 'mm', min: 0.5 }, ...at],
     defaults: ctx => ({ r: 10, ri: 6, h: 24, ...beside(ctx, 14) }),
     place: centred,
+    handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.1 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z)]; },
     build: (ctx, v) => {
       const r = Number(v.r), ri = Number(v.ri), x = Number(v.x), y = Number(v.y), z = Number(v.z);
       if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
@@ -76,6 +87,7 @@ export const primitives: Command[] = [
     defaults: ctx => ({ w: 32, d: 16, h: 16, ...beside(ctx, 16), y: 0 }),
     // Its middle at the pointer.
     place: (v, [x, y, z]) => ({ ...v, x: r1(x - Number(v.w) / 2), y: r1(y - Number(v.d) / 2), z }),
+    handles: (_, v) => { const [w, d, h, x, y, z] = n(v, 'w', 'd', 'h', 'x', 'y', 'z'); return [puck([x + w / 2, y + d / 2, z]), arrow('w', [x + w, y + d / 2, z], X, { min: 1 }), arrow('d', [x + w / 4, y + d, z + h / 4], Y, { min: 1 }), arrow('h', [x, y + d / 2, z + h], Z, { min: 1 })]; },
     // The triangle on the plane at the far side (Y + depth), pulled towards −Y through the depth.
     build: (ctx, v) => {
       const w = Number(v.w), dpt = Number(v.d), h = Number(v.h), plane = { ...upright(v), origin: [Number(v.x), Number(v.y) + dpt, Number(v.z)] as [number, number, number] };
@@ -89,6 +101,7 @@ export const primitives: Command[] = [
     fields: () => [{ key: 'n', label: 'Sides', kind: 'count', min: 3, max: 12 }, { key: 's', label: 'Across flats', kind: 'mm', min: 1 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, ...at],
     defaults: ctx => ({ n: 6, s: 16, h: 10, ...beside(ctx, 14) }),
     place: centred,
+    handles: (_, v) => { const [s, h, x, y, z] = n(v, 's', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('s', [x, y + s / 2, z + h / 2], Y, { scale: 2, min: 1 }), arrow('h', [x, y, z + h], Z)]; },
     build: (ctx, v) => {
       const n = Math.round(Number(v.n)), s = Number(v.s), x = Number(v.x), y = Number(v.y), z = Number(v.z), R = s / 2 / Math.cos(Math.PI / n);
       // A flat at the bottom: corners at half a step either side of −Y.

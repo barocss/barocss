@@ -5,7 +5,7 @@ import { featureLabel, parentsOf, type ModelNode, type SketchNode } from '../eng
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf } from './profiles';
-import type { Command, Ctx, Field, HandleSpec, Selection, Values } from './commands';
+import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
 import type { BodyResult } from '../engine/evaluate';
 
 type V3 = [number, number, number];
@@ -63,9 +63,29 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
   return [{ key: 'c0', at: point(c[0], c[1]), dir: unit(a), pair: { key: 'c1', dir: unit(b) } }, { key: 'dia', at: point(c[0] + r, c[1]), dir: unit(a), scale: 2, min: 0.5, step: 0.5 }];
 }
 
+/**
+ * A shape made by a shape command (its solid remembers the command and values): that command again, on
+ * those values, rebuilding its sketch and solid in place — with all its arrows and its puck. Null when the
+ * nodes were changed since (by the feature editor), so its values no longer describe them.
+ */
+function shapeEdit(index: number, nodes: readonly ModelNode[]): Command | null {
+  const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve') ? node : null, made = solid?.made;
+  const cmd = made && commands.find(c => c.id === made.command);
+  if (!solid || !made || !cmd?.build || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch') return null;
+  const rebuild = (ctx: Ctx, v: Values) => {
+    const two = cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, index - 1) } }, v).nodes.slice(index - 1);
+    if (two.length !== 2) throw new Error(`${cmd.label} no longer builds in place.`);
+    return { ...ctx.doc, nodes: [...ctx.doc.nodes.slice(0, index - 1), ...two, ...ctx.doc.nodes.slice(index + 1)] };
+  };
+  const probe: Ctx = { doc: { nodes: [...nodes] } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  try { if (JSON.stringify(rebuild(probe, made.values).nodes.slice(index - 1, index + 1)) !== JSON.stringify(nodes.slice(index - 1, index + 1))) return null; } catch { return null; }
+  return { ...cmd, id: 'edit', label: `Edit ${cmd.label}`, group: 'modify', available: () => ok, defaults: () => ({ ...made.values }), build: rebuild, place: undefined };
+}
+
 /** The edit of feature `index`, or null when it has no dimension to drag. */
 export function editCommand(index: number, nodes: readonly ModelNode[]): Command | null {
   const node = nodes[index]; if (!node) return null;
+  const shape = shapeEdit(index, nodes); if (shape) return shape;
   const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
   if (!fields.length) return null;
   return {
@@ -78,6 +98,14 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
       const now = edited(ctx.doc.nodes, index, v), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
+      // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
+      if (n.kind === 'shell') {
+        const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);
+        const body = ctx.bodies.find(b => b.key === `b${index}`), inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(`n${index}.`))).sort((a, b) => b.areaMM2 - a.areaMM2)[0];
+        if (!inner || !Number.isFinite(t0 + t)) return [];
+        const m = inner.normal, at = [0, 1, 2].map(k => inner.centroid[k] + m[k] * (t - t0)) as V3;
+        return [{ key: 't', at, dir: [...m] as V3, min: 0.1, step: 0.5 }];
+      }
       // A fillet or chamfer: on its round (or cut) face, out of the body; out is larger.
       if (n.kind === 'fillet' || n.kind === 'chamfer') {
         const body = ctx.bodies.find(b => b.key === `b${index}`), face = body?.mesh.faces.find(f => f.name.split('+').some(s => s.startsWith(`n${index}.`)));

@@ -1,7 +1,7 @@
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
-import { primitives } from './primitives';
+import { primitives, puck } from './primitives';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
@@ -178,7 +178,16 @@ const edgeSteps = (ctx: Ctx) => {
   return [{ label: 'Edges', text: !n ? 'pick edges or a face' : `${n} edge${n === 1 ? '' : 's'}${faces ? ` round the picked face${faces === 1 ? '' : 's'}` : ''}`, done: n > 0 }];
 };
 
-export const commands: Command[] = [
+/** A shape command whose solid remembers how it was made (its values), so picking it edits them again. */
+function remembered(cmd: Command): Command {
+  const build = cmd.build!;
+  return { ...cmd, build: (ctx, v) => {
+    const d = build(ctx, v), last = d.nodes[d.nodes.length - 1];
+    return last && (last.kind === 'extrude' || last.kind === 'revolve') ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v } } }] } : d;
+  } };
+}
+
+const allCommands: Command[] = [
   {
     id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
     available: () => ok, action: 'sketch',
@@ -199,10 +208,10 @@ export const commands: Command[] = [
     },
     // Centred on the pointer.
     place: (v, [px, py, pz]) => ({ ...v, x: r1(px - Number(v.w) / 2), y: r1(py - Number(v.d) / 2), z: pz }),
-    // Width, depth and height: an arrow on the +X, +Y and +Z faces.
+    // A puck under it to slide it; width, depth and height: an arrow on the +X, +Y and +Z faces.
     handles: (_, v) => {
       const [w, d, h, x, y, z] = ['w', 'd', 'h', 'x', 'y', 'z'].map(k => Number(v[k]));
-      return [{ key: 'w', at: [x + w, y + d / 2, z + h / 2], dir: [1, 0, 0], min: 1 }, { key: 'd', at: [x + w / 2, y + d, z + h / 2], dir: [0, 1, 0], min: 1 }, { key: 'h', at: [x + w / 2, y + d / 2, z + h], dir: [0, 0, 1], min: 1 }];
+      return [puck([x + w / 2, y + d / 2, z]), { key: 'w', at: [x + w, y + d / 2, z + h / 2], dir: [1, 0, 0], min: 1 }, { key: 'd', at: [x + w / 2, y + d, z + h / 2], dir: [0, 1, 0], min: 1 }, { key: 'h', at: [x + w / 2, y + d / 2, z + h], dir: [0, 0, 1], min: 1 }];
     },
     build: (ctx, v) => {
       const x = Number(v.x), y = Number(v.y), z = Number(v.z);
@@ -220,6 +229,7 @@ export const commands: Command[] = [
       return { r: 8, h: 24, x: Number.isFinite(right) ? r1(right + 24) : 0, y: 16, z: 0 };
     },
     place: (v, [x, y, z]) => ({ ...v, x, y, z }),
+    handles: (_, v) => { const [r, h, x, y, z] = ['r', 'h', 'x', 'y', 'z'].map(k => Number(v[k])); return [puck([x, y, z]), { key: 'r', at: [x + r, y, z + h / 2], dir: [1, 0, 0], min: 0.5, step: 0.5 }, { key: 'h', at: [x, y, z + h], dir: [0, 0, 1], min: 1 }]; },
     build: (ctx, v) => {
       const doc = withNode(ctx.doc, { kind: 'sketch', profile: 'circle', center: [Number(v.x), Number(v.y)], radius: Number(v.r) });
       return withNode(doc, { kind: 'extrude', sketch: doc.nodes.length - 1, height: Number(v.h), ...(Number(v.z) ? { from: Number(v.z) } : {}) });
@@ -294,6 +304,12 @@ export const commands: Command[] = [
     available: ctx => selectedBodies(ctx.selection).length === 1 ? ok : no('Select the faces to open (Shift-click for more), or a body to hollow closed.'),
     fields: () => [{ key: 't', label: 'Wall', kind: 'mm', min: 0.1 }],
     defaults: () => ({ t: 2 }),
+    // The wall: an arrow into the body from the (first) open face; deeper is thicker.
+    handles: (ctx, v) => {
+      const f = ctx.selection.faces[0], face = f && ctx.bodies[f.body]?.mesh.faces[f.face]; if (!face || face.kind !== 'plane') return [];
+      const n = face.normal, t = Number(v.t);
+      return [{ key: 't', at: [face.centroid[0] - n[0] * t, face.centroid[1] - n[1] * t, face.centroid[2] - n[2] * t], dir: [-n[0], -n[1], -n[2]], min: 0.1, step: 0.5 }];
+    },
     build: (ctx, v) => {
       const body = ctx.bodies[selectedBodies(ctx.selection)[0]];
       const open = [...new Set(ctx.selection.faces.filter(f => f.body === ctx.bodies.indexOf(body)).flatMap(f => body.mesh.faces[f.face].name.split('+')))];
@@ -385,5 +401,6 @@ export const commands: Command[] = [
   })),
   { id: 'measure', label: 'Measure', icon: 'cad-measure', hint: 'Distances, angles and sizes between picked faces and edges', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
 ];
+export const commands: Command[] = allCommands.map(c => c.place && c.build ? remembered(c) : c);
 
 export const commandById = (id: string) => commands.find(c => c.id === id);

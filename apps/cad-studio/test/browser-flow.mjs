@@ -623,7 +623,8 @@ try {
     const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
     await page.mouse.move(svg.x + m[0] + (b[0] - a[0]), svg.y + m[1] + (b[1] - a[1]), { steps: 8 }); await page.mouse.up();
-    await page.waitForFunction(() => /Edit Extrude/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    // (A box remembers it is one: its edit is the Box command again, rebuilt in place.)
+    await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes[0].max[0] > 32, null, { timeout: 15000 });
     assert.equal((await doc()).nodes.length, 2, 'the feature itself changed: no new node');
@@ -1124,8 +1125,10 @@ try {
   });
 
   await check('drag a dimension handle (box width), and turn a body 45° about X with the Rotate gizmo', async () => {
+    // Placed with a click first (the arrows come once it stands somewhere).
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
-    await page.waitForSelector('[data-handle="w"]', { timeout: 5000 });
+    { const c = await page.locator('canvas').boundingBox(); await page.mouse.move(c.x + c.width * 0.45, c.y + c.height * 0.55, { steps: 3 }); await page.mouse.click(c.x + c.width * 0.45, c.y + c.height * 0.55); }
+    await page.waitForSelector('[data-handle="w"]', { timeout: 5000 }); await hudReady();
     const svg = await page.locator('.vp-overlay').boundingBox();
     const ends = sel => page.evaluate(sel => { const l = document.querySelector(sel); const g = n => Number(l.getAttribute(n)); return [[g('x1'), g('y1')], [g('x2'), g('y2')]]; }, sel);
     const [a, b] = await ends('[data-handle="w"] line:nth-of-type(2)'), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -1211,7 +1214,7 @@ try {
     await snap('primitives');
   });
 
-  await check('place shapes with the pointer: a click for a box, a drag from the rail for a cylinder; Delete removes one', async () => {
+  await check('place shapes with the pointer: a click for a box, a drag from the shapes bar for a cylinder; Delete removes one', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     const vp = await page.locator('canvas').boundingBox(), at = (fx, fy) => [vp.x + vp.width * fx, vp.y + vp.height * fy];
     await press('b'); await hudReady();
@@ -1222,8 +1225,8 @@ try {
     await page.waitForFunction(() => /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
-    // The cylinder dragged from its rail button onto the ground beside the box.
-    await page.dragAndDrop('[aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
+    // The cylinder dragged from the shapes bar onto the ground beside the box.
+    await page.dragAndDrop('.shapes [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
     await page.waitForFunction(() => /Cylinder/.test(document.querySelector('.hud')?.textContent ?? '') && /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
