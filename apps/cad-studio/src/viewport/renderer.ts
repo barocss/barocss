@@ -39,6 +39,8 @@ export interface ViewRenderer {
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
   setInstanceFaces?(faces: readonly { id: string; body: number; face: number }[]): void;
+  /** One instance shown moved by a matrix (column-major 4 × 4) while it is dragged; null: as placed. */
+  setInstancePreview?(preview: { id: string; matrix: Float64Array } | null): void;
 }
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }

@@ -173,7 +173,8 @@ export const commands: Command[] = [
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),
     fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' }],
-    defaults: () => ({ x: 0, y: 0, z: 10 }),
+    // Nothing moved until a value is typed or the gizmo dragged.
+    defaults: () => ({ x: 0, y: 0, z: 0 }),
     build: (ctx, v) => withNode(ctx.doc, { kind: 'translate', parent: refOf(oneBody(ctx)!), offset: [Number(v.x), Number(v.y), Number(v.z)] }),
   },
   {

@@ -287,7 +287,7 @@ export class GpuRenderer implements ViewRenderer {
       edges: it.bodies.filter(b => b.mesh.edgeLines.length).map(b => this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + it.id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false })),
     }));
     this.instanceSelection = selected;
-    this.paintInstances();
+    this.paintInstances(); this.placePreview();
   }
 
   /** Instances' look: the modelling base, or their render appearance (by key inst:<id>). */
@@ -309,6 +309,17 @@ export class GpuRenderer implements ViewRenderer {
       });
       for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
     }
+    this.viewer.requestRender();
+  }
+
+  /** An instance dragged with the gizmo: its meshes moved by the drag until it is evaluated where it lands. */
+  setInstancePreview(preview: { id: string; matrix: Float64Array } | null): void {
+    this.instancePreview = preview; this.placePreview();
+  }
+  private instancePreview: { id: string; matrix: Float64Array } | null = null;
+  private placePreview(): void {
+    const p = this.instancePreview;
+    for (const it of this.instances) for (const m of [...it.surfaces, ...it.edges]) m.transform = p && p.id === it.id ? p.matrix : translation([0, 0, 0]);
     this.viewer.requestRender();
   }
 

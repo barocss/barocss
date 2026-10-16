@@ -13,6 +13,8 @@ import type { SketchRule } from '../sketch/terms';
 import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
 import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
+import { dragAlong, dragPlane, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { gizmoMarks } from './GizmoMarks';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'select' | 'dimension';
@@ -41,7 +43,7 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
-export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
+export type { FeatureHandle, TransformGizmo } from './gizmo';
 
 export interface ViewportHandle {
   fit(): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
@@ -62,7 +64,9 @@ interface Props {
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
   ghost: Set<number>;
   sketch: SketchState | null;
-  gizmo: Gizmo | null;
+  /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
+  gizmo: TransformGizmo | null;
+  handles?: FeatureHandle[];
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
@@ -88,6 +92,8 @@ interface Props {
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
+  /** An instance shown moved while the gizmo drags it (see assembly/drag.ts previewMatrix). */
+  instancePreview?: { id: string; matrix: Float64Array } | null;
 }
 
 const snap = (v: number) => Math.round(v);
@@ -100,7 +106,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const camera = useRef(new OrbitCamera());
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
-  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; axis?: number; start?: Vec3; moved: boolean; x0?: number; y0?: number }>({ mode: null, x: 0, y: 0, moved: false });
+  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
+    /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; origin?: Vec3 }>({ mode: null, x: 0, y: 0, moved: false });
+  /** The gizmo handle under the pointer, drawn brighter. */
+  const gizmoHot = useRef<GizmoHit | null>(null);
   const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null }>({ cursor: null });
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
@@ -155,10 +165,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   }, [props.bodies, backend]);
 
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets]);
-  useEffect(() => { request(); }, [props.sketch, props.gizmo]);
+  useEffect(() => { request(); }, [props.sketch, props.gizmo, props.handles]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
+  useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   // (By content: the list is rebuilt on every render.)
   const instanceFacesKey = JSON.stringify(props.instanceFaces ?? []);
   useEffect(() => { renderer.current?.setInstanceFaces?.(JSON.parse(instanceFacesKey)); request(); }, [instanceFacesKey, props.instances, backend]);
@@ -214,23 +225,48 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, origin[2] + dir[2] * t];
   };
 
-  const gizmoAxes = () => {
-    const g = propsRef.current.gizmo; if (!g || !canvas.current) return null;
-    const w = canvas.current.clientWidth, h = canvas.current.clientHeight;
-    const o: Vec3 = [g.origin[0] + g.values[0], g.origin[1] + g.values[1], g.origin[2] + g.values[2]];
-    const len = camera.current.distance * 0.14;
-    const p0 = camera.current.project(o, w, h);
-    const tips = [0, 1, 2].map(k => { const t: Vec3 = [...o] as Vec3; t[k] += len; return camera.current.project(t, w, h); });
-    return { o, p0, tips, len };
+  /** Canvas pixels of world points, for the gizmo and handles: they keep one size on screen (GIZMO_PX at their origin). */
+  const projector = (): Projector => {
+    const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight, cam = camera.current, { right, forward } = cam.basis();
+    const project = (p: Vec3): [number, number] => { const q = cam.project(p, w, h); return [q[0], q[1]]; };
+    const o = propsRef.current.gizmo?.origin ?? propsRef.current.handles?.[0]?.at ?? cam.target, a = project(o), b = project([o[0] + right[0], o[1] + right[1], o[2] + right[2]]);
+    const perMm = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return { project, forward, size: GIZMO_PX / perMm };
+  };
+  const sk0 = () => propsRef.current.sketch;
+  const gizmoHit = (x: number, y: number) => { const p = propsRef.current; return (p.gizmo || p.handles?.length) && canvas.current ? hitTest([x, y], p.gizmo, p.handles ?? [], projector()) : null; };
+  /** A gizmo drag from its start to (x, y): calls the handler with the whole move, turn or value so far. */
+  const gizmoDrag = (x: number, y: number, shift: boolean, done: boolean) => {
+    const d = drag.current, p = propsRef.current, g = p.gizmo, P = projector(), hit = d.hit!;
+    d.x = x; d.y = y;
+    if (hit.kind === 'handle') {
+      const hd = p.handles?.[hit.index]; if (!hd) return;
+      const mm = dragAlong(d.from!, [x, y], hd.at, hd.dir, P);
+      d.value = hd.toValue(d.start!, mm); hd.onDrag(d.value, done); return;
+    }
+    if (!g) return;
+    if (hit.kind === 'move' || hit.kind === 'plane') {
+      const delta: Vec3 = [0, 0, 0], step = shift ? 0.1 : 1;
+      // (Measured from the gizmo where the drag began: it moves with the selection meanwhile.)
+      const o = d.origin ?? g.origin;
+      if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
+      else { const dir: Vec3 = [0, 0, 0]; dir[hit.axis] = 1; delta[hit.axis] = snapTo(dragAlong(d.from!, [x, y], o, dir, P), step); }
+      d.delta = delta; g.onMove?.(delta, done); return;
+    }
+    // A turn adds up the sweep step by step, so it can go past half a turn.
+    d.turned = (d.turned ?? 0) + dragTurn(d.last!, [x, y], g.origin, hit.axis, P); d.last = [x, y];
+    const step = shift ? 1 : g.turnSnap?.(hit.axis) ?? 15;
+    d.degrees = snapTo(d.turned, step); g.onTurn?.(hit.axis, d.degrees, done);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
-    const axes = gizmoAxes();
-    if (e.button === 0 && axes) {
-      const hit = axes.tips.findIndex(t => Math.hypot(t[0] - x, t[1] - y) < 14);
-      if (hit >= 0) { drag.current = { mode: 'gizmo', x, y, axis: hit, start: [...propsRef.current.gizmo!.values] as Vec3, moved: false }; return; }
+    const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
+    if (hit) {
+      const start = hit.kind === 'handle' ? propsRef.current.handles![hit.index].value : undefined;
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
+      return;
     }
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
     else if (e.button === 1 || (e.button === 2 && e.shiftKey)) drag.current = { mode: 'pan', x, y, moved: false };
@@ -242,12 +278,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const { x, y, w, h } = local(e); const d = drag.current; const r = renderer.current; if (!r) return;
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; request(); return; }
-    if (d.mode === 'gizmo') {
-      const axes = gizmoAxes()!; const k = d.axis!;
-      const sx = axes.tips[k][0] - axes.p0[0], sy = axes.tips[k][1] - axes.p0[1]; const sl = Math.hypot(sx, sy) || 1;
-      const along = ((x - d.x) * sx + (y - d.y) * sy) / sl; const mm = (along / sl) * axes.len;
-      const values: Vec3 = [...d.start!] as Vec3; values[k] = snap(d.start![k] + mm);
-      propsRef.current.gizmo!.onDrag(values); d.moved = true; return;
+    if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
+    if (!d.mode && !sk0()) {
+      const hot = gizmoHit(x, y);
+      if (JSON.stringify(hot) !== JSON.stringify(gizmoHot.current)) { gizmoHot.current = hot; request(); }
+      if (hot) { canvas.current!.style.cursor = 'grab'; return; }
+      canvas.current!.style.cursor = '';
     }
     const sk = propsRef.current.sketch;
     if (!sk && e.buttons === 1 && d.x0 !== undefined && (d.mode === 'box' || Math.hypot(x - d.x0, y - d.y0!) > 5)) {
@@ -290,6 +326,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
+    if (d.mode === 'gizmo') { drag.current = d; gizmoDrag(x, y, e.shiftKey, true); drag.current = { mode: null, x: 0, y: 0, moved: false }; request(); return; }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const { face, edge } = pickAt(renderer.current!, x, y);
@@ -462,6 +499,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (dr.mode === 'box' && dr.x0 !== undefined) {
       const crossing = dr.x < dr.x0;
       items.push(<rect key="box" x={Math.min(dr.x0, dr.x)} y={Math.min(dr.y0!, dr.y)} width={Math.abs(dr.x - dr.x0)} height={Math.abs(dr.y - dr.y0!)} className={crossing ? 'marquee crossing' : 'marquee'} />);
+    }
+    // The gizmo and feature handles, and while one is dragged what the drag means.
+    if (props.gizmo || props.handles?.length) {
+      const g = drag.current.mode === 'gizmo' ? drag.current : null, hit = g?.hit;
+      const readout = !g || !hit ? null : { at: [g.x, g.y] as [number, number], text: hit.kind === 'handle' ? (props.handles?.[hit.index] ? `${props.handles[hit.index].label} ${props.handles[hit.index].format(g.value ?? g.start ?? 0)}` : '')
+        : hit.kind === 'move' ? `Δ${'XYZ'[hit.axis]} ${fmtLen(g.delta?.[hit.axis] ?? 0)} mm`
+        : hit.kind === 'plane' ? hit.axes.map(a => `Δ${'XYZ'[a]} ${fmtLen(g.delta?.[a] ?? 0)}`).join('  ') + ' mm' : `${'XYZ'[hit.axis]} ${fmtLen(g.degrees ?? 0)}°` };
+      items.push(...gizmoMarks(props.gizmo, props.handles ?? [], projector(), g ? hit ?? null : gizmoHot.current, readout));
     }
     // Axis triad, bottom-left, following the camera.
     const { right, up } = cam.basis(); const tx = 92, ty = h - 64;

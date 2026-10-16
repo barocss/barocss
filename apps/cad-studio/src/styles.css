@@ -223,3 +223,13 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .timeline .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
 .timeline .key-chip { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 10px; padding: 0 6px; }
 .timeline .link { border: 0; background: transparent; color: var(--text); font: 500 11px var(--mono); cursor: pointer; padding: 0; }
+
+/* Viewport gizmo (viewport/GizmoMarks.tsx): the centre dot and feature handles (accent when hot). */
+.vp-overlay .gizmo-origin { fill: #ffffff; stroke: #1d1e21; stroke-width: 1.5; }
+.vp-overlay .gizmo-handle line { stroke: #8fb8ff; }
+.vp-overlay .gizmo-handle polygon, .vp-overlay .gizmo-handle circle { fill: #8fb8ff; stroke: #1d1e21; stroke-width: 0.8; }
+.vp-overlay .gizmo-handle.hot line { stroke: #f5c542; }
+.vp-overlay .gizmo-handle.hot polygon, .vp-overlay .gizmo-handle.hot circle { fill: #f5c542; }
+:root[data-theme='light'] .vp-overlay .gizmo-origin { stroke: #5a5d63; }
+:root[data-theme='light'] .vp-overlay .gizmo-handle line { stroke: #2f6fd6; }
+:root[data-theme='light'] .vp-overlay .gizmo-handle polygon, :root[data-theme='light'] .vp-overlay .gizmo-handle circle { fill: #2f6fd6; stroke: #ffffff; }

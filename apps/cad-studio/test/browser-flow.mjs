@@ -879,6 +879,38 @@ try {
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
   });
 
+  await check('drag a part instance with its gizmo: along X, then a turn about Z; undo puts it back', async () => {
+    // (The copy is selected after Duplicate.)
+    await page.waitForSelector('[data-gizmo=moveX]', { timeout: 10000 });
+    const before = await page.evaluate(() => window.__studioDoc.instances[1]);
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const pointOf = (sel, at) => page.evaluate(([sel, at]) => {
+      const el = document.querySelector(sel);
+      if (el.tagName === 'line') { const g = n => Number(el.getAttribute(n)); return [g('x1') + (g('x2') - g('x1')) * at, g('y1') + (g('y2') - g('y1')) * at]; }
+      const ps = el.getAttribute('points').trim().split(' ').map(q => q.split(',').map(Number)); return ps[Math.round((ps.length - 1) * at)];
+    }, [sel, at]);
+    const drag = async (from, to, steps = 8) => { await page.mouse.move(svg.x + from[0], svg.y + from[1]); await page.mouse.down(); await page.mouse.move(svg.x + to[0], svg.y + to[1], { steps }); await page.mouse.up(); };
+    // Along X: as far again as the arrow is long on screen moves it the arrow's length in mm.
+    const a0 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 0.5), a1 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 1);
+    await drag(a0, [a0[0] + (a1[0] - a0[0]) * 2, a0[1] + (a1[1] - a0[1]) * 2]);
+    await page.waitForFunction(x => window.__studioDoc.instances[1].position[0] > x + 1, before.position[0], { timeout: 5000 });
+    const moved = await page.evaluate(() => window.__studioDoc.instances[1]);
+    assert.deepEqual([moved.position[1], moved.position[2], moved.rotation], [before.position[1], before.position[2], before.rotation]);
+    // A quarter sweep round the Z arc: the copy turns about world Z in 15° steps.
+    await page.waitForTimeout(400);
+    const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
+    const m = await pointOf('[data-gizmo=turnZ] polyline:nth-of-type(2)', 0.5), r = Math.hypot(m[0] - o[0], m[1] - o[1]), a = Math.atan2(m[1] - o[1], m[0] - o[0]);
+    await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
+    for (let k = 1; k <= 10; k++) await page.mouse.move(svg.x + o[0] + r * Math.cos(a - k * Math.PI / 40), svg.y + o[1] + r * Math.sin(a - k * Math.PI / 40));
+    await page.mouse.up();
+    await page.waitForFunction(z => Math.abs(window.__studioDoc.instances[1].rotation[2] - z) >= 15, before.rotation[2], { timeout: 5000 });
+    const turned = await page.evaluate(() => window.__studioDoc.instances[1]);
+    assert.equal(Math.abs(turned.rotation[2] - before.rotation[2]) % 15, 0, `a 15° step: ${turned.rotation[2]}`);
+    await snap('instance-gizmo');
+    await press('Meta+z'); await press('Meta+z');
+    await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 5000 });
+  });
+
   await check('mate the copy to the fixed bracket by its faces', async () => {
     const ids = await page.evaluate(() => window.__studioDoc.instances.map(i => i.id));
     const placed = () => page.evaluate(() => window.__studioDoc.instances.map(i => ({ p: i.position, r: i.rotation, fixed: !!i.grounded })));

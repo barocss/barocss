@@ -8,7 +8,7 @@ import type { Vec3 } from './engine/mesh';
 import { commands, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
-import { Viewport, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
+import { Viewport, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
@@ -26,6 +26,7 @@ import { deleteFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
+import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
@@ -88,6 +89,12 @@ export function App() {
   const [pick, setPick] = useState<Vec3 | null>(null);
   const [active, setActive] = useState<Active | null>(null);
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
+  /**
+   * A Move gizmo drag: the moved body follows at once as an offset of the evaluated part (`values`, the
+   * whole Move); once let go it stays until the preview of those values arrives (`settling`).
+   */
+  const [moveDrag, setMoveDrag] = useState<{ values: Vec3; settling: boolean } | null>(null);
+  const previewFor = useRef<string | null>(null);
   const [sketch, setSketch] = useState<SketchState | null>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
@@ -308,7 +315,7 @@ export function App() {
       try { candidate = active.cmd.build!(active.ctx, active.values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
       engine.evaluate(candidate, revision.current++).then(result => {
         if (!live || !result) return;
-        if (result.ok) { setPreviewBodies(result.bodies); setActive(a => a && { ...a, preview: 'ok', error: undefined }); }
+        if (result.ok) { previewFor.current = JSON.stringify(active.values); setPreviewBodies(result.bodies); setActive(a => a && { ...a, preview: 'ok', error: undefined }); }
         else { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
       });
     }, 140);
@@ -568,18 +575,59 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const shownBodies = previewBodies ?? bodies;
+  const shownBodies = moveDrag ? bodies : previewBodies ?? bodies;
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const shownSelection = previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
-  const gizmo = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
+  /** The Move values when a gizmo drag began (its moves are from there). */
+  const moveFrom = useRef<Vec3 | null>(null);
+  const gizmo: TransformGizmo | null = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
     const b = bodies[selectedBodies(active.ctx.selection)[0]]; const { min, max } = b.mesh.bounds;
-    return { origin: [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, max[2]] as Vec3, values: [Number(active.values.x), Number(active.values.y), Number(active.values.z)] as Vec3,
-      onDrag: (v: Vec3) => setActive(a => a && { ...a, values: { ...a.values, x: v[0], y: v[1], z: v[2] }, preview: 'busy' }) };
+    const v: Vec3 = [Number(active.values.x), Number(active.values.y), Number(active.values.z)];
+    return { origin: [(min[0] + max[0]) / 2 + v[0], (min[1] + max[1]) / 2 + v[1], max[2] + v[2]], move: [0, 1, 2],
+      onMove: (delta, done) => {
+        const from = moveFrom.current ?? (moveFrom.current = v), next: Vec3 = [from[0] + delta[0], from[1] + delta[1], from[2] + delta[2]];
+        setMoveDrag({ values: next, settling: done });
+        setActive(a => a && { ...a, values: { ...a.values, x: next[0], y: next[1], z: next[2] }, preview: 'busy' });
+        if (done) moveFrom.current = null;
+      } };
   })() : null;
+  // Let go: the offset stays until the preview of the final values is in, then the preview shows.
+  useEffect(() => { if (moveDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setMoveDrag(null); }, [previewBodies, moveDrag, active]);
+  useEffect(() => { if (active?.cmd.id !== 'move') setMoveDrag(null); }, [active?.cmd.id]);
+  const moved = moveDrag && active?.cmd.id === 'move' ? selectedBodies(active.ctx.selection)[0] : undefined;
+  const dragOffsets = useMemo(() => moved !== undefined && moveDrag ? new Map([[moved, moveDrag.values]]) : null, [moved, moveDrag]);
+
+  // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
+  // (only what its mates leave free). It follows at once on screen; let go, it is placed (mates re-solve)
+  // and shown as dragged until it is evaluated where it lands.
+  const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
+  const selectedInst = instanceSel.length === 1 ? doc.instances?.find(i => i.id === instanceSel[0]) : undefined;
+  const instGizmo: TransformGizmo | null = (() => {
+    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft) return null;
+    const ib = instanceBodies.get(selectedInst.id), axes = gizmoAxes(selectedInst, assembly.freedom[selectedInst.id]);
+    if (!ib?.bodies.length || !axes) return null;
+    const lo = [0, 1, 2].map(k => Math.min(...ib.bodies.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...ib.bodies.map(b => b.mesh.bounds.max[k])));
+    const centre = [0, 1, 2].map(k => (lo[k] + hi[k]) / 2) as Vec3, d = instDrag?.id === selectedInst.id && instDrag.drag.kind === 'move' ? instDrag.drag.delta : [0, 0, 0];
+    const place = (next: (i: PartInstance) => PartInstance, drag: InstanceDrag, done: boolean, nothing: boolean) => {
+      if (done && nothing) { setInstDrag(null); return; }
+      setInstDrag({ id: selectedInst.id, drag, settling: done, key: ib.key });
+      if (done) commitInstances((doc.instances ?? []).map(i => i.id === selectedInst.id ? next(i) : i));
+    };
+    return { origin: [centre[0] + d[0], centre[1] + d[1], centre[2] + d[2]], move: axes.move, turn: axes.turn,
+      onMove: (delta, done) => place(i => movedInstance(i, delta), { kind: 'move', delta }, done, delta.every(v => v === 0)),
+      onTurn: (axis, degrees, done) => place(i => turnedInstance(i, axis, degrees, centre), { kind: 'turn', axis, degrees, centre }, done, degrees === 0) };
+  })();
+  // Placed: the preview goes once the instance is evaluated where it landed (or after a moment, when the mates put it back).
+  useEffect(() => {
+    if (!instDrag?.settling) return;
+    if (instanceBodies.get(instDrag.id)?.key !== instDrag.key) { setInstDrag(null); return; }
+    const t = setTimeout(() => setInstDrag(null), 3000); return () => clearTimeout(t);
+  }, [instDrag, instanceBodies]);
+  const instancePreview = useMemo(() => instDrag ? { id: instDrag.id, matrix: previewMatrix(instDrag.drag) } : null, [instDrag]);
 
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
@@ -588,8 +636,8 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} instancePreview={instancePreview} render={rendering ? render : null}
+        direct={directShown} directSelection={directSel} offsets={dragOffsets ?? animatedOffsets} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
