@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
-import { cylinderPart, placedDoc, rectanglePart, starterDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { faceTableOf } from '../src/assembly/faces';
-import { BASE, eulerOf, rotationMatrix, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
+import { BASE, eulerOf, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
 
 const near = (a: number, e: number, tol = 1e-9) => Math.abs(a - e) < tol;
 const inst = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0], rotation: [number, number, number] = [0, 0, 0]): PartInstance =>
@@ -210,5 +210,66 @@ test('mates: tangent puts a round face against a flat one, from either side', ()
   assert.deepEqual(t.instances[1].position, [4, 0, 0]);
   assert.deepEqual(solveAssembly([post, plate], [{ ...touch, flip: true }], tablesFor(base, [post, plate])).instances[1].position, [-4, 0, 0]);
   // Two flat faces cannot be tangent.
-  assert.match(solveAssembly([pin], [{ ...lie, b: { part: 'pin', face: 'n1.bottom' } }], tablesFor(base, [pin])).problems[0].reason, /Tangent needs a flat face and a round face/);
+  assert.match(solveAssembly([pin], [{ ...lie, b: { part: 'pin', face: 'n1.bottom' } }], tablesFor(base, [pin])).problems[0].reason, /Tangent needs a round face, and a flat or another round face/);
+});
+
+test('mates: two round faces tangent — side by side, inside a hole, and with a direction held', () => {
+  const base = starterDoc(), post = { ...inst('post', cylinderPart(4, 20)), grounded: true }, pin = inst('pin', cylinderPart(3, 10), [20, 0, 5]);
+  const touch: Mate = { id: 'm1', kind: 'tangent', a: { part: 'post', face: 'n1.side0' }, b: { part: 'pin', face: 'n1.side0' } };
+  const r = solveAssembly([post, pin], [touch], tablesFor(base, [post, pin]));
+  assert.deepEqual(r.problems, []);
+  // Straight in towards the post until the axes are 4 + 3 apart; its height stays.
+  assert.deepEqual(r.instances[1].position, [7, 0, 5]);
+  assert.deepEqual(solveAssembly(r.instances, [touch], tablesFor(base, r.instances)).instances, r.instances, 'solved again: unchanged');
+  // Flipped: inside each other, 4 − 3 apart.
+  assert.deepEqual(solveAssembly([post, pin], [{ ...touch, flip: true }], tablesFor(base, [post, pin])).instances[1].position, [1, 0, 5]);
+  // A pin against the wall of the plate's Ø8 hole: inside it by default.
+  const loose = inst('pin', cylinderPart(3, 10), [40, 16, 0]);
+  const wall = solveAssembly([loose], [{ ...touch, a: { part: BASE, face: 'n2.side0' } }], tablesFor(base, [loose]));
+  assert.deepEqual(wall.instances[0].position, [33, 16, 0]);
+  // Also tangent to the plate's front face (y = 0): only X is left to reach the post.
+  const front: Mate = { id: 'm2', kind: 'tangent', a: { part: BASE, face: 'n1.side0' }, b: { part: 'pin', face: 'n1.side0' } };
+  const far = { ...post, position: [10, -10, 0] as [number, number, number] }, start = inst('pin', cylinderPart(3, 10), [30, -3, 0]);
+  const both = solveAssembly([far, start], [front, { ...touch }], tablesFor(base, [far, start]));
+  assert.deepEqual(both.problems, []);
+  both.instances[1].position.forEach((v, k) => assert.ok(near(v, [10, -3, 0][k], 1e-6), String(both.instances[1].position)));
+  const tooFar = { ...post, position: [10, -12, 0] as [number, number, number] };
+  const no = solveAssembly([tooFar, start], [front, touch], tablesFor(base, [tooFar, start]));
+  assert.match(no.problems[0].reason, /Conflicts with Tangent 1: they hold pin so the axes can only be at least 9 mm apart, not 7 mm/);
+});
+
+test('mates: any rotation is placed exactly (Z turns between quarter turns about X)', () => {
+  const turn = (axis: 'x' | 'y' | 'z', deg: number) => rotationMatrix(axis === 'x' ? [deg, 0, 0] : axis === 'y' ? [0, deg, 0] : [0, 0, deg]);
+  const mul = (a: number[], b: number[]) => [0, 1, 2].flatMap(i => [0, 1, 2].map(j => a[i * 3] * b[j] + a[i * 3 + 1] * b[3 + j] + a[i * 3 + 2] * b[6 + j]));
+  for (const rot of [[45, 0, 0], [30, 20, 10], [0, 33, 0], [-120, 75, 200], [90, 0, 45], [180, 0, 30]] as [number, number, number][]) {
+    const steps = rotationSteps(rot);
+    // The kernel turns about X and Y by quarter turns only.
+    for (const s of steps) if (s.axis !== 'z') assert.ok(s.angleDegrees % 90 === 0, `${rot}: ${JSON.stringify(steps)}`);
+    const m = steps.reduce<number[]>((acc, s) => mul(turn(s.axis, s.angleDegrees), acc), rotationMatrix([0, 0, 0]));
+    rotationMatrix(rot).forEach((v, k) => assert.ok(near(v, m[k], 1e-12), `${rot}: ${JSON.stringify(steps)}`));
+  }
+  // Quarter turns keep the plain X → Y → Z steps (documents built before stay the same).
+  assert.deepEqual(rotationSteps([90, 0, 45]), [{ axis: 'x', angleDegrees: 90 }, { axis: 'z', angleDegrees: 45 }]);
+  // A 10 × 10 × 4 block turned 30°, 20°, 10° builds, its box where its corners go.
+  const rot: [number, number, number] = [30, 20, 10], block = inst('b', rectanglePart(10, 10, 4), [5, 6, 7], rot), R = rotationMatrix(rot);
+  const b = boundsOf(block);
+  for (const k of [0, 1, 2]) {
+    const xs = [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const p = [i & 1 ? 10 : 0, i & 2 ? 10 : 0, i & 4 ? 4 : 0]; return R[k * 3] * p[0] + R[k * 3 + 1] * p[1] + R[k * 3 + 2] * p[2] + block.position[k]; });
+    assert.ok(near(b.min[k], Math.min(...xs), 1e-5) && near(b.max[k], Math.max(...xs), 1e-5), `${k}: ${JSON.stringify(b)} ${Math.min(...xs)} ${Math.max(...xs)}`);
+  }
+});
+
+test('mates: a block flush on a 45° chamfer and on a 30° tilted top is placed and builds (QA A1)', () => {
+  const blk = inst('blk', rectanglePart(10, 10, 4), [60, 0, 0]);
+  const chamfered = withNode(rectanglePart(40, 40, 20), { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], distance: 10 });
+  const onChamfer = solveAssembly([blk], [{ id: 'm1', kind: 'coincident', a: { part: BASE, face: 'n2.face' }, b: { part: 'blk', face: 'n1.bottom' } }], tablesFor(chamfered, [blk]));
+  assert.deepEqual(onChamfer.problems, []);
+  assert.deepEqual(onChamfer.instances[0].rotation, [45, 0, 0], 'a clean 45°');
+  boundsOf(onChamfer.instances[0]);
+  const tilted = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 20], plane: { origin: [0, 0, 0], normal: [0, 0.5, Math.sqrt(3) / 2], xAxis: [1, 0, 0] } }), { kind: 'extrude', sketch: 0, height: 8 });
+  const onTilt = solveAssembly([blk], [{ id: 'm1', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part: 'blk', face: 'n1.bottom' } }], tablesFor(tilted, [blk]));
+  assert.deepEqual(onTilt.problems, []);
+  assert.deepEqual(onTilt.instances[0].rotation, [-30, 0, 0]);
+  const b = boundsOf(onTilt.instances[0]);
+  assert.ok(b.max[2] > b.min[2] + 4, JSON.stringify(b));
 });

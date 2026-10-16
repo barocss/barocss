@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "type-check": "tsc --noEmit",
     "test": "node scripts/test.mjs",
-    "test:browser": "node test/browser-flow.mjs"
+    "test:browser": "node test/browser-flow.mjs",
+    "chat": "node scripts/chat-server.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",

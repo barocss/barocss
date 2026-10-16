@@ -422,6 +422,54 @@ try {
     await snap('angle'); await press('Escape');
   });
 
+  await check('undo and redo step through constraint edits while sketching', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    const list = () => page.locator('.sk-panel [role=list]').innerText();
+    await press('s'); await clickAt(cx + 140, cy); await page.click('[aria-label="Vertical"]');
+    assert.match(await list(), /Vertical\s*edge 2/); assert.match(await status(), /4 DOF/);
+    await page.click('[aria-label="Remove Horizontal edge 1"]'); assert.match(await status(), /5 DOF/);
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); assert.match(await list(), /Horizontal\s*edge 1/); assert.match(await status(), /4 DOF/);
+    await press('Meta+z'); assert.doesNotMatch(await list(), /Vertical/); assert.match(await status(), /5 DOF/);
+    await press('Meta+Shift+z'); assert.match(await list(), /Vertical\s*edge 2/);
+    // Nothing left to undo while sketching leaves the model behind the sketch alone.
+    await press('Meta+z'); await press('Meta+z'); await press('Meta+z');
+    assert.ok(await page.locator('.sk-panel').count() > 0); assert.doesNotMatch(await list(), /Vertical/);
+    await press('Escape');
+  });
+
+  await check('tool keys leave a number box; a finished outline keeps its dimensions; overlapping shapes are refused', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // Typing a length leaves focus in its box; a tool key still switches the tool and leaves the box.
+    await page.fill('#sk-len0', '60'); await press('r');
+    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Rectangle/);
+    assert.notEqual(await page.evaluate(() => document.activeElement?.tagName), 'INPUT');
+    await press('s'); assert.equal(await page.inputValue('#sk-len0'), '60', 'outline back after S');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes[0].outline?.lengths?.[0], 60, 'outline kept in the sketch node');
+    // The feature editor offers the outline's driving dimension.
+    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    const ed = page.locator('.node-editor .field', { has: page.locator('span:text-is("Length of edge 1")') }).locator('input');
+    assert.equal(await ed.inputValue(), '60', 'feature editor length');
+    await ed.fill(''); await ed.fill('50'); await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 50, null, { timeout: 15000 });
+    const n0 = (await doc()).nodes[0], [p0, p1] = n0.points;
+    assert.ok(Math.abs(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) - 50) < 1e-6, JSON.stringify(n0.points));
+    await press('Escape');
+    // Two crossing rectangles in one sketch: refused with the reason, the sketch stays open.
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r');
+    await clickAt(cx - 120, cy - 60); await clickAt(cx + 40, cy + 60); await clickAt(cx - 20, cy - 100); await clickAt(cx + 140, cy + 20);
+    await press('Enter');
+    assert.match(await page.locator('.toast[role=alert]').innerText(), /Shapes 1 and 2 overlap/);
+    assert.ok(await page.locator('.sk-panel').count() > 0);
+    await page.click('.toast [aria-label="Dismiss"]'); await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
@@ -772,7 +820,70 @@ try {
     await page.fill('[aria-label="Instance Z"] >> nth=1', '90'); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.instances[0].rotation[2] === 90);
     await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
+    // With the instance still selected, a History chip opens the feature editor.
+    await page.locator('.history .hs').first().click();
+    await page.waitForSelector('.node-editor');
+    await page.click('[aria-label="Close editor"]');
     await page.evaluate(() => document.activeElement?.blur());
+  });
+
+  await check('chat builds a plate through a mocked chat server', async () => {
+    // The chat server's replies are scripted (it runs the claude CLI with the studio's tools for real).
+    const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
+    const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
+    const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'run_command', input: { command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
+    for (const [x, y] of [[6, 6], [58, 6], [6, 26], [58, 26]]) {
+      nodes.push({ kind: 'hole', parent: { node: nodes.length - 1, side: 'solid' }, center: [x, y], radius: 4 });
+      events.push({ type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x, y } }, summary: 'Hole', isError: false }, { type: 'state', doc: docOf(nodes) });
+    }
+    nodes.push({ kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
+    const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
+    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
+      { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
+    const requests = [];
+    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.route(turnUrl, r => {
+      const body = r.request().postDataJSON(); requests.push(body);
+      const reply = requests.length === 1 ? events : [{ type: 'text', delta: requests.length === 2 ? 'You’re welcome.' : 'That drawing shows the same plate.' }, { type: 'done', session: body.session, end: 'done' }];
+      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
+    });
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Chat"]');
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Done:")', { timeout: 30000 });
+    await page.waitForFunction(() => /Fillet R2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
+    assert.equal(await page.locator('.chat-tool').count(), 6);
+    assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*${expected} mm³`));
+    assert.equal(requests[0].doc.nodes.length, 0); assert.equal(requests[0].session, undefined);
+    // The next message resumes the same CLI conversation and leaves the part as it is.
+    await input.fill('thanks'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
+    assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    // An attached drawing goes with the next message, scaled and as base64, shown as a thumbnail.
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('[aria-label="Remove plate.png"]'); assert.equal(await page.locator('[aria-label="Attached images"]').count(), 0);
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('.chat-input button:text-is("Send")');
+    await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
+    assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
+    assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
+    assert.match(requests[2].text, /image/);
+    assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
+    // One undo takes the whole first turn back.
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
+    await page.click('[aria-label="Close chat"]');
+    await page.unroute(statusUrl); await page.unroute(turnUrl);
   });
 
   await check('command palette and light theme', async () => {
