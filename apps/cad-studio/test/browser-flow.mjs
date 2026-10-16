@@ -1344,6 +1344,21 @@ try {
     await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
   });
 
+  await check('interference: a cylinder through a box is found, with its overlap', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await press('Escape'); await press('y'); await hudReady();
+    await field('Centre X').fill('16'); await field('Centre Y').fill('16'); await field('Radius').fill('4'); await field('Height').fill('30');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await press(' '); await page.locator('.palette input').fill('interference'); await press('Enter');
+    await page.waitForFunction(() => /∩/.test(document.querySelector('aside[aria-label="Interference"]')?.textContent ?? ''), null, { timeout: 20000 });
+    const text = await page.locator('aside[aria-label="Interference"]').innerText();
+    assert.match(text, /Box ∩ Cylinder[\s\S]*804\.2 mm³/, text);
+    await page.locator('.ol.clash').click();
+    await page.waitForFunction(() => /2 selected/.test(document.querySelector('.props[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

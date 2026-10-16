@@ -158,6 +158,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     {[0, 90, 180, 270].map((a, k) => { const r = a * Math.PI / 180, x = 12 + 7.5 * Math.sin(r), y = 12 - 7.5 * Math.cos(r); return <rect key={a} x={f1(x - 2.3)} y={f1(y - 2.3)} width="4.6" height="4.6" rx="1" className={k === 0 ? 'ac' : undefined} style={k ? tone(0.2) : acTone} strokeOpacity={k ? 0.6 : 1} />; })}</>,
   // A block cut in two by a plane between the halves.
   'cad-split': <>{block(0, 0, 0, 1, 0.42, 1)}{face(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]), 0, true)}{ac(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]))}{block(0, 0.58, 0, 1, 1, 1)}</>,
+  // Two blocks overlapping, the overlap lit.
+  'cad-interference': <><g transform="translate(-3.4 -1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g><g transform="translate(3.4 1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g>{face('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z', 0, true)}{ac('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z')}</>,
   // A rule with ticks.
   'cad-measure': <>{face('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z', TONE.right)}{line('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z')}{ac('M6.2 12.2l2.2 2.2M9 9.4l1.5 1.5M11.8 6.6l2.2 2.2M14.6 3.8l1.5 1.5')}</>,
   // Primitive solids.

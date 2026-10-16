@@ -33,7 +33,7 @@ export interface Command {
   defaults?(ctx: Ctx): Values;
   build?(ctx: Ctx, values: Values): StudioDoc;
   /** Commands without a build run a UI action (sketch mode, measure, …). */
-  action?: 'sketch' | 'measure';
+  action?: 'sketch' | 'measure' | 'interference';
   /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
   handles?(ctx: Ctx, values: Values): HandleSpec[];
   /** A face or edge clicked in the viewport while it runs (a revolve's axis): new values, or why it cannot be used. */
@@ -505,6 +505,8 @@ const allCommands: Command[] = [
       return withNode(ctx.doc, node);
     },
   })),
+  { id: 'interference', label: 'Interference', icon: 'cad-interference', hint: 'Where bodies overlap, and by how much (the picked bodies, or all of them)', group: 'inspect', keywords: 'clash collision overlap check',
+    available: ctx => ctx.bodies.length > 1 ? ok : no('Interference needs two or more bodies.'), action: 'interference' },
   { id: 'measure', label: 'Measure', icon: 'cad-measure', hint: 'Distances, angles and sizes between picked faces and edges', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
 ];
 export const commands: Command[] = allCommands.map(c => c.place && c.build ? remembered(c) : c);

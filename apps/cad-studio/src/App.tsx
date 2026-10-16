@@ -159,6 +159,8 @@ export function App() {
   /** The body whose name is being typed in the browser (its key). */
   const [renaming, setRenaming] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
+  /** The last interference check: each overlapping pair of bodies (by key) and its overlap, or 'busy'. */
+  const [clashes, setClashes] = useState<{ a: string; b: string; volume: number }[] | 'busy' | null>(null);
   /**
    * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
    * faces lit (the kernel's split, display only — the model is not changed).
@@ -443,6 +445,7 @@ export function App() {
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
+    if (cmd.action === 'interference') { void checkInterference(); return; }
     if (cmd.action === 'measure') {
       // Start from what is selected (one face or edge), then click what to measure to.
       const first: MeasurePick[] = selection.faces[0] ? [{ body: selection.faces[0].body, face: selection.faces[0].face }] : selection.edges[0] ? [{ body: selection.edges[0].body, edge: selection.edges[0].edge }] : [];
@@ -596,6 +599,24 @@ export function App() {
       commit(r.doc);
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
+  };
+  /**
+   * Interference: for each pair of the picked bodies (all, when fewer than two are picked) whose boxes
+   * overlap, the kernel's intersection of the two; a positive volume is a clash.
+   */
+  const checkInterference = async () => {
+    const picked = selectedBodies(selection), list = (picked.length > 1 ? picked : bodies.map((_, i) => i)).map(i => bodies[i]).filter(Boolean);
+    setClashes('busy'); setEditNode(null);
+    const found: { a: string; b: string; volume: number }[] = [];
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+      const A = list[i].mesh.bounds, B = list[j].mesh.bounds;
+      if ([0, 1, 2].some(k => A.max[k] <= B.min[k] + 1e-6 || B.max[k] <= A.min[k] + 1e-6)) continue;
+      const probe = withNode(evaluated, { kind: 'intersect', left: refOf(list[i]), right: refOf(list[j]) });
+      const r = await engine.part(probe, revision.current++);
+      const v = r.ok ? r.bodies.find(b => b.key === `b${probe.nodes.length - 1}`)?.volumeMM3 ?? 0 : 0;
+      if (v > 1e-6) found.push({ a: list[i].key, b: list[j].key, volume: v });
+    }
+    setClashes(found);
   };
   /**
    * Delete (the key): picked sketches; a picked face or edge of a feature added to a body (a hole, a
@@ -1013,6 +1034,13 @@ export function App() {
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
+      {clashes && !rendering && !sketch && <aside className="card props" aria-label="Interference">
+        <div className="card-title">INTERFERENCE <button className="tool tiny" aria-label="Close interference" onClick={() => setClashes(null)}><Icon name="close" small /></button></div>
+        {clashes === 'busy' ? <div className="empty">Checking…</div> : !clashes.length ? <div className="empty">No bodies overlap.</div>
+          : clashes.map(c => { const ia = bodies.findIndex(b => b.key === c.a), ib = bodies.findIndex(b => b.key === c.b); return (
+            <button key={c.a + c.b} className="ol clash" onClick={() => { if (ia >= 0 && ib >= 0) setSelection({ faces: [], edges: [], bodies: [ia, ib] }); }}>
+              <Icon name="warning" small />{ia >= 0 ? bodyName(doc, bodies[ia]) : c.a} ∩ {ib >= 0 ? bodyName(doc, bodies[ib]) : c.b}<span className="muted"> · {fmt(Math.round(c.volume * 10) / 10)} mm³</span></button>); })}
+      </aside>}
       {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>

@@ -318,3 +318,5 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* Sketch object snaps (sketch/osnap.ts). */
 .vp-overlay .sk-osnap rect, .vp-overlay .sk-osnap polygon, .vp-overlay .sk-osnap circle { fill: none; stroke: #4fd1c5; stroke-width: 1.6; }
 .vp-overlay .sk-osnap text { fill: #4fd1c5; font: 600 10px var(--sans); paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 3px; }
+.ol.clash { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; }
+.ol.clash .ms { color: #f0ad4e; }
