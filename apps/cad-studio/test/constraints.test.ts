@@ -227,3 +227,15 @@ test('angle dimensions between two lines: at a shared corner, between separate e
   assert.equal(first.editDim, 'len1');
   assert.equal(sketchClick(first, E(2), false).editDim, 'ang1_2');
 });
+
+test('sketch history steps back and forward through outline edits, and only over the shape it left', async () => {
+  const { SketchHistory } = await import('../src/sketch/history');
+  const h = new SketchHistory(), a = quad();
+  const b = ok(applyConstraint(a, [E(2)], 'horizontal')), c = removeConstraint(b, 'h:0');
+  h.push(a, b); h.push(b, c);
+  assert.equal(h.undo(c), b); assert.equal(h.undo(b), a); assert.equal(h.undo(a), null);
+  assert.equal(h.redo(a), b); assert.equal(h.redo(b), c); assert.equal(h.redo(c), null);
+  // A new edit after an undo drops the redo; a shape the history did not leave clears it.
+  assert.equal(h.undo(c), b); h.push(b, a); assert.equal(h.redo(a), null);
+  assert.equal(h.undo(quad()), null); assert.equal(h.canUndo, false);
+});

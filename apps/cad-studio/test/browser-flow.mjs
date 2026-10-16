@@ -422,6 +422,24 @@ try {
     await snap('angle'); await press('Escape');
   });
 
+  await check('undo and redo step through constraint edits while sketching', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    const list = () => page.locator('.sk-panel [role=list]').innerText();
+    await press('s'); await clickAt(cx + 140, cy); await page.click('[aria-label="Vertical"]');
+    assert.match(await list(), /Vertical\s*edge 2/); assert.match(await status(), /4 DOF/);
+    await page.click('[aria-label="Remove Horizontal edge 1"]'); assert.match(await status(), /5 DOF/);
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); assert.match(await list(), /Horizontal\s*edge 1/); assert.match(await status(), /4 DOF/);
+    await press('Meta+z'); assert.doesNotMatch(await list(), /Vertical/); assert.match(await status(), /5 DOF/);
+    await press('Meta+Shift+z'); assert.match(await list(), /Vertical\s*edge 2/);
+    // Nothing left to undo while sketching leaves the model behind the sketch alone.
+    await press('Meta+z'); await press('Meta+z'); await press('Meta+z');
+    assert.ok(await page.locator('.sk-panel').count() > 0); assert.doesNotMatch(await list(), /Vertical/);
+    await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
