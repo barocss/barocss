@@ -70,7 +70,7 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max' }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
-  /** About Z by any angle; about X or Y by multiples of 90°. */
+  /** About an axis through `pivot` (default the origin) by any angle; off quarter turns about X or Y the body leaves the upright family. */
   | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
   /** Mirror in a coordinate plane through the origin; `keep` also keeps the original (one body). */
   | { readonly kind: 'mirror'; readonly target: string; readonly plane: 'xy' | 'xz' | 'yz'; readonly keep?: boolean }
@@ -428,7 +428,6 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angleDegrees as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angleDegrees must be a finite number of degrees');
-      if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'rotations about X or Y must be multiples of 90°');
       return () => { const { m, o } = rotation(axis, deg, pivot); return moveAll(target, m, o); };
     }
     case 'mirror': {
@@ -628,11 +627,12 @@ function movedMass(p: SolidMassProperties, m: BrepAffine['matrix'], o: Point): S
 }
 function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];
-  if (axis === 'z') {
-    const quarter = Math.round(deg / 90) * 90 === deg;
-    if (quarter) m = quarterTurn('z', deg);
-    else { const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r); m = [c, -sn, 0, sn, c, 0, 0, 0, 1]; }
-  } else m = quarterTurn(axis, deg);
+  // Quarter turns exactly; any other angle by its sine and cosine.
+  if (Math.round(deg / 90) * 90 === deg) m = quarterTurn(axis, deg);
+  else {
+    const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+    m = axis === 'z' ? [c, -sn, 0, sn, c, 0, 0, 0, 1] : axis === 'x' ? [1, 0, 0, 0, c, -sn, 0, sn, c] : [c, 0, sn, 0, 1, 0, -sn, 0, c];
+  }
   const mp = [m[0] * pivot[0] + m[1] * pivot[1] + m[2] * pivot[2], m[3] * pivot[0] + m[4] * pivot[1] + m[5] * pivot[2], m[6] * pivot[0] + m[7] * pivot[1] + m[8] * pivot[2]];
   return { m, o: [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]] };
 }

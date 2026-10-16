@@ -186,8 +186,8 @@ vol('T07', 'split X=8 of 32 box → two bodies', withNode(b32, { kind: 'split', 
 refuse('T08', 'split plane outside the body', withNode(b32, { kind: 'split', parent: S(1), axis: 'x', at: 100 }), /misses/);
 refuse('T09', 'split plane exactly on a face (x=0)', withNode(b32, { kind: 'split', parent: S(1), axis: 'x', at: 0 }), /misses/);
 vol('T10', 'rotate Z 30° keeps volume', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'z', angleDegrees: 30 }), 16384);
-// Documented limit: only quarter turns about X/Y (refused with a plain reason).
-refuse('T11', 'rotate X 45° (non-quarter)', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'x', angleDegrees: 45 }), /quarter turns/);
+// Any angle about X/Y (it was a documented limit: only quarter turns).
+vol('T11', 'rotate X 45° keeps volume', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'x', angleDegrees: 45 }), 16384);
 refuse('T12', 'circular pattern ×6 about X (the UI never builds this; it steps by 90°)', withNode(box(10, 10, 5, 0, 20, 0), { kind: 'circular-pattern', parent: S(1), axis: 'x', angleDegrees: 60, count: 6 }), /quarter turns/);
 vol('T13', 'linear pattern of a holed plate ×2', withNode(starterDoc(), { kind: 'linear-pattern', parent: S(2), axis: 'y', spacing: 40, count: 2 }), 2 * (16384 - PI * 128));
 // --- Dependents / edits --------------------------------------------------------------------------

@@ -417,7 +417,10 @@ test('refusals name the feature and the reason', () => {
   const ell = [{ id: 'l', kind: 'sketch', profile: 'polygon', points: [[0, 0], [30, 0], [30, 5], [5, 5], [5, 20], [0, 20]] }, extrude('a', 'l', 4)];
   refused(D([...ell, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side2|a.top', 'a.side3|a.top'], radius: 1 }]), 'CAPABILITY', /inside corner of their face/);
   refused(D([...plate, circle('c', 5, 5, 3), extrude('b', 'c', 4, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|b.top'], radius: 3 }]), 'PARAMETER', /full round/);
-  refused(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45 }]), 'CAPABILITY', /multiples of 90/);
+  // Any angle about X or Y: the plate leaves the upright family and keeps its volume.
+  const tipped = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45, pivot: [5, 5, 2.5] }])).outputs[0];
+  assert.notEqual(tipped.representation, 'upright'); assert.ok(close(tipped.massProperties(1000).volumeMM3, 500));
+  assert.ok(close(tipped.brep.vertices.reduce((m, v) => Math.max(m, v.point[2]), -Infinity), 2.5 + Math.hypot(5, 2.5) * Math.sin(Math.PI / 4 + Math.atan2(2.5, 5))), 'its top corner where a 45° turn puts it');
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
   refused(D([rect('s', 0, 0, 10, 10), rect('s', 0, 0, 5, 5)]), 'FORMAT', /duplicate feature id/);
