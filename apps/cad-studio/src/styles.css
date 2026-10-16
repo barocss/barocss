@@ -233,3 +233,14 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 :root[data-theme='light'] .vp-overlay .gizmo-origin { stroke: #5a5d63; }
 :root[data-theme='light'] .vp-overlay .gizmo-handle line + line { stroke: #2f6fd6; }
 :root[data-theme='light'] .vp-overlay .gizmo-handle polygon, :root[data-theme='light'] .vp-overlay .gizmo-handle circle { fill: #2f6fd6; stroke: #ffffff; }
+
+/* CAD line icons (ui/cadIcons.tsx) and the app's tooltip (ui/Tooltip.tsx). */
+.cad-icon { display: inline-block; vertical-align: middle; flex: none; }
+.tool .cad-icon { width: 20px; height: 20px; }
+.tooltip { position: fixed; z-index: 50; max-width: 260px; padding: 7px 10px; pointer-events: none; display: flex; flex-direction: column; gap: 3px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.tooltip.right { transform: translateY(-50%); }
+.tooltip.below { transform: translateX(-50%); }
+.tooltip-head { display: flex; align-items: center; gap: 8px; }
+.tooltip-head b { font-weight: 600; }
+.tooltip-desc { color: var(--text-2); line-height: 1.4; }
+.tooltip-off { color: var(--warn); line-height: 1.4; }

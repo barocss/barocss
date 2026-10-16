@@ -21,6 +21,7 @@ import { DirectPanel } from './ui/DirectPanel';
 import { InstancePanel } from './ui/InstancePanel';
 import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
+import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from './chat/tools';
 import { deleteFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
@@ -773,20 +774,21 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
+      <TooltipLayer />
       <nav className="card toolbar" aria-label="Tools" hidden={rendering}>
         {sketch ? (<>
           {TOOLS.map(t => (
-            <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} title={`${t.label} (${t.key})`} aria-label={t.label}
+            <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} data-tip={t.label} data-tip-key={t.key} aria-label={t.label}
               onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
           <div className="sep" />
-          <button className="tool" title="Clear profile" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
+          <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}
             {commands.filter(c => c.group === g).map(c => {
               const a = c.available(ctx);
               return <button key={c.id} className={'tool' + (active?.cmd.id === c.id ? ' on' : '') + (a.ok ? '' : ' off')} aria-label={c.label}
-                title={`${c.label}${c.shortcut ? ` (${c.shortcut})` : ''}${a.ok ? '' : ' — ' + a.reason}`} onClick={() => start(c)}><Icon name={c.icon} /></button>;
+                data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}><Icon name={c.icon} /></button>;
             })}
           </div>))}
       </nav>

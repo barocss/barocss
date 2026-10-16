@@ -19,6 +19,8 @@ export const shownFields = (fields: Field[], values: Values) => fields.filter(f 
 export interface Command {
   id: string; label: string; icon: string; shortcut?: string; group: 'create' | 'modify' | 'pattern' | 'combine' | 'inspect';
   keywords?: string;
+  /** One line on what it does (the rail's tooltip). */
+  hint?: string;
   available(ctx: Ctx): { ok: true } | { ok: false; reason: string };
   fields?(ctx: Ctx): Field[];
   defaults?(ctx: Ctx): Values;
@@ -118,11 +120,11 @@ function edgesOfOneBody(ctx: Ctx) {
 
 export const commands: Command[] = [
   {
-    id: 'sketch', label: 'Sketch', icon: 'draw', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
+    id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
     available: () => ok, action: 'sketch',
   },
   {
-    id: 'box', label: 'Box', icon: 'deployed_code', shortcut: 'B', group: 'create', keywords: 'cube block plate',
+    id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,
     fields: () => [
       { key: 'w', label: 'Width X', kind: 'mm', min: 1 }, { key: 'd', label: 'Depth Y', kind: 'mm', min: 1 }, { key: 'h', label: 'Height Z', kind: 'mm', min: 1 },
@@ -146,7 +148,7 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'cylinder', label: 'Cylinder', icon: 'circle', shortcut: 'Y', group: 'create', keywords: 'rod shaft round boss',
+    id: 'cylinder', label: 'Cylinder', icon: 'cad-cylinder', hint: 'A round bar by radius and height', shortcut: 'Y', group: 'create', keywords: 'rod shaft round boss',
     available: () => ok,
     fields: () => [{ key: 'r', label: 'Radius', kind: 'mm', min: 0.5 }, { key: 'h', label: 'Height', kind: 'mm', min: 1 },
       { key: 'x', label: 'Centre X', kind: 'mm' }, { key: 'y', label: 'Centre Y', kind: 'mm' }, { key: 'z', label: 'At Z', kind: 'mm' }],
@@ -160,7 +162,7 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'hole', label: 'Hole', icon: 'radio_button_checked', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross',
+    id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face, through or to a depth', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross',
     available: ctx => {
       if (ctx.selection.faces.length !== 1) return no('Select the flat face where the hole goes in.');
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face];
@@ -190,7 +192,7 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'chamfer', label: 'Chamfer', icon: 'change_history', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
+    id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45°', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
       if (!sel) return no('Select edges of one body to chamfer (Shift-click for more).');
@@ -205,7 +207,7 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'fillet', label: 'Fillet', icon: 'rounded_corner', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
+    id: 'fillet', label: 'Fillet', icon: 'cad-fillet', hint: 'Round the picked edges', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
       if (!sel) return no('Select edges of one body to round (Shift-click for more).');
@@ -220,7 +222,7 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'shell', label: 'Shell', icon: 'inventory_2', group: 'modify', keywords: 'hollow wall thickness case enclosure',
+    id: 'shell', label: 'Shell', icon: 'cad-shell', hint: 'Hollow a body, leaving the picked faces open', group: 'modify', keywords: 'hollow wall thickness case enclosure',
     available: ctx => selectedBodies(ctx.selection).length === 1 ? ok : no('Select the faces to open (Shift-click for more), or a body to hollow closed.'),
     fields: () => [{ key: 't', label: 'Wall', kind: 'mm', min: 0.1 }],
     defaults: () => ({ t: 2 }),
@@ -230,15 +232,15 @@ export const commands: Command[] = [
       return withNode(ctx.doc, { kind: 'shell', parent: refOf(body), thickness: Number(v.t), open });
     },
   },
-  { id: 'draft', label: 'Draft', icon: 'signal_cellular_0_bar', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
+  { id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Lean faces away from a pull direction', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
   // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
-  { id: 'revolve', label: 'Revolve', icon: 'autorenew', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },
+  { id: 'revolve', label: 'Revolve', icon: 'cad-revolve', hint: 'Turn a profile about an axis into a solid', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },
   // Sketch the bottom section; finishing it lofts it to a top section above.
-  { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'taper transition blend sections ruled', available: () => ok, action: 'sketch' },
+  { id: 'loft', label: 'Loft', icon: 'cad-loft', hint: 'A solid through two or more sections', group: 'create', keywords: 'taper transition blend sections ruled', available: () => ok, action: 'sketch' },
   // Sketch a section; finishing it sweeps it along a run, a bend and a run.
-  { id: 'pipe', label: 'Pipe', icon: 'conversion_path', group: 'create', keywords: 'sweep tube bend path rail handle', available: () => ok, action: 'sketch' },
+  { id: 'pipe', label: 'Pipe', icon: 'cad-sweep', hint: 'Carry a profile along straight runs and bends', group: 'create', keywords: 'sweep tube bend path rail handle', available: () => ok, action: 'sketch' },
   {
-    id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
+    id: 'move', label: 'Move', icon: 'cad-move', hint: 'Move a body: drag the arrows, or type Δ or a position', shortcut: 'G', group: 'modify', keywords: 'translate position',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),
     // By Δ, or to a position: where the body's box corner (its least X, Y, Z) lands; each pair follows the other.
     fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' },
@@ -256,7 +258,7 @@ export const commands: Command[] = [
     build: (ctx, v) => withNode(ctx.doc, { kind: 'translate', parent: refOf(oneBody(ctx)!), offset: [Number(v.x), Number(v.y), Number(v.z)] }),
   },
   {
-    id: 'rotate', label: 'Rotate', icon: '3d_rotation', shortcut: 'R', group: 'modify', keywords: 'turn spin',
+    id: 'rotate', label: 'Rotate', icon: 'cad-rotate', hint: 'Turn a body about an axis through its centre', shortcut: 'R', group: 'modify', keywords: 'turn spin',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to rotate.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
       { key: 'angle', label: 'Angle', kind: 'deg', min: -360, max: 360, step: 15 },
@@ -266,14 +268,14 @@ export const commands: Command[] = [
     build: (ctx, v) => withNode(ctx.doc, { kind: 'rotate', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: Number(v.angle), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
   {
-    id: 'mirror', label: 'Mirror', icon: 'flip', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
+    id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a coordinate plane', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to mirror.'),
     fields: () => [{ key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }] }],
     defaults: () => ({ plane: 'yz' }),
     build: (ctx, v) => withNode(ctx.doc, { kind: 'mirror', parent: refOf(oneBody(ctx)!), plane: v.plane as 'yz' }),
   },
   {
-    id: 'linear-pattern', label: 'Linear pattern', icon: 'view_week', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
+    id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
       { key: 'spacing', label: 'Spacing', kind: 'mm', min: 1 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 24 }],
@@ -281,7 +283,7 @@ export const commands: Command[] = [
     build: (ctx, v) => withNode(ctx.doc, { kind: 'linear-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, spacing: Number(v.spacing), count: Number(v.count) }),
   },
   {
-    id: 'circular-pattern', label: 'Circular pattern', icon: 'motion_photos_on', group: 'pattern', keywords: 'polar array',
+    id: 'circular-pattern', label: 'Circular pattern', icon: 'cad-pattern-circular', hint: 'Copies of a body round an axis', group: 'pattern', keywords: 'polar array',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
       { key: 'count', label: 'Count', kind: 'count', min: 2, max: 36 }],
@@ -290,7 +292,7 @@ export const commands: Command[] = [
     build: (ctx, v) => withNode(ctx.doc, { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: v.axis === 'z' ? 360 / Number(v.count) : 90, count: v.axis === 'z' ? Number(v.count) : Math.min(4, Number(v.count)) }),
   },
   {
-    id: 'split', label: 'Split', icon: 'vertical_split', group: 'modify', keywords: 'cut plane divide',
+    id: 'split', label: 'Split', icon: 'cad-split', hint: 'Cut a body in two along a plane', group: 'modify', keywords: 'cut plane divide',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to split.'),
     fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] }, { key: 'at', label: 'At', kind: 'mm' }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
@@ -298,7 +300,8 @@ export const commands: Command[] = [
   },
   ...(['union', 'difference', 'intersect'] as const).map((kind): Command => ({
     id: kind, label: kind === 'union' ? 'Union' : kind === 'difference' ? 'Subtract' : 'Intersect',
-    icon: kind === 'union' ? 'join_full' : kind === 'difference' ? 'join_left' : 'join_inner',
+    icon: kind === 'union' ? 'cad-union' : kind === 'difference' ? 'cad-subtract' : 'cad-intersect',
+    hint: kind === 'union' ? 'Join two bodies into one' : kind === 'difference' ? 'Cut the second body out of the first' : 'Keep only where two bodies overlap',
     shortcut: kind === 'union' ? 'U' : kind === 'difference' ? 'D' : 'I', group: 'combine', keywords: 'boolean combine merge cut',
     available: ctx => selectedBodies(ctx.selection).length === 2 ? ok : no('Select two bodies (Shift-click the second).'),
     build: ctx => {
@@ -307,7 +310,7 @@ export const commands: Command[] = [
       return withNode(ctx.doc, node);
     },
   })),
-  { id: 'measure', label: 'Measure', icon: 'straighten', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
+  { id: 'measure', label: 'Measure', icon: 'cad-measure', hint: 'Distances, angles and sizes between picked faces and edges', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
 ];
 
 export const commandById = (id: string) => commands.find(c => c.id === id);
