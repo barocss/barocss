@@ -6,6 +6,7 @@ import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
 import { commands, refOf, selectedBodies, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
+import { editFields } from './app/editFields';
 import { Viewport, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
@@ -455,8 +456,8 @@ export function App() {
           </div>; })}
         </>}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge. Shift-click to pick bodies for a Boolean.</div>}
-        {editNode !== null && <NodeEditor node={doc.nodes[editNode]} onApply={node => {
-          const next = { ...doc, nodes: doc.nodes.map((n, i) => i === editNode ? node : n) };
+        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onApply={nodes => {
+          const next = { ...doc, nodes };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onClose={() => setEditNode(null)} />}
       </aside>}
@@ -527,31 +528,25 @@ function iconFor(n: ModelNode) {
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
-function NodeEditor({ node, onApply, onClose }: { node: ModelNode; onApply(n: ModelNode): void; onClose(): void }) {
-  const [draft, setDraft] = useState<ModelNode>(node);
-  useEffect(() => setDraft(node), [node]);
-  const fields: { label: string; get(n: ModelNode): number; set(n: ModelNode, v: number): ModelNode }[] = [];
-  const num = (v: unknown) => typeof v === 'number' ? v : NaN;
-  if ('height' in draft) fields.push({ label: 'Distance', get: n => num((n as { height: number }).height), set: (n, v) => ({ ...n, height: v }) as ModelNode });
-  if (draft.kind === 'extrude') fields.push({ label: 'Draft °', get: n => (n as { draft?: number }).draft ?? 0, set: (n, v) => ({ ...n, draft: v }) as ModelNode });
-  if ('from' in draft) fields.push({ label: 'Start Z', get: n => num((n as { from: number }).from), set: (n, v) => ({ ...n, from: v }) as ModelNode });
-  if (draft.kind === 'fillet') fields.push({ label: 'Radius', get: n => num((n as { radius: number }).radius), set: (n, v) => ({ ...n, radius: v }) as ModelNode });
-  if (draft.kind === 'shell') fields.push({ label: 'Wall', get: n => num((n as { thickness: number }).thickness), set: (n, v) => ({ ...n, thickness: v }) as ModelNode });
-  if (draft.kind === 'rotate' || draft.kind === 'revolve') fields.push({ label: 'Angle °', get: n => num((n as { angleDegrees: number }).angleDegrees), set: (n, v) => ({ ...n, angleDegrees: v }) as ModelNode });
-  if ('radius' in draft && draft.kind === 'hole') fields.push({ label: 'Diameter', get: n => num((n as { radius: number }).radius) * 2, set: (n, v) => ({ ...n, radius: v / 2 }) as ModelNode });
-  if ('center' in draft && draft.kind === 'hole') ['X', 'Y'].forEach((a, k) => fields.push({ label: 'Centre ' + a, get: n => num((n as { center: number[] }).center[k]), set: (n, v) => { const c = [...(n as { center: number[] }).center]; c[k] = v; return { ...n, center: c } as ModelNode; } }));
-  if ('distance' in draft) fields.push({ label: 'Distance', get: n => num((n as { distance: number }).distance), set: (n, v) => ({ ...n, distance: v }) as ModelNode });
-  if ('spacing' in draft) fields.push({ label: 'Spacing', get: n => num((n as { spacing: number }).spacing), set: (n, v) => ({ ...n, spacing: v }) as ModelNode });
-  if ('offset' in draft) ['ΔX', 'ΔY', 'ΔZ'].forEach((a, k) => fields.push({ label: a, get: n => num((n as { offset: number[] }).offset[k]), set: (n, v) => { const o = [...(n as { offset: number[] }).offset]; o[k] = v; return { ...n, offset: o } as ModelNode; } }));
-  if ('at' in draft && draft.kind === 'split') fields.push({ label: 'At', get: n => num((n as { at: number }).at), set: (n, v) => ({ ...n, at: v }) as ModelNode });
+function NodeEditor({ nodes, index, onApply, onClose }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void }) {
+  // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
+  const [draft, setDraft] = useState<ModelNode[]>(nodes);
+  // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
+  const [typed, setTyped] = useState<Record<string, string>>({});
+  useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
+  const fields = editFields(draft, index).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const changed = draft !== nodes;
   return (
-    <div className="node-editor">
+    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <button className="tool tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></button></div>
       {fields.length ? fields.map(f => (
-        <label key={f.label} className="field"><span>{f.label}</span>
-          <input type="number" step="any" value={Number.isNaN(f.get(draft)) ? '' : f.get(draft)} onChange={e => setDraft(d => f.set(d, Number(e.target.value)))} /></label>
+        <label key={f.key} className="field"><span>{f.label}</span>
+          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}</span>
+            : f.kind === 'choice' ? <select aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            : <input type="checkbox" className="check" aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
+        </label>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
-      {fields.length > 0 && <button className="primary" onClick={() => onApply(draft)}>Apply</button>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );
 }

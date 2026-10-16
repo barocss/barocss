@@ -74,6 +74,21 @@ try {
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
+  await check('feature editor changes the sketch a feature is made from', async () => {
+    const bounds = () => page.locator('.props').innerText();
+    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
+    assert.equal(await ed('Width').inputValue(), '64');
+    await ed('Width').fill(''); await ed('Width').fill('80');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
+    await page.locator('.outliner .ol').nth(0).click();
+    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await outliner(), /Hole Ø8/);
+    await press('Escape'); await press('Meta+z'); await idle(); await page.locator('.outliner .ol').nth(0).click();
+    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/80 ×/.test(await bounds()));
+  });
+
   await check('any hole size works; a hole off the body explains itself', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('100'); await field('Depth Y').fill('60'); await field('Height Z').fill('5'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
