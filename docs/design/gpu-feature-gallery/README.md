@@ -182,3 +182,21 @@ Number29 remains intentionally unpublished: the translated-channel V-only color 
 Both are qualitative target-design images with independent visual review. Same-scene controls express intent; small generated pixel drift is not a numerical equivalence test. The gallery contains 30 published images (01–28,30–31), including separately labeled future proposals. No code, actual renderer capture, UI or implementation changes are included.
 
 Review detail: early30 drafts dimmed key-facing regions when fill was enabled and were rejected. The final edit restores the qualitative nonnegative-light relationship. Residual generated texture and planar gradients prevent exact Lambert/pixel validation; no numerical lighting accuracy is claimed.
+
+
+## Same-part CAD → GPU: pedestal and V-groove pulley
+[CAD composite workflows and neutral inputs #2084](https://github.com/barocss/barocss/issues/2084) provide the exact source PNGs for these edits. CAD provenance is #534 PART02/03/06 and #536 DETAIL03; #1677's downstream-cut restriction and #610's open-Surface limits remain. These are composite design targets, not proof of an executable complete CAD chain.
+
+### 32 — Bearing pedestal, bounded directional diffuse
+The connected base and arch lug retain one horizontal bore and two vertical mounting openings, with no bearing insert, shaft or added fillet. Intended neutral opaque material and camera remain while directional diffuse illumination emphasizes planes and curved surfaces. Grounding: [#1579](https://github.com/barocss/barocss/issues/1579) / [#1445](https://github.com/barocss/barocss/issues/1445). No cast/contact shadows, PBR or environment support is inferred. The mounting holes' underside through-status cannot be proven from this view.
+![Pedestal exact input](https://raw.githubusercontent.com/barocss/barocss/9670b52c8a9b7c16c7a73f3f8ed99a2c11709b5b/docs/design/cad-roadmap-gallery/2026-10-16/reference-bearing-pedestal-neutral.png)
+![Pedestal diffuse target](32-pedestal-directional-diffuse.png)
+
+### 33 — V-groove pulley, future PBR/environment
+The exact input is one connected pulley with one coaxial bore and one circumferential groove, no hub, keyway or extra mounting holes. Silver reflection bands explore the visible slope/curvature of the groove without adding geometry. Scope is the [E4 future PBR/environment horizon](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e4--scene-service-maturity), not current diffuse support, a frozen API, calibrated roughness or an energy test. Material/environment appearance change together; this is not a single-parameter controlled capture.
+![Pulley exact input](https://raw.githubusercontent.com/barocss/barocss/9670b52c8a9b7c16c7a73f3f8ed99a2c11709b5b/docs/design/cad-roadmap-gallery/2026-10-16/reference-v-groove-pulley-neutral.png)
+![Pulley future reflection](33-pulley-future-pbr.png)
+
+Both are exact-reference-input edits, not pixel-exact or native-mesh equivalence. Input SHA256: pedestal 5eab2694284c781f3c7f0d7034d853422c07c95ddf210e9c32e5dc7a635fdf3e; pulley 62ff8138aff4357846a40ab694446de992325a2dacc00526a79a1bc165289de7. Independent visual reviews compare actual inputs and outputs; no native topology, dimensions, normals, radiometry, runtime or executed CAD→GPU pipeline is certified. Published gallery count is32 (01–28,30–33);29 remains withheld.
+
+Review limits:32 retains slight generated planar tone variation; it is not exact Lambert/normal validation.33's bright bore/rim outlines are reflective emphasis, not new chamfers, fillets or a liner. Both final images passed independent CAD-geometry and GPU-appearance review.

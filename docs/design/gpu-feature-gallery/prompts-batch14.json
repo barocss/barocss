@@ -1,0 +1,14 @@
+{
+  "scope": "Design only; exact neutral PNG edit",
+  "boards": [
+    {
+      "id": 32,
+      "prompt": "Use case: lighting-weather. Edit this exact CAD pedestal reference PNG only in its diffuse directional lighting. Preserve its exact intended silhouette, camera, framing, base thickness, arch lug, horizontal bore and TWO vertical base holes, connected single part; no fillets/chamfers/shaft/inserts/new features. White background unchanged; no floor or cast/contact shadows. Keep opaque neutral gray matte material. One directional white light from upper camera-left illuminates top planes and front plane at spatially uniform tones on each planar face; right side darker. Smooth arch exterior follows normals, bore INTERIOR responds with opposite-facing normals to exterior: do not use AO dark rings, specular hotspots or environment reflection. No surface grunge. Add concise typography in available white margins without covering or resizing geometry: top-left '32 / PEDESTAL • DIRECTIONAL DIFFUSE'; footer 'TARGET DESIGN / NOT ACTUAL ENGINE CAPTURE'; below 'Exact reference input; visual continuity only · #1579 / #1445'. Source geometry is more important than decorative shading. No gradients across flat planes."
+    },
+    {
+      "id": 33,
+      "prompt": "Use case: precise-object-edit. Edit this exact neutral CAD V-groove pulley reference into a future PBR/environment appearance concept. Preserve camera, framing, outer silhouette, front flat annular face, one coaxial through bore, exactly one circumferential V-groove with its existing sides and connecting waist. It remains ONE connected part, no extra discs/grooves, no hubs/keyway/bolts/chamfers. Change only appearance to neutral SILVER moderately smooth metal with broad soft studio environment reflection bands following curved and sloped groove surfaces. Front plane uniform subdued silver, bore reflects consistently, no black AO creases, no grunge, no brushed scratches, no cast/contact shadows or floor. White background unchanged. Preserve exact input geometry intent over visual flair. Typography in white margins, no overlap: top-left '33 / V-GROOVE PULLEY'; subtitle 'FUTURE PBR / ENVIRONMENT TARGET'; footer 'TARGET DESIGN / NOT ACTUAL ENGINE CAPTURE'; small note 'Reference-image edit · E4 proposal, no frozen API or runtime evidence'. No quantitative roughness or current-support claim."
+    }
+  ],
+  "review": "Independent CAD and GPU qualitative continuity accepted; not numerical/pixel equality"
+}
