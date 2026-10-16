@@ -759,6 +759,10 @@ try {
     await page.fill('[aria-label="Instance Z"] >> nth=1', '90'); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.instances[0].rotation[2] === 90);
     await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
+    // With the instance still selected, a History chip opens the feature editor.
+    await page.locator('.history .hs').first().click();
+    await page.waitForSelector('.node-editor');
+    await page.click('[aria-label="Close editor"]');
     await page.evaluate(() => document.activeElement?.blur());
   });
 
