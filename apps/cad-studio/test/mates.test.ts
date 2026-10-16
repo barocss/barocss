@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { faceTableOf } from '../src/assembly/faces';
-import { BASE, eulerOf, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
+import { flattenAssembly } from '../src/assembly/flatten';
+import { BASE, eulerOf, lockRel, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
 
 const near = (a: number, e: number, tol = 1e-9) => Math.abs(a - e) < tol;
 const inst = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0], rotation: [number, number, number] = [0, 0, 0]): PartInstance =>
@@ -336,4 +337,61 @@ test('mates: origin planes mate like flat faces', () => {
   assert.deepEqual(solveAssembly([plate], [yz, up], tablesFor(base, [plate])).instances[0].position, [0, 5, 18]);
   // An empty part has its origin planes too.
   assert.deepEqual(Object.keys(faceTableOf({ ...starterDoc(), nodes: [], outputs: {} })), ['origin:xy', 'origin:xz', 'origin:yz']);
+});
+
+test('mates: a lock keeps a part where it stood on another, and moves it with that part', () => {
+  const base = starterDoc();
+  const a = { ...inst('a', rectanglePart(20, 10, 4), [100, 0, 0], [0, 0, 30]), grounded: true }, b = inst('b', cylinderPart(3, 10), [110, 5, 4], [90, 0, 0]);
+  const lock: Mate = { id: 'k', kind: 'lock', a: { part: 'a', face: '' }, b: { part: 'b', face: '' }, rel: lockRel(a, b) };
+  const r = solveAssembly([a, b], [lock], tablesFor(base, [a, b]));
+  assert.deepEqual(r.problems, []);
+  r.instances[1].position.forEach((v, k) => assert.ok(near(v, b.position[k], 1e-9)));
+  assert.deepEqual(r.instances[1].rotation, [90, 0, 0]);
+  assert.deepEqual(r.freedom.b, { turns: 0, slides: 0 });
+  // a turns a quarter more and moves: b goes with it, the same on a as before.
+  const moved = [{ ...a, position: [0, 0, 0] as [number, number, number], rotation: [0, 0, 120] as [number, number, number] }, b];
+  const m = solveAssembly(moved, [lock], tablesFor(base, moved));
+  const rel = lockRel(moved[0], m.instances[1]);
+  rel.position.forEach((v, k) => assert.ok(near(v, lock.rel!.position[k], 1e-9), String(rel.position)));
+  rel.rotation.forEach((v, k) => assert.ok(near(v, lock.rel!.rotation[k], 1e-6), String(rel.rotation)));
+  // Another mate on it is only checked: one that would move it is refused.
+  const flat: Mate = { id: 'no', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part: 'b', face: 'n1.bottom' } };
+  const c = solveAssembly([a, b], [lock, flat], tablesFor(base, [a, b]));
+  assert.deepEqual(c.problems.map(p => p.mate), ['no']);
+  assert.match(c.problems[0].reason, /^Conflicts with Lock 1: it holds b .*from where this mate puts it/);
+  // Locked to the base part: placed in world coordinates as it stood.
+  const toBase: Mate = { ...lock, a: { part: BASE, face: '' }, rel: lockRel(null, b) };
+  assert.deepEqual(solveAssembly([{ ...b, position: [0, 0, 0] as [number, number, number] }], [toBase], tablesFor(base, [b])).instances[0].position, [110, 5, 4]);
+});
+
+test('sub-assemblies: a saved assembly inserts as one part with all its bodies', () => {
+  // A plate with a pin in its hole, a chamfered block beside it, and a block sized by a parameter.
+  const chamfered = withNode(rectanglePart(10, 10, 10), { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], distance: 2 });
+  const sized: StudioDoc = { ...emptyDoc(), parameters: { w: 6 }, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ parameter: 'w' }, 6] }, { kind: 'extrude', sketch: 0, height: 6 }] };
+  const sub: StudioDoc = { ...starterDoc(), parameters: { w: 99 }, instances: [
+    inst('pin', cylinderPart(4, 20), [32, 16, 0]), inst('blk', chamfered, [70, 0, 0], [0, 0, 90]), inst('sz', { ...sized, outputs: { b1: { node: 1, side: 'solid' } } }, [0, 40, 0]),
+    { ...inst('gone', rectanglePart(5, 5, 5), [0, -20, 0]), hidden: true },
+  ], mates: [{ id: 'm1', kind: 'concentric', a: { part: BASE, face: 'n2.side0' }, b: { part: 'pin', face: 'n1.side0' } }] };
+  const flat = flattenAssembly(sub);
+  assert.equal(flat.instances, undefined); assert.equal(flat.mates, undefined);
+  const r = evaluatePart(flat, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.bodies.length, 4, 'the plate, the pin, the chamfered block and the sized block (not the hidden one)');
+  const vol = (b: { volumeMM3: number | null }) => b.volumeMM3 ?? 0;
+  const expected = (64 * 32 * 8 - Math.PI * 16 * 8) + Math.PI * 16 * 20 + (1000 - 2 * 2 / 2 * 10) + 6 * 6 * 6;
+  assert.ok(near(r.bodies.reduce((v, b) => v + vol(b), 0), expected, 0.5), String(r.bodies.map(vol)));
+  // Inserted elsewhere and turned: one instance with four bodies; its faces mate, the pin's included.
+  const asm = inst('asm', sub, [0, 0, 0], [0, 0, 90]), base = rectanglePart(100, 100, 5);
+  const placed = evaluatePart(placedDoc(asm), 1);
+  assert.ok(placed.ok && placed.bodies.length === 4);
+  const table = faceTableOf(flattenAssembly(sub)), pinTop = Object.keys(table).find(k => /^n\d+\.top$/.test(k) && table[k].kind === 'plane' && (table[k] as { point: number[] }).point[2] === 20)!;
+  assert.ok(pinTop, Object.keys(table).join(' '));
+  const t = new Map<string, FaceTable>([[BASE, faceTableOf(base)], ['asm', table]]);
+  const onTop = solveAssembly([asm], [{ id: 'm', kind: 'coincident', a: { part: BASE, face: 'n1.top' }, b: { part: 'asm', face: pinTop } }], p => t.get(p));
+  assert.deepEqual(onTop.problems, []);
+  assert.equal(onTop.instances[0].position[2], 25, 'turned over, standing on the pin top');
+  // Nested two deep: the sub-assembly inside another keeps all its bodies.
+  const outer: StudioDoc = { ...rectanglePart(5, 5, 5), instances: [asm] };
+  const deep = evaluatePart(flattenAssembly(outer), 1);
+  assert.ok(deep.ok && deep.bodies.length === 5, String(deep.ok && deep.bodies.length));
 });

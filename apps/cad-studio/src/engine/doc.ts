@@ -61,6 +61,7 @@ import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
 import { rotationSteps, type Mate } from '../assembly/mates';
+import { flattenAssembly } from '../assembly/flatten';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -84,7 +85,7 @@ export interface StudioDoc {
 /** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */
 export interface PartInstance {
   id: string; name: string;
-  /** The part as inserted (its own instances left out). */
+  /** The part as inserted (a sub-assembly keeps its own instances, placed as saved). */
   doc: StudioDoc;
   position: [number, number, number];
   rotation: [number, number, number];
@@ -95,7 +96,8 @@ export interface PartInstance {
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
 export function placedDoc(inst: PartInstance): StudioDoc {
-  const base = prefixDoc({ ...inst.doc, instances: undefined, render: undefined, direct: undefined }, inst.doc.nodes.length);
+  // (A sub-assembly: its own instances folded in as features, see assembly/flatten.ts.)
+  const flat = flattenAssembly(inst.doc), base = prefixDoc(flat, flat.nodes.length);
   let doc = base;
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;

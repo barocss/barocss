@@ -8,7 +8,7 @@
 import type { PartInstance } from '../engine/doc';
 
 export type Vec3 = [number, number, number];
-export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent';
+export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 export interface MateRef { part: string; face: string }
 /**
@@ -20,7 +20,11 @@ export interface MateRef { part: string; face: string }
  * its axis parallel to the face and its radius in front of it (flip: behind it); or two round faces touching
  * along parallel axes, outside each other (a pin inside a hole: inside; flip swaps the two).
  */
-export interface Mate { id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean }
+export interface Mate {
+  id: string; kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean;
+  /** `lock`: b's placement in a's own coordinates, kept as it was when locked (its faces are unused, ''). */
+  rel?: { position: Vec3; rotation: Vec3 };
+}
 
 /** A face's exact geometry in its part's own coordinates. */
 export type MateFace =
@@ -29,7 +33,7 @@ export type MateFace =
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
-export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent' };
+export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
 /** Which mates a pair of faces admits. */
@@ -168,6 +172,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (m.a.part !== BASE && !byId.has(m.a.part) || !byId.has(m.b.part) && m.b.part !== BASE) { problems.push({ mate: m.id, reason: 'One of its parts was removed.' }); continue; }
     if (m.a.part === m.b.part) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
     if (m.b.part === BASE || byId.get(m.b.part)?.grounded) { problems.push({ mate: m.id, reason: `${name(m.b.part)} is fixed, so this mate cannot move it.` }); continue; }
+    if (m.kind === 'lock') { if (m.rel) valid.push(m); else problems.push({ mate: m.id, reason: 'It has no placement to keep.' }); continue; }
     const ta = tables(m.a.part), tb = tables(m.b.part);
     if (!ta || !tb) return { instances: [...instances], problems: [], pending: true, freedom: {} };
     const why = mateRefusal(m, ta[m.a.face], tb[m.b.face]);
@@ -190,7 +195,29 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
       break;
     }
     for (const id of ready) {
-      const own = valid.filter(m => m.b.part === id), inst = carried(byId.get(id)!, own[0].a.part, placed.get(own[0].a.part)!, before);
+      const own = valid.filter(m => m.b.part === id), lock = own.find(m => m.kind === 'lock');
+      if (lock) {
+        // Locked: its placement is the lock's, on the part it is locked to; the other mates are only checked.
+        const ref = placed.get(lock.a.part)!, R = matMul(ref.R, rotationMatrix(lock.rel!.rotation)), t = add(apply(ref.R, lock.rel!.position), ref.t);
+        const at = { ...byId.get(id)!, rotation: eulerOf(R), position: t.map(v => clean(v)) as Vec3 };
+        for (const m of own) {
+          if (m === lock) continue;
+          let why: string | null = null;
+          if (m.kind === 'lock') {
+            const R2 = matMul(placed.get(m.a.part)!.R, rotationMatrix(m.rel!.rotation)), t2 = add(apply(placed.get(m.a.part)!.R, m.rel!.position), placed.get(m.a.part)!.t);
+            if (R2.some((v, k) => Math.abs(v - R[k]) > DIR_TOL) || len(sub(t2, t)) > POS_TOL) why = `it holds ${name(id)} somewhere else.`;
+          } else {
+            const one = solveOne(at, [{ mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], placed.get(m.a.part)!.R, placed.get(m.a.part)!.t), moving: tables(id)![m.b.face] }], label, name(id));
+            const turn = degBetween((one.R[0] * R[0] + one.R[1] * R[1] + one.R[2] * R[2] + one.R[3] * R[3] + one.R[4] * R[4] + one.R[5] * R[5] + one.R[6] * R[6] + one.R[7] * R[7] + one.R[8] * R[8] - 1) / 2), off = len(sub(one.t, t));
+            if (one.problems.length) why = one.problems[0].reason;
+            else if (turn > 1e-6 || off > POS_TOL) why = `it holds ${name(id)} ${off > POS_TOL ? `${fmtNum(off)} mm` : ''}${off > POS_TOL && turn > 1e-6 ? ' and ' : ''}${turn > 1e-6 ? `${fmtNum(turn)}°` : ''} from where this mate puts it.`;
+          }
+          if (why) problems.push({ mate: m.id, reason: `Conflicts with ${label(lock)}: ${why}` });
+        }
+        placed.set(id, { R, t }); freedom[id] = { turns: 0, slides: 0 }; out.set(id, at);
+        continue;
+      }
+      const inst = carried(byId.get(id)!, own[0].a.part, placed.get(own[0].a.part)!, before);
       const r = solveOne(inst, own.map(m => {
         const ref = placed.get(m.a.part)!;
         return { mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], ref.R, ref.t), moving: tables(id)![m.b.face] };
@@ -202,6 +229,12 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     waiting = waiting.filter(id => !ready.includes(id));
   }
   return { instances: instances.map(i => out.get(i.id)!), problems, pending: false, freedom };
+}
+
+/** What a lock keeps: b's placement in a's own coordinates (a: the base part at the origin, or an instance). */
+export function lockRel(a: { position: readonly number[]; rotation: readonly number[] } | null, b: { position: readonly number[]; rotation: readonly number[] }): { position: Vec3; rotation: Vec3 } {
+  const Ra = a ? rotationMatrix(a.rotation) : IDENTITY, ta: Vec3 = a ? [...a.position] as Vec3 : [0, 0, 0], RaT = transpose(Ra);
+  return { rotation: eulerOf(matMul(RaT, rotationMatrix(b.rotation))), position: apply(RaT, sub([...b.position] as Vec3, ta)).map(v => clean(v)) as Vec3 };
 }
 
 /** An instance moved rigidly with its reference part, when that part moved since `before` and it did not. */
