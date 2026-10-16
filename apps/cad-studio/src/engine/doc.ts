@@ -25,7 +25,8 @@ export interface SketchOutline {
 /** A body's own look in the modelling view (see StudioDoc.bodies). */
 export interface BodyLook { name?: string; color?: string; hidden?: boolean }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
-export interface Made { command: string; values: Record<string, number | string> }
+/** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
+export interface Made { command: string; values: Record<string, number | string>; nodes?: number }
 /** `construction`: reference shapes drawn in the sketch (the sketcher's own form), not part of the profile. */
 type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[] };
 export type SketchNode =
@@ -48,7 +49,7 @@ export type ModelNode = SketchNode
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** About `axis` through `pivot` (default the origin). */
   | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number; pivot?: [Dim, Dim, Dim] }
-  | { kind: 'union'; left: BodyRef; right: BodyRef }
+  | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
@@ -209,7 +210,14 @@ export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectan
  */
 export function dropStaleMade(before: readonly ModelNode[], after: ModelNode[]): ModelNode[] {
   const same = (i: number) => JSON.stringify(before[i]) === JSON.stringify(after[i]);
-  return after.map((n, i) => (n.kind === 'extrude' || n.kind === 'revolve') && n.made && (!same(i) || !same(n.sketch)) ? (({ made: _made, ...rest }) => rest as ModelNode)(n) : n);
+  // (A shape of several steps — a bolt's head, shank and their union — is stale when any of them changed.)
+  const stale = (n: ModelNode, i: number) => {
+    if (!('made' in n) || !n.made) return false;
+    const from = i - (n.made.nodes ?? 2) + 1;
+    for (let k = Math.max(0, from); k <= i; k++) if (!same(k)) return true;
+    return n.kind !== 'union' && 'sketch' in n && !same(n.sketch);
+  };
+  return after.map((n, i) => (n.kind === 'extrude' || n.kind === 'revolve' || n.kind === 'union') && stale(n, i) ? (({ made: _made, ...rest }) => rest as ModelNode)(n as ModelNode & { made?: Made }) : n);
 }
 /** A shape command's solid by its shape and main sizes: Box 32×32×16, Cylinder Ø16×24, Sphere Ø20 … */
 export function shapeLabel(made: Made): string {
@@ -223,12 +231,16 @@ export function shapeLabel(made: Made): string {
     case 'tube': return `Tube Ø${d('r')}/Ø${d('ri')}×${v('h')}`;
     case 'wedge': return `Wedge ${v('w')}×${v('d')}×${v('h')}`;
     case 'prism': return `Prism ${v('n')}-sided ${v('s')}×${v('h')}`;
+    case 'fastener': {
+      const size = String(made.values.size), kind = String(made.values.kind);
+      return kind === 'hex-nut' ? `Nut ${size}` : kind === 'washer' ? `Washer ${size}` : `${kind === 'socket-screw' ? 'Cap screw' : 'Bolt'} ${size}×${String(made.values.length)}`;
+    }
     default: return made.command;
   }
 }
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
-  if ((node.kind === 'extrude' || node.kind === 'revolve') && node.made) return shapeLabel(node.made);
+  if ((node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union') && node.made) return shapeLabel(node.made);
   switch (node.kind) {
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

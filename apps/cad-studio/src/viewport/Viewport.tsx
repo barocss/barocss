@@ -301,6 +301,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     let spot: Spot | null = null;
     if (f && body && !p.placeSkip?.has(body.key)) {
       if (f.kind === 'plane' && f.normal[2] > 0.99) { const q = surfacePoint(x, y, w, h, face); if (q) spot = { point: [mm(q[0]), mm(q[1]), Math.round(q[2] * 1000) / 1000], normal: [0, 0, 1] }; }
+      // Over an upright round hole (or boss): its axis, at its upper rim — a bolt goes straight in.
+      else if (f.kind === 'curved' && f.radius !== undefined) { const c = roundAxis(body.mesh, face!.face, f.radius); if (c) spot = { point: c, normal: [0, 0, 1] }; }
     } else if (f && lastSpot.current) {
       // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
       const q = planePoint(x, y, w, h, lastSpot.current.point[2]); if (q) spot = { point: [mm(q[0]), mm(q[1]), lastSpot.current.point[2]], normal: lastSpot.current.normal };
@@ -308,6 +310,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (!spot) { const q = planePoint(x, y, w, h, 0); if (q) spot = { point: [mm(q[0]), mm(q[1]), 0], normal: [0, 0, 1] }; }
     lastSpot.current = spot;
     return spot;
+  };
+  /** An upright cylindrical face's axis (x, y) and its top (z), when its vertices span a full circle of `r`. */
+  const roundAxes = useRef(new WeakMap<object, Map<number, Vec3 | null>>());
+  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): Vec3 | null => {
+    let byFace = roundAxes.current.get(mesh); if (!byFace) roundAxes.current.set(mesh, byFace = new Map());
+    if (byFace.has(face)) return byFace.get(face)!;
+    const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
+    for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === face) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], mesh.positions[v * 3 + k]); hi[k] = Math.max(hi[k], mesh.positions[v * 3 + k]); }
+    const full = Math.abs(hi[0] - lo[0] - 2 * r) < 0.02 * r + 1e-3 && Math.abs(hi[1] - lo[1] - 2 * r) < 0.02 * r + 1e-3;
+    const at: Vec3 | null = full ? [Math.round((lo[0] + hi[0]) / 2 * 1000) / 1000, Math.round((lo[1] + hi[1]) / 2 * 1000) / 1000, Math.round(hi[2] * 1000) / 1000] : null;
+    byFace.set(face, at); return at;
   };
   /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
   const profileAt = (x: number, y: number, w: number, h: number): number | null => {

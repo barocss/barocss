@@ -1411,6 +1411,27 @@ try {
     await press('f'); await page.waitForTimeout(300);
   });
 
+  await check('fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic', async () => {
+    // A 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
+    await press('Escape');
+    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await field('Size').selectOption('M8'); await field('Length').selectOption('20');
+    await field('Axis at X').fill('32'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('8');
+    await hudReady(); await page.waitForTimeout(300); await snap('fastener-preview'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.command === 'fastener', null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: 'Bolt M8×20' }).click();
+    await page.waitForFunction(() => /M8×1\.25 right/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await snap('fastener');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -3,6 +3,7 @@
 import { profileCommands } from './profileCommands';
 import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
+import { fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
@@ -190,8 +191,9 @@ const edgeSteps = (ctx: Ctx) => {
 function remembered(cmd: Command): Command {
   const build = cmd.build!;
   return { ...cmd, build: (ctx, v) => {
-    const d = build(ctx, v), last = d.nodes[d.nodes.length - 1];
-    return last && (last.kind === 'extrude' || last.kind === 'revolve') ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v } } }] } : d;
+    const d = build(ctx, v), last = d.nodes[d.nodes.length - 1], added = d.nodes.length - ctx.doc.nodes.length;
+    return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union') && added > 0
+      ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v }, ...(added !== 2 ? { nodes: added } : {}) } }] } : d;
   } };
 }
 
@@ -244,6 +246,7 @@ const allCommands: Command[] = [
     },
   },
   ...primitives,
+  fastenerCommand,
   {
     id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, or counterbored', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind',
     available: ctx => {
