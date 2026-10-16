@@ -41,12 +41,20 @@ export type CadPartPoint2 = readonly [CadPartDim, CadPartDim];
 export type CadPartPoint3 = readonly [CadPartDim, CadPartDim, CadPartDim];
 export type CadPartLoopSegment = { readonly kind: 'line'; readonly start: CadPartPoint2 } | { readonly kind: 'arc'; readonly start: CadPartPoint2; readonly center: CadPartPoint2; readonly direction: 'ccw' | 'cw' };
 type Base = { readonly id: string };
+/**
+ * Where a sketch lies: its X runs along `xAxis` and its Y along normal × xAxis from `origin`, and its
+ * solids grow along `normal` (both directions are unit vectors after normalising). One of the three
+ * axes must be vertical (±Z): horizontal planes at any spin and vertical planes facing any heading —
+ * every face of a body built upright or turned about Z. Without a plane a sketch lies on XY at Z 0.
+ */
+export interface CadPartSketchPlane { readonly origin: CadPartPoint3; readonly normal: readonly [number, number, number]; readonly xAxis: readonly [number, number, number] }
+type Placed = { readonly plane?: CadPartSketchPlane };
 export type CadPartFeature = Base & (
-  | { readonly kind: 'sketch'; readonly profile: 'rectangle'; readonly min: CadPartPoint2; readonly max: CadPartPoint2 }
-  | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly center: CadPartPoint2; readonly radius: CadPartDim }
-  | { readonly kind: 'sketch'; readonly profile: 'polygon'; readonly points: readonly CadPartPoint2[] }
-  | { readonly kind: 'sketch'; readonly profile: 'loop'; readonly segments: readonly CadPartLoopSegment[] }
-  /** Along +Z from `from` (default 0); a negative height extrudes downward. */
+  | ({ readonly kind: 'sketch'; readonly profile: 'rectangle'; readonly min: CadPartPoint2; readonly max: CadPartPoint2 } & Placed)
+  | ({ readonly kind: 'sketch'; readonly profile: 'circle'; readonly center: CadPartPoint2; readonly radius: CadPartDim } & Placed)
+  | ({ readonly kind: 'sketch'; readonly profile: 'polygon'; readonly points: readonly CadPartPoint2[] } & Placed)
+  | ({ readonly kind: 'sketch'; readonly profile: 'loop'; readonly segments: readonly CadPartLoopSegment[] } & Placed)
+  /** Along the sketch normal (+Z) from `from` (default 0); a negative height extrudes the other way. */
   /** `draft` (degrees, |θ| < 89) leans every wall into the material away from the sketch plane. */
   | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim; readonly draft?: number }
   /** About an axis in the sketch plane (through `origin`, along X or Y), by angleDegrees (default 360). */
@@ -144,7 +152,9 @@ interface Part {
   readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
 }
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
-type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
+/** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
+type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
+type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
 const lineOnly = (s: PrismaticSolid) => s.slabs.every(x => x.regions.every(r => [r.outer, ...r.holes].every(ring => ring.every(g => g.kind === 'line'))));
@@ -224,7 +234,8 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
     // A feature whose resolved definition and inputs are unchanged is reused.
     try {
       if (f.kind === 'sketch') {
-        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail) };
+        const frame = f.plane === undefined ? undefined : frameOf(f.plane as CadPartSketchPlane, xyz, fail);
+        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}) };
         keys.set(at, JSON.stringify(result));
       } else {
         const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at });
@@ -291,6 +302,26 @@ type Tools = {
   fail: (code: CadPartErrorCode, detail: string) => never; at: string;
 };
 
+function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail']): Frame {
+  if (!isRecord(plane)) fail('INPUT', 'plane must be { origin, normal, xAxis }');
+  const direction = (v: unknown, what: string): Point => {
+    if (!Array.isArray(v) || v.length !== 3 || !v.every(c => typeof c === 'number' && Number.isFinite(c))) fail('INPUT', `plane ${what} must be [x, y, z]`);
+    const l = Math.hypot(...(v as number[]));
+    if (!(l > 1e-12)) fail('INPUT', `plane ${what} must not be zero`);
+    return (v as number[]).map(c => c / l) as unknown as Point;
+  };
+  // Components within rounding of 0 or ±1 are exactly that, so axis-aligned planes stay exact.
+  const snap = (v: Point): Point => v.map(c => Math.abs(c) < 1e-12 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-12 ? Math.sign(c) : c) as unknown as Point;
+  const n = snap(direction(plane.normal, 'normal')), x0 = direction(plane.xAxis, 'xAxis');
+  if (Math.abs(dot(x0, n)) > 1e-9) fail('INPUT', 'plane xAxis must be perpendicular to its normal');
+  const x = snap(unit(sub(x0, scale(n, dot(x0, n))))), y = snap(cross(n, x));
+  if (![x, y, n].some(a => Math.abs(a[2]) === 1)) fail('CAPABILITY', 'a sketch plane needs one axis vertical (a horizontal or a vertical plane); tilted planes are not supported yet');
+  return { m: [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]], o: xyz(plane.origin, 'plane origin') };
+}
+/** A result built on a sketch's own XY, moved onto its plane. */
+const placed = (frame: Frame | undefined, compute: () => Result): (() => Result) =>
+  !frame ? compute : () => { const r = compute(); return r.kind === 'solid' ? moveAll(r.parts, frame.m, frame.o) : r; };
+
 function sketchOuter(f: Record<string, unknown>, xy: Tools['xy'], dim: Tools['dim'], fail: Tools['fail']): ProfileSegmentInput[] {
   if (f.profile === 'rectangle') {
     const a = xy(f.min as CadPartPoint2, 'min'), b = xy(f.max as CadPartPoint2, 'max');
@@ -325,18 +356,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
       const h = dim(f.height as CadPartDim, 'height'), from = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from');
       if (h === 0) fail('PARAMETER', 'height must not be zero');
-      const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
+      const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
       const draft = f.draft === undefined ? 0 : f.draft as unknown;
       if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
-      if (draft === 0) return () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) });
+      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
       // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
       // away from the sketch plane either way).
-      return () => {
+      return placed(frame, () => {
         let brep: Brep;
         try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : 'PARAMETER', cause.message.replace(/^B-rep: drafted extrusion: /, '')); throw cause; }
         return one({ kind: 'brep', brep: transformBrep(brep!, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, h > 0 ? 1 : -1], offset: [0, 0, from] }) });
-      };
+      });
     }
     case 'revolve': {
       const sketch = ref(f.sketch, 'sketch').result;
@@ -346,7 +377,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
       if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
       const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg };
-      return () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] });
+      return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
       const target = solids(f.target, 'target'), tool = solids(f.tool, 'tool'), op = f.kind === 'intersect' ? 'intersection' : f.kind;
@@ -434,8 +465,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
         return fail('INPUT', `path[${i}].kind must be straight or bend`);
       });
-      const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
-      return () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps } }] }; };
+      const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
+      return placed(frame, () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps } }] }; });
     }
     case 'loft': {
       const list = f.sections as unknown;
@@ -444,11 +475,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (!isRecord(sec) || typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch`);
         const sketch = ref(sec.sketch, 'sketch').result;
         if (sketch.kind !== 'sketch') fail('REFERENCE', `${sec.sketch} is not a sketch`);
-        return { profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`) };
+        const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
+        return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame };
       });
+      // The sections stack along one sketch plane's normal.
+      const frame = sections[0].frame;
+      if (sections.some(x => JSON.stringify(x.frame) !== JSON.stringify(frame))) fail('INPUT', 'loft sections must be sketched on the same plane');
       sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
       if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
-      return () => { const { brep, mass } = loftSolid({ id: at, name: at, sections, smooth: f.smooth === true }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
+      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');

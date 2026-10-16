@@ -494,3 +494,40 @@ test('ellipse and quartic trims: slanted bodies, cross-drilled bosses, partial p
   assert.equal(checkBrep(turned.brep).valid, true);
   assert.ok(turned.massProperties(1).volumeMM3 < 8000 && turned.massProperties(1).volumeMM3 > 8000 - 4 * pi * 60);
 });
+
+test('sketch planes: profiles drawn on a face or a vertical plane at any heading grow along its normal', () => {
+  const box = [rect('s', 0, 0, 40, 20), extrude('e', 's', 10)];
+  const bounds = o => { const b = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }; for (const v of o.brep.vertices) for (let k = 0; k < 3; k++) { b.min[k] = Math.min(b.min[k], v.point[k]); b.max[k] = Math.max(b.max[k], v.point[k]); } return b; };
+  // A boss on the +X side face (x = 40): sketch X along +Y, Y up, grown 5 mm outward.
+  const side = { origin: [40, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
+  let snap = evaluateCadPart(D([...box, { ...circle('c', 10, 5, 3), plane: side }, extrude('b', 'c', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }]));
+  let out = snap.output('u'), b = bounds(out);
+  assert.ok(close(volume(out), 8000 + 45 * pi, 1e-4), String(volume(out)));
+  assert.ok(close(b.max[0], 45) && close(b.min[1], 0) && close(b.max[2], 10), JSON.stringify(b));
+  assert.deepEqual(checkBrep(out.brep).problems ?? [], []);
+  // A cut through the front face (y = 0, normal −Y): a negative height goes into the material.
+  const front = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
+  snap = evaluateCadPart(D([...box, { ...rect('r', 15, 2, 25, 8), plane: front }, extrude('t', 'r', -20), { id: 'd', kind: 'difference', target: 'e', tool: 't' }]));
+  out = snap.output('d');
+  assert.ok(close(volume(out), 8000 - 10 * 6 * 20, 1e-9), String(volume(out)));
+  // The top face with a 30° spin: still upright, exact.
+  const top = { origin: [20, 10, 10], normal: [0, 0, 1], xAxis: [Math.cos(pi / 6), Math.sin(pi / 6), 0] };
+  snap = evaluateCadPart(D([...box, { ...rect('p', -5, -2, 5, 2), plane: top }, extrude('k', 'p', 3), { id: 'u', kind: 'union', target: 'e', tool: 'k' }]));
+  out = snap.output('u');
+  assert.equal(out.representation, 'upright');
+  assert.ok(close(volume(out), 8000 + 120, 1e-9) && close(bounds(out).max[2], 13));
+  // A vertical plane facing 30° from +X; a revolve and a loft on a side plane.
+  const heading = { origin: [0, 0, 0], normal: [Math.cos(pi / 6), Math.sin(pi / 6), 0], xAxis: [-Math.sin(pi / 6), Math.cos(pi / 6), 0] };
+  out = evaluateCadPart(D([{ ...rect('q', 0, 0, 4, 2), plane: heading }, extrude('w', 'q', 6)])).output('w');
+  assert.ok(close(volume(out), 48, 1e-9) && close(bounds(out).max[2], 2, 1e-9));
+  out = evaluateCadPart(D([{ ...rect('v', 2, 0, 4, 3), plane: side }, { id: 'rv', kind: 'revolve', sketch: 'v', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])).output('rv');
+  assert.ok(close(volume(out), pi * (16 - 4) * 3, 1e-6), String(volume(out)));
+  assert.ok(close(bounds(out).min[2], 0, 1e-9) && close(bounds(out).max[2], 3, 1e-9), JSON.stringify(bounds(out)));
+  out = evaluateCadPart(D([{ ...rect('l0', 0, 0, 4, 4), plane: side }, { ...rect('l1', 1, 1, 3, 3), plane: side },
+    { id: 'lf', kind: 'loft', sections: [{ sketch: 'l0', z: 0 }, { sketch: 'l1', z: 6 }] }])).output('lf');
+  assert.ok(close(bounds(out).min[0], 40) && close(bounds(out).max[0], 46), JSON.stringify(bounds(out)));
+  // Tilted planes, mixed loft planes and a non-perpendicular axis are refused.
+  refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 1, 1], xAxis: [1, 0, 0] } }, extrude('y', 'x', 1)]), 'CAPABILITY', /one axis vertical/);
+  refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [0, 1, 1] } }]), 'INPUT', /perpendicular/);
+  refused(D([{ ...rect('a', 0, 0, 4, 4), plane: side }, rect('b', 1, 1, 3, 3), { id: 'lf', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 6 }] }]), 'INPUT', /same plane/);
+});
