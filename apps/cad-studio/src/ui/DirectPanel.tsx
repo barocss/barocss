@@ -1,0 +1,120 @@
+import { useEffect, useState } from 'react';
+import { directOps, domainsOf, geometryOf, type DirectGeometry } from '../engine/direct';
+
+/**
+ * The tools for selected direct curves and surfaces: one curve (split, knot, trim, reverse, poles), two
+ * curves (join, ruled surface, sweep), one surface (split, region, iso-curve, reverse, knot, degree,
+ * poles). Each tool is one undoable edit; a refusal comes back as a message.
+ */
+export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
+  direct: DirectGeometry; selected: string[];
+  onChange(next: DirectGeometry, select?: string[]): void;
+  onError(message: string): void;
+  onHide(ids: string[]): void;
+}) {
+  const objs = selected.map(id => direct.objects.find(o => o.id === id)).filter((o): o is NonNullable<typeof o> => !!o);
+  const geoms = objs.map(o => { try { return geometryOf(direct, o); } catch { return null; } });
+  const run = (op: () => DirectGeometry, select?: (next: DirectGeometry) => string[]) => {
+    try { const next = op(); onChange(next, select?.(next)); }
+    catch (e) { onError(e instanceof Error ? e.message : String(e)); }
+  };
+  /** The objects an operation added (to select them). */
+  const added = (next: DirectGeometry) => next.objects.slice(direct.objects.length).map(o => o.id);
+  if (!objs.length) return null;
+  const one = objs.length === 1 ? objs[0] : null, g = one ? geoms[0] : null;
+  const curves = geoms.every(x => x?.kind === 'curve');
+  return (
+    <aside className="card props direct-panel" aria-label="Direct geometry">
+      <div className="card-title">{one ? (g?.kind === 'surface' ? 'SURFACE' : 'CURVE') : `${objs.length} OBJECTS`}
+        <button className="ghost tiny" onClick={() => onHide(selected)}>Hide</button></div>
+      {objs.map(o => <div key={o.id} className="kv">Name <b>{o.name}</b></div>)}
+      {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
+      {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
+      {objs.length === 2 && curves && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>TWO CURVES</div>
+        <div className="row-actions">
+          <button className="ghost" onClick={() => run(() => directOps.joinCurves(direct, selected[0], selected[1]), added)}>Join</button>
+          <button className="ghost" onClick={() => run(() => directOps.ruledSurface(direct, selected[0], selected[1]), added)}>Ruled surface</button>
+          <button className="ghost" title="The first curve swept along the second" onClick={() => run(() => directOps.sweep(direct, selected[0], selected[1]), added)}>Sweep</button>
+        </div>
+      </div>}
+    </aside>
+  );
+}
+
+type Run = (op: () => DirectGeometry, select?: (next: DirectGeometry) => string[]) => void;
+
+/** A number box; lazy ones report on Enter or when left (an edit each, not one per keystroke). */
+function NumberField({ label, value, onChange, lazy }: { label: string; value: number; onChange(v: number): void; lazy?: boolean }) {
+  const [text, setText] = useState(String(value));
+  useEffect(() => setText(String(value)), [value]);
+  const report = (t: string) => { const v = Number(t); if (t.trim() !== '' && Number.isFinite(v) && (!lazy || v !== value)) onChange(v); };
+  return <label className="field"><span>{label}</span><input type="number" step="any" aria-label={label} value={text}
+    onChange={e => { setText(e.target.value); if (!lazy) report(e.target.value); }}
+    onBlur={() => { if (lazy) report(text); }} onKeyDown={e => { if (lazy && e.key === 'Enter') report(text); }} /></label>;
+}
+
+function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
+  const dom = domainsOf(direct, id), t = dom.kind === 'curve' ? dom.t : [0, 1] as [number, number];
+  const mid = (t[0] + t[1]) / 2;
+  const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]);
+  useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
+  return <div className="render-section">
+    <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
+    <div className="kv">Domain <b>{t.map(v => Math.round(v * 1e4) / 1e4).join(' … ')}</b></div>
+    <NumberField label="At t" value={at} onChange={setAt} />
+    <div className="row-actions">
+      <button className="ghost" onClick={() => run(() => directOps.splitCurve(direct, id, at), added)}>Split</button>
+      <button className="ghost" onClick={() => run(() => directOps.insertCurveKnot(direct, id, at))}>Insert knot</button>
+      <button className="ghost" onClick={() => run(() => directOps.reverseCurve(direct, id), added)}>Reverse</button>
+    </div>
+    <NumberField label="From t" value={from} onChange={setFrom} />
+    <NumberField label="To t" value={to} onChange={setTo} />
+    <button className="ghost" onClick={() => run(() => directOps.curveInterval(direct, id, from, to))}>Trim to interval</button>
+    {g.kind === 'curve' && <Poles rows={g.controlPoints.map((p, i) => ({ key: String(i), label: `P${i}`, point: p, weight: g.weights[i] }))}
+      onEdit={(k, pole) => run(() => directOps.editCurvePole(direct, id, Number(k), pole))} />}
+  </div>;
+}
+
+function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
+  const dom = domainsOf(direct, id), u = dom.kind === 'surface' ? dom.u : [0, 1] as [number, number], v = dom.kind === 'surface' ? dom.v : [0, 1] as [number, number];
+  const [axis, setAxis] = useState<'u' | 'v'>('u');
+  const range = axis === 'u' ? u : v, mid = (range[0] + range[1]) / 2;
+  const [at, setAt] = useState(mid);
+  const [box, setBox] = useState<[number, number, number, number]>([u[0], u[1], v[0], v[1]]);
+  useEffect(() => { setAt(mid); }, [id, axis, mid]);
+  useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
+  return <div className="render-section">
+    {g.kind === 'surface' && <div className="kv">Degree <b>{g.degreeU} × {g.degreeV}</b></div>}
+    <div className="kv">Domain <b>u {u.map(x => Math.round(x * 1e4) / 1e4).join('…')} · v {v.map(x => Math.round(x * 1e4) / 1e4).join('…')}</b></div>
+    <label className="field"><span>Direction</span><select aria-label="Surface direction" value={axis} onChange={e => setAxis(e.target.value as 'u' | 'v')}><option value="u">U</option><option value="v">V</option></select></label>
+    <NumberField label={`At ${axis}`} value={at} onChange={setAt} />
+    <div className="row-actions">
+      <button className="ghost" onClick={() => run(() => directOps.splitSurface(direct, id, axis, at), added)}>Split</button>
+      <button className="ghost" onClick={() => run(() => directOps.isoCurve(direct, id, axis, at), added)}>Iso-curve</button>
+      <button className="ghost" onClick={() => run(() => directOps.insertSurfaceKnot(direct, id, axis, at))}>Insert knot</button>
+      <button className="ghost" onClick={() => run(() => directOps.elevateDegree(direct, id, axis))}>Raise degree</button>
+      <button className="ghost" onClick={() => run(() => directOps.reverseSurface(direct, id, axis), added)}>Reverse</button>
+    </div>
+    <div className="card-title" style={{ marginTop: 8 }}>REGION</div>
+    {(['u from', 'u to', 'v from', 'v to'] as const).map((l, k) => <NumberField key={l} label={l} value={box[k]} onChange={x => setBox(b => b.map((y, j) => j === k ? x : y) as typeof b)} />)}
+    <button className="ghost" onClick={() => run(() => directOps.surfaceRegion(direct, id, [box[0], box[1]], [box[2], box[3]]), added)}>Extract region</button>
+    {g.kind === 'surface' && <Poles rows={g.controlPoints.flatMap((row, i) => row.map((p, j) => ({ key: `${i},${j}`, label: `P${i},${j}`, point: p, weight: g.weights[i][j] })))}
+      onEdit={(k, pole) => { const [i, j] = k.split(',').map(Number); run(() => directOps.editSurfacePole(direct, id, i, j, pole)); }} />}
+  </div>;
+}
+
+/** Control points: pick one, edit its position and weight. */
+function Poles({ rows, onEdit }: { rows: { key: string; label: string; point: readonly number[]; weight: number }[]; onEdit(key: string, pole: { xMM?: number; yMM?: number; zMM?: number; weight?: number }): void }) {
+  const [pick, setPick] = useState(rows[0]?.key ?? '');
+  const row = rows.find(r => r.key === pick) ?? rows[0];
+  if (!row) return null;
+  return <>
+    <div className="card-title" style={{ marginTop: 8 }}>CONTROL POINT</div>
+    <label className="field"><span>Point</span><select aria-label="Control point" value={row.key} onChange={e => setPick(e.target.value)}>{rows.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}</select></label>
+    {(['xMM', 'yMM', 'zMM'] as const).map((f, k) => <NumberField key={f} lazy label={'XYZ'[k]} value={row.point[k]} onChange={x => onEdit(row.key, { [f]: x })} />)}
+    <NumberField lazy label="Weight" value={row.weight} onChange={x => { if (x > 0) onEdit(row.key, { weight: x }); }} />
+  </>;
+}

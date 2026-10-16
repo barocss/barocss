@@ -8,6 +8,7 @@ import { createViewer, multiply, rotation, translation, type Geometry, type Ligh
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '../engine/evaluate';
 import { appearanceOf, type RenderSettings } from '../engine/render';
+import type { DirectDisplay } from '../engine/direct';
 import type { Vec3 } from '../engine/mesh';
 import type { OrbitCamera } from './camera';
 import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
@@ -33,6 +34,9 @@ export class GpuRenderer implements ViewRenderer {
   /** The props scene (render settings' CSS source), and what it was made from. */
   private props: { view: SceneView; source: string; scale: number } | null = null;
   private shaders = new Map<string, MaterialShaderResult>();
+  /** Direct curves and surfaces: their meshes by object id, and the control nets of the selected ones. */
+  private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
+  private controls: Mesh[] = [];
   private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
@@ -237,11 +241,40 @@ export class GpuRenderer implements ViewRenderer {
     Object.assign(this.viewer.camera, { position: camera.eye(), target: [...camera.target], up: [0, 0, 1], fovY: (camera.fovY * 180) / Math.PI, projection: camera.ortho ? 'orthographic' : 'perspective' });
   }
 
+  /** The box around the bodies and the direct curves and surfaces. */
   bounds(): { min: Vec3; max: Vec3 } | null {
-    if (!this.bodies.length) return null;
+    if (!this.bodies.length && !this.direct.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-    for (const b of this.bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.result.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.result.mesh.bounds.max[k]); }
+    const grow = (b: { min: readonly number[]; max: readonly number[] }) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); } };
+    for (const b of this.bodies) grow(b.result.mesh.bounds);
+    for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(b); }
     return { min, max };
+  }
+
+  /** Direct geometry: surfaces as two-sided meshes, curves as lines; the selected ones outlined with their control nets. */
+  setDirect(items: DirectDisplay[], selected: readonly string[]): void {
+    for (const d of this.direct) { d.mesh.remove(); d.mesh.geometry.dispose(); }
+    for (const c of this.controls) { c.remove(); c.geometry.dispose(); }
+    this.direct = []; this.controls = [];
+    for (const it of items) {
+      const on = selected.includes(it.id);
+      const mesh = it.kind === 'surface'
+        ? this.viewer.add({ positions: it.positions, normals: it.normals, indices: it.indices }, { name: 'direct:' + it.id, material: { color: on ? '#e8c25a' : '#8fb3d9', roughness: 0.5, doubleSided: true } })
+        : this.viewer.add({ positions: it.positions, topology: 'lines' }, { name: 'direct:' + it.id, material: { color: on ? '#ffd35c' : '#5ec8e5', unlit: true, lineWidth: on ? 3 : 2 }, castShadow: false });
+      if (on && it.kind === 'surface') mesh.outline = ACCENT;
+      this.direct.push({ id: it.id, mesh, kind: it.kind });
+      if (on && it.controls.length) this.controls.push(this.viewer.add({ positions: it.controls, topology: 'lines' }, { material: { color: '#c9a3ff', unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }));
+    }
+    this.viewer.requestRender();
+  }
+
+  /** The direct object under a point: a surface hit, else a curve within a few pixels. */
+  pickDirect(x: number, y: number, camera: OrbitCamera): string | null {
+    if (!this.direct.length) return null;
+    this.sync(camera);
+    const hit = this.viewer.raycast(x, y), line = this.viewer.pickLine(x, y, 6);
+    const of = (m: Mesh | undefined) => m?.name?.startsWith('direct:') ? m.name.slice(7) : null;
+    return of(line?.mesh) ?? of(hit?.mesh);
   }
 
   /** The frame as drawn, as a PNG. */

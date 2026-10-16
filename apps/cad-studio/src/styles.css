@@ -203,3 +203,6 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .render-section textarea.code:focus { outline: none; border-color: var(--accent); }
 .render-section .diag { white-space: pre-wrap; font: 400 11px var(--mono); color: #f08a7a; background: rgba(240, 138, 122, 0.08); border-radius: 4px; padding: 4px 6px; }
 .render-panel { max-height: calc(100vh - 220px); }
+.ol.direct { color: #8fc9e0; }
+.ol.hidden-obj { opacity: 0.5; }
+.ghost.tiny { height: 20px; padding: 0 8px; font-size: 11px; }

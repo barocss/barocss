@@ -31,6 +31,9 @@ export interface ViewRenderer {
   setRender?(settings: import('../engine/render').RenderSettings | null): void;
   /** The frame as a PNG (WebGPU only). */
   capture?(): Promise<Blob>;
+  /** Direct curves and surfaces (WebGPU only), and the one under a point. */
+  setDirect?(items: import('../engine/direct').DirectDisplay[], selected: readonly string[]): void;
+  pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
 }
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }

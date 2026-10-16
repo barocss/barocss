@@ -5,6 +5,7 @@ import { OrbitCamera } from './camera';
 import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '../engine/render';
+import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
@@ -43,7 +44,7 @@ interface Props {
   ghost: Set<number>;
   sketch: SketchState | null;
   gizmo: Gizmo | null;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string }, additive: boolean): void;
   onSketchShape(shape: SketchShape | null): void;
   onCursor(p: Vec3 | null): void;
   onBoxSelect(bodies: number[], additive: boolean): void;
@@ -53,6 +54,9 @@ interface Props {
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
   /** Render settings (the Render workspace), or null for the modelling look. */
   render?: RenderSettings | null;
+  /** Direct curves and surfaces, and the selected ones. */
+  direct?: DirectDisplay[];
+  directSelection?: string[];
 }
 
 const snap = (v: number) => Math.round(v);
@@ -119,6 +123,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
+  useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
@@ -267,7 +272,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       return;
     }
-    const r = renderer.current!; const edge = r.pickEdge(x, y, camera.current, viewState());
+    const r = renderer.current!;
+    const direct = r.pickDirect?.(x, y, camera.current) ?? null;
+    if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
+    const edge = r.pickEdge(x, y, camera.current, viewState());
     const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
   };

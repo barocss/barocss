@@ -407,6 +407,28 @@ try {
     await page.waitForSelector('[aria-label="Selection"]');
   });
 
+  await check('import a .barocad source and use curve and surface tools', async () => {
+    await page.setInputFiles('input[type="file"]', join(root, 'test/fixtures/study.barocad'));
+    await page.waitForFunction(() => (window.__studioDoc.direct?.objects.length ?? 0) === 4);
+    await page.locator('.ol.direct', { hasText: 'panel' }).click();
+    await page.click('.direct-panel button:text-is("Iso-curve")');
+    await page.locator('.ol.direct', { hasText: 'arc' }).first().click();
+    await page.click('.direct-panel button:text-is("Split")');
+    await page.waitForSelector('.direct-panel .card-title:has-text("2 OBJECTS")');
+    await page.locator('.ol.direct', { hasText: 'top' }).click();
+    await page.locator('.ol.direct', { hasText: 'base' }).click({ modifiers: ['Shift'] });
+    await page.click('.direct-panel button:text-is("Ruled surface")');
+    const names = await page.evaluate(() => window.__studioDoc.direct.objects.map(o => o.name + (o.hidden ? ' (hidden)' : '')));
+    assert.deepEqual(names.slice(4), ['study · panel · u = 0.5', 'study · arc · lower', 'study · arc · upper', 'Ruled surface']);
+    assert.equal(names[0], 'study · arc (hidden)');
+    // A refusal explains itself: a degree-2 arc piece and a line cannot make a ruled surface.
+    await page.locator('.ol.direct', { hasText: 'lower' }).click();
+    await page.locator('.ol.direct', { hasText: 'top' }).click({ modifiers: ['Shift'] });
+    await page.click('.direct-panel button:text-is("Ruled surface")');
+    await page.waitForSelector('[role="alert"], .toast');
+    await press('Escape');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

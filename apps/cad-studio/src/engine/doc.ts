@@ -42,6 +42,7 @@ export type ModelNode = SketchNode
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
 
 import type { RenderSettings } from './render';
+import type { DirectGeometry } from './direct';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -52,6 +53,8 @@ export interface StudioDoc {
   outputs: Record<string, BodyRef>;
   /** How the part is rendered (the Render workspace); absent until first rendered. */
   render?: RenderSettings;
+  /** NURBS curves and surfaces beside the model (imported CAD sources and what tools made of them). */
+  direct?: DirectGeometry;
 }
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} });

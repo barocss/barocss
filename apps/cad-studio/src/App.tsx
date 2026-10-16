@@ -14,6 +14,8 @@ import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { RenderPanel } from './ui/RenderPanel';
+import { DirectPanel } from './ui/DirectPanel';
+import { directDisplay, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, readRender, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
@@ -65,6 +67,8 @@ export function App() {
   const [sketch, setSketch] = useState<SketchState | null>(null);
   /** The Render workspace: the part with its appearances, lights and environment. */
   const [rendering, setRendering] = useState(false);
+  /** Selected direct curves and surfaces (by object id). */
+  const [directSel, setDirectSel] = useState<string[]>([]);
   const [sketchError, setSketchError] = useState<string | null>(null);
   // The last shape handed to the sketch, ahead of React's batched re-render (rapid pointer events).
   const liveShape = useRef<SketchShape | null>(null);
@@ -149,6 +153,13 @@ export function App() {
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc({ ...doc, render: next }); setDirty(true);
   }, [doc, marker]);
+  /** One undoable change of the direct geometry (the model stays as evaluated). */
+  const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, direct: next }); setDirty(true);
+    if (select) setDirectSel(select);
+  }, [doc, marker]);
+  const directShown = useMemo(() => directDisplay(doc.direct), [doc.direct]);
   const exportImage = async () => {
     const png = await viewport.current?.capture();
     if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
@@ -266,9 +277,15 @@ export function App() {
     setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
   }, [sketch, ctx]);
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => {
+  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string }, additive: boolean) => {
     if (active) return;
     setPick(hit.point);
+    if (hit.direct) {
+      const id = hit.direct;
+      setDirectSel(prev => additive ? (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]) : [id]);
+      setSelection(emptySel); return;
+    }
+    if (!additive) setDirectSel([]);
     if (measure) {
       if (!hit.face && !hit.edge) return;
       const p: MeasurePick = hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
@@ -302,6 +319,13 @@ export function App() {
       if (/\.(step|stp)$/i.test(file.name)) {
         const name = file.name.replace(/\.(step|stp)$/i, ''), next = withNode(emptyDoc(), { kind: 'import', name, step: await file.text() });
         commit(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
+        return;
+      }
+      // A CAD source adds its curves and surfaces to the part as direct geometry.
+      if (/\.(barocad|cad)$/i.test(file.name)) {
+        const next = importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(barocad|cad)$/i, ''));
+        commitDirect(next, next.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
+        setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
       const parsed = JSON.parse(await file.text()) as StudioDoc;
@@ -360,6 +384,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
+        direct={directShown} directSelection={directSel}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -391,11 +416,11 @@ export function App() {
         <button className="tool" aria-label="Undo" title="Undo (⌘Z)" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" title="Redo (⇧⌘Z)" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
         <button className="tool" aria-label="New part" title="New part" onClick={() => { commit(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
-        <button className="tool" aria-label="Open" title="Open a .bcad model or a STEP file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
+        <button className="tool" aria-label="Open" title="Open a .bcad model or a STEP file, or add a .barocad source's curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
         <button className="tool" aria-label="Export STEP" title="Export STEP (exact solid for other CAD)" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
-        <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
       <nav className="card toolbar" aria-label="Tools" hidden={rendering}>
@@ -422,10 +447,17 @@ export function App() {
         {bodies.map((b, i) => {
           const ref = refOf(b); const node = evaluated.nodes[ref.node];
           const sel = selectedBodies(selection).includes(i);
-          return <button key={b.key} className={'ol' + (sel ? ' sel' : '')} onClick={e => setSelection(prev => {
+          return <button key={b.key} className={'ol' + (sel ? ' sel' : '')} onClick={e => { setDirectSel([]); setSelection(prev => {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
-          })}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side}</span>}</button>;
+          }); }}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side}</span>}</button>;
         })}
+        {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
+          title={o.hidden ? 'Hidden: click to show' : o.name}
+          onClick={e => {
+            if (o.hidden) { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(x => x.id === o.id ? { ...x, hidden: false } : x) }, [o.id]); return; }
+            setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
+          }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
+        {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
@@ -452,7 +484,10 @@ export function App() {
         </>}
         <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>}
-      {!rendering && !sketch && !measure && <aside className="card props" aria-label="Selection">
+      {!rendering && !sketch && !measure && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
+        onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
+        onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
+      {!rendering && !sketch && !measure && !directSel.length && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
