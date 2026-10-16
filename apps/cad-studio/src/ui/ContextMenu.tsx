@@ -5,8 +5,9 @@ import { Icon, Kbd } from './atoms';
 export interface MenuAction { label: string; icon: string; shortcut?: string; run(): void }
 
 /** Right-click menu: commands that apply to what was clicked, then view actions. */
-export function ContextMenu({ at, ctx, title, actions, onRun, onClose }: {
-  at: { x: number; y: number }; ctx: Ctx; title: string; actions: MenuAction[]; onRun(c: Command): void; onClose(): void;
+/** `commands`: list the commands that apply (default); off for menus of other things (a history step). */
+export function ContextMenu({ at, ctx, title, actions, onRun, onClose, commands: withCommands = true }: {
+  at: { x: number; y: number }; ctx: Ctx; title: string; actions: MenuAction[]; onRun(c: Command): void; onClose(): void; commands?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -17,7 +18,7 @@ export function ContextMenu({ at, ctx, title, actions, onRun, onClose }: {
     return () => { window.removeEventListener('mousedown', close); window.removeEventListener('keydown', key); };
   }, [onClose]);
   // (Shapes are made from the shapes bar, not on what was clicked.)
-  const usable = commands.filter(c => c.id !== 'measure' && !c.place && c.available(ctx).ok);
+  const usable = withCommands ? commands.filter(c => c.id !== 'measure' && !c.place && c.available(ctx).ok) : [];
   const left = Math.min(at.x, window.innerWidth - 236), top = Math.min(at.y, window.innerHeight - 40 - (usable.length + actions.length) * 30);
   return (
     <div ref={ref} className="card ctx-menu" role="menu" aria-label={title} style={{ left, top: Math.max(40, top) }}>

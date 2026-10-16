@@ -138,7 +138,7 @@ try {
   });
   await probe('U21', 'feature editor: plate width 64 → 80, hole kept, volume follows', async () => {
     await press('Escape');
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    await page.locator('.history .hs', { hasText: /Box 64×32×8|Extrude 8/ }).click();
     const ed = l => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${l}")`) }).locator('input, select');
     await ed('Width').fill('80'); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle(); await page.waitForTimeout(300);
     const p = await bodyProps(0), v = 80 * 32 * 8 - PI * 128;
@@ -146,7 +146,7 @@ try {
   });
   await probe('U22', 'feature editor: width 20 puts the hole off the plate → explained refusal, model kept', async () => {
     await press('Escape');
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    await page.locator('.history .hs', { hasText: /Box 64×32×8|Extrude 8/ }).click();
     const ed = l => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${l}")`) }).locator('input, select');
     await ed('Width').fill('20'); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await page.waitForTimeout(800);
     const toast = await page.locator('.toast[role=alert]').innerText().catch(() => '');
@@ -258,7 +258,7 @@ try {
     await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
     await press('s'); await page.waitForFunction(() => /on face/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
     await sketchRect(6, 3, 20, 10);
-    await page.evaluate(() => document.activeElement?.blur()); await page.click('.topbar button.finish'); await hudReady();
+    await finishThen('extrude');
     await field('Operation').selectOption('cut'); await field('Depth').selectOption('through'); await hudReady(); await page.waitForTimeout(300); await hudReady();
     await press('Enter'); await idle(); await page.waitForTimeout(300);
     const p = await bodyProps(0), want = 16384 - 20 * 10 * 32;
@@ -319,7 +319,7 @@ try {
   });
   await probe('U57', 'mirror YZ of a box at x 5..15, then split the result at X=0', async () => {
     await newPart(); await makeBox(10, 10, 10, 5, 0, 0);
-    await page.locator('.outliner .ol').first().click(); await press('m'); await hudReady(); await press('Enter'); await idle(); await page.waitForTimeout(300);
+    await page.locator('.outliner .ol').first().click(); await press('m'); await hudReady(); await setField('Plane at', 0); await hudReady(); await press('Enter');  // (across the YZ plane through the origin; the default is the body's own +X face) await idle(); await page.waitForTimeout(300);
     const m = await bodyProps(0);
     await press('Escape'); await page.locator('.outliner .ol').first().click();
     await press(' '); await page.locator('.palette input').fill('split'); await press('Enter'); await hudReady(); await setField('At', 0);
@@ -335,7 +335,7 @@ try {
   await probe('U59', 'sketch snapping: corners drawn with the mouse land on whole millimetres', async () => {
     await newPart(); await press('s'); const [cx, cy] = await canvasCenter(); await press('r');
     await clickAt(cx - 73.3, cy - 41.7); await clickAt(cx + 58.6, cy + 37.2);
-    await page.evaluate(() => document.activeElement?.blur()); await press('Enter'); await hudReady(); await press('Enter'); await idle();
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
     const s = (await doc()).nodes[0];
     const all = [...s.min, ...s.max];
     return { ok: all.every(v => Number.isInteger(v)), expected: 'integer corner coordinates (Snap 1 mm)', actual: { min: s.min, max: s.max } };
@@ -410,9 +410,9 @@ try {
     steps.push((await page.evaluate(() => window.__studioDoc.nodes.at(-1).kind)));
     // outliner order: the remaining sources then the new result; find rows by label
     const rowOf = async re => { const t = await page.locator('.outliner .ol').allInnerTexts(); return t.findIndex(x => re.test(x)); };
-    let u = await rowOf(/Union/), c = await rowOf(/Extrude 20/);
+    let u = await rowOf(/Union/), c = await rowOf(/^Box$/);  // (the 10×10×20 box: shapes are named by kind)
     await pick2(u, c); await press('d'); await idle(); await page.waitForTimeout(300);
-    u = await rowOf(/Subtract/); c = await rowOf(/Extrude 6/);
+    u = await rowOf(/Subtract/); c = await rowOf(/^Box$/);
     await pick2(u, c); await press('i'); await idle(); await page.waitForTimeout(300);
     const p = await bodyProps(0), want = 30 * 20 * 6 - 10 * 10 * 6;
     return { ok: (await bodiesText()) === '1' && p.volume === want, expected: { volume: want, bodies: 1 }, actual: { ...p, bodies: await bodiesText(), history: (await page.locator('.history').innerText()).replace(/\s+/g, ' ') } };
@@ -432,7 +432,7 @@ try {
   await probe('U70', 'STEP export of a torus, reopened: same volume', async () => {
     await newPart(); await press('s');
     await sketchCircle(30, 10, 10);
-    await page.evaluate(() => document.activeElement?.blur()); await page.click('.topbar button.finish'); await hudReady(); await press('Enter'); await idle(); await page.waitForTimeout(300);
+    await finishThen('extrude'); await press('Enter'); await idle(); await page.waitForTimeout(300);
     const a = await bodyProps(0);
     const f = await download('Export STEP');
     await page.locator('input[aria-label="Model file"]').setInputFiles(f); await page.waitForFunction(() => /Import/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle(); await page.waitForTimeout(1500);
@@ -558,10 +558,10 @@ try {
   await probe('UM2', '[assembly-mates] edit the base plate (8 → 20 thick): the pin follows; Undo brings both back', async () => {
     await page.click('[aria-label="Mates"] button:text-is("Cancel")').catch(() => {}); await press('Escape');
     // (While an instance is selected the feature editor is hidden: clear it with a click on empty space.)
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click(); await page.waitForTimeout(200);
+    await page.locator('.history .hs', { hasText: /Box 64×32×8|Extrude 8/ }).click(); await page.waitForTimeout(200);
     const hiddenEditor = !(await page.locator('.node-editor').count());
     await page.mouse.click(250, 160); await page.waitForTimeout(200);
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    await page.locator('.history .hs', { hasText: /Box 64×32×8|Extrude 8/ }).click();
     const ed = l => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${l}")`) }).locator('input');
     await ed('Distance').fill('20'); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle(); await page.waitForTimeout(1500);
     const pin = (await doc()).instances[0].id, after = (await instPos(pin)).position;
@@ -571,7 +571,7 @@ try {
   });
   await probe('UM3', '[assembly-mates] roll the hole back: the concentric mate reports its missing face', async () => {
     await press('Escape');
-    await page.locator('.history .hs', { hasText: 'Extrude 8' }).dblclick(); await idle(); await page.waitForTimeout(1500);
+    await page.locator('.history .hs', { hasText: /Box 64×32×8|Extrude 8/ }).dblclick(); await idle(); await page.waitForTimeout(1500);
     await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
     const titles = await page.locator('.ol.mate').evaluateAll(els => els.map(e => e.getAttribute('title')));
     await page.click('[aria-label="Roll forward to the end"]'); await idle(); await page.waitForTimeout(800);
@@ -637,7 +637,7 @@ try {
   await probe('UC3', '[sketch-constraints] after Finish, the driving dimensions can be edited again', async () => {
     await newPart(); await drawQuad();
     await page.fill('#sk-len0', '60'); await page.fill('#sk-len1', '25'); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await hudReady(); await press('Enter'); await idle();
+    await press('Enter'); await page.waitForTimeout(300); await press('e'); await hudReady(); await press('Enter'); await idle();  // (Finish, then Extrude)
     await page.locator('.history .hs').first().click();
     const editor = (await page.locator('.node-editor').innerText().catch(() => '')).replace(/\s+/g, ' ');
     const node = (await doc()).nodes[0];
@@ -675,9 +675,9 @@ try {
     return { ok: afterUndo.dims === 1 && afterUndo.inDrawing && afterDelete === 1, expected: { afterUndo: 1, afterRedoThenDelete: 1 }, actual: { afterUndo, afterDelete } };
   });
   await probe('UD4', '[drawing] A3 at 10:1 does not fit → warned; first angle puts the top view below the front', async () => {
-    await page.selectOption('[aria-label="Sheet size"]', 'A3'); await page.selectOption('[aria-label="Scale"]', '10'); await page.waitForTimeout(300);
+    await page.selectOption('[aria-label="Sheet size"]', 'A3'); await page.selectOption('select[aria-label="Scale"]', '10'); await page.waitForTimeout(300);
     const warn = await page.locator('.dw-panel').innerText();
-    await page.selectOption('[aria-label="Scale"]', 'auto'); await page.selectOption('[aria-label="Projection"]', 'first'); await page.waitForTimeout(300);
+    await page.selectOption('select[aria-label="Scale"]', 'auto'); await page.selectOption('[aria-label="Projection"]', 'first'); await page.waitForTimeout(300);
     const pos = await page.evaluate(() => ({ front: window.__studioDrawingAt('front', 0, 0), top: window.__studioDrawingAt('top', 0, 0) }));
     const st = await sheetState();
     return { ok: /do not fit/.test(warn) && pos.top.y > pos.front.y && st.scale === 2, expected: { warning: 'views do not fit at 10:1', firstAngle: 'top below front', autoA3: '2:1' }, actual: { warned: /do not fit/.test(warn), frontY: pos.front.y, topY: pos.top.y, scale: st.scale } };
@@ -728,7 +728,7 @@ try {
   await probe('UN1', '[sketch-constraints] Edit sketch reopens a dimensioned outline; changing a length and finishing updates the part in place', async () => {
     await toModel(); await newPart(); await drawQuad();
     await page.fill('#sk-len0', '60'); await page.fill('#sk-len1', '25'); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await hudReady(); await press('Enter'); await idle();
+    await press('Enter'); await page.waitForTimeout(300); await press('e'); await hudReady(); await press('Enter'); await idle();  // (Finish, then Extrude)
     const n0 = (await doc()).nodes.length;
     await page.locator('.history .hs').first().click(); await page.click('[aria-label="Edit sketch"]'); await page.waitForTimeout(500);
     const reopened = { sketching: await page.locator('.sk-panel').count(), len0: await page.inputValue('#sk-len0').catch(() => null), list: (await page.locator('.sk-panel [role=list]').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 160) };
