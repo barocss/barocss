@@ -38,7 +38,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   tube: { selection: 'none', values: { r: 'outer radius', ri: 'inner radius', h: 'length', x: 'centre X', y: 'centre Y', z: 'base Z' } },
   wedge: { selection: 'none', values: { w: 'width X (high end at x)', d: 'depth Y', h: 'height Z', x: 'corner X', y: 'corner Y', z: 'base Z' } },
   prism: { selection: 'none', values: { n: 'sides (3–12)', s: 'size across the flats', h: 'height', x: 'centre X', y: 'centre Y', z: 'base Z' } },
-  hole: { selection: 'faces: [one flat face facing ±X/±Y/±Z]', values: { d: 'diameter (through all)', x: 'centre, first axis of the face plane (Z face: X; X face: Y; Y face: X)', y: 'centre, second axis (Z face: Y; X face: Z; Y face: Z)' } },
+  hole: { selection: 'faces: [one flat face facing ±X/±Y/±Z]', values: { type: 'through | blind | counterbore', d: 'diameter', depth: 'blind depth', cd: 'counterbore diameter', ch: 'counterbore depth', x: 'centre, first axis of the face plane (Z face: X; X face: Y; Y face: X)', y: 'centre, second axis (Z face: Y; X face: Z; Y face: Z)' } },
   chamfer: { selection: 'edges: [edges of one body]', values: { distance: 'chamfer distance' } },
   fillet: { selection: 'edges: [edges of one body]', values: { radius: 'fillet radius' } },
   shell: { selection: 'faces to open (all of one body), or bodies: [one body] for a closed hollow', values: { t: 'wall thickness' } },

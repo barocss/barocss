@@ -77,3 +77,17 @@ test('Patterns can make separate bodies instead of one', () => {
   assert.equal(ring.length, 4);
   assert.ok(ring.every(b => Math.abs(b.volumeMM3! - 1000) < 1e-6));
 });
+
+test('Hole types: to a depth, and counterbored (a wider hole to its depth on the same centre)', () => {
+  const doc = rectanglePart(40, 20, 10), bodies = bodiesOf(doc), top = bodies[0].mesh.faces.findIndex(f => f.normal[2] > 0.99);
+  const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face: top }], edges: [], bodies: [] } }, hole = cmd('hole');
+  const v = { ...hole.defaults!(ctx), x: 20, y: 10, d: 6 };
+  const blind = bodiesOf(hole.build!(ctx, { ...v, type: 'blind', depth: 4 }))[0];
+  assert.ok(Math.abs(blind.volumeMM3! - (8000 - Math.PI * 9 * 4)) < 0.5, String(blind.volumeMM3));
+  const cb = hole.build!(ctx, { ...v, type: 'counterbore', cd: 12, ch: 3 });
+  assert.deepEqual(cb.nodes.slice(2).map(n => n.kind), ['hole', 'hole']);
+  const vol = bodiesOf(cb)[0].volumeMM3!;
+  assert.ok(Math.abs(vol - (8000 - Math.PI * 9 * 10 - Math.PI * (36 - 9) * 3)) < 0.5, String(vol));
+  assert.deepEqual(hole.handles!(ctx, { ...v, type: 'counterbore', cd: 12, ch: 3 }).map(h => h.key), ['x', 'd', 'cd', 'ch']);
+  assert.throws(() => hole.build!(ctx, { ...v, type: 'counterbore', cd: 5, ch: 3 }), /wider/);
+});

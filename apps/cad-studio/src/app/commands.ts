@@ -245,7 +245,7 @@ const allCommands: Command[] = [
   },
   ...primitives,
   {
-    id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face, through or to a depth', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross',
+    id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, or counterbored', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind',
     available: ctx => {
       if (ctx.selection.faces.length !== 1) return no('Select the flat face where the hole goes in.');
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face];
@@ -254,12 +254,15 @@ const allCommands: Command[] = [
     },
     fields: ctx => {
       const f = ctx.selection.faces[0], { axis } = holeAxis(ctx.bodies[f.body].mesh.faces[f.face].normal)!, [a, b] = HOLE_PLANE[axis];
-      return [{ key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 }, { key: 'x', label: 'Centre ' + a.toUpperCase(), kind: 'mm' }, { key: 'y', label: 'Centre ' + b.toUpperCase(), kind: 'mm' }];
+      return [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }, { value: 'counterbore', label: 'Counterbored' }] },
+        { key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 }, { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' },
+        { key: 'cd', label: 'Counterbore Ø', kind: 'mm', min: 1, when: v => v.type === 'counterbore' }, { key: 'ch', label: 'Counterbore depth', kind: 'mm', min: 0.5, when: v => v.type === 'counterbore' },
+        { key: 'x', label: 'Centre ' + a.toUpperCase(), kind: 'mm' }, { key: 'y', label: 'Centre ' + b.toUpperCase(), kind: 'mm' }];
     },
     defaults: ctx => {
       const f = ctx.selection.faces[0]; const face = ctx.bodies[f.body].mesh.faces[f.face];
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
-      return { d: 8, x: r1(p[a]), y: r1(p[b]) };
+      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, x: r1(p[a]), y: r1(p[b]) };
     },
     // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
@@ -267,12 +270,25 @@ const allCommands: Command[] = [
       const [a, b] = HOLE_PLANE[h.axis].map(k => 'xyz'.indexOf(k)), at: [number, number, number] = [...face.centroid] as [number, number, number], dir: [number, number, number] = [0, 0, 0];
       at[a] = Number(v.x) + Number(v.d) / 2; at[b] = Number(v.y); dir[a] = 1;
       const centre: [number, number, number] = [...at], dir2: [number, number, number] = [0, 0, 0]; centre[a] = Number(v.x); dir2[b] = 1;
-      return [{ key: 'x', at: centre, dir: [...dir], pair: { key: 'y', dir: dir2 } }, { key: 'd', at, dir, scale: 2, min: 0.5, step: 0.5 }];
+      const out: HandleSpec[] = [{ key: 'x', at: centre, dir: [...dir], pair: { key: 'y', dir: dir2 } }, { key: 'd', at, dir, scale: 2, min: 0.5, step: 0.5 }];
+      // Depths: arrows down the bore from the face (deeper is further in); the counterbore's size on its rim, the other way.
+      const k = 'xyz'.indexOf(h.axis), down: [number, number, number] = [0, 0, 0]; down[k] = h.side === 'max' ? -1 : 1;
+      const deep = (key: string, by: number, off: number): HandleSpec => { const p: [number, number, number] = [...centre]; p[k] += down[k] * by; p[a] += off; return { key, at: p, dir: [...down], min: 0.5, step: 0.5 }; };
+      if (v.type === 'blind') out.push(deep('depth', Number(v.depth), 0));
+      if (v.type === 'counterbore') {
+        const rim: [number, number, number] = [...centre]; rim[a] -= Number(v.cd) / 2;
+        out.push({ key: 'cd', at: rim, dir: [-dir[0], -dir[1], -dir[2]], scale: 2, min: 1, step: 0.5 }, deep('ch', Number(v.ch), -(Number(v.cd) + Number(v.d)) / 4));
+      }
+      return out;
     },
     build: (ctx, v) => {
       const f = ctx.selection.faces[0], body = ctx.bodies[f.body], { axis, side } = holeAxis(body.mesh.faces[f.face].normal)!;
-      // Through by default; the side is kept so a later depth edit drills in from the picked face.
-      return withNode(ctx.doc, { kind: 'hole', parent: refOf(body), center: [Number(v.x), Number(v.y)], radius: Number(v.d) / 2, ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}) });
+      // Through by default; the side is kept so a later depth edit drills in from the picked face. A
+      // counterbore is a second, wider hole to its depth on the same centre.
+      const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}) };
+      if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
+      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(v.type === 'blind' ? { depth: Number(v.depth) } : {}) });
+      return v.type === 'counterbore' ? withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at }) : doc;
     },
   },
   {

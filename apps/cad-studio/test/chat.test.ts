@@ -72,7 +72,7 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   let r = await runTool(s, 'run_command', { command: 'hole', values: { d: 8, x: 6, y: 6 } }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Select the flat face where the hole goes in/);
   r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.side0'], values: { diameter: 8 } }, evaluate);
-  assert.match(parse(r.content).error, /no value "diameter"; its values are d \(Diameter\)/);
+  assert.match(parse(r.content).error, /no value "diameter"; its values are type \(Type\), d \(Diameter\)/);
   r = await runTool(s, 'run_command', { command: 'box', values: { w: 0 } }, evaluate);
   assert.match(parse(r.content).error, /"w" \(Width X\) must be at least 1/);
   r = await runTool(s, 'run_command', { command: 'linear-pattern', bodies: ['b1'], values: { count: 40 } }, evaluate);
