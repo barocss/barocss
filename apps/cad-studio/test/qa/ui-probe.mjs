@@ -52,7 +52,8 @@ const field = label => page.locator('.hud .field', { has: page.locator(`span:tex
 const setField = async (label, v) => { await field(label).fill(String(v)); await hudReady(); await page.waitForTimeout(300); await hudReady(); };
 const canvasCenter = async () => { const b = await page.locator('canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 const clickAt = async (x, y) => { await page.mouse.move(x - 4, y); await page.mouse.move(x, y); await page.mouse.click(x, y); };
-const newPart = async () => { await press('Escape'); await page.click('[aria-label="New part"]'); await idle(); };
+// (Escape twice: the first may only clear a sketch selection. New part does not close an open sketch — REPORT U4.)
+const newPart = async () => { await press('Escape'); await press('Escape'); await page.click('[aria-label="New part"]'); await idle(); };
 const bodiesText = async () => (/(\d+) bod/.exec(await outliner()) ?? [])[1];
 /** Selects body row k and returns the BODY numbers from the properties panel. */
 async function bodyProps(k = 0) {
@@ -223,24 +224,24 @@ try {
     await newPart(); await press('s'); await sketchRect(0, 0, 40, 20); await sketchCircle(20, 19, 10);
     const r = await finishExtrude(5); const p = r.status === 'preview' ? await bodyProps(0) : null;
     const seg = 25 * Math.acos(0.2) - Math.sqrt(24), union = (800 + PI * 25 - seg) * 5, notch = (800 - (PI * 25 - seg)) * 5;
-    return { ok: !!p && near(p.volume, union), expected: { volume: Math.round(union), why: 'two overlapping closed shapes should merge (or be refused); a notch would be ' + Math.round(notch) }, actual: { ...r, ...p, nodes: (await doc()).nodes.map(n => n.kind + (n.holes ? ' holes:' + n.holes.length : '') + (n.regions ? ' regions:' + n.regions.length : '')) } };
+    return { ok: (!!p && near(p.volume, union)) || /overlap/.test(r.toast ?? ''), expected: { volume: Math.round(union), orRefused: 'Shapes … overlap', why: 'two overlapping closed shapes should merge (or be refused); a notch would be ' + Math.round(notch) }, actual: { ...r, ...p, nodes: (await doc()).nodes.map(n => n.kind + (n.holes ? ' holes:' + n.holes.length : '') + (n.regions ? ' regions:' + n.regions.length : '')) } };
   });
   await probe('U42', 'one sketch: rectangle + circle overlapping its RIGHT edge (centre 38,10)', async () => {
     await newPart(); await press('s'); await sketchRect(0, 0, 40, 20); await sketchCircle(38, 10, 10);
     const r = await finishExtrude(5); const p = r.status === 'preview' ? await bodyProps(0) : null;
     const segOut = 25 * Math.acos(0.4) - 2 * Math.sqrt(21), union = (800 + segOut) * 5;
-    return { ok: !!p && near(p.volume, union), expected: { volume: Math.round(union), compare: 'U41 is the same situation on another edge' }, actual: { ...r, ...p } };
+    return { ok: (!!p && near(p.volume, union)) || /overlap/.test(r.toast ?? ''), expected: { volume: Math.round(union), orRefused: 'Shapes … overlap', compare: 'U41 is the same situation on another edge' }, actual: { ...r, ...p } };
   });
   await probe('U43', 'one sketch: two overlapping rectangles (0,0 10×10 and 5,5 10×10)', async () => {
     await newPart(); await press('s'); await sketchRect(0, 0, 10, 10); await sketchRect(5, 5, 10, 10);
     const r = await finishExtrude(5); const p = r.status === 'preview' ? await bodyProps(0) : null;
-    return { ok: !!p && near(p.volume, 875), expected: { volume: 875, area: 175 }, actual: { ...r, ...p } };
+    return { ok: (!!p && near(p.volume, 875)) || /overlap/.test(r.toast ?? ''), expected: { volume: 875, area: 175, orRefused: 'Shapes … overlap' }, actual: { ...r, ...p } };
   });
   await probe('U44', 'one sketch: circle Ø20 then a rectangle overlapping it (each first point inside the other)', async () => {
     await newPart(); await press('s'); await sketchCircle(0, 0, 20); await sketchRect(5, -3, 15, 6);
     const r = await finishExtrude(5);
     const p = r.status === 'preview' ? await bodyProps(0) : null;
-    return { ok: !!p, expected: 'one merged body (circle ∪ rectangle) or a reasoned refusal', actual: { ...r, ...p, sketchStillOpen: !!(await page.locator('.sk-panel').count()) } };
+    return { ok: !!p || /overlap/.test(r.toast ?? ''), expected: 'one merged body (circle ∪ rectangle) or a reasoned refusal', actual: { ...r, ...p, sketchStillOpen: !!(await page.locator('.sk-panel').count()) } };
   });
   await press('Escape');
 
@@ -724,6 +725,63 @@ try {
     const chainOff = ((await page.locator('[aria-label="Drawing sheet"]').innerHTML()).match(/8 1\.5 1\.5 1\.5/g) ?? []).length;
     await toModel();
     return { ok: !e && z === 8 && after !== before && chainOn > 0 && chainOff === 0, expected: 'block lifted to z 8, sheet redrawn; chain lines on then off', actual: { mateError: e, z, sheetChanged: after !== before, chainOn, chainOff } };
+  });
+
+  // ===================================================================== smoke tests of features merged at d5fa5fa6
+  await probe('UN1', '[sketch-constraints] Edit sketch reopens a dimensioned outline; changing a length and finishing updates the part in place', async () => {
+    await toModel(); await newPart(); await drawQuad();
+    await page.fill('#sk-len0', '60'); await page.fill('#sk-len1', '25'); await page.evaluate(() => document.activeElement?.blur());
+    await press('Enter'); await hudReady(); await press('Enter'); await idle();
+    const n0 = (await doc()).nodes.length;
+    await page.locator('.history .hs').first().click(); await page.click('[aria-label="Edit sketch"]'); await page.waitForTimeout(500);
+    const reopened = { sketching: await page.locator('.sk-panel').count(), len0: await page.inputValue('#sk-len0').catch(() => null), list: (await page.locator('.sk-panel [role=list]').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 160) };
+    await page.fill('#sk-len0', '80'); await page.evaluate(() => document.activeElement?.blur());
+    await page.click('.topbar button.finish'); await page.waitForTimeout(400); if (await page.locator('.hud').count()) { await hudReady(); await press('Enter'); } await idle(); await page.waitForTimeout(400);
+    const d = await doc(), pts = d.nodes[0].outline?.points ?? d.nodes[0].points ?? [];
+    const xs = pts.map(p => p[0]);
+    return { ok: reopened.sketching === 1 && reopened.len0 === '60' && d.nodes.length === n0 && Math.abs(Math.max(...xs) - Math.min(...xs) - 80) < 1e-6, expected: 'reopened with Length 60 kept; after 80 the same feature count, width 80', actual: { reopened, nodesBefore: n0, nodesAfter: d.nodes.length, xs } };
+  });
+  await probe('UN2', '[assembly-mates] origin planes: block XY on the plate top, then XZ / YZ on the base planes → fully placed at (0,0,8); freedom text follows', async () => {
+    await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload(); await idle();
+    const blk = await insert(blockFile);
+    const plane = async (part, p) => { await page.selectOption('[aria-label="Plane of"]', part); await page.click(`[aria-label="Pick ${p} plane"]`); await page.waitForTimeout(250); };
+    const freedom = () => page.locator('[aria-label="Freedom"]').innerText().catch(() => '');
+    const f0 = await freedom();
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")'); await page.evaluate(() => window.__studioPickFace('n1.top')); await page.waitForTimeout(200); await plane(blk, 'XY'); await page.waitForTimeout(500);
+    const e1 = (await page.locator('[aria-label="Mate refused"]').innerText().catch(() => '')); const f1 = await freedom();
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")'); await plane('base', 'XZ'); await plane(blk, 'XZ'); await page.waitForTimeout(500);
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")'); await plane('base', 'YZ'); await plane(blk, 'YZ'); await page.waitForTimeout(500);
+    const f3 = await freedom(), i = await instPos(blk);
+    return { ok: !e1 && /2 slides · 1 turn|1 turn/.test(f1) && /fully placed/.test(f3) && Math.abs(i.position[2] - 8) < 1e-9, expected: { start: 'placed by its numbers', afterFirst: 'free: 2 slides · 1 turn', end: 'fully placed by its mates, z 8' }, actual: { f0, e1, f1, f3, position: i.position, rotation: i.rotation, mates: (await doc()).mates?.map(m => [m.a.face, m.b.face, m.flip ?? false]) } };
+  });
+  await probe('UN3', '[drawing] Section A–A on the starter plate (two cut faces) and an angle dimension refused on parallel edges', async () => {
+    await toModel(); await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload(); await idle();
+    await toDrawing(); await page.click('[aria-label="Section A–A"]');
+    await page.waitForFunction(() => window.__studioDrawing?.()?.section?.rings === 2, null, { timeout: 20000 }).catch(() => {});
+    const sec = (await sheetState()).section;
+    await page.fill('[aria-label="Section Y"]', '100'); await press('Enter'); await page.waitForTimeout(1500);
+    const off = (await page.locator('.dw-panel').innerText()).replace(/\s+/g, ' ');
+    // Angle between the front view's top and bottom edges (parallel).
+    await page.fill('[aria-label="Section Y"]', '16'); await press('Enter'); await page.waitForTimeout(800);
+    await press('a'); await clickView('front', 10, 8); await clickView('front', 10, 0); await page.waitForTimeout(300);
+    const h = await hint(); await press('Escape');
+    return { ok: sec?.rings === 2 && /Nothing of the part lies behind/.test(off) && /parallel|angle/i.test(h), expected: { rings: 2, y100: 'Nothing of the part lies behind Y = 100', parallelAngle: 'refused with a reason' }, actual: { section: sec, y100: (/Section A–A: [^.]*\./.exec(off) ?? [''])[0], hint: h } };
+  });
+  await probe('UN4', '[core] Chat without the chat server: the panel says it is off, input and Send are disabled, no page error', async () => {
+    await toModel(); await page.click('[aria-label="Chat"]'); await page.waitForSelector('[aria-label="Chat"].chat, aside[aria-label="Chat"]', { timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    const note = (await page.locator('aside[aria-label="Chat"] [role=note]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    const msgDisabled = await page.locator('[aria-label="Chat message"]').isDisabled(), attachDisabled = await page.locator('[aria-label="Attach image"]').isDisabled();
+    const send = await page.locator('aside[aria-label="Chat"] button[type=submit]').isDisabled().catch(() => null);
+    await page.click('[aria-label="Close chat"]').catch(() => {});
+    return { ok: /Chat is off/.test(note) && msgDisabled && attachDisabled && send === true, expected: 'Chat is off note, message / attach / Send disabled', actual: { note, msgDisabled, attachDisabled, send } };
+  });
+  await probe('UN5', '[core] U3: after typing a sketch dimension, pressing C switches to the circle tool', async () => {
+    await newPart(); await press('s'); const [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 60, cy - 40); await clickAt(cx + 60, cy + 40);
+    await page.fill('#sk-height', '30'); await press('c'); await page.waitForTimeout(200);
+    const hintTitle = await page.locator('.hint-title').innerText().catch(() => ''), height = await page.inputValue('#sk-height').catch(() => null);
+    await press('Escape'); await press('Escape');
+    return { ok: /Circle/.test(hintTitle), expected: 'Circle tool active, the typed 30 kept', actual: { tool: hintTitle, height } };
   });
 } finally {
   writeFileSync(join(out, 'ui-probe.json'), JSON.stringify(rows, null, 2));

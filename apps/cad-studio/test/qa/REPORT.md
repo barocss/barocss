@@ -10,6 +10,9 @@ Tester session on branch `claude/studio-tester-412a82`.
 - Fourth pass: merged with `5b270428` (drawings follow-ups `356c3a7f` and the QA fixes). This
   pass covered drawings in depth, checked the exported SVG and PDF numerically, and re-ran every
   probe there.
+- **Fifth pass (current):** merged with `d5fa5fa6`, where all the fixes are in. I re-verified every
+  finding there and smoke-tested the newly merged features. The current status of every finding is
+  in the next section.
 
 Every finding below carries an area tag for routing: **[sketch-constraints]**,
 **[assembly-mates]**, **[drawing]** or **[core]** (everything else).
@@ -30,7 +33,9 @@ node test/qa/run-engine-probe.mjs constraints-mates-probe.ts   # sketch constrai
 node test/qa/run-engine-probe.mjs drawing-probe.ts              # hidden-line views, layout, dimensions (19 cases)
 node test/qa/run-engine-probe.mjs drawing-svg-probe.ts          # exported SVG/PDF parsed back and checked by position (20 cases)
 node test/qa/run-engine-probe.mjs torus-probe.ts                # overlapping tori (W5)
-# Real app (Vite on :52044 + Chromium, 68 cases, ~15 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
+node test/qa/run-engine-probe.mjs smoke-probe.ts                # reopen sketch, circles by dimensions, origin-plane mates, section, angle dims
+# Real app (Vite on :52044 + Chromium, 74 cases, ~17 min).
+# PW_DIR=… CHROME=… node test/qa/newpart-probe.mjs  (U4: New part with a sketch open) Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
 PW_DIR=/Users/user/.npm/_npx/e41f203b7505f1fb/node_modules/playwright \
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 node test/qa/ui-probe.mjs /tmp/cad-studio-qa
@@ -39,7 +44,7 @@ node test/qa/ui-probe.mjs /tmp/cad-studio-qa
 The raw outputs of the final run are in `test/qa/results/`. Screenshots for the findings are in
 `test/qa/screenshots/`, named by case id; `results/ui-probe.json` names every case's screenshot.
 
-Final run on `5b270428`:
+Fourth-pass run on `5b270428` (superseded by the fifth pass below):
 
 | Probe | As expected |
 |---|---|
@@ -56,9 +61,140 @@ The only page error in the whole run is the C1 TypeError. The cases that were no
 as expected are the findings below. Where a mismatch came from my own expected value, I fixed the
 probe and did not report it.
 
+## Fifth pass — status of every finding on `d5fa5fa6` (current)
+
+Final run on `d5fa5fa6`:
+
+| Probe | As expected |
+|---|---|
+| UI | **60/68** on the last full run (before UN1–UN5). Run separately: UN1, UN3 and UN5 pass; UN2 is A3 and UN4 is U5. |
+| Engine | **120/126** |
+| Constraints and mates | **42/42** |
+| Drawing | **19/19** |
+| Drawing SVG/PDF | **20/20** |
+| Smoke (new features) | **12/14** |
+
+The engine misses are D1 (×4), D4 and E15. The smoke misses are S4.
+
+| Finding | Area | Status on `d5fa5fa6` | Evidence |
+|---|---|---|---|
+| W1 overlapping shapes in one sketch | core | **fixed** (refused with a reason) | Every overlap now says "Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch." (U41–U44, regions-probe). *Behaviour change:* a circle overlapping a rectangle edge used to give the correct union (U42, 4099 mm³); it is now refused too. The kernel still accepts a `holes` loop that crosses the outer loop if a file carries one (E15), but the UI no longer produces it. |
+| C1 Finish sketch TypeError | core | **fixed** | The same case gets the overlap refusal; no page error in the whole run. |
+| W2 oversize fillet / chamfer | core | **fixed** | R20 and chamfer 20 on a 16 wall: "The chamfer or fillet is too large" (U30, U31, F03). R16.5 … R33 are all refused; R15 and R16 still build. |
+| W3 edge / vertex-touching union | core | **fixed** | "The bodies only touch along an edge or a point"; both bodies are kept (U69, B08, detail-probe). |
+| W4 pipe angle | core | fixed (since `5b270428`) | The HUD shows 90 and builds 90 (U64). |
+| W5 overlapping tori union | core | **message fixed; kernel open by design** | Now "These bodies could not be joined into one solid" (torus-probe). The tori still cannot be joined. |
+| R1 non-STEP file | core | fixed | U74 |
+| R2 / R3 refusal reasons | core | fixed | U61, U62, E11, R08 |
+| D1 STEP reopen volume drift | core | still reproduces (open by design) | X01, X03, X05, X06 unchanged; torus 14804 → 14795. |
+| D2 two solids reopen as one body | core | still reproduces (open by design) | U71 |
+| D3 arc length | core | fixed | 25.13 mm (U03) |
+| D4 fillet volume at large R | core | still reproduces (open by design) | F06: 14623.40 against 14625.98 |
+| U1 no feature delete | core | still reproduces (open by design) | U83 |
+| U2 removed-count toast | core | fixed | U82 |
+| U3 tool keys swallowed after typing | core | **fixed** | Typing Height 30 then `C` switches to the circle tool (UN5). |
+| A1 non-90° X/Y mate | assembly-mates | **fixed** | The block lies on the 45° chamfer, rotation [45, 0, 0], and evaluates (UM6, M09, M10, N9). |
+| A2 feature editor hidden with an instance selected | core | **fixed** | The editor opens straight away (UM2). |
+| S1 ⌘Z in a sketch | core | **fixed** | ⌘Z undoes the width lock and stays in the sketch; the box feature is untouched (UC1). |
+| S2 constraints dropped at Finish | sketch-constraints | **fixed** | The node keeps `outline` (lengths, hv, rules). The feature editor offers "Length of edge 1 / 2", and Edit sketch reopens it (UC3, K18, N1–N4, UN1). |
+| S3 rectangle becomes a polygon | sketch-constraints | **fixed** | Width, Depth and Corner are kept (K29). |
+| X1 interference not checked | assembly-mates | unchanged (information, open by design) | M05, M11 |
+| DR1 instances on the sheet | drawing | fixed | UD6, SV17–SV20 |
+| DR2 empty-part toast | drawing | **fixed** | There is no toast; the panel says "There is no body to draw." (UD7) |
+| DR3 long title | drawing | **fixed** | It is shrunk to 3 mm and cut with "…": "Bracket-01 assembly with long d…" ends at x 222, inside the cell (SV16). |
+
+**Regressions:** none. Every case that passed on `5b270428` still passes. The only change is that
+U42 is now a reasoned refusal where it used to be a correct union (see W1). The C1 TypeError is gone.
+
+### New findings on `d5fa5fa6`
+
+#### S4 [sketch-constraints] — wrong geometry: a circle placed by dimensions outside the outline, or across its edge, becomes material instead of a hole
+
+Steps: a 60 × 25 outline with an attached circle.
+- Set `cdx` (point 1 → circle) to **70**: the circle lies wholly outside the plate. Finish accepts it
+  as a second **region**: volume **7751.33** = 7500 + π·16·5. A disc of material appears beside the
+  plate (smoke N6).
+- Set `cdx` to **58** with Ø8: the circle crosses the right edge. It is accepted as an overlapping
+  region: volume **7549.14** = 7500 + 49.1. That is a **bump**, where the hole should have been
+  refused or become a notch (N6b).
+
+Neither case gives a warning. The W1 overlap check runs for drawn shapes, but not for circles
+attached to an outline.
+
+Code: `src/sketch/loops.ts` `profileOf` (attached circles) and `src/sketch/rules.ts`
+`commitDimension` for `cdx` / `cdy` / `cdist`.
+
+#### A3 [assembly-mates] — UX: origin-plane mates default to opposed planes, so the part flips and three plane mates cannot all be made
+
+Steps:
+1. Insert `block.bcad`.
+2. Add mate: the plate's top face, then *Or a plane of* block → **XY**. The block is turned
+   **180° about X** (rotation [180, 0, 0]). Its body now hangs below z 8, into the plate.
+3. Add mate: base XZ → block XZ. It is accepted.
+4. Add mate: base YZ → block YZ. It is **refused**: "Conflicts with Coincident 1 and Coincident 2:
+   they turn block so this face points 180° away from where it must" (UN2).
+
+Two opposed plane pairs force the third pair to be opposed as well, which would need a mirror image.
+So a part cannot be lined up with the base by its three origin planes unless Flip is ticked on each
+mate. With Flip on all three it works: the engine places the block at (0, 0, 8), fully defined
+(N7).
+
+Origin planes have no material side, so most CAD tools align them by default.
+
+Code: `src/assembly/mates.ts` `directionOf`, which opposes plane normals unless `flip`.
+
+Screenshot: `screenshots/UN2-…jpg`.
+
+#### U4 [core] — UX: New part leaves an open sketch open, and its shapes become the new part's first feature
+
+Steps: start a sketch and draw a rectangle. Click **New part** (title becomes "Untitled"). The
+sketch panel is still there; Finish then extrudes the old rectangle into the new part
+(`newpart-probe.mjs`, `results/newpart-probe.txt`).
+
+A sketch made on a face of the old part would keep a base reference into a document that no longer
+has it.
+
+Code: `src/App.tsx`, the New part button. `commit(emptyDoc())` does not `setSketch(null)`, unlike
+Model, Render and Drawing.
+
+#### U5 [core] — low: opening Chat without the chat server logs a console error
+
+The panel itself is right: "Chat is off. The chat server is not running…", with the message box,
+Attach and Send disabled. But every opening logs `Failed to load resource: … 502 (Bad Gateway)`,
+because the Vite proxy cannot reach `127.0.0.1:52021` (UN4).
+
+Code: `src/chat/client.ts` `chatStatus`. The failure is handled, but the browser still logs the 502.
+A status endpoint that answers `{ enabled: false }` itself would keep the console clean.
+
+### Smoke tests of the new features (`smoke-probe.ts`, UN1–UN5)
+
+- **Reopen a finished sketch.** The node keeps its outline with lengths 60 / 25.
+  - **Edit sketch** reopens it with "Length edge 1 = 60 · Length edge 2 = 25" listed. Changing 60 to
+    80 and finishing rewrites the same feature (2 nodes before and after, width 80).
+  - The feature editor's "Length of edge 1" field re-solves directly: 80 / 25 hold.
+  - An impossible value (−5) leaves the nodes unchanged.
+- **Circles placed by dimensions.** `cdx` 15, `cdy` 10 and `cdia` 6 put a Ø6 hole at (15, 10);
+  volume 7358.63 = (1500 − 9π)·5, exact. The outside or crossing cases are S4.
+- **Mates to origin planes and remaining freedom.**
+  - The freedom line reads "placed by its numbers (no mate moves it)", then "free: 2 slides · 1 turn"
+    after one plane mate.
+  - The engine reports 1 turn + 2 slides after one coincident and 1 turn + 1 slide after one
+    concentric.
+  - Three flipped plane mates place the block exactly at (0, 0, 8), "fully placed".
+  - The UI default without Flip is A3.
+- **Section A–A.**
+  - At Y 16 the starter plate gives two cut rings of exactly 224 mm² (28 × 8) on either side of the
+    hole.
+  - At Y 4 it gives one ring of 512 mm².
+  - At Y 100 it is refused with "Nothing of the part lies behind Y = 100." (also in the app, UN3).
+- **Angular dimensions.** A 30° wedge reads exactly **30°**. Two parallel edges are refused with
+  "These edges are parallel here — pick one that meets the first at an angle." (UN3)
+- **Chat panel without the server.** The panel is correctly disabled (UN4); the one issue is the
+  console error in U5. No live chat turns were run.
+
 ---
 
-## Findings, most severe first
+## Findings, most severe first (history: first pass, then each pass's additions)
 
 Severity labels: **wrong geometry**, **crash**, **refusal without reason**, **UX**. "Data" marks a
 number that is a little off where the shape itself is right.

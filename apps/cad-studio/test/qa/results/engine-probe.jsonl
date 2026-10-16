@@ -10,7 +10,7 @@
 {"id":"B05","name":"union chain of 3 face-touching boxes","ok":true,"expected":3000,"actual":{"kernel":3000,"mesh":3000,"bodies":1,"faces":[6],"bounds":[{"min":[0,0,0],"max":[30,10,10]}]}}
 {"id":"B06","name":"subtract a box flush with the top face (coincident top)","ok":true,"expected":3000,"actual":{"kernel":3000,"mesh":3000,"bodies":1,"faces":[8],"bounds":[{"min":[0,0,0],"max":[20,20,10]}]}}
 {"id":"B07","name":"pocket: subtract box sharing top face, inside","ok":true,"expected":3500,"actual":{"kernel":3500,"mesh":3500,"bodies":1,"faces":[11],"bounds":[{"min":[0,0,0],"max":[20,20,10]}]}}
-{"id":"B08","name":"union of boxes touching only along an edge","ok":false,"expected":"refusal","actual":{"accepted":true,"volume":[2000.0000000000002],"bodies":1,"bounds":[{"min":[0,0,0],"max":[20,20,10]}]}}
+{"id":"B08","name":"union of boxes touching only along an edge","ok":true,"expected":"/touch/","actual":{"title":"The bodies only touch along an edge or a point","hint":"Overlap the bodies (or keep them apart) so the result is a proper solid.","detail":"the bodies touch along an edge or at a vertex only; the result is not a manifold solid"}}
 {"id":"B09","name":"subtract cylinder tangent to box side (x=10, r5 at x15)","ok":true,"actual":{"volumes":[1000],"faces":[6],"bounds":[{"min":[0,0,0],"max":[10,10,10]}]}}
 {"id":"B10","name":"subtract tool that covers the whole body","ok":true,"expected":0,"actual":{"kernel":0,"mesh":0,"bodies":0,"faces":[],"bounds":[]}}
 {"id":"B11","name":"intersect disjoint boxes","ok":true,"expected":0,"actual":{"kernel":0,"mesh":0,"bodies":0,"faces":[],"bounds":[]}}
@@ -54,7 +54,7 @@
 {"id":"E20","name":"rect with hole on a 45° plane","ok":true,"expected":3607.301,"actual":{"kernel":3607.301,"mesh":3609.819,"bodies":1,"faces":[7],"bounds":[{"min":[0,0,-14.142135620117188],"max":[40,17.677669525146484,3.535533905029297]}]}}
 {"id":"F01","name":"fillet R4 on a top edge (32 long)","ok":true,"expected":16274.124,"actual":{"kernel":16273.962,"mesh":16271.545,"bodies":1,"faces":[7],"bounds":[{"min":[0,0,0],"max":[32,32,16]}]}}
 {"id":"F02","name":"chamfer 2 on a top edge (32 long)","ok":true,"expected":16320,"actual":{"kernel":16320,"mesh":16320,"bodies":1,"faces":[7],"bounds":[{"min":[0,0,0],"max":[32,32,16]}]}}
-{"id":"F03","name":"fillet R20 larger than the 16 wall","ok":false,"expected":"refusal","actual":{"accepted":true,"volume":[13650.769664817832],"bodies":1,"bounds":[{"min":[0,0.4040820598602295,0],"max":[32,32,16]}]}}
+{"id":"F03","name":"fillet R20 larger than the 16 wall","ok":true,"expected":"/too large/","actual":{"title":"The chamfer or fillet is too large","hint":"It must be shorter than both walls meeting at the corner. Use a smaller size.","detail":"edge n1.side0|n1.top: fillet 20 mm is too large for walls of 16 and 32 mm"}}
 {"id":"F04","name":"fillet on an edge name that does not exist","ok":true,"expected":"/no longer exists/","actual":{"title":"The selected edge no longer exists","hint":"An earlier edit changed the shape around it. Select the edge again and re-apply the chamfer or fillet.","detail":"no edge named n1.nope|n1.top; edges: n1.bottom|n1.side0, n1.side0|n1.side1, n1.side0|n1.top, n1.side0|n1.side3, n1.bottom|n1.side1, n1.side1|n1.side2, n1.side1|n1.top, n1.bottom|n1.side2, n1.side2|n1."}}
 {"id":"F05","name":"fillet radius 0","ok":true,"expected":"/greater than zero/","actual":{"title":"Sizes must be greater than zero","hint":"Every width, depth, height and radius needs a positive value.","detail":"radius must be positive"}}
 {"id":"F06","name":"fillet R16 exactly equal to the wall height (16)","ok":false,"expected":14625.982,"actual":{"kernel":14623.398,"mesh":14584.72,"bodies":1,"faces":[6],"bounds":[{"min":[0,0,0],"max":[32,32,16]}]}}
@@ -125,4 +125,4 @@
 {"id":"C02","name":"after previews of Ø20/Ø22, Ø8 commit evaluates exactly","ok":true,"expected":29748.673,"actual":{"kernel":29748.673,"mesh":29750.284,"bodies":1,"faces":[7],"bounds":[{"min":[0,0,0],"max":[100,60,5]}]}}
 {"id":"C03","name":"undo back to the starter after edits","ok":true,"expected":15981.876,"actual":{"kernel":15981.876,"mesh":15984.455,"bodies":1,"faces":[7],"bounds":[{"min":[0,0,0],"max":[64,32,8]}]}}
 
-118/126 cases as expected; 8 findings: B08 E15 F03 F06 X01 X03 X05 X06
+120/126 cases as expected; 6 findings: E15 F06 X01 X03 X05 X06

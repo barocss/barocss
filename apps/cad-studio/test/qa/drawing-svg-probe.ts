@@ -11,6 +11,7 @@ import { buildSheet, PENS } from '../../src/drawing/sheet';
 import { sheetSvg } from '../../src/drawing/svg';
 import { sheetPdf } from '../../src/drawing/pdf';
 import { resolveDimension, snapPoints } from '../../src/drawing/dimensions';
+import { textWidth } from '../../src/drawing/text';
 import { defaultDrawing, type DrawingSettings, type DrawingViews, type ViewId } from '../../src/drawing/types';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };
@@ -122,10 +123,11 @@ run('SV15', 'Ø16 boss on the starter plate: one cross per centre, sized by the 
 run('SV16', 'a long title stays inside the 120 mm title block', () => {
   const title = 'Bracket-01 assembly with long descriptive name rev C';
   const s = sheetOf(starterDoc(), defaultDrawing(), title);
-  const tb = s.layout.title, text = [...s.svg.matchAll(/<text fill="#000" stroke="none" x="([\d.]+)" y="([\d.]+)" font-size="5"[^>]*>([^<]*)<\/text>/g)][0];
-  // Helvetica-Bold averages ~0.6 em per character.
-  const est = Number(text[1]) + title.length * 5 * 0.6;
-  return { ok: est <= tb[2] - 54, expected: `text ends before the projection symbol at x ${tb[2] - 55}`, actual: { start: Number(text[1]), estimatedEnd: r3(est), blockRight: tb[2] } };
+  // The bold title text in the title block, measured with Helvetica-Bold advance widths.
+  const tb = s.layout.title, m = [...s.svg.matchAll(/<text fill="#000" stroke="none" x="([\d.]+)" y="([\d.]+)" font-size="([\d.]+)"[^>]*font-weight="bold"[^>]*>([^<]*)<\/text>/g)].find(t => Number(t[2]) < tb[1] + 14);
+  if (!m) return { ok: false, actual: 'title text not found' };
+  const end = Number(m[1]) + textWidth(m[4], Number(m[3]), true);
+  return { ok: end <= tb[2] - 54, expected: `text ends before the projection symbol at x ${tb[2] - 55}`, actual: { text: m[4], size: Number(m[3]), start: Number(m[1]), end: r3(end), blockRight: tb[2] } };
 });
 
 // ---- Instances on the sheet.
