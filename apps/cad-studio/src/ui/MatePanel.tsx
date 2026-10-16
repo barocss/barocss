@@ -10,6 +10,8 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
   const f = table?.[name];
   if (table && !f) return `missing face (${name})`;
   if (f?.kind === 'cylinder') return `${f.outer ? 'Round face' : 'Hole'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  const origin = /^origin:(xy|xz|yz)$/.exec(name);
+  if (origin) return `${origin[1].toUpperCase()} plane`;
   const tail = name.split('|')[0].split('.').pop() ?? name;
   const side = /^side(\d+)$/.exec(tail);
   return side ? `Side face ${Number(side[1]) + 1}` : tail === 'top' ? 'Top face' : tail === 'bottom' ? 'Bottom face' : tail;
@@ -46,6 +48,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
         {draft.kind === 'angle' && <NumberField label="Angle" unit="°" value={draft.angle} onCommit={v => assembly.setDraft({ angle: v })} />}
         {draft.kind !== 'concentric' && <label className="field check-row"><span>Flip</span>
           <input type="checkbox" aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
+        <PlanePicker instances={instances} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
@@ -96,6 +99,21 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
       <div className="row-actions"><button className="ghost" onClick={onDelete}>Delete mate</button></div>
     </div>
   );
+}
+
+/** An origin plane of a part as the next pick: the part, then XY, XZ or YZ. */
+function PlanePicker({ instances, onPick }: { instances: PartInstance[]; onPick(ref: MateRef): void }) {
+  const [part, setPart] = useState(BASE);
+  return (<>
+    <label className="field"><span>Or a plane of</span>
+      <select aria-label="Plane of" value={part} onChange={e => setPart(e.target.value)}>
+        <option value={BASE}>Base part</option>
+        {instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+      </select></label>
+    <div className="row-actions" style={{ display: 'flex', gap: 6, paddingLeft: 84 }}>
+      {(['xy', 'xz', 'yz'] as const).map(p => <button key={p} type="button" className="ghost" aria-label={`Pick ${p.toUpperCase()} plane`} onClick={() => onPick({ part, face: `origin:${p}` })}>{p.toUpperCase()}</button>)}
+    </div>
+  </>);
 }
 
 function NumberField({ label, value, onCommit, unit = 'mm' }: { label: string; value: number; onCommit(v: number): void; unit?: string }) {

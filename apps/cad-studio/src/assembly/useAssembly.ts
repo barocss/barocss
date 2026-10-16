@@ -19,6 +19,8 @@ export interface Assembly {
   start(): void; cancel(): void; setDraft(patch: Partial<MateDraft>): void; select(id: string | null): void;
   /** A viewport click while adding a mate (true: it was taken). */
   pick(hit: Hit): boolean;
+  /** Picks a face by name while adding a mate (an origin plane: `origin:xy`, `origin:xz`, `origin:yz`). */
+  pickFace(ref: MateRef): void;
   /** Changes a mate, re-solving; the reason when it cannot be met (nothing changes then). */
   edit(id: string, patch: Partial<Mate>): string | null;
   remove(id: string): void;
@@ -120,11 +122,15 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       const name = named(BASE, bodies[hit.face.body]?.mesh.faces[hit.face.face]?.name);
       if (name) p = { ref: { part: BASE, face: name }, body: hit.face.body, face: hit.face.face };
     }
-    if (!p) return true;
-    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return true; }
+    if (p) addPick(p);
+    return true;
+  };
+  const addPick = (p: MatePick) => {
+    const draft = draftRef.current;
+    if (!draft) return;
+    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
     const next = { ...draft, error: undefined, picks: draft.picks.length >= 2 ? [p] : [...draft.picks, p] };
     setDraftState(next.picks.length === 2 ? finish(next) : next);
-    return true;
   };
   const pickRef = useRef(pick); pickRef.current = pick;
 
@@ -156,7 +162,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
-    pick, edit,
+    pick, edit, pickFace: ref => addPick({ ref }),
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
       const by = mates.filter(m => m.b.part === id);

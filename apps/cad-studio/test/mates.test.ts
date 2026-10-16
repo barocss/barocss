@@ -323,3 +323,17 @@ test('mates: what each mated part can still do (free turns and slides)', () => {
   // Lying on a face (tangent): it rolls and slides on it.
   assert.deepEqual(free([pin], [{ id: 't', kind: 'tangent', a: { part: BASE, face: 'n1.top' }, b: { part: 'pin', face: 'n1.side0' } }]).pin, { turns: 2, slides: 2 });
 });
+
+test('mates: origin planes mate like flat faces', () => {
+  const base = starterDoc(), plate = inst('plate', rectanglePart(20, 10, 4), [100, 5, 3]);
+  // The plate's YZ plane on the base part's, facing the same way: it moves to X 0, nothing else changes.
+  const yz: Mate = { id: 'm1', kind: 'coincident', flip: true, a: { part: BASE, face: 'origin:yz' }, b: { part: 'plate', face: 'origin:yz' } };
+  const r = solveAssembly([plate], [yz], tablesFor(base, [plate]));
+  assert.deepEqual(r.problems, []);
+  assert.deepEqual([r.instances[0].position, r.instances[0].rotation], [[0, 5, 3], [0, 0, 0]]);
+  // Its XY plane 10 mm above the top face (facing up as the face does).
+  const up: Mate = { id: 'm2', kind: 'distance', distance: 10, flip: true, a: { part: BASE, face: 'n1.top' }, b: { part: 'plate', face: 'origin:xy' } };
+  assert.deepEqual(solveAssembly([plate], [yz, up], tablesFor(base, [plate])).instances[0].position, [0, 5, 18]);
+  // An empty part has its origin planes too.
+  assert.deepEqual(Object.keys(faceTableOf({ ...starterDoc(), nodes: [], outputs: {} })), ['origin:xy', 'origin:xz', 'origin:yz']);
+});

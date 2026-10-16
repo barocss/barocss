@@ -12,9 +12,17 @@ const snapUnit = (p: readonly number[]): Vec3 => {
   return [q[0] / l, q[1] / l, q[2] / l];
 };
 
+/** A part's origin planes as mate faces: `origin:xy` faces +Z, `origin:xz` +Y, `origin:yz` +X. */
+export const ORIGIN_PLANES: FaceTable = {
+  'origin:xy': { kind: 'plane', point: [0, 0, 0], normal: [0, 0, 1] },
+  'origin:xz': { kind: 'plane', point: [0, 0, 0], normal: [0, 1, 0] },
+  'origin:yz': { kind: 'plane', point: [0, 0, 0], normal: [1, 0, 0] },
+};
+
 /** The flat and cylindrical faces of a part by name (pieces of one face, `x#1` and `x#2`, read as `x`). */
 export function faceTableOf(doc: StudioDoc): FaceTable {
-  const table: FaceTable = {};
+  // Every part's origin planes (in its own coordinates) mate like flat faces.
+  const table: FaceTable = { ...ORIGIN_PLANES };
   if (!doc.nodes.length) return table;
   let outputs;
   try { outputs = evaluateCadPart(toPartDocument(doc)).outputs; } catch { return table; }
