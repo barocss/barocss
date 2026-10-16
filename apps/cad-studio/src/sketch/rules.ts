@@ -4,7 +4,7 @@
 // so the shape on screen always satisfies exactly what the list shows.
 import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
-import type { SketchRule } from './terms';
+import { edgeAngle, type SketchRule } from './terms';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 /** A picked outline point or segment (line or arc) by index. */
@@ -14,6 +14,7 @@ export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendic
 export const isSettled = (s: SketchShape | null | undefined): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;
 export const samePick = (a: SketchPick, b: SketchPick) => a.kind === b.kind && a.i === b.i;
 const isArc = (s: Polygon, i: number) => !!s.bulges?.[i];
+const isLine = (s: Polygon, i: number) => i >= 0 && i < s.points.length && !isArc(s, i);
 const edgeName = (s: Polygon, i: number) => `${isArc(s, i) ? 'arc' : 'edge'} ${i + 1}`;
 const list = (names: string[]) => names.length <= 1 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
 const round = (v: number) => Math.round(v * 1e4) / 1e4;
@@ -89,6 +90,7 @@ export function dimensionKey(s: Polygon, picks: readonly SketchPick[]): string |
   const { points, edges } = split(s, picks);
   if (edges.length === 1 && !points.length) return (isArc(s, edges[0]) ? 'rad' : 'len') + edges[0];
   if (points.length === 2 && !edges.length) return distanceKey(s, points[0], points[1]);
+  if (edges.length === 2 && !points.length && edges.every(i => !isArc(s, i))) return angleKey(edges[0], edges[1]);
   return null;
 }
 /** The straight, horizontal and vertical dimension keys between two points (dist / dx / dy <lo>_<hi>). */
@@ -96,6 +98,8 @@ export function pointDimensionKeys(a: number, b: number): { dist: string; dx: st
   const [lo, hi] = a < b ? [a, b] : [b, a];
   return { dist: `dist${lo}_${hi}`, dx: `dx${lo}_${hi}`, dy: `dy${lo}_${hi}` };
 }
+/** Two straight edges' angle dimension key (ang<lo>_<hi>). */
+export const angleKey = (a: number, b: number) => `ang${Math.min(a, b)}_${Math.max(a, b)}`;
 type PointDim = 'dist' | 'dx' | 'dy';
 const ruleKind = { dist: 'distance', dx: 'dx', dy: 'dy' } as const;
 const pointDimName = { dist: 'Distance', dx: 'Horizontal distance', dy: 'Vertical distance' } as const;
@@ -146,6 +150,7 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
 /** A dimension's current value in the drawing (len<i>, rad<i>, dist / dx / dy <a>_<b>). */
 export function dimensionValue(s: Polygon, key: string): number | null {
   const d = parseKey(key), n = s.points.length; if (!d) return null;
+  if (d.kind === 'ang') return isLine(s, d.a) && isLine(s, d.b) && d.a !== d.b ? edgeAngle(s.points as P2[], d.a, d.b).degrees : null;
   if ('a' in d) {
     const a = s.points[d.a], b = s.points[d.b]; if (!a || !b) return null;
     return d.kind === 'dist' ? Math.hypot(b[0] - a[0], b[1] - a[1]) : Math.abs(b[d.kind === 'dx' ? 0 : 1] - a[d.kind === 'dx' ? 0 : 1]);
@@ -157,21 +162,30 @@ export function dimensionValue(s: Polygon, key: string): number | null {
 /** Whether a dimension is driving (locked). */
 export function isDriving(s: Polygon, key: string): boolean {
   const d = parseKey(key); if (!d) return false;
+  if (d.kind === 'ang') return hasRule(s, r => r.kind === 'angle' && r.a === d.a && r.b === d.b);
   if ('a' in d) { const kind = ruleKind[d.kind]; return hasRule(s, r => r.kind === kind && 'a' in r && r.a === d.a && r.b === d.b); }
   return (d.kind === 'rad' ? s.radii : s.lengths)?.[d.i] !== undefined;
 }
-function parseKey(key: string): { kind: 'len' | 'rad'; i: number } | { kind: PointDim; a: number; b: number } | null {
+function parseKey(key: string): { kind: 'len' | 'rad'; i: number } | { kind: PointDim | 'ang'; a: number; b: number } | null {
+  const g = /^ang(\d+)_(\d+)$/.exec(key); if (g) return { kind: 'ang', a: Number(g[1]), b: Number(g[2]) };
   const m = /^(len|rad)(\d+)$/.exec(key); if (m) return { kind: m[1] as 'len' | 'rad', i: Number(m[2]) };
   const d = /^(dist|dx|dy)(\d+)_(\d+)$/.exec(key); return d ? { kind: d[1] as PointDim, a: Number(d[2]), b: Number(d[3]) } : null;
 }
 export function dimensionLabel(s: Polygon, key: string): string {
   const d = parseKey(key); if (!d) return key;
+  if (d.kind === 'ang') return `Angle edge ${d.a + 1} – edge ${d.b + 1}`;
   return 'a' in d ? `${pointDimName[d.kind]} point ${d.a + 1} – point ${d.b + 1}` : d.kind === 'rad' ? `Radius of arc ${d.i + 1}` : `Length of edge ${d.i + 1}`;
 }
 
 /** Sets a driving dimension to `value` mm (adding it if new): the solved outline, or why it is refused. */
 export function commitDimension(s: Polygon, key: string, value: number): EditResult {
   const d = parseKey(key); if (!d) return { ok: false, reason: 'Unknown dimension' };
+  if (d.kind === 'ang') {
+    if (!isLine(s, d.a) || !isLine(s, d.b) || d.a === d.b) return { ok: false, reason: 'Unknown dimension' };
+    if (!Number.isFinite(value) || value <= 0 || value >= 180) return { ok: false, reason: 'An angle must be between 0° and 180° (use Parallel for 0° or 180°)' };
+    const rules = (s.rules ?? []).filter(r => !(r.kind === 'angle' && r.a === d.a && r.b === d.b));
+    return checkEdit({ ...s, hv: hvOf(s), rules: [...rules, { kind: 'angle', a: d.a, b: d.b, value }] }, s, `${dimensionLabel(s, key)} = ${round(value)}°`);
+  }
   if (!Number.isFinite(value) || value < 0.001) return { ok: false, reason: 'A dimension must be greater than 0' };
   if ('a' in d && (!s.points[d.a] || !s.points[d.b] || d.a === d.b)) return { ok: false, reason: 'Unknown dimension' };
   if ('i' in d && (d.i >= s.points.length || (d.kind === 'rad') !== isArc(s, d.i))) return { ok: false, reason: 'Unknown dimension' };
@@ -206,6 +220,7 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'equal') add(id, 'Equal length', `edge ${r.a + 1} = edge ${r.b + 1}`, [E(r.a), E(r.b)]);
     else if (r.kind === 'fix') add(id, 'Fixed', `point ${r.point + 1}`, [P(r.point)]);
     else if (r.kind === 'coincident') add(id, 'Coincident', `point ${r.point + 1} · arc ${r.arc + 1} centre`, [P(r.point), E(r.arc)]);
+    else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);
   });
   s.bulges?.forEach((b, i) => { if (b) add('arc:' + i, 'Arc', `edge ${i + 1} ${b > 0 ? 'ccw' : 'cw'}`, [E(i)], false); });

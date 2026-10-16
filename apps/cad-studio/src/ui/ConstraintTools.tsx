@@ -37,7 +37,7 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
     <div className="cons-tools" role="group" aria-label="Constraints for the selection">
       {TOOLS.map(t => <button key={t.kind} type="button" aria-label={t.label} disabled={!!options[t.kind]}
         title={options[t.kind] ?? `${t.label}: apply to the picked ${picked.length > 1 ? 'entities' : 'entity'}`} onClick={() => apply(t.kind)}><b>{t.sym}</b><span>{t.short}</span></button>)}
-      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, or two points'}
+      <button type="button" aria-label="Dimension the selection" disabled={!dim} title={dim ? 'Add or edit this dimension in the viewport' : 'Select one edge or arc, two straight edges (angle), or two points'}
         onClick={() => dim && onEditDim(dim)}><b>↔</b><span>Dimension</span></button>
     </div>
     {twoPoints && <div className="cons-tools cons-dims" role="group" aria-label="Dimensions between the points">
