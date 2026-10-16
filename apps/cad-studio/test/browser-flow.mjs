@@ -702,6 +702,53 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
   });
 
+  await check('chat builds a plate through a mocked proxy', async () => {
+    // The proxy's replies are scripted: each one reads the tool results the studio sent back.
+    const sse = (content, stop) => [
+      { type: 'message_start', message: { model: 'mock', content: [] } },
+      ...content.flatMap((b, index) => b.type === 'tool_use'
+        ? [{ type: 'content_block_start', index, content_block: { ...b, input: {} } }, { type: 'content_block_delta', index, delta: { type: 'input_json_delta', partial_json: JSON.stringify(b.input) } }, { type: 'content_block_stop', index }]
+        : [{ type: 'content_block_start', index, content_block: { type: 'text', text: '' } }, { type: 'content_block_delta', index, delta: { type: 'text_delta', text: b.text } }, { type: 'content_block_stop', index }]),
+      { type: 'message_delta', delta: { stop_reason: stop } }, { type: 'message_stop' },
+    ].map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+    const results = body => body.messages.at(-1).content.filter(b => b.type === 'tool_result').map(b => JSON.parse(b.content));
+    let calls = 0; const tool = (name, input) => ({ type: 'tool_use', id: `toolu_${++calls}`, name, input });
+    const script = [
+      () => [{ type: 'text', text: 'Plate first.' }, tool('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } })],
+      body => { const top = results(body)[0].bodies[0].faces.find(f => f.normal[2] === 1).name; return [[6, 6], [58, 6], [6, 26], [58, 26]].map(([x, y]) => tool('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } })); },
+      body => [tool('run_command', { command: 'fillet', edges: results(body).at(-1).bodies[0].edges.filter(e => e.line === 'along z').map(e => e.name), values: { radius: 2 } })],
+      () => [{ type: 'text', text: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }],
+    ];
+    let turn = 0; const requests = [];
+    const statusUrl = u => u.pathname === '/api/chat/status', chatUrl = u => u.pathname === '/api/chat';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
+    await page.route(chatUrl, r => {
+      const body = r.request().postDataJSON(); requests.push(body);
+      const content = script[turn++](body);
+      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(content, content.some(b => b.type === 'tool_use') ? 'tool_use' : 'end_turn') });
+    });
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Chat"]');
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Done:")', { timeout: 30000 });
+    await page.waitForFunction(() => /Fillet R2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
+    assert.equal(await page.locator('.chat-tool').count(), 6);
+    assert.equal(await page.locator('.chat-tool.err').count(), 0);
+    assert.equal(requests.length, 4);
+    assert.ok(requests.every(b => typeof b.system === 'string' && b.tools.length === 7 && !('model' in b)));
+    // The last tool line shows the engine's volume; one undo takes the whole turn back.
+    const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
+    assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*1 body, ${expected} mm³`));
+    await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
+    await page.click('[aria-label="Close chat"]');
+    await page.unroute(statusUrl); await page.unroute(chatUrl);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
