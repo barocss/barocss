@@ -13,7 +13,7 @@ import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
-import { SketchPanel, isConvex } from './ui/SketchPanel';
+import { SketchPanel } from './ui/SketchPanel';
 import { RenderPanel } from './ui/RenderPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
@@ -22,9 +22,9 @@ import { InstancePanel } from './ui/InstancePanel';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
-import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, xyPlane, type SketchPlane } from './sketch/plane';
+import { profileOf, shapeNode } from './sketch/loops';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -49,8 +49,10 @@ function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, numbe
 }
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
-  const chain = s.shape?.kind === 'polygon' && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
-  return { ...s, tool, shape: chain && s.shape?.kind === 'polygon' ? { ...s.shape, pending: false } : null };
+  const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
+  if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
+  // A closed shape stays in the sketch beside the next one.
+  return { ...s, tool, shape: null, ...(s.shape && shapeNode(s.shape) ? { done: [...(s.done ?? []), s.shape] } : {}) };
 };
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
@@ -88,9 +90,11 @@ export function App() {
   const liveShape = useRef<SketchShape | null>(null);
   useEffect(() => { liveShape.current = sketch?.shape ?? null; }, [sketch?.shape]);
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
-  const updateShape = useCallback((shape: SketchShape | null) => {
-    const r = settleShape(shape, liveShape.current); liveShape.current = r.shape;
-    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape });
+  // A new shape keeps the current one beside it when that one is closed (one profile of several loops).
+  const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
+    const prev = liveShape.current, keep = fresh && prev && shapeNode(prev) ? prev : null;
+    const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
+    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: [...(s.done ?? []), keep] } : {}) });
   }, []);
   useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
   const [palette, setPalette] = useState(false);
@@ -314,17 +318,10 @@ export function App() {
   }, [ctx, selection, bodies, engine, commit]);
 
   const finishSketch = useCallback(() => {
-    const s = sketch?.shape; if (!sketch || !s) { setSketch(null); return; }
-    const node: ModelNode | null = s.kind === 'rectangle'
-      ? (Math.abs(s.a[0] - s.b[0]) < 1 || Math.abs(s.a[1] - s.b[1]) < 1 ? null
-        : { kind: 'sketch', profile: 'rectangle', min: [Math.min(s.a[0], s.b[0]), Math.min(s.a[1], s.b[1])], max: [Math.max(s.a[0], s.b[0]), Math.max(s.a[1], s.b[1])] })
-      : s.kind === 'circle' ? { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r }
-        : s.kind === 'slot' ? (s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null)
-          : !s.closed || s.pending ? null
-            // Straight convex outlines keep the polygon path (all features); concave or curved ones become a line + arc loop.
-            : !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points) ? { kind: 'sketch', profile: 'polygon', points: s.points }
-              : { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points as P2[], s.bulges) };
-    if (!node) { setToast({ title: 'Finish the profile first', hint: 'Draw a closed rectangle, circle, slot or outline on the sketch plane.', detail: '' }); return; }
+    if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
+    const profile = profileOf([...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]);
+    if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
+    const node = profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
     const base = sketch.base ?? null;
@@ -532,7 +529,7 @@ export function App() {
             <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} title={`${t.label} (${t.key})`} aria-label={t.label}
               onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
           <div className="sep" />
-          <button className="tool" title="Clear profile" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null })}><Icon name="ink_eraser" /></button>
+          <button className="tool" title="Clear profile" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}

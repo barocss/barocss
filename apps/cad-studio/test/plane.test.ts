@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, rayOnPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
 import { evaluateDoc } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { profileOf } from '../src/sketch/loops';
 
 const near = (a: readonly number[], b: readonly number[], eps = 1e-9) => a.every((x, i) => Math.abs(x - b[i]) <= eps);
 
@@ -55,4 +56,26 @@ test('sketches on side faces join and cut along the face normal', () => {
   assert.equal(r.bodies.length, 1);
   assert.ok(r.bodies[0].mesh.faces.length > 6, 'the pocket adds faces');
   assert.ok(near(r.bodies[0].mesh.bounds.max, [64, 32, 8], 1e-6));
+});
+
+test('several closed shapes make one profile: shapes inside another are holes, the rest regions', () => {
+  const plate = { kind: 'rectangle' as const, a: [0, 0] as [number, number], b: [60, 40] as [number, number] };
+  const windowHole = { kind: 'rectangle' as const, a: [10, 10] as [number, number], b: [20, 30] as [number, number] };
+  const bore = { kind: 'circle' as const, c: [40, 20] as [number, number], r: 5 };
+  const boss = { kind: 'circle' as const, c: [80, 20] as [number, number], r: 6 };
+  const r = profileOf([plate, windowHole, bore, boss]);
+  assert.ok('node' in r);
+  const node = r.node;
+  assert.equal(node.profile, 'rectangle');
+  assert.equal(node.regions?.length, 1);
+  assert.equal(node.holes?.length, 2);
+  // It evaluates: the plate with its two holes beside the boss.
+  let d = withNode(emptyDoc(), node);
+  d = withNode(d, { kind: 'extrude', sketch: 0, height: 4 });
+  const ev = evaluateDoc(d, 3);
+  assert.ok(ev.ok, JSON.stringify(!ev.ok && ev.error));
+  // An island inside a hole and open shapes.
+  assert.ok('error' in profileOf([plate, windowHole, { kind: 'circle', c: [15, 20], r: 2 }]));
+  assert.ok('error' in profileOf([{ kind: 'polygon', points: [[0, 0], [5, 0]], closed: false }]));
+  assert.deepEqual(profileOf([plate]), { node: { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] } });
 });

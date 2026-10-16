@@ -8,6 +8,7 @@ import type { RenderCamera, RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '../sketch/plane';
+import { shapeOutline } from '../sketch/loops';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
@@ -21,7 +22,7 @@ export type SketchShape =
       equalRadii?: [number, number][]; concentric?: [number, number][] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
-export interface SketchState { plane: SketchPlane; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
+export interface SketchState { plane: SketchPlane; /** Closed shapes drawn before the current one. */ done?: SketchShape[]; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
@@ -46,7 +47,8 @@ interface Props {
   sketch: SketchState | null;
   gizmo: Gizmo | null;
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string }, additive: boolean): void;
-  onSketchShape(shape: SketchShape | null): void;
+  /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
+  onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
@@ -84,7 +86,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   // the latest emitted shape; a new shape from the app (panel edit, solver settle) replaces it.
   const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
   if (props.sketch?.shape !== seenShape.current) { seenShape.current = props.sketch?.shape; liveShape.current = props.sketch?.shape ?? null; }
-  const emit = (shape: SketchShape | null) => { liveShape.current = shape; propsRef.current.onSketchShape(shape); };
+  const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
   const fitted = useRef(false);
 
   const viewState = (): ViewState => ({
@@ -263,13 +265,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const c: [number, number] = [snap(p[0]), snap(p[1])];
       const s = liveShape.current;
       if (sk.tool === 'rectangle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }); }
+        if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
       } else if (sk.tool === 'circle') {
-        if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }); }
+        if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }, true); }
         else drafting.current = false;
       } else if (sk.tool === 'slot') {
-        if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }); }
+        if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }, true); }
         else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); } }
         else { drafting.current = false; slotStage.current = 0; }
       } else {
@@ -280,7 +282,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         const arc = sk.tool === 'arc' && pts.length > 0;
         const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
         if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
-        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc });
+        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc }, !open);
       }
       return;
     }
@@ -346,6 +348,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
         items.push(<g key={'g' + key}><rect x={m[0] - 8} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0]} y={m[1] - 15} textAnchor="middle" className="cons-text">{kind}</text></g>);
       };
+      // Shapes finished earlier in this sketch (regions and holes of one profile).
+      (sk.done ?? []).forEach((d, i) => items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className="sk-shape done" />));
       const s = sk.shape;
       if (s?.kind === 'rectangle') {
         const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];

@@ -8,12 +8,14 @@ export interface BodyRef { node: number; side: Side }
 
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
-type OnPlane = { plane?: DocPlane };
+export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
+/** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only). */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][] };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
-  | ({ kind: 'sketch'; profile: 'loop'; segments: ({ kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' })[] } & OnPlane);
+  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane);
 
 export type ModelNode = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */

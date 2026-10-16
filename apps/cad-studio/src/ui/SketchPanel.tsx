@@ -1,4 +1,5 @@
 import { planeLabel } from '../sketch/plane';
+import { isConvex } from '../sketch/loops';
 import { useMemo } from 'react';
 import type { SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, solveOutline, type ArcPair, type P2 } from '../sketch/profile';
@@ -176,13 +177,4 @@ function movePoint(points: [number, number][], i: number, k: number, v: number, 
 
 const round = (v: number) => Math.round(v * 1e4) / 1e4;
 
-export function isConvex(points: [number, number][]) {
-  let sign = 0; const n = points.length;
-  for (let i = 0; i < n; i++) {
-    const a = points[i], b = points[(i + 1) % n], c = points[(i + 2) % n];
-    const cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
-    if (cr !== 0) { if (sign === 0) sign = Math.sign(cr); else if (Math.sign(cr) !== sign) return false; }
-  }
-  return true;
-}
 

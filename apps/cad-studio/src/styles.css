@@ -25,6 +25,8 @@ button { font: inherit; color: inherit; }
 .vp-error { position: absolute; inset: 40% 30% auto; padding: 16px; border: 1px solid var(--warn); border-radius: 8px; background: var(--warn-soft); }
 .sk-shape { fill: rgba(232, 194, 90, 0.08); stroke: #f1f2f4; stroke-width: 2; }
 .sk-shape.open { fill: none; }
+.sk-shape.done { stroke: rgba(241, 242, 244, 0.7); fill: rgba(232, 194, 90, 0.05); }
+:root[data-theme='light'] .sk-shape.done { stroke: rgba(40, 46, 56, 0.6); }
 .sk-point { fill: var(--accent); }
 .sk-guide { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
 .sk-cursor { stroke: var(--accent); stroke-width: 1.5; }
