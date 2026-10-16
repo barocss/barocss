@@ -1,23 +1,21 @@
-B08 edge-touch union: [{"id":"n4","faces":12,"shells":2,"check":"{\"valid\":true,\"issues\":[],\"counts\":{\"bodies\":2,\"shells\":2,\"faces\":12,\"loops\":12,\"coedges\":48,\"edges\":24,\"vertices\":16},\"topology\":[{\"body\":\"n4_b0\",\"vertices\":8,\"edges\":12,\"faces\":6,\"loops\":6,\"shells\":1,\"genus\":0},{\"body\":\"n4_b1\",\"vertices\":8,\"edges\":12,\"faces\":6,\"loops\":6,\"shells\":1,\"genus\":0}],\"max"}]
-vertex-touch union: {"bodies":1,"vol":[2000.0000000000002]}
-F03 R20 fillet faces: [{"n":"n1.side1","k":"plane","nrm":[1,0,0],"a":425,"c":[32,18.34,7.27]},{"n":"n1.side2","k":"plane","nrm":[0,1,0],"a":512,"c":[16,32,8]},{"n":"n1.side3","k":"plane","nrm":[-1,0,0],"a":425,"c":[0,18.34,7.27]},{"n":"n1.bottom","k":"plane","nrm":[0,0,-1],"a":1011.1,"c":[16,16.2,0]},{"n":"n1.top","k":"plane","nrm":[0,0,1],"a":384,"c":[16,26,16]},{"n":"n2.face","k":"curved","nrm":[0,-0.632,0.775],"a":875,"c":[16,8.35,10.26]}] [{"id":"n2","faces":6,"shells":1,"check":"{\"valid\":true,\"issues\":[],\"counts\":{\"bodies\":1,\"shells\":1,\"faces\":6,\"loops\":6,\"coedges\":24,\"edges\":12,\"vertices\":8},\"topology\":[{\"body\":\"n2_body0\",\"vertices\":8,\"edges\":12,\"faces\":6,\"loops\":6,\"shells\":1,\"genus\":0}],\"maximumVertexGapMM\":0,\"maximumPcurveGapMM\":0}"}]
+B08 edge-touch union: "REFUSED: n4: the bodies touch along an edge or at a vertex only; the result is not a manifold solid"
+vertex-touch union: The bodies only touch along an edge or a point
 fillet R15 ok vol 14836.60 bounds {"min":[0,0,0],"max":[32,32,16]}
 fillet R16 ok vol 14623.40 bounds {"min":[0,0,0],"max":[32,32,16]}
-fillet R16.5 ok vol 14511.76 bounds {"min":[0,0.007577497512102127,0],"max":[32,32,16]}
-fillet R17 ok vol 14396.89 bounds {"min":[0,0.029437251389026642,0],"max":[32,32,16]}
-fillet R24 ok vol 12539.63 bounds {"min":[0,1.372583031654358,0],"max":[32,32,16]}
-fillet R31 ok vol 10381.06 bounds {"min":[0,3.870680093765259,0],"max":[32,32,16]}
-fillet R32 ok vol 10056.01 bounds {"min":[0,4.287187099456787,0],"max":[32,32,16]}
-fillet R33 ok vol 9727.93 bounds {"min":[0,4.715728759765625,0],"max":[32,32,15.984845161437988]}
+fillet R16.5 refused: The chamfer or fillet is too large
+fillet R17 refused: The chamfer or fillet is too large
+fillet R24 refused: The chamfer or fillet is too large
+fillet R31 refused: The chamfer or fillet is too large
+fillet R32 refused: The chamfer or fillet is too large
+fillet R33 refused: The chamfer or fillet is too large
 chamfer 8 ok vol 15360.00 (exact if fits 15360.00) bounds {"min":[0,0,0],"max":[32,32,16]}
 chamfer 15 ok vol 12784.00 (exact if fits 12784.00) bounds {"min":[0,0,0],"max":[32,32,16]}
 chamfer 16 ok vol 12288.00 (exact if fits 12288.00) bounds {"min":[0,0,0],"max":[32,32,16]}
-chamfer 17 ok vol 11776.00 (exact if fits 11760.00) bounds {"min":[0,1,0],"max":[32,32,16]}
-chamfer 20 ok vol 10240.00 (exact if fits 9984.00) bounds {"min":[0,4,0],"max":[32,32,16]}
-circle r5 at [ 38, 10 ] → REGION
-circle r5 at [ 42, 10 ] → REGION
-circle r5 at [ 20, 19 ] → HOLE
-circle r5 at [ 20, 21 ] → REGION
-circle r5 at [ 20, 1 ] → HOLE
+chamfer 17 refused: The chamfer or fillet is too large
+chamfer 20 refused: The chamfer or fillet is too large
+circle r5 at [ 38, 10 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 42, 10 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 19 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 21 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
+circle r5 at [ 20, 1 ] → Shapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.
 island: A shape inside a hole is not supported yet: draw it as its own sketch.
-two overlapping circles: vol 1123.50 bodies 1 expected union 2454.30
