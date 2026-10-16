@@ -1,3 +1,4 @@
+import { shownFields } from '../app/commands';
 import { useEffect, useRef } from 'react';
 import type { Command, Ctx, Values } from '../app/commands';
 import type { FriendlyError } from '../engine/errors';
@@ -12,7 +13,7 @@ interface Props {
 export function Hud({ active, onChange, onApply, onCancel }: Props) {
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active.cmd.id]);
-  const fields = active.cmd.fields?.(active.ctx) ?? [];
+  const fields = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values);
   return (
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>
       <div className="hud-title"><Icon name={active.cmd.icon} small className="accent" />{active.cmd.label}

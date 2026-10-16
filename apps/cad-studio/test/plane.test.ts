@@ -1,0 +1,58 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, rayOnPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
+import { evaluateDoc } from '../src/engine/evaluate';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+
+const near = (a: readonly number[], b: readonly number[], eps = 1e-9) => a.every((x, i) => Math.abs(x - b[i]) <= eps);
+
+test('sketch planes of faces: horizontal keeps part X/Y, vertical runs X along the face and Y up', () => {
+  const top = planeOfFace([0, 0, 1], [10, 5, 8]);
+  assert.deepEqual(top, { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] });
+  assert.equal(planeLabel(top!), 'Z 8');
+  assert.ok(isDefaultPlane(xyPlane()) && !isDefaultPlane(top!));
+  const front = planeOfFace([0, -1, 0], [32, 0, 4])!;
+  assert.deepEqual(front, { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] });
+  assert.equal(planeLabel(front), 'Y 0');
+  const end = planeOfFace([1, 0, 0], [64, 16, 4])!;
+  assert.deepEqual(end.xAxis, [0, 1, 0]);
+  assert.equal(planeLabel(end), 'X 64');
+  // Plane coordinates: (u, v) = (along the face, up); a point maps there and back.
+  assert.ok(near(toLocal(end, [64, 10, 3]), [10, 3]));
+  assert.ok(near(toWorld(end, [10, 3]), [64, 10, 3]));
+  // A face turned 30° about Z, and refused tilted faces.
+  const c = Math.cos(Math.PI / 6), s = Math.sin(Math.PI / 6);
+  const turned = planeOfFace([c, s, 0], [c * 20, s * 20, 2])!;
+  assert.ok(near(turned.origin, [c * 20, s * 20, 0], 1e-3) && near(turned.xAxis, [-s, c, 0]));
+  assert.equal(planeLabel(turned), '30° plane');
+  assert.equal(planeOfFace([0, 1, 1], [0, 0, 0]), null);
+  // A ray straight at the end face meets it at its own coordinates.
+  assert.ok(near(rayOnPlane(end, [100, 12, 5], [-1, 0, 0])!, [12, 5]));
+  assert.equal(rayOnPlane(end, [100, 12, 5], [1, 0, 0]), null, 'behind the ray');
+  assert.deepEqual(boxOnPlane(end, [0, 0, 0], [64, 32, 8]), [[0, 0], [32, 8]]);
+});
+
+test('sketches on side faces join and cut along the face normal', () => {
+  const box = rectanglePart(64, 32, 8);
+  const plate = { node: box.nodes.length - 1, side: 'solid' as const };
+  const front = planeOfFace([0, -1, 0], [32, 0, 4])!;
+  const add = (doc: StudioDoc, ...nodes: ModelNode[]) => nodes.reduce(withNode, doc);
+  // A Ø4 pin 6 mm out of the front face at (10, 4), joined to the plate.
+  let d = add(box, { kind: 'sketch', profile: 'circle', center: [10, 4], radius: 2, plane: front });
+  d = add(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: 6 });
+  d = add(d, { kind: 'union', left: plate, right: { node: d.nodes.length - 1, side: 'solid' } });
+  let r = evaluateDoc(d, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.bodies.length, 1);
+  assert.ok(near(r.bodies[0].mesh.bounds.min, [0, -6, 0], 1e-6), JSON.stringify(r.bodies[0].mesh.bounds));
+  // A 10 × 4 pocket 5 deep into the +X end face: a negative distance from the face.
+  const end = planeOfFace([1, 0, 0], [64, 16, 4])!;
+  d = add(box, { kind: 'sketch', profile: 'rectangle', min: [11, 2], max: [21, 6], plane: end });
+  d = add(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: -5 });
+  d = add(d, { kind: 'difference', parent: plate, tool: { node: d.nodes.length - 1, side: 'solid' } });
+  r = evaluateDoc(d, 2);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.bodies.length, 1);
+  assert.ok(r.bodies[0].mesh.faces.length > 6, 'the pocket adds faces');
+  assert.ok(near(r.bodies[0].mesh.bounds.max, [64, 32, 8], 1e-6));
+});

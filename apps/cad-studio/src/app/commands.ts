@@ -8,10 +8,13 @@ export interface EdgeSel { body: number; edge: number }
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[] }
 export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number] }
 
-export type Field =
-  | { key: string; label: string; kind: 'mm' | 'count' | 'deg'; min?: number; max?: number; step?: number }
-  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] };
 export type Values = Record<string, number | string>;
+/** `when`: shown (and required) only for these values. */
+export type Field = (
+  | { key: string; label: string; kind: 'mm' | 'count' | 'deg'; min?: number; max?: number; step?: number }
+  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] }
+) & { when?: (values: Values) => boolean };
+export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
 
 export interface Command {
   id: string; label: string; icon: string; shortcut?: string; group: 'create' | 'modify' | 'pattern' | 'combine' | 'inspect';

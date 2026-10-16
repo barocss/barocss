@@ -5,7 +5,7 @@ import { emptyDoc, featureLabel, fmt, loftTop, prefixDoc, starterDoc, withNode, 
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
-import { commands, refOf, selectedBodies, type Command, type Ctx, type Selection, type Values } from './app/commands';
+import { commands, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
 import { Viewport, type SketchShape, type SketchState, type SketchTool, type ViewportHandle } from './viewport/Viewport';
@@ -24,6 +24,7 @@ import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSet
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
 import { settleShape } from './sketch/settle';
+import { boxOnPlane, isDefaultPlane, planeLabel, planeOfFace, xyPlane, type SketchPlane } from './sketch/plane';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -38,10 +39,11 @@ const SKETCH_INSETS = { left: 64, right: 272 };
  * What the sketch camera frames: the bodies' XY extent (at least 60 mm, so the 1 mm snap stays usable),
  * or a 120 × 80 mm working area with the origin near the lower left when the part is empty.
  */
-function sketchRegion(bodies: BodyResult[]): [[number, number], [number, number]] {
+/** The bodies' extent seen on a sketch plane (plane coordinates), at least 60 mm across. */
+function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, number], [number, number]] {
   if (!bodies.length) return [[-20, -20], [100, 60]];
   const min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
-  for (const b of bodies) for (const k of [0, 1]) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
+  for (const b of bodies) { const [lo, hi] = boxOnPlane(plane, b.mesh.bounds.min, b.mesh.bounds.max); for (const k of [0, 1]) { min[k] = Math.min(min[k], lo[k]); max[k] = Math.max(max[k], hi[k]); } }
   for (const k of [0, 1]) { const c = (min[k] + max[k]) / 2, half = Math.max(30, (max[k] - min[k]) / 2); min[k] = c - half; max[k] = c + half; }
   return [min, max];
 }
@@ -261,7 +263,7 @@ export function App() {
   useEffect(() => {
     if (!active?.cmd.build) return;
     let live = true;
-    const missing = (active.cmd.fields?.(active.ctx) ?? []).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
+    const missing = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
     if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
     const t = setTimeout(() => {
       let candidate: StudioDoc;
@@ -285,13 +287,15 @@ export function App() {
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (cmd.action === 'sketch') {
+      // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
-      const planeZ = face && face.kind === 'plane' && face.normal[2] > 0.99 ? Math.round(face.centroid[2]) : 0;
-      const base = face && planeZ > 0 ? refOf(bodies[f.body]) : null;
+      const plane = face ? (face.kind === 'plane' ? planeOfFace(face.normal, face.centroid) : null) : xyPlane();
+      if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face that is horizontal or vertical, or clear the selection to sketch on XY.', detail: '' }); return; }
+      const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
-      setSketch({ planeZ, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
-      const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies);
-      viewport.current?.frameSketch(min, max, planeZ, SKETCH_INSETS); return;
+      setSketch({ plane, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
+      const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
+      viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
     if (cmd.action === 'measure') {
       // Start from what is selected (one face or edge), then click what to measure to.
@@ -321,41 +325,43 @@ export function App() {
             : !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points) ? { kind: 'sketch', profile: 'polygon', points: s.points }
               : { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points as P2[], s.bulges) };
     if (!node) { setToast({ title: 'Finish the profile first', hint: 'Draw a closed rectangle, circle, slot or outline on the sketch plane.', detail: '' }); return; }
-    const planeZ = sketch.planeZ;
+    // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
+    const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
     const base = sketch.base ?? null;
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
       fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }, { value: 'loft', label: 'Loft to a top section' }] },
-        { key: 'h', label: 'Distance', kind: 'mm', min: 1 }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1 }, { key: 'deg', label: 'Revolve angle', kind: 'deg', min: 1, max: 360, step: 15 },
-        { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1 }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
-        { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }] },
-        { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400 },
-        { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400 },
+        { key: 'h', label: 'Distance', kind: 'mm', min: 1, when: v => !String(v.make).startsWith('revolve') }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1, when: v => v.make === 'extrude' },
+        // The revolve angle, or a pipe's bend angle (360: a quarter bend).
+        { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15, when: v => String(v.make).startsWith('revolve') || v.make === 'pipe' },
+        { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1, when: v => v.make === 'pipe' }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }], when: v => v.make === 'pipe' },
+        { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }], when: v => v.make === 'loft' },
+        { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400, when: v => v.make === 'loft' },
+        { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400, when: v => v.make === 'loft' },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
       defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join' } : {}) }),
       build: (c, v) => {
-        const cut = v.op === 'cut'; const d = withNode(c.doc, node);
+        const cut = v.op === 'cut'; const d = withNode(c.doc, placedNode);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
         // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
-        const height = Number(v.h); const from = cut ? planeZ - height : planeZ;
+        const height = Number(v.h); const from = cut ? -height : 0;
         // A pipe: a run of Distance, a bend of the radius and the revolve angle (90° by default), a run again.
         // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
         let e = v.make === 'loft'
           ? (() => {
             // A middle size (not 0) adds the drawn shape scaled half way up, and the loft runs smoothly through it.
-            const s = d.nodes.length - 1, z1 = cut ? planeZ - height : planeZ + height, mid = Number(v.mid) / 100;
-            let t = withNode(d, loftTop(node as SketchNode, v.top as 'scaled', Number(v.scale) / 100));
-            if (mid > 0) t = withNode(t, loftTop(node as SketchNode, 'scaled', mid));
-            const secs = [{ sketch: s, z: planeZ }, ...(mid > 0 ? [{ sketch: s + 2, z: (planeZ + z1) / 2 }] : []), { sketch: s + 1, z: z1 }];
+            const s = d.nodes.length - 1, z1 = cut ? -height : height, mid = Number(v.mid) / 100;
+            let t = withNode(d, loftTop(placedNode as SketchNode, v.top as 'scaled', Number(v.scale) / 100));
+            if (mid > 0) t = withNode(t, loftTop(placedNode as SketchNode, 'scaled', mid));
+            const secs = [{ sketch: s, z: 0 }, ...(mid > 0 ? [{ sketch: s + 2, z: z1 / 2 }] : []), { sketch: s + 1, z: z1 }];
             return withNode(t, { kind: 'loft', sections: cut ? [...secs].reverse() : secs, ...(mid > 0 ? { smooth: true } : {}) }); })()
           : v.make === 'pipe'
           ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.deg) >= 360 ? 90 : Number(v.deg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
           : String(v.make).startsWith('revolve')
           ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
           // With a draft a cut goes down from the face, so its walls lean in away from the opening.
-          : Number(v.draft) && cut ? withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: -height, ...(planeZ ? { from: planeZ } : {}), draft: Number(v.draft) })
+          : Number(v.draft) && cut ? withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: -height, draft: Number(v.draft) })
           : withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}), ...(Number(v.draft) ? { draft: Number(v.draft) } : {}) });
-        if ((String(v.make).startsWith('revolve') || v.make === 'pipe') && planeZ) e = withNode(e, { kind: 'translate', parent: { node: e.nodes.length - 1, side: 'solid' }, offset: [0, 0, planeZ] });
         const tool = { node: e.nodes.length - 1, side: 'solid' as const };
         if (base && v.op === 'join') e = withNode(e, { kind: 'union', left: base as { node: number; side: 'solid' }, right: tool });
         if (base && cut) e = withNode(e, { kind: 'difference', parent: base as { node: number; side: 'solid' }, tool });
@@ -499,7 +505,7 @@ export function App() {
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <button className={!sketch && !rendering ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); }}>Model</button>
-          <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · Z ${sketch.planeZ}` : 'Sketch'}</button>
+          <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</button>
           <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(true); }}>Render</button>
         </div>
         <div className="grow" />

@@ -1,3 +1,4 @@
+import { planeLabel } from '../sketch/plane';
 import { useMemo } from 'react';
 import type { SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, solveOutline, type ArcPair, type P2 } from '../sketch/profile';
@@ -44,7 +45,7 @@ export function SketchPanel({ sketch, error, onShape }: { sketch: SketchState; e
 
   return (
     <aside className="card props sk-panel" aria-label="Sketch">
-      <div className="card-title">SKETCH · Z {sketch.planeZ}{sketch.base ? ' · on face' : ''}</div>
+      <div className="card-title">SKETCH · {planeLabel(sketch.plane)}{sketch.base ? ' · on face' : ''}</div>
       {!s && <div className="empty">Pick a tool on the left and click on the plane. Points snap to 1 mm.</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
       {error && <div className="sk-status open" role="alert"><i />{error}</div>}

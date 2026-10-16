@@ -6,11 +6,14 @@ export type Dim = number | { parameter: string };
 export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3';
 export interface BodyRef { node: number; side: Side }
 
+/** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
+export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
+type OnPlane = { plane?: DocPlane };
 export type SketchNode =
-  | { kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] }
-  | { kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim }
-  | { kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] }
-  | { kind: 'sketch'; profile: 'loop'; segments: ({ kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' })[] };
+  | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'loop'; segments: ({ kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' })[] } & OnPlane);
 
 export type ModelNode = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
@@ -147,8 +150,10 @@ export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectan
       : sketch.profile === 'polygon' ? sketch.points.map(p => p.map(Number) as [number, number]) : sketch.segments.map(g => g.start.map(Number) as [number, number]);
   const lo = [Math.min(...pts.map(p => p[0])), Math.min(...pts.map(p => p[1]))], hi = [Math.max(...pts.map(p => p[0])), Math.max(...pts.map(p => p[1]))];
   const c: [number, number] = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2], at = (p: readonly Dim[]): [number, number] => [c[0] + (Number(p[0]) - c[0]) * scale, c[1] + (Number(p[1]) - c[1]) * scale];
-  if (shape === 'circle') return { kind: 'sketch', profile: 'circle', center: c, radius: Math.min(hi[0] - lo[0], hi[1] - lo[1]) / 2 * scale };
-  if (shape === 'rectangle') return { kind: 'sketch', profile: 'rectangle', min: at(lo), max: at(hi) };
+  // Loft sections share their plane.
+  const on = sketch.plane ? { plane: sketch.plane } : {};
+  if (shape === 'circle') return { kind: 'sketch', profile: 'circle', center: c, radius: Math.min(hi[0] - lo[0], hi[1] - lo[1]) / 2 * scale, ...on };
+  if (shape === 'rectangle') return { kind: 'sketch', profile: 'rectangle', min: at(lo), max: at(hi), ...on };
   switch (sketch.profile) {
     case 'rectangle': return { ...sketch, min: at(sketch.min), max: at(sketch.max) };
     case 'circle': return { ...sketch, center: at(sketch.center), radius: Number(sketch.radius) * scale };

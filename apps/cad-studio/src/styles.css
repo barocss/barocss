@@ -28,6 +28,10 @@ button { font: inherit; color: inherit; }
 .sk-point { fill: var(--accent); }
 .sk-guide { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
 .sk-cursor { stroke: var(--accent); stroke-width: 1.5; }
+.sk-grid { stroke: rgba(160, 166, 176, 0.22); stroke-width: 1; }
+.sk-grid.axis { stroke: rgba(232, 194, 90, 0.45); }
+:root[data-theme='light'] .sk-grid { stroke: rgba(60, 70, 85, 0.16); }
+:root[data-theme='light'] .sk-grid.axis { stroke: rgba(180, 130, 30, 0.5); }
 .dim-chip { fill: #121315; stroke: var(--accent); }
 .dim-text { fill: #fff; font: 500 12px var(--mono); }
 .gz-handle { stroke: #101113; stroke-width: 1.5; }

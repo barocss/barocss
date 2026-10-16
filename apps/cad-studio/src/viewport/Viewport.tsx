@@ -7,6 +7,7 @@ import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
+import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '../sketch/plane';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
@@ -20,14 +21,14 @@ export type SketchShape =
       equalRadii?: [number, number][]; concentric?: [number, number][] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
-export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
+export interface SketchState { plane: SketchPlane; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
 export interface ViewportHandle {
   fit(): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
-  /** Top view onto plane z, framing the XY rectangle in the area not covered by `insets` (CSS px). */
-  frameSketch(min: [number, number], max: [number, number], z: number, insets?: { left: number; right: number }): void;
+  /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
+  frameSketch(min: [number, number], max: [number, number], plane: SketchPlane, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
@@ -135,10 +136,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     camera: camera.current,
     fit() { const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
-    frameSketch(min, max, z, insets = { left: 0, right: 0 }) {
+    frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
       const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
-      camera.current.aspect = w / h; camera.current.setView('top');
-      camera.current.frameRect(min, max, z, insets.left / w, insets.right / w); request();
+      camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);
+      camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
     },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
     setTheme(name) { theme.current = name; renderer.current?.setTheme(name); request(); },
@@ -158,6 +159,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (Math.abs(dir[2]) < 1e-6) return null;
     const t = (z - origin[2]) / dir[2]; if (t < 0) return null;
     return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, z];
+  };
+  /** The sketch plane's coordinates under a pixel. */
+  const sketchPoint = (x: number, y: number, w: number, h: number, plane: SketchPlane): [number, number] | null => {
+    const { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
+    return rayOnPlane(plane, origin, dir);
   };
   const surfacePoint = (x: number, y: number, w: number, h: number, face: FaceRef | null): Vec3 | null => {
     if (!face) return null;
@@ -208,9 +214,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
-      const p = planePoint(x, y, w, h, sk.planeZ);
+      const p = sketchPoint(x, y, w, h, sk.plane);
       sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
-      propsRef.current.onCursor(p ? [snap(p[0]), snap(p[1]), sk.planeZ] : null);
+      propsRef.current.onCursor(p ? toWorld(sk.plane, [snap(p[0]), snap(p[1])]) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
@@ -253,7 +259,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (d.mode || d.moved || e.button !== 0) return;
     const sk = propsRef.current.sketch;
     if (sk) {
-      const p = planePoint(x, y, w, h, sk.planeZ); if (!p) return;
+      const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
       const c: [number, number] = [snap(p[0]), snap(p[1])];
       const s = liveShape.current;
       if (sk.tool === 'rectangle') {
@@ -317,7 +323,21 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const items: React.ReactNode[] = [];
     const sk = props.sketch;
     if (sk) {
-      const z = sk.planeZ; const P = (u: number, v: number) => cam.project([u, v, z], w, h);
+      const P = (u: number, v: number) => cam.project(toWorld(sk.plane, [u, v]), w, h);
+      // The sketch plane's grid (the ground grid shows XY at Z 0): lines a round step apart around the
+      // view centre, the plane's own axes brighter.
+      if (!isDefaultPlane(sk.plane)) {
+        const centre = toLocal(sk.plane, cam.target), half = cam.distance * Math.tan(cam.fovY / 2) * Math.max(1, cam.aspect) * 1.2;
+        const step = [1, 2, 5, 10, 20, 50, 100, 200].find(k => half * 2 / k <= 40) ?? 500;
+        const u0 = Math.floor((centre[0] - half) / step) * step, u1 = Math.ceil((centre[0] + half) / step) * step;
+        const v0 = Math.floor((centre[1] - half) / step) * step, v1 = Math.ceil((centre[1] + half) / step) * step;
+        const seg = (a: [number, number], b: [number, number], key: string, axis: boolean) => {
+          const p = P(a[0], a[1]), q = P(b[0], b[1]);
+          items.push(<line key={key} x1={p[0]} y1={p[1]} x2={q[0]} y2={q[1]} className={axis ? 'sk-grid axis' : 'sk-grid'} />);
+        };
+        for (let u = u0; u <= u1; u += step) seg([u, v0], [u, v1], 'gu' + u, u === 0);
+        for (let v = v0; v <= v1; v += step) seg([u0, v], [u1, v], 'gv' + v, v === 0);
+      }
       const label = (x: number, y: number, text: string, key: string) => (
         <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}>
           <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);

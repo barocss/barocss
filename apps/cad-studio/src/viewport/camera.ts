@@ -77,13 +77,25 @@ export class OrbitCamera {
    * `insetLeft` / `insetRight` are the fractions of the width covered by floating panels.
    */
   frameRect(min: [number, number], max: [number, number], z: number, insetLeft = 0, insetRight = 0, margin = 1.2) {
+    this.frameAt([(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, z], [max[0] - min[0], max[1] - min[1]], insetLeft, insetRight, margin);
+  }
+
+  /** Frames a span (width along the view's right, height along its up) centred on a point, as frameRect. */
+  frameAt(centre: Vec3, span: [number, number], insetLeft = 0, insetRight = 0, margin = 1.2) {
     const free = Math.max(0.3, 1 - insetLeft - insetRight), t = Math.tan(this.fovY / 2);
-    const spanX = Math.max(1, max[0] - min[0]) * margin, spanY = Math.max(1, max[1] - min[1]) * margin;
+    const spanX = Math.max(1, span[0]) * margin, spanY = Math.max(1, span[1]) * margin;
     this.distance = Math.max(spanY / (2 * t), spanX / (2 * t * this.aspect * free));
-    this.target = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, z];
+    this.target = [...centre] as Vec3;
     // Shift so the rectangle's centre lands in the middle of the free band, not of the canvas.
     const { right } = this.basis(), halfWidth = this.distance * t * this.aspect, ndc = insetLeft - insetRight;
     for (let k = 0; k < 3; k++) this.target[k] -= right[k] * ndc * halfWidth;
+  }
+
+  /** Looks straight at a plane from the side its normal points to (a horizontal one as a top or bottom view). */
+  faceNormal(normal: Vec3) {
+    if (Math.abs(normal[2]) > 0.999) { this.setView(normal[2] > 0 ? 'top' : 'bottom'); return; }
+    this.yaw = Math.atan2(normal[1], normal[0]);
+    this.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, Math.asin(normal[2])));
   }
 
   setView(name: 'iso' | 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left') {
