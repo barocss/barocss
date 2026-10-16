@@ -210,5 +210,30 @@ test('mates: tangent puts a round face against a flat one, from either side', ()
   assert.deepEqual(t.instances[1].position, [4, 0, 0]);
   assert.deepEqual(solveAssembly([post, plate], [{ ...touch, flip: true }], tablesFor(base, [post, plate])).instances[1].position, [-4, 0, 0]);
   // Two flat faces cannot be tangent.
-  assert.match(solveAssembly([pin], [{ ...lie, b: { part: 'pin', face: 'n1.bottom' } }], tablesFor(base, [pin])).problems[0].reason, /Tangent needs a flat face and a round face/);
+  assert.match(solveAssembly([pin], [{ ...lie, b: { part: 'pin', face: 'n1.bottom' } }], tablesFor(base, [pin])).problems[0].reason, /Tangent needs a round face, and a flat or another round face/);
+});
+
+test('mates: two round faces tangent — side by side, inside a hole, and with a direction held', () => {
+  const base = starterDoc(), post = { ...inst('post', cylinderPart(4, 20)), grounded: true }, pin = inst('pin', cylinderPart(3, 10), [20, 0, 5]);
+  const touch: Mate = { id: 'm1', kind: 'tangent', a: { part: 'post', face: 'n1.side0' }, b: { part: 'pin', face: 'n1.side0' } };
+  const r = solveAssembly([post, pin], [touch], tablesFor(base, [post, pin]));
+  assert.deepEqual(r.problems, []);
+  // Straight in towards the post until the axes are 4 + 3 apart; its height stays.
+  assert.deepEqual(r.instances[1].position, [7, 0, 5]);
+  assert.deepEqual(solveAssembly(r.instances, [touch], tablesFor(base, r.instances)).instances, r.instances, 'solved again: unchanged');
+  // Flipped: inside each other, 4 − 3 apart.
+  assert.deepEqual(solveAssembly([post, pin], [{ ...touch, flip: true }], tablesFor(base, [post, pin])).instances[1].position, [1, 0, 5]);
+  // A pin against the wall of the plate's Ø8 hole: inside it by default.
+  const loose = inst('pin', cylinderPart(3, 10), [40, 16, 0]);
+  const wall = solveAssembly([loose], [{ ...touch, a: { part: BASE, face: 'n2.side0' } }], tablesFor(base, [loose]));
+  assert.deepEqual(wall.instances[0].position, [33, 16, 0]);
+  // Also tangent to the plate's front face (y = 0): only X is left to reach the post.
+  const front: Mate = { id: 'm2', kind: 'tangent', a: { part: BASE, face: 'n1.side0' }, b: { part: 'pin', face: 'n1.side0' } };
+  const far = { ...post, position: [10, -10, 0] as [number, number, number] }, start = inst('pin', cylinderPart(3, 10), [30, -3, 0]);
+  const both = solveAssembly([far, start], [front, { ...touch }], tablesFor(base, [far, start]));
+  assert.deepEqual(both.problems, []);
+  both.instances[1].position.forEach((v, k) => assert.ok(near(v, [10, -3, 0][k], 1e-6), String(both.instances[1].position)));
+  const tooFar = { ...post, position: [10, -12, 0] as [number, number, number] };
+  const no = solveAssembly([tooFar, start], [front, touch], tablesFor(base, [tooFar, start]));
+  assert.match(no.problems[0].reason, /Conflicts with Tangent 1: they hold pin so the axes can only be at least 9 mm apart, not 7 mm/);
 });

@@ -39,7 +39,7 @@ export function MatePanel({ assembly, instances, onRefused }: { assembly: Assemb
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
-          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
+          : <div className="empty">Click a face on the part that stays, then one on the part to move: two flat faces (coincident, distance, angle), two round faces (concentric, tangent), or a flat and a round one (tangent). Flat faces end up flush and facing each other.</div>}
         <div className="row-actions"><button className="ghost" onClick={assembly.cancel}>Cancel</button></div>
       </div>}
       {mates.map((m, i) => {
