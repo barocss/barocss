@@ -48,15 +48,22 @@ type XY = [number, number];
 interface Candidate {
   name: string; kind: ProjectedEdge['kind']; ends: [Point, Point] | null; circle: ProjectedEdge['circle'];
   s0: number; s1: number; at(s: number): Point; out(s0: number, s1: number): ProjectedCurve;
+  /** Where visibility is tested at s (default `at`): a circle's chord on the tessellation, so its own faces' facets do not stand in front of it. */
+  probe?(s: number): Point;
   /** Sample parameters (increasing, from s0 to s1). */
   samples(): number[];
   /** Depth margin below which a nearer face does not hide this curve. */
   eps: number;
-  /** A silhouette's own face: its facets within `rho` of a sample fold over it and do not hide it. */
-  own?: { face: number; rho: number };
+  /**
+   * A silhouette's face, whose facets do not hide it close by: on a cylinder only from farther than
+   * their sag (a generator snapped onto a concave wall sits behind its facets); on other surfaces not
+   * within `rho` (the facets turning edge-on there fold over it).
+   */
+  own?: Own;
 }
 
 const dist2 = (a: XY, b: XY) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+type Own = { face: number; eps: number; rho: number };
 const lerp3 = (a: Point, b: Point, t: number): Point => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineView, options: HiddenLineOptions = {}): BrepProjection {
@@ -67,7 +74,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   const D = (p: Point) => dot(p, toward);
 
   // Occluders: every face's triangles in view coordinates.
-  const tris: number[] = [], triFace: number[] = [], triAt: number[] = [], faceSpan: number[] = [];
+  const tris: number[] = [], triFace: number[] = [], triAt: number[] = [], faceSag: number[] = [], faceSpan: number[] = [];
   const perQuarter = options.segmentsPerQuarter ?? 12;
   const meshes = breps.map(b => tessellateBrep(b, { segmentsPerQuarter: perQuarter }));
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
@@ -76,27 +83,29 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
     for (let k = 0; k < X.length; k += 3) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], X[k + c]); hi[c] = Math.max(hi[c], X[k + c]); }
   }
   const size = Number.isFinite(lo[0]) ? Math.max(1e-6, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2])) : 1;
-  // Faces are numbered across all B-reps (mesh face order); `faceSpan`: a face's longest facet side.
+  // Faces are numbered across all B-reps (mesh face order); `faceSag`: how far a face's facets stand off
+  // its surface, from each facet side's length and the turn of the normals along it (chord · turn / 8).
   const faceBase: number[] = [];
   for (const m of meshes) {
-    faceBase.push(faceSpan.length);
-    const X = m.positionsMM, I = m.indices;
+    faceBase.push(faceSag.length);
+    const X = m.positionsMM, I = m.indices, N = m.normals;
+    const turn = (i: number, j: number) => { const a: Point = [N[i * 3], N[i * 3 + 1], N[i * 3 + 2]], b: Point = [N[j * 3], N[j * 3 + 1], N[j * 3 + 2]]; return Math.acos(Math.max(-1, Math.min(1, dot(a, b) / (len(a) * len(b) || 1)))); };
     for (const f of m.faces) {
-      const fi = faceSpan.length; let span = 0;
+      const fi = faceSag.length; let sag = 0, span = 0;
       for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) {
-        const v = [I[t], I[t + 1], I[t + 2]].map(i => [X[i * 3], X[i * 3 + 1], X[i * 3 + 2]] as Point);
-        span = Math.max(span, len(sub(v[1], v[0])), len(sub(v[2], v[1])), len(sub(v[0], v[2])));
+        const ix = [I[t], I[t + 1], I[t + 2]], v = ix.map(i => [X[i * 3], X[i * 3 + 1], X[i * 3 + 2]] as Point);
+        for (let k = 0; k < 3; k++) { const l = len(sub(v[(k + 1) % 3], v[k])); sag = Math.max(sag, l * turn(ix[k], ix[(k + 1) % 3]) / 8); span = Math.max(span, l); }
         const q = v.map(P);
         const area = (q[1][0] - q[0][0]) * (q[2][1] - q[0][1]) - (q[2][0] - q[0][0]) * (q[1][1] - q[0][1]);
         if (Math.abs(area) <= 1e-12 * size * size) continue; // seen edge-on: covers nothing
         tris.push(q[0][0], q[0][1], D(v[0]), q[1][0], q[1][1], D(v[1]), q[2][0], q[2][1], D(v[2]));
         triFace.push(fi); triAt.push(...[0, 1, 2].map(k => (v[0][k] + v[1][k] + v[2][k]) / 3));
       }
-      faceSpan.push(span);
+      faceSag.push(sag); faceSpan.push(span);
     }
   }
   const occluder = triangleGrid(tris, triFace, triAt);
-  const hidden = (p: Point, c: Candidate) => occluder.covers(P(p), D(p) + c.eps, c.own ? { face: c.own.face, at: p, rho: c.own.rho } : null);
+  const hidden = (p: Point, c: Candidate) => occluder.covers(P(p), p, D(p) + c.eps, c.own ?? null);
 
   const candidates: Candidate[] = [], silhouettes: Candidate[] = [];
   const h = size / 300; // sampling step along a curve (view units)
@@ -171,7 +180,18 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         const extent = Math.max(Math.hypot(...U), Math.hypot(...V));
         if (extent <= 1e-9 * size) continue;
         const normal = cross(circle.e1, circle.e2);
-        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full }, s0: 0, s1: total, eps: 1e-5 * size, at,
+        // The tessellation's samples of the arc, by their parameter s along it.
+        let poly: Point[] = []; for (let k = 0; k < pts.length; k += 3) poly.push([pts[k], pts[k + 1], pts[k + 2]]);
+        const sOf = (p: Point) => { const q = sub(p, circle.c), t = Math.atan2(dot(q, circle.e2), dot(q, circle.e1)); let x = (circle.sign * (t - circle.a0)) % (2 * Math.PI); if (x < -1e-9) x += 2 * Math.PI; return Math.max(0, x); };
+        if (!full && sOf(poly[0]) > total / 2) poly = poly.reverse();
+        const ps = poly.map(sOf); ps[0] = 0;
+        for (let k = 1; k < ps.length; k++) if (ps[k] < ps[k - 1] - 1e-9) ps[k] += 2 * Math.PI;
+        ps[ps.length - 1] = total;
+        const probe = (s: number): Point => {
+          let k = 0; while (k < ps.length - 2 && ps[k + 1] < s) k++;
+          const d = ps[k + 1] - ps[k]; return lerp3(poly[k], poly[k + 1], d > 0 ? Math.min(1, Math.max(0, (s - ps[k]) / d)) : 0);
+        };
+        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full }, s0: 0, s1: total, eps: 1e-5 * size, at, probe,
           out: (s0, s1) => arcOut(C, U, V, theta(s0), theta(s1)),
           samples: () => steps(0, total, Math.max(Math.ceil(extent * total / h), Math.ceil(total / (Math.PI / 32)))) });
         continue;
@@ -237,7 +257,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       chains.forEach((ch, k) => {
         const name = `${face.name ?? face.id}~sil${k}`;
         // A silhouette lies on facets turning edge-on, which their neighbours fold over.
-        const eps = 1e-5 * size, own = { face: faceIndex, rho: 2.5 * faceSpan[faceIndex] };
+        const eps = 1e-5 * size, own: Own = cyl ? { face: faceIndex, eps: 4 * faceSag[faceIndex] + eps, rho: 0 } : { face: faceIndex, eps: 0, rho: 2.5 * faceSpan[faceIndex] };
         if (ch.length === 2) {
           const [A, B] = ch, L = dist2(P(A), P(B));
           if (L <= 1e-6 * size) return;
@@ -253,7 +273,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   const edges = new Map<Candidate, ProjectedPiece[]>();
   const visibleInk: XY[][] = [];
   const minRun = 2e-3 * size;
-  const runsOf = (c: Candidate) => intervals(c, s => !hidden(c.at(s), c), P, minRun);
+  const runsOf = (c: Candidate) => intervals(c, s => !hidden((c.probe ?? c.at)(s), c), P, minRun);
   const visibleRuns = new Map<Candidate, [number, number, boolean][]>();
   for (const c of candidates) {
     const runs = runsOf(c); visibleRuns.set(c, runs);
@@ -395,7 +415,7 @@ function simplify(chain: Point[], tol: number): Point[] {
   return out;
 }
 
-/** Projected triangles (x, y, depth per corner) in a uniform grid: `covers(p, depth)` — any triangle over p nearer than depth. */
+/** Projected triangles (x, y, depth per corner) in a uniform grid: `covers(p, …, depth)` — any triangle over p nearer than depth. */
 function triangleGrid(t: number[], face: number[], at: number[]) {
   const n = t.length / 9;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -408,7 +428,7 @@ function triangleGrid(t: number[], face: number[], at: number[]) {
     for (let i = cx(ax); i <= cx(bx); i++) for (let j = cy(ay); j <= cy(by); j++) cells[j * G + i].push(k);
   }
   return {
-    covers(p: XY, depth: number, own: { face: number; at: Point; rho: number } | null) {
+    covers(p: XY, p3: Point, depth: number, own: Own | null) {
       if (!n || p[0] < x0 - w || p[0] > x1 + w || p[1] < y0 - hgt || p[1] > y1 + hgt) return false;
       for (const k of cells[cy(p[1]) * G + cx(p[0])]) {
         const o = k * 9, ax = t[o], ay = t[o + 1], bx = t[o + 3], by = t[o + 4], qx = t[o + 6], qy = t[o + 7];
@@ -416,8 +436,9 @@ function triangleGrid(t: number[], face: number[], at: number[]) {
         const l1 = ((p[0] - ax) * (qy - ay) - (qx - ax) * (p[1] - ay)) / det, l2 = ((bx - ax) * (p[1] - ay) - (p[0] - ax) * (by - ay)) / det, l0 = 1 - l1 - l2;
         const tol = -1e-7;
         if (l0 < tol || l1 < tol || l2 < tol) continue;
-        if (l0 * t[o + 2] + l1 * t[o + 5] + l2 * t[o + 8] <= depth) continue;
-        if (own && face[k] === own.face && Math.hypot(at[k * 3] - own.at[0], at[k * 3 + 1] - own.at[1], at[k * 3 + 2] - own.at[2]) < own.rho) continue;
+        const z = l0 * t[o + 2] + l1 * t[o + 5] + l2 * t[o + 8];
+        if (z <= depth) continue;
+        if (own && face[k] === own.face && (z <= depth + own.eps || Math.hypot(at[k * 3] - p3[0], at[k * 3 + 1] - p3[1], at[k * 3 + 2] - p3[2]) < own.rho)) continue;
         return true;
       }
       return false;

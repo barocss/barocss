@@ -57,6 +57,17 @@ test('a cylinder seen at an angle: exact silhouettes, and its base hidden from w
   assert.ok(pr.edges.filter(e => e.kind === 'circle' && e.circle.center[2] === 10).every(e => e.pieces.every(p => p.visible)));
 });
 
+test('through a wide hole the far rim of its bottom shows, exactly where the sight line clears the top', () => {
+  const holed = r => part([{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { id: 'n1', kind: 'extrude', sketch: 'n0', height: 8 }, { id: 'n2', kind: 'hole', target: 'n1', center: [32, 16], radius: r }]);
+  const bottomVisible = pr => pr.edges.filter(e => e.kind === 'circle' && near(e.circle.center[2], 0, 1e-9)).flatMap(e => e.pieces.filter(p => p.visible).map(p => p.curve));
+  assert.equal(bottomVisible(projectBrepHiddenLines(holed(4), ISO)).length, 0, 'a narrow hole hides its bottom');
+  const arcs = bottomVisible(projectBrepHiddenLines(holed(6), ISO));
+  assert.equal(arcs.length, 1);
+  // Visible where the chord along the sight line (2r·−cos(θ + 45°)) is longer than the 8 mm depth's run, 8 / tan 35.26°.
+  const run = 8 * Math.SQRT2, half = Math.acos(run / 12);
+  assert.ok(near(arcs[0].t0, Math.PI * 3 / 4 - half, 0.01) && near(arcs[0].t1, Math.PI * 3 / 4 + half, 0.01), `${arcs[0].t0}–${arcs[0].t1}`);
+});
+
 test('a cylinder seen along its axis has no silhouette; seen side on, its rims are lines', () => {
   assert.equal(projectBrepHiddenLines(cylinder(), TOP).edges.filter(e => e.kind === 'silhouette').length, 0);
   const pr = projectBrepHiddenLines(cylinder(), FRONT);
