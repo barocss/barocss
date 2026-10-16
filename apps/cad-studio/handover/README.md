@@ -88,19 +88,32 @@ QA probes (from the tester lane, now in `test/qa/`, report in `test/qa/REPORT.md
 
 QA stopped after its fifth pass on `d5fa5fa6` (see `test/qa/REPORT.md`): every routed finding is fixed there and
 nothing regressed; `8e2c4b17` and later (lock mates, chat assembly tools, circles from edges, drawing
-tolerances/notes) were not QA-tested. Open, with IDs as in the report:
-- **S4 [sketch]** a dimensioned circle placed outside or across the outline becomes material
-  (7751 / 7549 mm³ against a 7500 mm³ plate) instead of being refused or cut.
-- **A3 [mates]** origin-plane mates default to opposed normals, so the part flips 180°; a third plane mate is
-  refused unless Flip is set.
-- **U4 [core]** New part keeps an open sketch; its shapes go into the new part.
-- **U5 [core]** the chat panel without `pnpm chat` running logs a 502 console error (it should just show the
-  disabled state).
-- **U1** no feature delete in the UI (chat already has `delete_feature`; `src/chat/features.ts` renumbering could back it).
-- **D1** STEP re-open of NURBS bodies drifts volume (torus −0.065 %); tori in any Boolean show the same drift.
-- **D2** a STEP file with several solids opens as one body.
-- **D4** fillet volume ~1e-4 off at large radii.
-- **W5 (kernel)** union of really-overlapping tori fails in the analytic Boolean (only its message was fixed).
+tolerances/notes) were not QA-tested.
+
+Closed on `review/cad-gpu-engine-2026-10-14` after the hand-over (2026-10-16, one commit each, unit +
+type-check + browser flow 45/45, kernel suite where `packages/barocss-cad` changed):
+- **S4** a dimension that pushes an attached circle across the outline's edge or off it is refused; Finish
+  also catches crossings whose sample lands exactly on the edge (`aa5e88aa`).
+- **A3** a flat mate with an origin plane lines the planes up by default; Flip opposes them (`157d3d48`).
+  Mates saved before with Flip on an origin plane now read as opposed.
+- **U4** New part and Open close an open sketch and tool first (`f5eecae6`).
+- **U5** the dev/preview server answers `/api/chat/status` with `{ enabled: false }` when no chat server
+  listens, so no 502 is logged (`61c546e8`).
+- **U1** Delete feature in the feature editor (and the Delete key); mates, drawing dimensions and render keys
+  are renumbered, dimensions of a removed feature dropped with a toast; Undo restores (`a3c0d7ab`).
+- **D2** a STEP with several solids opens as that many bodies (kernel `import` `each`, node `solids`, sides
+  `part<k>`); files opened before stay one body (`3f2e02b4`).
+- **D1, D4** curved B-rep mass by quadrature over the exact surfaces (`8bc8f295`): STEP re-open of torus,
+  pipe and loft, and fillets at any radius, exact to ~1e-11; Booleans with real intersection trims ~1e-5.
+
+Open, with IDs as in the report:
+- **W5 (kernel)** narrowed: overlapping tori with different tube or ring radii join (5/4, 5/4.9, R31 vs R30);
+  only *congruent* tori turned about a line through the ring centre fail ("edge … has 4 uses"). Their
+  intersection passes where both tori's patch boundaries (the inner equators) cross, and a piece there is
+  found by two neighbouring patch pairs. Joining marched branches at tangential crossings did not fix it
+  (tried, reverted). Next step: dedupe cut pieces that lie on a patch boundary shared by two face pairs in
+  `analytic-boolean.ts` `cutPair`/`march`.
+- **E15 (kernel)** the kernel still accepts a `holes` loop that crosses the outer loop (the app refuses it).
 - **W1 (rest)** overlapping shapes in one sketch are refused; an actual union of them is not implemented.
 - **X1** no interference check between mated parts (decision pending; most CAD tools allow it).
 - Sketch solver: about 16 points per outline; each placed circle costs helper points, so two fully placed
