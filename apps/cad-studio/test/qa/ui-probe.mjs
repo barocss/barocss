@@ -711,6 +711,20 @@ try {
     await page.locator('[aria-label="Dismiss"]').click().catch(() => {}); await toModel();
     return { ok: /no body/i.test(panel) && !/errors/i.test(toast), expected: '"There is no body to draw." and no toast about model errors', actual: { toast, panel: panel.slice(0, 120) } };
   });
+  await probe('UD8', '[drawing] a mated instance moves and the sheet follows; the Centre lines box hides the chain lines', async () => {
+    await toModel(); await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload(); await idle();
+    const blk = await insert(blockFile);
+    await toDrawing(); const before = await page.locator('[aria-label="Drawing sheet"]').innerHTML();
+    await toModel(); await page.locator('.ol.instance').first().click();
+    const e = await addMate([['base', 'n1.top'], [blk, 'n1.bottom']]); await page.waitForTimeout(800);
+    const z = (await instPos(blk)).position[2];
+    await toDrawing(); await page.waitForTimeout(1500); const after = await page.locator('[aria-label="Drawing sheet"]').innerHTML();
+    const chainOn = (after.match(/8 1\.5 1\.5 1\.5/g) ?? []).length;
+    await page.click('[aria-label="Centre lines"]'); await page.waitForTimeout(400);
+    const chainOff = ((await page.locator('[aria-label="Drawing sheet"]').innerHTML()).match(/8 1\.5 1\.5 1\.5/g) ?? []).length;
+    await toModel();
+    return { ok: !e && z === 8 && after !== before && chainOn > 0 && chainOff === 0, expected: 'block lifted to z 8, sheet redrawn; chain lines on then off', actual: { mateError: e, z, sheetChanged: after !== before, chainOn, chainOff } };
+  });
 } finally {
   writeFileSync(join(out, 'ui-probe.json'), JSON.stringify(rows, null, 2));
   await browser.close(); await server.close();

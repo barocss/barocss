@@ -43,10 +43,10 @@
   {
     "id": "U03",
     "name": "measure the hole rim edge: radius 4, length 8π",
-    "ok": false,
+    "ok": true,
     "expected": "Arc · Length 25.13 · Radius 4",
     "actual": {
-      "panel": "SELECTION · EDGE Type Arc Length 25.09 mm Radius 4 mm BODY Bounds 64 × 32 × 8 Volume 15982 mm³ Mass 43.2 g Material Aluminium 6061 Steel (mild) Stainless 304 Brass Titanium Ti-6Al-4V ABS PLA Nylon PA1",
+      "panel": "SELECTION · EDGE Type Arc Length 25.13 mm Radius 4 mm BODY Bounds 64 × 32 × 8 Volume 15982 mm³ Mass 43.2 g Material Aluminium 6061 Steel (mild) Stainless 304 Brass Titanium Ti-6Al-4V ABS PLA Nylon PA1",
       "hooks": [
         true
       ],
@@ -592,22 +592,22 @@
   {
     "id": "U61",
     "name": "revolve with angle typed 0 in the HUD",
-    "ok": false,
+    "ok": true,
     "expected": "refused with a plain reason (angle must be 1–360°)",
     "actual": {
       "status": "refused",
-      "error": "The kernel could not build this Undo the last change, or adjust the values and try again. Kernel detail"
+      "error": "The angle must be between 1° and 360° Enter an angle greater than 0°; 360° makes a full turn. Kernel detail"
     },
     "screenshot": "test/qa/screenshots/U61-revolve-with-angle-typed-0-in-the-hud.jpg"
   },
   {
     "id": "U62",
     "name": "extrude with a 60° draft that closes the walls",
-    "ok": false,
+    "ok": true,
     "expected": "refused with a plain reason (draft too steep for this height)",
     "actual": {
       "status": "refused",
-      "error": "The kernel could not build this Undo the last change, or adjust the values and try again. Kernel detail"
+      "error": "The draft is too steep for this height Use a smaller draft angle or a lower distance, so the walls do not meet before the top. Kernel detail"
     },
     "screenshot": "test/qa/screenshots/U62-extrude-with-a-60-draft-that-closes-the-walls.jpg"
   },
@@ -650,10 +650,10 @@
   {
     "id": "U64",
     "name": "pipe HUD: the default Angle reads 360° but the bend is built as 90°",
-    "ok": false,
+    "ok": true,
     "expected": "the HUD shows the bend angle that is built",
     "actual": {
-      "hudAngle": "360",
+      "hudAngle": "90",
       "builtBendAngle": 90
     },
     "screenshot": "test/qa/screenshots/U64-pipe-hud-the-default-angle-reads-360-but-the-bend-.jpg"
@@ -842,14 +842,14 @@
   {
     "id": "U74",
     "name": "open a broken .bcad (not JSON) and a .step that is not STEP",
-    "ok": false,
+    "ok": true,
     "expected": "both refused with a reason; a bad STEP does not leave a broken Import feature",
     "actual": {
       "bcadToast": "info Could not open this file Expected property name or '}' in JSON at position 2 (line 1 column 3) close",
-      "stepToast": "info The kernel could not build this Undo the last change, or adjust the values and try again. Details close",
+      "stepToast": "info Could not open this file The kernel can’t read it as STEP: no DATA section. Your part is unchanged. Details close",
       "nodesBefore": 2,
-      "nodesAfter": 1,
-      "lastKind": "import"
+      "nodesAfter": 2,
+      "lastKind": "extrude"
     },
     "screenshot": "test/qa/screenshots/U74-open-a-broken-bcad-not-json-and-a-step-that-is-not.jpg"
   },
@@ -878,11 +878,11 @@
   {
     "id": "U82",
     "name": "adding a feature while rolled back drops later features (toast) and undo restores them",
-    "ok": false,
+    "ok": true,
     "expected": "toast \"Removed 1 later feature\", undo back to 4 nodes",
     "actual": {
       "rolled": true,
-      "toast": "info Removed 2 later features You added a feature while rolled back. Undo restores them. close",
+      "toast": "info Removed 1 later feature You added a feature while rolled back. Undo restores them. close",
       "nodesAfterAdd": 4,
       "nodesAfterUndo": 4
     },
@@ -1113,16 +1113,48 @@
             30
           ],
           [
-            94,
+            73,
             30
           ],
           [
-            94,
-            5
+            73,
+            10
           ],
           [
             34,
-            5
+            10
+          ]
+        ],
+        "regions": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                34,
+                30
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                94,
+                30
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                94,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                34,
+                5
+              ]
+            }
           ]
         ]
       }
@@ -1226,11 +1258,11 @@
             "id": "d2",
             "view": "top",
             "kind": "diameter",
-            "edge": "n1.top|n2.side0#2",
+            "edge": "n1.bottom|n2.side0#2",
             "near": [
               32,
               16,
-              8
+              0
             ],
             "place": [
               52.00000217264673,
@@ -1248,10 +1280,10 @@
   {
     "id": "UD6",
     "name": "[drawing] a placed part instance appears on the sheet",
-    "ok": false,
+    "ok": true,
     "expected": "the block drawn beside the plate",
     "actual": {
-      "sheetChanged": false,
+      "sheetChanged": true,
       "instances": 1
     },
     "screenshot": "test/qa/screenshots/UD6--drawing-a-placed-part-instance-appears-on-the-she.jpg"
@@ -1266,5 +1298,19 @@
       "panel": "arrow_selector_tool straighten radio_button_unchecked line_end_circle fit_screen There is no body to draw. SHEET Size A4"
     },
     "screenshot": "test/qa/screenshots/UD7--drawing-an-empty-part-says-there-is-nothing-to-dr.jpg"
+  },
+  {
+    "id": "UD8",
+    "name": "[drawing] a mated instance moves and the sheet follows; the Centre lines box hides the chain lines",
+    "ok": true,
+    "expected": "block lifted to z 8, sheet redrawn; chain lines on then off",
+    "actual": {
+      "mateError": "",
+      "z": 8,
+      "sheetChanged": true,
+      "chainOn": 4,
+      "chainOff": 0
+    },
+    "screenshot": "test/qa/screenshots/UD8--drawing-a-mated-instance-moves-and-the-sheet-foll.jpg"
   }
 ]

@@ -7,6 +7,9 @@ Tester session on branch `claude/studio-tester-412a82`.
   every probe was re-run there.
 - Third pass: merged with `635591fd` (2D drawings, rectangles with constraints, horizontal and
   vertical point distances); every probe was re-run there.
+- Fourth pass: merged with `5b270428` (drawings follow-ups `356c3a7f` and the QA fixes). This
+  pass covered drawings in depth, checked the exported SVG and PDF numerically, and re-ran every
+  probe there.
 
 Every finding below carries an area tag for routing: **[sketch-constraints]**,
 **[assembly-mates]**, **[drawing]** or **[core]** (everything else).
@@ -25,8 +28,9 @@ node test/qa/run-engine-probe.mjs regions-probe.ts    # overlapping shapes in on
 node test/qa/run-engine-probe.mjs detail-probe.ts     # fillet/chamfer sizes, edge-touch union, hole/region classification
 node test/qa/run-engine-probe.mjs constraints-mates-probe.ts   # sketch constraints + mates (42 cases)
 node test/qa/run-engine-probe.mjs drawing-probe.ts              # hidden-line views, layout, dimensions (19 cases)
+node test/qa/run-engine-probe.mjs drawing-svg-probe.ts          # exported SVG/PDF parsed back and checked by position (20 cases)
 node test/qa/run-engine-probe.mjs torus-probe.ts                # overlapping tori (W5)
-# Real app (Vite on :52044 + Chromium, 67 cases, ~15 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
+# Real app (Vite on :52044 + Chromium, 68 cases, ~15 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
 PW_DIR=/Users/user/.npm/_npx/e41f203b7505f1fb/node_modules/playwright \
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 node test/qa/ui-probe.mjs /tmp/cad-studio-qa
@@ -35,14 +39,18 @@ node test/qa/ui-probe.mjs /tmp/cad-studio-qa
 The raw outputs of the final run are in `test/qa/results/`. Screenshots for the findings are in
 `test/qa/screenshots/`, named by case id; `results/ui-probe.json` names every case's screenshot.
 
-Final run on `635591fd`:
+Final run on `5b270428`:
 
-- UI: **47/67** cases as expected.
-- Engine: **116/126** as expected.
-- Constraints and mates probe: **38/42** as expected.
-- Drawing probe: **19/19** as expected.
+| Probe | As expected |
+|---|---|
+| UI | **55/68** |
+| Engine | **118/126** |
+| Constraints and mates | **38/42** |
+| Drawing | **19/19** |
+| Drawing SVG/PDF | **19/20** |
 
-Every earlier finding still reproduces on this tip.
+Seven earlier findings now pass; see the status table in the fourth-pass section. No case that
+passed before fails now.
 
 The only page error in the whole run is the C1 TypeError. The cases that were not
 as expected are the findings below. Where a mismatch came from my own expected value, I fixed the
@@ -128,7 +136,7 @@ Steps: make box A at (0,0,0) and box B at (10,10,0), both 10³. Select both bodi
 - Suspected code: the upright (Z-prismatic) Boolean path in `packages/barocss-cad/src/part-model.ts`.
   It does not run the manifold check that the analytic and polyhedral Booleans run.
 
-### W4 [core] — wrong geometry: the Pipe HUD shows Angle 360° but builds a 90° bend
+### W4 [core] — **fixed at `5b270428`** — wrong geometry: the Pipe HUD shows Angle 360° but builds a 90° bend
 
 Steps: open the palette, choose **pipe**, draw a circle and Finish. The HUD shows **Angle 360°** and
 Apply makes `angleDegrees: 90` (U64). If the user types 360 on purpose, the bend is also 90°.
@@ -151,7 +159,7 @@ rectangle and type Corner 5/−3, Width 15, Height 6. Click **Finish sketch**.
 - Cause: both shapes get depth 1, so `outers` is empty and `main` is undefined.
 - Screenshot: `screenshots/U44-…jpg`.
 
-### R1 [core] — refusal without reason and data loss: opening a file that is not STEP replaces the current part
+### R1 [core] — **fixed at `5b270428`** — refusal without reason and data loss: opening a file that is not STEP replaces the current part
 
 Steps: with a part open, use Open to load `garbage.step` (its content is `hello`).
 
@@ -165,7 +173,7 @@ Steps: with a part open, use Open to load `garbage.step` (its content is `hello`
 - Suspected code: `src/App.tsx` `open()`. The STEP branch calls `commit()` before anything is
   evaluated. `src/engine/errors.ts` has no rule for STEP parse errors.
 
-### R2 [core] — refusal without reason: an extrude draft too steep for its height
+### R2 [core] — **fixed at `5b270428`** — refusal without reason: an extrude draft too steep for its height
 
 Steps: sketch a 10×10 rectangle, Finish, then set Distance 20 and Draft 60°.
 
@@ -176,7 +184,7 @@ Steps: sketch a 10×10 rectangle, Finish, then set Distance 20 and Draft 60°.
   steep for this height".
 - Screenshot: `screenshots/U62-…jpg`.
 
-### R3 [core] — refusal without reason: revolve angle 0
+### R3 [core] — **fixed at `5b270428`** — refusal without reason: revolve angle 0
 
 The HUD field has `min=1`, but typing `0` is not blocked. The refusal is generic: "The kernel could
 not build this", with detail `angleDegrees must be in (0, 360]` (U61, R08).
@@ -216,7 +224,7 @@ Steps: export two separate boxes. The file holds 2 `MANIFOLD_SOLID_BREP`. Open i
 - Suspected code: the `import` feature in `src/engine/part.ts` and the kernel import (one output per
   file).
 
-### D3 [core] — data: the measured arc length uses the display polyline
+### D3 [core] — **fixed at `5b270428`** — data: the measured arc length uses the display polyline
 
 Select the starter hole's rim edge. The panel shows *Arc · Radius 4 mm* (exact) but **Length
 25.09 mm**, against 8π = 25.13 mm (−0.16 %) (U03). `src/app/measure.ts` `measureItem` sums segment
@@ -250,7 +258,7 @@ The only way out is to roll back and add a new feature, which discards *every* l
 
 Screenshot: `screenshots/U83-…jpg`.
 
-### U2 [core] — UX: the "Removed N later features" toast counts sketch nodes
+### U2 [core] — **fixed at `5b270428`** — UX: the "Removed N later features" toast counts sketch nodes
 
 Steps: build box A and box B, double-click A's chip to roll back, then add box C. The toast says
 **"Removed 2 later features"**, but the History bar showed one (Extrude 8); the hidden sketch node is
@@ -432,7 +440,7 @@ Related data point (D1 family): joining a torus to a body it does not touch lose
 That is the same −0.065 % as D1: once a Boolean puts the torus through B-spline faces, its mass is
 approximate.
 
-### DR1 [drawing] — merge gap: part instances are not drawn on the sheet at this tip
+### DR1 [drawing] — **fixed at `356c3a7f`** — merge gap: part instances are not drawn on the sheet at this tip
 
 Insert `block.bcad` beside the starter plate, then open Drawing. The sheet is byte-identical to
 before; the instance is missing (UD6).
@@ -494,6 +502,81 @@ Engine K24–K28, K30:
 - refused as implied: edge = 55 after dx = 55;
 - the H distance is listed in the constraint list and removable;
 - after Select, a rectangle with an inner circle keeps the hole.
+
+---
+
+## Fourth pass — drawings in depth, regressions (`5b270428`, includes `356c3a7f`)
+
+### Status of earlier findings on this tip
+
+These cases fail where the finding stands and pass where it was fixed.
+
+| Finding | Status | Evidence now |
+|---|---|---|
+| W4 pipe angle | **fixed** | The HUD shows Angle 90 and builds 90 (U64). |
+| R1 bad STEP replaces the part | **fixed** | "The kernel can’t read it as STEP: no DATA section. Your part is unchanged." (U74) |
+| R2 draft too steep | **fixed** | "The draft is too steep for this height" (U62, E11). |
+| R3 revolve 0° | **fixed** | "The angle must be between 1° and 360°" (U61, R08). |
+| D3 arc length | **fixed** | Rim Ø8 reads Length **25.13** mm (U03). |
+| U2 removed-count toast | **fixed** | "Removed 1 later feature" (U82). |
+| DR1 instances on the sheet | **fixed** | The block is drawn; edges are named `inst1/…` (UD6, SV17–SV20). |
+| W1, C1, W2, W3, W5, D1, D2, D4, U1, U3, A1, A2, S1, S2, S3, X1, DR2 | still reproduce | Unchanged results; see each section. |
+
+Regressions: none. Every case that passed on `635591fd` still passes, and the C1 TypeError is still
+the only page error.
+
+### DR3 [drawing] — UX: a long title runs out of the title block and off the sheet
+
+Set the drawing title to "Bracket-01 assembly with long descriptive name rev C" (52 characters).
+
+- The bold title is 5 mm high and starts at x 169 in the 120 mm block (x 167…287 on A4).
+- Its estimated end is **x ≈ 325**, past the projection symbol at x 235, past the frame at 287 and
+  past the paper edge at 297 (SV16).
+- The text is neither shrunk nor clipped.
+
+Code: `src/drawing/sheet.ts` `titleBlock`, the `meta.title` text at size 5.
+
+### Drawings in depth that work
+
+These were checked by parsing the exported SVG back into lines per pen and comparing their sheet
+positions with the model geometry mapped through each view's placement (`drawing-svg-probe.ts`).
+
+**Starter plate, A4 at 1:1:**
+- **Front view:** 4 visible 0.5 mm lines form the 64 × 8 outline, and every horizontal is 64.000
+  sheet mm long. The hole is 2 dashed lines (0.35, `3 1.5`) at x 28 and 36 over z 0…8.
+- **Right view:** the hidden lines sit at Y 12 and 20.
+- **Top view:** the hole is a full-circle arc with no hidden lines.
+- **Centre marks:** in the top view, a cross at (32,16) with arms of R + 2.5 = 6.5 mm; in the front
+  view, a centreline at x 32 from z −2.5 to 10.5.
+- **Isometric:** no hidden or centre lines.
+- **Title block:** TITLE, SCALE 1:1, UNITS mm, DATE, SHEET A4, THIRD ANGLE and the four view names.
+- **Paper size:** `width="297mm" height="210mm" viewBox="0 0 297 210"`, so the file prints at true
+  size.
+
+**PDF:**
+- 55 stroked paths, exactly as many as the SVG's lines, polylines and arcs.
+- The same three dash patterns: solid, `3 1.5` and `8 1.5 1.5 1.5`.
+
+**Toggles:**
+- Hidden lines off removes every dashed 0.35 stroke from both files.
+- Centre lines off removes every chain line, both in the files (SV12) and in the app (UD8).
+
+**Other parts:**
+- **Side hole along X:** a cross in the right view, and centrelines in the front and top views that
+  reach 2.5 sheet mm past the part at 2:1.
+- **Fillet arc:** no centre mark, since it is not a whole circle.
+- **Ø16 boss beside the hole:** two crosses, the boss's arms 8 + 2.5.
+
+**Instances (SV17–SV20, UD6, UD8):**
+- A placed block at x 100 is drawn: the top view reaches x 110 and its edges are named `inst1/…`.
+- A linear dimension from the plate corner to the block corner reads **36**, and **56** after the
+  block moves to x 120.
+- A 20-high block in front of the plate hides the plate's top edge over x 10…20.
+- A hidden instance is left off.
+- A block mated flush on the plate (z = 8) redraws the sheet.
+
+**Standard views:** third and first angle, the isometric, scale, sheet size, dimensions, refusals
+and persistence are as in the third pass (UD1–UD5, drawing-probe 19/19).
 
 ---
 
@@ -577,4 +660,4 @@ to 1e-4 relative or better).
 - Inferred constraints beyond what U59 and the closed outline settle.
 - The WebGL2 fallback renderer.
 - Render workspace visuals.
-- 2D drawings' second round (instances on the sheet, centre marks): not merged into the tip; see DR1.
+- Section views, angular and ordinate drawing dimensions: not in the product yet.
