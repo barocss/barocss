@@ -1224,7 +1224,7 @@ try {
     await page.waitForFunction(s => { const v = [...document.querySelectorAll('.hud input')].map(i => Number(i.value)); return v[3] !== s[3] || v[4] !== s[4]; }, start, { timeout: 5000 });
     await page.mouse.click(px, py);
     await page.waitForFunction(() => /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
-    await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await hudReady(); await page.waitForTimeout(250); await snap('preview-tint'); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // The cylinder dragged from the shapes bar onto the ground beside the box.
     await page.dragAndDrop('.shapes [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });

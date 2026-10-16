@@ -29,7 +29,7 @@ import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/typ
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
-import { BODY_COLOURS, bodyName, lastFeature, lookOf, rgbOf, withLook } from './app/bodies';
+import { BODY_COLOURS, bodyName, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
@@ -79,6 +79,8 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
 };
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
+/** What a command is about to add, in its preview. */
+const PREVIEW_TINT = '#7fb2f0';
 
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
 interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
@@ -742,7 +744,13 @@ export function App() {
   activeRef.current = active;
   const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
   // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
-  const bodyColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color; return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; })), [shownBodies, doc]);
+  // (A command's preview: the bodies it adds — first made by one of its new features, not built on a body
+  // the part has — tinted, so what is new reads at a glance.)
+  const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
+  const bodyColors = useMemo(() => {
+    const fresh = (b: BodyResult) => { const m = /^b(\d+)/.exec(b.key); return !!previewNodes && !!m && rootOf(previewNodes, Number(m[1])) >= evaluated.nodes.length; };
+    return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
+  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
@@ -954,7 +962,7 @@ export function App() {
       </nav>
 
       <aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Outliner">
-        <div className="card-title">BROWSER <span className="muted">{shownBodies.length} bod{shownBodies.length === 1 ? 'y' : 'ies'}</span>
+        <div className="card-title">BROWSER <span className="muted">{bodies.length} bod{bodies.length === 1 ? 'y' : 'ies'}</span>
           <button className="tool tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></button></div>
         {browserOpen && <>
         {bodies.length > 0 && <div className="ol-head">Bodies</div>}
@@ -1041,7 +1049,8 @@ export function App() {
             <button key={c.a + c.b} className="ol clash" onClick={() => { if (ia >= 0 && ib >= 0) setSelection({ faces: [], edges: [], bodies: [ia, ib] }); }}>
               <Icon name="warning" small />{ia >= 0 ? bodyName(doc, bodies[ia]) : c.a} ∩ {ib >= 0 ? bodyName(doc, bodies[ib]) : c.b}<span className="muted"> · {fmt(Math.round(c.volume * 10) / 10)} mm³</span></button>); })}
       </aside>}
-      {!rendering && !sketch && !measure && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
+      {/* (A running command's HUD takes this place at the right.) */}
+      {!rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
