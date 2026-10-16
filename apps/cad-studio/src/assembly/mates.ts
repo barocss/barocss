@@ -314,7 +314,18 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   // Round-to-round tangents: the axes a fixed distance apart, met by the smallest move the linear mates allow.
   let t = basis.reduce((acc, b) => add(acc, mul(b.q, b.s)), t0);
   const held = basis.map(b => b.q);
-  for (const term of accepted.filter(roundPair)) {
+  const rounds = accepted.filter(roundPair);
+  // Two of them on parallel axes, with nothing else holding the part across them: wedged against both.
+  if (rounds.length >= 2) {
+    const r = placeWedge(rounds[0], rounds[1], R, t, held);
+    if (r && 't' in r) { t = r.t; rounds.splice(0, 2); }
+    else if (r) {
+      const [one, other] = rounds;
+      refused.push(other); rounds.splice(1, 1);
+      problems.push({ mate: other.mate.id, reason: `Conflicts with ${label(one.mate)}: ${r.why}` });
+    }
+  }
+  for (const term of rounds) {
     const r = placeRound(term, R, t, held);
     if ('t' in r) { t = r.t; continue; }
     refused.push(term);
@@ -328,6 +339,47 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
     return { R: again.R, t: again.t, problems: [...problems, ...again.problems] };
   }
   return { R, t, problems };
+}
+
+/** How far a pair of round faces' axes must be apart (outside each other; inside a hole, or flipped: the difference). */
+function roundGap(term: Term): number {
+  const f = term.fixed as Cylinder, m = term.moving as Cylinder;
+  return (f.outer !== m.outer) !== !!term.mate.flip ? Math.abs(f.radius - m.radius) : f.radius + m.radius;
+}
+
+/**
+ * Two round-to-round tangents on parallel axes, with both directions across them free: across the axes,
+ * the shift Δ must lie on two circles (|Δ − qᵢ| = dᵢ, qᵢ the fixed axis less the moving one), so Δ is
+ * where they cross — the crossing nearer no shift. Null when this case does not apply (the axes are not
+ * parallel, or the linear mates already hold a direction across them).
+ */
+function placeWedge(first: Term, second: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3 } | { why: string } | null {
+  const f1 = first.fixed as Cylinder, f2 = second.fixed as Cylinder;
+  if (len(cross(f1.axis, f2.axis)) > 1e-9) return null;
+  const [e1, e2] = perpendiculars(f1.axis);
+  // Both directions across the axes must be free of the linear mates.
+  if (held.some(q => Math.abs(dot(q, e1)) > 1e-9 || Math.abs(dot(q, e2)) > 1e-9)) return null;
+  const across = (v: Vec3): [number, number] => [dot(v, e1), dot(v, e2)];
+  const q = [first, second].map(term => {
+    const fixedAt = across((term.fixed as Cylinder).point), movingAt = across(add(apply(R, (term.moving as Cylinder).point), t));
+    return [fixedAt[0] - movingAt[0], fixedAt[1] - movingAt[1]] as [number, number];
+  });
+  const d1 = roundGap(first), d2 = roundGap(second);
+  const dx = q[1][0] - q[0][0], dy = q[1][1] - q[0][1], D = Math.hypot(dx, dy);
+  if (D < 1e-12) {
+    if (Math.abs(d1 - d2) > POS_TOL) return { why: `both put the same axis, ${fmtNum(d1)} and ${fmtNum(d2)} mm from it.` };
+    return null; // the same circle twice: one tangent does
+  }
+  if (D > d1 + d2 + POS_TOL || D < Math.abs(d1 - d2) - POS_TOL) {
+    return { why: `the two axes it touches are ${fmtNum(D)} mm apart, so it cannot be ${fmtNum(d1)} mm from one and ${fmtNum(d2)} mm from the other.` };
+  }
+  // The crossings of the two circles; the one needing the smaller shift.
+  const along = (D * D + d1 * d1 - d2 * d2) / (2 * D), h = Math.sqrt(Math.max(0, d1 * d1 - along * along));
+  const ux = dx / D, uy = dy / D, mx = q[0][0] + along * ux, my = q[0][1] + along * uy;
+  const p1: [number, number] = [mx - h * uy, my + h * ux], p2: [number, number] = [mx + h * uy, my - h * ux];
+  const shift = Math.hypot(...p1) <= Math.hypot(...p2) ? p1 : p2;
+  held.push(e1, e2);
+  return { t: add(t, add(mul(e1, shift[0]), mul(e2, shift[1]))) };
 }
 
 /**

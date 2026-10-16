@@ -273,3 +273,32 @@ test('mates: a block flush on a 45° chamfer and on a 30° tilted top is placed 
   const b = boundsOf(onTilt.instances[0]);
   assert.ok(b.max[2] > b.min[2] + 4, JSON.stringify(b));
 });
+
+test('mates: wedged against two round faces — the circles’ nearer crossing, refused when they do not meet', () => {
+  const base = rectanglePart(64, 32, 8);
+  const p1 = { ...inst('p1', cylinderPart(4, 20)), grounded: true }, p2 = { ...inst('p2', cylinderPart(4, 20), [20, 0, 0]), grounded: true };
+  const roller = inst('roller', cylinderPart(8, 10), [10, 20, 0]);
+  const on = (post: string, id: string): Mate => ({ id, kind: 'tangent', a: { part: post, face: 'n1.side0' }, b: { part: 'roller', face: 'n1.side0' } });
+  const r = solveAssembly([p1, p2, roller], [on('p1', 'm1'), on('p2', 'm2')], tablesFor(base, [p1, p2, roller]));
+  assert.deepEqual(r.problems, []);
+  // 12 mm from both axes (4 + 8), on the side it came from: (10, √(144 − 100)).
+  const at = r.instances[2].position;
+  assert.ok(near(at[0], 10, 1e-9) && near(at[1], Math.sqrt(44), 1e-9) && at[2] === 0, String(at));
+  assert.deepEqual(solveAssembly(r.instances, [on('p1', 'm1'), on('p2', 'm2')], tablesFor(base, r.instances)).instances, r.instances, 'solved again: unchanged');
+  // A Ø6 roller cannot touch both posts 20 mm apart: the second is refused, the first still holds.
+  const small = inst('roller', cylinderPart(3, 10), [10, 20, 0]);
+  const no = solveAssembly([p1, p2, small], [on('p1', 'm1'), on('p2', 'm2')], tablesFor(base, [p1, p2, small]));
+  assert.deepEqual(no.problems.map(p => p.mate), ['m2']);
+  assert.match(no.problems[0].reason, /Conflicts with Tangent 1: the two axes it touches are 20 mm apart, so it cannot be 7 mm from one and 7 mm from the other/);
+  assert.ok(near(Math.hypot(no.instances[2].position[0], no.instances[2].position[1]), 7, 1e-9));
+  // A plate with two Ø8 holes 20 apart, dropped onto both posts (inside each hole: axes together).
+  const plate = withNode(withNode(rectanglePart(40, 10, 4), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 5], radius: 4 }), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [30, 5], radius: 4 });
+  const pl = inst('pl', plate, [3, 40, 30]);
+  const holes: Mate[] = [
+    { id: 'h1', kind: 'tangent', a: { part: 'p1', face: 'n1.side0' }, b: { part: 'pl', face: 'n2.side0' } },
+    { id: 'h2', kind: 'tangent', a: { part: 'p2', face: 'n1.side0' }, b: { part: 'pl', face: 'n3.side0' } },
+  ];
+  const d = solveAssembly([p1, p2, pl], holes, tablesFor(base, [p1, p2, pl]));
+  assert.deepEqual(d.problems, []);
+  assert.deepEqual(d.instances[2].position, [-10, -5, 30]);
+});
