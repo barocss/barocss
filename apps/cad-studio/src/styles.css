@@ -308,3 +308,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .help-row { display: flex; align-items: center; gap: 8px; height: 24px; }
 .help-row > span:first-of-type { flex: 1; }
 @media (max-width: 640px) { .help-cols { grid-template-columns: 1fr; } }
+
+/* The section view's axis and side, above the views bar. */
+.section-bar { position: absolute; right: 0; bottom: calc(100% + 8px); display: flex; align-items: center; gap: 2px; padding: 3px 4px 3px 10px; }
+.section-bar button { height: 24px; min-width: 26px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font: 500 11px var(--sans); }
+.section-bar button.on { background: var(--accent); color: var(--accent-ink); }
+.section-bar .muted { margin-right: 6px; font-size: 11px; }

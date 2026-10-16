@@ -1327,6 +1327,23 @@ try {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('.help'));
   });
 
+  await check('section view: a box with a hole cut open across Y, its cut faces lit; the plane drags', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
+    const nodes = (await doc()).nodes.length;
+    await page.click('[aria-label="Section view"]');
+    await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
+    await page.waitForTimeout(600); await snap('section');
+    await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600);
+    await page.click('[aria-label="Flip the section"]'); await page.waitForTimeout(600);
+    assert.equal((await doc()).nodes.length, nodes, 'the model is not changed');
+    await page.click('[aria-label="Section view"]');
+    await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -159,6 +159,14 @@ export function App() {
   /** The body whose name is being typed in the browser (its key). */
   const [renaming, setRenaming] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
+  /**
+   * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
+   * faces lit (the kernel's split, display only — the model is not changed).
+   */
+  const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
+  const [sectionBodies, setSectionBodies] = useState<BodyResult[] | null>(null);
+  const sectionRef = useRef(section); sectionRef.current = section;
+  const activeRef = useRef<Active | null>(null);
   /** The body whose browser row the pointer is on (lit in the viewport). */
   const [rowHover, setRowHover] = useState<number | null>(null);
   const [browserOpen, setBrowserOpen] = useState(() => { try { return localStorage.getItem('cad-studio.browser') !== 'closed'; } catch { return true; } });
@@ -204,6 +212,20 @@ export function App() {
 
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, marker]);
+  // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
+  useEffect(() => {
+    if (!section) { setSectionBodies(null); return; }
+    let live = true;
+    const k = 'xyz'.indexOf(section.axis), keep = section.keep, nodes = [...evaluated.nodes], kept: string[] = [];
+    let doc: StudioDoc = { ...evaluated, nodes };
+    for (const b of bodies) {
+      const { min, max } = b.mesh.bounds, ref = refOf(b);
+      if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(`b${doc.nodes.length - 1}_${keep}`); }
+      else if (keep === 'negative' ? max[k] <= section.at + 1e-6 : min[k] >= section.at - 1e-6) kept.push(b.key);
+    }
+    engine.preview(doc, revision.current++).then(r => { if (live) setSectionBodies(r.ok ? r.bodies.filter(b => kept.includes(b.key)) : null); });
+    return () => { live = false; };
+  }, [section, bodies, evaluated, engine]);
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // Evaluate the accepted document whenever it or the rollback marker changes.
@@ -502,6 +524,8 @@ export function App() {
   }, [sketch, doc, marker, commit, engine]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
+    // (The section view shows cut copies of the bodies: picks wait until it is closed.)
+    if (sectionRef.current && !activeRef.current) return;
     if (active) {
       // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it.
       if (!active.cmd.onPick) return;
@@ -643,8 +667,16 @@ export function App() {
     }
   };
 
-  // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames.
+  // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames. The listener is
+  // added once and calls the newest handler (set each render), so a key pressed right after a click sees
+  // that click's selection, not the one before it (effects run only after the frame is painted).
+  const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   useEffect(() => {
+    const listen = (e: KeyboardEvent) => onKeyRef.current(e);
+    window.addEventListener('keydown', listen);
+    return () => window.removeEventListener('keydown', listen);
+  }, []);
+  {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
@@ -675,9 +707,8 @@ export function App() {
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());
       if (cmd && !active) { e.preventDefault(); start(cmd); }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+    onKeyRef.current = onKey;
+  }
 
   /** A command's button (the rail, the shapes bar): its tooltip says what it does or why it cannot run; shapes drag onto the model. */
   const toolButton = (c: Command) => {
@@ -687,7 +718,8 @@ export function App() {
       {...(c.place && a.ok ? { draggable: true, onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; },
         onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
   };
-  const shownBodies = bodyDrag ? bodies : previewBodies ?? bodies;
+  activeRef.current = active;
+  const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
   // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
   const bodyColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color; return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; })), [shownBodies, doc]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
@@ -695,7 +727,9 @@ export function App() {
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
-  const shownSelection = previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
+  const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
+  const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => f.name.split('+').some(n => { const m = /^n(\d+)\.cut/.exec(n); return !!m && Number(m[1]) >= evaluated.nodes.length; })).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+    : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
@@ -779,6 +813,14 @@ export function App() {
           : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, { [h.key]: v }), preview: 'busy', ctx: { ...handleCtx } });
       } }];
   }) : [];
+  // The section plane: an arrow across it through the middle of the part.
+  const sectionHandle: FeatureHandle | null = section && !active && !sketch && bodies.length ? (() => {
+    const k = 'xyz'.indexOf(section.axis), min = [0, 1, 2].map(i => Math.min(...bodies.map(b => b.mesh.bounds.min[i]))), max = [0, 1, 2].map(i => Math.max(...bodies.map(b => b.mesh.bounds.max[i])));
+    const at = [0, 1, 2].map(i => (min[i] + max[i]) / 2) as Vec3, dir: Vec3 = [0, 0, 0]; dir[k] = section.keep === 'negative' ? 1 : -1; at[k] = section.at;
+    return { id: 'section', at, dir, label: `Section ${section.axis.toUpperCase()}`, value: section.at,
+      toValue: (start: number, mm: number) => Math.min(max[k] - 0.5, Math.max(min[k] + 0.5, Math.round((start + mm * dir[k]) * 2) / 2)),
+      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => setSection(s => s && s.at !== v ? { ...s, at: v } : s) };
+  })() : null;
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
@@ -816,7 +858,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot} bodyColors={bodyColors} hiddenBodies={hiddenBodies} hoverBody={previewBodies ? null : rowHover}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
@@ -1049,9 +1091,16 @@ export function App() {
       </div>
 
       <div className="corner-right">
+  {section && <div className="card section-bar" role="group" aria-label="Section"><span className="muted">Section</span>{(['x', 'y', 'z'] as const).map(a => <button key={a} className={section.axis === a ? 'on' : ''} aria-label={`Section across ${a.toUpperCase()}`}
+            onClick={() => { const k = 'xyz'.indexOf(a), vs = bodies.flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
+            <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button></div>}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
+          <button className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
+            onClick={() => { if (section) { setSection(null); return; } const zs = bodies.flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' }); }}>
+            <Icon name="cad-split" small /></button>
+
           <button onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</button>
           <button onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</button>
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
