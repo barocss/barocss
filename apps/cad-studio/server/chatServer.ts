@@ -15,9 +15,14 @@ import type { StateFile } from './cadMcp';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
-const MAX_BODY = 8 * 1024 * 1024;
+const MAX_BODY = 32 * 1024 * 1024;
+/** Images a turn may carry (base64; the browser scales them down first). */
+export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+export const MAX_IMAGES = 4;
+const MAX_IMAGE_BASE64 = 6 * 1024 * 1024;
+export interface TurnImage { media_type: string; data: string }
 
-type Spawn = (command: string, args: string[], options: { cwd: string; env: NodeJS.ProcessEnv }) => ChildProcess;
+type Spawn = (command: string, args: string[], options: { cwd: string; env: NodeJS.ProcessEnv; stdin?: boolean }) => ChildProcess;
 export interface ChatServerOptions {
   /** The `claude` executable (default: `claude` on PATH, or CAD_STUDIO_CLAUDE). */
   claude?: string;
@@ -35,10 +40,10 @@ export type ChatServerEvent =
   | { type: 'state'; doc: StudioDoc }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string };
 
-/** The CLI arguments for one turn. */
-export function claudeArgs(o: { prompt: string; mcpConfig: string; model: string; session?: string }): string[] {
+/** The CLI arguments for one turn (the message itself goes in on stdin, see `userMessage`). */
+export function claudeArgs(o: { mcpConfig: string; model: string; session?: string }): string[] {
   return [
-    '-p', o.prompt, '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
+    '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
     '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', TOOLS.map(t => `mcp__cad__${t.name}`).join(','),
@@ -46,6 +51,28 @@ export function claudeArgs(o: { prompt: string; mcpConfig: string; model: string
     '--system-prompt', SYSTEM_PROMPT,
     ...(o.session ? ['--resume', o.session] : []),
   ];
+}
+
+/** The turn's user message for the CLI's stream-json input: images first, then the text. */
+export function userMessage(text: string, images: TurnImage[] = []) {
+  return { type: 'user', message: { role: 'user', content: [
+    ...images.map(i => ({ type: 'image', source: { type: 'base64', media_type: i.media_type, data: i.data } })),
+    { type: 'text', text },
+  ] } };
+}
+
+/** Why the images cannot be sent, or null. */
+export function checkImages(images: unknown): string | null {
+  if (images === undefined) return null;
+  if (!Array.isArray(images)) return '"images" is a list of {media_type, data}.';
+  if (images.length > MAX_IMAGES) return `At most ${MAX_IMAGES} images per message.`;
+  for (const i of images) {
+    if (typeof i !== 'object' || !i || !IMAGE_TYPES.includes((i as TurnImage).media_type)) return `Images are ${IMAGE_TYPES.map(t => t.slice(6).toUpperCase()).join(', ')}.`;
+    const d = (i as TurnImage).data;
+    if (typeof d !== 'string' || !d || !/^[A-Za-z0-9+/]+=*$/.test(d)) return 'Image data is base64 (no data: prefix).';
+    if (d.length > MAX_IMAGE_BASE64) return 'An image is too large; send it scaled down.';
+  }
+  return null;
 }
 
 const r0 = (v: number) => Math.round(v);
@@ -76,7 +103,7 @@ const sendJson = (res: ServerResponse, status: number, body: unknown) => { res.s
 export function createChatServer(options: ChatServerOptions) {
   const claude = options.claude ?? process.env.CAD_STUDIO_CLAUDE ?? 'claude';
   const model = options.model ?? process.env.CAD_STUDIO_CHAT_MODEL ?? DEFAULT_MODEL;
-  const spawn: Spawn = options.spawn ?? ((c, a, o) => nodeSpawn(c, a, { ...o, stdio: ['ignore', 'pipe', 'pipe'] }));
+  const spawn: Spawn = options.spawn ?? ((c, a, o) => nodeSpawn(c, a, { cwd: o.cwd, env: o.env, stdio: [o.stdin ? 'pipe' : 'ignore', 'pipe', 'pipe'] }));
   const workDir = options.workDir ?? join(tmpdir(), 'cad-studio-chat');
   mkdirSync(workDir, { recursive: true });
   let version: Promise<string | null> | null = null;
@@ -95,23 +122,31 @@ export function createChatServer(options: ChatServerOptions) {
       return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });
     }
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown };
+    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
-    if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?}.' });
+    if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
+    const imageError = checkImages(body.images);
+    if (imageError) return sendJson(res, 400, { error: imageError });
+    const images = (body.images ?? []) as TurnImage[];
 
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false } satisfies StateFile));
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath } } } });
     const prompt = `${stateNote(body.doc as StudioDoc)}\n\n${body.text}`;
-    const args = claudeArgs({ prompt, mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
+    const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
     const emit = (e: ChatServerEvent) => { if (!res.writableEnded) res.write(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`); };
     const read = (): StateFile | null => { try { return JSON.parse(readFileSync(statePath, 'utf8')); } catch { return null; } };
 
     let child: ChildProcess;
-    try { child = spawn(claude, args, { cwd: workDir, env: { ...process.env } }); }
+    try {
+      child = spawn(claude, args, { cwd: workDir, env: { ...process.env }, stdin: true });
+      // One user message, then end of input: the CLI finishes the turn and exits.
+      child.stdin?.on('error', () => { /* the CLI exited first */ });
+      child.stdin?.end(JSON.stringify(userMessage(prompt, images)) + '\n');
+    }
     catch (e) { emit({ type: 'done', end: 'error', error: e instanceof Error ? e.message : String(e) }); res.end(); rmSync(dir, { recursive: true, force: true }); return; }
     let aborted = false, session: string | undefined = typeof body.session === 'string' ? body.session : undefined, failure: string | undefined, stderr = '';
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });

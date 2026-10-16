@@ -722,7 +722,7 @@ try {
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
     await page.route(turnUrl, r => {
       const body = r.request().postDataJSON(); requests.push(body);
-      const reply = requests.length === 1 ? events : [{ type: 'text', delta: 'You’re welcome.' }, { type: 'done', session: body.session, end: 'done' }];
+      const reply = requests.length === 1 ? events : [{ type: 'text', delta: requests.length === 2 ? 'You’re welcome.' : 'That drawing shows the same plate.' }, { type: 'done', session: body.session, end: 'done' }];
       return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
     });
     await page.click('[aria-label="New part"]'); await idle();
@@ -740,6 +740,19 @@ try {
     await input.fill('thanks'); await press('Enter');
     await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
     assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    // An attached drawing goes with the next message, scaled and as base64, shown as a thumbnail.
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('[aria-label="Remove plate.png"]'); assert.equal(await page.locator('[aria-label="Attached images"]').count(), 0);
+    await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
+    await page.waitForSelector('[aria-label="Attached images"] img');
+    await page.click('.chat-input button:text-is("Send")');
+    await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
+    assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
+    assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
+    assert.match(requests[2].text, /image/);
+    assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
     // One undo takes the whole first turn back.
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);

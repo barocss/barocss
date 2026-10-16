@@ -6,11 +6,13 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { NameSelection } from '../chat/tools';
 import { chatStatus, runServerTurn, type ChatStatus } from '../chat/client';
+import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { Icon } from './atoms';
 import './chat.css';
 
 type Item =
-  | { kind: 'user' | 'assistant' | 'notice'; text: string }
+  | { kind: 'user'; text: string; images?: ChatImage[] }
+  | { kind: 'assistant' | 'notice'; text: string }
   | { kind: 'tool'; name: string; input: unknown; summary: string; isError: boolean };
 
 export interface ChatPanelProps {
@@ -38,6 +40,9 @@ export function ChatPanel(props: ChatPanelProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [text, setText] = useState('');
   const [running, setRunning] = useState(false);
+  /** Images attached to the next message. */
+  const [images, setImages] = useState<ChatImage[]>([]);
+  const fileInput = useRef<HTMLInputElement>(null);
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
   const abort = useRef<AbortController | null>(null);
@@ -47,16 +52,25 @@ export function ChatPanel(props: ChatPanelProps) {
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [items]);
   useEffect(() => () => abort.current?.abort(), []);
 
+  const attach = async (files: Iterable<File>) => {
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      try { const img = await prepareImage(file); setImages(list => list.length >= 4 ? list : [...list, img]); }
+      catch (e) { setItems(list => [...list, { kind: 'notice', text: e instanceof Error ? e.message : String(e) }]); }
+    }
+  };
+
   const send = async () => {
-    const message = text.trim();
+    const attached = images;
+    const message = text.trim() || (attached.length ? 'Model the part shown in the image.' : '');
     if (!message || running || !status?.enabled || props.blocked) return;
-    setText(''); setRunning(true);
-    setItems(list => [...list, { kind: 'user', text: message }]);
+    setText(''); setImages([]); setRunning(true);
+    setItems(list => [...list, { kind: 'user', text: text.trim(), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null, previewing = 0;
     const done = await runServerTurn({
-      text: message, doc: props.base(), session: session.current, signal: controller.signal,
+      text: message, images: attached, doc: props.base(), session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -81,7 +95,9 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const enabled = !!status?.enabled;
   return (
-    <aside className="card chat" aria-label="Chat">
+    <aside className="card chat" aria-label="Chat"
+      onDragOver={e => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); }}
+      onDrop={e => { if (!e.dataTransfer.files.length) return; e.preventDefault(); if (enabled && !running) void attach(e.dataTransfer.files); }}>
       <div className="card-title">CHAT <span className="muted">{status?.model ?? ''}</span>
         <span className="grow" />
         <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; setItems([]); }}><Icon name="restart_alt" small /></button>
@@ -93,22 +109,30 @@ export function ChatPanel(props: ChatPanelProps) {
           <code>pnpm --filter @barocss/cad-studio-app chat</code>
           It runs the claude CLI with its own sign-in; the browser only talks to the local server.
         </div>}
-        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges”.</div>}
+        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.</div>}
         {items.map((it, i) => it.kind === 'tool'
           ? <details key={i} className={'chat-tool' + (it.isError ? ' err' : '')}>
               <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{it.name}</span> <span className="chat-sum">{it.summary}</span></summary>
               <code>{brief(it.input)}</code>
             </details>
-          : <div key={i} className={'chat-msg ' + it.kind}>{it.text}</div>)}
+          : <div key={i} className={'chat-msg ' + it.kind}>
+              {it.kind === 'user' && it.images && <div className="chat-thumbs">{it.images.map((img, k) => <img key={k} src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />)}</div>}
+              {it.text}</div>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
+      {!!images.length && <div className="chat-thumbs pending" aria-label="Attached images">{images.map((img, k) => <span key={k} className="chat-thumb">
+        <img src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />
+        <button type="button" aria-label={`Remove ${img.name}`} onClick={() => setImages(list => list.filter((_, j) => j !== k))}><Icon name="close" small /></button></span>)}</div>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); void send(); }}>
+        <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden aria-label="Chat image file" onChange={e => { if (e.target.files) void attach([...e.target.files]); e.target.value = ''; }} />
+        <button type="button" className="tool" aria-label="Attach image" title="Attach a sketch, photo or drawing (or paste / drop one)" disabled={!enabled || running || images.length >= 4} onClick={() => fileInput.current?.click()}><Icon name="image" /></button>
         <textarea aria-label="Chat message" rows={2} value={text} disabled={!enabled || running} placeholder={props.blocked ?? (enabled ? 'Ask for a part or a change…' : 'Chat is off')}
           onChange={e => setText(e.target.value)}
+          onPaste={e => { const files = [...e.clipboardData.files].filter(f => f.type.startsWith('image/')); if (files.length) { e.preventDefault(); void attach(files); } }}
           onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }} />
         {running
           ? <button type="button" className="ghost" onClick={() => abort.current?.abort()}>Stop</button>
-          : <button type="submit" className="primary" disabled={!enabled || !text.trim() || !!props.blocked}>Send</button>}
+          : <button type="submit" className="primary" disabled={!enabled || (!text.trim() && !images.length) || !!props.blocked}>Send</button>}
       </form>
     </aside>
   );

@@ -35,10 +35,10 @@ export function eventParser(onEvent: (e: TurnEvent) => void) {
 }
 
 /** One turn; resolves with its `done` event (an aborted or broken stream ends as one too). */
-export async function runServerTurn(o: { text: string; doc: StudioDoc; session?: string; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string }): Promise<Extract<TurnEvent, { type: 'done' }>> {
+export async function runServerTurn(o: { text: string; doc: StudioDoc; session?: string; images?: { media_type: string; data: string }[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string }): Promise<Extract<TurnEvent, { type: 'done' }>> {
   let done: Extract<TurnEvent, { type: 'done' }> | null = null;
   try {
-    const res = await fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: o.text, doc: o.doc, ...(o.session ? { session: o.session } : {}) }), signal: o.signal });
+    const res = await fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: o.text, doc: o.doc, ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}) }), signal: o.signal });
     if (!res.ok || !res.body) {
       const t = await res.text().catch(() => '');
       let msg = t; try { msg = JSON.parse(t).error ?? t; } catch { /* plain text */ }

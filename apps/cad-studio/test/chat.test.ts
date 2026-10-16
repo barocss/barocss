@@ -13,7 +13,8 @@ import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatSta
 import { checkNode, deleteFeature } from '../src/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
-import { claudeArgs, createChatServer, stateNote, summarize } from '../server/chatServer';
+import { checkImages, claudeArgs, createChatServer, stateNote, summarize, userMessage } from '../server/chatServer';
+import { fitSize } from '../src/chat/images';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -186,11 +187,12 @@ test('measure, select and the part summary read the evaluated part by name', asy
 
 /** A fake `claude` process: prints scripted stream-json lines and edits the state file as its MCP server would. */
 function fakeClaude(script: (args: string[], statePath: string) => (string | (() => void))[]) {
-  const spawned: { command: string; args: string[]; cwd: string; killed: boolean }[] = [];
+  const spawned: { command: string; args: string[]; cwd: string; killed: boolean; stdin: string }[] = [];
   const spawn = (command: string, args: string[], o: { cwd: string }) => {
     const child = new EventEmitter() as any;
-    child.stdout = new PassThrough(); child.stderr = new PassThrough();
-    const rec = { command, args, cwd: o.cwd, killed: false }; spawned.push(rec);
+    child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough();
+    const rec = { command, args, cwd: o.cwd, killed: false, stdin: '' }; spawned.push(rec);
+    child.stdin.on('data', (d: Buffer) => { rec.stdin += d; });
     child.kill = () => { rec.killed = true; child.stdout.end(); setImmediate(() => child.emit('close', null)); return true; };
     if (args[0] === '--version') { setImmediate(() => { child.stdout.end('2.1.283 (Claude Code)\n'); child.emit('close', 0); }); return child; }
     const config = JSON.parse(args[args.indexOf('--mcp-config') + 1]);
@@ -243,17 +245,27 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     const run = fake.spawned[1];
     assert.equal(run.command, 'claude'); assert.equal(run.cwd, work);
     const a = run.args, flag = (f: string) => a[a.indexOf(f) + 1];
-    assert.equal(a[0], '-p'); assert.match(a[1], /Current part: 2 features[\s\S]*add a Ø8 hole/);
+    assert.equal(a[0], '-p'); assert.equal(flag('--input-format'), 'stream-json');
+    // The message goes in on stdin as one stream-json user message.
+    const sent = JSON.parse(run.stdin);
+    assert.equal(sent.type, 'user'); assert.equal(sent.message.content.length, 1);
+    assert.match(sent.message.content[0].text, /Current part: 2 features[\s\S]*add a Ø8 hole/);
     assert.equal(flag('--output-format'), 'stream-json'); assert.equal(flag('--model'), 'claude-opus-5-5'); assert.equal(flag('--tools'), '');
     assert.ok(a.includes('--strict-mcp-config')); assert.ok(!a.includes('--resume'));
     assert.equal(flag('--allowedTools'), TOOLS.map(t => `mcp__cad__${t.name}`).join(','));
     const mcp = JSON.parse(flag('--mcp-config')).mcpServers.cad;
     assert.equal(mcp.command, process.execPath); assert.deepEqual(mcp.args, ['/x/cadMcp.mjs']);
-    // The next turn resumes the CLI conversation.
-    await turn(srv.url, { text: 'thanks', doc: built, session: sid });
+    // The next turn resumes the CLI conversation and carries an image before its text.
+    const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64');
+    await turn(srv.url, { text: 'like this drawing', doc: built, session: sid, images: [{ media_type: 'image/png', data: png }] });
     assert.equal(fake.spawned[2].args[fake.spawned[2].args.indexOf('--resume') + 1], sid);
+    assert.deepEqual(JSON.parse(fake.spawned[2].stdin).message.content.map((b: any) => b.type), ['image', 'text']);
+    assert.deepEqual(JSON.parse(fake.spawned[2].stdin).message.content[0].source, { type: 'base64', media_type: 'image/png', data: png });
+    const refused = await fetch(`${srv.url}/turn`, { method: 'POST', body: JSON.stringify({ text: 'x', doc: built, images: [{ media_type: 'image/svg+xml', data: 'AAAA' }] }) });
+    assert.equal(refused.status, 400); assert.match((await refused.json()).error, /PNG, JPEG, WEBP, GIF/);
+    assert.equal(fake.spawned.length, 3);
   } finally { await srv.close(); }
-  assert.deepEqual(claudeArgs({ prompt: 'p', mcpConfig: '{}', model: 'claude-sonnet-5-5', session: 's' }).slice(-2), ['--resume', 's']);
+  assert.deepEqual(claudeArgs({ mcpConfig: '{}', model: 'claude-sonnet-5-5', session: 's' }).slice(-2), ['--resume', 's']);
   assert.match(stateNote(emptyDoc()), /0 features/);
 });
 
@@ -281,4 +293,17 @@ test('the chat server reports a missing CLI, failed turns, and kills the CLI whe
     await new Promise(r => setTimeout(r, 50));
     assert.equal(slow.spawned[0].killed, true);
   } finally { await srv.close(); }
+});
+
+test('chat images: the server checks type, count, encoding and size; the browser scales to the model’s full-detail size', () => {
+  assert.equal(checkImages(undefined), null);
+  assert.equal(checkImages([{ media_type: 'image/jpeg', data: 'QUJD' }]), null);
+  assert.match(checkImages('x')!, /list/);
+  assert.match(checkImages(Array.from({ length: 5 }, () => ({ media_type: 'image/png', data: 'QUJD' })))!, /At most 4/);
+  assert.match(checkImages([{ media_type: 'image/png', data: 'data:image/png;base64,QUJD' }])!, /no data: prefix/);
+  assert.match(checkImages([{ media_type: 'image/png', data: 'A'.repeat(7 * 1024 * 1024) }])!, /too large/);
+  assert.deepEqual(userMessage('hi').message.content, [{ type: 'text', text: 'hi' }]);
+  assert.deepEqual(fitSize(4000, 3000), [1568, 1176]);
+  assert.deepEqual(fitSize(800, 600), [800, 600]);
+  assert.deepEqual(fitSize(1000, 5000), [314, 1568]);
 });
