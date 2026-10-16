@@ -1,0 +1,38 @@
+/* Sketch constraints and dimensions: viewport marks and the sketch panel's constraint section. */
+.vp-overlay .sk-pick-edge { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
+.vp-overlay .sk-pick-edge.hover { stroke-width: 4; opacity: 0.4; }
+.vp-overlay .sk-pick-point { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.vp-overlay .sk-pick-point.hover { opacity: 0.5; }
+.vp-overlay .dim-line, .vp-overlay .dim-ext { stroke: #8fb8ff; stroke-width: 1.2; }
+.vp-overlay .dim-ext { opacity: 0.7; }
+.vp-overlay .dim-arrow { fill: #8fb8ff; }
+.vp-overlay .dim.driving .dim-chip { fill: #16233a; stroke: #8fb8ff; }
+.vp-overlay .dim.driving .dim-text { fill: #d5e5ff; }
+.vp-overlay .dim.driving:hover .dim-chip { fill: #20345a; }
+.vp-overlay .dim.ref .dim-chip { stroke-dasharray: 3 2; opacity: 0.85; }
+.vp-overlay .cons-glyph .cons-text { font-size: 11px; }
+.dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 5; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
+  font: 500 12px var(--mono); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); outline: none; }
+:root[data-theme='light'] .vp-overlay .dim-line, :root[data-theme='light'] .vp-overlay .dim-ext { stroke: #2f6fd6; }
+:root[data-theme='light'] .vp-overlay .dim-arrow { fill: #2f6fd6; }
+:root[data-theme='light'] .vp-overlay .dim.driving .dim-chip { fill: #eaf2ff; stroke: #2f6fd6; }
+:root[data-theme='light'] .vp-overlay .dim.driving .dim-text { fill: #13325f; }
+:root[data-theme='light'] .dim-edit { background: #fff; color: var(--text); border-color: #2f6fd6; }
+
+.cons-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px; }
+.cons-tools button { height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 5px; border: 1px solid #4a4d53;
+  background: transparent; color: var(--text-2); cursor: pointer; padding: 0 2px; min-width: 0; }
+.cons-tools button b { font: 600 13px var(--mono); color: var(--accent); line-height: 1.1; }
+.cons-tools button span { font: 500 9.5px var(--sans); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.cons-tools button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.cons-tools button:disabled { opacity: 0.38; cursor: default; }
+.cons-sel { font: 400 11px var(--mono); color: var(--muted); margin: 0 0 6px; }
+.cons-sel b { color: var(--text); font-weight: 500; }
+.cons-row { display: flex; align-items: center; gap: 6px; min-height: 22px; }
+.cons-row .kv { flex: 1; }
+.cons-row.hit .kv { color: var(--accent); }
+.cons-row .x { width: 20px; height: 20px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; font: 500 13px var(--mono); line-height: 1; padding: 0; }
+.cons-row .x:hover { background: var(--warn-soft); color: var(--warn); }
+.cons-row .x.off { visibility: hidden; }
+:root[data-theme='light'] .cons-tools button { border-color: #c9ccd2; }

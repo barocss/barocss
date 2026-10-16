@@ -48,6 +48,7 @@ export type ModelNode = SketchNode
 
 import type { RenderSettings } from './render';
 import type { DirectGeometry } from './direct';
+import type { Mate } from '../assembly/mates';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -62,6 +63,8 @@ export interface StudioDoc {
   direct?: DirectGeometry;
   /** Other parts placed beside this one (a simple assembly). */
   instances?: PartInstance[];
+  /** Mates placing instances by their faces (see assembly/mates.ts). */
+  mates?: Mate[];
 }
 
 /** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */
@@ -72,6 +75,8 @@ export interface PartInstance {
   position: [number, number, number];
   rotation: [number, number, number];
   hidden?: boolean;
+  /** Fixed in place: mates never move it. */
+  grounded?: boolean;
 }
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
