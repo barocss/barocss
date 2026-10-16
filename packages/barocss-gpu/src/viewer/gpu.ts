@@ -13,7 +13,7 @@ export interface RenderPass {
   setIndexBuffer(buffer: Buffer, format: 'uint16' | 'uint32'): void;
   setScissorRect(x: number, y: number, width: number, height: number): void;
   draw(vertexCount: number, instanceCount?: number): void;
-  drawIndexed(indexCount: number): void;
+  drawIndexed(indexCount: number, instanceCount?: number): void;
   end(): void;
 }
 export interface CommandEncoder {

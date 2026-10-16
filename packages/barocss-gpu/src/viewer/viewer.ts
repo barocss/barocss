@@ -8,7 +8,7 @@ import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
-import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
+import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 export class ViewerError extends Error {
@@ -41,6 +41,29 @@ export interface AddMeshOptions {
   castShadow?: boolean;
   /** Darkened by shadows (default true). */
   receiveShadow?: boolean;
+  /** Many copies in one draw: a transform each (16 numbers, column-major) and optionally a colour each (sRGB, 3 or 4 numbers). */
+  instances?: InstancesInput;
+}
+export interface InstancesInput { transforms: ArrayLike<number>; colors?: ArrayLike<number> }
+
+/** Bytes per instance: a 4×4 transform and an RGBA8 colour (see Instance in shaders.ts). */
+const INSTANCE_STRIDE = 68;
+function packInstances(input: InstancesInput): { count: number; data: ArrayBuffer; matrices: Float64Array[] } {
+  const t = input.transforms, count = t.length / 16;
+  if (!Number.isInteger(count) || count < 1) throw new RangeError('instances.transforms must hold 16 numbers per instance');
+  const data = new ArrayBuffer(count * INSTANCE_STRIDE), f = new DataView(data), matrices: Float64Array[] = [];
+  const k = input.colors ? (input.colors.length === count * 4 ? 4 : input.colors.length === count * 3 ? 3 : 0) : 0;
+  if (input.colors && !k) throw new RangeError('instances.colors must hold three or four numbers per instance');
+  for (let i = 0; i < count; i++) {
+    const m = Float64Array.from({ length: 16 }, (_, j) => t[i * 16 + j]);
+    matrices.push(m);
+    for (let j = 0; j < 16; j++) f.setFloat32(i * INSTANCE_STRIDE + j * 4, m[j], true);
+    for (let j = 0; j < 4; j++) {
+      const c = input.colors ? (j < 3 ? srgbToLinear(Math.min(1, Math.max(0, input.colors[i * k + j]))) : k === 4 ? input.colors[i * k + 3] : 1) : 1;
+      f.setUint8(i * INSTANCE_STRIDE + 64 + j, Math.round(Math.min(1, Math.max(0, c)) * 255));
+    }
+  }
+  return { count, data, matrices };
 }
 
 export class Geometry {
@@ -78,6 +101,8 @@ export class Mesh {
   castShadow: boolean;
   private _receiveShadow: boolean;
   private _outline: Vec3 | null = null;
+  /** @internal Instances: their count, packed data, transforms, and the GPU buffer (null: not uploaded). */
+  instances: { count: number; data: ArrayBuffer; matrices: Float64Array[]; buffer: Buffer | null; device: Device | null } | null = null;
   /** @internal Which outline colour of the frame (1-based; 0 none). */
   outlineSlot = 0;
   /** Pick id (1-based; 0 is empty space). */
@@ -92,7 +117,18 @@ export class Mesh {
     this._receiveShadow = options.receiveShadow ?? true;
     this.name = options.name;
     if (options.transform) this.transform = options.transform;
+    if (options.instances) this.setInstances(options.instances);
   }
+
+  /** Copies of the mesh, each with its own transform (after the mesh's) and colour; null: a single mesh. */
+  setInstances(input: InstancesInput | null): void {
+    if (input && this.geometry.topology !== 'triangles') throw new RangeError('Only triangle meshes can be instanced');
+    this.instances?.buffer?.destroy();
+    this.instances = input ? { ...packInstances(input), buffer: null, device: null } : null;
+    this.worldBox = undefined;
+    this.owner.requestRender();
+  }
+  get instanceCount(): number { return this.instances?.count ?? 1; }
 
   get transform(): Mat4 { return this._transform; }
   set transform(m: ArrayLike<number>) {
@@ -111,7 +147,10 @@ export class Mesh {
   set outline(c: Color | null) { this._outline = c === null ? null : parseColor(c); this.owner.requestRender(); }
   /** The world box of the mesh (its geometry box through its transform). */
   get bounds(): Box3 | null {
-    if (this.worldBox === undefined) this.worldBox = this.geometry.bounds ? transformBox(this._transform, this.geometry.bounds) : null;
+    if (this.worldBox === undefined) {
+      const g = this.geometry.bounds;
+      this.worldBox = !g ? null : this.instances ? this.instances.matrices.reduce<Box3 | null>((b, m) => unionBox(b, transformBox(multiply(this._transform, m), g)), null) : transformBox(this._transform, g);
+    }
     return this.worldBox;
   }
   remove(): void { this.owner.remove(this); }
@@ -184,6 +223,8 @@ export interface PickHit {
   triangle: number | null;
   /** That triangle's face id (GeometryInput.faces), when the geometry has them. */
   face: number | null;
+  /** Which instance, for an instanced mesh. */
+  instance: number | null;
   /** Reversed depth of the pixel (1 near, 0 far). */
   depth: number;
 }
@@ -230,13 +271,15 @@ export class Viewer {
   private shadowSampler!: object;
   private emptyShadow!: Texture;
   private shadowMap: Texture | null = null;
+  /** The one identity instance plain meshes draw with. */
+  private identityInstance!: Buffer;
   private objectBuffer!: Buffer;
   private objectGroup!: BindGroup;
   private objectCapacity = 0;
   private objectData = new Float32Array(0);
   private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; output: BindGroup } | null = null;
   private outputBuffer!: Buffer;
-  private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; read: Buffer } | null = null;
+  private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer } | null = null;
   private meshes: Mesh[] = [];
   private freeSlots: number[] = [];
   private nextSlot = 0;
@@ -291,6 +334,8 @@ export class Viewer {
     this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
     this.shadowFrameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shadow frame' });
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+    this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
+    device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
     this.shadowMap = null;
     this.bindFrames();
@@ -322,14 +367,16 @@ export class Viewer {
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
-    const vertex = (module: object, all: boolean) => ({
+    const instance = { arrayStride: INSTANCE_STRIDE, stepMode: 'instance', attributes: [
+      ...[0, 1, 2, 3].map(k => ({ shaderLocation: 3 + k, offset: k * 16, format: 'float32x4' })), { shaderLocation: 7, offset: 64, format: 'unorm8x4' },
+    ] };
+    const position = { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] };
+    // Surfaces: position, normal, colour, instance. Pick, mask and shadow passes: position, instance.
+    const vertex = (module: object) => ({
       module, entryPoint: 'vs',
-      buffers: [
-        { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] },
-        ...(all ? [{ arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }] : []),
-        { arrayStride: 4, attributes: [{ shaderLocation: 2, offset: 0, format: 'unorm8x4' }] },
-      ],
+      buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, { arrayStride: 4, attributes: [{ shaderLocation: 2, offset: 0, format: 'unorm8x4' }] }, instance],
     });
+    const positionOnly = (module: object) => ({ module, entryPoint: 'vs', buffers: [position, instance] });
     // Premultiplied colour over the target.
     const blend = { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' } };
     const ms = { count: this.options.antialias === false ? 1 : SAMPLES };
@@ -339,7 +386,7 @@ export class Viewer {
     for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true]) {
       const key = `${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t ? 'T' : ''}` as PipelineKey;
       jobs.push(make(key, {
-        vertex: vertex(modules.surface, true),
+        vertex: vertex(modules.surface),
         fragment: { module: modules.surface, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
         primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
         // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
@@ -348,7 +395,7 @@ export class Viewer {
       }));
     }
     jobs.push(make('catcher', {
-      vertex: vertex(modules.surface, true),
+      vertex: vertex(modules.surface),
       fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
@@ -369,8 +416,8 @@ export class Viewer {
       multisample: ms,
     }));
     for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
-      vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
-      fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }] },
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
     }));
@@ -383,12 +430,12 @@ export class Viewer {
       multisample: ms,
     }));
     jobs.push(make('shadow', {
-      vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
+      vertex: positionOnly(modules.pick),
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less', depthBias: 2, depthBiasSlopeScale: 2 },
     }));
     for (const two of [false, true]) jobs.push(make(two ? 'mask2' : 'mask', {
-      vertex: { module: modules.pick, entryPoint: 'vs', buffers: [{ arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] }] },
+      vertex: positionOnly(modules.pick),
       fragment: { module: modules.pick, entryPoint: 'fsMask', targets: [{ format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
@@ -610,15 +657,34 @@ export class Viewer {
     if (hi >= 0) this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
   }
 
+  /** A mesh's instance buffer (uploaded on first use and after a device loss), or the identity instance. */
+  private instanceBuffer(m: Mesh): Buffer {
+    const inst = m.instances;
+    if (!inst) return this.identityInstance;
+    if (!inst.buffer || inst.device !== this.device) {
+      inst.buffer = this.device.createBuffer({ size: inst.data.byteLength, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer instances' });
+      this.device.queue.writeBuffer(inst.buffer, 0, new Uint8Array(inst.data));
+      inst.device = this.device;
+    }
+    return inst.buffer;
+  }
+
+  /** Draw a mesh's triangles: surfaces with every attribute, the other passes with positions and instances. */
+  private drawTriangles(pass: RenderPass, m: Mesh, full: boolean): void {
+    const g = m.geometry.gpu!, data = m.geometry.data, n = m.instanceCount;
+    pass.setVertexBuffer(0, g.positions);
+    if (full) { pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); pass.setVertexBuffer(3, this.instanceBuffer(m)); }
+    else pass.setVertexBuffer(1, this.instanceBuffer(m));
+    if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
+    else pass.draw(data.elementCount, n);
+  }
+
   private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean | 'mask'): void {
     const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
-    pass.setVertexBuffer(0, g.positions);
-    if (data.topology === 'lines') { pass.draw(6, data.elementCount / 2); return; }
-    if (!pick) { pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); }
-    if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount); }
-    else pass.draw(data.elementCount);
+    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
+    this.drawTriangles(pass, m, !pick);
   }
 
   /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
@@ -657,10 +723,8 @@ export class Viewer {
       sp.setPipeline(this.pipelines.get('shadow')!);
       for (const m of this.meshes) {
         if (!m.visible || !m.castShadow || m.transparent || m.geometry.topology !== 'triangles' || !this.upload(m.geometry)) continue;
-        const g = m.geometry.gpu!, data = m.geometry.data;
         sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
-        sp.setVertexBuffer(0, g.positions);
-        if (g.indices) { sp.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); sp.drawIndexed(data.elementCount); } else sp.draw(data.elementCount);
+        this.drawTriangles(sp, m, false);
       }
       sp.end();
     }
@@ -678,7 +742,7 @@ export class Viewer {
     for (const m of [...opaque, ...transparent]) {
       if (!gridDrawn && (m.geometry.topology === 'lines' || m.transparent)) grid();
       this.drawMesh(pass, m, current, false);
-      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += m.geometry.data.elementCount / 3;
+      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
     }
     if (!gridDrawn) grid();
     pass.end();
@@ -770,6 +834,7 @@ export class Viewer {
       colorAttachments: [
         { view: t.id.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
         { view: t.z.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.instance.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
       ],
       depthStencilAttachment: { view: t.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
     });
@@ -780,31 +845,37 @@ export class Viewer {
     pass.end();
     enc.copyTextureToBuffer({ texture: t.id, origin: [px, py] }, { buffer: t.read, bytesPerRow: 256 }, [1, 1]);
     enc.copyTextureToBuffer({ texture: t.z, origin: [px, py] }, { buffer: t.read, offset: 256, bytesPerRow: 256 }, [1, 1]);
+    enc.copyTextureToBuffer({ texture: t.instance, origin: [px, py] }, { buffer: t.read, offset: 512, bytesPerRow: 256 }, [1, 1]);
     this.device.queue.submit([enc.finish()]);
     const read = t.read;
     await read.mapAsync(MapMode.READ);
-    const id = new Uint32Array(read.getMappedRange(0, 4))[0], depth = new Float32Array(read.getMappedRange(256, 4))[0];
+    const id = new Uint32Array(read.getMappedRange(0, 4))[0], depth = new Float32Array(read.getMappedRange(256, 4))[0], instance = new Uint32Array(read.getMappedRange(512, 4))[0];
     read.unmap();
     const mesh = id ? this.meshes.find(m => m.id === id) : undefined;
     if (!mesh) return null;
     const ndcX = ((px + 0.5) / this.canvas.width) * 2 - 1, ndcY = 1 - ((py + 0.5) / this.canvas.height) * 2;
     const point = this.camera.unproject(ndcX, ndcY, depth, this.aspect);
-    // The triangle: a ray through the pixel in the mesh's own space.
-    const ray = this.camera.ray(ndcX, ndcY, this.aspect), inv = invert(mesh.transform);
+    // The triangle: a ray through the pixel in the (instance's) own space.
+    const ray = this.camera.ray(ndcX, ndcY, this.aspect), inv = invert(this.instanceTransform(mesh, mesh.instances ? instance : null));
     const hit = rayTriangles(mesh.geometry.data, transformPoint(inv, ray.origin), transformDirection(inv, ray.direction));
     const faces = mesh.geometry.data.faces;
-    return { mesh, point, triangle: hit ? hit.triangle : null, face: hit && faces ? faces[hit.triangle] : null, depth };
+    return { mesh, point, triangle: hit ? hit.triangle : null, face: hit && faces ? faces[hit.triangle] : null, instance: mesh.instances ? instance : null, depth };
+  }
+
+  /** The world transform of a mesh, or of one of its instances. */
+  private instanceTransform(m: Mesh, instance: number | null): Mat4 {
+    return instance === null || !m.instances ? m.transform : multiply(m.transform, m.instances.matrices[instance]);
   }
 
   private ensurePickTargets() {
     const w = this.canvas.width, h = this.canvas.height, t = this.pickTargets;
     if (t && t.width === w && t.height === h) return t;
-    if (t) { t.id.destroy(); t.depth.destroy(); t.z.destroy(); t.read.destroy(); }
+    if (t) { t.id.destroy(); t.depth.destroy(); t.z.destroy(); t.instance.destroy(); t.read.destroy(); }
     const tex = (format: string, label: string) => this.device.createTexture({ size: [w, h], format, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC, label });
     this.pickTargets = {
-      width: w, height: h, id: tex('r32uint', 'pick id'), z: tex('r32float', 'pick depth'),
+      width: w, height: h, id: tex('r32uint', 'pick id'), z: tex('r32float', 'pick depth'), instance: tex('r32uint', 'pick instance'),
       depth: this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'pick z-buffer' }),
-      read: this.device.createBuffer({ size: 512, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'pick read' }),
+      read: this.device.createBuffer({ size: 768, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'pick read' }),
     };
     return this.pickTargets;
   }
@@ -818,18 +889,21 @@ export class Viewer {
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
     this.clipCamera();
     const ray = this.camera.ray((x / cw) * 2 - 1, 1 - (y / ch) * 2, this.aspect);
-    let best: { mesh: Mesh; triangle: number; t: number } | null = null;
+    let best: { mesh: Mesh; triangle: number; t: number; instance: number | null } | null = null;
     for (const m of this.meshes) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
-      // A ray in the mesh's own space keeps its parameter: distances compare across meshes.
-      const inv = invert(m.transform);
-      const hit = rayTriangles(m.geometry.data, transformPoint(inv, ray.origin), transformDirection(inv, ray.direction));
-      if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t };
+      for (let i = 0; i < m.instanceCount; i++) {
+        const instance = m.instances ? i : null;
+        // A ray in the mesh's own space keeps its parameter: distances compare across meshes.
+        const inv = invert(this.instanceTransform(m, instance));
+        const hit = rayTriangles(m.geometry.data, transformPoint(inv, ray.origin), transformDirection(inv, ray.direction));
+        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance };
+      }
     }
     if (!best) return null;
     const point = add(ray.origin, scale(ray.direction, best.t)), faces = best.mesh.geometry.data.faces;
     const v = transformPoint(this.camera.viewProjection(this.aspect), point);
-    return { mesh: best.mesh, point, triangle: best.triangle, face: faces ? faces[best.triangle] : null, depth: v[2] };
+    return { mesh: best.mesh, point, triangle: best.triangle, face: faces ? faces[best.triangle] : null, instance: best.instance, depth: v[2] };
   }
 
   /**
@@ -921,11 +995,12 @@ export class Viewer {
     const cancel = (globalThis as { cancelAnimationFrame?: (h: number) => void }).cancelAnimationFrame;
     if (this.scheduled) cancel?.(this.scheduled);
     for (const g of this.geometries) g.release();
+    for (const m of this.meshes) m.instances?.buffer?.destroy();
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
-    if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
+    if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.shadowMap?.destroy(); this.emptyShadow?.destroy();
+    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy();
     this.context?.unconfigure();
     this.device?.destroy();
     for (const f of this.waiters.splice(0)) f();

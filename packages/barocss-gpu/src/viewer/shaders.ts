@@ -46,6 +46,14 @@ struct Object {
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
 @group(0) @binding(2) var shadowSampler: sampler_comparison;
 @group(1) @binding(0) var<uniform> object: Object;
+/** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
+struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }
+fn instanceMatrix(i: Instance) -> mat4x4f { return mat4x4f(i.c0, i.c1, i.c2, i.c3); }
+/** Normals through an instance transform: the cofactor of its 3×3 (any invertible transform). */
+fn instanceNormal(i: Instance, n: vec3f) -> vec3f {
+  let a = i.c0.xyz; let b = i.c1.xyz; let c = i.c2.xyz;
+  return mat3x3f(cross(b, c), cross(c, a), cross(a, b)) * n;
+}
 `;
 
 export const surfaceWGSL = common + /* wgsl */ `
@@ -55,13 +63,13 @@ struct VOut {
   @location(1) normal: vec3f,
   @location(2) color: vec4f,
 }
-@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f) -> VOut {
+@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance) -> VOut {
   var o: VOut;
-  let world = object.model * vec4f(position, 1.0);
+  let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
   o.clip = frame.viewProj * world;
   o.world = world.xyz;
-  o.normal = (object.normalMatrix * vec4f(normal, 0.0)).xyz;
-  o.color = color * object.color;
+  o.normal = (object.normalMatrix * vec4f(instanceNormal(inst, normal), 0.0)).xyz;
+  o.color = color * inst.color * object.color;
   return o;
 }
 
@@ -234,14 +242,15 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
 `;
 
 export const pickWGSL = common + /* wgsl */ `
-struct POut { @builtin(position) clip: vec4f }
-struct Ids { @location(0) id: u32, @location(1) depth: f32 }
-@vertex fn vs(@location(0) position: vec3f) -> POut {
+struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32 }
+struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32 }
+@vertex fn vs(@location(0) position: vec3f, inst: Instance, @builtin(instance_index) ii: u32) -> POut {
   var o: POut;
-  o.clip = frame.viewProj * object.model * vec4f(position, 1.0);
+  o.clip = frame.viewProj * object.model * instanceMatrix(inst) * vec4f(position, 1.0);
+  o.instance = ii;
   return o;
 }
-@fragment fn fs(in: POut) -> Ids { return Ids(object.pick.x, in.clip.z); }
+@fragment fn fs(in: POut) -> Ids { return Ids(object.pick.x, in.clip.z, in.instance); }
 // The outline mask: which outline (1-based; 0 none) covers each visible pixel.
 @fragment fn fsMask(in: POut) -> @location(0) u32 { return object.pick.y; }
 `;

@@ -221,6 +221,36 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     // (A software rasteriser draws thousands of meshes slowly; the bound is for a hardware adapter.)
     if (!/swiftshader/.test(adapter)) assert.ok(many.ms < 200, `${many.ms} ms per frame`);
 
+    // Ten thousand boxes as instances of one mesh: one draw, a colour each, picks name the instance.
+    const inst = await p.evaluate(async () => {
+      const { viewer, box } = window.t;
+      viewer.clear();
+      const n = 100, transforms = [], colors = [];
+      for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+        transforms.push(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, (i - 50) * 1.2, (j - 50) * 1.2, 0, 1);
+        colors.push(...((i + j) % 2 ? [0, 0, 1] : [1, 0, 0]));
+      }
+      const m = viewer.add(box(0.8, 0.8, 0.8), { name: 'grid', instances: { transforms, colors }, material: { color: '#ffffff', unlit: true } });
+      viewer.camera.position = [10, -60, 50]; viewer.camera.target = [0, 0, 0]; viewer.fit();
+      await viewer.frame();
+      const t0 = performance.now();
+      for (let k = 0; k < 10; k++) { viewer.camera.position = [10 + k, -60, 50]; await viewer.frame(); }
+      const ms = (performance.now() - t0) / 10, stats = { ...viewer.stats };
+      // Instance (i = 52, j = 51): top centre.
+      const k = 51 * n + 52, top = [(52 - 50) * 1.2, (51 - 50) * 1.2, 0.4];
+      const gpu = await viewer.pick(...screen(top)), cpu = viewer.raycast(...screen(top));
+      const img = await viewer.capture();
+      m.setInstances(null);
+      const single = { ...viewer.stats };
+      return { ms, stats, k, gpu: gpu && { name: gpu.mesh.name, instance: gpu.instance, face: gpu.triangle }, cpu: cpu && { instance: cpu.instance }, color: pixel(img, screen(top)), bounds: m.bounds };
+    });
+    t.diagnostic(`instances: ${inst.ms.toFixed(1)} ms/frame for ${inst.stats.triangles} triangles in ${inst.stats.drawCalls} draw`);
+    assert.equal(inst.stats.drawCalls, 1);
+    assert.equal(inst.stats.triangles, 12 * 10000);
+    assert.equal(inst.gpu.name, 'grid'); assert.equal(inst.gpu.instance, inst.k); assert.equal(inst.cpu.instance, inst.k);
+    assert.deepEqual(inst.color.slice(0, 3), [0, 0, 255], 'instance (52, 51) is blue');
+    if (!/swiftshader/.test(adapter)) assert.ok(inst.ms < 100, `${inst.ms} ms per frame`);
+
     // A shadow on the ground from a light that casts one; none when the box casts none or the ground receives none.
     const shadow = await p.evaluate(async () => {
       const { viewer, box } = window.t;
