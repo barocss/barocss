@@ -24,13 +24,18 @@ export interface Command {
   /** One line on what it does (the rail's tooltip). */
   hint?: string;
   available(ctx: Ctx): { ok: true } | { ok: false; reason: string };
-  fields?(ctx: Ctx): Field[];
+  /** Its fields (`values`: the current ones, when they decide what is offered). */
+  fields?(ctx: Ctx, values?: Values): Field[];
   defaults?(ctx: Ctx): Values;
   build?(ctx: Ctx, values: Values): StudioDoc;
   /** Commands without a build run a UI action (sketch mode, measure, …). */
   action?: 'sketch' | 'measure';
   /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
   handles?(ctx: Ctx, values: Values): HandleSpec[];
+  /** A face or edge clicked in the viewport while it runs (a revolve's axis): new values, or why it cannot be used. */
+  onPick?(ctx: Ctx, values: Values, hit: { face: FaceSel | null; edge: EdgeSel | null }): Values | { error: string } | null;
+  /** What it works on, shown at the top of its HUD: each pick done or still to make. */
+  steps?(ctx: Ctx, values: Values): { label: string; text: string; done: boolean }[];
   /** Values that follow others (a move's Δ and the position it lands at): `changed` are the keys just set. */
   derive?(ctx: Ctx, values: Values, changed: readonly string[]): Values;
 }
@@ -44,7 +49,11 @@ export function patchValues(cmd: Command, ctx: Ctx, values: Values, patch: Value
  * A value dragged in the viewport: an arrow at `at` along `dir`; the value becomes start + mm × `scale`
  * (default 1), in steps of `step` (default 1), held between `min` and `max`.
  */
-export interface HandleSpec { key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number }
+export interface HandleSpec {
+  key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number;
+  /** An angle handle: an arc about `axis` through `centre` from `from` (then `at` and `dir` are unused). */
+  arc?: { centre: [number, number, number]; axis: [number, number, number]; from: [number, number, number] };
+}
 
 export function refOf(body: BodyResult): BodyRef {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key);

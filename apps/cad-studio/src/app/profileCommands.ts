@@ -3,9 +3,14 @@
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
 // that body by default; Operation can make a new body or cut it instead.
 import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
-import { toWorld } from '../sketch/plane';
+import { toLocal, toWorld } from '../sketch/plane';
 import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
-import { refOf, type Command, type Ctx, type Field, type Values } from './commands';
+import type { Command, Ctx, Field, Values } from './commands';
+import type { BodyResult } from '../engine/evaluate';
+import type { Side } from '../engine/doc';
+
+// (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
+const refOf = (body: BodyResult): BodyRef => { const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); return { node: Number(m?.[1] ?? 0), side: (m?.[2] ?? 'solid') as Side }; };
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */
@@ -66,16 +71,48 @@ export const extrudeCommand: Command = {
   },
 };
 
+/** A revolve's axis in the sketch's plane coordinates: through `o` along `d` (unit). */
+function revolveAxis(v: Values): { o: [number, number]; d: [number, number] } {
+  if (v.axis === 'edge') { const d: [number, number] = [Number(v.dx), Number(v.dy)], l = Math.hypot(d[0], d[1]) || 1; return { o: [Number(v.ox), Number(v.oy)], d: [d[0] / l, d[1] / l] }; }
+  return { o: [0, 0], d: v.axis === 'x' ? [1, 0] : [0, 1] };
+}
 export const revolveCommand: Command = {
   id: 'revolve', label: 'Revolve', icon: 'cad-revolve', group: 'create', keywords: 'lathe turn torus ring',
-  hint: 'Turn a finished sketch about its X or Y axis into a solid',
+  hint: 'Turn a finished sketch about an axis: a sketch axis or a straight edge you click',
   available: needProfile,
-  fields: ctx => { const p = oneProfile(ctx); return [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'y', label: 'Sketch Y' }, { value: 'x', label: 'Sketch X' }] },
+  fields: (ctx, v?: Values) => { const p = oneProfile(ctx); return [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'y', label: 'Sketch Y' }, { value: 'x', label: 'Sketch X' }, ...(v?.dx !== undefined ? [{ value: 'edge', label: 'Picked edge' }] : [])] },
     { key: 'deg', label: 'Angle', kind: 'deg', min: 1, max: 360, step: 15 }, ...opFields(!!(p && baseOf(ctx, p.node)))]; },
   defaults: ctx => { const p = oneProfile(ctx); return { axis: 'y', deg: 360, ...(p && baseOf(ctx, p.node) ? { op: 'new' } : {}) }; },
+  steps: (ctx, v) => {
+    const p = oneProfile(ctx);
+    return [{ label: 'Profile', text: p ? `Sketch ${p.index + 1}` : 'pick a finished sketch', done: !!p },
+      { label: 'Axis', text: v.axis === 'edge' ? `edge ${String(v.edgeName ?? '')}` : `sketch ${String(v.axis).toUpperCase()} — or click a straight edge in the sketch plane`, done: true }];
+  },
+  // A straight edge in the sketch's plane becomes the axis.
+  onPick: (ctx, v, hit) => {
+    const p = oneProfile(ctx); if (!p || !hit.edge) return null;
+    const e = ctx.bodies[hit.edge.body]?.mesh.edges[hit.edge.edge]; if (!e) return null;
+    if (!e.straight) return { error: 'Pick a straight edge for the axis.' };
+    const plane = planeOf(p.node), off = (q: readonly number[]) => (q[0] - plane.origin[0]) * plane.normal[0] + (q[1] - plane.origin[1]) * plane.normal[1] + (q[2] - plane.origin[2]) * plane.normal[2];
+    if (Math.abs(off(e.a)) > 1e-6 || Math.abs(off(e.b)) > 1e-6) return { error: 'The axis must lie in the sketch’s plane: pick an edge on it.' };
+    const a = toLocal(plane, [...e.a] as [number, number, number]), b = toLocal(plane, [...e.b] as [number, number, number]), r = (x: number) => Math.round(x * 1e6) / 1e6;
+    const next: Values = { ...v, axis: 'edge', ox: r(a[0]), oy: r(a[1]), dx: r(b[0] - a[0]), dy: r(b[1] - a[1]), edgeName: e.names[0] ?? '' };
+    return next;
+  },
   build: (ctx, v) => {
-    const p = oneProfile(ctx)!;
-    return combine(withNode(ctx.doc, { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angleDegrees: Number(v.deg) }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+    const p = oneProfile(ctx)!, ax = revolveAxis(v);
+    const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angleDegrees: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angleDegrees: Number(v.deg) };
+    return combine(withNode(ctx.doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
+  },
+  // The angle: an arc about the axis, from the profile's middle.
+  handles: (ctx, v) => {
+    const p = oneProfile(ctx); if (!p) return [];
+    const plane = planeOf(p.node), ax = revolveAxis(v), m = profileMiddle(p.node);
+    const t = (m[0] - ax.o[0]) * ax.d[0] + (m[1] - ax.o[1]) * ax.d[1], foot: [number, number] = [ax.o[0] + ax.d[0] * t, ax.o[1] + ax.d[1] * t];
+    const centre = toWorld(plane, foot), from = toWorld(plane, m), tip = toWorld(plane, [foot[0] + ax.d[0], foot[1] + ax.d[1]]);
+    const axis: [number, number, number] = [tip[0] - centre[0], tip[1] - centre[1], tip[2] - centre[2]];
+    if (Math.hypot(from[0] - centre[0], from[1] - centre[1], from[2] - centre[2]) < 1e-6) return [];
+    return [{ key: 'deg', at: from, dir: axis, min: 1, max: 360, step: 15, arc: { centre, axis, from } }];
   },
 };
 

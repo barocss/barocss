@@ -226,9 +226,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 
 /* Viewport gizmo (viewport/GizmoMarks.tsx): the centre dot and feature handles (accent when hot). */
 .vp-overlay .gizmo-origin { fill: #ffffff; stroke: #1d1e21; stroke-width: 1.5; }
-.vp-overlay .gizmo-handle line + line { stroke: #8fb8ff; }
+.vp-overlay .gizmo-handle line + line, .vp-overlay .gizmo-handle .arc { stroke: #8fb8ff; }
 .vp-overlay .gizmo-handle polygon, .vp-overlay .gizmo-handle circle { fill: #8fb8ff; stroke: #1d1e21; stroke-width: 0.8; }
-.vp-overlay .gizmo-handle.hot line + line { stroke: #f5c542; }
+.vp-overlay .gizmo-handle.hot line + line, .vp-overlay .gizmo-handle.hot .arc { stroke: #f5c542; }
 .vp-overlay .gizmo-handle.hot polygon, .vp-overlay .gizmo-handle.hot circle { fill: #f5c542; }
 :root[data-theme='light'] .vp-overlay .gizmo-origin { stroke: #5a5d63; }
 :root[data-theme='light'] .vp-overlay .gizmo-handle line + line { stroke: #2f6fd6; }
@@ -253,3 +253,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hs.sketch { color: #9ec1ff; }
 .hs.sketch.picked { background: var(--accent-soft); color: #f3d98f; outline: 1px solid var(--accent); }
 :root[data-theme='light'] .hs.sketch { color: #2f6fd6; }
+.hud-steps { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 8px; }
+.hud-step { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.hud-step b { font-weight: 600; color: var(--text-2); min-width: 52px; }
+.hud-step.done { color: var(--text-2); }
+.hud-step.done .ms { color: var(--ok); }
+.hud-step:not(.done) .ms { color: var(--accent); }

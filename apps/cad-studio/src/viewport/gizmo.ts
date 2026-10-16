@@ -23,6 +23,11 @@ export interface TransformGizmo {
 /** One dimension dragged along a direction: `value` at the start, `toValue` maps the mm moved to the new value. */
 export interface FeatureHandle {
   id: string; at: Vec3; dir: Vec3; label: string; value: number;
+  /**
+   * An angle instead (degrees): an arc about `axis` through `centre`, from `from` (a point on it) as far
+   * as the value; dragging it round sweeps the angle, `toValue` getting the degrees swept.
+   */
+  arc?: { centre: Vec3; axis: Vec3; from: Vec3 };
   toValue(start: number, mm: number): number;
   format(value: number): string;
   onDrag(value: number, done: boolean): void;
@@ -58,7 +63,18 @@ export function layout(g: TransformGizmo, P: Projector) {
   });
   return { origin: o, arrows, planes, arcs };
 }
-export function handleLayout(h: FeatureHandle, P: Projector) {
+/** Rodrigues: v turned by `a` radians about the unit axis k. */
+function turn(v: Vec3, k: Vec3, a: number): Vec3 {
+  const c = Math.cos(a), s = Math.sin(a), d = v[0] * k[0] + v[1] * k[1] + v[2] * k[2];
+  return [0, 1, 2].map(i => v[i] * c + (k[(i + 1) % 3] * v[(i + 2) % 3] - k[(i + 2) % 3] * v[(i + 1) % 3]) * s + k[i] * d * (1 - c)) as Vec3;
+}
+/** A handle in screen space: an arrow (from, to), or an arc's points ending at its tip. */
+export function handleLayout(h: FeatureHandle, P: Projector): { from: XY; to: XY; points?: XY[] } {
+  if (h.arc) {
+    const { centre: c, axis: k0, from: f } = h.arc, l = Math.hypot(...k0) || 1, k: Vec3 = [k0[0] / l, k0[1] / l, k0[2] / l], r0: Vec3 = [f[0] - c[0], f[1] - c[1], f[2] - c[2]];
+    const n = Math.max(2, Math.ceil(Math.abs(h.value) / 6)), points = Array.from({ length: n + 1 }, (_, i) => P.project(at(c, [[turn(r0, k, h.value * Math.PI / 180 * i / n), 1]])));
+    return { from: points[0], to: points[points.length - 1], points };
+  }
   return { from: P.project(h.at), to: P.project(at(h.at, [[h.dir, 0.62 * P.size]])) };
 }
 
@@ -79,7 +95,7 @@ export function hitTest(p: XY, g: TransformGizmo | null, handles: readonly Featu
     for (const a of L.arrows) consider({ kind: 'move', axis: a.axis }, Math.min(segDist(p, a.from, a.to), Math.hypot(p[0] - a.to[0], p[1] - a.to[1]) - 4), 7);
     for (const r of L.arcs) consider({ kind: 'turn', axis: r.axis }, polyDist(p, r.points) + 0.5, 7);
   }
-  handles.forEach((h, index) => { const l = handleLayout(h, P); consider({ kind: 'handle', index }, Math.min(segDist(p, l.from, l.to), Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 4), 8); });
+  handles.forEach((h, index) => { const l = handleLayout(h, P); consider({ kind: 'handle', index }, Math.min(l.points ? polyDist(p, l.points) : segDist(p, l.from, l.to), Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 4), 8); });
   return best;
 }
 
@@ -103,5 +119,11 @@ export function dragTurn(from: XY, to: XY, centre: Vec3, axis: Axis3, P: Project
   // Screen y runs down: a counter-clockwise sweep on screen is clockwise in math axes. Seen from the
   // axis's tip (axis towards the camera) a right-handed turn sweeps counter-clockwise.
   return -P.forward[axis] >= 0 ? -d : d;
+}
+/** Degrees turned about any axis through `centre` for a screen drag (as dragTurn, for a direction not along X, Y or Z). */
+export function dragAbout(from: XY, to: XY, centre: Vec3, axis: Vec3, P: Projector): number {
+  const c = P.project(centre), a0 = Math.atan2(from[1] - c[1], from[0] - c[0]), a1 = Math.atan2(to[1] - c[1], to[0] - c[0]);
+  let d = (a1 - a0) * 180 / Math.PI; d = ((d + 540) % 360) - 180;
+  return -(axis[0] * P.forward[0] + axis[1] * P.forward[1] + axis[2] * P.forward[2]) >= 0 ? -d : d;
 }
 export const snapTo = (v: number, step: number) => Math.round(v / step) * step || 0;

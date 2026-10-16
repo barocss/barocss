@@ -574,3 +574,12 @@ test('fillet volume is exact at any radius, up to the wall height (quadrature ov
     assert.ok(close(m.volumeMM3, exact, 1e-9), `R${r}: ${m.volumeMM3} vs ${exact}`);
   }
 });
+
+test('revolve about any axis in the sketch plane: a square turned about a 45° line through its corner', () => {
+  const sq = { id: 's', kind: 'sketch', profile: 'polygon', points: [[2, 0], [4, 2], [2, 4], [0, 2]] };
+  // The square's centre (2, 2) lies √2·2 from the line y = x − 0 … here the axis runs along (1, −1) through (0, 0).
+  const o = evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [1, -1] }, angleDegrees: 360 }])).outputs[0];
+  // Pappus: area 8 × 2π × the centroid's distance from the axis (|2 + 2| / √2 = 2√2).
+  assert.ok(close(o.massProperties(1000).volumeMM3, 8 * 2 * pi * 2 * Math.SQRT2, 1e-6), String(o.massProperties(1000).volumeMM3));
+  assert.throws(() => evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [0, 0] } }])), /axis must be/);
+});

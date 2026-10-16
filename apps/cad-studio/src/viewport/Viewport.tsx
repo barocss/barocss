@@ -13,7 +13,7 @@ import type { SketchRule } from '../sketch/terms';
 import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
 import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAlong, dragPlane, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragPlane, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
@@ -264,8 +264,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     d.x = x; d.y = y;
     if (hit.kind === 'handle') {
       const hd = p.handles?.[hit.index]; if (!hd) return;
-      const mm = dragAlong(d.from!, [x, y], hd.at, hd.dir, P);
-      d.value = hd.toValue(d.start!, mm); hd.onDrag(d.value, done); return;
+      // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it.
+      if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
+      else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], hd.at, hd.dir, P));
+      hd.onDrag(d.value, done); return;
     }
     if (!g) return;
     if (hit.kind === 'move' || hit.kind === 'plane') {

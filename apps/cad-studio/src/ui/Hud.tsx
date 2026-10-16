@@ -13,11 +13,15 @@ interface Props {
 export function Hud({ active, onChange, onApply, onCancel }: Props) {
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active.cmd.id]);
-  const fields = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values);
+  const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values);
   return (
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>
       <div className="hud-title"><Icon name={active.cmd.icon} small className="accent" />{active.cmd.label}
         <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : 'refused'}</span></div>
+      {active.cmd.steps && <div className="hud-steps">
+        {active.cmd.steps(active.ctx, active.values).map(s => <div key={s.label} className={'hud-step' + (s.done ? ' done' : '')}>
+          <Icon name={s.done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{s.label}</b><span>{s.text}</span></div>)}
+      </div>}
       <div className="hud-fields">
         {fields.map((f, i) => (
           <label key={f.key} className="field"><span>{f.label}</span>

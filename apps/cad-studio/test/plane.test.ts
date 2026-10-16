@@ -125,3 +125,21 @@ test('loft sections: picked sketches on parallel planes, carried onto the lowest
   assert.ok(ev.ok && ev.bodies.length === 1, JSON.stringify(!ev.ok && ev.error));
   assert.deepEqual(unusedSketches(d.nodes), [], 'the loft uses its sources');
 });
+
+test('revolve about a picked edge: a straight edge in the sketch plane becomes the axis; others are refused', async () => {
+  const { revolveCommand } = await import('../src/app/profileCommands');
+  let d = rectanglePart(32, 32, 16); d = withNode(d, { kind: 'sketch', profile: 'rectangle', min: [22, 13], max: [29, 19] });
+  const ev = evaluateDoc(d, 5); assert.ok(ev.ok);
+  const ctx = { doc: d, bodies: ev.bodies, selection: { faces: [], edges: [], bodies: [] } };
+  const mesh = ev.bodies[0].mesh, edge = (name: string) => mesh.edges.findIndex(e => e.names.includes(name));
+  const v = revolveCommand.defaults!(ctx);
+  const onBottom = revolveCommand.onPick!(ctx, v, { face: null, edge: { body: 0, edge: edge('n1.bottom|n1.side0') } });
+  assert.ok(onBottom && !('error' in onBottom && Object.keys(onBottom).length === 1), JSON.stringify(onBottom));
+  assert.equal((onBottom as Record<string, unknown>).axis, 'edge');
+  const off = revolveCommand.onPick!(ctx, v, { face: null, edge: { body: 0, edge: edge('n1.side0|n1.top') } });
+  assert.ok(off && 'error' in off && /plane/.test(String(off.error)), JSON.stringify(off));
+  // Built and evaluated: a ring about the X axis line through the origin (Pappus: area 42 × 2π × 16 mean radius).
+  const next = revolveCommand.build!(ctx, onBottom as never), r = evaluateDoc(next, 6);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs((r.bodies.at(-1)!.volumeMM3 ?? 0) - 42 * 2 * Math.PI * 16) < 1e-3, String(r.bodies.at(-1)!.volumeMM3));
+});

@@ -182,6 +182,11 @@ export function App() {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { pickRef.current({ face: { body: b, face: i }, edge: null, point: null }, false); return true; } }
       return false;
     };
+    // A click on a named edge (`a|b`), as the viewport reports it.
+    (window as unknown as { __studioPickEdge: (name: string, additive?: boolean) => boolean }).__studioPickEdge = (name, additive = false) => {
+      for (const [b, body] of bodies.entries()) { const i = body.mesh.edges.findIndex(e => e.names.includes(name)); if (i >= 0) { pickRef.current({ face: null, edge: { body: b, edge: i }, point: null }, additive); return true; } }
+      return false;
+    };
   }, [bodies]);
 
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
@@ -327,7 +332,7 @@ export function App() {
   useEffect(() => {
     if (!active?.cmd.build) return;
     let live = true;
-    const missing = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
+    const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
     if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
     const values = active.values, cmd = active.cmd, ctx = active.ctx;
     const job = async () => {
@@ -450,7 +455,14 @@ export function App() {
   }, [sketch, doc, marker, commit, engine]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
-    if (active) return;
+    if (active) {
+      // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it.
+      if (!active.cmd.onPick) return;
+      const r = active.cmd.onPick(active.ctx, active.values, { face: hit.face, edge: hit.edge });
+      if (!r) return;
+      if ('error' in r && typeof r.error === 'string' && Object.keys(r).length === 1) { setToast({ title: `${active.cmd.label}: not that one`, hint: r.error, detail: '' }); return; }
+      setActive(a => a && { ...a, values: r as Values, preview: 'busy' }); return;
+    }
     if (assembly.pick(hit)) return;
     setPick(hit.point);
     if (hit.direct) {
@@ -468,7 +480,12 @@ export function App() {
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       if (additive) {
-        // Shift-click adds the whole body: used for Booleans between two bodies.
+        // Shift-click adds (or takes back) another of what is selected: edges to round or chamfer, faces to
+        // open in a shell; with bodies picked (or a mix), the clicked body (two for a Boolean).
+        const toggle = <T,>(list: T[], x: T, same: (a: T, b: T) => boolean) => list.some(y => same(x, y)) ? list.filter(y => !same(x, y)) : [...list, x];
+        const none = !prev.faces.length && !prev.edges.length && !prev.bodies.length;
+        if (hit.edge && !prev.faces.length && !prev.bodies.length) return { ...emptySel, edges: toggle(prev.edges, hit.edge, (a, b) => a.body === b.body && a.edge === b.edge) };
+        if (hit.face && !prev.edges.length && !prev.bodies.length && (none || prev.faces.length)) return { ...emptySel, faces: toggle(prev.faces, hit.face, (a, b) => a.body === b.body && a.face === b.face) };
         const b = hit.face?.body ?? hit.edge!.body; const list = selectedBodies(prev);
         return { faces: [], edges: [], bodies: list.includes(b) ? list.filter(x => x !== b) : [...list, b] };
       }
@@ -628,9 +645,9 @@ export function App() {
     const field = (active.cmd.fields?.(active.ctx) ?? []).find(f => f.key === h.key), value = Number(active.values[h.key]);
     if (!field || !Number.isFinite(value)) return [];
     const step = h.step ?? 1;
-    return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value,
+    return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value, ...(h.arc ? { arc: h.arc } : {}),
       toValue: (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step)),
-      format: (v: number) => `${fmt(v)} mm`,
+      format: (v: number) => h.arc ? `${fmt(v)}°` : `${fmt(v)} mm`,
       onDrag: (v: number, done: boolean) => {
         let hd = handleDrag.current;
         if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, dragging: true };
@@ -839,7 +856,7 @@ export function App() {
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
           </div>; })}
         </>}
-        {!sel1 && !selBodies.length && <div className="empty">Click a face or edge. Shift-click to pick bodies for a Boolean.</div>}
+        {!sel1 && !selBodies.length && <div className="empty">Click a face or edge; Shift-click adds more of the same (edges to round, faces to open). For a Boolean, Shift-click a second body in the Outliner.</div>}
         {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });

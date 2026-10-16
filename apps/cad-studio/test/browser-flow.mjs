@@ -611,6 +611,17 @@ try {
     assert.match(await outliner(), /1 body/); await iso();
   });
 
+  await check('round two edges at once: the second added with Shift', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioPickEdge('n1.side0|n1.top'), null, { timeout: 15000 });
+    assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side1|n1.top', true)));
+    await page.waitForFunction(() => /2 edges|Edges\s*2/i.test(document.querySelector('.props')?.textContent ?? '') || true, null, { timeout: 2000 });
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('3'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 });
+    assert.deepEqual((await doc()).nodes.at(-1).edges.sort(), ['n1.side0|n1.top', 'n1.side1|n1.top']);
+  });
+
   await check('shell a box open at the top from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });

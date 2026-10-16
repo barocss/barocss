@@ -42,7 +42,16 @@ export function gizmoMarks(g: TransformGizmo | null, handles: readonly FeatureHa
     items.push(<circle key="go" cx={L.origin[0]} cy={L.origin[1]} r={3.5} className="gizmo-origin" />);
   }
   handles.forEach((h, index) => {
-    const { from, to } = handleLayout(h, P), on = same(hot, { kind: 'handle', index }), head = cone(from, to, on ? 13 : 11, on ? 5 : 4);
+    const { from, to, points } = handleLayout(h, P), on = same(hot, { kind: 'handle', index });
+    if (points) {
+      const prev = points[Math.max(0, points.length - 3)], tip = cone(prev, to, on ? 13 : 11, on ? 5 : 4);
+      items.push(<g key={'gh' + h.id} className={'gizmo-handle' + (on ? ' hot' : '')} data-handle={h.id}>
+        <polyline points={pts(points)} fill="none" stroke="#000" strokeOpacity={0.35} strokeWidth={on ? 6 : 5} strokeLinecap="round" />
+        <polyline points={pts(points)} fill="none" strokeWidth={on ? 3.5 : 2.5} strokeLinecap="round" className="arc" />
+        <polygon points={pts(tip)} /><circle cx={from[0]} cy={from[1]} r={3.5} /></g>);
+      return;
+    }
+    const head = cone(from, to, on ? 13 : 11, on ? 5 : 4);
     items.push(<g key={'gh' + h.id} className={'gizmo-handle' + (on ? ' hot' : '')} data-handle={h.id}>
       <line x1={from[0]} y1={from[1]} x2={head[2][0]} y2={head[2][1]} stroke="#000" strokeOpacity={0.35} strokeWidth={on ? 5 : 4} strokeLinecap="round" />
       <line x1={from[0]} y1={from[1]} x2={head[2][0]} y2={head[2][1]} strokeWidth={on ? 3 : 2} strokeLinecap="round" />
