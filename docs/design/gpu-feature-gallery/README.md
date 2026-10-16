@@ -164,3 +164,21 @@ Future GPU appearance target:
 ![Open loft skin future reflection](28-lofted-skin-future-pbr.png)
 
 Both CAD and GPU reviewers compared actual input/output pixels and accepted the qualitative continuity: no cap, wall, thickness, holes, ribs or additional body was introduced. The two bright bands are reflection cues, not geometry ridges. “Exact CAD reference-image edit” means the exact supplied PNG was used as input, **not** exact mesh, pixel or numerical equivalence. Input SHA256: 4aaa3fd1b320fb6ca59eff697161f70e01f26250c9e3870467560a3051fee455. Geometry/deformation, radiometry, roughness, environment filtering and actual CAD→GPU execution remain untested. This future proposal is separate from bounded diffuse edits26/27.
+
+
+## Additional source-backed display results: 30–31
+Number29 remains intentionally unpublished: the translated-channel V-only color design failed shared-lip continuity review. See the [limitation note](https://github.com/barocss/barocss/issues/2070#issuecomment-6210966496) and [valid CAD reference #2081](https://github.com/barocss/barocss/issues/2081). No unsuccessful29 image is included.
+
+### 30 — Two authored directional lights
+[#1445](https://github.com/barocss/barocss/issues/1445), [bounded additive diffuse contract #1578](https://github.com/barocss/barocss/issues/1578) and [qualified Surface viewport #1579](https://github.com/barocss/barocss/issues/1579) ground this independently authored key/fill target. The intended change is enabling a second white directional fill, with the key, camera, geometry, material and display exposure held fixed. This is distinct from changing one light's direction or color. Nonnegative diffuse contributions add before the bounded output mapping; enabling fill must not darken the existing key response. No photometric units, PBR, shadows, real device acceptance or equation accuracy is demonstrated. Source/profile evidence and actual engine output remain separate.
+
+![Two directional lights](30-two-directional-lights.png)
+
+### 31 — Retained convex bevel face colors
+[#1990](https://github.com/barocss/barocss/issues/1990) proposes readable presentation of already retained convex bevel faces. Distinct top/front/right/bevel colors make the narrow bevel apparent without modifying its geometry. The edit uses Board23 as the actual reference image; boundary overlay is removed to isolate face color regions. The CAD lane confirmed this is distinct from its selected face/edge/body and whole-part color designs. This source-backed presentation proposal does not prove native lineage, normal/winding preservation, pointer picking, selection accuracy or current consumer acceptance. Face colors are illustrative rather than an API or a prescribed palette.
+
+![Retained face color regions](31-retained-face-colors.png)
+
+Both are qualitative target-design images with independent visual review. Same-scene controls express intent; small generated pixel drift is not a numerical equivalence test. The gallery contains 30 published images (01–28,30–31), including separately labeled future proposals. No code, actual renderer capture, UI or implementation changes are included.
+
+Review detail: early30 drafts dimmed key-facing regions when fill was enabled and were rejected. The final edit restores the qualitative nonnegative-light relationship. Residual generated texture and planar gradients prevent exact Lambert/pixel validation; no numerical lighting accuracy is claimed.
