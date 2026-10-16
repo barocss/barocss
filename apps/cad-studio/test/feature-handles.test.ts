@@ -42,3 +42,29 @@ test('Revolve edits with an arc on its angle', () => {
   const edit = editCommand(1, doc.nodes)!, [h] = edit.handles!(picked(doc), edit.defaults!(picked(doc)));
   assert.equal(h.key, 'deg'); assert.ok(h.arc);
 });
+
+test('Duplicate copies a body with all its features as a body of its own, moved and coloured alike', () => {
+  let doc = withNode(rectanglePart(20, 20, 10), { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 });
+  doc = { ...doc, bodies: { b1: { color: '#4a90d9', name: 'Base' } } };
+  const ctx = picked(doc), dup = cmd('duplicate'), v = dup.defaults!(ctx);
+  assert.equal(v.dx, 30);
+  const out = dup.build!(ctx, v), bodies = bodiesOf(out);
+  assert.equal(bodies.length, 2);
+  assert.ok(Math.abs(bodies[0].volumeMM3! - bodies[1].volumeMM3!) < 1e-6);
+  const copy = bodies.find(b => b.mesh.bounds.min[0] > 25)!;
+  assert.deepEqual([copy.mesh.bounds.min[0], copy.mesh.bounds.max[0]].map(Math.round), [30, 50]);
+  assert.deepEqual((out.nodes[5] as { edges: string[] }).edges, ['n4.side0|n4.top']);
+  assert.deepEqual(out.bodies, { b1: { color: '#4a90d9', name: 'Base' }, b4: { color: '#4a90d9' } });
+});
+
+test('Mirror across a face’s plane (not only the origin’s): by default its own +X face', () => {
+  const ctx = picked(rectanglePart(20, 10, 10)), m = cmd('mirror'), v = m.defaults!(ctx);
+  assert.deepEqual([v.plane, v.at], ['yz', 20]);
+  const out = bodiesOf(m.build!(ctx, v)), lo = Math.min(...out.map(b => b.mesh.bounds.min[0])), hi = Math.max(...out.map(b => b.mesh.bounds.max[0]));
+  assert.deepEqual([lo, hi].map(Math.round), [0, 40]);
+  assert.ok(Math.abs(out.reduce((s, b) => s + b.volumeMM3!, 0) - 4000) < 1);
+  // A click on the top face mirrors up across Z 10.
+  const top = ctx.bodies[0].mesh.faces.findIndex(f => f.normal[2] > 0.99), up = m.onPick!(ctx, v, { face: { body: 0, face: top }, edge: null }) as Record<string, unknown>;
+  assert.deepEqual([up.plane, up.at], ['xy', 10]);
+  assert.equal(m.derive!(ctx, { ...v, plane: 'xz' }, ['plane']).at, 10);
+});

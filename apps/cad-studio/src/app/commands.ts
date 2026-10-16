@@ -3,6 +3,7 @@
 import { profileCommands } from './profileCommands';
 import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
+import { duplicateBody } from '../chat/features';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
@@ -124,6 +125,8 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
   const k = [0, 1, 2].find(i => Math.abs(Math.abs(n[i]) - 1) < 1e-6);
   return k === undefined ? null : { axis: (['x', 'y', 'z'] as const)[k], side: n[k] > 0 ? 'max' : 'min' };
 }
+/** The axis a mirror plane is across. */
+const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
 /** A hole's centre coordinates per axis (the kernel's order). */
 const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
@@ -361,11 +364,48 @@ const allCommands: Command[] = [
   },
   alignCommand,
   {
-    id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a coordinate plane', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
+    id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a plane: click a flat face for its plane, or drag the arrow', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to mirror.'),
-    fields: () => [{ key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }] }],
-    defaults: () => ({ plane: 'yz' }),
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'mirror', parent: refOf(oneBody(ctx)!), plane: v.plane as 'yz' }),
+    fields: () => [{ key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ (across X)' }, { value: 'xz', label: 'XZ (across Y)' }, { value: 'xy', label: 'XY (across Z)' }] },
+      { key: 'at', label: 'Plane at', kind: 'mm' }],
+    // Across its own +X face by default: the copy lands beside it, touching.
+    defaults: ctx => { const b = oneBody(ctx); return { plane: 'yz', at: b ? r1(b.mesh.bounds.max[0]) : 0 }; },
+    derive: (ctx, v, changed) => { const b = oneBody(ctx); if (!b || !changed.includes('plane')) return v; return { ...v, at: r1(b.mesh.bounds.max[MIRROR_AXIS[String(v.plane)]]) }; },
+    steps: (_, v) => [{ label: 'Plane', text: `${String(v.plane).toUpperCase()} at ${'XYZ'[MIRROR_AXIS[String(v.plane)]]} ${String(v.at)} — or click a flat face`, done: true }],
+    onPick: (ctx, v, hit) => {
+      const f = hit.face && ctx.bodies[hit.face.body]?.mesh.faces[hit.face.face]; if (!f) return null;
+      const k = [0, 1, 2].find(i => Math.abs(Math.abs(f.normal[i]) - 1) < 1e-6);
+      if (f.kind !== 'plane' || k === undefined) return { error: 'Click a flat face facing X, Y or Z for the mirror plane.' };
+      const next: Values = { ...v, plane: (['yz', 'xz', 'xy'] as const)[k], at: Math.round(f.centroid[k] * 1000) / 1000 };
+      return next;
+    },
+    handles: (ctx, v) => {
+      const b = oneBody(ctx); if (!b) return [];
+      const k = MIRROR_AXIS[String(v.plane)], at = centreOf(b), dir: [number, number, number] = [0, 0, 0]; dir[k] = 1; at[k] = Number(v.at);
+      return [{ key: 'at', at, dir, step: 0.5 }];
+    },
+    // The kernel mirrors across planes through the origin: a plane elsewhere is reached by a move there and back.
+    build: (ctx, v) => {
+      const body = refOf(oneBody(ctx)!), k = MIRROR_AXIS[String(v.plane)], at = Number(v.at) || 0;
+      if (!at) return withNode(ctx.doc, { kind: 'mirror', parent: body, plane: v.plane as 'yz' });
+      const shift = (d: number): [number, number, number] => { const o: [number, number, number] = [0, 0, 0]; o[k] = d; return o; };
+      let doc = withNode(ctx.doc, { kind: 'translate', parent: body, offset: shift(-at) });
+      doc = withNode(doc, { kind: 'mirror', parent: { node: doc.nodes.length - 1, side: 'solid' }, plane: v.plane as 'yz' });
+      return withNode(doc, { kind: 'translate', parent: { node: doc.nodes.length - 1, side: 'solid' }, offset: shift(at) });
+    },
+  },
+  {
+    id: 'duplicate', label: 'Duplicate', icon: 'cad-duplicate', hint: 'A copy of a body as a body of its own (⌘D): slide it with the puck or the arrow', group: 'pattern', keywords: 'copy clone paste duplicate',
+    available: ctx => oneBody(ctx) ? ok : no('Select one body to copy.'),
+    fields: () => [{ key: 'dx', label: 'Offset X', kind: 'mm' }, { key: 'dy', label: 'Offset Y', kind: 'mm' }, { key: 'dz', label: 'Offset Z', kind: 'mm' }],
+    defaults: ctx => { const b = oneBody(ctx); return { dx: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 10) : 20, dy: 0, dz: 0 }; },
+    // Where the copy stands: a puck under it, an arrow up.
+    handles: (ctx, v) => {
+      const b = oneBody(ctx); if (!b) return [];
+      const c = centreOf(b), [dx, dy, dz] = ['dx', 'dy', 'dz'].map(k => Number(v[k])), base: [number, number, number] = [c[0] + dx, c[1] + dy, b.mesh.bounds.min[2] + dz];
+      return [{ key: 'dx', at: base, dir: [1, 0, 0], pair: { key: 'dy', dir: [0, 1, 0] } }, { key: 'dz', at: [base[0], base[1], b.mesh.bounds.max[2] + dz], dir: [0, 0, 1] }];
+    },
+    build: (ctx, v) => duplicateBody(ctx.doc, refOf(oneBody(ctx)!), [Number(v.dx), Number(v.dy), Number(v.dz)]).doc,
   },
   {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',

@@ -146,6 +146,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-scale': <>{face('M3.5 11.5h9v9h-9z', TONE.right)}{line('M3.5 11.5h9v9h-9z')}{ghost('M3.5 3.5h17v17')}{arrow([9, 15], [19.5, 4.5])}</>,
   // A block brought down onto another's top face.
   'cad-align': <>{block(0, 0, 0, 1, 1, 0.38, { accent: i => i === 2 })}<g transform="translate(0 -6.2)">{block(0.22, 0.22, 0.38, 0.78, 0.78, 0.8)}</g>{arrow([12, 0.9], [12, 4.6])}</>,
+  // A block and its copy beside it.
+  'cad-duplicate': <><g transform="translate(-4 -2.4)">{block(0.08, 0.08, 0.1, 0.62, 0.62, 0.64)}</g><g transform="translate(4 2.4)">{block(0.08, 0.08, 0.1, 0.62, 0.62, 0.64, { accent: () => true })}</g></>,
   // A shape and its mirror image across a plane.
   'cad-mirror': <>{ac('M12 2.5v19')}{face('M9.5 6.5v11h-6z', TONE.right)}{line('M9.5 6.5v11h-6z')}{ghost('M14.5 6.5v11h6z')}</>,
   // Copies in a row along an arrow.
