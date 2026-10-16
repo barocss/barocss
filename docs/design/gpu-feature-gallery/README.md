@@ -78,3 +78,12 @@ All four final images were inspected and independently accepted as qualitative c
 ![15-positive-nonuniform-scale](15-positive-nonuniform-scale.png)
 ![16-procedural-uv-repeat](16-procedural-uv-repeat.png)
 ![17-optional-scene-repeats](17-optional-scene-repeats.png)
+
+## Future PBR and environment explorations
+Boards18/19 are **future design proposals**, grounded only in the [E4 roadmap horizon](https://github.com/barocss/barocss/wiki/GPU-Engine-Roadmap#e4--scene-service-maturity), which requires original unit/color/light contracts and real pixels before shadows/environment/PBR acceptance. They do not assert a frozen BaroCSS API, supported material model, numeric parameter mapping or present rendering capability.
+- Board18 explores smoother versus rougher reflection on an intended unchanged neutral metal sphere. Rougher reflections spread and lose sharp environment detail. [Khronos material semantics](https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_011_SimpleMaterial.html) explain roughness as reflected-light scattering; this is a conceptual reference, not adoption of glTF's API or renderer. Visible grain is an illustrative cue, not calibrated microgeometry, roughness or an energy-conservation test.
+- Board19 explores a changed environment distribution, broad overhead versus lateral window. Metal reflections and matte diffuse face illumination respond together; material/geometry/camera are intended controls. [Khronos sample environments](https://github.com/KhronosGroup/glTF-Sample-Environments) establish the IBL concept only. No third-party environment assets were used, and no IBL filtering, radiometric accuracy, HDR format, tone-mapping or backend support is claimed.
+Both final images were inspected and independently accepted as physically coherent qualitative future concepts. Generative drift and non-runtime evidence limits apply.
+
+![Future PBR roughness](18-future-pbr-roughness.png)
+![Future environment lighting](19-future-environment-lighting.png)
