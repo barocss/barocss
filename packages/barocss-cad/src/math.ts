@@ -215,7 +215,19 @@ export function evaluateSurface(surface: Surface, u: number, v: number): Point {
 /** An evaluator for one curve, validated once (the same points as evaluateCurve). */
 export function curveEvaluator(curve: Curve): (t: number) => Point {
   validateCurve(curve);
-  return t => curvePoint(curve, t);
+  const P = curve.controlPoints, W = curve.weights, p = curve.degree, n = P.length;
+  const constant = [0, 1, 2].map(axis => P.every(pole => Object.is(pole[axis], P[0][axis])));
+  const b = Array<number>(p + 1).fill(0), l = b.slice(), r = b.slice();
+  // The same arithmetic as evaluateCurve (bit-identical points), without its per-call allocation and
+  // its per-call look at every pole for a constant coordinate.
+  return t => {
+    const s = basisInto(curve.knots, p, n, t, b, l, r), sum: Point = [0, 0, 0];
+    let weight = 0;
+    for (let i = 0; i <= p; i++) { const factor = b[i] * W[s + i], pole = P[s + i]; weight += factor; sum[0] += factor * pole[0]; sum[1] += factor * pole[1]; sum[2] += factor * pole[2]; }
+    const point = project(sum, weight);
+    for (let axis = 0; axis < 3; axis++) if (constant[axis]) point[axis] = P[0][axis];
+    return point;
+  };
 }
 
 /** An evaluator for one surface, validated once (for callers that evaluate it many times). */
