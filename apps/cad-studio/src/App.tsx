@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
-import { placedDoc, type PartInstance } from './engine/doc';
+import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
@@ -407,7 +407,7 @@ export function App() {
         // object only when its content changed, compared then).
         const have = instanceBodies.get(inst.id);
         if (have && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
-        const r = await engine.part(placedDoc(inst), revision.current++);
+        const r = await engine.placed(placedDoc(inst), placedBase(inst), placementOf(inst), revision.current++);
         if (!live) return;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, inst, bodies: r.bodies });
         else setToast(r.error);

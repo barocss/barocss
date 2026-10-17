@@ -1,5 +1,5 @@
 import { evaluateCadPart, type Brep, type CadPartSnapshot, exportStep } from '@barocss/cad';
-import { bodyMesh, type DisplayMesh } from './mesh';
+import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
 import { placedDoc, type StudioDoc } from './doc';
@@ -77,14 +77,74 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
 }
 
 /** Another part's bodies on their own (instances: not through the main part's cache). */
+// The last placed part: the next one (another copy of the same part, placed elsewhere) reuses its features.
+let lastPart: CadPartSnapshot | null = null;
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => bodyOf(o, doc, revision, quality));
+    const part = toPartDocument(doc), snapshot = lastPart ? lastPart.withDocument(part) : evaluateCadPart(part); lastPart = snapshot;
+    const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
+}
+
+/**
+ * A placed part's bodies for display. The placed part is evaluated as before (its features reused from
+ * the copy before it), but a body whose faces and edges come out as the part's own at the origin — the
+ * same names in the same order — shows the origin body's mesh moved by the placement (its tessellation
+ * and mass worked out once for every copy): the mesh, its faces' and edges' points and directions, the
+ * bounds, the centre of mass and the inertia. Other bodies are tessellated as placed.
+ */
+export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number, quality = 8): EvalResult {
+  const t0 = performance.now();
+  try {
+    const part = toPartDocument(placed), snapshot = lastPart ? lastPart.withDocument(part) : evaluateCadPart(part); lastPart = snapshot;
+    const basePart = toPartDocument(base), origin = lastBase ? lastBase.withDocument(basePart) : evaluateCadPart(basePart); lastBase = origin;
+    const bodies = snapshot.outputs.map((o, i) => {
+      const at = origin.outputs[i];
+      if (!at || origin.outputs.length !== snapshot.outputs.length || !sameTopology(o.brep, at.brep)) return bodyOf(o, placed, revision, quality);
+      return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), key: bodyKeyOf(o.id, placed.nodes) };
+    });
+    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+  } catch (cause) {
+    return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
+  }
+}
+let lastBase: CadPartSnapshot | null = null;
+/** Whether two B-reps have the same faces and edges by name, in order (a placed copy of the other). */
+function sameTopology(a: Brep, b: Brep): boolean {
+  if (a.faces.length !== b.faces.length || a.edges.length !== b.edges.length) return false;
+  for (let i = 0; i < a.faces.length; i++) if (a.faces[i].name !== b.faces[i].name) return false;
+  for (let i = 0; i < a.edges.length; i++) if (a.edges[i].name !== b.edges[i].name) return false;
+  return true;
+}
+const move = (m: readonly number[], t: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + t[0], m[3] * p[0] + m[4] * p[1] + m[5] * p[2] + t[1], m[6] * p[0] + m[7] * p[1] + m[8] * p[2] + t[2]];
+const turn = (m: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2], m[3] * p[0] + m[4] * p[1] + m[5] * p[2], m[6] * p[0] + m[7] * p[1] + m[8] * p[2]];
+/** In place: each xyz triple of a ← m·xyz (+ t). */
+function moveAll(a: Float32Array, m: readonly number[], t: readonly number[] | null): void {
+  for (let i = 0; i < a.length; i += 3) {
+    const x = a[i], y = a[i + 1], z = a[i + 2];
+    a[i] = m[0] * x + m[1] * y + m[2] * z + (t ? t[0] : 0); a[i + 1] = m[3] * x + m[4] * y + m[5] * z + (t ? t[1] : 0); a[i + 2] = m[6] * x + m[7] * y + m[8] * z + (t ? t[2] : 0);
+  }
+}
+function placeBody(b: BodyResult, m: readonly number[], t: readonly number[]): BodyResult {
+  const src = b.mesh, positions = src.positions, normals = src.normals, edgeLines = src.edgeLines;
+  moveAll(positions, m, t); moveAll(normals, m, null); moveAll(edgeLines, m, t);
+  const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < positions.length; i += 3) for (let k = 0; k < 3; k++) { const v = positions[i + k]; if (v < min[k]) min[k] = v; if (v > max[k]) max[k] = v; }
+  const faces = src.faces.map(f => ({ ...f, normal: turn(m, f.normal), centroid: move(m, t, f.centroid) }));
+  const edges = src.edges.map(e => {
+    const a = move(m, t, e.a), z = move(m, t, e.b), d = [z[0] - a[0], z[1] - a[1], z[2] - a[2]], l = Math.hypot(d[0], d[1], d[2]) || 1;
+    // (The axis an edge runs along, as the mesh reads it: a unit direction within 1e-9 of one.)
+    const axis: DisplayEdge['axis'] = e.straight ? (Math.abs(Math.abs(d[0] / l) - 1) < 1e-9 ? 'x' : Math.abs(Math.abs(d[1] / l) - 1) < 1e-9 ? 'y' : Math.abs(Math.abs(d[2] / l) - 1) < 1e-9 ? 'z' : null) : null;
+    return { ...e, a, b: z, axis };
+  });
+  const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };
+  const R = [[m[0], m[1], m[2]], [m[3], m[4], m[5]], [m[6], m[7], m[8]]];
+  const inertia = b.inertia ? R.map((_, i) => R.map((__, j) => { let v = 0; for (let k = 0; k < 3; k++) for (let l = 0; l < 3; l++) v += R[i][k] * b.inertia![k][l] * R[j][l]; return v; })) : undefined;
+  return { ...b, mesh, ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
 }
 
 /** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */

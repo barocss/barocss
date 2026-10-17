@@ -55,6 +55,15 @@ export class EngineClient {
     });
   }
 
+  /** A placed part's display bodies (copies of one part share its tessellation): never dropped as stale. */
+  placed(doc: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number): Promise<EvalResult> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.worker.postMessage({ type: 'placed', id, doc: this.wire.pack(doc), base: this.wire.pack(base), place, revision });
+    });
+  }
+
   step(doc: StudioDoc, name: string): Promise<{ text: string } | { error: string }> {
     const id = this.next++;
     return new Promise(resolve => {
