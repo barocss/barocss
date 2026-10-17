@@ -2079,7 +2079,7 @@ try {
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
-    assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);
+    assert.match(await page.locator('.palette-list').innerText(), /Pick side faces of one body to draft/);
     await page.locator('.palette input').fill('fillet');
     assert.match(await page.locator('.palette-list').innerText(), /Select edges of one body to round/);
     await press('Escape'); await page.click('[aria-label="Toggle light or dark theme"]');
