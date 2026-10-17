@@ -1,0 +1,94 @@
+{
+  "id": "a1-rematch-ambiguous",
+  "step": "A1",
+  "decisions": [
+    "D28"
+  ],
+  "about": "The filleted corner cut off into two vertical edges as near the old one: refused, naming both.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 3,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "fillet",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side1|n1.side2"
+          ],
+          "radius": 2
+        }
+      ]
+    },
+    "edit": {
+      "index": 0,
+      "feature": {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            10,
+            8
+          ],
+          [
+            8,
+            10
+          ],
+          [
+            0,
+            10
+          ]
+        ]
+      }
+    }
+  },
+  "expect": {
+    "error": "is now one of n1.side1|n1.side2, n1.side2|n1.side3"
+  },
+  "oracle": "closed forms (prism volumes; a fillet on a right-angled vertical edge takes (1 − π/4) r² h)"
+}

@@ -57,8 +57,8 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     spec = SPECS[kind];
   }
   const fields = new Map(Object.entries(spec).map(([k, t]) => [k.replace(/\?$/, ''), { type: t, optional: k.endsWith('?') }]));
-  // (`id`, a feature's stable id, may come along from a document read back; the studio assigns ids itself.)
-  for (const key of Object.keys(node)) if (key !== 'kind' && key !== 'id' && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
+  // (`id`, a feature's stable id, and `rematched` may come along from a document read back; the studio keeps them.)
+  for (const key of Object.keys(node)) if (key !== 'kind' && key !== 'id' && key !== 'rematched' && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
   const leaves = leafBodies(nodes);
   for (const [key, { type, optional }] of fields) {
     const v = node[key];

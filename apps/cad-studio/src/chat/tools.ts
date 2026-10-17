@@ -13,6 +13,7 @@ import type { ImageTrace, Pt } from './trace';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
 import { insideRing as inside } from '../engine/geom2';
 import { resolveEdge, resolveFace, resolveNames, resolveSelectors, type NameSelection, type Resolved } from './names';
+import { rematchNames } from '../engine/rematch';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -326,7 +327,11 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
           else next = f.set(next, Boolean(v));
         }
       }
-      return accept(state, prefixDoc({ ...state.doc, nodes: next }, next.length), evaluate, `edited ${index}: ${featureLabel(next[index], index, next)}`);
+      // (Names later features store, renumbered by this edit, matched again by their geometry: engine/rematch.ts.)
+      const rm = await rematchNames(state.doc, prefixDoc({ ...state.doc, nodes: next }, next.length), evaluate);
+      if ('error' in rm) return fail(state, rm.error, { kept: 'the part is unchanged' });
+      return accept(state, rm.doc, evaluate, `edited ${index}: ${featureLabel(rm.doc.nodes[index], index, rm.doc.nodes)}`,
+        rm.changes.length ? { rematched: rm.changes.map(c => ({ feature: c.node, was: c.from, now: c.to })), note_rematched: 'these stored names were renumbered by the edit and matched again by their geometry; check them' } : {});
     }
     case 'delete_feature': {
       const r = deleteFeature(state.doc, Number(args.index));

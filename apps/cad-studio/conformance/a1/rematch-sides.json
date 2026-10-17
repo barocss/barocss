@@ -1,0 +1,106 @@
+{
+  "id": "a1-rematch-sides",
+  "step": "A1",
+  "decisions": [
+    "D28"
+  ],
+  "about": "A corner inserted into the sketch before a filleted one renumbers the sides (the old edge name now names another corner); the fillet is matched again to its corner by geometry and the substitution reported.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 3,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "fillet",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side1|n1.side2"
+          ],
+          "radius": 2
+        }
+      ]
+    },
+    "edit": {
+      "index": 0,
+      "feature": {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            -2
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            0,
+            10
+          ]
+        ]
+      }
+    }
+  },
+  "expect": {
+    "names": {
+      "2": [
+        "n1.side2|n1.side3"
+      ]
+    },
+    "rematched": [
+      {
+        "feature": 2,
+        "was": "n1.side1|n1.side2",
+        "now": "n1.side2|n1.side3"
+      }
+    ],
+    "volumeMM3": 654.8495559215388
+  },
+  "oracle": "closed forms (prism volumes; a fillet on a right-angled vertical edge takes (1 − π/4) r² h)"
+}
