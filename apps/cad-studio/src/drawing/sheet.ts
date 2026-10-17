@@ -3,6 +3,8 @@
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { fmtMM, resolveDimension, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
+import { threadMarks } from './threads';
+import type { FaceThread } from '../app/threads';
 import { fitText, textWidth } from './text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingNote, DrawingSettings, DrawingViews, Tolerance, ViewId, XY } from './types';
@@ -29,7 +31,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 
 /** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null; threads?: ReadonlyMap<number, FaceThread> }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -43,6 +45,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
       marks.push(curveMark(v, p.curve, !visible ? 'hidden' : e.tangent ? 'thin' : 'visible'));
     }
     if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
+    if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
     groups.push({ role: 'view', view: id, marks });
   }
   const dimensions = settings.dimensions.map(d => resolveDimension(views, d)).map(r => r.ok && r.kind === 'diameter' && meta.callout ? { ...r, text: meta.callout(r.dim.edge) ?? r.text } : r);

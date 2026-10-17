@@ -345,3 +345,27 @@ test('drawing revision: the next one after A, Z, 01 and none; the REV cell shows
   assert.deepEqual(['A', 'Z', 'AZ', '01', '9', undefined].map(r => nextRevision(r)), ['B', 'AA', 'BA', '02', '10', 'A']);
   assert.notEqual(modelPrint([{ kind: 'box' }]), modelPrint([{ kind: 'box', w: 2 }]));
 });
+
+test('cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden along it and a ¾ circle seen end on; a bolt’s root thin', async () => {
+  const { threadsOf } = await import('../src/app/threads');
+  const { threadMarks, minorDiameter } = await import('../src/drawing/threads');
+  const { commands } = await import('../src/app/commands');
+  // The starter plate's hole made a tapped M10 (its tap drill Ø8.5).
+  const d0 = starterDoc(), tapped = { ...d0, nodes: d0.nodes.map(n => n.kind === 'hole' ? { ...n, radius: 4.25, thread: 'M10×1.5' } : n) };
+  const v = viewsOf(tapped), settings = { ...defaultDrawing(), hidden: true }, layout = layoutSheet(v, settings), t = threadsOf(tapped.nodes);
+  const top = threadMarks(layout.views.top, v.top, t, true), front = threadMarks(layout.views.front, v.front, t, true);
+  assert.equal(top.length, 1); const arc = top[0] as Extract<Mark, { kind: 'arc' }>;
+  assert.ok(arc.kind === 'arc' && near(arc.t1 - arc.t0, 1.5 * Math.PI) && near(arc.u[0], 5 * layout.views.top.scale), 'a ¾ circle at the major Ø10');
+  assert.equal(front.length, 2); assert.ok(front.every(m => m.kind === 'line' && m.pen === 'hidden'));
+  const [a, b] = front as Extract<Mark, { kind: 'line' }>[];
+  assert.ok(near(Math.abs(a.a[0] - b.a[0]), 10 * layout.views.front.scale, 1e-6), 'the crest lines Ø10 apart');
+  assert.ok(near(Math.abs(a.a[1] - a.b[1]), 8 * layout.views.front.scale, 1e-6), 'through the plate');
+  assert.equal(threadMarks(layout.views.front, v.front, t, false).length, 0, 'hidden lines off: none');
+  assert.ok(buildSheet(v, layout, settings, { title: 't', date: 'd', threads: t }).groups.find(g => g.view === 'top')!.marks.some(m => m.kind === 'arc' && m.t1 - m.t0 > 4));
+  // A bolt on its own: its root (minor diameter) thin and visible from the side.
+  const f = commands.find(c => c.id === 'fastener')!, ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  const bolt = f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 0, y: 0, z: 0 });
+  const bv = viewsOf(bolt), bl = layoutSheet(bv, defaultDrawing()), side = threadMarks(bl.views.front, bv.front, threadsOf(bolt.nodes), false) as Extract<Mark, { kind: 'line' }>[];
+  assert.equal(side.length, 2); assert.ok(side.every(m => m.pen === 'thin'));
+  assert.ok(near(Math.abs(side[0].a[0] - side[1].a[0]), minorDiameter(8, 1.25) * bl.views.front.scale, 1e-6), 'Ø6.466 apart');
+});

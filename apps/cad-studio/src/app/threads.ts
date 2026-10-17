@@ -10,24 +10,30 @@ import { roundFaceAxis } from './measure';
 /** At most this many rings on one face (a long thread shows every few pitches). */
 const MOST = 40;
 
+/** A thread: nominal diameter and pitch, the radius of the face it is on, and whether it is a bore's. */
+export interface FaceThread { d: number; pitch: number; radius?: number; internal: boolean }
 /** The threads features carry, by the feature (node) numbers whose faces they are on. */
-export function threadsOf(nodes: readonly ModelNode[]): Map<number, { d: number; pitch: number; radius?: number }> {
-  const out = new Map<number, { d: number; pitch: number; radius?: number }>();
+export function threadsOf(nodes: readonly ModelNode[]): Map<number, FaceThread> {
+  const out = new Map<number, FaceThread>();
   nodes.forEach((n, i) => {
     if (n.kind === 'hole' && n.thread) {
-      const m = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (m) out.set(i, { d: Number(m[1]), pitch: Number(m[2]), radius: typeof n.radius === 'number' ? n.radius : undefined });
+      const m = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (m) out.set(i, { d: Number(m[1]), pitch: Number(m[2]), radius: typeof n.radius === 'number' ? n.radius : undefined, internal: true });
     }
     const made = 'made' in n ? n.made : undefined;
     if (made?.command === 'fastener' && made.values.kind !== 'washer') {
       const size = FASTENER_SIZES[String(made.values.size)]; if (!size) return;
-      for (let k = i - (made.nodes ?? 2) + 1; k <= i; k++) out.set(k, { d: size.d, pitch: size.pitch, radius: size.d / 2 });
+      // (A nut's bore is a hole in its sketch; a shank's circle has none.)
+      for (let k = i - (made.nodes ?? 2) + 1; k <= i; k++) {
+        const e = nodes[k], sk = e?.kind === 'extrude' ? nodes[e.sketch] : undefined;
+        out.set(k, { d: size.d, pitch: size.pitch, radius: size.d / 2, internal: !!(sk?.kind === 'sketch' && sk.holes?.length) });
+      }
     }
   });
   return out;
 }
 
 /** The rings (line segments) of the threads on a body's round faces. */
-export function threadLines(threads: ReadonlyMap<number, { d: number; pitch: number; radius?: number }>, mesh: DisplayMesh, n = 32): number[] {
+export function threadLines(threads: ReadonlyMap<number, FaceThread>, mesh: DisplayMesh, n = 32): number[] {
   const out: number[] = [];
   if (!threads.size) return out;
   for (const f of mesh.faces) {
