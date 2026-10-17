@@ -29,6 +29,7 @@ function shiftNode(node: ModelNode, k: number): ModelNode {
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };
     case 'difference': return { ...node, parent: ref(node.parent), tool: ref(node.tool) };
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };
+    case 'draft': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
     case 'shell': return { ...node, parent: ref(node.parent), open: node.open.map(name) };
     default: return { ...node, parent: ref(node.parent) };
   }

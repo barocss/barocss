@@ -631,3 +631,19 @@ test('a long chain of features evaluates and is reused: no key spells out what i
   const plate = snap.withDocument(D(F.map(f => f.id === 'e' ? { ...f, height: 12 } : f)));
   assert.equal(plate.recomputation.evaluated.length, 121);
 });
+
+test('draft: side faces turned about their line on the bottom, in (material off) or out (added), by volume', () => {
+  const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], t = Math.tan(10 * pi / 180);
+  const one = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: 10 }])).output('d');
+  assert.ok(close(volume(one), 4000 - 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(one)));
+  assert.deepEqual(checkBrep(one.brep).issues, []);
+  // Two opposite sides: twice the wedge. Two that meet are refused (their wedges would need a mitre).
+  const two = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angleDegrees: 10 }])).output('d');
+  assert.ok(close(volume(two), 4000 - 2 * 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(two)));
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angleDegrees: 10 }]), 'CAPABILITY', /meet along an edge/);
+  // Out: the same wedge added.
+  const out = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: -10 }])).output('d');
+  assert.ok(close(volume(out), 4000 + 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(out)));
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.top'], angleDegrees: 5 }]), 'CAPABILITY', /square to the pull/);
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angleDegrees: 5 }]), 'REFERENCE', /no face e\.nope/);
+});

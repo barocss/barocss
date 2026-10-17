@@ -1854,6 +1854,27 @@ try {
     await iso(); await press('f'); await page.waitForTimeout(600); await snap('sweep-along-curve');
   });
 
+  await check('draft a side face of a box 10°, then offset its top face 3 mm out', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('20'); await field('Depth Y').fill('20'); await field('Height Z').fill('10'); await field('At X').fill('0'); await field('At Y').fill('0');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
+    await press(' '); await page.locator('.palette input').fill('draft'); await press('Enter'); await hudReady();
+    await field('Angle').fill('10'); await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'draft', null, { timeout: 20000 }); await idle();
+    assert.match(await page.locator('.history').innerText(), /Draft 10° × 1/);
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await press(' '); await page.locator('.palette input').fill('offset-face'); await press('Enter'); await hudReady();
+    await field('Offset').fill('3'); await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'union', null, { timeout: 20000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 10000 });
+    await iso(); await snap('draft-offset');
+  });
+
   await check('corners: a click at a box corner picks the point; Shift adds another and their distance shows', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');

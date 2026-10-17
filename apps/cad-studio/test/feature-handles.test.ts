@@ -108,3 +108,33 @@ test('Split across any plane: a mitre x + y = at through the middle, its arrow a
   assert.equal(planeText([1, 0, -0.5]), 'X−0.5Z');
   assert.throws(() => split.build!(ctx, { ...v, nx: 0, ny: 0 }), /must not be zero/);
 });
+
+test('Draft: one side face turned about its bottom; every side of an extrusion is its own draft; faces that meet are refused', async () => {
+  const { featureLabel } = await import('../src/engine/doc');
+  const draft = cmd('draft'), doc = rectanglePart(20, 20, 10), bodies = bodiesOf(doc), mesh = bodies[0].mesh;
+  const faceOf = (name: string) => ({ body: 0, face: mesh.faces.find(f => f.name === name)!.index });
+  const ctx = (names: string[]): Ctx => ({ doc, bodies, selection: { faces: names.map(faceOf), edges: [], bodies: [] } });
+  assert.match((draft.available({ ...ctx(['n1.top']) }) as { reason: string }).reason, /square to Z/);
+  const t = Math.tan(10 * Math.PI / 180);
+  const one = draft.build!(ctx(['n1.side0']), { deg: 10 });
+  assert.equal(featureLabel(one.nodes.at(-1)!, one.nodes.length - 1, one.nodes), 'Draft 10° × 1');
+  assert.ok(Math.abs(bodiesOf(one)[0].volumeMM3! - (4000 - 0.5 * 10 * 10 * t * 20)) < 0.01);
+  // All four sides: the box's extrusion takes the draft itself (no feature added).
+  const all = draft.build!(ctx(['n1.side0', 'n1.side1', 'n1.side2', 'n1.side3']), { deg: 10 });
+  assert.equal(all.nodes.length, doc.nodes.length); assert.equal((all.nodes[1] as { draft?: number }).draft, 10);
+  assert.ok(Math.abs(bodiesOf(all)[0].volumeMM3! - (4000 - 40 * t * 100 + 4 / 3 * t * t * 1000)) < 1e-3);
+  const r = evaluateDoc(draft.build!(ctx(['n1.side0', 'n1.side1']), { deg: 10 }), 1);
+  assert.ok(!r.ok && /meet along an edge/.test(r.error.detail + r.error.hint), r.ok ? '' : r.error.detail);
+});
+
+test('Offset face: the top moved out joins material (the sides run on), moved in takes it off', () => {
+  const offset = cmd('offset-face'), doc = rectanglePart(20, 20, 10), bodies = bodiesOf(doc);
+  const top = { body: 0, face: bodies[0].mesh.faces.find(f => f.name === 'n1.top')!.index }, ctx: Ctx = { doc, bodies, selection: { faces: [top], edges: [], bodies: [] } };
+  const [h] = offset.handles!(ctx, { d: 2 });
+  assert.deepEqual([h.key, h.dir], ['d', [0, 0, 1]]);
+  const up = bodiesOf(offset.build!(ctx, { d: 3 }));
+  assert.equal(up.length, 1); assert.ok(Math.abs(up[0].volumeMM3! - 20 * 20 * 13) < 1e-6); assert.equal(up[0].mesh.bounds.max[2], 13);
+  const down = bodiesOf(offset.build!(ctx, { d: -4 }));
+  assert.ok(Math.abs(down[0].volumeMM3! - 20 * 20 * 6) < 1e-6); assert.equal(down[0].mesh.bounds.max[2], 6);
+  assert.throws(() => offset.build!(ctx, { d: 0 }), /a distance/);
+});

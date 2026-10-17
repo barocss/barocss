@@ -55,6 +55,8 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const selections: Record<string, Selection> = {
     hole: sel({ faces: [{ body: 0, face: top.index }] }), chamfer: sel({ edges: [{ body: 0, edge: 0 }] }), fillet: sel({ edges: [{ body: 0, edge: 0 }] }),
     union: sel({ bodies: [0, 1] }), difference: sel({ bodies: [0, 1] }), intersect: sel({ bodies: [0, 1] }),
+    draft: sel({ faces: [{ body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
+    'offset-face': sel({ faces: [{ body: 0, face: top.index }] }),
   };
   // The profile commands take the newest finished sketch: one drawn on the plate's top.
   const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
@@ -79,8 +81,8 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   assert.match(parse(r.content).error, /at most 24/);
   r = await runTool(s, 'run_command', { command: 'fillet', edges: ['n9.nope'], values: { radius: 2 } }, evaluate);
   assert.match(parse(r.content).error, /No face, edge or body named "n9.nope"/);
-  r = await runTool(s, 'run_command', { command: 'draft' }, evaluate);
-  assert.match(parse(r.content).error, /Unknown command "draft"/);
+  r = await runTool(s, 'run_command', { command: 'emboss' }, evaluate);
+  assert.match(parse(r.content).error, /Unknown command "emboss"/);
   // The kernel's refusal comes back in the studio's words, and the part is unchanged.
   r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 200, y: 6 } }, evaluate);
   assert.ok(r.isError); assert.equal(r.changed, false); assert.equal(r.state, s);

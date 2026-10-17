@@ -169,6 +169,8 @@ export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanO
     for (const rg of regions) {
       const outer = rg.outer.map(exactToXY), holes = rg.holes.map(h => h.map(exactToXY)), all = [...rg.outer, ...rg.holes.flat()];
       const tris = triangulatePolygonWithHoles(outer, holes);
+      // (A region of no area — a sliver where cuts meet at a corner — makes no face.)
+      if (!tris.length) continue;
       const big = tris.reduce((best, t) => { const ar = (u: [number, number, number]) => { const [p0, p1, p2] = u.map(k => exactToXY(all[k])); return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0])); }; return ar(t) > ar(best) ? t : best; }, tris[0]);
       const c = big.map(k => fromH(all[k])), third: Q = { n: 1n, d: 3n };
       const interior = lift(f, mul(add(add(c[0][0], c[1][0]), c[2][0]), third), mul(add(add(c[0][1], c[1][1]), c[2][1]), third));

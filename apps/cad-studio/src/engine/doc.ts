@@ -76,6 +76,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
+  /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
+  | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
@@ -297,6 +299,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'revolve': return `Revolve ${node.angleDegrees}°`;
     case 'hole': return (node.thread ? `Tapped ${node.thread}` : `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
+    case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
     case 'fillet': return `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';

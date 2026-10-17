@@ -252,6 +252,19 @@ function splitNormal(v: Values): [number, number, number] | null {
   return n.every(Number.isFinite) && Math.hypot(...n) > 1e-9 ? n : null;
 }
 
+/** The side faces picked for a draft (one body, flat, square to Z), and the extrusion they all are the sides of, if so. */
+function draftOf(ctx: Ctx): { body: BodyResult; faces: string[]; extrude: number | null } | string {
+  const picks = ctx.selection.faces; if (!picks.length) return 'Pick side faces of one body to draft (Shift-click for more).';
+  if (picks.some(f => f.body !== picks[0].body)) return 'Pick faces of one body.';
+  const body = ctx.bodies[picks[0].body], faces = picks.map(f => body.mesh.faces[f.face]);
+  if (faces.some(f => f.kind !== 'plane' || Math.abs(f.normal[2]) > 1e-6)) return 'A draft takes flat side faces, square to Z (the pull).';
+  const names = faces.flatMap(f => f.name.split('+'));
+  // Every side of the extrusion that is the body (nothing after it): that extrusion's own draft.
+  const top = refOf(body).node, ex = ctx.doc.nodes[top], sides = body.mesh.faces.filter(f => new RegExp(`^n${top}\\.side\\d+$`).test(f.name)).map(f => f.name);
+  if (ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
+  return { body, faces: names, extrude: null };
+}
+
 const allCommands: Command[] = [
   {
     id: 'sketch', label: 'Sketch', icon: 'cad-sketch', hint: 'Draw a profile on a plane or a flat face', shortcut: 'S', group: 'create', keywords: 'profile draw rectangle circle polygon',
@@ -383,6 +396,19 @@ const allCommands: Command[] = [
       let d2 = withNode(doc, { kind: 'sketch', profile: 'polygon', points: [[0, -e], [R + e, -e], [r, t], [0, t]], plane: { origin, normal, xAxis } });
       d2 = withNode(d2, { kind: 'revolve', sketch: d2.nodes.length - 1, axis: 'y', angleDegrees: 360 });
       return withNode(d2, { kind: 'difference', parent: { node: doc.nodes.length - 1, side: 'solid' }, tool: { node: d2.nodes.length - 1, side: 'solid' } });
+    },
+  },
+  {
+    id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Taper the picked side faces for a pull along Z: each turns about its bottom edge (every side of an extrusion: its own draft)', group: 'modify', keywords: 'taper draft angle mould mold release pull',
+    available: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? no(d) : ok; },
+    fields: () => [{ key: 'deg', label: 'Angle', kind: 'deg', min: -44, max: 44, step: 1 }],
+    defaults: () => ({ deg: 5 }),
+    steps: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? [] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's bottom`, done: true }]; },
+    build: (ctx, v) => {
+      const d = draftOf(ctx); if (typeof d === 'string') throw new Error(d);
+      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw new Error('A draft angle is not 0 and below 45° in size.');
+      if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
+      return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angleDegrees: deg });
     },
   },
   {

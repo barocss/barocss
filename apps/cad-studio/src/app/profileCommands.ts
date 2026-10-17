@@ -90,6 +90,25 @@ export const extrudeCommand: Command = {
   },
 };
 
+/** Move a flat face along its normal: out joins material (its neighbours run on), in cuts it away. */
+export const offsetFaceCommand: Command = {
+  id: 'offset-face', label: 'Offset face', icon: 'cad-extrude', group: 'modify', keywords: 'move face push pull offset direct edit press',
+  hint: 'Move a flat face along its normal: out adds material (the faces round it run on), in takes it off — drag the arrow or type the distance',
+  available: ctx => { const p = extrudeProfile(ctx); return p?.fresh ? ok : no('Pick one flat face of a body to move.'); },
+  fields: () => [{ key: 'd', label: 'Offset', kind: 'mm' }],
+  defaults: () => ({ d: 2 }),
+  steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
+  build: (ctx, v) => {
+    const d = Number(v.d); if (!d) throw new Error('Give the face a distance to move: out (+) or in (−).');
+    return extrudeCommand.build!(ctx, { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
+  },
+  handles: ctx => {
+    const p = extrudeProfile(ctx); if (!p) return [];
+    const plane = planeOf(p.node), n = plane.normal, c = toWorld(plane, profileMiddle(p.node));
+    return [{ key: 'd', at: [...c] as [number, number, number], dir: [...n] as [number, number, number], step: 0.5 }];
+  },
+};
+
 /** A revolve's axis in the sketch's plane coordinates: through `o` along `d` (unit). */
 function revolveAxis(v: Values): { o: [number, number]; d: [number, number] } {
   if (v.axis === 'edge') { const d: [number, number] = [Number(v.dx), Number(v.dy)], l = Math.hypot(d[0], d[1]) || 1; return { o: [Number(v.ox), Number(v.oy)], d: [d[0] / l, d[1] / l] }; }
@@ -189,4 +208,4 @@ export const sweepCurveCommand: Command = {
   },
 };
 
-export const profileCommands = [extrudeCommand, revolveCommand, pipeCommand, sweepCurveCommand, loftCommand];
+export const profileCommands = [extrudeCommand, offsetFaceCommand, revolveCommand, pipeCommand, sweepCurveCommand, loftCommand];

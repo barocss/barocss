@@ -122,6 +122,12 @@ export type CadPartFeature = Base & (
    * start, square to it, carried along without twisting; the ends capped; holes run through. Faceted.
    */
   | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
+  /**
+   * Draft (taper) on chosen side faces for a pull along +Z: each planar face square to Z turns about its
+   * line on the neutral plane (default: the body's bottom) by `angleDegrees` — positive leans its top
+   * in (material taken off), negative out (material added). The faces by name.
+   */
+  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
@@ -576,6 +582,53 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
         if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
         return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
+      };
+    }
+    case 'draft': {
+      const target = solids(f.target, 'target'), names = f.faces as unknown, angle = f.angleDegrees as unknown;
+      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges || !names.every(x => typeof x === 'string')) fail('INPUT', 'faces must list 1 to 64 face names');
+      if (typeof angle !== 'number' || !Number.isFinite(angle) || angle === 0 || Math.abs(angle) >= 45) fail('INPUT', 'angleDegrees must be a number of degrees, not 0, below 45 in size');
+      if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
+      const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
+      return () => {
+        const brep = brepOf(target[0], at), box = bounds(target[0].solid), zN = neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
+        // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
+        const lift = 1e-6 * R;
+        const coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point]));
+        // Each face's wedge, from the body as it was: the face pushed in (or out) as deep as the turn takes
+        // its top, met with the half-space beyond its turned plane (through its line on the neutral plane).
+        const wedges = (names as string[]).map(name => {
+          const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+          if (!face) return fail('REFERENCE', `no face ${name} on the target`);
+          const loop = brep.loops.find(l => l.id === face.loops[0])!;
+          const ring = loop.coedges.map(id => { const c = coedges.get(id)!, e = edges.get(c.edge)!; return points.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!; });
+          let nrm: Point = [0, 0, 0];
+          ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length]; nrm = add(nrm, [(p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1])]); });
+          const n = unit(nrm);
+          if (Math.abs(n[2]) > 1e-9 || face.loops.length > 1) fail('CAPABILITY', `${name}: a draft takes side faces square to the pull (Z) without holes`);
+          const zs = ring.map(p => p[2]), top = Math.max(...zs), height = top - zN;
+          if (!(height > 0) || Math.min(...zs) < zN - 1e-6) fail('SELECTION', `${name}: the neutral plane z = ${zN} must be at or below the face`);
+          // A frame on the face: X along it (level), Y up, Z into the body (draft in) or out of it (draft out).
+          const along: Point = a > 0 ? [-n[0], -n[1], -n[2]] : n, x = unit(cross([0, 0, 1], along)), y = cross(along, x);
+          const m: BrepAffine['matrix'] = [x[0], y[0], along[0], x[1], y[1], along[1], x[2], y[2], along[2]], o = ring[0];
+          const uv = ring.map(p => { const d = sub(p, o); return [dot(d, x), dot(d, y)]; });
+          // (A little wider and taller than the face, so the wedge's ends do not lie on its neighbours' planes.)
+          const e = 1e-3 * R, wide = a > 0 ? e : 0, u0 = Math.min(...uv.map(q => q[0])) - wide, u1 = Math.max(...uv.map(q => q[0])) + wide, v0 = Math.min(...uv.map(q => q[1])) - 2 * lift, v1 = Math.max(...uv.map(q => q[1])) + wide;
+          const depth = height * Math.tan(Math.abs(a)) + 1;
+          const outline: ProfileSegmentInput[] = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(start => ({ kind: 'line', start: start as XY }));
+          const prism = affine({ kind: 'upright', solid: prismaticFromProfile({ outer: outline, heightMM: depth, fromMM: a > 0 ? 0 : -1e-3, tag: `${at}.draft` }) }, m, o);
+          const n2: Point = [n[0] * Math.cos(a), n[1] * Math.cos(a), Math.sin(a)], side: Point = a > 0 ? n2 : [-n2[0], -n2[1], -n2[2]];
+          const hz = unit(cross(side, Math.abs(side[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), hy = cross(side, hz), q0: Point = [ring[0][0], ring[0][1], zN - lift];
+          const half = affine(boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`), [hz[0], hy[0], side[0], hz[1], hy[1], side[1], hz[2], hy[2], side[2]], q0);
+          return boolean(prism, half, 'intersection', at);
+        });
+        // Faces that meet would need their wedges mitred where they join: not yet.
+        const edgesOf = (name: string) => { const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name)!; return new Set(face.loops.flatMap(l => brep.loops.find(x => x.id === l)!.coedges.map(c => coedges.get(c)!.edge))); };
+        const sets = (names as string[]).map(edgesOf);
+        sets.forEach((x, i) => sets.forEach((y, j) => { if (j > i && [...x].some(e => y.has(e))) fail('CAPABILITY', `${(names as string[])[i]} and ${(names as string[])[j]} meet along an edge: draft faces that do not touch (or every side of an extrusion with its draft)`); }));
+        // The wedges together, then off the body (or onto it) at once.
+        const all = wedges.filter(w => !empty(w)).reduce<Solid | null>((u, w) => u ? boolean(u, w, 'union', at) : w, null);
+        return one(all ? boolean(target[0].solid, all, a > 0 ? 'difference' : 'union', at) : target[0].solid);
       };
     }
     case 'sweep-curve': {
