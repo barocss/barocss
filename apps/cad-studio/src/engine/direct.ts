@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, surfaceEvaluator, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, surfaceEvaluator, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 import { approximateCurve, interpolateSurface, removeCurveKnot } from './fit';
 import { curvesSource, surfacesSource } from './curveSource';
@@ -427,7 +427,7 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
       return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl) }];
     }
     const trims = o.trims?.length ? o.trims : null;
-    const p = trims ? trimmedMesh(g, trims) : tessellateSurface(g, { countU: 32, countV: 32, revision: 0 }).packet, ctl: number[] = [], P = g.controlPoints;
+    const p = trims ? trimmedMesh(g, trims) : trimmedMesh(g, [], 31), ctl: number[] = [], P = g.controlPoints;
     for (let i = 0; i < P.length; i++) for (let j = 0; j < P[i].length; j++) {
       if (i + 1 < P.length) ctl.push(...P[i][j], ...P[i + 1][j]);
       if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
