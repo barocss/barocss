@@ -259,6 +259,68 @@ WebGL2 (an uncommitted WGSL draft `packages/barocss-gpu/src/engine-uv-material-w
 `barocss-cad-gpu-review-efbb2c` worktree); docs screenshots from removed renderers; gpu `test:consumer`
 fails because the package `files` include `src`.
 
+### Mesh bodies and SubD roadmap (owner decision, 2026-10-18)
+
+Owner: "알고리즘을 개선하고 wasm 은 되도록 쓰지말고 자체구현으로 가자. parasolid 에서 필요한 부분만 우리가
+하고, subD 도 적용해보자". This replaces the open M2 choice (keep B-rep / own mesh solid / manifold-3d WASM).
+- No WASM or external numeric libraries (no manifold-3d, meshoptimizer or Rust core): our own TypeScript with
+  better algorithms (culling, BVH, caches, filtered predicates, no allocation in hot loops). `@barocss/cad`
+  stays dependency-free. If a hot loop still dominates after that, bring the numbers to the owner; don't
+  propose WASM unprompted.
+- One body kind, B-rep, whose faces carry analytic, NURBS or **facet** geometry (a Parasolid "convergent"
+  subset). An imported mesh becomes facet faces grouped into regions, never a B-rep face per triangle (what
+  `brepFromTriangles` does today). SubD is a way of making a body: a cage feature that becomes exact bicubic
+  NURBS faces.
+- Parasolid subset in scope: F0 facet faces; F1 facet × plane with an exact planar cap; F2 facet × plane,
+  cylinder, sphere, cone. F3 (facet × facet) later.
+
+Order (checkpoint with SHAs and numbers after each step; the owner wants to see progress between steps):
+1. **R1 — M0 finished**: fixtures, pipeline measurement, `pnpm bench:mesh`; an F0 audit (each brep-core and
+   evaluateSurface user: how a facet face is handled); an F0 spike (region grouping of the 200k/1M fixtures by
+   normal angle: faces, memory, tessellate/pick/mass of a typed-array facet patch).
+2. **R2 — B0, the B-spline performance base** (unblocks the helical thread default, SubD, F2): mass on
+   B-spline faces by patch-domain tensor Gauss with analytic D1, no tessellation for untrimmed patches;
+   analytic-boolean/split scaling (ray bbox cull in `rayHits`, per-face BVH over the grid, indexed stitch, no
+   refit of untouched boundaries, the 625-point setup only when needed); `sewSolid` spatial hash;
+   interval-filtered predicates in `polyhedral-boolean.ts` (BigInt only when ambiguous) and a bbox cull of face
+   pairs. Then re-measure the helical bolt and propose switching the thread default.
+3. **R3 — F0 facet faces**: a typed Surface union; patch data as typed arrays with a BVH, polyline edges,
+   region naming (stable region ids, no triangle indices); exact mass by the divergence theorem, BVH ray
+   classification, AP242 tessellated STEP; a typed-array path that skips freezing and deep copies. With it
+   **M1** binary mesh blob in .bcad (content-hashed, own format, migration) and **M3** import gate and repair
+   (weld, orient, own Liepa hole fill with fairing, degenerate and floater removal) with a diagnostics badge.
+4. **R4 — F1**: facet × plane split and section with an exact planar cap (each vertex's sign once, one tie rule).
+5. **R5 — SD1 SubD**: a `subd` node storing the cage (OpenSubdiv rules: smooth, sharp crease, boundary edge
+   and corner), no 64-surface or inline-surface limits; regular regions as exact bicubic patches packed into
+   faces of ≤ 16×16 poles; buildBrep straight from the cage topology.
+6. **R6 — F2**: facet × plane/cylinder/sphere/cone; implicit sign per vertex; the analytic face stays exact,
+   its rim a polyline on it.
+7. **R7 — SD2**: extraordinary vertices: one local Catmull–Clark step, then a PCCM-style bicubic G1 cap with
+   interior double knots, boundaries bit-identical to the neighbours; report deviation from the limit surface;
+   a G1 check between faces. Promise C2 away from EVs, G1 at EVs, G0 at creases; never G2.
+8. **R8 — SD3 studio cage editor**: Box/Smooth toggle; vertex/edge/face selection, loop/ring by double-click;
+   gizmo; extrude on a modifier drag; insert edge loop, delete, bridge, fill hole, weld; sharp crease; one
+   mirror plane; a validation overlay (non-manifold, poles, n-gons); each drag one undo step, the session one
+   timeline feature; the pole gizmo from `direct.ts` driven by cage data, not source-text edits.
+9. **R9 — M4**: our own QEM decimation, attribute-aware, with a reported error.
+
+R1 results (2026-10-18, `f5d237c9f`; `pnpm bench:mesh`, `pnpm bench:mesh --facets`; audit in
+[`f0-audit.md`](f0-audit.md)):
+- Per-triangle B-rep faces (today's `brepFromTriangles`): 200k triangles → 10.5 s to convert, 3.8–85 s to
+  display, 2.2–2.6 GB RSS; 1M → 84 s + 32 s, 6.4 GB, a 267 MB display message, 55 MB of .bcad JSON. The
+  studio refuses more than 100k (`CadPartLimits.meshTriangles`). Polyhedral union with a box: 16 s (2k),
+  49 s (5k), 409 s (20k); one-side split 12 / 32 / 192 s. Broken meshes (hole, flipped patch, non-manifold
+  edge, extra shells, crossing shells) are refused at conversion; degenerate triangles are dropped.
+- F0 spike (typed arrays, regions by normal angle) at 1M: 9–1551 regions, 179 MB, BVH 0.3 s, 1000 picks
+  4 ms, 1000 point classifications 2.5 ms, exact mass 9 ms, display buffers 41 ms. The noisy scan breaks
+  into 4k–129k regions with either rule: region grouping needs smoothed normals there.
+- Reference only (dropped by the owner's decision, not to be adopted): manifold-3d WASM did 1M union
+  0.45–0.6 s, split 0.57–0.66 s; meshoptimizer simplify 1M → 100k 0.4 s.
+
+Ground rules as before: local only, small commits, no functions inside hot-path functions, tests + lint +
+bench + a short studio flow, a changeset for published package changes, name/contract shifts reported, and
+anything whose risk outweighs its value skipped with the reason.
+
 ## 5. Ways of working that held up
 
 - One integrator merges every lane serially (`git merge --no-ff`, message `merge(cad-studio): …`), then runs
