@@ -256,7 +256,7 @@ export function shapeLabel(made: Made): string {
     case 'prism': return `Prism ${v('n')}-sided ${v('s')}×${v('h')}`;
     case 'fastener': {
       const size = String(made.values.size), kind = String(made.values.kind);
-      return kind === 'hex-nut' ? `Nut ${size}` : kind === 'washer' ? `Washer ${size}` : `${kind === 'socket-screw' ? 'Cap screw' : 'Bolt'} ${size}×${String(made.values.length)}`;
+      return kind === 'hex-nut' ? `Nut ${size}` : kind === 'washer' ? `Washer ${size}` : `${kind === 'socket-screw' ? 'Cap screw' : kind === 'csk-screw' ? 'Csk screw' : 'Bolt'} ${size}×${String(made.values.length)}`;
     }
     default: return made.command;
   }

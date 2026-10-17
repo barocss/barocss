@@ -100,3 +100,18 @@ test('a bolt with washer and nut placed in a side hole turns as one: all three s
   assert.ok(bodies.every(b => b.mesh.bounds.min[0] < 10.01), 'below the seat along X');
   assert.equal(doc.nodes.at(-1)?.kind, 'rotate'); assert.equal((doc.nodes.at(-1) as { made?: { command: string } }).made?.command, 'fastener');
 });
+
+test('a countersunk socket screw (ISO 10642): its head sunk below the seat, flush at the top, the length overall', () => {
+  const v = { ...f.defaults!(ctx), kind: 'csk-screw', size: 'M6', length: '20', x: 0, y: 0, z: 10 };
+  assert.equal(fastenerName(v), 'Countersunk socket screw ISO 10642 M6×1 × 20');
+  assert.deepEqual(lengthsOf('csk-screw', FASTENER_SIZES.M6).slice(0, 3), [8, 10, 12]);
+  const doc = f.build!(ctx, v), [b] = bodiesOf(doc), m6 = FASTENER_SIZES.M6;
+  near(b.mesh.bounds.max[2], 10, 1e-6); near(b.mesh.bounds.min[2], -10, 1e-6);
+  near(b.mesh.bounds.max[0] - b.mesh.bounds.min[0], m6.cdk, 0.01);
+  // A frustum Ø13.44 → Ø6 over 3.72, less the socket, and the shank below it.
+  const R = m6.cdk / 2, r = 3, k = m6.ck, frustum = Math.PI * k / 3 * (R * R + R * r + r * r), shank = Math.PI * r * r * (20 - k);
+  const socket = 3 * Math.sqrt(3) / 2 * (m6.csocket / Math.sqrt(3)) ** 2 * 2 * k * 0.6 / 2;
+  near(b.volumeMM3!, frustum + shank - socket, 3);
+  assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Csk screw M6×20');
+  assert.ok(fastenerFit({ ...v, joint: 'free' }).some(s => s.label === 'Head' && /countersink Ø13.44/.test(s.text)));
+});

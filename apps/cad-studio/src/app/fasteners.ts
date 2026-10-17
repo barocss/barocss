@@ -1,6 +1,6 @@
 // Standard fasteners (barocss/barocss#2094): a small catalogue of metric coarse-thread parts and their simple
-// shapes — hex head screws (ISO 4017), socket head cap screws (ISO 4762), hex nuts (ISO 4032) and plain
-// washers (ISO 7089), M3 to M12 — and how one goes into a hole: through a clearance hole (ISO 273) with a
+// shapes — hex head screws (ISO 4017), socket head cap screws (ISO 4762), countersunk socket screws
+// (ISO 10642), hex nuts (ISO 4032) and plain washers (ISO 7089), M3 to M12 — and how one goes into a hole: through a clearance hole (ISO 273) with a
 // washer and nut under the far side, or into a tapped hole (tap drill d − P). The thread is cosmetic: its
 // size, pitch and hand are recorded with the part (and shown), the shank is a plain cylinder at the nominal
 // diameter — no helical geometry. The checks are of size and length only, never of strength, preload or
@@ -9,7 +9,7 @@
 import { withNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, PlacedHole, Values } from './commands';
 
-export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'hex-nut' | 'washer';
+export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
 export interface FastenerSize {
   /** Nominal thread diameter (mm) and coarse pitch (mm). */
   d: number; pitch: number;
@@ -19,6 +19,8 @@ export interface FastenerSize {
   k: number; m: number; dk: number; ks: number; socket: number; wd1: number; wd2: number; wh: number;
   /** Lengths offered (mm), shortest to longest: ISO 4017 hex head screws and ISO 4762 cap screws. */
   lengths: number[]; capLengths: number[];
+  /** ISO 10642 countersunk head: theoretical head diameter, head height and socket size (mm), and the lengths offered (overall, head included). */
+  cdk: number; ck: number; csocket: number; cskLengths: number[];
   /** ISO 273 clearance hole diameters: fine, medium, coarse (mm). Tap drill for a 6H internal thread (mm). */
   clearance: [number, number, number]; tap: number;
   /** Whether the ISO 4017 lengths were cross-checked against a source (else they follow the standard's 2d … 10d rule, unchecked). */
@@ -30,6 +32,7 @@ export const CATALOGUE = {
   sources: [
     { what: 'ISO 261/262 coarse pitches; ISO 4017 s, k; ISO 4032 m; ISO 4762 dk, k, s; ISO 7089 d1, d2, h', where: 'fasten.it DIN EN ISO 4017 / 4762 tables; nominal values of the standards' },
     { what: 'ISO 4762 lengths', where: 'engineersedge.com ISO 4762 socket head screw table (https://engineersedge.com/iso_socket_head_screw.htm)' },
+    { what: 'ISO 10642 dk, k, s and lengths', where: 'the standard\'s nominal values (dk 2.24 d, k 0.62 d) — not yet cross-checked against a table' },
     { what: 'ISO 4017 lengths', where: 'M6 12–60 cross-checked (secondary table); other sizes not yet checked' },
     { what: 'ISO 273 clearance holes', where: 'ISO 273:1979 table as reproduced by suppliers (fine H12, medium H13, coarse H14)' },
     { what: 'Tap drills', where: 'd − P, the usual drill for a 6H internal thread' },
@@ -38,22 +41,23 @@ export const CATALOGUE = {
 const SERIES = [4, 5, 6, 8, 10, 12, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100, 110, 120];
 const L = (from: number, to: number) => SERIES.filter(l => l >= from && l <= to);
 export const FASTENER_SIZES: Record<string, FastenerSize> = {
-  M3: { d: 3, pitch: 0.5, s: 5.5, k: 2, m: 2.4, dk: 5.5, ks: 3, socket: 2.5, wd1: 3.2, wd2: 7, wh: 0.5, lengths: L(6, 30), capLengths: L(5, 30), clearance: [3.2, 3.4, 3.6], tap: 2.5, checked4017: false },
-  M4: { d: 4, pitch: 0.7, s: 7, k: 2.8, m: 3.2, dk: 7, ks: 4, socket: 3, wd1: 4.3, wd2: 9, wh: 0.8, lengths: L(8, 40), capLengths: L(6, 40), clearance: [4.3, 4.5, 4.8], tap: 3.3, checked4017: false },
-  M5: { d: 5, pitch: 0.8, s: 8, k: 3.5, m: 4.7, dk: 8.5, ks: 5, socket: 4, wd1: 5.3, wd2: 10, wh: 1, lengths: L(10, 50), capLengths: L(8, 50), clearance: [5.3, 5.5, 5.8], tap: 4.2, checked4017: false },
-  M6: { d: 6, pitch: 1, s: 10, k: 4, m: 5.2, dk: 10, ks: 6, socket: 5, wd1: 6.4, wd2: 12, wh: 1.6, lengths: L(12, 60), capLengths: L(10, 60), clearance: [6.4, 6.6, 7], tap: 5, checked4017: true },
-  M8: { d: 8, pitch: 1.25, s: 13, k: 5.3, m: 6.8, dk: 13, ks: 8, socket: 6, wd1: 8.4, wd2: 16, wh: 1.6, lengths: L(16, 80), capLengths: L(12, 80), clearance: [8.4, 9, 10], tap: 6.8, checked4017: false },
-  M10: { d: 10, pitch: 1.5, s: 16, k: 6.4, m: 8.4, dk: 16, ks: 10, socket: 8, wd1: 10.5, wd2: 20, wh: 2, lengths: L(20, 100), capLengths: L(16, 100), clearance: [10.5, 11, 12], tap: 8.5, checked4017: false },
-  M12: { d: 12, pitch: 1.75, s: 18, k: 7.5, m: 10.8, dk: 18, ks: 12, socket: 10, wd1: 13, wd2: 24, wh: 2.5, lengths: L(25, 120), capLengths: L(20, 120), clearance: [13, 13.5, 14.5], tap: 10.2, checked4017: false },
+  M3: { d: 3, pitch: 0.5, s: 5.5, k: 2, m: 2.4, dk: 5.5, ks: 3, socket: 2.5, wd1: 3.2, wd2: 7, wh: 0.5, lengths: L(6, 30), capLengths: L(5, 30), cdk: 6.72, ck: 1.86, csocket: 2, cskLengths: L(8, 30), clearance: [3.2, 3.4, 3.6], tap: 2.5, checked4017: false },
+  M4: { d: 4, pitch: 0.7, s: 7, k: 2.8, m: 3.2, dk: 7, ks: 4, socket: 3, wd1: 4.3, wd2: 9, wh: 0.8, lengths: L(8, 40), capLengths: L(6, 40), cdk: 8.96, ck: 2.48, csocket: 2.5, cskLengths: L(8, 40), clearance: [4.3, 4.5, 4.8], tap: 3.3, checked4017: false },
+  M5: { d: 5, pitch: 0.8, s: 8, k: 3.5, m: 4.7, dk: 8.5, ks: 5, socket: 4, wd1: 5.3, wd2: 10, wh: 1, lengths: L(10, 50), capLengths: L(8, 50), cdk: 11.2, ck: 3.1, csocket: 3, cskLengths: L(8, 50), clearance: [5.3, 5.5, 5.8], tap: 4.2, checked4017: false },
+  M6: { d: 6, pitch: 1, s: 10, k: 4, m: 5.2, dk: 10, ks: 6, socket: 5, wd1: 6.4, wd2: 12, wh: 1.6, lengths: L(12, 60), capLengths: L(10, 60), cdk: 13.44, ck: 3.72, csocket: 4, cskLengths: L(8, 60), clearance: [6.4, 6.6, 7], tap: 5, checked4017: true },
+  M8: { d: 8, pitch: 1.25, s: 13, k: 5.3, m: 6.8, dk: 13, ks: 8, socket: 6, wd1: 8.4, wd2: 16, wh: 1.6, lengths: L(16, 80), capLengths: L(12, 80), cdk: 17.92, ck: 4.96, csocket: 5, cskLengths: L(10, 80), clearance: [8.4, 9, 10], tap: 6.8, checked4017: false },
+  M10: { d: 10, pitch: 1.5, s: 16, k: 6.4, m: 8.4, dk: 16, ks: 10, socket: 8, wd1: 10.5, wd2: 20, wh: 2, lengths: L(20, 100), capLengths: L(16, 100), cdk: 22.4, ck: 6.2, csocket: 6, cskLengths: L(12, 100), clearance: [10.5, 11, 12], tap: 8.5, checked4017: false },
+  M12: { d: 12, pitch: 1.75, s: 18, k: 7.5, m: 10.8, dk: 18, ks: 12, socket: 10, wd1: 13, wd2: 24, wh: 2.5, lengths: L(25, 120), capLengths: L(20, 120), cdk: 26.88, ck: 7.44, csocket: 8, cskLengths: L(20, 100), clearance: [13, 13.5, 14.5], tap: 10.2, checked4017: false },
 };
 export const FASTENER_KINDS: { value: FastenerKind; label: string; standard: string }[] = [
   { value: 'hex-bolt', label: 'Hex head bolt', standard: 'ISO 4017' },
   { value: 'socket-screw', label: 'Socket head cap screw', standard: 'ISO 4762' },
+  { value: 'csk-screw', label: 'Countersunk socket screw', standard: 'ISO 10642' },
   { value: 'hex-nut', label: 'Hex nut', standard: 'ISO 4032' },
   { value: 'washer', label: 'Plain washer', standard: 'ISO 7089' },
 ];
-/** The lengths a kind comes in at a size (ISO 4017 for hex bolts, ISO 4762 for cap screws). */
-export const lengthsOf = (kind: string, size: FastenerSize) => kind === 'socket-screw' ? size.capLengths : size.lengths;
+/** The lengths a kind comes in at a size (ISO 4017 for hex bolts, ISO 4762 for cap screws, ISO 10642 for countersunk screws). */
+export const lengthsOf = (kind: string, size: FastenerSize) => kind === 'socket-screw' ? size.capLengths : kind === 'csk-screw' ? size.cskLengths : size.lengths;
 
 /** How a hole of diameter `hd` takes a size: a clearance hole (its ISO 273 series), a tap drill, or neither. */
 export type HoleFit = { fit: 'clearance'; series: 'fine' | 'medium' | 'coarse' } | { fit: 'tapped' } | { fit: 'tight' } | { fit: 'loose' };
@@ -89,7 +93,7 @@ export function jointLength(v: Values): number | null {
   }
   return null;
 }
-const threaded = (kind: string) => kind === 'hex-bolt' || kind === 'socket-screw';
+const threaded = (kind: string) => kind === 'hex-bolt' || kind === 'socket-screw' || kind === 'csk-screw';
 
 /** What a fastener is, in words: "Hex head bolt ISO 4017 M8×1.25 × 30, cosmetic right-hand thread". */
 export function fastenerName(v: Values): string {
@@ -164,6 +168,21 @@ function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { no
       joint();
       add({ kind: 'union', left: { node: headSolid, side: 'solid' }, right: { node: shank, side: 'solid' } }); break;
     }
+    case 'csk-screw': {
+      // A 90° head sunk into the face (its top flush at z, Ø dk), turned about the axis; its hex socket cut
+      // in; the shank from the head down (the length is overall, the head included), from inside the cone
+      // to just under the socket.
+      const plane = { origin: [x, y, z] as [number, number, number], normal: [0, -1, 0] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] };
+      const hp = add({ kind: 'sketch', profile: 'polygon', points: [[0, 0], [size.cdk / 2, 0], [size.d / 2, -size.ck], [0, -size.ck]], plane });
+      const cone = add({ kind: 'revolve', sketch: hp, axis: 'y', angleDegrees: 360 });
+      const sp = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.csocket) });
+      const socket = add({ kind: 'extrude', sketch: sp, height: size.ck * 0.6 + 0.5, from: z - size.ck * 0.6 });
+      const head = add({ kind: 'difference', parent: { node: cone, side: 'solid' }, tool: { node: socket, side: 'solid' } });
+      const ss = add({ kind: 'sketch', profile: 'circle', center: [x, y], radius: size.d / 2 });
+      const shank = add({ kind: 'extrude', sketch: ss, height: len - size.ck * 0.6 - 0.1, from: z - len });
+      joint();
+      add({ kind: 'union', left: { node: head, side: 'solid' }, right: { node: shank, side: 'solid' } }); break;
+    }
     default: {
       const hs = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s) });
       const head = add({ kind: 'extrude', sketch: hs, height: size.k, ...at(z) });
@@ -187,6 +206,7 @@ export function fastenerFit(v: Values): { label: string; text: string; done: boo
         : f.fit === 'tight' ? `Ø${hd} is too small for ${M}: clearance Ø${size.clearance[0]}+, tap drill Ø${size.tap}` : `Ø${hd} is looser than ISO 273 coarse Ø${size.clearance[2]} for ${M}`;
     out.push({ label: 'Hole', text: f.fit === want || v.joint === 'free' && f.fit === 'clearance' ? text : f.fit === 'clearance' || f.fit === 'tapped' ? `${text} — not what a ${v.joint === 'tapped' ? 'tapped' : 'through'} joint wants` : text, done: f.fit === want || (v.joint === 'free' && f.fit === 'clearance') });
   }
+  if (kind === 'csk-screw') out.push({ label: 'Head', text: `sinks into a 90° countersink Ø${size.cdk} (ISO 10642 head, ${size.ck} deep) — make the hole Countersunk, Ø${size.cdk} or a little more`, done: true });
   const len = Number(v.length);
   if (v.joint === 'nut') {
     const need = nutJointNeed(size, Number(v.grip));
