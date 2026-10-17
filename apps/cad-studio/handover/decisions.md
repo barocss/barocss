@@ -407,3 +407,38 @@ Evidence:
   measure through `runTool`.
 - Conformance case `conformance/a1/selectors` (7 selectors, two of them refusals).
 
+## D28 — Re-matching stored names an edit renumbered (2026-10-18, A1.3; A1.3b and A1.3c to follow)
+Decided: `edit_feature` (the agent's edit of an existing feature) runs `rematchNames(before, after)`
+(engine/rematch.ts) before it accepts.
+- **Scope.** Every later fillet, chamfer, shell or draft whose parent body the edit changed has its parent body
+  evaluated as it was and as it is.
+- **When names are trusted.** If that body's names are the same, each of the same kind facing the same way, every
+  stored name is trusted. A dimension edit therefore never guesses.
+- **When names are re-matched.** Otherwise each stored name is matched by its geometry before the edit (face:
+  kind, normal, centroid; edge: straight or curved, direction, midpoint). Among the new faces or edges of the same
+  kind facing the same way (1°, an edge either way), the nearest wins when it is clearly the nearest: the next is
+  at least twice as far. That rule is scale-free, so no absolute length enters it.
+- **Substitutions.** A substitution replaces the stored name and is reported to the agent (`rematched: [{feature,
+  was, now}]`). It is also kept on the node (`rematched`, new → old) until the user confirms it, so a wrong
+  guess cannot hide.
+- **Refusals.** When the match is unclear the edit is refused with the candidates. When nothing alike is left it
+  is refused as gone. The part is unchanged either way.
+
+Why: an edit that renumbers sides, such as a sketch given another corner, left a fillet's edge name naming
+another corner. That was silent and wrong; see the conformance case where the old name lands on the corner at
+(10, 0).
+
+Split (owner's delegate asked for persisted signatures and a visible notice; recorded as the next steps):
+- **A1.3b.** Each stored reference keeps a compact signature: mates, placement faces, fillet, chamfer, shell and
+  draft names, drawing dimensions, per-face colours. On evaluate, a name that does not resolve, or resolves to
+  geometry unlike its signature beyond a tolerance relative to the model's size, is matched against the stored
+  signature. This covers a reopened file on a kernel that numbers differently, where there is no prior document.
+- **A1.3c.** The studio shows a re-matched reference on its feature in the tree, with confirm or pick another
+  candidate. Confirming clears `rematched`.
+
+Evidence:
+- Studio 254/254, with 2 tests and 3 conformance cases (`conformance/a1/rematch-*`):
+  - a corner inserted renumbers sides and the fillet follows its corner, by closed-form volume;
+  - a dimension change keeps names;
+  - a cut-off corner is refused naming both edges.
+
