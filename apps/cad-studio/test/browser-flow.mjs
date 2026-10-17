@@ -1382,8 +1382,16 @@ try {
     for (let i = 1; i <= 6; i++) await page.mouse.move(hb.x + hb.width / 2 + i * 12, hb.y + hb.height / 2 + i * 4);
     await page.waitForTimeout(40); await snap('section-dragging'); await page.mouse.up(); await page.waitForTimeout(600);
     assert.equal((await doc()).nodes.length, nodes, 'the model is not changed');
-    await page.click('[aria-label="Section view"]');
-    await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
+    // Its outline as a sketch on the section plane: the box's cut with the hole's, one profile with a hole.
+    await page.click('[aria-label="Section across Y"]'); await page.waitForTimeout(1500);
+    await page.click('[aria-label="Sketch the section"]');
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.done').length >= 1, null, { timeout: 10000 });
+    await snap('section-sketch'); await press('Enter');
+    await page.waitForFunction(n => window.__studioDoc.nodes.length === n + 1, nodes, { timeout: 10000 });
+    const sk = (await doc()).nodes.at(-1);
+    assert.equal(sk.kind, 'sketch'); assert.ok(Math.abs(Math.abs(sk.plane.normal[1]) - 1) < 1e-9, JSON.stringify(sk.plane));
+    await press('Meta+z'); await page.waitForFunction(n => window.__studioDoc.nodes.length === n, nodes, { timeout: 10000 });
+    assert.equal(await page.locator('[data-handle="section"]').count(), 0, 'the section closed for the sketch');
   });
 
   await check('interference: a cylinder through a box is found, with its overlap', async () => {

@@ -712,6 +712,20 @@ export function App() {
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
+  /** A sketch on the section plane holding the exact section's cut outlines (its cut faces' outlines), the section closed. */
+  const sketchSection = () => {
+    if (!section) return;
+    const exact = sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : null;
+    if (!exact) { setToast({ title: 'The section is still being cut', hint: 'Wait a moment for the exact section, then try again.', detail: '' }); return; }
+    const cap = `n${evaluated.nodes.length}.cut`, faces = exact.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(n => n.startsWith(cap))).map(f => ({ b, f })));
+    if (!faces.length) { setToast({ title: 'Nothing is cut there', hint: 'Move the section plane through the part first.', detail: '' }); return; }
+    const plane = planeOfFace(faces[0].f.normal, faces[0].f.centroid); if (!plane) return;
+    const shapes = faces.flatMap(({ b, f }) => { const fp = faceProfile(b.mesh, f.index); return fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : []; });
+    if (!shapes.length) { setToast({ title: 'The section’s outline could not be read', hint: 'Its edges are not lines and arcs yet.', detail: '' }); return; }
+    setSection(null); setSelection(emptySel);
+    setSketch({ plane, anchor: { kind: 'face', offset: 0, face: { plane, base: null } }, tool: 'rectangle', shape: null, done: shapes, base: null });
+    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
+  };
   /** A body in several pieces made one body per piece (a Separate step), checked by evaluating first. */
   const separate = (b: BodyResult) => {
     if (marker !== null) { setToast({ title: 'Roll forward first', hint: 'New steps go at the end of the history.', detail: '' }); return; }
@@ -1388,7 +1402,8 @@ export function App() {
       <div className="corner-right">
   {section && <div className="card section-bar" role="group" aria-label="Section"><span className="muted">Section</span>{(['x', 'y', 'z'] as const).map(a => <button key={a} className={section.axis === a ? 'on' : ''} aria-label={`Section across ${a.toUpperCase()}`}
             onClick={() => { const k = 'xyz'.indexOf(a), vs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
-            <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button></div>}
+            <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button>
+            <button aria-label="Sketch the section" data-tip="Sketch the section" data-tip-desc="A sketch on the section plane with the cut's outlines in it (to extrude, revolve or dimension)" onClick={sketchSection}><Icon name="cad-sketch" small /></button></div>}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
