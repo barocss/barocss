@@ -13,6 +13,8 @@ export interface BodyResult {
   centroid?: [number, number, number];
   /** Inertia about the centre of mass (kg·m², aluminium at 2700 kg/m³; scale by density for another material). */
   inertia?: number[][];
+  /** A body in several separate pieces (a cut right through it): how many. */
+  pieces?: number;
 }
 export type EvalResult =
   | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
@@ -34,7 +36,7 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
     const bodies: BodyResult[] = snapshot.outputs.map(o => {
       let volumeMM3: number | null = null, massG: number | null = null, centroid: [number, number, number] | undefined, inertia: number[][] | undefined;
       try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; centroid = [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]]; inertia = m.inertiaCentroidKgM2.map(r => [...r]); } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}) };
+      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -66,7 +68,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): Eva
     const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => {
       let volumeMM3: number | null = null, massG: number | null = null, centroid: [number, number, number] | undefined, inertia: number[][] | undefined;
       try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; centroid = [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]]; inertia = m.inertiaCentroidKgM2.map(r => [...r]); } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}) };
+      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {

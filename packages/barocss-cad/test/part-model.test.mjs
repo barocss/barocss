@@ -583,3 +583,14 @@ test('revolve about any axis in the sketch plane: a square turned about a 45° l
   assert.ok(close(o.massProperties(1000).volumeMM3, 8 * 2 * pi * 2 * Math.SQRT2, 1e-6), String(o.massProperties(1000).volumeMM3));
   assert.throws(() => evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [0, 0] } }])), /axis must be/);
 });
+
+test('separate: a bar cut in two becomes two parts, each a body; a body in one piece is refused', () => {
+  const doc = [rect('s', 0, 0, 30, 10), extrude('a', 's', 5), rect('t', 10, -5, 20, 15), extrude('b', 't', 7, -1), { id: 'd', kind: 'difference', target: 'a', tool: 'b' }];
+  const r = evaluateCadPart(D([...doc, { id: 'p', kind: 'separate', target: 'd' }]));
+  assert.deepEqual(r.outputs.map(o => [o.id, o.bodyCount]), [['p/0', 1], ['p/1', 1]]);
+  assert.ok(close(volume(r.output('p/0')) + volume(r.output('p/1')), 2 * 10 * 10 * 5));
+  // Each piece goes on on its own: a hole in one of them.
+  const h = evaluateCadPart(D([...doc, { id: 'p', kind: 'separate', target: 'd' }, { id: 'h', kind: 'hole', target: 'p/1', center: [25, 5], radius: 1 }]));
+  assert.deepEqual(h.outputs.map(o => o.id), ['p/0', 'h']);
+  assert.throws(() => evaluateCadPart(D([rect('s', 0, 0, 30, 10), extrude('a', 's', 5), { id: 'p', kind: 'separate', target: 'a' }])), /one piece/);
+});

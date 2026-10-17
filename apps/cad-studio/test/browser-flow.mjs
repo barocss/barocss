@@ -1653,6 +1653,24 @@ try {
     await snap('parameters'); await page.click('[aria-label="Close parameters"]');
   });
 
+  await check('a cut right through a box leaves two pieces; Separate makes them two bodies', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('s'); await page.waitForTimeout(300);
+    const [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 300, cy - 8); await clickAt(cx + 300, cy + 8);
+    await press('Enter'); await press('e'); await hudReady();
+    await field('Operation').selectOption('cut'); await field('Depth').selectOption('through');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'difference', null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
+    await page.waitForSelector('[aria-label="Separate the pieces"]', { timeout: 5000 });
+    await page.click('[aria-label="Separate the pieces"]');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes.at(-1).kind, 'separate');
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

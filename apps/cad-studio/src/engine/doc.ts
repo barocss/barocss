@@ -70,6 +70,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
+  /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
+  | { kind: 'separate'; parent: BodyRef }
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern };
 
@@ -282,6 +284,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
+    case 'separate': return 'Separate pieces';
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;

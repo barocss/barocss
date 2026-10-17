@@ -99,6 +99,11 @@ export type CadPartFeature = Base & (
    * solid of the file is its own part (`id/k`, in file order) instead of one body holding them all.
    */
   | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
+  /**
+   * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
+   * order of its B-rep's bodies; refused for a body in one piece.
+   */
+  | { readonly kind: 'separate'; readonly target: string }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -163,6 +168,16 @@ type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: 
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
 type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
+/** A B-rep of several bodies as one B-rep per body (each with its own shells, faces, loops, edges and vertices). */
+function splitBodies(b: Brep): Brep[] {
+  if (b.bodies.length <= 1) return [b];
+  return b.bodies.map(body => {
+    const shells = b.shells.filter(x => x.body === body.id), faceIds = new Set(shells.flatMap(x => x.faces)), faces = b.faces.filter(f => faceIds.has(f.id));
+    const loopIds = new Set(faces.flatMap(f => f.loops)), loops = b.loops.filter(l => loopIds.has(l.id)), coIds = new Set(loops.flatMap(l => l.coedges));
+    const coedges = b.coedges.filter(c => coIds.has(c.id)), edgeIds = new Set(coedges.map(c => c.edge)), edges = b.edges.filter(e => edgeIds.has(e.id)), vIds = new Set(edges.flatMap(e => e.vertices));
+    return { ...b, bodies: [body], shells, faces, loops, coedges, edges, vertices: b.vertices.filter(v => vIds.has(v.id)) };
+  });
+}
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
 const lineOnly = (s: PrismaticSolid) => s.slabs.every(x => x.regions.every(r => [r.outer, ...r.holes].every(ring => ring.every(g => g.kind === 'line'))));
 const planarBrep = (b: Brep) => b.faces.every(f => f.surface.degreeU === 1 && f.surface.degreeV === 1 && f.surface.controlPoints.length === 2 && f.surface.controlPoints[0].length === 2) && b.edges.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2);
@@ -522,6 +537,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!Array.isArray(open) || open.length > CadPartLimits.edges || !open.every(x => typeof x === 'string')) fail('INPUT', 'open must list up to 64 face names');
       if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
       return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
+    }
+    case 'separate': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('REFERENCE', 'separate one part at a time (name it as id/k)');
+      return () => {
+        const pieces = splitBodies(brepOf(target[0], at));
+        if (pieces.length < 2) fail('SELECTION', 'the body is in one piece: there is nothing to separate');
+        return { kind: 'solid', parts: pieces.map(brep => ({ solid: { kind: 'brep', brep } as Solid })) };
+      };
     }
     case 'split': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), cut = dim(f.at as CadPartDim, 'at');

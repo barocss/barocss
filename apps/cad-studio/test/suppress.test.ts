@@ -21,3 +21,17 @@ test('suppress: a hole passes its body on; a body made by an extrude goes, and a
   assert.equal(evaluateDoc(off(doc, 1), 1).ok, true, 'the first block gone: the second one stays');
   assert.deepEqual(vols(off(doc, 1)), [2000]);
 });
+
+test('separate: a bar cut in two shows two pieces; separated, each is a body of its own', () => {
+  let doc = rectanglePart(30, 10, 5);                                                            // 0, 1
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [10, -5], max: [20, 15] });   // 2
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 7, from: -1 });                       // 3
+  doc = withNode(doc, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } }); // 4
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok);
+  assert.equal(r.bodies.length, 1); assert.equal(r.bodies[0].pieces, 2);
+  const sep = withNode(doc, { kind: 'separate', parent: { node: 4, side: 'solid' } }), s = evaluateDoc(sep, 1); assert.ok(s.ok);
+  assert.deepEqual(s.bodies.map(b => [b.key, Math.round(b.volumeMM3!), b.pieces ?? 1]), [['b5_part0', 500, 1], ['b5_part1', 500, 1]]);
+  // A hole in one piece only.
+  const holed = withNode(sep, { kind: 'hole', parent: { node: 5, side: 'part1' }, center: [25, 5], radius: 1 }), h = evaluateDoc(holed, 1); assert.ok(h.ok);
+  assert.deepEqual(h.bodies.map(b => b.key), ['b5_part0', 'b6']);
+});

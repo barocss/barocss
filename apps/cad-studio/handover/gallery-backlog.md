@@ -32,7 +32,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B2 Named parameters panel and configurations (parameter sets) (#2036, #2047, #2063)
 - [x] B3 Suppress / restore a feature (#2039)
 - [x] B4 Reorder features, refused ahead of a parent (#2047)
-- [ ] B5 Boolean / cut results in several pieces as separate bodies (#2061, #2063)
+- [x] B5 Boolean / cut results in several pieces as separate bodies (#2061, #2063)
 - [ ] B6 Exploded assembly view (#2038)
 - [ ] B7 Section view across part instances (#2055)
 - [ ] B8 Section outline to a sketch (#2038)

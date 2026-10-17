@@ -698,6 +698,16 @@ export function App() {
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
+  /** A body in several pieces made one body per piece (a Separate step), checked by evaluating first. */
+  const separate = (b: BodyResult) => {
+    if (marker !== null) { setToast({ title: 'Roll forward first', hint: 'New steps go at the end of the history.', detail: '' }); return; }
+    const next = withNode(doc, { kind: 'separate', parent: refOf(b) });
+    engine.evaluate(prefixDoc(next, next.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot separate it: ${e.error.title}` }); return; }
+      commit(next); setSelection(emptySel);
+    });
+  };
   /** Moves a history step one earlier or later (refused before what it is built on), checked by evaluating first. */
   const reorder = (i: number, dir: -1 | 1) => {
     if (marker !== null) { setToast({ title: 'Roll forward to reorder', hint: 'Steps are moved in the whole history: roll forward to the end first.', detail: '' }); return; }
@@ -1306,6 +1316,7 @@ export function App() {
               </>; })()}
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
+            {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
           {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
             return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
@@ -1395,7 +1406,7 @@ export function App() {
             { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
-            ...(n.kind !== 'sketch' && n.kind !== 'split' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
+            ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },
             { label: 'Move later', icon: 'arrow_forward', run: () => reorder(i, 1) },
             { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },

@@ -26,6 +26,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), axis: node.axis, at: node.at };
+    case 'separate': return { ...at, kind: 'separate', target: ref(node.parent) };
     case 'sweep': return { ...at, kind: 'sweep', sketch: id(node.sketch), path: node.path };
     case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })), ...(node.smooth ? { smooth: true } : {}) };
     case 'import': return { ...at, kind: 'import', step: node.step, ...((node.solids ?? 1) > 1 ? { each: true } : {}) };
@@ -81,6 +82,6 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
 export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   const m = /^n(\d+)(?:\/(\d+))?$/.exec(outputId);
   if (!m) return outputId;
-  if (m[2] !== undefined && nodes?.[Number(m[1])]?.kind === 'import') return `b${m[1]}_part${m[2]}`;
+  if (m[2] !== undefined && (nodes?.[Number(m[1])]?.kind === 'import' || nodes?.[Number(m[1])]?.kind === 'separate')) return `b${m[1]}_part${m[2]}`;
   return m[2] === undefined ? `b${m[1]}` : `b${m[1]}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };
