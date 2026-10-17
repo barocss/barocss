@@ -291,6 +291,7 @@ export class GpuRenderer implements ViewRenderer {
         : this.viewer.add({ positions: it.positions, topology: 'lines' }, { name: 'direct:' + it.id, material: { color: on ? '#ffd35c' : '#5ec8e5', unlit: true, lineWidth: on ? 3 : 2 }, castShadow: false });
       if (on && it.kind === 'surface') mesh.outline = ACCENT;
       this.direct.push({ id: it.id, mesh, kind: it.kind });
+      if (on && it.isos?.length) this.controls.push(this.viewer.add({ positions: it.isos, topology: 'lines' }, { material: { color: '#f3f5f7', unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false }));
       if (on && it.controls.length) this.controls.push(this.viewer.add({ positions: it.controls, topology: 'lines' }, { material: { color: '#c9a3ff', unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }));
     }
     this.viewer.requestRender();

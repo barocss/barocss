@@ -132,3 +132,13 @@ test('IGES: written curves and surfaces read back as the same geometry; a file i
   assert.deepEqual(b.kind === 'curve' && b.controlPoints, a.kind === 'curve' && a.controlPoints);
   assert.throws(() => importIGESFile(emptyDirect(), 'not an iges file', 'x'), /cannot be read/);
 });
+
+test('direct: a curve raised a degree keeps its shape; a surface shows isocurves of both families', () => {
+  const d = importSource(emptyDirect(), STUDY, 'study'), arc = byName(d, 'arc');
+  const before = analyzeCurve(d, arc, 0.3).point, up = directOps.elevateCurveDegree(d, arc), g = geometryOf(up, up.objects.find(o => o.id === arc)!);
+  assert.ok(g.kind === 'curve' && g.degree === 3);
+  const after = analyzeCurve(up, arc, 0.3).point;
+  assert.ok(Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]) < 1e-9);
+  const panel = directDisplay(d).find(x => x.kind === 'surface')!;
+  assert.equal(panel.isos!.length, 16 * 32 * 6, 'eight u and eight v lines of 32 segments');
+});

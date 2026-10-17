@@ -72,12 +72,15 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
     <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
     <div className="kv">Domain <b>{t.map(v => Math.round(v * 1e4) / 1e4).join(' … ')}</b></div>
     <div className="kv">Length <b>{fmtNum(curveLength(direct, id), 4)} mm</b></div>
+    {g.kind === 'curve' && (() => { const a = g.controlPoints[0], b = g.controlPoints[g.controlPoints.length - 1], chord = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = curveLength(direct, id);
+      return <div className="kv">Chord <b>{fmtNum(chord, 4)} mm{chord > 1e-9 ? ` · length ${fmtNum(L / chord, 4)}×` : ' · closed'}</b></div>; })()}
     <NumberField label="At t" value={at} onChange={setAt} />
     <Analysis run={() => { const a = analyzeCurve(direct, id, at); return [['Point', a.point.map(v => fmtNum(v, 3)).join(', ')], ['Radius', a.radius === null ? 'straight' : `${fmtNum(a.radius, 4)} mm`]]; }} />
     <div className="row-actions">
       <button className="ghost" onClick={() => run(() => directOps.splitCurve(direct, id, at), added)}>Split</button>
       <button className="ghost" onClick={() => run(() => directOps.insertCurveKnot(direct, id, at))}>Insert knot</button>
       <button className="ghost" onClick={() => run(() => directOps.reverseCurve(direct, id), added)}>Reverse</button>
+      <button className="ghost" onClick={() => run(() => directOps.elevateCurveDegree(direct, id))}>Raise degree</button>
     </div>
     <NumberField label="From t" value={from} onChange={setFrom} />
     <NumberField label="To t" value={to} onChange={setTo} />

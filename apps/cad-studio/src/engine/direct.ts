@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -136,6 +136,12 @@ export const directOps = {
     const o = object(d, id), r = insertSourceSurfaceKnot({ source: d.sources[o.source], sourceVersion: 0, surfaceId: o.geometry, axis, knot, maximumObservations: 1024 });
     return refine(d, id, r.source);
   },
+  elevateCurveDegree(d: DirectGeometry, id: string) {
+    const o = object(d, id), c = curveOf(d, id);
+    if (c.degree >= 5) throw new Error('The curve is already degree 5, the highest raised to.');
+    const r = elevateSourceCurveDegree({ source: d.sources[o.source], sourceVersion: 0, curveId: o.geometry, targetDegree: c.degree + 1, maximumObservations: 128 } as Parameters<typeof elevateSourceCurveDegree>[0]);
+    return refine(d, id, r.source);
+  },
   elevateDegree(d: DirectGeometry, id: string, axis: 'u' | 'v') {
     const o = object(d, id), s = surfaceOf(d, id), targetDegree = (axis === 'u' ? s.degreeU : s.degreeV) + 1;
     const r = (elevateSourceSurfaceAxisDegree as (req: unknown) => { source: string })({ source: d.sources[o.source], sourceVersion: 0, surfaceId: o.geometry, axis, targetDegree, maximumObservations: 1024 });
@@ -221,6 +227,8 @@ export interface DirectDisplay {
   positions: Float32Array; normals?: Float32Array; indices?: Uint32Array;
   /** Curves: the control polygon; surfaces: the control net rows and columns (segments). */
   controls: Float32Array;
+  /** Surfaces: isocurves of both families, eight each way (segments). */
+  isos?: Float32Array;
 }
 
 /** What the viewport draws of the visible objects. Objects that fail to evaluate are left out. */
@@ -240,7 +248,14 @@ export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
         if (i + 1 < P.length) ctl.push(...P[i][j], ...P[i + 1][j]);
         if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
       }
-      return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl) }];
+      // Isocurves: u = const and v = const at eight steps across each domain (ends included).
+      const dom = surfaceDomain(g), iso: number[] = [], N = 32;
+      for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
+        const c = a[0] + (a[1] - a[0]) * k / 7;
+        let prev: readonly number[] | null = null;
+        for (let i = 0; i <= N; i++) { const t = b[0] + (b[1] - b[0]) * i / N, q = fixU ? evaluateSurface(g, c, t) : evaluateSurface(g, t, c); if (prev) iso.push(...prev, ...q); prev = q; }
+      }
+      return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl), isos: new Float32Array(iso) }];
     } catch { return []; }
   });
 }

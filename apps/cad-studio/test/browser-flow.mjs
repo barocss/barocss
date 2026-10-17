@@ -883,7 +883,7 @@ try {
   await check('import a .barocad source and use curve and surface tools', async () => {
     await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/study.barocad'));
     await page.waitForFunction(() => (window.__studioDoc.direct?.objects.length ?? 0) === 4);
-    await page.locator('.ol.direct', { hasText: 'panel' }).click();
+    await page.locator('.ol.direct', { hasText: 'panel' }).click(); await page.waitForTimeout(300); await snap('direct-isocurves');
     await page.click('.direct-panel button:text-is("Iso-curve")');
     await page.locator('.ol.direct', { hasText: 'arc' }).first().click();
     await page.click('.direct-panel button:text-is("Split")');
