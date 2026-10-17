@@ -40,3 +40,16 @@ test('a placed bolt edits as itself (five steps rebuilt in place); lengths follo
   assert.equal(f.derive!(ctx, { ...f.defaults!(ctx), size: 'M3', length: '80' }, ['size']).length, '30');
   assert.throws(() => f.build!(ctx, { ...f.defaults!(ctx), size: 'M3', length: '80' }), /come 5–30 mm long/);
 });
+
+test('a bolt edited into a nut: fewer steps, and the features after it follow', async () => {
+  const { withNode } = await import('../src/engine/doc');
+  let doc = f.build!(ctx, { ...f.defaults!(ctx), size: 'M6', length: '20', x: 0, y: 0, z: 0 });
+  const top = doc.nodes.length - 1;
+  doc = withNode(doc, { kind: 'translate', parent: { node: top, side: 'solid' }, offset: [50, 0, 0] });
+  const edit = editCommand(top, doc.nodes)!, ectx: Ctx = { doc, bodies: bodiesOf(doc), selection: { faces: [], edges: [], bodies: [0] } };
+  const next = edit.build!(ectx, { ...edit.defaults!(ectx), kind: 'hex-nut' });
+  assert.equal(next.nodes.length, 3, 'a nut (sketch + solid) and the move');
+  assert.deepEqual((next.nodes[2] as { parent: { node: number } }).parent.node, 1);
+  const [nut] = bodiesOf(next);
+  assert.equal(Math.round(nut.mesh.bounds.min[0] + nut.mesh.bounds.max[0]), 100, 'still moved 50 along X');
+});

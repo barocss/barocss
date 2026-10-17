@@ -5,6 +5,7 @@ import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf, profileMiddle } from './profiles';
+import { replaceRange } from '../chat/features';
 import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
 import type { BodyResult } from '../engine/evaluate';
 
@@ -114,11 +115,8 @@ function shapeEdit(index: number, nodes: readonly ModelNode[]): Command | null {
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
   if (n === 2 && (solid.kind === 'union' || solid.kind === 'rotate' || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch')) return null;
-  const rebuild = (ctx: Ctx, v: Values) => {
-    const built = cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, start) } }, v).nodes.slice(start);
-    if (built.length !== n) throw new Error(`${cmd.label} no longer builds in place (it would make ${built.length} steps, not ${n}).`);
-    return { ...ctx.doc, nodes: [...ctx.doc.nodes.slice(0, start), ...built, ...ctx.doc.nodes.slice(index + 1)] };
-  };
+  // (Rebuilt in place; a different number of steps — a bolt made a nut — renumbers what follows.)
+  const rebuild = (ctx: Ctx, v: Values) => replaceRange(ctx.doc, start, n, cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, start) } }, v).nodes.slice(start));
   const probe: Ctx = { doc: { nodes: [...nodes] } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   try { if (JSON.stringify(rebuild(probe, made.values).nodes.slice(start, index + 1)) !== JSON.stringify(nodes.slice(start, index + 1))) return null; } catch { return null; }
   return { ...cmd, id: 'edit', label: `Edit ${cmd.label}`, group: 'modify', available: () => ok, defaults: () => ({ ...made.values }), build: rebuild, place: undefined };

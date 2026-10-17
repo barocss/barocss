@@ -238,3 +238,17 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
   if (rootKey && looks[rootKey].color) { const m = /^b(\d+)/.exec(rootKey)!; out = { ...out, bodies: { ...looks, [`b${map(Number(m[1]))}`]: { color: looks[rootKey].color } } }; }
   return { doc: prefixDoc(out, out.nodes.length), top };
 }
+
+/**
+ * The document with nodes `start … start + count − 1` replaced by `next` (a shape rebuilt with a different
+ * number of steps): later nodes, names in them and body looks are renumbered; what pointed into the old
+ * range points at its last node's replacement (the shape's solid).
+ */
+export function replaceRange(doc: StudioDoc, start: number, count: number, next: ModelNode[]): StudioDoc {
+  const shift = next.length - count, top = start + next.length - 1;
+  const map = (i: number) => i < start ? i : i < start + count ? top : i + shift;
+  const after = doc.nodes.slice(start + count).map(n => renumber(n, map));
+  const out: StudioDoc = { ...doc, nodes: [...doc.nodes.slice(0, start), ...next, ...after] };
+  if (doc.bodies && shift) out.bodies = renameKeys(doc.bodies, new Set(), map);
+  return prefixDoc(out, out.nodes.length);
+}
