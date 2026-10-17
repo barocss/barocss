@@ -121,13 +121,54 @@ export async function section(doc: StudioDoc, bodies: readonly BodyResult[], eva
   });
 }
 
+// A uniform grid over a mesh's triangles, for rays (wall thickness): cells about two triangles each.
+interface Grid { n: number; lo: Float64Array; size: Float64Array; cells: Int32Array[]; stamp: Int32Array; mark: number }
+function gridOf(m: DisplayMesh): Grid {
+  const T = m.indices.length / 3, n = Math.max(1, Math.min(64, Math.ceil(Math.cbrt(T / 2)))), lo = new Float64Array(3), hi = new Float64Array(3);
+  for (let k = 0; k < 3; k++) { lo[k] = m.bounds.min[k] - 1e-6; hi[k] = m.bounds.max[k] + 1e-6; }
+  const size = new Float64Array(3); for (let k = 0; k < 3; k++) size[k] = Math.max(1e-9, (hi[k] - lo[k]) / n);
+  const lists: number[][] = Array.from({ length: n * n * n }, () => []);
+  for (let t = 0; t < T; t++) {
+    triangleAt(m, t);
+    const a = [0, 0, 0], b = [0, 0, 0];
+    for (let k = 0; k < 3; k++) { const mn = Math.min(tri[k], tri[3 + k], tri[6 + k]), mx = Math.max(tri[k], tri[3 + k], tri[6 + k]); a[k] = Math.max(0, Math.min(n - 1, Math.floor((mn - lo[k]) / size[k]))); b[k] = Math.max(0, Math.min(n - 1, Math.floor((mx - lo[k]) / size[k]))); }
+    for (let i = a[0]; i <= b[0]; i++) for (let j = a[1]; j <= b[1]; j++) for (let k = a[2]; k <= b[2]; k++) lists[(i * n + j) * n + k].push(t);
+  }
+  return { n, lo, size, cells: lists.map(l => Int32Array.from(l)), stamp: new Int32Array(T), mark: 0 };
+}
+/** The nearest hit along a ray through the grid (Amanatides–Woo), skipping triangle `skip`; Infinity for none. */
+function gridRay(m: DisplayMesh, g: Grid, ox: number, oy: number, oz: number, dx: number, dy: number, dz: number, skip: number): number {
+  const o = [ox, oy, oz], d = [dx, dy, dz], c = [0, 0, 0], step = [0, 0, 0], tMax = [0, 0, 0], tDelta = [0, 0, 0];
+  for (let k = 0; k < 3; k++) {
+    c[k] = Math.max(0, Math.min(g.n - 1, Math.floor((o[k] - g.lo[k]) / g.size[k])));
+    step[k] = d[k] > 0 ? 1 : d[k] < 0 ? -1 : 0;
+    const edge = g.lo[k] + (c[k] + (step[k] > 0 ? 1 : 0)) * g.size[k];
+    tMax[k] = step[k] ? (edge - o[k]) / d[k] : Infinity; tDelta[k] = step[k] ? g.size[k] / Math.abs(d[k]) : Infinity;
+  }
+  g.mark++;
+  let best = Infinity;
+  for (;;) {
+    const list = g.cells[(c[0] * g.n + c[1]) * g.n + c[2]];
+    for (let q = 0; q < list.length; q++) {
+      const t = list[q]; if (t === skip || g.stamp[t] === g.mark) continue;
+      g.stamp[t] = g.mark; triangleAt(m, t);
+      const h = rayHit(ox, oy, oz, dx, dy, dz); if (h < best) best = h;
+    }
+    const k = tMax[0] < tMax[1] ? (tMax[0] < tMax[2] ? 0 : 2) : (tMax[1] < tMax[2] ? 1 : 2);
+    // (A hit nearer than the next cell's boundary cannot be beaten further on.)
+    if (best <= tMax[k]) return best;
+    c[k] += step[k]; if (c[k] < 0 || c[k] >= g.n) return best;
+    tMax[k] += tDelta[k];
+  }
+}
+
 /**
  * Wall thickness of a body: from sample points on its faces (each triangle's centre), a ray inward against the
- * face's normal to the next wall. The thinnest (with where), and the faces under `below` mm if asked. On the
- * display mesh: good to its chord error on curved walls.
+ * face's normal to the next wall (through a uniform grid of the triangles). The thinnest (with where), and the
+ * faces under `below` mm if asked. On the display mesh: good to its chord error on curved walls.
  */
 export function wallThickness(b: BodyResult, below?: number): Record<string, unknown> {
-  const m = b.mesh, T = m.indices.length / 3, perFace = new Map<number, number>();
+  const m = b.mesh, T = m.indices.length / 3, perFace = new Map<number, number>(), g = gridOf(m);
   let min = Infinity, at: Vec3 = [0, 0, 0], face = -1;
   for (let t = 0; t < T; t++) {
     triangleAt(m, t);
@@ -135,8 +176,7 @@ export function wallThickness(b: BodyResult, below?: number): Record<string, unk
     const e1x = tri[3] - tri[0], e1y = tri[4] - tri[1], e1z = tri[5] - tri[2], e2x = tri[6] - tri[0], e2y = tri[7] - tri[1], e2z = tri[8] - tri[2];
     let nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x; const l = Math.hypot(nx, ny, nz); if (!(l > 0)) continue;
     nx /= -l; ny /= -l; nz /= -l;
-    let d = Infinity;
-    for (let s = 0; s < T; s++) { if (s === t) continue; triangleAt(m, s); const h = rayHit(cx, cy, cz, nx, ny, nz); if (h < d) d = h; }
+    const d = gridRay(m, g, cx, cy, cz, nx, ny, nz, t);
     const f = m.faceOfVertex[m.indices[t * 3]];
     if (d < (perFace.get(f) ?? Infinity)) perFace.set(f, d);
     if (d < min) { min = d; at = [cx, cy, cz]; face = f; }

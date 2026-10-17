@@ -115,6 +115,15 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .outliner .card-title { display: flex; align-items: center; gap: 6px; }
 .outliner .card-title .muted { flex: 1; }
 .ol-head { margin: 8px 0 2px; color: var(--muted); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+/* Requirements (chat/spec.ts): each with its status; assumed ones editable. */
+.req-head { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.req { display: flex; flex-direction: column; gap: 2px; border-radius: 5px; }
+.req-row { display: block; width: 100%; padding: 3px 4px; border: 0; border-radius: 4px; background: transparent; color: var(--text); font: inherit; font-size: 12px; line-height: 1.4; text-align: left; white-space: normal; cursor: pointer; }
+.req-row:hover { background: rgba(255, 255, 255, 0.05); }
+.req-mark { display: inline-block; width: 14px; font-weight: 700; }
+.req.pass .req-mark { color: #4caf7d; } .req.fail .req-mark { color: #e05a4f; } .req.unknown .req-mark { color: #c9a227; }
+.req-edit { display: flex; align-items: center; gap: 4px; padding-left: 18px; font-size: 11px; }
+.req-edit input { width: 64px; }
 .ol-row { display: flex; align-items: center; gap: 4px; border-radius: 5px; }
 .ol-row.sel { background: rgba(245, 197, 66, 0.12); }
 .ol-row .ol { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -38,6 +38,8 @@ export interface Requirement {
   hard: boolean;
   /** stated: given; assumed: chosen where the brief said nothing; ambiguous: the brief can be read more ways. */
   basis?: 'stated' | 'assumed' | 'ambiguous';
+  /** Who confirmed an assumption (the user in the studio, for one), and when (ISO time): stated since. */
+  confirmed?: { by: string; at: string };
   /** Meant to hold under any change (one piece, no interference): not flagged as vacuous; `invariant_reason` says why. */
   invariant?: boolean; invariant_reason?: string;
   check: Predicate;

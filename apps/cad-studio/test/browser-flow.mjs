@@ -1965,6 +1965,33 @@ try {
     await page.waitForFunction(() => /1 solid/.test(document.body.innerText), null, { timeout: 15000 });
   });
 
+  await check('requirements: the panel checks the brief, an assumption confirmed by the user is stated, a person\'s edit breaking a hard one is kept and said', async () => {
+    const fs = await import('node:fs');
+    const nodes = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 5 },
+      { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [30, 10] }, { id: 'n3', kind: 'extrude', sketch: 2, height: 5 }];
+    const requirements = [
+      { id: 'W', source: 'at least 25 wide', hard: true, basis: 'stated', check: { op: '>=', query: { fn: 'bbox', axis: 'x' }, value: 25, unit: 'mm' } },
+      { id: 'H', source: 'about 4 tall', hard: true, basis: 'assumed', check: { op: '==', query: { fn: 'bbox', axis: 'z' }, value: 4, tol: 0.01, unit: 'mm' } },
+    ];
+    const file = join(out, 'brief.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 4, outputs: {}, nodes, requirements }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Requirement H"]', { timeout: 15000 });
+    await page.waitForFunction(() => /1 ✓ · 1 ✗ · 0 \?/.test(document.querySelector('.req-head')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Requirement H"]'), /assumed/);
+    // The user sets the assumption to what the part has, and confirms it.
+    await page.fill('[aria-label="H value"]', '5');
+    await page.click('[aria-label="Confirm H"]');
+    await page.waitForFunction(() => window.__studioDoc.requirements?.[1]?.basis === 'stated' && window.__studioDoc.requirements[1].confirmed?.by === 'user', null, { timeout: 15000 });
+    await page.waitForFunction(() => /2 ✓ · 0 ✗/.test(document.querySelector('.req-head')?.textContent ?? ''), null, { timeout: 15000 });
+    // The second box moved 10 left: the part is 20 wide, W fails; the move is kept, and said.
+    const before = (await doc()).nodes.length;
+    await page.locator('.outliner .ol-row button.ol').nth(1).click();
+    await page.keyboard.press('Shift+ArrowLeft');
+    await page.waitForFunction(() => /W now fails/.test(document.body.innerText), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes.length, before + 1, 'the move is kept');
+  });
+
   await check('face colour: the top of a box coloured on its own, kept by the face name; cleared again', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

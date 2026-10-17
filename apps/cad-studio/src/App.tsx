@@ -4,6 +4,7 @@ import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
+import { checkSpec, expectedOf, type Outcome } from './chat/spec';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from './engine/references';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
@@ -370,9 +371,9 @@ export function App() {
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
-    // there (render, drawing, direct geometry, instances) is the document's newest.
+    // there (render, drawing, direct geometry, instances, requirements) is the document's newest.
     const was = evaluatedRef.current;
-    next = { ...next, ...Object.fromEntries((['render', 'drawing', 'direct', 'instances'] as const).filter(k => next[k] === was[k] && doc[k] !== was[k]).map(k => [k, doc[k]])) };
+    next = { ...next, ...Object.fromEntries((['render', 'drawing', 'direct', 'instances', 'requirements'] as const).filter(k => next[k] === was[k] && doc[k] !== was[k]).map(k => [k, doc[k]])) };
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
@@ -1004,6 +1005,34 @@ export function App() {
       void verifyOpened(parsed);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
+  // The requirements checked against the part as it stands (chat/spec.ts), whenever either changes.
+  // (After evaluation settles: debounced, a stale run dropped, none while a command previews or a sketch is open.
+  // A person's edit is never refused for breaking a requirement — a hard one that passed and now fails is said.)
+  const [spec, setSpec] = useState<{ summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome>; of: readonly unknown[] } | null>(null);
+  const [specRunning, setSpecRunning] = useState(false), [failingOnly, setFailingOnly] = useState(false);
+  const specPassed = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!doc.requirements?.length) { setSpec(null); specPassed.current = new Set(); return; }
+    if (busy || active || sketch || previewBodies) return;
+    let live = true;
+    const t = setTimeout(() => {
+      setSpecRunning(true);
+      // (The evaluated model follows model edits only: the requirements are the document's own.)
+      void checkSpec({ ...evaluated, requirements: doc.requirements }, bodies, d => engine.part(d, revision.current++)).then(r => {
+        if (!live) return;
+        const broke = (doc.requirements ?? []).filter(q => q.hard && specPassed.current.has(q.id) && r.outcomes.get(q.id)?.status === 'fail').map(q => q.id);
+        specPassed.current = new Set([...r.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id));
+        setSpec({ summary: r.summary, outcomes: Object.fromEntries(r.outcomes), of: evaluated.nodes });
+        if (broke.length) setToast({ title: `${broke.join(', ')} now fail${broke.length === 1 ? 's' : ''}`, hint: `A hard requirement that held no longer does: ${broke.map(id => { const o = r.outcomes.get(id); return `${id} measures ${String(o?.measured)}`; }).join('; ')}. Your change is kept; undo it or change the part.`, detail: '' });
+      }).finally(() => { if (live) setSpecRunning(false); });
+    }, 350);
+    return () => { live = false; clearTimeout(t); };
+  }, [doc.requirements, bodies, evaluated, busy, active, sketch, previewBodies]);
+  /** An assumed (or ambiguous) requirement's value set by the user, and confirmed: stated from now on, with who and when. */
+  const setRequirement = (id: string, value: number) => {
+    if (!Number.isFinite(value)) return;
+    commit({ ...doc, requirements: doc.requirements!.map(q => q.id !== id ? q : { ...q, basis: 'stated' as const, confirmed: { by: 'user', at: new Date().toISOString() }, check: q.check.op === 'between' ? q.check : { ...q.check, value } }) }, false);
+  };
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const settleRef = async (index: number, to?: string) => {
@@ -1447,6 +1476,24 @@ export function App() {
             setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
+        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
+          <button className={'tool tiny' + (failingOnly ? ' on' : '')} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></button></div>
+        {doc.requirements.map(q => {
+          const o = spec?.outcomes[q.id], st = o?.status ?? 'unknown';
+          if (failingOnly && st === 'pass') return null;
+          const editable = q.basis === 'assumed' || q.basis === 'ambiguous';
+          return <div key={q.id} className={'req ' + st} role="listitem" aria-label={`Requirement ${q.id}`}>
+            <button className="req-row" title={o?.why ?? (o?.hint ? `${o.hint}` : q.source)} onClick={() => { if (o?.entities?.length) setSelection(resolveNames(bodies, { faces: o.entities, edges: o.entities }).selection); }}>
+              <span className="req-mark">{st === 'pass' ? '✓' : st === 'fail' ? '✗' : '?'}</span><b>{q.id}</b> {q.source}
+              {st === 'fail' && <span className="muted"> · {String(o?.measured)} (want {expectedOf(q.check)})</span>}
+              {st === 'unknown' && o?.why && <span className="muted"> · {o.why}</span>}
+              <span className="muted"> · {q.hard ? 'hard' : 'soft'} · {q.basis ?? 'stated'}{q.confirmed ? ` (confirmed by ${q.confirmed.by})` : ''}</span></button>
+            {editable && <span className="req-edit"><span className="muted">{q.basis}</span>
+              <input aria-label={`${q.id} value`} type="number" step="any" defaultValue={q.check.value ?? q.check.max ?? q.check.min}
+                onKeyDown={e => { if (e.key === 'Enter') setRequirement(q.id, Number(e.currentTarget.value)); e.stopPropagation(); }} />
+              <button className="ghost small" aria-label={`Confirm ${q.id}`} onClick={e => { const v = (e.currentTarget.previousSibling as HTMLInputElement).value; setRequirement(q.id, Number(v)); }}>Confirm</button></span>}
+          </div>;
+        })}</>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside>
