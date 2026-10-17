@@ -304,6 +304,24 @@ Order (checkpoint with SHAs and numbers after each step; the owner wants to see 
    timeline feature; the pole gizmo from `direct.ts` driven by cage data, not source-text edits.
 9. **R9 — M4**: our own QEM decimation, attribute-aware, with a reported error.
 
+Then the **AI mechanical parts track** (owner, 2026-10-18: serial, one implementation session, "그냥 순서대로
+하는게 좋아"). For an AI to model anything the kernel must express it; mechanical parts and sheet metal are
+most real demand, and fillet is the most used feature after extrude (today only plane/plane and
+plane/cylinder edges, `edge-finish.ts`). Kernel breadth, robustness and automatic verification before UI.
+An S0-style feasibility checkpoint before each large step (R10, R11, R12).
+10. **R10 — general fillet and chamfer** (on R2/B0): any edge incl. B-spline and cylinder/cylinder; constant
+    radius, then variable; vertex blends and setbacks where three or more fillets meet; rolling-ball blends as
+    exact NURBS approximations with a reported deviation; clear refusal codes (radius too large, degenerate).
+11. **R11 — general shell and offset** for B-spline and facet faces: offset surfaces, then self-intersection
+    trimming; failures diagnosed per face.
+12. **R12 — sheet metal**: base flange from a sketch, edge flange, bend (radius, K-factor), reliefs, flat
+    pattern, DXF export of it, bend table data in the part.
+13. **R13 — automatic verification and DFM checks** for AI loops: minimum wall thickness, tool access and
+    moulding draft, hole/thread standards, intended versus actual dimensions; machine-readable reports in
+    the existing diagnostic codes.
+14. **R14 — automatic drawings**: view selection and layout, dimensions from feature intent, GD&T and
+    tolerance suggestions.
+
 R1 results (2026-10-18, `f5d237c9f`; `pnpm bench:mesh`, `pnpm bench:mesh --facets`; audit in
 [`f0-audit.md`](f0-audit.md)):
 - Per-triangle B-rep faces (today's `brepFromTriangles`): 200k triangles → 10.5 s to convert, 3.8–85 s to
