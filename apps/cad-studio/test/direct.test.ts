@@ -142,3 +142,13 @@ test('direct: a curve raised a degree keeps its shape; a surface shows isocurves
   const panel = directDisplay(d).find(x => x.kind === 'surface')!;
   assert.equal(panel.isos!.length, 16 * 32 * 6, 'eight u and eight v lines of 32 segments');
 });
+
+test('direct: stretch by axis and shear copy the geometry by the affine map about its centre', () => {
+  const d = importSource(emptyDirect(), STUDY, 'study'), top = byName(d, 'top');
+  const s = directOps.stretch(d, [top], [2, 1, 1]), g = geometryOf(s, s.objects.find(o => o.id === top)!);
+  assert.ok(g.kind === 'curve'); assert.deepEqual(g.controlPoints.map(p => p.map(v => Math.round(v * 1e9) / 1e9)), [[-10, 0, 10], [30, 0, 10]]);
+  // The panel (z = −5, centre x = 10) sheared z += 0.5 (x − 10): its x = 0 edge to z = −10, its x = 20 edge to 0.
+  const panel = byName(d, 'panel'), sh = directOps.shear(d, [panel], 'z', 'x', 0.5), q = geometryOf(sh, sh.objects.find(o => o.id === panel)!);
+  assert.ok(q.kind === 'surface'); assert.deepEqual(q.controlPoints.flat().map(p => Math.round(p[2] * 1e9) / 1e9), [-10, -10, 0, 0]);
+  assert.throws(() => directOps.shear(d, [panel], 'x', 'x', 1), /two different axes/);
+});

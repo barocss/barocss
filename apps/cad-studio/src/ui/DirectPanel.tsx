@@ -30,7 +30,8 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
       {one ? <Rename key={one.id} name={one.name} onRename={n => run(() => directOps.rename(direct, one.id, n))} />
         : objs.map(o => <div key={o.id} className="kv">Name <b>{o.name}</b></div>)}
       <Transform onMove={by => run(() => directOps.move(direct, selected, by))} onRotate={(axis, deg) => run(() => directOps.rotate(direct, selected, axis, deg))}
-        onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)} />
+        onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)}
+        onStretch={k => run(() => directOps.stretch(direct, selected, k))} onShear={(a, b, k) => run(() => directOps.shear(direct, selected, a, b, k))} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
       {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
       {objs.length >= 3 && curves && <div className="render-section">
@@ -161,7 +162,10 @@ function Rename({ name, onRename }: { name: string; onRename(n: string): void })
 }
 
 /** Move by a vector, turn about an axis through the centre, scale about the centre, or duplicate. */
-function Transform({ onMove, onRotate, onScale, onDuplicate }: { onMove(by: [number, number, number]): void; onRotate(axis: 'x' | 'y' | 'z', deg: number): void; onScale(k: number): void; onDuplicate(): void }) {
+type Ax = 'x' | 'y' | 'z';
+function Transform({ onMove, onRotate, onScale, onDuplicate, onStretch, onShear }: { onMove(by: [number, number, number]): void; onRotate(axis: Ax, deg: number): void; onScale(k: number): void; onDuplicate(): void; onStretch(k: [number, number, number]): void; onShear(along: Ax, by: Ax, k: number): void }) {
+  const [st, setSt] = useState<[number, number, number]>([1, 1, 2]), [along, setAlong] = useState<Ax>('x'), [byAx, setByAx] = useState<Ax>('z'), [sk, setSk] = useState(0.5);
+  const axisPick = (label: string, v: Ax, set: (a: Ax) => void) => <label className="field"><span>{label}</span><select aria-label={label} value={v} onChange={e => set(e.target.value as Ax)}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>;
   const [by, setBy] = useState<[number, number, number]>([0, 0, 10]);
   const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [deg, setDeg] = useState(90), [k, setK] = useState(2);
   return <div className="render-section">
@@ -173,5 +177,10 @@ function Transform({ onMove, onRotate, onScale, onDuplicate }: { onMove(by: [num
     <button className="ghost" onClick={() => onRotate(axis, deg)}>Rotate</button>
     <NumberField label="Factor" value={k} onChange={setK} />
     <div className="row-actions"><button className="ghost" onClick={() => onScale(k)}>Scale</button><button className="ghost" onClick={onDuplicate}>Duplicate</button></div>
+    {(['× X', '× Y', '× Z'] as const).map((l, i) => <NumberField key={l} label={l} value={st[i]} onChange={x => setSt(b => b.map((y, j) => j === i ? x : y) as typeof b)} />)}
+    <button className="ghost" onClick={() => onStretch(st)}>Stretch</button>
+    {axisPick('Shear moves', along, setAlong)}{axisPick('by', byAx, setByAx)}
+    <NumberField label="Shear factor" value={sk} onChange={setSk} />
+    <button className="ghost" onClick={() => onShear(along, byAx, sk)}>Shear</button>
   </div>;
 }

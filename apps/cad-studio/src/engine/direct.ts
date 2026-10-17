@@ -189,6 +189,18 @@ export const directOps = {
     if (!(k > 0)) throw new Error('A scale is a positive factor.');
     return directOps.transform(d, ids, p => aboutCentre([k, 0, 0, 0, k, 0, 0, 0, k], p));
   },
+  /** Stretched along X, Y and Z by their own factors, about each object's centre. */
+  stretch(d: DirectGeometry, ids: string[], k: [number, number, number]) {
+    if (!k.every(x => x > 0)) throw new Error('Each stretch is a positive factor.');
+    return directOps.transform(d, ids, p => aboutCentre([k[0], 0, 0, 0, k[1], 0, 0, 0, k[2]], p));
+  },
+  /** Sheared: `along` moves by `k` times the distance along `by` (x += k·y for along x, by y), about each centre. */
+  shear(d: DirectGeometry, ids: string[], along: 'x' | 'y' | 'z', by: 'x' | 'y' | 'z', k: number) {
+    if (along === by) throw new Error('A shear moves one axis by another: pick two different axes.');
+    if (!Number.isFinite(k)) throw new Error('Give the shear a factor.');
+    const R = [1, 0, 0, 0, 1, 0, 0, 0, 1]; R['xyz'.indexOf(along) * 3 + 'xyz'.indexOf(by)] = k;
+    return directOps.transform(d, ids, p => aboutCentre(R, p));
+  },
   duplicate(d: DirectGeometry, ids: string[]) {
     const used = usedIds(d);
     return { ...d, objects: [...d.objects, ...ids.map(id => { const o = object(d, id); return { ...o, id: fresh(used, 'obj'), name: `${o.name} copy`, hidden: false }; })] };
