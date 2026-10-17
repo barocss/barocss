@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, agentMayNotAccept, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
-import { compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
+import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
 import { modelHash } from '../src/chat/spec';
 import { readStudioDoc } from '../src/engine/migrate';
+import { defaultDrawing } from '../src/drawing/types';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -119,10 +120,17 @@ test('history: prompts capped, the oldest folded under the budget (said so), str
   assert.ok(!JSON.stringify(shared).includes('secret') && !JSON.stringify(shared).includes('"plan"'));
 });
 
-test('risk: an assembly, mates, a drawing or a part from a file always need approval', async () => {
+test('risk: changes to an assembly, its mates, the drawing or a part from a file always need approval; a change beside them does not', async () => {
   const s = await stateOf({ ...rectanglePart(40, 20, 8), instances: [{ id: 'i1', name: 'pin', doc: rectanglePart(4, 4, 10), position: [0, 0, 20], rotation: [0, 0, 0], part: { id: 'pin', rev: 'A', source: 'pin.bcad' } }] });
-  const out = parse((await runTool(s, 'propose', { title: 'hole', ops: [HOLE] }, evaluate)).content);
-  assert.deepEqual(out.risk.approval, ['assembly', 'locked part']);
+  // A hole in the base part: the placed part untouched, nothing needing approval.
+  assert.deepEqual(parse((await runTool(s, 'propose', { title: 'hole', ops: [HOLE] }, evaluate)).content).risk.approval, []);
+  // The placed part (from a file) moved: the assembly and a locked part.
+  const moved = parse((await runTool(s, 'propose', { title: 'move', ops: [{ tool: 'place_part', args: { part: 'i1', position: [5, 0, 20] } }] }, evaluate)).content);
+  assert.deepEqual(moved.risk.approval, ['assembly', 'locked part']);
+  // Directly, refused at every level, the state the same.
+  const direct = await runTool(s, 'place_part', { part: 'i1', position: [5, 0, 20] }, evaluate);
+  assert.ok(direct.isError); assert.equal(parse(direct.content).code, 'needs_approval'); assert.equal(direct.state, s);
+  assert.deepEqual(approvalOf(s.doc, { ...s.doc, drawing: defaultDrawing() }), ['drawing']);
 });
 
 // The A4 conformance cases (conformance/a4): a document, a proposal, what it would do, and its acceptance.
@@ -132,6 +140,25 @@ for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
   test(`conformance ${c.id}: ${c.about}`, async () => {
     const read = readStudioDoc(JSON.stringify(c.input.file)); assert.ok('doc' in read);
     const s = await stateOf(read.doc);
+    if (c.input.direct) {
+      const was = process.env.CAD_AUTONOMY;
+      try {
+        for (const level of c.input.direct.levels) {
+          process.env.CAD_AUTONOMY = String(level);
+          const d = await runTool(s, c.input.direct.tool, c.input.direct.args, evaluate), why = parse(d.content);
+          assert.ok(d.isError); assert.equal(d.state, s);
+          // (L1 refuses any change first; from L2 the approval rule.)
+          if (level > 1) assert.deepEqual({ code: why.code, approval: why.approval }, c.expect.refusal);
+        }
+        const p = await runTool(s, 'propose', { title: 'move', ops: [{ tool: c.input.direct.tool, args: c.input.direct.args }] }, evaluate), out = parse(p.content);
+        assert.deepEqual(out.risk.approval, c.expect.proposed_approval);
+        process.env.CAD_AUTONOMY = '4';
+        assert.match(parse((await runTool(p.state, 'accept_proposal', { id: out.proposal }, evaluate)).content).error, new RegExp(c.expect.agent_accept));
+        const a = await acceptProposal(p.state, out.proposal, evaluate); assert.ok('state' in a, JSON.stringify(a));
+        assert.deepEqual(a.state.doc.instances![0].position, c.expect.accepted_position);
+      } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
+      return;
+    }
     if (c.input.accept) {
       const blind = await acceptProposal(s, c.input.accept.id, evaluate);
       assert.equal('error' in blind && blind.stale === true, c.expect.stale);

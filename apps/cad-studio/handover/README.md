@@ -439,7 +439,20 @@ Checks at the end:
 | RB and props | 0 NEW |
 | bench | within budget |
 
-Pending decisions (reversible defaults taken): a placed part with a source file counts as locked (D40); at L2+ an agent's direct assembly edits are not forced into proposals (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
+Pending decisions (reversible defaults taken):
+- A placed part with a source file counts as locked (D40).
+- **For the owner: what L2, the default autonomy, means (D41).** Today L2 applies the agent's changes directly,
+  with one undo per turn. The research blueprint says "propose by default": the backlash against auto-apply with
+  only undo-all, and review cost driving over-reliance. Options:
+  - (a) keep direct apply at L2;
+  - (b) L2 proposes any multi-feature or topology change, and applies parameter-only edits within requirement
+    bounds directly;
+  - (c) L2 proposes everything.
+
+  The peer recommends (b). Kept at (a) until the owner decides.
+
+Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
+every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
 Next: R3.
 

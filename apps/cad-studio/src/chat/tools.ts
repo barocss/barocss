@@ -19,7 +19,7 @@ import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
 import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions, type TreeDiff } from './transactions';
-import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
+import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 export { resolveNames, type NameSelection };
@@ -101,7 +101,7 @@ function features(doc: StudioDoc) {
 }
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
-const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature']);
+const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
 const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
@@ -264,10 +264,17 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   // (Every call counted; the policy rides on the state the call leaves.)
   const policy = { ...(state.policy ?? newPolicy()) }; policy.calls++;
   const out = await runToolCounted({ ...state, policy }, name, input, evaluate);
+  // (Assemblies, mates, drawings and locked parts always need the user: an agent proposes such a change, D41.)
+  if (!out.isError && out.changed && name !== 'propose' && name !== 'accept_proposal') {
+    const needs = approvalOf(state.doc, out.state.doc);
+    if (needs.length) return { ...fail(state, `This changes the ${needs.join(', ')}: propose it (propose) instead — this kind of change always needs the user's approval.`, { code: 'needs_approval', approval: needs, kept: 'the part is unchanged' }), state };
+  }
   // (A refused call leaves the state as it was: the very same object, uncounted.)
   if (out.isError) return { ...out, state };
   return { ...out, state: { ...out.state, policy: out.state.policy ?? policy } };
 }
+/** The dispatcher without the session's gates (autonomy, approval): what proposals replay, and the tools' own tests. */
+export const dispatchTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate);
 async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
@@ -335,7 +342,8 @@ async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Pro
     if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return { fail: fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' }) };
     const opId = typeof op.opId === 'string' ? op.opId : undefined, opArgs = isObj(op.args) ? op.args : {};
     if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
-    const r = await runPartTool(cur, op.tool, opArgs, evaluate);
+    // (Through the dispatcher: a part tool may name an instance with "part", assembly tools are batchable too.)
+    const r = await runToolCounted(cur, op.tool, opArgs, evaluate);
     if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return { fail: fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }) }; }
     cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
     results.push({ op: k, ...(opId ? { opId } : {}), did }); kept.push({ tool: op.tool, args: opArgs, ...(opId ? { opId } : {}) });
@@ -966,7 +974,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'propose',
-    description: 'Proposes a change without making it: title, ops (as apply_ops takes them), plan (a few lines: what and why), requirements (the ids it serves). The ops are tried on a copy; the result is the feature-tree diff, the facts\' change, references it would break, the checks before and after, and a risk badge. The part stays as it is: the user accepts or rejects the proposal in the studio, and rejected ones are kept. Propose instead of changing when the user asks for options or a review, or when the change is risky (deletes features, breaks references or hard requirements).',
+    description: 'Proposes a change without making it: title, ops (as apply_ops takes them), plan (a few lines: what and why), requirements (the ids it serves). The ops are tried on a copy; the result is the feature-tree diff, the facts\' change, references it would break, the checks before and after, and a risk badge. The part stays as it is: the user accepts or rejects the proposal in the studio, and rejected ones are kept. Propose instead of changing when the user asks for options or a review, or when the change is risky (deletes features, breaks references or hard requirements). Changes to an assembly (add_part, place_part, delete_part, a part tool with "part"), its mates, the drawing or a locked part can only be proposed: ops may hold those tools too (add_part ids run p1, p2, … in order, so later ops can name them).',
     input_schema: { type: 'object', properties: { title: { type: 'string' }, ops: { type: 'array', items: { type: 'object', properties: { tool: { type: 'string' }, args: { type: 'object' }, opId: { type: 'string' } }, required: ['tool'] } }, plan: { type: 'string' }, requirements: { type: 'array', items: { type: 'string' } } }, required: ['title', 'ops'], additionalProperties: false },
   },
   {
@@ -1021,6 +1029,6 @@ Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 
-For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly: build the main or fixed part as the base part (or ground it), add each other part with add_part and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read each result: what the part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly.
+For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly. Assembly changes always need the user's approval, so you propose them: build the main or fixed part as the base part directly, then propose the rest — ops that add each other part with add_part (ids p1, p2, … in order) and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read the proposal's result: what each part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly once the user has accepted it.
 
 Finish with one or two sentences: what was built and its key numbers (volume, overall size). The user can undo your whole turn with one undo.`;

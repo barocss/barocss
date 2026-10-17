@@ -2002,7 +2002,7 @@ try {
     // (Made on another part, base '0': stale from the start.)
     const proposals = [
       { id: 'P1', title: 'A Ø6 hole', status: 'open', by: { agent: 'chat', model: 'test' }, at: '2026-10-18T00:00:00Z', plan: 'Lighter by a through hole.', base: '0', ops: [hole(6)], risk, summary: '1 added' },
-      { id: 'P2', title: 'A Ø12 hole', status: 'open', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', prompt: 'private words', base: '0', ops: [hole(12, 30)], risk: { ...risk, level: 'high' }, summary: '1 added' },
+      { id: 'P2', title: 'A Ø12 hole', status: 'open', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', prompt: 'private words', base: '0', ops: [hole(12, 30)], risk: { ...risk, level: 'high', approval: ['drawing'] }, summary: '1 added' },
       { id: 'P3', title: 'A Ø4 hole and a block', status: 'open', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', base: '0', ops: [hole(4, 30), box], risk, summary: '3 added' },
     ];
     const history = [{ id: 'h1', at: '2026-10-18T00:00:00Z', kind: 'prompt', by: { agent: 'chat', model: 'test' }, prompt: 'make it lighter' }];
@@ -2025,7 +2025,8 @@ try {
     await page.locator('[aria-label="Proposal P1"] button', { hasText: /^Accept/ }).click();
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioDoc.proposals[0].status === 'accepted', null, { timeout: 15000 });
     assert.deepEqual((await doc()).history.map(h => h.kind), ['prompt', 'rebase', 'accept']);
-    // Rejected: kept, nothing built.
+    // One that always needs the user says so. Rejected: kept, nothing built.
+    assert.match(await page.textContent('[aria-label="Proposal P2"]'), /needs you \(drawing\)/);
     await page.locator('[aria-label="Proposal P2"] button', { hasText: 'Reject' }).click();
     await page.waitForFunction(() => window.__studioDoc.proposals[1].status === 'rejected', null, { timeout: 5000 });
     assert.equal((await doc()).nodes.length, 3);

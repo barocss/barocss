@@ -85,14 +85,24 @@ export function stripHistory(doc: StudioDoc): StudioDoc {
   return out;
 }
 
+/**
+ * What a change from `a` to `b` does that always needs a person (D40, D41): the assembly's parts (added, removed,
+ * built or moved — mates moving them too), its mates, the drawing, a locked part. An agent makes these only
+ * through a proposal, which the user accepts at every autonomy level. (No part is marked locked yet: a part
+ * placed from a file counts as one, its own source elsewhere.)
+ */
+export function approvalOf(a: StudioDoc, b: StudioDoc): string[] {
+  const out: string[] = [], same = (x: unknown, y: unknown) => x === y || JSON.stringify(x ?? null) === JSON.stringify(y ?? null);
+  if (!same(a.instances, b.instances)) out.push('assembly');
+  if (!same(a.mates, b.mates)) out.push('mates');
+  if (!same(a.drawing, b.drawing)) out.push('drawing');
+  const was = new Map((a.instances ?? []).map(i => [i.id, i]));
+  if ([...(b.instances ?? []), ...(a.instances ?? [])].some(i => (i.part?.source || was.get(i.id)?.part?.source) && !same(was.get(i.id), (b.instances ?? []).find(x => x.id === i.id)))) out.push('locked part');
+  return out;
+}
 /** The risk of a change from `a` to `b` (its diff, the references it breaks, the hard requirements it changes). */
 export function riskOf(a: StudioDoc, b: StudioDoc, diff: TreeDiff, broken: number, hard: string[]): Risk {
-  const touched = diff.added.length + diff.changed.length + diff.deleted.length + diff.moved.length, approval: string[] = [];
-  if (a.instances?.length || b.instances?.length) approval.push('assembly');
-  if (a.mates?.length || b.mates?.length) approval.push('mates');
-  if (a.drawing || b.drawing) approval.push('drawing');
-  // (No part is marked locked yet: a part placed from a file counts as one, its own source elsewhere.)
-  if ([...(a.instances ?? []), ...(b.instances ?? [])].some(i => i.part?.source)) approval.push('locked part');
+  const touched = diff.added.length + diff.changed.length + diff.deleted.length + diff.moved.length, approval = approvalOf(a, b);
   const level = hard.length || broken || diff.deleted.length ? 'high' : touched > 3 || diff.moved.length || diff.parameters ? 'medium' : 'low';
   return { level, features_touched: touched, references_broken: broken, hard_requirements_changed: hard, approval };
 }

@@ -9,7 +9,7 @@ import { PassThrough } from 'node:stream';
 import { commandById, type Ctx, type Selection } from '../src/app/commands';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatState } from '../src/chat/tools';
+import { acceptProposal, CHAT_COMMANDS, COMMAND_DOCS, dispatchTool, resolveNames, runTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { checkNode, deleteFeature } from '../src/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
@@ -474,52 +474,70 @@ test('the chat server refuses other sites: Origin or Host must be the studio’s
   assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
 });
 
+test('assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply', async () => {
+  const s0 = await stateOf(rectanglePart(64, 32, 8));
+  for (const level of ['2', '4']) {
+    process.env.CAD_AUTONOMY = level;
+    const direct = await runTool(s0, 'add_part', { name: 'Pin' }, evaluate), why = parse(direct.content);
+    assert.ok(direct.isError); assert.deepEqual([why.code, why.approval], ['needs_approval', ['assembly']]); assert.equal(direct.state, s0);
+  }
+  delete process.env.CAD_AUTONOMY;
+  const p = await runTool(s0, 'propose', { title: 'a pin', ops: [{ tool: 'add_part', args: { name: 'Pin' } }, { tool: 'run_command', args: { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } } }] }, evaluate);
+  assert.ok(!p.isError, p.content); assert.deepEqual(parse(p.content).risk.approval, ['assembly']);
+  process.env.CAD_AUTONOMY = '4';
+  assert.match(parse((await runTool(p.state, 'accept_proposal', { id: 'P1' }, evaluate)).content).error, /always needs the user/);
+  delete process.env.CAD_AUTONOMY;
+  const a = await acceptProposal(p.state, 'P1', evaluate); assert.ok('state' in a, JSON.stringify(a));
+  assert.equal(a.state.doc.instances![0].doc.nodes.length, 2);
+});
+
 test('assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver', async () => {
+  // (The tools themselves, through the dispatcher: an agent reaches them by proposals, above.)
   // The base part: a 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
   let s = await stateOf(rectanglePart(64, 32, 8));
-  let r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
-  r = await runTool(s, 'add_part', { name: 'Pin' }, evaluate); s = r.state;
+  let r = await dispatchTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_part', { name: 'Pin' }, evaluate); s = r.state;
   assert.equal(parse(r.content).part, 'p1');
-  r = await runTool(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } }, evaluate); s = r.state;
   assert.ok(!r.isError, r.content); assert.equal(parse(r.content).part, 'p1');
   assert.equal(s.doc.nodes.length, 3); assert.equal(s.doc.instances![0].doc.nodes.length, 2);
-  assert.match(parse((await runTool(s, 'run_command', { part: 'p9', command: 'box' }, evaluate)).content).error, /No part "p9"; parts: base, p1/);
-  const asm = parse((await runTool(s, 'get_assembly', { faces_of: 'p1' }, evaluate)).content);
+  assert.match(parse((await dispatchTool(s, 'run_command', { part: 'p9', command: 'box' }, evaluate)).content).error, /No part "p9"; parts: base, p1/);
+  const asm = parse((await dispatchTool(s, 'get_assembly', { faces_of: 'p1' }, evaluate)).content);
   const pinSide = asm.instances[0].faces.find((f: any) => f.kind.startsWith('round (outer')).name;
-  const hole = parse((await runTool(s, 'get_assembly', { faces_of: 'base' }, evaluate)).content).base.faces.find((f: any) => f.kind.startsWith('round (inner')).name;
+  const hole = parse((await dispatchTool(s, 'get_assembly', { faces_of: 'base' }, evaluate)).content).base.faces.find((f: any) => f.kind.startsWith('round (inner')).name;
   // Concentric: the pin on the hole's axis; coincident: its bottom flush on the plate's top.
-  r = await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: hole }, b: { part: 'p1', face: pinSide } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: hole }, b: { part: 'p1', face: pinSide } }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   assert.deepEqual(parse(r.content).freedom_left, { turns: 1, slides: 1 });
-  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'p1', face: 'n1.bottom' }, b: { part: 'base', face: 'n1.top' } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'coincident', a: { part: 'p1', face: 'n1.bottom' }, b: { part: 'base', face: 'n1.top' } }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   // (b was the fixed base part: swapped, so the pin moves.)
   assert.deepEqual(s.doc.mates![1].b, { part: 'p1', face: 'n1.bottom' });
   const pin = s.doc.instances![0];
   assert.deepEqual([pin.position[0], pin.position[1], pin.position[2]], [32, 16, 8]);
   // A third mate that contradicts them is refused with the solver's reason; nothing changes.
-  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.top' } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.top' } }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Conflicts with/); assert.equal(r.state.doc.mates!.length, 2);
-  assert.match(parse((await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: pinSide } }, evaluate)).content).error, /Concentric needs two round faces/);
-  assert.match(parse((await runTool(s, 'add_mate', { kind: 'distance', a: { part: 'base', face: 'nope' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate)).content).error, /"nope" is not a flat or round face of base/);
+  assert.match(parse((await dispatchTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: pinSide } }, evaluate)).content).error, /Concentric needs two round faces/);
+  assert.match(parse((await dispatchTool(s, 'add_mate', { kind: 'distance', a: { part: 'base', face: 'nope' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate)).content).error, /"nope" is not a flat or round face of base/);
   // A distance mate instead: edit it and the pin follows.
-  r = await runTool(s, 'delete_mate', { id: 'm2' }, evaluate); s = r.state;
-  r = await runTool(s, 'add_mate', { kind: 'distance', distance: 5, a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'delete_mate', { id: 'm2' }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_mate', { kind: 'distance', distance: 5, a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate); s = r.state;
   assert.equal(s.doc.instances![0].position[2], 13);
-  r = await runTool(s, 'edit_mate', { id: s.doc.mates![1].id, distance: 2 }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'edit_mate', { id: s.doc.mates![1].id, distance: 2 }, evaluate); s = r.state;
   assert.equal(s.doc.instances![0].position[2], 10);
   // Editing the base part re-solves: a thicker plate lifts the pin with its top.
-  r = await runTool(s, 'edit_feature', { index: 1, values: { h: 12 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'edit_feature', { index: 1, values: { h: 12 } }, evaluate); s = r.state;
   assert.ok(!r.isError, r.content); assert.equal(s.doc.instances![0].position[2], 14);
   // A copy, grounded, placed by hand; grounding a mated part is refused.
-  r = await runTool(s, 'add_part', { name: 'Spare pin', copy_of: 'p1', position: [80, 0, 0], grounded: true }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_part', { name: 'Spare pin', copy_of: 'p1', position: [80, 0, 0], grounded: true }, evaluate); s = r.state;
   assert.equal(s.doc.instances![1].doc.nodes.length, 2); assert.equal(s.doc.instances![1].grounded, true);
-  assert.match(parse((await runTool(s, 'place_part', { part: 'p1', grounded: true }, evaluate)).content).error, /mates move Pin/);
-  const summary = parse((await runTool(s, 'get_assembly', {}, evaluate)).content);
+  assert.match(parse((await dispatchTool(s, 'place_part', { part: 'p1', grounded: true }, evaluate)).content).error, /mates move Pin/);
+  const summary = parse((await dispatchTool(s, 'get_assembly', {}, evaluate)).content);
   assert.deepEqual(summary.instances.map((i: any) => [i.id, i.name, i.bodies]), [['p1', 'Pin', 1], ['p2', 'Spare pin', 1]]);
   assert.deepEqual(summary.instances[0].world_bounds, { min: [28, 12, 14], max: [36, 20, 34] });
   assert.equal(summary.mates.length, 2);
-  r = await runTool(s, 'delete_part', { part: 'p1' }, evaluate);
+  r = await dispatchTool(s, 'delete_part', { part: 'p1' }, evaluate);
   assert.equal(r.state.doc.instances!.length, 1); assert.equal(r.state.doc.mates!.length, 0);
   // The transcript's lines for assembly results.
   assert.equal(summarize('add_mate', JSON.stringify({ ok: true, did: 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0', parts: [] }), false), 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0');

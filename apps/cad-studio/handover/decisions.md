@@ -816,7 +816,9 @@ Decided:
   `hard_requirements_changed` (outcome flipped or definition changed), a level, and `approval`.
   - Level: high when a hard requirement changes, a reference breaks or a feature is deleted; medium when more than
     three features change, one moves or a parameter changes; else low.
-  - `approval` lists why it always needs a person: an assembly, mates, a drawing, a part from a file. **Pending
+  - `approval` lists why it always needs a person: an assembly, mates, a drawing, a part from a file.
+    (Amended in D41: these are the *changes* to the assembly, mates, drawing or a locked part, compared
+    before and after, not their mere presence; and an agent makes them only through proposals.) **Pending
     decision (reversible default):** the document has no "locked" flag yet; a placed part with a `source` file
     counts as locked. In A4.2 every proposal needs a person anyway; A4.3's autonomy levels read this list.
 - **Accept and reject (studio).** The Proposals list in the Browser:
@@ -926,8 +928,19 @@ Decided:
   - At every level, a proposal with `approval` reasons (an assembly, mates, a drawing, a locked part) is the user's.
   - A rebased proposal is the agent's to accept only when its risk is no higher than `risk_was` and it changes no
     hard requirement.
-  - Pending decision (reversible default): at L2 and above an agent's direct edits of an assembly are not forced
-    into proposals. The approval rule governs acceptance of proposals, and direct edits stay undoable as one turn.
+  - **Changes that always need approval go through proposals at every level (peer's override of the earlier
+    default).** `approvalOf(a, b)` compares the assembly's parts (added, removed, built, moved — mates moving them
+    too), the mates, the drawing and parts placed from a file before and after.
+    - An agent's direct tool call that makes any of these changes is refused at every level, the state unchanged.
+      The refusal is typed: `code: 'needs_approval'` and `approval: [...]`, with the hint "propose it; this kind
+      of change always needs the user's approval".
+    - Such changes are possible only through `propose`. Its ops may now hold the assembly tools and part tools with
+      `"part"` (add_part ids run p1, p2, … so later ops can name them). Their `approval[]` keeps them the user's at
+      L3 and L4.
+    - The user's own edits in the studio are unaffected. The tools themselves stay reachable through
+      `dispatchTool`, the dispatcher proposals replay; tests use it too.
+    - A base-part edit that moves mated parts is an assembly change too, so an agent proposes it.
+    - The system prompt now asks the agent to build the base part directly and to propose the rest of an assembly.
 - **The selection as context chips.** The viewport selection (faces, edges and bodies by persistent name, up to 12)
   shows as chips above the chat input; a chip can be removed. They are sent with the message as
   `[Selected in the viewport: face n1.top; …]`, names the tools take.
@@ -938,7 +951,12 @@ Why: the reviewer must see what will happen before it happens. A proposal replay
 change, so it is shown again. Accepting part of a proposal and setting the agent's autonomy let a person take what
 they want from an agent's work at the pace they choose.
 
-Evidence: studio 285/285; browser flow 106/106; bench within budget; lint clean.
+Evidence: studio 287/287 after the override (285 before it); browser flow 106/106; bench within budget; lint clean.
+- Override: an agent's add_part is refused at L2 and L4 (`needs_approval`, [assembly]). Proposed, it carries
+  [assembly]; L4 cannot accept it; the user's accept builds the pin. Moving a placed part from a file gives
+  [assembly, locked part]; a hole beside it needs none. A drawing changed gives [drawing]. In conformance
+  `a4/assembly-needs-approval`, the direct move is refused at L1–L4, then proposed, refused to the agent and
+  accepted by the user. In the browser, a proposal shows "needs you (drawing)".
 - `test/proposals.test.ts`:
   - stale refused, then rebased (both bases kept, nothing built) and accepted; the history reads proposal,
     proposal, accept, rebase, accept, proposal, reject;
