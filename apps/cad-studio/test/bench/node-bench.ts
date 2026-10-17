@@ -1,0 +1,67 @@
+// Representative evaluation costs, best of several runs, each against a budget: a few times the time
+// measured when the budget was set (2026-10-17, Apple M-series, Node 22), so noise passes and a real
+// regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { brepMassProperties, evaluateCadPart, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { evaluateDoc } from '../../src/engine/evaluate';
+import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
+import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
+
+interface Scenario { name: string; budgetMS: number; runs: number; setup(): () => unknown }
+const D = (features: unknown[]): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features } as unknown as CadPartDocument);
+const root = join(import.meta.dirname, '..', '..');
+
+/** A 100 × 40 × 12 plate with ten cross holes and six holes down (all curved Booleans). */
+function holePlate(width: number): StudioDoc {
+  let doc = rectanglePart(width, 40, 12);
+  for (let k = 0; k < 10; k++) doc = withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: [11 + 8 * k, 6], radius: 2, axis: 'y' });
+  for (let k = 0; k < 6; k++) doc = withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: [15 + 14 * k, 30], radius: 3 });
+  return doc;
+}
+/** A plate with 20 features on it: holes down, a row of them, chamfers by name. */
+function chain20(): StudioDoc {
+  let doc = rectanglePart(120, 60, 10);
+  for (let k = 0; k < 18; k++) doc = withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: [8 + 6 * k, 15 + (k % 3) * 15], radius: 1.5 });
+  return doc;
+}
+
+const scenarios: Scenario[] = [
+  { name: 'evaluate: 16-hole plate (cold)', budgetMS: 3000, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
+  { name: 'tessellate: 12-edge filleted box', budgetMS: 120, runs: 5, setup() {
+    const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+    const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
+    const brep = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].brep;
+    return () => tessellateBrep(brep, { segmentsPerQuarter: 8 });
+  } },
+  { name: 'mass: 12-edge filleted box', budgetMS: 900, runs: 3, setup() {
+    const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+    const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
+    const brep = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].brep;
+    return () => brepMassProperties(brep, 1);
+  } },
+  { name: 'evaluate: 20-feature chain, unchanged', budgetMS: 10, runs: 10, setup() { const doc = chain20(); evaluateDoc(doc, 1); let k = 1; return () => evaluateDoc(doc, ++k); } },
+  { name: 'evaluate: stepped body patterned × 12', budgetMS: 1500, runs: 3, setup() {
+    const f: unknown[] = [];
+    for (let k = 0; k < 6; k++) f.push({ id: `s${k}`, kind: 'sketch', profile: 'circle', center: [5, 5], radius: 5 - k * 0.6 }, { id: `e${k}`, kind: 'extrude', sketch: `s${k}`, height: 2, ...(k ? { from: 2 * k } : {}) });
+    for (let k = 1; k < 6; k++) f.push({ id: `u${k}`, kind: 'union', target: k === 1 ? 'e0' : `u${k - 1}`, tool: `e${k}` });
+    let r = 30;
+    return () => evaluateCadPart(D([...f, { id: 'p', kind: 'circular-pattern', target: 'u5', axis: 'z', angleDegrees: 30, count: 12, pivot: [r += 1e-3, 5, 0] }]));
+  } },
+  { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
+    let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
+    const sheet = d.objects[0].id; directDisplay(d); let k = 0;
+    return () => { d = movePole(d, sheet, '1,1', [110, 6.67, 6 + 0.01 * ++k]); return directDisplay(d); };
+  } },
+];
+
+const rows: { name: string; ms: number; budgetMS: number; ok: boolean }[] = [];
+for (const s of scenarios) {
+  const run = s.setup(); run();
+  let best = Infinity;
+  for (let i = 0; i < s.runs; i++) { const t0 = performance.now(); run(); best = Math.min(best, performance.now() - t0); }
+  rows.push({ name: s.name, ms: +best.toFixed(2), budgetMS: s.budgetMS, ok: best <= s.budgetMS });
+}
+if (process.env.BENCH_JSON) console.log(JSON.stringify(rows));
+else for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(42)} ${String(r.ms).padStart(9)} ms  (budget ${r.budgetMS} ms)`);
+process.exitCode = rows.every(r => r.ok) ? 0 : 1;
