@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -53,6 +53,22 @@ export function importSource(d: DirectGeometry, text: string, label: string): Di
   const objects = model.objects.filter(o => o.kind === 'curve' || o.kind === 'surface').map(o => ({ id: fresh(used, 'obj'), name: `${label} · ${o.id}`, source: key, geometry: o.id }));
   if (!objects.length) throw new Error('This CAD source has no curves or surfaces.');
   return { sources: { ...d.sources, [key]: text }, objects: [...d.objects, ...objects] };
+}
+
+/**
+ * An IGES file's curves and surfaces (rational B-spline curves and surfaces, entities 126 and 128, in mm, as
+ * BaroCSS writes them; at most 16) added as direct geometry, with what came in; or why it cannot be read.
+ */
+export function importIGESFile(d: DirectGeometry, text: string, label: string): { direct: DirectGeometry; curves: number; surfaces: number } {
+  const id = (label.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_') || 'iges').slice(0, 32);
+  let r;
+  try { r = importIGES(text, { sourceId: id, modelName: id, idPrefix: id, maximumEntities: 16, maximumRecords: 8192 }); }
+  catch (e) {
+    if (e instanceof IGESImportError) throw new Error(`This IGES file cannot be read (${e.code}): only untransformed NURBS curves and surfaces (entities 126 and 128) in mm, at most 16, are read so far. ${e.message.replace(/^Native IGES import: /, '')}`);
+    throw e;
+  }
+  // (The result is a frozen snapshot: its source is read out as plain text.)
+  return { direct: importSource(d, String(r.source), label), curves: Number(r.report.curveCount), surfaces: Number(r.report.surfaceCount) };
 }
 
 const object = (d: DirectGeometry, id: string) => { const o = d.objects.find(x => x.id === id); if (!o) throw new Error('No such object.'); return o; };

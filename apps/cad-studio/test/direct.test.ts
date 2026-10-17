@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importSource, type DirectGeometry } from '../src/engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, type DirectGeometry } from '../src/engine/direct';
 
 /** A `.barocad` study: an arc, a line above it and a bilinear panel. */
 export const STUDY = `@model study {
@@ -121,4 +121,14 @@ test('direct geometry: a loft through three curves of one degree and knots', () 
   const s = geometryOf(d, d.objects.find(o => o.id === byName(d, 'Lofted surface'))!);
   assert.ok(s.kind === 'surface' && s.degreeV === 2, JSON.stringify(s.kind));
   assert.throws(() => directOps.loft(d, [base]), /2 to 15/);
+});
+
+test('IGES: written curves and surfaces read back as the same geometry; a file it cannot read is refused', () => {
+  const d = importSource(emptyDirect(), STUDY, 'study'), iges = directIGES(d);
+  const r = importIGESFile(emptyDirect(), iges, 'study 2');
+  assert.deepEqual([r.curves, r.surfaces], [3, 1]);
+  assert.equal(r.direct.objects.length, 4);
+  const a = geometryOf(d, d.objects[0]), b = geometryOf(r.direct, r.direct.objects[0]);
+  assert.deepEqual(b.kind === 'curve' && b.controlPoints, a.kind === 'curve' && a.controlPoints);
+  assert.throws(() => importIGESFile(emptyDirect(), 'not an iges file', 'x'), /cannot be read/);
 });

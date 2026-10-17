@@ -12,7 +12,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A2 Arc by centre, start and end (#2051)
 - [x] A3 Concentric for two separate circles (#2053)
 - [x] A4 Hole types Countersunk and Tapped (thread note) (#2037, #2093)
-- [ ] A5 IGES import (kernel `importIGES`) (#2060)
+- [x] A5 IGES import (kernel `importIGES`) (#2060)
 - [ ] A6 Import / export reports: STEP import (what came in, units), STL fallback notice, PDF/SVG omissions (#2044, #2060, #2057, #2034)
 - [ ] A7 Mass: inertia (kernel `inertiaCentroidKgM2`, about a picked axis), the part's combined centre of mass, the bounds box drawn (#2056, #2041)
 - [ ] A8 Drawing title block: Rev field (#2057)
