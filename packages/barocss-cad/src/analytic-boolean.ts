@@ -44,18 +44,31 @@ type Cylinder = { kind: 'cylinder'; c: P3; a: P3; e1: P3; e2: P3; r: number; s: 
  * Any other smooth surface patch: domain coordinates (ku·u, kv·v), scaled to arc length, with ku < 0 for
  * a reversed face so loops run counter-clockwise in the domain. Points map back by Newton projection.
  */
-type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
+type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1;
+  /** 25 × 25 samples of the patch (made on first use). */
+  readonly grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
+  /** The box of the control points: the patch lies inside it (positive weights). */
+  hullMin: P3; hullMax: P3;
   /** Domain sides collapsed to a point: `along` is the free coordinate (0: x, 1: y), `at` the fixed one (scaled). */
   poles: { along: 0 | 1; at: number; point: P3 }[] };
 type Surf = Plane | Cylinder | Nurbs;
 function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
   const { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
-  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]), grid: { p: XY; x: P3; pole?: boolean }[] = [];
-  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
+  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const poles = polesOf(S).map(q => ({ along: q.along, at: q.along === 0 ? q.at * kv : q.at * ku, point: q.point as P3 }));
-  for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (Math.max(Lu, Lv) + 1));
-  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, grid, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles };
+  const hullMin: P3 = [Infinity, Infinity, Infinity], hullMax: P3 = [-Infinity, -Infinity, -Infinity];
+  for (const row of S.controlPoints) for (const q of row) for (let k = 0; k < 3; k++) { if (q[k] < hullMin[k]) hullMin[k] = q[k]; if (q[k] > hullMax[k]) hullMax[k] = q[k]; }
+  let grid: { p: XY; x: P3; pole?: boolean }[] | null = null;
+  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles, hullMin, hullMax,
+    get grid() { return grid ??= gridOf(at, U, V, poles, Math.max(Lu, Lv)); } };
+}
+/** 25 × 25 samples of a patch, those at a collapsed side marked (their free parameter is arbitrary). */
+function gridOf(at: (u: number, v: number) => P3, U: readonly number[], V: readonly number[], poles: readonly { point: P3 }[], size: number): { p: XY; x: P3; pole?: boolean }[] {
+  const grid: { p: XY; x: P3; pole?: boolean }[] = [];
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
+  for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (size + 1));
+  return grid;
 }
 /**
  * Surface parameters of the point of a NURBS patch nearest x. Newton from the last answer; a point it
@@ -468,7 +481,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
         for (const [g, into] of [[fb, fa], [fa, fb]] as const) for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
           // (A boundary only partly on it, or along that face's own boundary, adds nothing.)
           const k = curve3Of(g, seg);
-          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
           if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
           into.cuts.push(curve2(into, k, tol));
         }
@@ -480,14 +493,14 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const along: Curve3[] = [];
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) if (f.surf.kind === 'nurbs') for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
       const k = exactly(curve3Of(f, seg), tol);
-      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u)) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
+      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
     }
     const alongWithin = (x: P3, r: number) => along.some(k => onCurve(k, x, r) !== null || len(sub(x, startOf(k))) <= r || len(sub(x, endOf(k))) <= r);
     const onAlong = (x: P3) => alongWithin(x, 10 * tol);
     const PA = { at: (p: XY) => to3Extended(fa, p), box: box(fa) }, PB = { at: (p: XY) => to3Extended(fb, p), box: box(fb) };
     let chains;
     // Ends of curves already found on either face (from their other neighbours) that lie on both surfaces.
-    const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x) <= 100 * tol && offSurface(fb, x) <= 100 * tol);
+    const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x, 100 * tol) <= 100 * tol && offSurface(fb, x, 100 * tol) <= 100 * tol);
     try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong, skipNear: alongWithin } : {}), ...(given.length ? { seeds: given } : {}) }); }
     catch (e) { if (e instanceof SurfaceIntersectionError) throw new Refused(`the surfaces of ${fa.name ?? 'a face'} and ${fb.name ?? 'a face'} meet along a curve that cannot be traced (${e.message.replace(/^Surface intersection: /, '')})`); throw e; }
     for (const chain of chains) {
@@ -535,7 +548,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const edgesOn = (g: GFace, into: GFace) => {
       for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
         const k = exactly(curve3Of(g, seg), tol);
-        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
         if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
         into.cuts.push(curve2(into, k, tol));
       }
@@ -786,10 +799,19 @@ function exactly(k: Curve3, tol: number): Curve3 {
   if (len(sub(arcAt(arc, sweep), b)) > tol || len(sub(arcAt(arc, sweep / 2), paramAt(k, 0.5))) > tol) return k;
   return arc;
 }
-function offSurface(g: { surf: Surf }, x: P3): number {
+/**
+ * The distance from x to a face's surface, for a comparison with `limit`: when x is farther than `limit`
+ * from a NURBS patch's control-point box (which holds the patch), that box distance is returned instead
+ * (a lower bound, also past the limit) without inverting the point.
+ */
+function offSurface(g: { surf: Surf }, x: P3, limit: number): number {
   const s = g.surf;
   if (s.kind === 'plane') return Math.abs(dot(s.n, sub(x, s.o)));
-  if (s.kind === 'nurbs') return len(sub(to3(g, to2(g, x)), x));
+  if (s.kind === 'nurbs') {
+    const dx = Math.max(s.hullMin[0] - x[0], 0, x[0] - s.hullMax[0]), dy = Math.max(s.hullMin[1] - x[1], 0, x[1] - s.hullMax[1]), dz = Math.max(s.hullMin[2] - x[2], 0, x[2] - s.hullMax[2]), out = Math.hypot(dx, dy, dz);
+    if (out > limit) return out;
+    return len(sub(to3(g, to2(g, x)), x));
+  }
   const d = sub(x, s.c); return Math.abs(len(sub(d, scale(s.a, dot(d, s.a)))) - s.r);
 }
 
@@ -799,7 +821,7 @@ const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
     if (![0, 1, 2].every(k => x[k] >= g.min[k] - 10 * tol && x[k] <= g.max[k] + 10 * tol)) continue;
-    const dist = offSurface(g, x);
+    const dist = offSurface(g, x, 10 * tol);
     if (dist > 10 * tol || locateInRegion(to2(g, x), g.region, 10 * tol) === 'out') continue;
     return dot(normal, normalOut(g, x)) > 0 ? 'same' : 'opposite';
   }
