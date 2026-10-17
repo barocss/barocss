@@ -676,6 +676,23 @@ try {
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
   });
 
+  await check('drawing revision: Next gives A in the title block; a model change since is flagged', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    await page.waitForSelector('[aria-label="Next revision"]', { timeout: 15000 }); await page.click('[aria-label="Next revision"]');
+    await page.waitForFunction(() => { const t = [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].map(e => e.textContent); return t.includes('REV') && t.includes('A'); }, null, { timeout: 10000 });
+    assert.equal(await page.locator('[aria-label="Revision"]').inputValue(), 'A');
+    await page.click('.mode button:text-is("Model")'); await press('Escape'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    assert.equal(await page.locator('[aria-label="Revision"]').inputValue(), 'A', 'the revision is kept through a model change');
+    await page.waitForSelector('[aria-label="Revision out of date"]', { timeout: 10000 });
+    await page.click('[aria-label="Next revision"]'); assert.equal(await page.locator('[aria-label="Revision"]').inputValue(), 'B');
+    assert.equal(await page.locator('[aria-label="Revision out of date"]').count(), 0);
+    await page.click('.mode button:text-is("Model")');
+  });
+
   await check('draw a plate: standard views, dimensions that follow the model, SVG and PDF', async () => {
     const fs = await import('node:fs');
     // An empty part: the sheet says there is nothing to draw, and no error is raised.

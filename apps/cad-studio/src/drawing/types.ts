@@ -29,6 +29,18 @@ export interface DrawingNote { id: string; text: string; at: XY; leader?: { view
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
 export interface EdgeRef { edge: string; near: Vec3 }
 
+/** The revision after `rev`: A → B … Z → AA, 01 → 02, 1 → 2; none → A. */
+export function nextRevision(rev: string | undefined): string {
+  if (!rev || rev === '-') return 'A';
+  if (/^\d+$/.test(rev)) return String(Number(rev) + 1).padStart(rev.length, '0');
+  if (/^[A-Z]+$/.test(rev)) { const n = [...rev].reduce((t, c) => t * 26 + c.charCodeAt(0) - 64, 0) + 1; let s = '', k = n; while (k > 0) { const r = (k - 1) % 26; s = String.fromCharCode(65 + r) + s; k = Math.floor((k - 1) / 26); } return s; }
+  return rev + '.1';
+}
+/** A short fingerprint of a model's features (FNV-1a over their JSON). */
+export function modelPrint(nodes: unknown): string {
+  let h = 0x811c9dc5; for (const ch of JSON.stringify(nodes)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
 export interface DrawingSettings {
   sheet: 'A4' | 'A3';
   /** Model mm per sheet mm inverted (2 = 2:1, 0.5 = 1:2); none: the largest standard scale that fits. */
@@ -45,6 +57,10 @@ export interface DrawingSettings {
   section?: { y: number };
   /** The title block's part name (default: the file name). */
   title?: string;
+  /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
+  revision?: string;
+  /** The model's fingerprint when the revision was set (to tell when the model changed since). */
+  revisedModel?: string;
   dimensions: DrawingDimension[];
   notes?: DrawingNote[];
 }
@@ -63,6 +79,8 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.tangent === true ? { tangent: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
+    ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
+    ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)).map(x => {
       const { tol, ...rest } = x; const t = readTolerance(tol); return (t ? { ...rest, tol: t } : rest) as DrawingDimension;
     }) : [],

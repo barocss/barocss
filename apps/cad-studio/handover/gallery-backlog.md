@@ -15,7 +15,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A5 IGES import (kernel `importIGES`) (#2060)
 - [x] A6 Import / export reports: STEP import (what came in, units), STL fallback notice, PDF/SVG omissions (#2044, #2060, #2057, #2034)
 - [x] A7 Mass: inertia (kernel `inertiaCentroidKgM2`, about a picked axis), the part's combined centre of mass, the bounds box drawn (#2056, #2041)
-- [ ] A8 Drawing title block: Rev field (#2057)
+- [x] A8 Drawing title block: Rev field (#2057)
 - [ ] A9 Selection filter: faces / edges / bodies (#2049)
 - [ ] A10 Hide construction shapes in a sketch (#2069)
 - [ ] A11 Direct curves: chord next to length, raise curve degree, isocurve overlay (#2078, #2052, #2040)

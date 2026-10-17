@@ -300,11 +300,16 @@ export function App() {
 
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
+  const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   const commit = useCallback((next: StudioDoc) => {
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    // Commands build on the evaluated document, which follows the model only: what they leave as it was
+    // there (render, drawing, direct geometry, instances) is the document's newest.
+    const was = evaluatedRef.current;
+    next = { ...next, ...Object.fromEntries((['render', 'drawing', 'direct', 'instances'] as const).filter(k => next[k] === was[k] && doc[k] !== was[k]).map(k => [k, doc[k]])) };
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
     if (!Object.keys(next.outputs).length) { setBodies([]); setSelection(emptySel); }

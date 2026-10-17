@@ -339,3 +339,9 @@ test('notes: lines of text on the sheet, a leader that follows its view, kept in
   assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(settings))).notes, settings.notes);
   assert.equal(readDrawing({ notes: [{ id: 'x', text: 3, at: [0, 0] }] }).notes, undefined);
 });
+
+test('drawing revision: the next one after A, Z, 01 and none; the REV cell shows it', async () => {
+  const { nextRevision, modelPrint } = await import('../src/drawing/types');
+  assert.deepEqual(['A', 'Z', 'AZ', '01', '9', undefined].map(r => nextRevision(r)), ['B', 'AA', 'BA', '02', '10', 'A']);
+  assert.notEqual(modelPrint([{ kind: 'box' }]), modelPrint([{ kind: 'box', w: 2 }]));
+});

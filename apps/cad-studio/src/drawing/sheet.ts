@@ -92,14 +92,14 @@ export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
 
 function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }): Mark[] {
   const [x0, y0, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
-  const mid = y0 + 14, cols = [x0, x0 + 30, x0 + 60, x0 + 90, x1];
+  const mid = y0 + 14, cols = [x0, x0 + 24, x0 + 42, x0 + 72, x0 + 90, x1];
   marks.push({ kind: 'line', a: [x0, mid], b: [x1, mid], pen: 'thin' });
   for (const x of cols.slice(1, -1)) marks.push({ kind: 'line', a: [x, mid], b: [x, y1], pen: 'thin' });
   marks.push({ kind: 'text', at: [x0 + 2, y0 + 4], text: 'TITLE', size: 1.8, anchor: 'start' });
   // Each field fits its cell: shrunk to a floor, then cut with an ellipsis. The title runs up to the projection symbol.
   marks.push({ kind: 'text', at: [x0 + 2, y0 + 11], ...fitText(meta.title, 5, true, TITLE_ROOM, 3), anchor: 'start', bold: true });
   marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
-  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['SHEET', settings.sheet]];
+  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
   cells.forEach(([k, val], i) => {
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });
