@@ -95,6 +95,74 @@ function edgeParameters(curve: Curve, perQuarter: number): number[] {
  * overlapping chords) are cut off as degenerate triangles, so every boundary segment stays in the
  * mesh. Orientation tests use a tolerance relative to the polygon's size.
  */
+const turn = (o: XY, a: XY, b: XY) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+const samePoint = (a: XY, b: XY) => a[0] === b[0] && a[1] === b[1];
+/** Whether y lies on the segment o–x (collinear, within its box). */
+const onSegment = (o: XY, x: XY, y: XY) => turn(o, x, y) === 0 && Math.min(o[0], x[0]) <= y[0] && y[0] <= Math.max(o[0], x[0]) && Math.min(o[1], x[1]) <= y[1] && y[1] <= Math.max(o[1], x[1]);
+/** Whether segment p–q crosses or touches a–b (sharing an end does not count). */
+function crosses(p: XY, q: XY, a: XY, b: XY): boolean {
+  if (samePoint(p, a) || samePoint(p, b) || samePoint(q, a) || samePoint(q, b)) return false;
+  const d1 = turn(a, b, p), d2 = turn(a, b, q), d3 = turn(p, q, a), d4 = turn(p, q, b);
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
+  return onSegment(p, q, a) || onSegment(p, q, b);
+}
+/** A ring's points (each occurrence of each index) on a uniform grid over its box. */
+interface PointGrid { x0: number; y0: number; cell: number; nx: number; ny: number; cells: Map<number, number[]> }
+function gridOf(pts: readonly XY[], ring: readonly number[], x0: number, y0: number, x1: number, y1: number): PointGrid {
+  const n = Math.max(1, Math.ceil(Math.sqrt(ring.length))), cell = Math.max(x1 - x0, y1 - y0, 1e-300) / n;
+  const g: PointGrid = { x0, y0, cell, nx: Math.floor((x1 - x0) / cell) + 1, ny: Math.floor((y1 - y0) / cell) + 1, cells: new Map() };
+  for (const j of ring) { const k = gridKey(g, pts[j][0], pts[j][1]), list = g.cells.get(k); if (list) list.push(j); else g.cells.set(k, [j]); }
+  return g;
+}
+const gridCol = (g: PointGrid, x: number) => Math.min(g.nx - 1, Math.max(0, Math.floor((x - g.x0) / g.cell)));
+const gridRow = (g: PointGrid, y: number) => Math.min(g.ny - 1, Math.max(0, Math.floor((y - g.y0) / g.cell)));
+const gridKey = (g: PointGrid, x: number, y: number) => gridRow(g, y) * g.nx + gridCol(g, x);
+/** One occurrence of point j taken off the grid (it left the ring). */
+function gridRemove(g: PointGrid, pts: readonly XY[], j: number): void {
+  const list = g.cells.get(gridKey(g, pts[j][0], pts[j][1])); if (!list) return;
+  const i = list.indexOf(j); if (i >= 0) list.splice(i, 1);
+}
+/**
+ * Whether a ring point other than the ear's own lies in the ear a–b–c (counter-clockwise) or within the
+ * tolerance outside it — exactly the test over every ring point, asked of the grid cells under the ear
+ * grown by that tolerance (each edge's line moved out by eps / its length; the box of where the moved
+ * lines meet). A degenerate ear (moved lines all but parallel) is tested against the whole ring.
+ */
+function earBlocked(g: PointGrid, pts: readonly XY[], ring: readonly number[], ia: number, ib: number, ic: number, eps: number): boolean {
+  const a = pts[ia], b = pts[ib], c = pts[ic], box = grownBox(a, b, c, eps);
+  if (!box) { for (const j of ring) if (inEar(pts, j, ia, ib, ic, eps)) return true; return false; }
+  const c0 = gridCol(g, box[0]), c1 = gridCol(g, box[2]), r0 = gridRow(g, box[1]), r1 = gridRow(g, box[3]);
+  for (let r = r0; r <= r1; r++) for (let col = c0; col <= c1; col++) {
+    const list = g.cells.get(r * g.nx + col); if (!list) continue;
+    for (const j of list) if (inEar(pts, j, ia, ib, ic, eps)) return true;
+  }
+  return false;
+}
+/** Whether ring point j (not one of the ear's, nor on them) lies in the ear ia–ib–ic or within eps outside it. */
+function inEar(pts: readonly XY[], j: number, ia: number, ib: number, ic: number, eps: number): boolean {
+  const q = pts[j], a = pts[ia], b = pts[ib], c = pts[ic];
+  if (j === ia || j === ib || j === ic || samePoint(q, a) || samePoint(q, b) || samePoint(q, c)) return false;
+  return turn(a, b, q) >= -eps && turn(b, c, q) >= -eps && turn(c, a, q) >= -eps;
+}
+/** The box of the triangle a–b–c (counter-clockwise) with each edge moved out by eps / its length, padded; null if degenerate. */
+function grownBox(a: XY, b: XY, c: XY, eps: number): [number, number, number, number] | null {
+  const P = [a, b, c], lines: [number, number, number][] = [];
+  for (let i = 0; i < 3; i++) {
+    const p = P[i], q = P[(i + 1) % 3], dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy);
+    if (!(l > 0)) return null;
+    // Inside: n·x ≥ d with n the inward normal (left of p→q); moved out by eps / l.
+    const nx = -dy / l, ny = dx / l; lines.push([nx, ny, nx * p[0] + ny * p[1] - eps / l]);
+  }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < 3; i++) {
+    const [n1x, n1y, d1] = lines[(i + 2) % 3], [n2x, n2y, d2] = lines[i], det = n1x * n2y - n1y * n2x;
+    if (Math.abs(det) < 1e-12) return null;
+    const x = (d1 * n2y - d2 * n1y) / det, y = (n1x * d2 - n2x * d1) / det;
+    x0 = Math.min(x0, x, a[0], b[0], c[0]); y0 = Math.min(y0, y, a[1], b[1], c[1]); x1 = Math.max(x1, x, a[0], b[0], c[0]); y1 = Math.max(y1, y, a[1], b[1], c[1]);
+  }
+  const pad = 1e-9 * (Math.abs(x0) + Math.abs(x1) + Math.abs(y0) + Math.abs(y1) + (x1 - x0) + (y1 - y0)) + 1e-300;
+  return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
 export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[], earCost?: (a: XY, b: XY, c: XY) => number): [number, number, number][] {
   const pts: XY[] = [...outer, ...holes.flat()];
   let ring = outer.map((_, i) => i), offset = outer.length;
@@ -102,25 +170,21 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const q of pts) { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
   const eps = 1e-12 * ((x1 - x0) ** 2 + (y1 - y0) ** 2 || 1);
-  const cr = (o: XY, a: XY, b: XY) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const same = (a: XY, b: XY) => a[0] === b[0] && a[1] === b[1];
+  const cr = turn, same = samePoint;
   const tris: [number, number, number][] = [];
-  const crosses = (p: XY, q: XY, a: XY, b: XY) => {
-    if (same(p, a) || same(p, b) || same(q, a) || same(q, b)) return false;
-    const d1 = cr(a, b, p), d2 = cr(a, b, q), d3 = cr(p, q, a), d4 = cr(p, q, b);
-    if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
-    const on = (o: XY, x: XY, y: XY) => cr(o, x, y) === 0 && Math.min(o[0], x[0]) <= y[0] && y[0] <= Math.max(o[0], x[0]) && Math.min(o[1], x[1]) <= y[1] && y[1] <= Math.max(o[1], x[1]);
-    return on(p, q, a) || on(p, q, b);
-  };
   const inWedge = (A: XY, V: XY, B: XY, P: XY) => { const l1 = cr(A, V, P) > 0, l2 = cr(V, B, P) > 0; return cr(A, V, B) > 0 ? l1 && l2 : l1 || l2; };
   // Holes, right to left. A hole sharing a point with the ring joins it there (the ring passes the
   // point twice); otherwise a bridge runs from the hole's rightmost vertex M to the nearest ring
   // vertex occurrence that M can see and whose interior wedge contains M.
   holeRings.sort((a, b) => Math.max(...b.map(i => pts[i][0])) - Math.max(...a.map(i => pts[i][0])));
+  // (The ring's points by position, kept as holes join it: a hole point shared with the ring is found
+  // without a scan of the ring.)
+  const onRing = new Set<string>(); for (const v of ring) onRing.add(`${pts[v][0]},${pts[v][1]}`);
   for (const [h, hole] of holeRings.entries()) {
     const rotate = (at: number) => [...hole.slice(at), ...hole.slice(0, at)];
     let joined = false;
     for (let j = 0; j < hole.length && !joined; j++) {
+      if (!onRing.has(`${pts[hole[j]][0]},${pts[hole[j]][1]}`)) continue;
       const M = pts[hole[j]], MA = pts[hole[(j - 1 + hole.length) % hole.length]], MB = pts[hole[(j + 1) % hole.length]];
       // A point just inside the material next to M (right of both hole edges: the hole runs clockwise).
       const nIn = [M[1] - MA[1], MA[0] - M[0]], nOut = [MB[1] - M[1], M[0] - MB[0]], len = (v: number[]) => Math.hypot(v[0], v[1]) || 1;
@@ -132,25 +196,31 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       ring = [...ring.slice(0, k + 1), ...r.slice(1), r[0], ...ring.slice(k + 1)];
       joined = true;
     }
-    if (joined) continue;
+    if (joined) { for (const v of hole) onRing.add(`${pts[v][0]},${pts[v][1]}`); continue; }
     const mi = hole.reduce((best, i) => pts[i][0] > pts[best][0] ? i : best, hole[0]), M = pts[mi], at = hole.indexOf(mi);
     const MA = pts[hole[(at - 1 + hole.length) % hole.length]], MB = pts[hole[(at + 1) % hole.length]];
     const pending = holeRings.slice(h + 1);
-    let chosen = -1, bestD = Infinity;
-    for (let k = 0; k < ring.length; k++) {
+    // The nearest ring vertex that passes (the first by index among equally near ones): candidates tried
+    // nearest first, so the search stops at the first that passes rather than testing every vertex.
+    const order: number[] = [], dist: number[] = [];
+    for (let k = 0; k < ring.length; k++) { const V = pts[ring[k]]; dist.push(Math.hypot(V[0] - M[0], V[1] - M[1])); order.push(k); }
+    order.sort((x, y) => dist[x] - dist[y] || x - y);
+    let chosen = -1;
+    for (const k of order) {
+      if (dist[k] === 0) continue;
       const V = pts[ring[k]], A = pts[ring[(k - 1 + ring.length) % ring.length]], B = pts[ring[(k + 1) % ring.length]];
-      const d = Math.hypot(V[0] - M[0], V[1] - M[1]);
-      if (d >= bestD || d === 0) continue;
       // The bridge must leave M into the material (left of the clockwise hole) and enter V's interior wedge.
       if (!inWedge(A, V, B, M) || !inWedge(MA, M, MB, V)) continue;
       let blocked = false;
       for (let e = 0; e < ring.length && !blocked; e++) blocked = crosses(M, V, pts[ring[e]], pts[ring[(e + 1) % ring.length]]);
-      for (const other of [hole, ...pending]) for (let e = 0; e < other.length && !blocked; e++) blocked = crosses(M, V, pts[other[e]], pts[other[(e + 1) % other.length]]);
-      if (!blocked) { bestD = d; chosen = k; }
+      for (let e = 0; e < hole.length && !blocked; e++) blocked = crosses(M, V, pts[hole[e]], pts[hole[(e + 1) % hole.length]]);
+      for (const other of pending) for (let e = 0; e < other.length && !blocked; e++) blocked = crosses(M, V, pts[other[e]], pts[other[(e + 1) % other.length]]);
+      if (!blocked) { chosen = k; break; }
     }
     if (chosen < 0) throw new BrepError('GEOMETRY', 'A hole is not inside its face boundary');
     const rotated = rotate(at);
     ring = [...ring.slice(0, chosen + 1), ...rotated, mi, ...ring.slice(chosen)];
+    for (const v of hole) onRing.add(`${pts[v][0]},${pts[v][1]}`);
   }
   // Spikes: a vertex whose two edges fold back onto each other (zero width) is cut off.
   const despike = () => {
@@ -159,10 +229,12 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       for (let k = 0; k < ring.length && ring.length > 3; k++) {
         const ia = ring[(k - 1 + ring.length) % ring.length], ib = ring[k], ic = ring[(k + 1) % ring.length], a = pts[ia], b = pts[ib], c = pts[ic];
         const back = (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]) < 0;
-        if (same(a, b) || same(b, c) || (Math.abs(cr(a, b, c)) <= eps && back)) { if (!same(a, b) && !same(b, c)) tris.push([ia, ib, ic]); ring.splice(k, 1); k--; again = true; }
+        if (same(a, b) || same(b, c) || (Math.abs(cr(a, b, c)) <= eps && back)) { if (!same(a, b) && !same(b, c)) tris.push([ia, ib, ic]); gridRemove(grid, pts, ib); ring.splice(k, 1); k--; again = true; }
       }
     }
   };
+  // The ring's points on a grid (each occurrence), so that an ear is tested against the points near it only.
+  const grid = gridOf(pts, ring, x0, y0, x1, y1);
   despike();
   // Ear clipping over the bridged ring (bridge vertices appear twice; coincident points are ignored).
   let guard = 0;
@@ -173,20 +245,14 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
     for (const k of order) {
       const ia = ring[(k - 1 + ring.length) % ring.length], ib = ring[k], ic = ring[(k + 1) % ring.length], a = pts[ia], b = pts[ib], c = pts[ic];
       if (cr(a, b, c) <= eps) continue;
-      let blocked = false;
-      for (const j of ring) {
-        const q = pts[j];
-        if (j === ia || j === ib || j === ic || same(q, a) || same(q, b) || same(q, c)) continue;
-        if (cr(a, b, q) >= -eps && cr(b, c, q) >= -eps && cr(c, a, q) >= -eps) { blocked = true; break; }
-      }
-      if (blocked) continue;
-      tris.push([ia, ib, ic]); ring.splice(k, 1); clipped = true; break;
+      if (earBlocked(grid, pts, ring, ia, ib, ic, eps)) continue;
+      tris.push([ia, ib, ic]); gridRemove(grid, pts, ib); ring.splice(k, 1); clipped = true; break;
     }
     if (clipped) { despike(); continue; }
     // Degenerate leftovers: cut off a (near) zero-area vertex as a degenerate triangle, or give up.
     const k = ring.findIndex((ib, k2) => Math.abs(cr(pts[ring[(k2 - 1 + ring.length) % ring.length]], pts[ib], pts[ring[(k2 + 1) % ring.length]])) <= eps);
     if (k < 0) throw new BrepError('GEOMETRY', 'Planar face could not be triangulated');
-    tris.push([ring[(k - 1 + ring.length) % ring.length], ring[k], ring[(k + 1) % ring.length]]); ring.splice(k, 1);
+    tris.push([ring[(k - 1 + ring.length) % ring.length], ring[k], ring[(k + 1) % ring.length]]); gridRemove(grid, pts, ring[k]); ring.splice(k, 1);
   }
   if (ring.length === 3 && !same(pts[ring[0]], pts[ring[1]]) && !same(pts[ring[1]], pts[ring[2]]) && !same(pts[ring[2]], pts[ring[0]])) tris.push([ring[0], ring[1], ring[2]]);
   return tris;
