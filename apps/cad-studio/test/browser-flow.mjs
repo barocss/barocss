@@ -1567,6 +1567,24 @@ try {
     assert.equal(n.profile, 'loop'); assert.equal(n.segments.filter(x => x.kind === 'arc').length, 1); assert.ok(!n.holes && !n.regions);
   });
 
+  await check('sketch extend and split: a line runs on to the rectangle; an edge gets a point', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);
+    await press('l'); await clickAt(cx - 40, cy); await clickAt(cx + 40, cy); await press('e');
+    await page.mouse.move(cx + 36, cy + 2); await page.waitForSelector('.vp-overlay .sk-extend', { state: 'attached', timeout: 5000 }); await snap('sketch-extend-hover');
+    await clickAt(cx + 36, cy + 2);
+    const line = () => page.evaluate(() => [...document.querySelectorAll('.vp-overlay .sk-shape.done.open')].map(e => e.getAttribute('points')));
+    await page.waitForFunction(() => { const l = document.querySelector('.vp-overlay .sk-shape.done.open'); return !!l && Number(l.getAttribute('points').split(' ').at(-1).split(',')[0]) > 0; }, null, { timeout: 5000 });
+    const ends = (await line())[0].split(' ').map(p => p.split(',').map(Number));
+    assert.ok(Math.abs(ends.at(-1)[0] - (cx + 100 - (await page.locator('canvas').boundingBox()).x)) < 6, 'reaches the right edge: ' + JSON.stringify(ends));
+    await press('k'); await page.mouse.move(cx + 100, cy + 30); await page.waitForSelector('.vp-overlay .sk-split', { state: 'attached', timeout: 5000 });
+    await clickAt(cx + 100, cy + 30);
+    await press('s'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const n = (await doc()).nodes[0];
+    assert.equal(n.profile, 'polygon'); assert.equal(n.points.length, 5, 'the split edge has a point: ' + JSON.stringify(n.points));
+  });
+
   await check('sketch: pick a rectangle corner with Select and round it', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
     await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);

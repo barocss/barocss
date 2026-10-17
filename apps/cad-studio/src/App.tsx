@@ -32,7 +32,7 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/pro
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
-import { trimAt } from './sketch/trim';
+import { extendAt, splitAt, trimAt } from './sketch/trim';
 import { clipMesh } from './engine/clip';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
@@ -58,6 +58,8 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
   { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
+  { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
+  { tool: 'split', key: 'K', label: 'Split', icon: 'cad-sk-split', hint: 'Click a line, arc or circle to split it in two there (a new point to constrain or trim to)' },
   { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
   { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'cad-sk-dim', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
@@ -83,7 +85,7 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
   // (Trimming works on open lines too: an open chain stays for it.)
-  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || tool === 'trim') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
+  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || tool === 'trim' || tool === 'extend' || tool === 'split') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
   return { ...s, tool, shape: null, ...(keep ? { done: [...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }] } : {}) };
 };
 
@@ -553,12 +555,12 @@ export function App() {
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
   };
-  /** Trims the piece of the sketch at `at` (plane mm) back to its crossings; open pieces meeting end to end join. */
-  const trimSketch = (at: [number, number], tol: number) => {
+  /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
+  const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
     const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
-    const r = trimAt(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
-    if ('error' in r) { setToast({ title: 'Nothing to trim there', hint: r.error, detail: '' }); return; }
+    const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
+    if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...s, shape: null, done: r.shapes, picked: [] });
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */

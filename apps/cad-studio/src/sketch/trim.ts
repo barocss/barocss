@@ -170,3 +170,89 @@ export function joinOpen(shapes: SketchShape[], tol = 1e-4): SketchShape[] {
   }
   return out;
 }
+
+/**
+ * Extending: the open end of a line or arc nearest `p` (an end piece of an open outline, within `tol`)
+ * run on — a line straight on, an arc round its circle — to the first piece of the sketch it meets.
+ */
+interface Reach { shape: number; atEnd: boolean; s: Piece; ext: Piece; t: number }
+function reach(shapes: SketchShape[], p: P2, tol: number): Reach | { error: string } {
+  const pieces = shapes.map(piecesOf);
+  let best: { shape: number; atEnd: boolean; d: number } | null = null;
+  shapes.forEach((sh, si) => {
+    if (sh.kind !== 'polygon' || sh.closed || sh.points.length < 2) return;
+    const ps = pieces[si];
+    for (const [atEnd, piece] of [[false, ps[0]], [true, ps[ps.length - 1]]] as const) {
+      const d = distance(piece, p); if (d > tol) continue;
+      // (A one-piece line: the end nearer the click.)
+      const t = paramOf(piece, p), end = ps.length === 1 ? t > 0.5 : atEnd;
+      if (ps.length === 1 && end !== atEnd) continue;
+      if (!best || d < best.d) best = { shape: si, atEnd: end, d };
+    }
+  });
+  if (!best) return { error: 'Click near the open end of a line or arc to extend it.' };
+  const { shape: si, atEnd } = best as { shape: number; atEnd: boolean }, ps = pieces[si], s = atEnd ? ps[ps.length - 1] : ps[0];
+  // The run past the end, as a piece of its own from the end outwards.
+  const size = Math.max(1, ...shapes.flatMap(piecesOf).flatMap(x => x.kind === 'line' ? [...x.a, ...x.b].map(Math.abs) : [Math.abs(x.c[0]) + x.r, Math.abs(x.c[1]) + x.r]));
+  let ext: Piece;
+  if (s.kind === 'line') {
+    const from = atEnd ? s.b : s.a, d = atEnd ? [s.b[0] - s.a[0], s.b[1] - s.a[1]] : [s.a[0] - s.b[0], s.a[1] - s.b[1]], l = Math.hypot(d[0], d[1]) || 1, L = 40 * size;
+    ext = { kind: 'line', a: from, b: [from[0] + d[0] / l * L, from[1] + d[1] / l * L] };
+  } else {
+    const rest = TAU - Math.abs(s.sw) - 1e-6, sg = Math.sign(s.sw);
+    ext = atEnd ? { kind: 'arc', c: s.c, r: s.r, t0: s.t0 + s.sw, sw: sg * rest } : { kind: 'arc', c: s.c, r: s.r, t0: s.t0, sw: -sg * rest };
+  }
+  const ts = pieces.flatMap((qs, sj) => qs.flatMap((o, pj) => {
+    // (Not the piece being extended, nor — for its own outline — the piece it leaves from.)
+    if (sj === si && (pj === (atEnd ? qs.length - 1 : 0))) return [];
+    return crossings(ext, o);
+  })).filter(t => t > 1e-7);
+  if (!ts.length) return { error: 'Nothing lies ahead of that end to extend it to.' };
+  return { shape: si, atEnd, s, ext, t: Math.min(...ts) };
+}
+export function extendPreview(shapes: SketchShape[], p: P2, tol: number): P2[] | null {
+  const r = reach(shapes, p, tol); if ('error' in r) return null;
+  const n = r.ext.kind === 'line' ? 1 : Math.max(2, Math.ceil(Math.abs(r.ext.sw) * r.t / (Math.PI / 24)));
+  return Array.from({ length: n + 1 }, (_, k) => pt(r.ext, r.t * k / n));
+}
+export function extendAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
+  const r = reach(shapes, p, tol); if ('error' in r) return r;
+  const sh = shapes[r.shape] as Extract<SketchShape, { kind: 'polygon' }>, n = sh.points.length, end = pt(r.ext, r.t);
+  const bulges = sh.points.map((_, i) => sh.bulges?.[i] ?? 0);
+  // A line's end moves along it (its bulge stays 0); an arc's end moves round its circle (its bulge grows).
+  const arcBulge = (s: Extract<Piece, { kind: 'arc' }>, extra: number) => Math.round(Math.tan((s.sw + Math.sign(s.sw) * extra) / 4) * 1e9) / 1e9;
+  let points = [...sh.points];
+  if (r.atEnd) { points[n - 1] = end; if (r.s.kind === 'arc') bulges[n - 2] = arcBulge(r.s, Math.abs((r.ext as Extract<Piece, { kind: 'arc' }>).sw) * r.t); }
+  else { points = [end, ...points.slice(1)]; if (r.s.kind === 'arc') bulges[0] = arcBulge(r.s, Math.abs((r.ext as Extract<Piece, { kind: 'arc' }>).sw) * r.t); }
+  // (Kept edge lengths and the like no longer hold.)
+  const next: SketchShape = { kind: 'polygon', points, bulges, closed: false, ...(sh.construction ? { construction: true as const } : {}) };
+  return { shapes: joinOpen(shapes.map((x, i) => i === r.shape ? next : x)) };
+}
+
+/** Splitting: the piece nearest `p` (within `tol`) gets a point there — two pieces where it was one. */
+function splitTarget(shapes: SketchShape[], p: P2, tol: number) {
+  let best: { shape: number; piece: number; d: number } | null = null;
+  shapes.map(piecesOf).forEach((ps, si) => ps.forEach((s, pi) => { const d = distance(s, p); if (d <= tol && (!best || d < best.d)) best = { shape: si, piece: pi, d }; }));
+  if (!best) return null;
+  const b = best as { shape: number; piece: number }, s = piecesOf(shapes[b.shape])[b.piece], t = Math.max(0, Math.min(1, paramOf(s, p)));
+  return { ...b, s, t };
+}
+export function splitPreview(shapes: SketchShape[], p: P2, tol: number): P2 | null {
+  const t = splitTarget(shapes, p, tol); return t ? pt(t.s, t.t) : null;
+}
+export function splitAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
+  const T = splitTarget(shapes, p, tol);
+  if (!T) return { error: 'Click on a line, arc or circle of the sketch to split it there.' };
+  const { shape: si, piece: pi, s, t } = T, shape = shapes[si], flag = shape.construction ? { construction: true as const } : {};
+  const at2 = pt(s, t);
+  if (shape.kind === 'circle') {
+    // A circle: two half circles meeting at the point and opposite it.
+    const opp: P2 = [r6(2 * shape.c[0] - at2[0]), r6(2 * shape.c[1] - at2[1])];
+    return { shapes: shapes.map((x, i) => i === si ? { kind: 'polygon', points: [at2, opp], bulges: [1, 1], closed: true, ...flag } : x) };
+  }
+  if (t < 1e-6 || t > 1 - 1e-6) return { error: 'That is already a point of the outline: split a piece away from its ends.' };
+  const P = polyOf(shape)!, points = [...P.points], bulges = [...P.bulges];
+  points.splice(pi + 1, 0, at2); bulges.splice(pi, 1, partBulge(s, 0, t), partBulge(s, t, 1));
+  const next: SketchShape = { kind: 'polygon', points, bulges, closed: P.closed, ...flag };
+  return { shapes: shapes.map((x, i) => i === si ? next : x) };
+}

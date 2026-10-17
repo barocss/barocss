@@ -7,7 +7,7 @@ import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
-import { trimPreview } from '../sketch/trim';
+import { extendPreview, splitPreview, trimPreview } from '../sketch/trim';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type PlaneKind, type SketchPlane } from '../sketch/plane';
 import { shapeOutline } from '../sketch/loops';
 import type { SketchRule } from '../sketch/terms';
@@ -20,7 +20,7 @@ import { ViewCube } from './ViewCube';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'trim' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -105,8 +105,8 @@ interface Props {
   onDimClick?(key: string): void;
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
   onSketchPick?(hit: SketchPick | null, additive: boolean): void;
-  /** Trim tool: a click at `at` (plane mm), `tol` mm the pick reach. */
-  onSketchTrim?(at: [number, number], tol: number): void;
+  /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
+  onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
@@ -146,7 +146,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
-  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; snap?: SnapPoint | null; trim?: [number, number][] | null }>({ cursor: null });
+  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; snap?: SnapPoint | null; trim?: { kind: 'trim' | 'extend' | 'split'; points: [number, number][] } | null }>({ cursor: null });
   /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
   const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
@@ -161,6 +161,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
   const picking = (sk: SketchState | null) => sk?.tool === 'select' || sk?.tool === 'dimension';
+  /** Trim, Extend and Split: a click edits the piece under it (no snapping). */
+  const cutting = (sk: SketchState | null) => sk?.tool === 'trim' || sk?.tool === 'extend' || sk?.tool === 'split';
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
@@ -473,12 +475,16 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
-      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && sk.tool !== 'trim' ? sketchSnap(x, y, w, h, sk, p) : null;
+      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
       sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
-      else if (sk.tool === 'trim') sketchDraft.current.trim = p ? trimPreview(sketchShapesOf(sk), [p[0], p[1]], trimReach(x, y, w, h, sk)) : null;
+      else if (cutting(sk)) {
+        const all = sketchShapesOf(sk), q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
+        const points = !q ? null : kind === 'trim' ? trimPreview(all, q, tol) : kind === 'extend' ? extendPreview(all, q, tol) : (pt => pt ? [pt] : null)(splitPreview(all, q, tol));
+        sketchDraft.current.trim = points ? { kind, points } : null;
+      }
       else if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
         if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
@@ -525,7 +531,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
-      if (sk.tool === 'trim') { propsRef.current.onSketchTrim?.([p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
+      if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
       if (sk.tool === 'rectangle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
@@ -683,8 +689,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         if (marks) { items.push(...marks.svg); editor = marks.html; }
       }
       // The trim tool's target: the piece a click removes.
-      const trim = sk.tool === 'trim' ? sketchDraft.current.trim : null;
-      if (trim) items.push(<polyline key="trim" points={trim.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className="sk-trim" />);
+      const trim = cutting(sk) && sketchDraft.current.trim?.kind === sk.tool ? sketchDraft.current.trim : null;
+      if (trim?.kind === 'split') { const p = P(trim.points[0][0], trim.points[0][1]); items.push(<circle key="split" cx={p[0]} cy={p[1]} r={5} className="sk-split" />); }
+      else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);
       const cur = picking(sk) ? null : sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
       // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.
