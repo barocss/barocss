@@ -7,6 +7,7 @@ import { brepMassProperties, evaluateCadPart, tessellateBrep, type CadPartDocume
 import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
+import { projectViews } from '../../src/drawing/project';
 
 interface Scenario { name: string; budgetMS: number; runs: number; setup(): () => unknown }
 const D = (features: unknown[]): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features } as unknown as CadPartDocument);
@@ -47,6 +48,15 @@ const scenarios: Scenario[] = [
     for (let k = 1; k < 6; k++) f.push({ id: `u${k}`, kind: 'union', target: k === 1 ? 'e0' : `u${k - 1}`, tool: `e${k}` });
     let r = 30;
     return () => evaluateCadPart(D([...f, { id: 'p', kind: 'circular-pattern', target: 'u5', axis: 'z', angleDegrees: 30, count: 12, pivot: [r += 1e-3, 5, 0] }]));
+  } },
+  { name: 'drawing: 120-hole plate, 4 views (cold)', budgetMS: 4000, runs: 3, setup() {
+    // (A fresh part each run: a drawing's tessellation is cached with its B-rep.)
+    const plates = Array.from({ length: 4 }, (_, k) => {
+      const f: unknown[] = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [240 + k * 1e-3, 120] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+      let t = 'e'; for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) { const id = `h${i}_${j}`; f.push({ id, kind: 'hole', target: t, center: [10 + 20 * i, 6 + 12 * j], radius: 2 }); t = id; }
+      return evaluateCadPart(D(f)).outputs[0].brep;
+    });
+    let k = 0; return () => projectViews([plates[k++]]);
   } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');

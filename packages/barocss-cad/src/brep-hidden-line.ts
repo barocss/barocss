@@ -73,6 +73,20 @@ const dist2 = (a: XY, b: XY) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 type Own = { face: number; eps: number; rho: number };
 const lerp3 = (a: Point, b: Point, t: number): Point => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
+// Each face's plane or cylinder (or neither), read once per face object: every view asks for it.
+const faceGeometries = new WeakMap<object, ReturnType<typeof faceGeometry>>();
+function geometryOfFace(face: Brep['faces'][number]): ReturnType<typeof faceGeometry> {
+  let g = faceGeometries.get(face);
+  if (!g) { try { g = faceGeometry(face); } catch { g = { kind: 'other' }; } faceGeometries.set(face, g); }
+  return g;
+}
+// A B-rep's tessellation per quality, made once: a drawing projects the same part in several views.
+const meshes = new WeakMap<Brep, Map<number, ReturnType<typeof tessellateBrep>>>();
+function meshOf(b: Brep, perQuarter: number): ReturnType<typeof tessellateBrep> {
+  let byQuality = meshes.get(b); if (!byQuality) meshes.set(b, byQuality = new Map());
+  let m = byQuality.get(perQuarter); if (!m) byQuality.set(perQuarter, m = tessellateBrep(b, { segmentsPerQuarter: perQuarter }));
+  return m;
+}
 export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineView, options: HiddenLineOptions = {}): BrepProjection {
   const toward = unit(view.toward), right = unit(cross(view.up, toward));
   if (len(right) < 0.5) throw new Error('The view up direction is parallel to the view direction.');
@@ -83,7 +97,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   // Occluders: every face's triangles in view coordinates.
   const tris: number[] = [], triFace: number[] = [], triAt: number[] = [], faceSag: number[] = [], faceSpan: number[] = [];
   const perQuarter = options.segmentsPerQuarter ?? 12;
-  const meshes = breps.map(b => tessellateBrep(b, { segmentsPerQuarter: perQuarter }));
+  const meshes = breps.map(b => meshOf(b, perQuarter));
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const m of meshes) {
     const X = m.positionsMM;
@@ -139,8 +153,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       if (g.kind === 'cylinder') { const rel = sub(p, g.c), t = dot(rel, g.a); return sub(rel, [g.a[0] * t, g.a[1] * t, g.a[2] * t]); }
       return normalAt(faceId, p);
     };
-    const geometry = new Map<string, ReturnType<typeof faceGeometry>>();
-    const geomOf = (id: string) => { let g = geometry.get(id); if (!g) { try { g = faceGeometry(faceById.get(id)!); } catch { g = { kind: 'other' }; } geometry.set(id, g); } return g; };
+    const geomOf = (id: string) => geometryOfFace(faceById.get(id)!);
     const polylineOf = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
     const vertex = new Map(brep.vertices.map(v => [v.id, v.point]));
 
