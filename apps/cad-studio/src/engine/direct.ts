@@ -213,7 +213,7 @@ export const directOps = {
   /** A surface through 2–15 curves of the same degree and knots, in selection order (cubic across them when there are enough). */
   loft(d: DirectGeometry, ids: string[]) {
     if (ids.length < 2 || ids.length > 15) throw new Error('Loft through 2 to 15 curves.');
-    const sections = ids.map(id => curveOf(d, id)), n = sections.length;
+    const sections = compatible(d, ids), n = sections.length;
     const r = buildMultiSectionLoftSurface(sections, sections.map((_, i) => i / (n - 1)), {
       surfaceId: fresh(usedIds(d), 'loft'), degreeV: Math.min(3, n - 1), maximumBasisEvaluations: 3600, maximumEliminationSteps: 1680, maximumObservations: 465 });
     return add(d, [], r.source, [{ geometry: r.surface.id, name: 'Lofted surface' }]);
@@ -223,6 +223,30 @@ export const directOps = {
     return add(d, [], r.source, [{ geometry: r.surface.id, name: 'Swept surface' }]);
   },
 };
+
+/**
+ * The curves made alike for a loft (the same degree and knots), shape kept: each raised to the highest
+ * degree among them, then given the knots the others have (exact degree elevation and knot insertion).
+ * Their domains must match.
+ */
+function compatible(d: DirectGeometry, ids: string[]): Curve[] {
+  const doms = ids.map(id => curveDomain(curveOf(d, id)));
+  if (doms.some(t => Math.abs(t[0] - doms[0][0]) > 1e-12 || Math.abs(t[1] - doms[0][1]) > 1e-12)) throw new Error('The curves run over different parameter ranges: trim or rebuild them to one range first.');
+  let w = d;
+  const top = Math.max(...ids.map(id => curveOf(w, id).degree));
+  for (const id of ids) while (curveOf(w, id).degree < top) w = directOps.elevateCurveDegree(w, id);
+  // Interior knots with their multiplicities; each curve takes the most any curve has of each.
+  const counts = (c: Curve) => { const m = new Map<number, number>(), k = c.knots, p = c.degree; for (let i = p + 1; i < k.length - p - 1; i++) m.set(k[i], (m.get(k[i]) ?? 0) + 1); return m; };
+  const want = new Map<number, number>();
+  for (const id of ids) for (const [k, n] of counts(curveOf(w, id))) {
+    const near = [...want.keys()].find(x => Math.abs(x - k) < 1e-12) ?? k; want.set(near, Math.max(want.get(near) ?? 0, n));
+  }
+  for (const id of ids) for (const [k, n] of want) {
+    const have = () => [...counts(curveOf(w, id))].filter(([x]) => Math.abs(x - k) < 1e-12).reduce((t, [, c]) => t + c, 0);
+    for (let guard = 0; have() < n && guard < 8; guard++) w = directOps.insertCurveKnot(w, id, k);
+  }
+  return ids.map(id => curveOf(w, id));
+}
 
 /** A short prefix none of whose role names is taken (the operations derive helper ids from it). */
 function freshPrefix(used: Set<string>, stem: string, max = 20): string {

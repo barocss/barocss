@@ -152,3 +152,18 @@ test('direct: stretch by axis and shear copy the geometry by the affine map abou
   assert.ok(q.kind === 'surface'); assert.deepEqual(q.controlPoints.flat().map(p => Math.round(p[2] * 1e9) / 1e9), [-10, -10, 0, 0]);
   assert.throws(() => directOps.shear(d, [panel], 'x', 'x', 1), /two different axes/);
 });
+
+test('direct: a loft through curves of different degrees and knots makes them alike first', async () => {
+  const { evaluateSurface } = await import('@barocss/cad');
+  let d = importSource(emptyDirect(), STUDY, 'study');
+  const arc = byName(d, 'arc'), top = byName(d, 'top');
+  d = directOps.insertCurveKnot(d, top, 0.25);
+  const out = directOps.loft(d, [arc, top]), s = geometryOf(out, out.objects.at(-1)!);
+  assert.ok(s.kind === 'surface');
+  // The surface runs through both sections: at v = 0 the arc, at v = 1 the line.
+  for (const t of [0.1, 0.5, 0.8]) {
+    const a = analyzeCurve(d, arc, t).point, b = analyzeCurve(d, top, t).point, p = evaluateSurface(s, t, 0), q = evaluateSurface(s, t, 1);
+    assert.ok(Math.hypot(p[0] - a[0], p[1] - a[1], p[2] - a[2]) < 1e-9 && Math.hypot(q[0] - b[0], q[1] - b[1], q[2] - b[2]) < 1e-9, `t ${t}`);
+  }
+  assert.equal(d.objects.length + 1, out.objects.length, 'the sections themselves are left as they were');
+});

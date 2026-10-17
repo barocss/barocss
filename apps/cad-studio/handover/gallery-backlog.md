@@ -23,7 +23,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A13 Direct transform: non-uniform scale and shear (#2086)
 - [x] A14 Delete with dependents, after a review (#2058)
 - [x] A15 Measure: coaxial check of two round faces (#2085)
-- [ ] A16 Direct loft lines up knots first (#2064)
+- [x] A16 Direct loft lines up knots first (#2064)
 - [ ] A17 Grid on a face's sketch plane (#2054)
 
 ## B. App (sometimes a small kernel adapter), medium
