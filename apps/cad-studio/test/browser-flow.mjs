@@ -1340,6 +1340,11 @@ try {
     await page.waitForTimeout(600); await snap('section');
     await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600);
     await page.click('[aria-label="Flip the section"]'); await page.waitForTimeout(600);
+    // Dragging the plane: the clipped, capped meshes follow at once (the exact section after).
+    const hb = await page.locator('[data-handle="section"]').boundingBox();
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(hb.x + hb.width / 2 + i * 12, hb.y + hb.height / 2 + i * 4);
+    await page.waitForTimeout(40); await snap('section-dragging'); await page.mouse.up(); await page.waitForTimeout(600);
     assert.equal((await doc()).nodes.length, nodes, 'the model is not changed');
     await page.click('[aria-label="Section view"]');
     await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });

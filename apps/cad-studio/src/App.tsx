@@ -33,6 +33,7 @@ import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
 import { trimAt } from './sketch/trim';
+import { clipMesh } from './engine/clip';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
@@ -187,7 +188,7 @@ export function App() {
    * faces lit (the kernel's split, display only — the model is not changed).
    */
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
-  const [sectionBodies, setSectionBodies] = useState<BodyResult[] | null>(null);
+  const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[] } | null>(null);
   const sectionRef = useRef(section); sectionRef.current = section;
   const activeRef = useRef<Active | null>(null);
   /** The body whose browser row the pointer is on (lit in the viewport). */
@@ -248,8 +249,8 @@ export function App() {
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, marker]);
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
-    if (!section) { setSectionBodies(null); return; }
-    let live = true;
+    if (!section) { setSectionExact(null); return; }
+    let live = true; const key = JSON.stringify(section);
     const k = 'xyz'.indexOf(section.axis), keep = section.keep, nodes = [...evaluated.nodes], kept: string[] = [];
     let doc: StudioDoc = { ...evaluated, nodes };
     for (const b of bodies) {
@@ -257,9 +258,16 @@ export function App() {
       if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(`b${doc.nodes.length - 1}_${keep}`); }
       else if (keep === 'negative' ? max[k] <= section.at + 1e-6 : min[k] >= section.at - 1e-6) kept.push(b.key);
     }
-    engine.preview(doc, revision.current++).then(r => { if (live) setSectionBodies(r.ok ? r.bodies.filter(b => kept.includes(b.key)) : null); });
+    engine.preview(doc, revision.current++).then(r => { if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)) }); });
     return () => { live = false; };
   }, [section, bodies, evaluated, engine]);
+  // At once (while the plane is dragged, until the exact section arrives): the meshes clipped and capped.
+  const sectionClipped = useMemo(() => {
+    if (!section) return null;
+    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2, cap = `n${evaluated.nodes.length}.cut`;
+    return bodies.flatMap(b => { const mesh = clipMesh(b.mesh, k, section.at, section.keep, cap); return mesh ? [{ ...b, mesh }] : []; });
+  }, [section, bodies, evaluated.nodes.length]);
+  const sectionBodies = section ? (sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // Evaluate the accepted document whenever it or the rollback marker changes.
