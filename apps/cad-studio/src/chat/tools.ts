@@ -12,7 +12,7 @@ import { checkNode, deleteFeature } from './features';
 import type { ImageTrace, Pt } from './trace';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
 import { insideRing as inside } from '../engine/geom2';
-import { resolveNames, type NameSelection } from './names';
+import { resolveEdge, resolveFace, resolveNames, resolveSelectors, type NameSelection, type Resolved } from './names';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -128,6 +128,8 @@ function checkValues(fields: Field[], values: Values): string | null {
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
+/** A list of names or selectors (objects kept as they are). */
+const list = (v: unknown): unknown[] => Array.isArray(v) ? v.map(x => isObj(x) ? x : String(x)) : [];
 
 function traceOf(state: ChatState, image: unknown): ImageTrace | string {
   const list = state.images ?? [];
@@ -271,7 +273,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     case 'run_command': {
       const cmd = commandById(String(args.command));
       if (!cmd?.build) return fail(state, `Unknown command "${String(args.command)}". Commands: ${CHAT_COMMANDS.join(', ')}.`);
-      const { selection, unknown } = resolveNames(state.bodies, { faces: strings(args.faces), edges: strings(args.edges), bodies: strings(args.bodies) });
+      // (Faces and edges by name or by selector, A1.2: each selector resolves to its name, reported back.)
+      const sel = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges), bodies: list(args.bodies) });
+      if (sel.error) return fail(state, sel.error);
+      const { selection, unknown } = resolveNames(state.bodies, sel.names);
       if (unknown.length) return fail(state, `No face, edge or body named ${unknown.map(n => `"${n}"`).join(', ')} on the current part. Use the names from the last result or get_part_summary.`);
       const point = Array.isArray(args.point) && args.point.length === 3 ? args.point.map(Number) as [number, number, number] : undefined;
       const ctx: Ctx = { doc: state.doc, bodies: state.bodies, selection, pick: point };
@@ -286,7 +291,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (why) return fail(state, `${cmd.label}: ${why}`);
       const next = cmd.build(ctx, values);
       const shown = Object.fromEntries(shownFields(fields, values).map(f => [f.key, values[f.key]]));
-      return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
+      return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
     }
     case 'add_features': {
       const list = Array.isArray(args.features) ? args.features : null;
@@ -399,7 +404,13 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         { ...(skipped.length ? { skipped } : {}), note: mode === 'body' ? `the body spans ${-depth / 2}…${depth / 2} about its mid plane` : 'bumps are separate bodies sunk into the surface; union them only if one solid is needed (each union is slow)' });
     }
     case 'measure': {
-      const names = [String(args.a ?? ''), ...(args.b === undefined ? [] : [String(args.b)])];
+      const names: string[] = [], resolved: Resolved[] = [];
+      for (const s of [args.a ?? '', ...(args.b === undefined ? [] : [args.b])]) {
+        const r = isObj(s) && 'between' in s ? resolveEdge(state.doc.nodes, state.bodies, s) : resolveFace(state.doc.nodes, state.bodies, typeof s === 'string' || isObj(s) ? s : String(s));
+        if (typeof r === 'string') return fail(state, r);
+        if (r.length !== 1) return fail(state, `${JSON.stringify(s)} is ${r.length} faces; measure takes one.`);
+        names.push(r[0]); if (typeof s !== 'string') resolved.push({ selector: s, names: r });
+      }
       const picks: { body: number; pick: MeasurePick }[] = [];
       for (const n of names) {
         const { selection } = resolveNames(state.bodies, { faces: [n] });
@@ -414,14 +425,15 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         const m = measureBetween(mesh(0), picks[0].pick, mesh(1), picks[1].pick);
         return { distance: r3(m.distance), from: v3(m.a), to: v3(m.b), ...(m.angle === undefined ? {} : { angle_deg: r3(m.angle) }), ...(m.normalDistance === undefined ? {} : { normal_distance: r3(m.normalDistance) }) };
       })();
-      return { state, content: json(out), isError: false, changed: false, summary: json(out) };
+      return { state, content: json(resolved.length ? { ...out, resolved } : out), isError: false, changed: false, summary: json(out) };
     }
     case 'select': {
-      const sel: NameSelection = { faces: strings(args.faces), edges: strings(args.edges), bodies: strings(args.bodies) };
-      const { unknown } = resolveNames(state.bodies, sel);
+      const r = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges), bodies: list(args.bodies) });
+      if (r.error) return fail(state, r.error);
+      const sel: NameSelection = r.names, { unknown } = resolveNames(state.bodies, sel);
       if (unknown.length) return fail(state, `No face, edge or body named ${unknown.map(n => `"${n}"`).join(', ')}.`);
       const count = sel.faces.length + sel.edges.length + sel.bodies.length;
-      return { state: { ...state, selection: sel }, content: json({ ok: true, selected: sel }), isError: false, changed: false, summary: `${count} selected` };
+      return { state: { ...state, selection: sel }, content: json({ ok: true, selected: sel, ...(r.resolved.length ? { resolved: r.resolved } : {}) }), isError: false, changed: false, summary: `${count} selected` };
     }
   }
   return fail(state, `Unknown tool "${name}".`);
@@ -430,6 +442,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
 export const isMutator = (name: string) => MUTATORS.has(name);
 
 const nameList = { type: 'array', items: { type: 'string' } };
+/** A face or edge: its name, or a selector (A1.2) that resolves to it (the result reports the name). */
+const SELECTOR = 'or a selector: a feature\'s face by role {"feature": index or id, "role": "top" | "bottom" | "side2" | "side" (one of its sides) | "cut" …}, the flat face facing a direction {"normal": [0, 0, 1], "pick": "max" | "min"}, either with "on": a body key and "all": true for every face that fits; an edge {"between": [face, face]}';
+const selectorList = (what: string) => ({ type: 'array', items: { anyOf: [{ type: 'string' }, { type: 'object' }] }, description: `${what}: names, ${SELECTOR}.` });
+const oneSelector = (what: string) => ({ anyOf: [{ type: 'string' }, { type: 'object' }], description: `${what}: a name, ${SELECTOR}.` });
 const commandDoc = CHAT_COMMANDS.map(id => {
   const c = commandById(id)!, d = COMMAND_DOCS[id];
   const values = Object.entries(d.values).map(([k, v]) => `${k}: ${v}`).join('; ');
@@ -450,8 +466,8 @@ const PART_TOOLS: ToolDefinition[] = [
       properties: {
         command: { type: 'string', enum: CHAT_COMMANDS },
         values: { type: 'object', description: 'Command values by key (numbers in mm or degrees; choices as strings).', additionalProperties: { type: ['number', 'string'] } },
-        faces: { ...nameList, description: 'Face names to select.' },
-        edges: { ...nameList, description: 'Edge names to select.' },
+        faces: selectorList('Faces to select'),
+        edges: selectorList('Edges to select'),
         bodies: { ...nameList, description: 'Body keys to select (e.g. "b1").' },
         point: { type: 'array', items: { type: 'number' }, description: 'Optional picked point [x, y, z] on the face (hole default centre).' },
       },
@@ -518,12 +534,12 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   {
     name: 'measure',
     description: 'Measures one face or edge (area, length, radius), or the distance between two (and the angle between planes or straight edges, the normal distance between parallel planes).',
-    input_schema: { type: 'object', properties: { a: { type: 'string', description: 'Face or edge name.' }, b: { type: 'string', description: 'Optional second face or edge name.' } }, required: ['a'], additionalProperties: false },
+    input_schema: { type: 'object', properties: { a: oneSelector('A face or edge'), b: oneSelector('An optional second face or edge') }, required: ['a'], additionalProperties: false },
   },
   {
     name: 'select',
     description: 'Highlights faces, edges or bodies in the user’s viewport when the turn ends (for example to show what was filleted). Does not change the part.',
-    input_schema: { type: 'object', properties: { faces: nameList, edges: nameList, bodies: nameList }, additionalProperties: false },
+    input_schema: { type: 'object', properties: { faces: selectorList('Faces'), edges: selectorList('Edges'), bodies: nameList }, additionalProperties: false },
   },
 ];
 
@@ -535,7 +551,7 @@ export const TOOLS: ToolDefinition[] = [
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
 
-Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z".
+Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
 Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result, and correct yourself when a tool refuses or a volume or bound is not what the request implies. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 

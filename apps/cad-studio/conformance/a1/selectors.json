@@ -1,0 +1,144 @@
+{
+  "id": "a1-selectors",
+  "step": "A1",
+  "decisions": [
+    "D27"
+  ],
+  "about": "Selectors resolve to persistent names: a feature's face by role, the flat face facing a direction (narrowed to a body), the edge two faces share; one fitting several faces is refused with them.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        },
+        {
+          "id": "n2",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            0
+          ],
+          "max": [
+            30,
+            10
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "extrude",
+          "sketch": 2,
+          "height": 5
+        }
+      ],
+      "nextId": 4,
+      "outputs": {}
+    },
+    "selectors": [
+      {
+        "face": {
+          "feature": 1,
+          "role": "top"
+        },
+        "names": [
+          "n1.top"
+        ]
+      },
+      {
+        "face": {
+          "feature": "n3",
+          "role": "bottom"
+        },
+        "names": [
+          "n3.bottom"
+        ]
+      },
+      {
+        "face": {
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "on": "b3"
+        },
+        "names": [
+          "n3.top"
+        ]
+      },
+      {
+        "face": {
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "error": "fits 2 faces: n1.top, n3.top"
+      },
+      {
+        "face": {
+          "feature": 1,
+          "role": "side"
+        },
+        "error": "fits 4 faces"
+      },
+      {
+        "face": {
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "pick": "min"
+        },
+        "names": [
+          "n1.side1"
+        ]
+      },
+      {
+        "edge": {
+          "between": [
+            {
+              "feature": 1,
+              "role": "top"
+            },
+            {
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "on": "b1"
+            }
+          ]
+        },
+        "names": [
+          "n1.side1|n1.top"
+        ]
+      }
+    ]
+  },
+  "expect": {},
+  "oracle": "by construction (names from the kernel's naming of a box: side k runs along the sketch's k-th edge)"
+}
