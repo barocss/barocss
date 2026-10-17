@@ -105,6 +105,11 @@ export interface StudioDoc {
   parameters: Record<string, number>;
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
+  /**
+   * New revisions of placed parts waiting to be accepted, by part definition (PartInstance.part.id):
+   * loaded on purpose, they change no instance until accepted.
+   */
+  pendingParts?: Record<string, { doc: StudioDoc; rev: string; name: string }>;
   nodes: ModelNode[];
   outputs: Record<string, BodyRef>;
   /** How the part is rendered (the Render workspace); absent until first rendered. */
@@ -134,6 +139,11 @@ export interface PartInstance {
   hidden?: boolean;
   /** Fixed in place: mates never move it. */
   grounded?: boolean;
+  /**
+   * The part definition it places: instances with the same id share it (a new revision accepted for one
+   * is the others' too) at revision `rev`; `source` is the file it came from. Absent: a part of its own.
+   */
+  part?: { id: string; rev: string; source?: string };
 }
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */

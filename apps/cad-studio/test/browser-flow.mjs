@@ -1023,6 +1023,29 @@ try {
     await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 5000 });
   });
 
+  await check('shared part definition: a new revision waits, then both copies take it where they are; a copy made independent keeps its own', async () => {
+    const list = () => page.evaluate(() => window.__studioDoc.instances.map(i => ({ part: i.part?.id, rev: i.part?.rev, h: i.doc.nodes.find(n => n.kind === 'extrude')?.height, x: i.position[0] })));
+    const before = await list();
+    assert.equal(before[0].part, before[1].part, 'the copy shares the definition');
+    await page.locator('.ol.instance').first().click();
+    await page.waitForSelector('[aria-label="Instance"]');
+    assert.match(await page.locator('[aria-label="Instance"]').innerText(), /Rev A · shared by 2/);
+    await page.setInputFiles('[aria-label="Instance"] [aria-label="New revision file"]', join(root, 'test/fixtures/bracket-rev-b.bcad'));
+    await page.waitForSelector('[aria-label="Revision waiting"]');
+    assert.deepEqual((await list()).map(i => i.h), before.map(i => i.h), 'nothing changes before it is accepted');
+    await snap('revision-waiting');
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances.every(i => i.part?.rev === 'B'));
+    const after = await list();
+    assert.deepEqual(after.map(i => [i.rev, i.h === before[0].h * 2, i.x]), before.map(i => ['B', true, i.x]));
+    // Made independent, a copy no longer shares later revisions.
+    await page.click('[aria-label="Instance"] button:text-is("Make independent")');
+    await page.waitForFunction(() => new Set(window.__studioDoc.instances.map(i => i.part?.id)).size === 2);
+    for (let k = 0; k < 2; k++) await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.instances.every(i => i.part?.rev === 'A' && !window.__studioDoc.pendingParts), null, { timeout: 5000 }).catch(() => {});
+    await idle();
+  });
+
   await check('mate the copy to the fixed bracket by its faces', async () => {
     const ids = await page.evaluate(() => window.__studioDoc.instances.map(i => i.id));
     const placed = () => page.evaluate(() => window.__studioDoc.instances.map(i => ({ p: i.position, r: i.rotation, fixed: !!i.grounded })));

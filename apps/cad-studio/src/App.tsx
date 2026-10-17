@@ -45,6 +45,7 @@ import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
 import { flattenAssembly } from './assembly/flatten';
+import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from './assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
@@ -394,6 +395,11 @@ export function App() {
     return () => { live = false; };
   }, [doc.instances]);
   /** One undoable change of the instances and their mates together. */
+  /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
+  const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, instances: next.instances, pendingParts: next.pendingParts }); setDirty(true);
+  }, [doc, marker]);
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc({ ...doc, instances, mates }); setDirty(true);
@@ -422,7 +428,7 @@ export function App() {
       let n = 1; while (used.has(`inst${n}`)) n++;
       // Placed to the right of everything shown.
       const right = Math.max(0, ...bodies.map(b => b.mesh.bounds.max[0]), ...[...instanceBodies.values()].flatMap(v => v.bodies.map(b => b.mesh.bounds.max[0])));
-      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0] };
+      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0], part: { id: freshPartId(doc), rev: revisionOf(parsed), source: file.name } };
       commitInstances([...list, inst], [inst.id]); setSelection(emptySel); setDirectSel([]);
       setTimeout(() => viewport.current?.fit(), 600);
     } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
@@ -1399,6 +1405,15 @@ export function App() {
           onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
             commitInstances([...list, { ...inst, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
+          shared={inst.part ? sharing(doc, inst.part.id).length : 0} pending={inst.part ? doc.pendingParts?.[inst.part.id] : undefined}
+          onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
+          onRevision={async file => {
+            const read = readStudioDoc(await file.text());
+            if ('error' in read) { setToast({ title: 'Could not read that part', hint: read.error, detail: '' }); return; }
+            const r = offerRevision(doc, inst.part!.id, read.doc, file.name);
+            if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else commitParts(r.doc);
+          }}
+          onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
