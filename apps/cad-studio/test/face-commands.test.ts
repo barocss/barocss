@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { faceProfile, fitLoop } from '../src/app/faceProfile';
 import { extrudeCommand } from '../src/app/profileCommands';
 import { carrySelection, commands, type Ctx, type Selection } from '../src/app/commands';
@@ -55,7 +55,8 @@ test('A rounded corner of a face comes back as its arc', () => {
 });
 
 test('Extrude on a cylinder top: one circle; a curved face cannot be pulled', () => {
-  const doc = withNode(withNode({ ...rectanglePart(1, 1, 1), nodes: [] }, { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 6 }), { kind: 'extrude', sketch: 0, height: 10 });
+  // (A fresh document: its features n0, n1. One emptied of another's nodes would go on from that one's ids.)
+  const doc = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 6 }), { kind: 'extrude', sketch: 0, height: 10 });
   const bodies = bodiesOf(doc), top = faceNamed(bodies[0], 'n1.top');
   const sk = faceProfile(bodies[0].mesh, top)!;
   assert.deepEqual(sk.profile === 'loop' && sk.segments, [{ kind: 'arc', start: [6, 0], center: [0, 0], direction: 'ccw' }]);

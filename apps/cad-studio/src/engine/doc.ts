@@ -1,5 +1,5 @@
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
-// worker evaluates it on the kernel's B-rep part model (node i is feature `n<i>`, see part.ts).
+// worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
@@ -37,8 +37,11 @@ export type SketchNode =
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane);
 
-/** A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history. */
-export type ModelNode = ModelNodeBase & { suppressed?: true };
+/**
+ * A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history.
+ * `id`: its stable feature id (`n<k>`, see engine/ids.ts): the prefix of its faces' and edges' names.
+ */
+export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string };
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
@@ -115,10 +118,14 @@ import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
 import { rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';
+import { nextSerial, withIds } from './ids';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  schema: 1;
+  /** 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
+  schema: 1 | 2;
+  /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
+  nextId?: number;
   units: 'mm';
   parameters: Record<string, number>;
   /** Saved sets of parameter values by name (a configuration applies its set). */
@@ -213,7 +220,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
   return prefixDoc(doc, doc.nodes.length);
 }
 
-export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} });
+export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 2, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
 
 export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 
@@ -251,6 +258,8 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
 
 /** The document evaluated at a rollback marker: nodes before it, outputs = its leaf bodies. */
 export function prefixDoc(doc: StudioDoc, marker: number): StudioDoc {
+  // (Every node with its stable id first: a document built or read without them gets them here.)
+  doc = withIds(doc);
   const nodes = doc.nodes.slice(0, marker);
   const outputs: Record<string, BodyRef> = {};
   leafBodies(nodes).forEach(ref => { outputs[bodyKey(ref)] = ref; });
@@ -260,7 +269,9 @@ export function prefixDoc(doc: StudioDoc, marker: number): StudioDoc {
 export const bodyKey = (ref: BodyRef) => ref.side === 'solid' ? `b${ref.node}` : `b${ref.node}_${ref.side}`;
 
 export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
-  const next = { ...doc, nodes: [...doc.nodes, node] };
+  // (A new feature: the next serial id, unless it brings its own, as an edit's replacement does.)
+  const k = nextSerial(doc), fresh = node.id === undefined;
+  const next = { ...doc, nodes: [...doc.nodes, fresh ? { ...node, id: `n${k}` } : node], nextId: fresh ? k + 1 : doc.nextId };
   return prefixDoc(next, next.nodes.length);
 }
 

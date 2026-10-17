@@ -153,7 +153,7 @@ test('add_features checks nodes before the kernel; revolve and polygon profiles 
   assert.ok(Math.abs(prism.volumeMM3! - 150) < 1e-6);
 });
 
-test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features and names', async () => {
+test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)', async () => {
   let s = await stateOf(rectanglePart(64, 32, 8));
   let r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
   r = await runTool(s, 'edit_feature', { index: 2 }, evaluate);
@@ -164,14 +164,16 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
   assert.ok(!r.isError, r.content);
   assert.ok(Math.abs(volume(r.state) - (80 * 32 * 10 - Math.PI * 25 * 10)) < 1e-3);
   assert.match(parse((await runTool(r.state, 'edit_feature', { index: 1, values: { width: 1 } }, evaluate)).content).error, /no value "width"/);
-  // Delete: refused while used; a box before a filleted box goes, with its sketch, and the names follow.
+  // Delete: refused while used; a box before a filleted box goes, with its sketch: the later features move down,
+  // and their names stay (the feature ids are stable, A1).
   assert.match(parse((await runTool(s, 'delete_feature', { index: 1 }, evaluate)).content).error, /used by feature 2/);
   let doc = rectanglePart(10, 10, 5);
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   doc = withNode(doc, { kind: 'fillet', parent: { node: 3, side: 'solid' }, edges: ['n3.side0|n3.side1'], radius: 2 });
   const del = deleteFeature(doc, 1);
   assert.ok(!('error' in del)); assert.deepEqual(del.removed, [0, 1]);
-  assert.deepEqual(del.doc.nodes[2], { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.side1'], radius: 2 });
+  assert.deepEqual(del.doc.nodes[2], { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n3.side0|n3.side1'], radius: 2, id: 'n4' });
+  assert.deepEqual(del.doc.nodes.map(n => n.id), ['n2', 'n3', 'n4']);
   r = await runTool(await stateOf(doc), 'delete_feature', { index: 1 }, evaluate);
   assert.ok(!r.isError, r.content); assert.deepEqual(r.state.bodies.map(b => b.key), ['b2']);
   assert.ok(Math.abs(volume(r.state) - (16 * 16 * 16 - (4 - Math.PI) * 16)) < 1e-3);
@@ -527,7 +529,7 @@ test('assembly tools: a pin added as its own part, built, mated into a plate’s
   assert.equal((TOOLS.find(t => t.name === 'select')!.input_schema.properties as any).part, undefined);
 });
 
-test('deleting a feature renumbers the mates on the part, drawing dimensions and render keys; refuses a mate on its faces', () => {
+test('deleting a feature keeps the names mates and drawing dimensions use (A1), renumbers render keys; refuses a mate on its faces', () => {
   let doc = rectanglePart(10, 10, 5);
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   const mate = (face: string) => ({ id: 'm1', kind: 'coincident' as const, a: { part: 'base', face }, b: { part: 'p', face: 'origin:xy' } });
@@ -536,8 +538,8 @@ test('deleting a feature renumbers the mates on the part, drawing dimensions and
   const full = { ...doc, mates: [mate('n3.top')], drawing: { ...defaultDrawing(), dimensions: [dim('n1.side0|n1.side1'), dim('n3.side0|n3.side1')] }, render };
   const del = deleteFeature(full, 1);
   assert.ok(!('error' in del), JSON.stringify(del));
-  assert.equal(del.doc.mates![0].a.face, 'n1.top');
-  assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n1.side0|n1.side1']);
+  assert.equal(del.doc.mates![0].a.face, 'n3.top');
+  assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n3.side0|n3.side1']);
   assert.equal(del.droppedDimensions, 1);
   assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b1']);
   const blocked = deleteFeature({ ...full, mates: [mate('n1.top')] }, 1);

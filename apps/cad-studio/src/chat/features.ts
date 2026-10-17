@@ -1,10 +1,12 @@
 // Feature nodes written by the model (add_features / edit_feature), checked before the kernel sees
 // them: every field of the node's kind with the right type, references to earlier sketches and to
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
-// it used), renumbering the later ones and the persistent face and edge names that carry their index.
+// it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
+// (engine/ids.ts), so they stay as they are.
 import { leafBodies, parentsOf, prefixDoc, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { DrawingDimension } from '../drawing/types';
+import { featureId, nextSerial, nodesOfName, renameFeatureIds } from '../engine/ids';
 
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
@@ -54,7 +56,8 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     spec = SPECS[kind];
   }
   const fields = new Map(Object.entries(spec).map(([k, t]) => [k.replace(/\?$/, ''), { type: t, optional: k.endsWith('?') }]));
-  for (const key of Object.keys(node)) if (key !== 'kind' && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
+  // (`id`, a feature's stable id, may come along from a document read back; the studio assigns ids itself.)
+  for (const key of Object.keys(node)) if (key !== 'kind' && key !== 'id' && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
   const leaves = leafBodies(nodes).map(sideOf);
   for (const [key, { type, optional }] of fields) {
     const v = node[key];
@@ -125,9 +128,10 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
   return `unchecked type ${type}`;
 }
 
-/** Feature ids `n<i>` inside persistent names, renumbered. */
-const renameIds = (name: string, map: (i: number) => number) => name.replace(/\bn(\d+)(?=[._|/#]|$)/g, (_, i) => `n${map(Number(i))}`);
-
+/**
+ * A node's references to other nodes by index renumbered. (Names need nothing: they carry the features' stable
+ * ids, engine/ids.ts.)
+ */
 function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: map(r.node) });
   const n = { ...node } as Record<string, unknown> & ModelNode;
@@ -135,10 +139,18 @@ function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
   if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   for (const key of ['parent', 'left', 'right', 'tool'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
-  if (n.kind === 'fillet' || n.kind === 'chamfer') (n as { edges: string[] }).edges = n.edges.map(e => renameIds(e, map));
-  if (n.kind === 'shell') (n as { open: string[] }).open = n.open.map(e => renameIds(e, map));
   return n;
 }
+/** A node's names (fillet and chamfer edges, shell openings, draft faces) with feature ids replaced. */
+function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
+  const r = (name: string) => renameFeatureIds(name, rename);
+  if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
+  if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
+  if (node.kind === 'draft') return { ...node, faces: node.faces.map(r) };
+  return node;
+}
+/** The persistent names a node is built on. */
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {
@@ -169,22 +181,22 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (blocking.length) return { error: `Feature ${index} is used by feature${blocking.length > 1 ? 's' : ''} ${[...new Set(blocking)].join(', ')}; delete ${blocking.length > 1 ? 'those' : 'that'} first.` };
   const kept = nodes.map((_, i) => i).filter(i => !removed.has(i));
   const newIndex = new Map(kept.map((old, k) => [old, k]));
-  const named = (n: ModelNode) => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : [];
-  for (const i of kept) for (const name of named(nodes[i])) for (const m of name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)) {
-    if (removed.has(Number(m[1]))) return { error: `Feature ${i} refers to the face or edge "${name}" made by feature ${m[1]}; delete or edit feature ${i} first.` };
+  // (A name made by a removed feature: the index of that feature, else undefined.)
+  const gone = (name: string) => nodesOfName(nodes, name).find(k => removed.has(k));
+  for (const i of kept) for (const name of named(nodes[i])) {
+    const by = gone(name);
+    if (by !== undefined) return { error: `Feature ${i} refers to the face or edge "${name}" made by feature ${by}; delete or edit feature ${i} first.` };
   }
   const map = (old: number) => newIndex.get(old) ?? old;
-  const gone = (name: string) => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].find(m => removed.has(Number(m[1])))?.[1];
   for (const [k, mate] of (doc.mates ?? []).entries()) for (const r of [mate.a, mate.b]) {
     const by = r.part === BASE ? gone(r.face) : undefined;
     if (by !== undefined) return { error: `${mateLabel(mate, k)} uses the face "${r.face}" made by feature ${by}; delete that mate first.` };
   }
   const next = kept.map(i => renumber(nodes[i], map));
   const out: StudioDoc = { ...doc, nodes: next };
-  if (doc.mates) out.mates = doc.mates.map(m => ({ ...m, ...[m.a, m.b].reduce((o, r, j) => ({ ...o, [j ? 'b' : 'a']: r.part === BASE ? { ...r, face: renameIds(r.face, map) } : r }), {}) }));
   let droppedDimensions = 0;
   if (doc.drawing) {
-    const dimensions = doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => gone(name) !== undefined ? null : renameIds(name, map)); if (!r) droppedDimensions++; return r ? [r] : []; });
+    const dimensions = doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => gone(name) !== undefined ? null : name); if (!r) droppedDimensions++; return r ? [r] : []; });
     out.drawing = { ...doc.drawing, dimensions };
   }
   if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, removed, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, removed, map) } };
@@ -214,10 +226,9 @@ export function bodyNodes(nodes: readonly ModelNode[], top: number): number[] {
  */
 export function featureDependents(doc: StudioDoc, index: number): number[] {
   const nodes = doc.nodes, gone = new Set([index]);
-  const named = (n: ModelNode) => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : [];
   for (let k = index + 1; k < nodes.length; k++) {
     const n = nodes[k];
-    if (parentsOf(n).some(p => gone.has(p)) || named(n).some(name => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].some(m => gone.has(Number(m[1]))))) gone.add(k);
+    if (parentsOf(n).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
   }
   return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch').sort((a, b) => a - b);
 }
@@ -241,7 +252,7 @@ function steps(nodes: readonly ModelNode[]): [number, number][] {
 }
 /**
  * The document with the history step holding feature `index` moved one step earlier (`-1`) or later
- * (`+1`), everything that names features renumbered; or why not: a feature cannot come before what it
+ * (`+1`), references by index renumbered (names keep their stable ids); or why not: a feature cannot come before what it
  * is built on (or names the faces of), nor after what builds on it.
  */
 export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: StudioDoc } | { error: string } {
@@ -251,10 +262,9 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   if (!other) return { error: dir < 0 ? 'It is the first step already.' : 'It is the last step already.' };
   const [early, late] = dir < 0 ? [other, all[at]] : [all[at], other];
   const inEarly = (k: number) => k >= early[0] && k <= early[1];
-  const named = (n: ModelNode) => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : [];
   for (let k = late[0]; k <= late[1]; k++) {
     const n = nodes[k], uses = [...parentsOf(n), ...(n.kind === 'sketch' && n.on ? [n.on.node] : [])].filter(inEarly);
-    const names = named(n).flatMap(name => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].map(m => Number(m[1]))).filter(inEarly);
+    const names = named(n).flatMap(name => nodesOfName(nodes, name)).filter(inEarly);
     if (uses.length || names.length) return { error: `${dir < 0 ? 'It' : 'The next step'} is built on ${dir < 0 ? 'the step before it' : 'it'}: it cannot come first.` };
   }
   // The new order: the late step's nodes, then the early step's.
@@ -265,8 +275,6 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   const newIndex = new Map(order.map((old, k) => [old, k])), map = (old: number) => newIndex.get(old) ?? old;
   const next = order.map(old => renumber(nodes[old], map));
   const out: StudioDoc = { ...doc, nodes: next };
-  if (doc.mates) out.mates = doc.mates.map(m => ({ ...m, ...[m.a, m.b].reduce((o, r, j) => ({ ...o, [j ? 'b' : 'a']: r.part === BASE ? { ...r, face: renameIds(r.face, map) } : r }), {}) }));
-  if (doc.drawing) out.drawing = { ...doc.drawing, dimensions: doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => renameIds(name, map)); return r ? [r] : []; }) };
   const none = new Set<number>();
   if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, none, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, none, map) } };
   if (doc.bodies) out.bodies = renameKeys(doc.bodies, none, map);
@@ -295,10 +303,13 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
   while (stack.length) { const i = stack.pop()!; if (chain.has(i) || !nodes[i]) continue; chain.add(i); stack.push(...parentsOf(nodes[i])); }
   const order = [...chain].sort((a, b) => a - b), at = new Map(order.map((old, k) => [old, nodes.length + k]));
   const map = (i: number) => at.get(i) ?? i;
-  const copies = order.map(i => renumber(nodes[i], map));
+  // The copies are new features: fresh ids, and the names inside them (a fillet's edges) renamed to the copies'.
+  let serial = nextSerial(doc);
+  const ids = new Map(order.map(i => [featureId(nodes, i), `n${serial++}`]));
+  const copies = order.map(i => ({ ...renameNode(renumber(nodes[i], map), id => ids.get(id) ?? id), id: ids.get(featureId(nodes, i))! }));
   const top = nodes.length + order.length;
   const copy: BodyRef = { node: map(body.node), side: body.side };
-  let out: StudioDoc = { ...doc, nodes: [...nodes, ...copies, typeof offset === 'function' ? offset(copy) : { kind: 'translate', parent: copy, offset }] };
+  let out: StudioDoc = { ...doc, nodes: [...nodes, ...copies, typeof offset === 'function' ? offset(copy) : { kind: 'translate', parent: copy, offset }], nextId: serial };
   // The copy's look: the original's colour (not its name), keyed by the copy's first feature.
   const looks = doc.bodies ?? {}, rootKey = Object.keys(looks).find(k => { const m = /^b(\d+)/.exec(k); return m && chain.has(Number(m[1])) && !/_/.test(k); });
   if (rootKey && looks[rootKey].color) { const m = /^b(\d+)/.exec(rootKey)!; out = { ...out, bodies: { ...looks, [`b${map(Number(m[1]))}`]: { color: looks[rootKey].color } } }; }
@@ -307,10 +318,12 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
 
 /**
  * The document with nodes `start … start + count − 1` replaced by `next` (a shape rebuilt with a different
- * number of steps): later nodes, names in them and body looks are renumbered; what pointed into the old
- * range points at its last node's replacement (the shape's solid).
+ * number of steps): later nodes' references and body looks are renumbered (the rebuilt nodes keep the old
+ * ones' ids in order); what pointed into the old range points at its last node's replacement (the shape's solid).
  */
 export function replaceRange(doc: StudioDoc, start: number, count: number, next: ModelNode[]): StudioDoc {
+  // (The rebuilt nodes keep the replaced ones' ids in order, so the names the shape's faces had stay theirs.)
+  next = next.map((n, j) => j < count && doc.nodes[start + j]?.id !== undefined ? { ...n, id: doc.nodes[start + j].id } : n);
   const shift = next.length - count, top = start + next.length - 1;
   const map = (i: number) => i < start ? i : i < start + count ? top : i + shift;
   const after = doc.nodes.slice(start + count).map(n => renumber(n, map));

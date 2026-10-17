@@ -1,0 +1,65 @@
+{
+  "id": "a1-schema1-read",
+  "step": "A1",
+  "decisions": [
+    "D26"
+  ],
+  "about": "A schema-1 file (no ids) reads with node i as feature n<i>: its stored names resolve unchanged, and the next feature is n3.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 1,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            20,
+            20
+          ]
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 10
+        },
+        {
+          "kind": "fillet",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side0|n1.top"
+          ],
+          "radius": 2
+        }
+      ],
+      "outputs": {}
+    },
+    "operations": []
+  },
+  "expect": {
+    "ids": [
+      "n0",
+      "n1",
+      "n2"
+    ],
+    "nextId": 3,
+    "names": {
+      "2": [
+        "n1.side0|n1.top"
+      ]
+    },
+    "volumesMM3": [
+      3982.8318530717956
+    ]
+  },
+  "oracle": "closed forms (box volumes; a fillet takes (4 − π) r² a unit of edge, a chamfer d²/2)"
+}

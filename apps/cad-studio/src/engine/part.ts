@@ -1,13 +1,19 @@
-// The studio document as a kernel part document: node i is feature `n<i>`, so persistent face and edge
-// names read `n1.side0`, `n1.top`, `n2.side0|n1.top`, and a kernel output `n5` / `n5/0` / `n5/1` is the
-// studio body `b5` / `b5_negative` / `b5_positive`; the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
+// The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
+// so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
+// features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b<i>` / `b<i>_negative` /
+// `b<i>_positive` of node i (whose id is n5); the solids of a STEP file holding several are `n5/k`, `b<i>_part<k>`.
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
 import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
+import { featureId, nodeIndexOf, withIds } from './ids';
 
-const id = (index: number) => `n${index}`;
-const ref = (r: BodyRef) => r.side === 'negative' ? `n${r.node}/0` : r.side === 'positive' ? `n${r.node}/1` : r.side.startsWith('part') ? `n${r.node}/${r.side.slice(4)}` : `n${r.node}`;
+// (The nodes being converted: a feature's id and its references' ids are read from them.)
+let current: readonly ModelNode[] = [];
+const id = (index: number) => featureId(current, index);
+const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side === 'positive' ? `${id(r.node)}/1` : r.side.startsWith('part') ? `${id(r.node)}/${r.side.slice(4)}` : id(r.node);
 
-export function featureOf(node: ModelNode, index: number): CadPartFeature {
+/** One node as a kernel feature (`nodes`: the document's, for its ids; without them node i is `n<i>`). */
+export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {
+  if (nodes) current = nodes;
   const at = { id: id(index) };
   switch (node.kind) {
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
@@ -44,8 +50,8 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
 
 /** A node's kernel features: one, or a patterned hole's copies one after another (the last named `n<i>`). */
 function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
-  if (node.kind !== 'hole' || !node.pattern || node.pattern.count <= 1) return [featureOf(node, index)];
-  const centres = holeCentres(node.center.map(Number), node.pattern), base = featureOf(node, index) as CadPartFeature & { target: string };
+  if (node.kind !== 'hole' || !node.pattern || node.pattern.count <= 1) return [featureOf(node, index, current)];
+  const centres = holeCentres(node.center.map(Number), node.pattern), base = featureOf(node, index, current) as CadPartFeature & { target: string };
   return centres.map((center, j) => ({ ...base, id: j === centres.length - 1 ? id(index) : `${id(index)}_p${j}`, center, target: j === 0 ? base.target : `${id(index)}_p${j - 1}` }));
 }
 
@@ -56,6 +62,7 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
+  doc = withIds(doc); current = doc.nodes;
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
@@ -86,8 +93,11 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
 
 /** Studio body key of a kernel output id (`nodes`: to tell an imported file's solids from a split's halves). */
 export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
-  const m = /^n(\d+)(?:\/(\d+))?$/.exec(outputId);
+  const m = /^([^/]+)(?:\/(\d+))?$/.exec(outputId);
   if (!m) return outputId;
-  if (m[2] !== undefined && (nodes?.[Number(m[1])]?.kind === 'import' || nodes?.[Number(m[1])]?.kind === 'separate')) return `b${m[1]}_part${m[2]}`;
-  return m[2] === undefined ? `b${m[1]}` : `b${m[1]}_${m[2] === '0' ? 'negative' : 'positive'}`;
+  // (The node whose id the output carries; without the nodes, an id `n<i>` reads as node i.)
+  const i = nodes ? nodeIndexOf(nodes, m[1]) : Number(/^n(\d+)$/.exec(m[1])?.[1] ?? NaN);
+  if (!(i >= 0)) return outputId;
+  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate')) return `b${i}_part${m[2]}`;
+  return m[2] === undefined ? `b${i}` : `b${i}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };

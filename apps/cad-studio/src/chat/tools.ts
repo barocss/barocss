@@ -295,7 +295,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       for (const [k, node] of list.entries()) {
         const why = checkNode(node, doc.nodes, doc.parameters);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
-        doc = withNode(doc, node as ModelNode);
+        // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
+        doc = withNode(doc, { ...(node as ModelNode), id: undefined });
       }
       return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`) });
     }
@@ -306,7 +307,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (args.feature !== undefined) {
         const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters);
         if (why) return fail(state, `Feature ${index}: ${why}`);
-        next = nodes.map((n, i) => i === index ? args.feature as ModelNode : n);
+        // (The replacement is the same feature: it keeps its id, so the names of its faces stay.)
+        next = nodes.map((n, i) => i === index ? { ...(args.feature as ModelNode), id: n.id } : n);
       } else {
         const fields = editFields(nodes, index), given = isObj(args.values) ? args.values : {};
         if (!Object.keys(given).length) return fail(state, `Pass "values" or a whole "feature". Feature ${index}'s values: ${fields.map(f => `${f.key} (${f.label} = ${String(f.get(nodes))})`).join(', ') || 'none — replace it with "feature"'}.`);
@@ -324,7 +326,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     case 'delete_feature': {
       const r = deleteFeature(state.doc, Number(args.index));
       if ('error' in r) return fail(state, r.error);
-      return accept(state, r.doc, evaluate, `deleted feature${r.removed.length > 1 ? 's' : ''} ${r.removed.join(', ')}`, { note_indices: 'later features moved down; face and edge names were renumbered' });
+      return accept(state, r.doc, evaluate, `deleted feature${r.removed.length > 1 ? 's' : ''} ${r.removed.join(', ')}`, { note_indices: 'later features moved down; face and edge names (by feature id) stayed as they were' });
     }
     case 'get_image_layers': {
       const t = traceOf(state, args.image);
@@ -478,7 +480,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'delete_feature',
-    description: 'Deletes a feature (and the sketches only it used). Refused while a later feature uses it. Later features move down one index per deleted node; names in results are renumbered accordingly.',
+    description: 'Deletes a feature (and the sketches only it used). Refused while a later feature uses it. Later features move down one index per deleted node; face and edge names keep their feature ids (`n<k>`), so names in results stay as they were.',
     input_schema: { type: 'object', properties: { index: { type: 'integer' } }, required: ['index'], additionalProperties: false },
   },
   {

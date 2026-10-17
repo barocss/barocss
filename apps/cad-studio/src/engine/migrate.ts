@@ -2,8 +2,10 @@
 // schema with what was filled in said, one from a newer studio or with unknown features refused — the
 // file itself is left as it is until it is saved again.
 import { prefixDoc, type StudioDoc } from './doc';
+import { withIds } from './ids';
 
-export const SCHEMA = 1;
+/** 2: every feature has a stable id (engine/ids.ts); a schema-1 file's node i becomes `n<i>`, its names unchanged. */
+export const SCHEMA = 2;
 const KINDS = new Set(['sketch', 'extrude', 'revolve', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'thicken', 'sew', 'hole']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
@@ -24,6 +26,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const parameters = o.parameters && typeof o.parameters === 'object' ? o.parameters as Record<string, number> : (notes.push('no parameters list: started empty'), {});
   const bad = Object.entries(parameters).filter(([, v]) => typeof v !== 'number' || !Number.isFinite(v)).map(([k]) => k);
   if (bad.length) return { error: `Parameters without a number: ${bad.join(', ')}.` };
-  const doc = { ...(o as unknown as StudioDoc), format: 'barocss-cad-model' as const, schema: SCHEMA as 1, units: 'mm' as const, parameters };
+  // (Stable ids: a schema-1 file named node i `n<i>`, which is the id it now keeps, so no stored name changes.)
+  if (schema < 2) notes.push('features given stable ids (their names stay as they were)');
+  const doc = withIds({ ...(o as unknown as StudioDoc), format: 'barocss-cad-model' as const, schema: SCHEMA as 2, units: 'mm' as const, parameters });
   return { doc: { ...doc, outputs: prefixDoc(doc, doc.nodes.length).outputs }, notes };
 }

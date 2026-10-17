@@ -12,7 +12,7 @@ import type { XY } from './types';
 /** ISO 68-1: the minor diameter of an external thread, d − 1.226869 P. */
 export const minorDiameter = (d: number, pitch: number) => Math.round((d - 1.226869 * pitch) * 1000) / 1000;
 
-export function threadMarks(v: ViewPlacement, pr: BrepProjection, threads: ReadonlyMap<number, FaceThread>, showHidden: boolean): Mark[] {
+export function threadMarks(v: ViewPlacement, pr: BrepProjection, threads: ReadonlyMap<string, FaceThread>, showHidden: boolean): Mark[] {
   if (!threads.size) return [];
   const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const P = (p: readonly number[]): XY => [dot(p, pr.right), dot(p, pr.up)];
@@ -21,7 +21,7 @@ export function threadMarks(v: ViewPlacement, pr: BrepProjection, threads: Reado
   const axes = new Map<string, { t: FaceThread; dir: readonly number[]; centres: (readonly number[])[]; radius: number; visible: boolean }>();
   for (const e of pr.edges) {
     const c = e.circle; if (!c) continue;
-    const t = [...e.name.matchAll(/\bn(\d+)\.side/g)].map(m => threads.get(Number(m[1]))).find(x => x && (x.radius === undefined || Math.abs(x.radius - c.radius) < 0.01 * x.radius + 1e-3));
+    const t = [...e.name.matchAll(/\b(n\d+)\.side/g)].map(m => threads.get(m[1])).find(x => x && (x.radius === undefined || Math.abs(x.radius - c.radius) < 0.01 * x.radius + 1e-3));
     if (!t) continue;
     const n = c.normal[0] < 0 || (c.normal[0] === 0 && (c.normal[1] < 0 || (c.normal[1] === 0 && c.normal[2] < 0))) ? c.normal.map(x => -x) : [...c.normal];
     // (The axis line: its direction and the centre's offset across it.)

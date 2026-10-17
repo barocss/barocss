@@ -1935,7 +1935,8 @@ try {
     const old = join(out, 'old-model.bcad'); (await import('node:fs')).writeFileSync(old, JSON.stringify({ format: 'barocss-cad-model', nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 10] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: {} }));
     await page.setInputFiles('input[aria-label="Model file"]', old);
     await page.waitForFunction(() => /Opened an older model/.test(document.body.innerText), null, { timeout: 10000 });
-    assert.equal((await doc()).schema, 1);
+    // (Read as the current schema, its features given stable ids n0, n1 — their names as they were, A1.)
+    const opened = await doc(); assert.equal(opened.schema, 2); assert.deepEqual(opened.nodes.map(n => n.id), ['n0', 'n1']);
     await page.click('[aria-label="Dismiss"]');
   });
 

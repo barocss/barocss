@@ -2,6 +2,7 @@ import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useS
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
+import { cutAfter, nextSerial } from './engine/ids';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -326,9 +327,10 @@ export function App() {
   // At once (while the plane is dragged, until the exact section arrives): the meshes clipped and capped.
   const sectionClipped = useMemo(() => {
     if (!section) return null;
-    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2, cap = `n${evaluated.nodes.length}.cut`;
+    // (The section's first split is the next feature: its cut faces are named after the next id, engine/ids.ts.)
+    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2, cap = `n${nextSerial(evaluated)}.cut`;
     return bodies.flatMap(b => { const mesh = clipMesh(b.mesh, k, section.at, section.keep, cap); return mesh ? [{ ...b, mesh }] : []; });
-  }, [section, bodies, evaluated.nodes.length]);
+  }, [section, bodies, evaluated]);
   const sectionBodies = section ? (sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
@@ -813,7 +815,7 @@ export function App() {
     if (!section) return;
     const exact = sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : null;
     if (!exact) { setToast({ title: 'The section is still being cut', hint: 'Wait a moment for the exact section, then try again.', detail: '' }); return; }
-    const cap = `n${evaluated.nodes.length}.cut`, faces = exact.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(n => n.startsWith(cap))).map(f => ({ b, f })));
+    const from = nextSerial(evaluated), faces = exact.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && cutAfter(f.name, from)).map(f => ({ b, f })));
     if (!faces.length) { setToast({ title: 'Nothing is cut there', hint: 'Move the section plane through the part first.', detail: '' }); return; }
     const plane = planeOfFace(faces[0].f.normal, faces[0].f.centroid); if (!plane) return;
     const shapes = faces.flatMap(({ b, f }) => { const fp = faceProfile(b.mesh, f.index); return fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : []; });
@@ -1099,7 +1101,8 @@ export function App() {
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
-  const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => f.name.split('+').some(n => { const m = /^n(\d+)\.cut/.exec(n); return !!m && Number(m[1]) >= evaluated.nodes.length; })).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+  const sectionFrom = nextSerial(evaluated);
+  const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
     : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];

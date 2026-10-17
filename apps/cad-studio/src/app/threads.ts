@@ -6,18 +6,19 @@ import type { ModelNode } from '../engine/doc';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { FASTENER_SIZES } from './fasteners';
 import { roundFaceAxis } from './measure';
+import { featureId } from '../engine/ids';
 
 /** At most this many rings on one face (a long thread shows every few pitches). */
 const MOST = 40;
 
 /** A thread: nominal diameter and pitch, the radius of the face it is on, and whether it is a bore's. */
 export interface FaceThread { d: number; pitch: number; radius?: number; internal: boolean }
-/** The threads features carry, by the feature (node) numbers whose faces they are on. */
-export function threadsOf(nodes: readonly ModelNode[]): Map<number, FaceThread> {
-  const out = new Map<number, FaceThread>();
+/** The threads features carry, by the feature ids (engine/ids.ts) whose faces they are on. */
+export function threadsOf(nodes: readonly ModelNode[]): Map<string, FaceThread> {
+  const out = new Map<string, FaceThread>();
   nodes.forEach((n, i) => {
     if (n.kind === 'hole' && n.thread) {
-      const m = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (m) out.set(i, { d: Number(m[1]), pitch: Number(m[2]), radius: typeof n.radius === 'number' ? n.radius : undefined, internal: true });
+      const m = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (m) out.set(featureId(nodes, i), { d: Number(m[1]), pitch: Number(m[2]), radius: typeof n.radius === 'number' ? n.radius : undefined, internal: true });
     }
     const made = 'made' in n ? n.made : undefined;
     if (made?.command === 'fastener' && made.values.kind !== 'washer') {
@@ -25,7 +26,7 @@ export function threadsOf(nodes: readonly ModelNode[]): Map<number, FaceThread> 
       // (A nut's bore is a hole in its sketch; a shank's circle has none.)
       for (let k = i - (made.nodes ?? 2) + 1; k <= i; k++) {
         const e = nodes[k], sk = e?.kind === 'extrude' ? nodes[e.sketch] : undefined;
-        out.set(k, { d: size.d, pitch: size.pitch, radius: size.d / 2, internal: !!(sk?.kind === 'sketch' && sk.holes?.length) });
+        out.set(featureId(nodes, k), { d: size.d, pitch: size.pitch, radius: size.d / 2, internal: !!(sk?.kind === 'sketch' && sk.holes?.length) });
       }
     }
   });
@@ -33,12 +34,12 @@ export function threadsOf(nodes: readonly ModelNode[]): Map<number, FaceThread> 
 }
 
 /** The rings (line segments) of the threads on a body's round faces. */
-export function threadLines(threads: ReadonlyMap<number, FaceThread>, mesh: DisplayMesh, n = 32): number[] {
+export function threadLines(threads: ReadonlyMap<string, FaceThread>, mesh: DisplayMesh, n = 32): number[] {
   const out: number[] = [];
   if (!threads.size) return out;
   for (const f of mesh.faces) {
     if (f.kind !== 'curved' || !f.radius) continue;
-    const t = [...f.name.matchAll(/\bn(\d+)\./g)].map(m => threads.get(Number(m[1]))).find(x => x && (x.radius === undefined || Math.abs(x.radius - f.radius!) < 0.01 * x.radius + 1e-3));
+    const t = [...f.name.matchAll(/\b(n\d+)\./g)].map(m => threads.get(m[1])).find(x => x && (x.radius === undefined || Math.abs(x.radius - f.radius!) < 0.01 * x.radius + 1e-3));
     if (!t) continue;
     const ax = roundFaceAxis(mesh, f.index); if (!ax) continue;
     // Its extent along the axis, and which way it faces (out: external; in: a bore).
