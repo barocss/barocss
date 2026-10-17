@@ -868,6 +868,10 @@ try {
     await page.click('.render-panel button:text-is("Add point")');
     await page.locator('.render-panel [aria-label="Range"]').last().fill('200');
     await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    // An environment image lighting the part (and its reflections).
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? ''), null, { timeout: 5000 });
+    await page.waitForTimeout(600); await snap('render-environment');
     await page.locator('.render-panel [aria-label="Field of view"]').fill('50');
     await page.click('.render-panel button:text-is("Save this view")');
     const r = await page.evaluate(() => window.__studioDoc.render);

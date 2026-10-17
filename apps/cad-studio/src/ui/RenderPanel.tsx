@@ -121,6 +121,18 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
+        <div className="field"><span>Environment</span>
+          <span className="texture-row">
+            {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
+            <label className="ghost small file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
+              <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
+                const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
+                try { setEnv({ map: { image: await textureImage(file, 2048), intensity: env.map?.intensity ?? 1 } }); }
+                catch { onError?.('That file is not an image the browser can read.'); }
+              }} /></label>
+            {env.map && <button className="tool tiny" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></button>}
+          </span></div>
+        {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
         {slider('Exposure', env.exposure, v => setEnv({ exposure: v }), 0.1, 4)}
         <label className="field"><span>Tone map</span>
           <select aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as 'none' | 'aces' })}>
@@ -193,9 +205,9 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
   </div>;
 }
 
-/** An image file as a data URL for a texture, at most 1024 pixels across (PNG keeps transparency; others JPEG). */
-async function textureImage(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file), k = Math.min(1, 1024 / Math.max(bitmap.width, bitmap.height));
+/** An image file as a data URL for a texture, at most `most` (1024) pixels across (PNG keeps transparency; others JPEG). */
+async function textureImage(file: File, most = 1024): Promise<string> {
+  const bitmap = await createImageBitmap(file), k = Math.min(1, most / Math.max(bitmap.width, bitmap.height));
   const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bitmap.width * k)); c.height = Math.max(1, Math.round(bitmap.height * k));
   c.getContext('2d')!.drawImage(bitmap, 0, 0, c.width, c.height); bitmap.close();
   return c.toDataURL(file.type === 'image/png' || file.type === 'image/gif' ? 'image/png' : 'image/jpeg', 0.9);

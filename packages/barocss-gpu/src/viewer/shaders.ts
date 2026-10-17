@@ -45,6 +45,14 @@ struct Object {
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
 @group(0) @binding(2) var shadowSampler: sampler_comparison;
+@group(0) @binding(3) var envMap: texture_2d<f32>;
+@group(0) @binding(4) var envSampler: sampler;
+/** The environment map (equirectangular, Z up) in a direction, at a mip level. */
+fn envAt(d: vec3f, lod: f32) -> vec3f {
+  let u = atan2(d.y, d.x) / 6.2831853 + 0.5;
+  let v = acos(clamp(d.z, -1.0, 1.0)) / 3.14159265;
+  return textureSampleLevel(envMap, envSampler, vec2f(u, v), lod).rgb;
+}
 @group(1) @binding(0) var<uniform> object: Object;
 /** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
 struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }
@@ -139,7 +147,9 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   let rough = clamp(object.params.y, 0.04, 1.0);
   let a = rough * rough;
   let hemi = dot(n, frame.up.xyz) * 0.5 + 0.5;
-  let ambient = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, hemi);
+  var ambient = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, hemi);
+  // An environment map (up.w its intensity) lights instead: its most blurred level round the normal.
+  if (frame.up.w > 0.0) { ambient = envAt(n, frame.forward.w) * frame.up.w; }
   // Ambient: diffuse from the hemisphere around the normal, and its reflection around the mirrored view
   // direction (blurred toward the diffuse one with roughness), weighted by Fresnel. Metals get their
   // colour from the reflection only.
@@ -147,7 +157,8 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   let nov = max(dot(n, v), 0.0);
   let mirrored = reflect(-v, n);
   let skyward = smoothstep(-0.3, 0.3, dot(mirrored, frame.up.xyz));
-  let reflected = mix(mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, skyward), ambient, rough);
+  var reflected = mix(mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, skyward), ambient, rough);
+  if (frame.up.w > 0.0) { reflected = envAt(mirrored, rough * frame.forward.w) * frame.up.w; }
   let fresnel = f0 + (max(vec3f(1.0 - rough), f0) - f0) * pow(1.0 - nov, 5.0);
   var c = ambient * base * (1.0 - metallic) + reflected * fresnel + object.params.z * base;
   for (var i = 0u; i < frame.counts.x; i++) {

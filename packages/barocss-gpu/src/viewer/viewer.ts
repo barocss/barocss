@@ -344,6 +344,8 @@ export class Viewer {
   private zeroParams!: Buffer;
   /** A white texel: the colour map of a material without one. */
   private white!: { texture: Texture; group: BindGroup };
+  /** The environment map the frame bind groups were made with. */
+  private boundEnv: ImageTexture | null = null;
   private mipPipelines = new Map<string, Pipeline>();
   private mipSampler!: object;
   private textures = new Set<ImageTexture>();
@@ -430,7 +432,12 @@ export class Viewer {
   /** The frame bind groups: the scene's samples the shadow map; the shadow pass's must not. */
   private bindFrames(): void {
     const layout = this.pipelines.get('lit')!.getBindGroupLayout(0);
-    const group = (buffer: Buffer, map: Texture) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }] });
+    // The environment map (uploaded with its mips as any map), or the white texel.
+    const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
+    if (env) this.mapGroup(env);
+    this.boundEnv = env;
+    const envView = env?.gpu ? env.gpu.texture.createView() : this.white.texture.createView(), envSampler = env?.gpu ? env.gpu.sampler : this.mipSampler;
+    const group = (buffer: Buffer, map: Texture) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }] });
     this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow);
     this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow);
   }
@@ -446,6 +453,7 @@ export class Viewer {
       { binding: 0, visibility: 3, buffer: { type: 'uniform' } },
       { binding: 1, visibility: 2, texture: { sampleType: 'depth' } },
       { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
+      { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
@@ -932,6 +940,8 @@ export class Viewer {
       this.bindFrames();
       this.shadowDrawn = '';
     }
+    const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
+    if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
     this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame())));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();

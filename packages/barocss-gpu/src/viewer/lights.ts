@@ -16,6 +16,14 @@ export interface Environment {
   toneMapping?: 'none' | 'aces';
   /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
   ambientOcclusion?: { radius?: number; strength?: number } | false;
+  /**
+   * Image-based lighting: an equirectangular environment (Viewer.createTexture, with mipmaps; Z up — its
+   * top row overhead) lighting the surfaces in place of the sky and ground: diffuse from its most blurred
+   * level round the normal, reflections from the mirrored view direction, blurred with roughness.
+   */
+  map?: { readonly width: number; readonly height: number } | null;
+  /** The environment's brightness (default 1). */
+  mapIntensity?: number;
 }
 
 export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Vec3 {
@@ -48,11 +56,13 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
   f.set([...camera.position, camera.projection === 'perspective' ? 1 : 0], 16);
-  f.set([...forward, 0], 20);
+  // (forward.w: the environment map's last mip level; up.w: its intensity, 0 without one.)
+  const envLevels = env.map ? Math.floor(Math.log2(Math.max(env.map.width, env.map.height))) : 0;
+  f.set([...forward, envLevels], 20);
   const amb = env.ambient ?? 0.3;
   f.set([...linear(parseColor(env.sky, [0.85, 0.9, 1])), amb], 24);
   f.set([...linear(parseColor(env.ground, [0.45, 0.42, 0.4])), amb], 28);
-  f.set([...normalize(camera.up), 0], 32);
+  f.set([...normalize(camera.up), env.map ? env.mapIntensity ?? 1 : 0], 32);
   const dirs = directionalLights(lights);
   const points = lights.filter((l): l is PointLight => l.kind === 'point').slice(0, MAX_POINT);
   const spots = lights.filter((l): l is SpotLight => l.kind === 'spot').slice(0, MAX_SPOT);

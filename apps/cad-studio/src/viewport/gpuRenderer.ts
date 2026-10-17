@@ -268,7 +268,8 @@ export class GpuRenderer implements ViewRenderer {
         : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range }
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false };
+      const envMap = e.map ? this.imageTexture(e.map.image) : null;
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
     } else {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
@@ -326,13 +327,17 @@ export class GpuRenderer implements ViewRenderer {
   private mapFor(g: Geometry, mesh: DisplayMesh, look: Appearance | null, keep: { tile?: number }) {
     const t = look?.texture, tile = t ? t.scale : undefined;
     if (keep.tile !== tile) { g.setUVs(t ? tiledUVs(mesh.positions, mesh.normals, t.scale) : boxUVs(mesh.positions, mesh.normals, mesh.bounds)); keep.tile = tile; }
-    if (!t) return null;
-    if (this.maps.has(t.image)) return this.maps.get(t.image) ?? null;
-    this.maps.set(t.image, null);
+    return t ? this.imageTexture(t.image) : null;
+  }
+
+  /** An image (a data URL) as a texture, loaded once (null while it loads: the bodies are painted again when it arrives). */
+  private imageTexture(url: string): ImageTexture | null {
+    if (this.maps.has(url)) return this.maps.get(url) ?? null;
+    this.maps.set(url, null);
     void (async () => {
       try {
-        const bitmap = await createImageBitmap(await (await fetch(t.image)).blob());
-        this.maps.set(t.image, this.viewer.createTexture(bitmap));
+        const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+        this.maps.set(url, this.viewer.createTexture(bitmap));
         for (const b of this.bodies) b.state = '';
         if (this.view) this.setState(this.view);
         this.paintInstances(); this.viewer.requestRender();

@@ -29,6 +29,8 @@ export interface RenderEnvironment {
   ground: boolean;
   grid: boolean;
   edges: boolean;
+  /** Image-based lighting: an equirectangular environment image (a data URL; its top row overhead) lighting the part, and its brightness. */
+  map?: { image: string; intensity: number };
 }
 export interface RenderCamera { target: [number, number, number]; distance: number; yaw: number; pitch: number; fovY: number; ortho: boolean }
 export interface RenderSettings {
@@ -147,6 +149,7 @@ export function readRender(v: unknown): RenderSettings {
       ambient: num(env.ambient, 0, 4, d.environment.ambient), exposure: num(env.exposure, 0.05, 8, d.environment.exposure),
       toneMapping: env.toneMapping === 'none' ? 'none' : 'aces',
       occlusion: env.occlusion !== false, ground: env.ground !== false, grid: env.grid === true, edges: env.edges === true,
+      ...(typeof obj(env.map).image === 'string' && /^data:image\//.test(obj(env.map).image as string) ? { map: { image: obj(env.map).image as string, intensity: num(obj(env.map).intensity, 0, 8, 1) } } : {}),
     },
     materials: Object.fromEntries(Object.entries(obj(o.materials)).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].length <= 65536).slice(0, 32)),
     scene: typeof o.scene === 'string' && o.scene.length <= 65536 ? o.scene : '',
