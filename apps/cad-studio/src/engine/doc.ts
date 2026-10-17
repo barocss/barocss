@@ -85,7 +85,7 @@ type ModelNodeBase = SketchNode
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }
   /** A closed triangle mesh (an STL or OBJ file's, scaled to mm from `unit`): welded vertices, three indices a triangle. */
-  | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[]; /** 'facets' (imports from F0 on): mesh regions; absent: one planar face per flat group, as before. */ representation?: 'facets' }
+  | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[]; /** 'facets' (imports from F0 on): mesh regions; absent: one planar face per flat group, as before. */ representation?: 'facets'; /** A mesh in several closed pieces (facets only): each its own body, `b<k>_part<j>`. */ pieces?: number }
   /**
    * A modelled ISO metric thread: a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`).
    * `form`: helical B-spline faces (`.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`), written on every new node;
@@ -296,6 +296,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
   return refs;

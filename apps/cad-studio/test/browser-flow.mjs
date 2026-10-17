@@ -819,12 +819,48 @@ try {
     await snap('stl-open');
   });
 
+  await check('a mesh in pieces opens as a body each (a floater said so); a long Boolean on a mesh can be stopped, the change taken back', async () => {
+    const fs = await import('node:fs'), { encodeBinaryStl } = await import('../../../packages/barocss-cad/dist/index.js');
+    /** A UV sphere's triangles (outward), centred at c. */
+    const sphere = (r, n, m, c) => {
+      const P = [c[0], c[1], c[2] - r], I = [];
+      for (let j = 1; j < m; j++) { const phi = -Math.PI / 2 + Math.PI * j / m; for (let i = 0; i < n; i++) { const th = 2 * Math.PI * i / n; P.push(c[0] + r * Math.cos(phi) * Math.cos(th), c[1] + r * Math.cos(phi) * Math.sin(th), c[2] + r * Math.sin(phi)); } }
+      P.push(c[0], c[1], c[2] + r);
+      const top = P.length / 3 - 1, at = (j, i) => 1 + (j - 1) * n + (i % n);
+      for (let i = 0; i < n; i++) I.push(0, at(1, i + 1), at(1, i));
+      for (let j = 1; j < m - 1; j++) for (let i = 0; i < n; i++) I.push(at(j, i), at(j, i + 1), at(j + 1, i + 1), at(j, i), at(j + 1, i + 1), at(j + 1, i));
+      for (let i = 0; i < n; i++) I.push(at(m - 1, i), at(m - 1, i + 1), top);
+      return { P, I };
+    };
+    const a = sphere(10, 24, 12, [0, 0, 0]), b = sphere(0.5, 8, 4, [30, 0, 0]);
+    const file = join(out, 'kit.stl');
+    fs.writeFileSync(file, encodeBinaryStl([...a.P, ...b.P], [...a.I, ...b.I.map(i => i + a.P.length / 3)], 'kit'));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal((await doc()).nodes[0].pieces, 2);
+    assert.match(await page.locator('.toast').innerText(), /2 closed pieces[\s\S]*1 of the pieces is tiny/);
+    const before = await doc();
+    // A part file with a hole through an 18k-triangle sphere: the planar path takes seconds; stopped, the open is taken back.
+    const big = sphere(10, 120, 76, [0, 0, 0]), part = join(out, 'big-hole.bcad');
+    fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {},
+      nodes: [{ id: 'n0', kind: 'mesh', name: 'ball', unit: 'mm', positions: big.P, indices: big.I, representation: 'facets' }, { id: 'n1', kind: 'hole', parent: { node: 0, side: 'solid' }, center: [0, 0], radius: 2 }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', part);
+    await page.waitForSelector('[aria-label="Cancel the computation"]', { timeout: 15000 });
+    await page.click('[aria-label="Cancel the computation"]');
+    await page.waitForFunction(() => /Stopped/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+    assert.deepEqual((await doc()).nodes.map(n => n.id), before.nodes.map(n => n.id));
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
-    await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
-    assert.match(await outliner(), /1 body/); await iso();
+    // (The bodies follow the name once evaluated: wait for both.)
+    await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? '') && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    await iso();
     assert.match(await page.evaluate(() => document.body.innerText), /STEP opened[\s\S]*1 solid, in millimetres/);
     // A file holding two solids opens as two bodies.
     const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');

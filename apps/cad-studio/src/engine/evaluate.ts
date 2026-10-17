@@ -1,4 +1,4 @@
-import { evaluateCadPart, type Brep, type CadPartSnapshot, exportStep } from '@barocss/cad';
+import { evaluateCadPart, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -67,6 +67,8 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   }
 }
 
+/** A preview's planar-path limit for meshes (F0, D42): about a second, so it stays live; applying runs up to the committed limit. */
+const PREVIEW = { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES };
 /** The previews' caches: a command's, and the section view's (each reuses its own last snapshot). */
 const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { preview: null, section: null };
 /**
@@ -76,7 +78,7 @@ const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { pre
 export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(doc), last = lastPreview[slot], snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastPreview[slot] = snapshot;
+    const part = toPartDocument(doc), last = lastPreview[slot], snapshot = last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {

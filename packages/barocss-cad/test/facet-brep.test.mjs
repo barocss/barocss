@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { facetBrepFromTriangles, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, MeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, MeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
 
 // Facet faces (F0, R3): a closed mesh as regions of typed-array triangles, polyline edges between them.
 
@@ -104,7 +104,7 @@ test('noisy meshes: regions capped by smoothing then merging; broken meshes refu
   const flipped = box.indices.slice(); [flipped[1], flipped[2]] = [flipped[2], flipped[1]];
   assert.throws(() => facetBrepFromTriangles(box.positions, flipped), MeshBrepError);
   const two = [...box.positions, ...box.positions.map((x, i) => i % 3 === 0 ? x + 50 : x)], twoI = [...box.indices, ...box.indices.map(i => i + 8)];
-  assert.throws(() => facetBrepFromTriangles(two, twoI), /more than one piece/);
+  assert.throws(() => facetBrepFromTriangles(two, twoI), /more than one piece \(2 pieces\)/);
 });
 
 test('part model: a mesh node with representation facets is faceted; old nodes stay planar (their names resolve); F0 Booleans explode small meshes, refuse large ones', () => {
@@ -122,10 +122,14 @@ test('part model: a mesh node with representation facets is faceted; old nodes s
   assert.ok(Math.abs(hole.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
   // Fillets on mesh faces are refused with CAPABILITY.
   assert.throws(() => evaluateCadPart(D([mesh('facets'), { id: 'f', kind: 'fillet', target: 'm', edges: ['x'], radius: 1 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /mesh faces arrives with F1\/F2/.test(e.message));
-  // Above the threshold, a Boolean is refused naming what is missing.
-  const big = sphere(10, 80, 40);
-  assert.ok(big.indices.length / 3 > FACET_EXPLODE_TRIANGLES);
-  assert.throws(() => evaluateCadPart(D([mesh('facets', big.positions, big.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /Booleans on large meshes arrive with F1\/F2/.test(e.message));
+  // A 6240-triangle mesh: a hole is made when committed (up to 20000), not previewed (over 5000).
+  const big = sphere(10, 80, 40), drilled = D([mesh('facets', big.positions, big.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }]);
+  assert.ok(big.indices.length / 3 > FACET_PREVIEW_TRIANGLES && big.indices.length / 3 <= FACET_EXPLODE_TRIANGLES);
+  assert.ok(evaluateCadPart(drilled).output('h').massProperties(1).volumeMM3 < meshVolume(big.positions, big.indices));
+  assert.throws(() => evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /not previewed \(this mesh has 6240\): apply to run it \(up to 20000\)/.test(e.message));
+  // Over 20000: refused, naming what is missing.
+  const huge = sphere(10, 160, 80);
+  assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /Booleans on large meshes arrive with F1\/F2 \(this mesh has 25280 triangles; up to 20000/.test(e.message));
 });
 
 test('STEP: a facet body goes out as its triangles (planar faces), and reads back with the same volume', () => {
@@ -135,4 +139,29 @@ test('STEP: a facet body goes out as its triangles (planar faces), and reads bac
   assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 - meshVolume(positions, indices)) < 1e-6);
   // The planar builder agrees.
   assert.ok(Math.abs(brepMassProperties(brepFromTriangles(positions, indices), 1).volumeMM3 - mass(b).volumeMM3) < 1e-9);
+});
+
+test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.partj.regionk), its volume; facetPieces counts them', () => {
+  const box = readObj(BOX_OBJ), s = sphere(1, 12, 6);
+  // A box, and a small sphere (a floater) beside it.
+  const P = [...box.positions, ...s.positions.map((x, i) => x + (i % 3 === 0 ? 40 : 0))], I = [...box.indices, ...s.indices.map(i => i + 8)];
+  const pieces = facetPieces(P, I);
+  assert.deepEqual(pieces.map(p => p.triangles), [12, s.indices.length / 3]);
+  assert.ok(Math.abs(pieces[0].volumeMM3 - 1000) < 1e-9 && pieces[1].volumeMM3 < 5);
+  const breps = facetBrepsFromTriangles(P, I, { id: 'k' });
+  assert.equal(breps.length, 2);
+  assert.ok(breps[0].faces.every(f => /^k\.part0\.region\d+$/.test(f.name)) && breps[1].faces.every(f => /^k\.part1\.region\d+$/.test(f.name)));
+  assert.deepEqual(breps.map(b => b.bodies[0].id), ['k_part0', 'k_part1']);
+  for (const b of breps) assert.deepEqual(checkBrep(b).issues, []);
+  // In a part: outputs m/0 and m/1, the document's typed arrays taken as they are (and saved as plain arrays).
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'm', kind: 'mesh', positions: Float64Array.from(P), indices: Uint32Array.from(I), representation: 'facets', each: true }] };
+  const snap = evaluateCadPart(doc);
+  assert.deepEqual(snap.outputs.map(o => o.id), ['m/0', 'm/1']);
+  assert.ok(Math.abs(snap.output('m/0').massProperties(1).volumeMM3 - 1000) < 1e-9);
+  assert.equal(snap.document.features[0].positions, doc.features[0].positions, 'not copied');
+  assert.ok(Array.isArray(JSON.parse(snap.save()).features[0].positions));
+  // Evaluated again with the same arrays, the mesh is reused (its key hashed once per array).
+  assert.deepEqual(snap.withDocument(doc).recomputation.reused, ['m']);
+  // One piece asked of a mesh in two: refused, saying how many.
+  assert.throws(() => evaluateCadPart({ ...doc, features: [{ ...doc.features[0], each: false }] }), /more than one piece \(2 pieces\)/);
 });

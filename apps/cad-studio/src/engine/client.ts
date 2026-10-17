@@ -5,19 +5,33 @@ import { WireSender } from './wireDoc';
 
 /** One worker; the newest evaluation wins and stale replies are dropped. */
 export class EngineClient {
-  private worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
+  private worker!: Worker;
   private next = 1;
   private pending = new Map<number, (data: unknown) => void>();
   private latestEval = 0;
   /** Every request's document goes through this, in the order the worker receives them. */
   private wire = new WireSender();
 
-  constructor() {
+  constructor() { this.start(); }
+  private start() {
+    this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (event: MessageEvent<{ id: number }>) => {
       const resolve = this.pending.get(event.data.id);
       this.pending.delete(event.data.id);
       resolve?.(event.data);
     };
+  }
+  /**
+   * Stops whatever the worker is computing (a long Boolean on a mesh, D42): the worker is ended and a new one
+   * started (its caches empty); every request waiting gets a refusal ("Stopped").
+   */
+  restart(): void {
+    this.worker.terminate();
+    const error = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' };
+    const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null };
+    for (const resolve of this.pending.values()) resolve(cancelled);
+    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender();
+    this.start();
   }
 
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {

@@ -25,7 +25,7 @@ import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
-import { facetBrepFromTriangles } from './facet-brep.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles } from './facet-brep.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
@@ -116,7 +116,12 @@ export type CadPartFeature = Base & (
    * `${id}.region${k}`. Absent (or 'planar', documents made before F0): a planar solid, triangles flat against
    * each other one face, named `${id}.facet${k}` — kept so old documents' names resolve.
    */
-  | { readonly kind: 'mesh'; readonly positions: readonly number[]; readonly indices: readonly number[]; readonly representation?: 'facets' | 'planar' }
+  /**
+   * `each` (with facets): every closed piece of the mesh a part of its own (`id/j`), its faces `${id}.part${j}.region${k}`.
+   * `positions` and `indices` may be typed arrays (Float64Array or Float32Array; Uint32Array): taken as they are —
+   * not copied, frozen or written into the reuse key (hashed once per array); never changed after they are passed.
+   */
+  | { readonly kind: 'mesh'; readonly positions: readonly number[] | Float64Array | Float32Array; readonly indices: readonly number[] | Uint32Array; readonly representation?: 'facets' | 'planar'; readonly each?: boolean }
   /**
    * A modelled ISO metric thread (faceted helix, one solid with no Boolean): a rod of `length` below
    * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
@@ -247,12 +252,18 @@ const representation = (s: Solid): CadPartOutput['representation'] => s.kind ===
  * 0.94 s at 5k triangles, 3.2 s at 20k: interactive up to here), refused with CAPABILITY above it.
  * Removed in the step that lands F2.
  */
-export const FACET_EXPLODE_TRIANGLES = 5000;
+export const FACET_EXPLODE_TRIANGLES = 20000;
+/** A preview's limit (CadPartEvaluationOptions.facetExplodeTriangles): about a second, so a preview stays live. */
+export const FACET_PREVIEW_TRIANGLES = 5000;
+/** The limit of the evaluation running now (evaluateCadPart is synchronous: set for its run, restored after). */
+let facetLimit = FACET_EXPLODE_TRIANGLES;
 function explodeFacets(b: Brep, at: string, what: string): Brep {
   if (!b.faces.some(isFacetFace)) return b;
   if (!b.faces.every(isFacetFace)) throw new CadPartError('CAPABILITY', at, `${what} on a body mixing mesh and other faces is not supported yet`);
   let count = 0; for (const f of b.faces) count += (f.surface as FacetPatch).indices.length / 3;
-  if (count > FACET_EXPLODE_TRIANGLES) throw new CadPartError('CAPABILITY', at, `${what} on large meshes arrive with F1/F2 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
+  if (count > facetLimit) throw new CadPartError('CAPABILITY', at, count <= FACET_EXPLODE_TRIANGLES
+    ? `${what} on meshes over ${facetLimit} triangles are not previewed (this mesh has ${count}): apply to run it (up to ${FACET_EXPLODE_TRIANGLES})`
+    : `${what} on large meshes arrive with F1/F2 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
   // Every face's triangles, wound outward, into one planar mesh solid.
   const positions: number[] = [], indices: number[] = [];
   for (const f of b.faces) {
@@ -260,7 +271,7 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
     for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
     for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
   }
-  try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: FACET_EXPLODE_TRIANGLES }); }
+  try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: count }); }
   catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
 }
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
@@ -293,7 +304,41 @@ function admit(input: unknown): CadPartDocument {
     if (seen.has(f.id)) fail('duplicate feature id', f.id);
     seen.add(f.id);
   }
-  return JSON.parse(JSON.stringify(doc));
+  return copyDocument(doc) as CadPartDocument;
+}
+const isMeshArray = (v: unknown): v is Float64Array | Float32Array | Uint32Array => v instanceof Float64Array || v instanceof Float32Array || v instanceof Uint32Array;
+/** A deep copy of the document's JSON values; a mesh's typed arrays shared as they are (they are never changed). */
+function copyDocument(v: unknown): unknown {
+  if (isMeshArray(v)) return v;
+  if (Array.isArray(v)) return v.map(copyDocument);
+  if (v && typeof v === 'object') { const out: Record<string, unknown> = {}; for (const [k, x] of Object.entries(v)) if (x !== undefined) out[k] = copyDocument(x); return out; }
+  if (typeof v === 'number' && !Number.isFinite(v)) return null;
+  return v;
+}
+/** Checked once per array object: x, y, z numbers within the length limit, or vertex numbers below `nv` (three a triangle, at most the limit). */
+const checkedArrays = new WeakMap<object, string>();
+function meshArrayOk(v: unknown, what: 'positions' | 'indices', nv = 0): boolean {
+  if (!Array.isArray(v) && !isMeshArray(v)) return false;
+  const a = v as ArrayLike<number>, key = `${what}:${nv}`;
+  if (checkedArrays.get(a as object) === key) return true;
+  if (a.length % 3) return false;
+  if (what === 'positions') { for (let i = 0; i < a.length; i++) { const x = a[i]; if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.lengthMM) return false; } }
+  else { if (a.length / 3 > CadPartLimits.meshTriangles) return false; for (let i = 0; i < a.length; i++) { const x = a[i]; if (!Number.isInteger(x) || x < 0 || x >= nv) return false; } }
+  checkedArrays.set(a as object, key);
+  return true;
+}
+/** A typed array's reuse key: its kind, length and an FNV-1a hash of its bytes, worked out once per array. */
+const arrayHashes = new WeakMap<object, string>();
+function hashOfArray(a: Float64Array | Float32Array | Uint32Array): string {
+  let h = arrayHashes.get(a);
+  if (h === undefined) {
+    const bytes = new Uint32Array(a.buffer, a.byteOffset, a.byteLength >> 2);
+    let x = 0x811c9dc5, y = 0x01000193;
+    for (let i = 0; i < bytes.length; i++) { x = Math.imul(x ^ bytes[i], 0x01000193); y = Math.imul(y ^ (bytes[i] >>> 7), 0x85ebca6b); }
+    h = `${a.constructor.name}:${a.length}:${(x >>> 0).toString(16)}${(y >>> 0).toString(16)}`;
+    arrayHashes.set(a, h);
+  }
+  return h;
 }
 
 // ---- evaluation --------------------------------------------------------------------------------------
@@ -304,7 +349,15 @@ function admit(input: unknown): CadPartDocument {
  */
 type Cache = Map<string, { deps: readonly Result[]; result: Result }[]>;
 
-export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPartSnapshot {
+/** `facetExplodeTriangles`: the F0 planar-path limit for this evaluation (FACET_PREVIEW_TRIANGLES for a preview; default FACET_EXPLODE_TRIANGLES). */
+export interface CadPartEvaluationOptions { readonly facetExplodeTriangles?: number }
+export function evaluateCadPart(input: CadPartDocument, previous?: Cache, options: CadPartEvaluationOptions = {}): CadPartSnapshot {
+  const was = facetLimit;
+  facetLimit = Math.min(FACET_EXPLODE_TRIANGLES, options.facetExplodeTriangles ?? FACET_EXPLODE_TRIANGLES);
+  try { return evaluateWith(input, previous, options); }
+  finally { facetLimit = was; }
+}
+function evaluateWith(input: CadPartDocument, previous: Cache | undefined, options: CadPartEvaluationOptions): CadPartSnapshot {
   const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>();
   const lookup = (key: string, deps: readonly Result[]) => previous?.get(key)?.find(e => e.deps.length === deps.length && e.deps.every((d, i) => d === deps[i]))?.result;
   const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
@@ -391,10 +444,11 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
     withParameters(edits) {
       const parameters = { ...doc.parameters };
       for (const [k, v] of Object.entries(edits)) { if (!Object.hasOwn(parameters, k)) throw new CadPartError('PARAMETER', null, `unknown parameter ${k}`); parameters[k] = v; }
-      return evaluateCadPart({ ...doc, parameters }, cache);
+      return evaluateCadPart({ ...doc, parameters }, cache, options);
     },
-    withDocument(next) { return evaluateCadPart(next, cache); },
-    save: () => JSON.stringify(doc) + '\n',
+    withDocument(next) { return evaluateCadPart(next, cache, options); },
+    // (A mesh's typed arrays written as plain arrays.)
+    save: () => JSON.stringify(doc, (_, v) => isMeshArray(v) ? Array.from(v) : v) + '\n',
   };
   return Object.freeze(snapshot);
 }
@@ -408,9 +462,10 @@ export function loadCadPart(text: string): CadPartSnapshot {
 }
 export const emptyCadPart = (): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [] });
 
-function deepFreeze<T>(v: T): T { if (v && typeof v === 'object' && !Object.isFrozen(v)) { Object.freeze(v); for (const x of Object.values(v)) deepFreeze(x); } return v; }
+function deepFreeze<T>(v: T): T { if (v && typeof v === 'object' && !ArrayBuffer.isView(v) && !Object.isFrozen(v)) { Object.freeze(v); for (const x of Object.values(v)) deepFreeze(x); } return v; }
 /** The feature with parameters replaced by their values (the reuse key). */
 function resolvedDefinition(f: unknown, parameters: Readonly<Record<string, number>>): unknown {
+  if (isMeshArray(f)) return hashOfArray(f);
   if (Array.isArray(f)) return f.map(x => resolvedDefinition(x, parameters));
   if (isRecord(f)) { if (typeof f.parameter === 'string' && Object.keys(f).length === 1) return parameters[f.parameter]; return Object.fromEntries(Object.entries(f).filter(([k]) => k !== 'id').map(([k, v]) => [k, resolvedDefinition(v, parameters)])); }
   return f;
@@ -758,11 +813,16 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'mesh': {
       const P = f.positions as unknown, I = f.indices as unknown;
-      if (!Array.isArray(P) || P.length % 3 || !P.every(x => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) <= CadPartLimits.lengthMM)) fail('INPUT', 'positions must be x, y, z numbers within ±10000 mm');
-      if (!Array.isArray(I) || I.length % 3 || I.length / 3 > CadPartLimits.meshTriangles || !I.every(i => Number.isInteger(i) && i >= 0 && i < (P as number[]).length / 3)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
+      if (!meshArrayOk(P, 'positions')) fail('INPUT', 'positions must be x, y, z numbers within ±10000 mm');
+      const nv = (P as ArrayLike<number>).length / 3;
+      if (!meshArrayOk(I, 'indices', nv)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
+      if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
       return () => {
-        const facets = f.representation === 'facets';
-        try { return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as number[], I as number[], { id: at, maximumTriangles: CadPartLimits.meshTriangles }) }); }
+        const facets = f.representation === 'facets', opts = { id: at, maximumTriangles: CadPartLimits.meshTriangles };
+        try {
+          if (facets && f.each) return many(facetBrepsFromTriangles(P as ArrayLike<number>, I as ArrayLike<number>, opts).map(brep => ({ kind: 'brep' as const, brep })));
+          return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as ArrayLike<number>, I as ArrayLike<number>, opts) });
+        }
         catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }

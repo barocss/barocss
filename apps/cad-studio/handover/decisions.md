@@ -1046,12 +1046,56 @@ Decided:
   - The import toast says regions and the 5000-triangle Boolean limit.
   - The 100k triangle cap stays until M1's binary storage (R3.3).
 
+- **Follow-up (peer's adjustments under the delegation, same day).**
+  - **A mesh in several pieces opens, one body per piece; it is no longer refused.** Printed kits, figures with
+    separate eyes, and scans with floaters are common.
+    - `facetBrepsFromTriangles` builds each closed, edge-connected piece, in file order, as its own B-rep:
+      body `<id>_part<j>`, faces `<id>.part<j>.region<k>`. Each piece is turned outward on its own (a cavity's
+      shell comes in as a solid; R3.4 tells them apart).
+    - `facetPieces` counts the pieces and gives each one's triangles and volume.
+    - The mesh node records `pieces` (as a STEP import records `solids`). The kernel feature takes `each`, so its
+      outputs are `id/j` and the studio keys them `b<k>_part<j>`.
+    - The import toast says how many pieces there are and names the tiny ones (under 1% of the largest one's
+      volume) as likely stray bits. Removing floaters is R3.4's repair.
+    - `facetBrepFromTriangles` (one piece expected) still refuses, saying how many pieces it found.
+  - **Two limits instead of one.**
+    - Previews: `FACET_PREVIEW_TRIANGLES = 5000`, about a second (R2: 0.94 s at 5k), so a preview stays live.
+    - Committed evaluations: `FACET_EXPLODE_TRIANGLES = 20000`, a few seconds (R2: 3.2 s at 20k against 409 s
+      before R2). That is what D3 meant by keeping Booleans on small meshes.
+    - The studio worker passes the preview limit (`evaluateCadPart(doc, cache, {facetExplodeTriangles})`).
+      Between the two limits a preview is refused with "… not previewed (this mesh has N): apply to run it (up to
+      20000)". Above 20000, every evaluation is refused with "Booleans on large meshes arrive with F1/F2".
+    - In the browser, an 18k-triangle sphere drilled through takes 9.7 s.
+  - **Long computations can be stopped.** After a second, a "Working… Cancel" bar shows at the top centre (not
+    under the toasts). Cancel ends the worker and starts a new one (`EngineClient.restart`, caches empty); every
+    waiting request is refused "Stopped", and the change that started it is taken back (undo).
+  - **The typed-array path (part of R3.2, done here).**
+    - A mesh feature may carry `Float64Array`/`Float32Array` positions and `Uint32Array` indices.
+    - Admission no longer JSON-copies the document: mesh arrays are shared as they are, never frozen, checked
+      once per array object, and keyed for reuse by a hash worked out once per array.
+    - `save()` writes them as plain arrays.
+    - The studio turns a node's arrays into typed arrays once per node array; the worker keeps nodes by identity
+      (wireDoc), so an unchanged mesh is reused, not re-hashed.
+
 Why:
 - F0 is the base of the mesh-body roadmap (F1, F2, SubD, QEM). A face per triangle made a 200k mesh unusable.
 - The kind-tagged union lets the compiler find every place that assumed a surface.
 - The fallback keeps today's STL Booleans working, as the owner required.
 
 Evidence:
+- Follow-up:
+  - Kernel facet tests 8/8. The new pieces test: a box and a floater give 2 bodies `k_part0/1` with per-piece
+    names; in a part, outputs `m/0` and `m/1`; typed arrays are not copied, are saved as plain arrays, and the mesh
+    is reused on re-evaluation.
+  - The 6240-triangle hole is made committed and refused as a preview; 25 280 triangles are refused naming
+    F1/F2.
+  - Conformance: `r3/sphere-hole` (6240 triangles, committed, genus 1) replaces the refused case; 31/31 pass.
+  - Studio 289/289, with a pieces test (`b0_part0/1`, `n0.part1.region*`, 7 mm³ each).
+  - Browser flow 107/107.
+    - A kit STL (a sphere and a floater) opens as 2 bodies with "1 of the pieces is tiny".
+    - A part with a hole through an 18k sphere shows "Working… Cancel", and Cancel takes the open back to the
+      kit.
+    - The STEP step now waits for the bodies as well as the name (a race the new step exposed).
 - Kernel `test/facet-brep.test.mjs` (7):
   - box: 6 regions, 12 edges, valid strict, volume 1000, area 700, planes;
   - sphere: halved into 2, volume and centroid exact;

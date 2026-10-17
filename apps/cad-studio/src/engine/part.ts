@@ -37,7 +37,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sweep-curve': return { ...at, kind: 'sweep-curve', sketch: id(node.sketch), path: node.path };
     case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })), ...(node.smooth ? { smooth: true } : {}) };
     case 'import': return { ...at, kind: 'import', step: node.step, ...((node.solids ?? 1) > 1 ? { each: true } : {}) };
-    case 'mesh': return { ...at, kind: 'mesh', positions: node.positions, indices: node.indices, ...(node.representation ? { representation: node.representation } : {}) };
+    case 'mesh': return { ...at, kind: 'mesh', ...meshArrays(node), ...(node.representation ? { representation: node.representation } : {}), ...((node.pieces ?? 1) > 1 ? { each: true } : {}) };
     case 'thread': return { ...at, kind: 'thread', diameter: node.diameter, pitch: node.pitch, center: node.center, seat: node.seat, ...(node.length !== undefined ? { length: node.length } : {}), ...(node.hex ? { hex: node.hex } : {}), ...(node.form ? { form: node.form } : {}) };
     case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open };
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
@@ -99,6 +99,17 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   // (Keyed by the id's serial, `b<k>` for `n<k>`, see ids.ts; the node only tells a file's solids from a split's halves.)
   const k = serialOf(m[1]), i = nodes ? nodeIndexOf(nodes, m[1]) : k;
   if (!(k >= 0)) return outputId;
-  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate')) return `b${k}_part${m[2]}`;
+  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate' || nodes?.[i]?.kind === 'mesh')) return `b${k}_part${m[2]}`;
   return m[2] === undefined ? `b${k}` : `b${k}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };
+
+/**
+ * A mesh node's arrays as typed arrays, made once per node array (R3.2): the kernel takes them without copying,
+ * freezing or writing them into its reuse key (it hashes each array object once), and a node's arrays never change.
+ */
+const typedMeshes = new WeakMap<readonly number[], { positions: Float64Array; indices: Uint32Array }>();
+function meshArrays(node: { positions: number[]; indices: number[] }): { positions: Float64Array; indices: Uint32Array } {
+  let t = typedMeshes.get(node.positions);
+  if (!t || t.indices.length !== node.indices.length) { t = { positions: Float64Array.from(node.positions), indices: Uint32Array.from(node.indices) }; typedMeshes.set(node.positions, t); }
+  return t;
+}

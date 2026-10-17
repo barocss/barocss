@@ -54,7 +54,7 @@ import type { Mate } from './assembly/mates';
 import type { DirectGeometry } from './engine/direct';
 import { directNow, loadDirect } from './engine/directModule';
 import { stepLengthUnit } from './engine/stepUnits';
-import { FACET_EXPLODE_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
+import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
 import { readStudioDoc } from './engine/migrate';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from './engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
@@ -798,6 +798,15 @@ export function App() {
     });
   }, []);
 
+  // A computation running past a second can be stopped (D42: a committed Boolean on a mesh of up to 20000
+  // triangles takes a few seconds): the worker restarts and the change that started it is taken back.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { if (!busy) { setSlow(false); return; } const t = setTimeout(() => setSlow(true), 1000); return () => clearTimeout(t); }, [busy]);
+  const cancelWork = () => {
+    engine.restart(); setBusy(false); setSlow(false); setPreviewBodies(null);
+    if (undo.length) { doUndo(); setToast({ title: 'Stopped', hint: 'The computation was stopped and the change taken back.', detail: '' }); }
+    else setToast({ title: 'Stopped', hint: 'The computation was stopped; the part shows as it was last computed.', detail: '' });
+  };
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
     setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
@@ -954,13 +963,17 @@ export function App() {
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
-    const { name, format, unit } = meshAsk, next = withNode(emptyDoc(), { kind: 'mesh', name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, representation: 'facets' });
-    // Read before replacing the current part: a mesh that does not close keeps the part.
-    const read = await engine.part(next, revision.current++);
+    const { name, format, unit } = meshAsk, node = { kind: 'mesh' as const, name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, representation: 'facets' as const };
+    // Read before replacing the current part: a mesh that does not close keeps the part. Read piece by piece, so a
+    // file of several closed pieces (a kit, separate eyes, a scan's floaters) opens as that many bodies (D42).
+    const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++);
     if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
+    const pieces = read.bodies.length, next = withNode(emptyDoc(), { ...node, ...(pieces > 1 ? { pieces } : {}) });
     setMeshAsk(null); replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
-    const b = read.bodies[0], faces = b?.mesh.faces.length ?? 0;
-    setToast({ title: `${format} opened`, hint: `A mesh solid of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'} (${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles, grouped where they meet at less than 30°), read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(b?.volumeMM3 ?? 0).toLocaleString('en-US')} mm³. Booleans and holes work up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles; fillets, shells and drafts on mesh faces come later.`, detail: '' });
+    const faces = read.bodies.reduce((n, b) => n + b.mesh.faces.length, 0), volume = read.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+    // (Pieces under 1% of the largest one's volume: floaters, most likely; repair, R3.4, will offer to drop them.)
+    const largest = Math.max(...read.bodies.map(b => b.volumeMM3 ?? 0)), tiny = read.bodies.filter(b => (b.volumeMM3 ?? 0) < 0.01 * largest).length;
+    setToast({ title: `${format} opened`, hint: `${pieces > 1 ? `${pieces} closed pieces, each a body of its own (${faces.toLocaleString('en-US')} regions in all)` : `A mesh solid of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'}`} — ${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles, grouped where they meet at less than 30°, read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(volume).toLocaleString('en-US')} mm³.${tiny ? ` ${tiny} of the pieces ${tiny === 1 ? 'is' : 'are'} tiny (under 1% of the largest): stray bits, likely — delete ${tiny === 1 ? 'it' : 'them'}, or repair will offer to when it comes.` : ''} Booleans and holes work up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles (previewed up to ${FACET_PREVIEW_TRIANGLES.toLocaleString('en-US')}); fillets, shells and drafts on mesh faces come later.`, detail: '' });
   };
   const open = async (file: File) => {
     try {
@@ -1792,8 +1805,10 @@ export function App() {
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
       </div>}
 
+      {busy && slow && <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working…</span>
+        <button className="ghost small" aria-label="Cancel the computation" title="Stop this computation and take the change back" onClick={cancelWork}>Cancel</button></div>}
       <div className="corner-left">
-        <span className="mono muted">{busy ? 'Computing…' : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
+        <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
       <div className="corner-right">

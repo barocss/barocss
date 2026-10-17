@@ -23,8 +23,39 @@ const UNSET = 0xffffffff;
 /** The most points a polyline edge takes (the curve check's limit on control points). */
 const POLYLINE = 64;
 
-/** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep of facet faces. */
+/** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep of facet faces; refused when it is in more than one piece. */
 export function facetBrepFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): Brep {
+  const m = welded(positions, indices, options), pieces = componentsOf(m.across, m.I.length / 3);
+  if (pieces.count > 1) throw new MeshBrepError(`the mesh is more than one piece (${pieces.count} pieces): open each piece as its own body`);
+  return pieceBrep(m.id, m.P, m.I, options);
+}
+/**
+ * Each closed, connected piece of the mesh as a B-rep of its own (a kit, a figure with separate eyes, a scan
+ * with floaters), in order of each piece's first triangle in the file. One piece: named as by
+ * facetBrepFromTriangles; more: its body `<id>_part<j>` and faces `<id>.part<j>.region<k>`. Each piece turned
+ * outward on its own (a cavity's shell comes in as a solid of its own: repair, R3.4, tells them apart).
+ */
+export function facetBrepsFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): Brep[] {
+  const m = welded(positions, indices, options), nt = m.I.length / 3, pieces = componentsOf(m.across, nt);
+  if (pieces.count === 1) return [pieceBrep(m.id, m.P, m.I, options)];
+  const lists: number[][] = Array.from({ length: pieces.count }, () => []);
+  for (let t = 0; t < nt; t++) lists[pieces.of[t]].push(m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]);
+  return lists.map((list, j) => {
+    if (list.length < 12) throw new MeshBrepError(`piece ${j} of the mesh has fewer than four triangles: it encloses nothing`);
+    return pieceBrep(`${m.id}_part${j}`, m.P, Uint32Array.from(list), options, `${m.id}.part${j}`);
+  });
+}
+/** How many closed pieces the mesh is in, and each one's triangle count and enclosed volume (|V|), in file order. */
+export function facetPieces(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): { triangles: number; volumeMM3: number }[] {
+  const m = welded(positions, indices, options), nt = m.I.length / 3, pieces = componentsOf(m.across, nt);
+  const out = Array.from({ length: pieces.count }, () => ({ triangles: 0, volumeMM3: 0 }));
+  for (let t = 0; t < nt; t++) { const o = out[pieces.of[t]]; o.triangles++; o.volumeMM3 += det3(m.P, m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]) / 6; }
+  for (const o of out) o.volumeMM3 = Math.abs(o.volumeMM3);
+  return out;
+}
+
+/** The mesh welded, its degenerate triangles dropped, checked closed and consistently wound (every piece). */
+function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions): { id: string; P: Float64Array; I: Uint32Array; across: Int32Array } {
   const id = (options.id ?? 'mesh').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
   const n = positions.length / 3, count = indices ? indices.length / 3 : n / 3, limit = options.maximumTriangles ?? 200_000;
   if (!Number.isInteger(n) || !Number.isInteger(count)) throw new MeshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
@@ -42,19 +73,19 @@ export function facetBrepFromTriangles(positions: ArrayLike<number>, indices: Ar
     if (!(triangleArea2(P, a, b, c) > weld * weld)) continue;
     T.push(a, b, c);
   }
-  const I = Uint32Array.from(T), nt = I.length / 3;
-  if (nt < 4) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
-  const across = adjacency(I, nv);
-  connected(across, nt);
-  // Outward: a positive enclosed volume (else every triangle is turned over).
+  const I = Uint32Array.from(T);
+  if (I.length / 3 < 4) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
+  return { id, P, I, across: adjacency(I, nv) };
+}
+/** One piece as a B-rep: turned outward, grown into regions, assembled (faces named `<prefix>.region<k>`). */
+function pieceBrep(id: string, P: Float64Array, I: Uint32Array, options: FacetBrepOptions, prefix = id): Brep {
+  const nt = I.length / 3, nv = P.length / 3;
   let vol = 0;
   for (let t = 0; t < nt; t++) vol += det3(P, I[3 * t], I[3 * t + 1], I[3 * t + 2]);
-  if (vol < 0) {
-    for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; }
-    across.set(adjacency(I, nv));
-  }
+  if (vol < 0) for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; }
+  const across = adjacency(I, nv);
   const region = regions(P, I, across, Math.cos((options.creaseDegrees ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
-  return assemble(id, P, I, across, region);
+  return assemble(id, P, I, across, region, prefix);
 }
 
 /** Corners on one grid cell of the weld size are one vertex: a hash of the integer cell, checked, no strings. */
@@ -96,12 +127,17 @@ function adjacency(I: Uint32Array, nv: number): Int32Array {
   return across;
 }
 
-/** One piece: every triangle reached from the first across edges. */
-function connected(across: Int32Array, nt: number): void {
-  const seen = new Uint8Array(nt), queue = new Int32Array(nt);
-  let head = 0, tail = 0; queue[tail++] = 0; seen[0] = 1;
-  while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const u = (across[3 * t + k] / 3) | 0; if (!seen[u]) { seen[u] = 1; queue[tail++] = u; } } }
-  if (tail !== nt) throw new MeshBrepError(`the mesh is more than one piece (${nt - tail} of ${nt} triangles are not connected to the first): open each shell as its own body`);
+/** The edge-connected pieces: each triangle's piece, numbered by first triangle, and how many. */
+function componentsOf(across: Int32Array, nt: number): { of: Uint32Array; count: number } {
+  const of = new Uint32Array(nt).fill(UNSET), queue = new Int32Array(nt);
+  let count = 0;
+  for (let s = 0; s < nt; s++) {
+    if (of[s] !== UNSET) continue;
+    let head = 0, tail = 0; queue[tail++] = s; of[s] = count;
+    while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const u = (across[3 * t + k] / 3) | 0; if (of[u] === UNSET) { of[u] = count; queue[tail++] = u; } } }
+    count++;
+  }
+  return { of, count };
 }
 
 /**
@@ -193,7 +229,7 @@ function halve(across: Int32Array, nt: number): Uint32Array {
   return region;
 }
 /** Faces (each edge-connected piece of a region, numbered by first triangle), polyline edges and vertices; built and checked. */
-function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array): Brep {
+function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array, prefix = id): Brep {
   const nt = I.length / 3, nv = P.length / 3, piece = new Uint32Array(nt).fill(UNSET), queue = new Int32Array(nt);
   let faces = 0;
   for (let s = 0; s < nt; s++) {
@@ -265,7 +301,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
     if (!loops.length) throw new MeshBrepError(`region ${f} has no boundary`);
     // (The longest boundary is the outer loop: on a facet face, which is "outer" is a convention only.)
     loops.sort((a, b) => b.length - a.length);
-    inputs.push({ id: `${id}_f${f}`, name: `${id}.region${f}`, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
+    inputs.push({ id: `${id}_f${f}`, name: `${prefix}.region${f}`, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
       loops: loops.map((l, k) => ({ kind: k === 0 ? 'outer' as const : 'inner' as const, uses: l.uses })) });
   }
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...vertexIds].sort((a, b) => a[0] - b[0]).map(([v, s]) => ({ id: s, point: [P[3 * v], P[3 * v + 1], P[3 * v + 2]] as Point })), edges,
