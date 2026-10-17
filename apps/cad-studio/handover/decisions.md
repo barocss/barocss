@@ -768,3 +768,35 @@ Evidence:
 
 A3 is closed: requirements and `check_spec` (D36), mutants and policy (D37), the panel (D38).
 
+## D39 — Transactions: batches all or nothing, dry runs, op ids, checkpoints and diffs; one field registry (2026-10-18, A4.1)
+Decided:
+- **Field registry (owner's delegate: the requirements carry-over bug is a class).**
+  - `STUDIO_DOC_FIELDS` and `NODE_EXTRA_FIELDS` list every document and node field. Each is checked against
+    its type at compile time, so a field added to the type but not to the list fails type-check.
+  - `carryOver` (used by `commit`) carries every field but the model's own nodes and outputs. A field a command
+    did not touch is never dropped because the command was built on the evaluated document.
+  - `test/fields.test.ts` sets every field, typed so it cannot miss one. It runs carry-over, delete, move,
+    duplicate, replaceRange, flatten, and opening at schemas 2 and 3, and asserts every field survives.
+  - Flatten now renames the keys of `sigs` and `rematched` with the shifted ids.
+- **`apply_ops`.** Tool calls as one change: `ops [{tool, args, opId?}]` run in order, each on what the one before
+  left (set_requirements, run_command, add_features, edit_feature, delete_feature).
+  - **All or nothing:** a refused op means none is applied and the state stays the same object.
+  - **`dryRun`:** returns what would change — the feature-tree diff, the facts' change, and references that
+    would break (`verifyReferences`) — without applying.
+  - **Op ids:** an `opId` applied before is skipped (`already applied`), so a retried batch does not apply twice.
+    The last 500 are remembered.
+- **Checkpoints.** `checkpoint` names the part as it is (this session, the last 20), `restore` puts it back, and
+  `diff` compares checkpoints, "best" or "current".
+- **Tree diff.** By stable feature id: added, changed (before → after labels), deleted, moved, and parameter and
+  requirement changes. Signatures and marks are ignored: they are what the studio keeps, not the feature.
+
+Why: A4 starts from changes an agent can try and take back whole. The registry keeps A4's branches and proposals,
+which add more fields, from dropping any.
+
+Evidence: studio 276/276.
+- Fields guard: every path.
+- `apply_ops`: a dry run unchanged; applied; a retry skipped; a refusal applying nothing; no batch inside a batch.
+- Checkpoint, diff and restore: added 2, changed n1 8 → 10, then back; the diff afterwards empty.
+
+Next: A4.2, proposals on a branch with a ghost preview and a risk badge, and the history kept in the document.
+
