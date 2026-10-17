@@ -58,7 +58,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] C4 Thicken an open surface (#2089) — b6dd85b85 (faceted)
 - [ ] C5 Surface trim by a loop, fill, extend, sew into a solid (#2042, #2043, #2050) — fill and extend 4ce2c0bb4; trim by a loop and sew still to do
 - [x] C6 Least-squares curve fit; knot removal (#2042, #2052) — f482d5741
-- [ ] C7 Splines in sketches (#2051)
+- [x] C7 Splines in sketches (#2051) — ded1806bf (kept as tangent arcs; the spline points are not editable after drawing)
 - [ ] C8 Symmetry constraint (#2039)
 - [ ] C9 Zebra / curvature maps (#2033); image-based lighting, alpha cutout (#2070)
 
