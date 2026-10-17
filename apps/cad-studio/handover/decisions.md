@@ -647,3 +647,49 @@ asked for. A big body is read in pages rather than cut off.
 Evidence: studio 268/268 (concise and detailed results; a 30-hole plate's faces in two pages that differ; a
 concise summary). A2 is closed: facts and inspect (D32), analysis (D33), views (D34), format (D35).
 
+## D36 — Requirements as declarative checks, kept in the document (2026-10-18, A3.1)
+Decided:
+- **Where.** The brief is kept in the document as `requirements` (chat/spec.ts). Each requirement has an `id`, a
+  quoted `source`, `hard`, a `basis` (stated, assumed or ambiguous), and optional `subject` and `assume`.
+- **The predicate.** It is declarative JSON, never code that gets evaluated: `{op: == | <= | >= | between,
+  query: {fn, …}, value | min and max, tol?, unit?}`.
+- **Query functions.**
+
+  | Query | Arguments |
+  |---|---|
+  | `bbox` | axis, body? |
+  | `volume`, `mass` | body? |
+  | `count_solids` | — |
+  | `count_faces_of_kind` | kind, body? |
+  | `distance_between` | a, b |
+  | `radius`, `hole_diameter` | face |
+  | `min_wall` | body? |
+  | `draft_min` | body?, pull? |
+  | `clearance` | a, b (body keys) |
+
+  They measure with the agent's own facts, measure and analysis. Subjects are names or selectors, so they keep
+  to the feature's stable id (A1).
+- **Tools.** `set_requirements` checks and keeps them: it adds, replaces by id, or with `replace` replaces all, and
+  refuses a malformed one saying what is missing. `check_spec` runs them and reports `{model_hash, summary {pass,
+  fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}],
+  unknowns [{req_id, why}]}`, with passes as counts only.
+- **Unknown, with why.** An assumed material (D33), a reference that does not resolve, or an analysis that does
+  not apply (curved faces for draft).
+- **Prompt.** The system prompt says to write the requirements before modelling and to run `check_spec` after
+  changes and before finishing.
+
+Why: A3 turns a brief into checks the part can fail, so an agent and a user can see what holds without
+re-reading the prose. Being data rather than code keeps them deterministic, safe, serialisable, and portable into
+the conformance format.
+
+Next in A3:
+- **A3.2.** Mutation check of a suite: driving parameters ±15%, the subject's feature suppressed, and the trivial
+  stub. Plus the iteration policy kept by the tool layer: the best snapshot, a refused regression of passed hard
+  requirements, repair rounds counted, and a restart hint after two rounds without progress.
+- **A3.3.** The checklist panel.
+
+Evidence:
+- Studio 270/270. A brief of 7 checks on a plate with a hole gives 5 pass, R2 failing by 2 mm (hard), and the
+  mass unknown. Malformed requirements are refused.
+- Conformance case `conformance/a3/plate-brief`.
+
