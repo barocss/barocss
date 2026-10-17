@@ -65,5 +65,5 @@ Status of each line: [ ] open · [x] done (with the commit).
 ## Carried over
 
 - [ ] Fillet of mitred box tops ~130 ms (tools trimmed apart at the mitre)
-- [ ] ISO 4017 lengths other than M6 cross-checked against a source
-- [ ] A countersunk hole shows as three history steps (hole, revolve, subtract): one step, editable as a hole
+- [x] ISO 4017 lengths other than M6 cross-checked against a source — all of M3–M12 match engineersedge.com's ISO 4017 table (no change to the lengths)
+- [x] A countersunk hole shows as three history steps (hole, revolve, subtract): one step, editable as a hole — dda679abb

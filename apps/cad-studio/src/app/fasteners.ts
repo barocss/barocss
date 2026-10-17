@@ -28,12 +28,12 @@ export interface FastenerSize {
 }
 /** The data's version and where each part of it was checked (2026-10-17). */
 export const CATALOGUE = {
-  version: '2026.10.17-1',
+  version: '2026.10.17-2',
   sources: [
     { what: 'ISO 261/262 coarse pitches; ISO 4017 s, k; ISO 4032 m; ISO 4762 dk, k, s; ISO 7089 d1, d2, h', where: 'fasten.it DIN EN ISO 4017 / 4762 tables; nominal values of the standards' },
     { what: 'ISO 4762 lengths', where: 'engineersedge.com ISO 4762 socket head screw table (https://engineersedge.com/iso_socket_head_screw.htm)' },
     { what: 'ISO 10642 dk, k, s and lengths', where: 'the standard\'s nominal values (dk 2.24 d, k 0.62 d) — not yet cross-checked against a table' },
-    { what: 'ISO 4017 lengths', where: 'M6 12–60 cross-checked (secondary table); other sizes not yet checked' },
+    { what: 'ISO 4017 lengths', where: 'M3–M12 cross-checked: engineersedge.com ISO 4017 hex head screw table (https://engineersedge.com/iso_hex_head_screw.htm)' },
     { what: 'ISO 273 clearance holes', where: 'ISO 273:1979 table as reproduced by suppliers (fine H12, medium H13, coarse H14)' },
     { what: 'Tap drills', where: 'd − P, the usual drill for a 6H internal thread' },
   ],
@@ -41,13 +41,13 @@ export const CATALOGUE = {
 const SERIES = [4, 5, 6, 8, 10, 12, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100, 110, 120];
 const L = (from: number, to: number) => SERIES.filter(l => l >= from && l <= to);
 export const FASTENER_SIZES: Record<string, FastenerSize> = {
-  M3: { d: 3, pitch: 0.5, s: 5.5, k: 2, m: 2.4, dk: 5.5, ks: 3, socket: 2.5, wd1: 3.2, wd2: 7, wh: 0.5, lengths: L(6, 30), capLengths: L(5, 30), cdk: 6.72, ck: 1.86, csocket: 2, cskLengths: L(8, 30), clearance: [3.2, 3.4, 3.6], tap: 2.5, checked4017: false },
-  M4: { d: 4, pitch: 0.7, s: 7, k: 2.8, m: 3.2, dk: 7, ks: 4, socket: 3, wd1: 4.3, wd2: 9, wh: 0.8, lengths: L(8, 40), capLengths: L(6, 40), cdk: 8.96, ck: 2.48, csocket: 2.5, cskLengths: L(8, 40), clearance: [4.3, 4.5, 4.8], tap: 3.3, checked4017: false },
-  M5: { d: 5, pitch: 0.8, s: 8, k: 3.5, m: 4.7, dk: 8.5, ks: 5, socket: 4, wd1: 5.3, wd2: 10, wh: 1, lengths: L(10, 50), capLengths: L(8, 50), cdk: 11.2, ck: 3.1, csocket: 3, cskLengths: L(8, 50), clearance: [5.3, 5.5, 5.8], tap: 4.2, checked4017: false },
+  M3: { d: 3, pitch: 0.5, s: 5.5, k: 2, m: 2.4, dk: 5.5, ks: 3, socket: 2.5, wd1: 3.2, wd2: 7, wh: 0.5, lengths: L(6, 30), capLengths: L(5, 30), cdk: 6.72, ck: 1.86, csocket: 2, cskLengths: L(8, 30), clearance: [3.2, 3.4, 3.6], tap: 2.5, checked4017: true },
+  M4: { d: 4, pitch: 0.7, s: 7, k: 2.8, m: 3.2, dk: 7, ks: 4, socket: 3, wd1: 4.3, wd2: 9, wh: 0.8, lengths: L(8, 40), capLengths: L(6, 40), cdk: 8.96, ck: 2.48, csocket: 2.5, cskLengths: L(8, 40), clearance: [4.3, 4.5, 4.8], tap: 3.3, checked4017: true },
+  M5: { d: 5, pitch: 0.8, s: 8, k: 3.5, m: 4.7, dk: 8.5, ks: 5, socket: 4, wd1: 5.3, wd2: 10, wh: 1, lengths: L(10, 50), capLengths: L(8, 50), cdk: 11.2, ck: 3.1, csocket: 3, cskLengths: L(8, 50), clearance: [5.3, 5.5, 5.8], tap: 4.2, checked4017: true },
   M6: { d: 6, pitch: 1, s: 10, k: 4, m: 5.2, dk: 10, ks: 6, socket: 5, wd1: 6.4, wd2: 12, wh: 1.6, lengths: L(12, 60), capLengths: L(10, 60), cdk: 13.44, ck: 3.72, csocket: 4, cskLengths: L(8, 60), clearance: [6.4, 6.6, 7], tap: 5, checked4017: true },
-  M8: { d: 8, pitch: 1.25, s: 13, k: 5.3, m: 6.8, dk: 13, ks: 8, socket: 6, wd1: 8.4, wd2: 16, wh: 1.6, lengths: L(16, 80), capLengths: L(12, 80), cdk: 17.92, ck: 4.96, csocket: 5, cskLengths: L(10, 80), clearance: [8.4, 9, 10], tap: 6.8, checked4017: false },
-  M10: { d: 10, pitch: 1.5, s: 16, k: 6.4, m: 8.4, dk: 16, ks: 10, socket: 8, wd1: 10.5, wd2: 20, wh: 2, lengths: L(20, 100), capLengths: L(16, 100), cdk: 22.4, ck: 6.2, csocket: 6, cskLengths: L(12, 100), clearance: [10.5, 11, 12], tap: 8.5, checked4017: false },
-  M12: { d: 12, pitch: 1.75, s: 18, k: 7.5, m: 10.8, dk: 18, ks: 12, socket: 10, wd1: 13, wd2: 24, wh: 2.5, lengths: L(25, 120), capLengths: L(20, 120), cdk: 26.88, ck: 7.44, csocket: 8, cskLengths: L(20, 100), clearance: [13, 13.5, 14.5], tap: 10.2, checked4017: false },
+  M8: { d: 8, pitch: 1.25, s: 13, k: 5.3, m: 6.8, dk: 13, ks: 8, socket: 6, wd1: 8.4, wd2: 16, wh: 1.6, lengths: L(16, 80), capLengths: L(12, 80), cdk: 17.92, ck: 4.96, csocket: 5, cskLengths: L(10, 80), clearance: [8.4, 9, 10], tap: 6.8, checked4017: true },
+  M10: { d: 10, pitch: 1.5, s: 16, k: 6.4, m: 8.4, dk: 16, ks: 10, socket: 8, wd1: 10.5, wd2: 20, wh: 2, lengths: L(20, 100), capLengths: L(16, 100), cdk: 22.4, ck: 6.2, csocket: 6, cskLengths: L(12, 100), clearance: [10.5, 11, 12], tap: 8.5, checked4017: true },
+  M12: { d: 12, pitch: 1.75, s: 18, k: 7.5, m: 10.8, dk: 18, ks: 12, socket: 10, wd1: 13, wd2: 24, wh: 2.5, lengths: L(25, 120), capLengths: L(20, 120), cdk: 26.88, ck: 7.44, csocket: 8, cskLengths: L(20, 100), clearance: [13, 13.5, 14.5], tap: 10.2, checked4017: true },
 };
 export const FASTENER_KINDS: { value: FastenerKind; label: string; standard: string }[] = [
   { value: 'hex-bolt', label: 'Hex head bolt', standard: 'ISO 4017' },

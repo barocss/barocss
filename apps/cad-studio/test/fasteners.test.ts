@@ -145,3 +145,16 @@ test('a modelled thread: the bolt and its nut as faceted helices, one solid each
   assert.ok(ms < 8000, `${Math.round(ms)} ms`);
   assert.match(f.steps!(ctx, v).find(s => s.label === 'Thread')!.text, /modelled: ISO 68-1/);
 });
+
+test('ISO 4017 lengths follow the cross-checked table for every size', () => {
+  const by = (a: number, b: number, step: number) => Array.from({ length: Math.round((b - a) / step) + 1 }, (_, k) => a + k * step);
+  // engineersedge.com ISO 4017 table (CATALOGUE.sources).
+  const table: Record<string, number[]> = {
+    M3: [...by(6, 12, 2), 16, 20, 25, 30], M4: [8, 10, 12, 16, ...by(20, 40, 5)], M5: [10, 12, 16, ...by(20, 50, 5)], M6: [12, 16, ...by(20, 60, 5)],
+    M8: [16, ...by(20, 70, 5), 80], M10: [...by(20, 70, 5), 80, 90, 100], M12: [...by(25, 70, 5), ...by(80, 120, 10)],
+  };
+  for (const [size, lengths] of Object.entries(table)) {
+    assert.deepEqual(FASTENER_SIZES[size].lengths, lengths, size);
+    assert.ok(FASTENER_SIZES[size].checked4017, size);
+  }
+});
