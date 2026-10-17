@@ -16,8 +16,11 @@ const circle = (id, x, y, r) => ({ id, kind: 'sketch', profile: 'circle', center
 const extrude = (id, sketch, height, from) => ({ id, kind: 'extrude', sketch, height, ...(from === undefined ? {} : { from }) });
 
 // Prismatic: holes, a cross hole meeting a vertical one (cylinders touching), countersinks.
-part('plate-holes', [rect('s', 0, 0, 40, 30), extrude('p', 's', 6), ...[[8, 8], [32, 8], [8, 22], [32, 22]].map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: 'p', center: [x, y], radius: 2 }))]);
-part('plate-countersinks', [rect('s', 0, 0, 40, 20), extrude('p', 's', 8), { id: 'h0', kind: 'hole', target: 'p', center: [10, 10], radius: 2, countersink: 7 }, { id: 'h1', kind: 'hole', target: 'p', center: [30, 10], radius: 2, countersink: 7 }]);
+// (Each hole on the one before: a feature on an earlier one branches the part into separate bodies.)
+part('plate-holes', [rect('s', 0, 0, 40, 30), extrude('p', 's', 6), ...[[8, 8], [32, 8], [8, 22], [32, 22]].map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: k ? `h${k - 1}` : 'p', center: [x, y], radius: 2 }))]);
+part('plate-countersinks', [rect('s', 0, 0, 40, 20), extrude('p', 's', 8), { id: 'h0', kind: 'hole', target: 'p', center: [10, 10], radius: 2, countersink: 7 }, { id: 'h1', kind: 'hole', target: 'h0', center: [30, 10], radius: 2, countersink: 7 }]);
+// Two holes on the same plate: two bodies with the same face names (a STEP of them repeats the names).
+part('plate-two-branches', [rect('s', 0, 0, 40, 20), extrude('p', 's', 8), { id: 'h0', kind: 'hole', target: 'p', center: [10, 10], radius: 2 }, { id: 'h1', kind: 'hole', target: 'p', center: [30, 10], radius: 2 }]);
 part('bar-cross-holes', [rect('s', 0, 0, 100, 40), extrude('p', 's', 12), { id: 'h0', kind: 'hole', target: 'p', center: [42, 6], radius: 2, axis: 'y' }, { id: 'h1', kind: 'hole', target: 'p', center: [43, 20], radius: 3 }]);
 // Curved Booleans: cylinders through blocks, a block on a cylinder, intersections.
 part('cylinder-block-union', [circle('c', 0, 0, 5), extrude('cy', 'c', 10), rect('b', -2, -2, 2, 2), extrude('bl', 'b', 6, 8), { id: 'u', kind: 'union', target: 'cy', tool: 'bl' }]);
@@ -63,7 +66,7 @@ mesh('two-shells', { positions: [...R.positions, ...R.positions.map((x, i) => i 
 const step = (name, breps) => put('step', `${name}.step`, exportStep(breps, { name, timestamp: '2026-10-18T00:00:00' }));
 step('helical-bolt-m8x30', [threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 30, center: [0, 0], seat: 0, hex: { across: 13, height: 5.3 }, form: 'helical' })]);
 step('helical-nut-m8', [threadSolid({ id: 'n', diameter: 8, pitch: 1.25, center: [0, 0], seat: 0, hex: { across: 13, height: 6.8, internal: true }, form: 'helical' })]);
-for (const name of ['cylinder-block-union', 'cylinder-through-block', 'box-fillet-all', 'plate-countersinks']) {
+for (const name of ['cylinder-block-union', 'cylinder-through-block', 'box-fillet-all', 'plate-countersinks', 'plate-two-branches']) {
   const doc = JSON.parse((await import('node:fs')).readFileSync(join(root, 'parts', `${name}.json`), 'utf8'));
   step(name, evaluateCadPart(doc).outputs.map(o => o.brep));
 }

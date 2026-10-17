@@ -21,8 +21,8 @@ test('robustness: open edges counted by position; a case runs through its stages
   writeFileSync(file, JSON.stringify({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }] }));
   const rows = runCase(cad, file, s => started.push(s));
-  assert.deepEqual(rows.map(r => `${r.stage}:${r.status}`), ['evaluate:OK', 'validate:OK', 'mass:OK', 'tessellate:OK']);
-  assert.deepEqual(started, ['evaluate', 'validate', 'mass', 'tessellate']);
+  assert.deepEqual(rows.map(r => `${r.stage}:${r.status}`), ['evaluate:OK', 'validate:OK', 'mass:OK', 'tessellate:OK', 'roundtrip:OK']);
+  assert.deepEqual(started, ['evaluate', 'validate', 'mass', 'tessellate', 'roundtrip']);
   // A conformance case that expects outputs but is refused is WRONG, not an acceptable refusal.
   writeFileSync(file, JSON.stringify({ input: { partDocument: { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'e', kind: 'extrude', sketch: 'nope', height: 5 }] } }, expect: { outputs: [] } }));
   assert.equal(runCase(cad, file, () => {})[0].status, 'WRONG');

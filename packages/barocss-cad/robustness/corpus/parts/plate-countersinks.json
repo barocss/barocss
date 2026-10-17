@@ -28,7 +28,7 @@
     {
       "id": "h1",
       "kind": "hole",
-      "target": "p",
+      "target": "h0",
       "center": [30, 10],
       "radius": 2,
       "countersink": 7

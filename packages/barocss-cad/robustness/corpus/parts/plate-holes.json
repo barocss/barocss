@@ -27,21 +27,21 @@
     {
       "id": "h1",
       "kind": "hole",
-      "target": "p",
+      "target": "h0",
       "center": [32, 8],
       "radius": 2
     },
     {
       "id": "h2",
       "kind": "hole",
-      "target": "p",
+      "target": "h1",
       "center": [8, 22],
       "radius": 2
     },
     {
       "id": "h3",
       "kind": "hole",
-      "target": "p",
+      "target": "h2",
       "center": [32, 22],
       "radius": 2
     }

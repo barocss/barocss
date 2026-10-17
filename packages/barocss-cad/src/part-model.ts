@@ -33,7 +33,7 @@ import { sewSolid, SewError } from './sew-solid.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
-import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
+import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
@@ -180,6 +180,8 @@ export interface CadPartOutput {
    * is reported here rather than refused.
    */
   validate(): BrepCheckReport;
+  /** The surface area (mm²) over the exact surfaces (brepSurfaceArea). */
+  surfaceArea(): number;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -1323,13 +1325,14 @@ function buildBrepLocal(pts: Point[], edges: { id: string; v: [number, number] }
 // ---- outputs --------------------------------------------------------------------------------------------
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
-  let validated: BrepCheckReport | undefined;
+  let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
     massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
     exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
     validate() { return validated ??= checkBrep(brep, { strict: true }); },
+    surfaceArea() { return area ??= brepSurfaceArea(brep); },
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {

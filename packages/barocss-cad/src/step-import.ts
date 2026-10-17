@@ -486,6 +486,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
     return { surface, sense: (dot(own, natN) >= 0) === f.same ? 'forward' : 'reversed' };
   };
 
+  // Names a file repeats (several bodies exported with the same feature names) are numbered in file order,
+  // as pieces of one face are: name#1, name#2 (a B-rep's names are unique).
+  const faceNames = renumbered(bodies.flatMap(b => b.shells.flatMap(sh => sh.faces.map(f => f.name)))), edgeNames = renumbered([...edges.values()].map(e => e.name));
+  let fi = 0, ei = 0;
+  for (const b of bodies) for (const sh of b.shells) for (const f of sh.faces) { const n = faceNames[fi++]; if (n !== undefined) f.name = n; }
+  for (const e of edges.values()) { const n = edgeNames[ei++]; if (n !== undefined) e.name = n; }
   const brep = buildBrep({
     source: { family: 'step', id },
     vertices: [...points].map(([vid, point]) => ({ id: vid, point })),
@@ -501,4 +507,54 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const base = (eid: string) => [...new Set(byEdge.get(eid))].sort().join('|'), count = new Map<string, number>(), seen = new Map<string, number>();
   for (const e of brep.edges) if (!e.name) count.set(base(e.id), (count.get(base(e.id)) ?? 0) + 1);
   return { ...brep, edges: brep.edges.map(e => { if (e.name) return e; const b = base(e.id), k = (seen.get(b) ?? 0) + 1; seen.set(b, k); return { ...e, name: count.get(b)! > 1 ? `${b}#${k}` : b }; }) };
+}
+
+/** Names, those that occur more than once numbered in order of occurrence (`name#1`, `name#2`…); missing ones stay missing. */
+function renumbered(names: readonly (string | undefined)[]): (string | undefined)[] {
+  const count = new Map<string, number>(), seen = new Map<string, number>();
+  for (const n of names) if (n) count.set(n, (count.get(n) ?? 0) + 1);
+  return names.map(n => { if (!n || count.get(n)! < 2) return n; const k = (seen.get(n) ?? 0) + 1; seen.set(n, k); return `${n}#${k}`; });
+}
+
+/** A STEP file's geometric validation properties (CAx-IF), as written for its part; each may be missing. */
+export interface StepValidationProperties {
+  readonly volumeMM3?: number; readonly areaMM2?: number; readonly centroidMM?: Point;
+  readonly box?: { readonly min: Point; readonly max: Point };
+}
+/**
+ * The validation properties a STEP file carries: PROPERTY_DEFINITIONs named 'geometric validation property'
+ * whose representations are 'volume', 'surface area', 'centroid' or 'bounding box' (values in mm).
+ */
+export function stepValidationProperties(source: string): StepValidationProperties {
+  const data = parseData(source), out: { volumeMM3?: number; areaMM2?: number; centroidMM?: Point; box?: { min: Point; max: Point } } = {};
+  const ref = (v: Value) => (v && typeof v === 'object' && 'ref' in v ? (v as { ref: number }).ref : -1);
+  const gvp = new Set<number>();
+  for (const [k, e] of data) if (e.type === 'PROPERTY_DEFINITION' && e.args[0] === 'geometric validation property') gvp.add(k);
+  for (const e of data.values()) {
+    if (e.type !== 'PROPERTY_DEFINITION_REPRESENTATION' || !gvp.has(ref(e.args[0]))) continue;
+    const rep = data.get(ref(e.args[1])); if (!rep || !Array.isArray(rep.args[1])) continue;
+    const items = (rep.args[1] as Value[]).map(v => data.get(ref(v))).filter((x): x is Entity => !!x);
+    const measure = () => { const m = items.find(x => x.type === 'MEASURE_REPRESENTATION_ITEM')?.args[1]; return m && typeof m === 'object' && 'args' in m ? Number((m as { args: Value[] }).args[0]) : undefined; };
+    const pointNamed = (name?: string) => { const p = items.find(x => x.type === 'CARTESIAN_POINT' && (name === undefined || x.args[0] === name)); return p ? (p.args[1] as Value[]).map(Number) as Point : undefined; };
+    if (rep.args[0] === 'volume') out.volumeMM3 = measure();
+    else if (rep.args[0] === 'surface area') out.areaMM2 = measure();
+    else if (rep.args[0] === 'centroid') out.centroidMM = pointNamed();
+    else if (rep.args[0] === 'bounding box') { const min = pointNamed('minimum point'), max = pointNamed('maximum point'); if (min && max) out.box = { min, max }; }
+  }
+  return out;
+}
+
+/** One property compared: the file's value, the model's, and the difference measured against its limit. */
+export interface ValidationCheck { readonly expected: number | Point; readonly actual: number | Point; readonly difference: number; readonly limit: number; readonly ok: boolean }
+/**
+ * The file's validation properties against the model read from it (its volume, area and centroid as measured
+ * here). Limits are CAx-IF's: volume and area within 1 %, the centroid within 0.1 % of the box's diagonal.
+ */
+export function compareValidationProperties(expected: StepValidationProperties, actual: { readonly volumeMM3: number; readonly areaMM2: number; readonly centroidMM: Point; readonly box: { readonly min: Point; readonly max: Point } }): { readonly volume?: ValidationCheck; readonly area?: ValidationCheck; readonly centroid?: ValidationCheck; readonly ok: boolean } {
+  const rel = (e: number, a: number): ValidationCheck => ({ expected: e, actual: a, difference: Math.abs(a - e) / Math.max(Math.abs(e), 1e-300), limit: 0.01, ok: Math.abs(a - e) <= 0.01 * Math.abs(e) });
+  const box = expected.box ?? actual.box, diagonal = Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]);
+  const volume = expected.volumeMM3 === undefined ? undefined : rel(expected.volumeMM3, actual.volumeMM3);
+  const area = expected.areaMM2 === undefined ? undefined : rel(expected.areaMM2, actual.areaMM2);
+  const centroid = expected.centroidMM === undefined ? undefined : (() => { const d = Math.hypot(...[0, 1, 2].map(k => actual.centroidMM[k] - expected.centroidMM![k])); return { expected: expected.centroidMM!, actual: actual.centroidMM, difference: d, limit: 1e-3 * diagonal, ok: d <= 1e-3 * diagonal }; })();
+  return { ...(volume ? { volume } : {}), ...(area ? { area } : {}), ...(centroid ? { centroid } : {}), ok: [volume, area, centroid].every(c => !c || c.ok) };
 }

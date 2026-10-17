@@ -6,6 +6,8 @@
 // entities other systems write.
 import { BrepError, type Brep } from './brep-core.js';
 import { faceGeometry } from './analytic-boolean.js';
+import { brepMassProperties, brepSurfaceArea } from './solid-mass.js';
+import { tessellateBrep } from './brep-tessellate.js';
 import { dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
 
@@ -29,6 +31,11 @@ export interface StepExportOptions {
   readonly name?: string;
   /** ISO 8601 time stamp for the header (default: now). */
   readonly timestamp?: string;
+  /**
+   * CAx-IF geometric validation properties of the part (volume, surface area, centroid, and a bounding box):
+   * written by default, so a reader can check what it imported; false leaves them out (no mass computed).
+   */
+  readonly validationProperties?: boolean;
 }
 
 /** One STEP file of every solid of the given B-reps (a part's bodies), as one product. */
@@ -107,10 +114,35 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   const origin = placement([0, 0, 0], [0, 0, 1], [1, 0, 0]);
   const representation = add_(`ADVANCED_BREP_SHAPE_REPRESENTATION(${text(name)},(${[...solids, origin].join(',')}),${context})`);
   add_(`SHAPE_DEFINITION_REPRESENTATION(${shape},${representation})`);
+  if (options.validationProperties !== false) writeValidationProperties(breps, add_, shape, context, mm, name);
 
   const stamp = options.timestamp ?? new Date().toISOString().slice(0, 19);
   return ['ISO-10303-21;', 'HEADER;', `FILE_DESCRIPTION(('BaroCSS CAD part'),'2;1');`, `FILE_NAME(${text(name + '.step')},${text(stamp)},(''),(''),'BaroCSS CAD','BaroCSS CAD','');`,
     `FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));`, 'ENDSEC;', 'DATA;', ...lines, 'ENDSEC;', 'END-ISO-10303-21;', ''].join('\n');
+}
+
+/**
+ * The part's geometric validation properties (CAx-IF recommended practice): its volume, surface area and
+ * centroid, each a REPRESENTATION tied to the shape by a PROPERTY_DEFINITION named 'geometric validation
+ * property', and its bounding box (two points) the same way. Volume and centroid sum the solids'.
+ */
+function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => string, shape: string, context: string, mm: string, name: string): void {
+  let volume = 0, area = 0; const moment = [0, 0, 0], lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const b of breps) {
+    if (!b.bodies.some(x => x.kind === 'solid')) continue;
+    const m = brepMassProperties(b, 1); volume += m.volumeMM3; for (let k = 0; k < 3; k++) moment[k] += m.volumeMM3 * m.centroidMM[k];
+    area += brepSurfaceArea(b);
+    const mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positionsMM;
+    for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { if (P[i + k] < lo[k]) lo[k] = P[i + k]; if (P[i + k] > hi[k]) hi[k] = P[i + k]; }
+  }
+  if (!(volume > 0)) return;
+  const property = (what: string, representation: string) => { const def = add_(`PROPERTY_DEFINITION('geometric validation property',${text(`${what} of ${name}`)},${shape})`); add_(`PROPERTY_DEFINITION_REPRESENTATION(${def},${representation})`); };
+  const volumeUnit = add_(`(DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},3.)`)}))VOLUME_UNIT())`), areaUnit = add_(`(AREA_UNIT()DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},2.)`)})))`);
+  property('volume', add_(`REPRESENTATION('volume',(${add_(`MEASURE_REPRESENTATION_ITEM('volume measure',VOLUME_MEASURE(${real(volume)}),${volumeUnit})`)}),${context})`));
+  property('surface area', add_(`REPRESENTATION('surface area',(${add_(`MEASURE_REPRESENTATION_ITEM('surface area measure',AREA_MEASURE(${real(area)}),${areaUnit})`)}),${context})`));
+  const centre = moment.map(x => x / volume);
+  property('centroid', add_(`REPRESENTATION('centroid',(${add_(`CARTESIAN_POINT('centre point',(${centre.map(real).join(',')}))`)}),${context})`));
+  property('bounding box', add_(`REPRESENTATION('bounding box',(${add_(`CARTESIAN_POINT('minimum point',(${lo.map(real).join(',')}))`)},${add_(`CARTESIAN_POINT('maximum point',(${hi.map(real).join(',')}))`)}),${context})`));
 }
 
 function bsplineCurve(c: Curve, add_: (e: string) => string, point: (p: readonly number[]) => string): string {
@@ -126,4 +158,4 @@ function bsplineSurface(S: Surface, add_: (e: string) => string, point: (p: read
   return add_(`(BOUNDED_SURFACE()B_SPLINE_SURFACE(${S.degreeU},${S.degreeV},(${cps}),.UNSPECIFIED.,.F.,.F.,.F.)B_SPLINE_SURFACE_WITH_KNOTS(${knots})GEOMETRIC_REPRESENTATION_ITEM()RATIONAL_B_SPLINE_SURFACE((${S.weights.map(row => `(${row.map(real).join(',')})`).join(',')}))REPRESENTATION_ITEM('')SURFACE())`);
 }
 
-export { importStep } from './step-import.js';
+export { importStep, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';

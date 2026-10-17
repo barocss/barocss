@@ -1,0 +1,87 @@
+{
+  "id": "rb3-two-bodies-one-step",
+  "step": "RB3",
+  "decisions": [
+    "D20"
+  ],
+  "about": "Two holes on one block branch it into two bodies with the same face names; one STEP of both reads back valid, names numbered.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [0, 0],
+          "max": [40, 30]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "h0",
+          "kind": "hole",
+          "target": "e",
+          "center": [10, 10],
+          "radius": 2
+        },
+        {
+          "id": "h1",
+          "kind": "hole",
+          "target": "e",
+          "center": [30, 10],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11874.3362939,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [20.105827983, 15.052913992, 5],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 11874.3362939,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [19.894172017, 15.052913992, 5],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "this kernel; each volume is 12000 − 40π (closed form) to 1e-9"
+}

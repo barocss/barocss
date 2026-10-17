@@ -1,0 +1,65 @@
+{
+  "id": "rb3-cylinder",
+  "step": "RB3",
+  "decisions": [
+    "D20"
+  ],
+  "about": "A Ø10 × 10 cylinder: volume 250π, area 150π, centroid on its axis halfway up; the STEP round trip keeps them.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [0, 0],
+          "radius": 5
+        },
+        {
+          "id": "c",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 785.3981633974482,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [0, 0, 5],
+          "absTol": 1e-9
+        },
+        "areaMM2": {
+          "value": 471.23889803846896,
+          "relTol": 1e-12
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.bottom",
+          "c.side0",
+          "c.top"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "closed form"
+}

@@ -43,6 +43,36 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
 }
 
 /**
+ * The integrals over the exact surfaces (ten volume integrals and the area), extrapolated from q and 2q a
+ * quarter when any face was integrated over its tessellation; null when a face cannot be integrated so.
+ */
+function quadrature(brep: Brep, q: number): number[] | null {
+  try {
+    // (Integrated without the tessellation, the result does not depend on q: no second pass.)
+    const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
+    return coarse && fine ? (coarse.meshed ? fine.integrals.map((x, k) => (4 * x - coarse.integrals[k]) / 3) : coarse.integrals) : null;
+  } catch { return null; }
+}
+
+/**
+ * The surface area of a B-rep (mm²): over its exact surfaces as mass properties are (planar faces by Green's
+ * theorem along their edges, whole B-spline patches by tensor Gauss, others over their parameter domains),
+ * else the area of its fine tessellation.
+ */
+export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): number {
+  const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
+  if (Q && Q[10] > 0) return Q[10];
+  const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
+  let area = 0;
+  for (let t = 0; t < ix.length; t += 3) {
+    const a = 3 * ix[t], b = 3 * ix[t + 1], c = 3 * ix[t + 2], ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
+    area += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2;
+  }
+  return area;
+}
+
+/**
  * Curved B-reps by quadrature over their surfaces, on meshes of `quadratureSegments` a quarter (8 by
  * default; 0: none) and twice that, extrapolated (Richardson: the error left along trims that are not
  * straight in a face's parameters, and beside poles, falls with the square of the step; faces with none
@@ -53,12 +83,7 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
   const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
-    let Q: number[] | null = null;
-    try {
-      // (Integrated without the tessellation, the result does not depend on q: no second pass.)
-      const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
-      Q = coarse && fine ? (coarse.meshed ? fine.integrals.map((x, k) => (4 * x - coarse.integrals[k]) / 3) : coarse.integrals) : null;
-    } catch { Q = null; }
+    const Q = quadrature(brep, q);
     if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
   }
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;

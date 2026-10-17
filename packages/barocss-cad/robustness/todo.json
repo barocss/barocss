@@ -1,17 +1,5 @@
 [
   {
-    "case": "corpus/step/plate-countersinks.step",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "STEP re-import gives two faces the same name (p.side0…); for RB3/RB7 (round trip, import)"
-  },
-  {
-    "case": "corpus/step/plate-countersinks.step",
-    "stage": "tessellate",
-    "status": "INVALID",
-    "note": "the re-imported countersunk plate tessellates with 18 open edges; for RB2/RB3"
-  },
-  {
     "case": "corpus/parts/box-fillet-all.json",
     "stage": "validate",
     "status": "INVALID",

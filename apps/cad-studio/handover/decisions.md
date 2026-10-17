@@ -155,3 +155,24 @@ its ends.
 Why: two curves meeting at a vertex evaluate their ends a few ulps apart, so the faces' rings disagreed at
 corners. The helical bolt had 342 open mesh edges by exact position, in its display mesh and its STL.
 Now there are none, and the volume is unchanged.
+
+## D20 — Surface area is exact; STEP carries CAx-IF validation properties; RB checks the round trip (2026-10-18, RB3)
+Decided:
+- `brepSurfaceArea` (and `output.surfaceArea()`) integrates area in the same exact quadrature as mass, as an
+  eleventh integral: Green's theorem along planar faces' edges, |Su × Sv| by tensor Gauss over whole patches,
+  per-triangle rules over the parameter domains of trimmed faces. A fine tessellation is the fallback.
+- `exportStep` writes the part's geometric validation properties by default: volume, surface area, centroid
+  (CAx-IF: a PROPERTY_DEFINITION 'geometric validation property' → REPRESENTATION 'volume' / 'surface area' /
+  'centroid') and a 'bounding box' (two points). Options `validationProperties: false` skips them.
+- `stepValidationProperties` reads them, and `compareValidationProperties` checks a model against them with
+  CAx-IF's limits (volume and area 1 %, centroid 0.1 % of the box diagonal).
+- RB stages `roundtrip` (STEP out and back in: volume, area, centroid to 1e-6, the same V/E/F/S/genus, strictly
+  valid) and `gvp` (an incoming file's properties against what was read).
+Why: the L1 round trip is our own conformance; GVPs let other systems (and we) check what was exchanged.
+Every corpus and conformance output round-trips within 1e-6 (typically 1e-11).
+
+## D21 — Repeated names in a STEP file are numbered in file order on import (2026-10-18, RB3)
+Decided: when a file repeats face or edge names (several bodies exported with the same feature names), the
+repeats become `name#1`, `name#2`… in file order (the kernel's split-piece convention); unrepeated names stay.
+Why: a B-rep's names are unique; a two-body export broke that on re-import (the countersunk TODO). That TODO
+was itself a corpus mistake: its holes branched the plate into two bodies (fixed: holes chain).

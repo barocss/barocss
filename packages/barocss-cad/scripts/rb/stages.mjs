@@ -33,6 +33,17 @@ export function openEdges(positions, indices) {
   return open;
 }
 
+/** Open edges of a tessellation counted within each body's own triangles. */
+export function openEdgesByBody(brep, mesh) {
+  const shellOf = new Map(brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(brep.shells.map(s => [s.id, s.body])), tris = new Map();
+  for (const f of mesh.faces) {
+    const body = bodyOf.get(shellOf.get(f.faceId)), list = tris.get(body) ?? [];
+    for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]);
+    tris.set(body, list);
+  }
+  let open = 0; for (const list of tris.values()) open += openEdges(mesh.positionsMM, list);
+  return open;
+}
 /** A B-rep's size (largest coordinate of its vertices, at least 1): the scale of its tolerance cap. */
 function sizeOf(brep) {
   let s = 1; for (const v of brep.vertices) for (const x of v.point) s = Math.max(s, Math.abs(x));
@@ -56,7 +67,8 @@ export function runCase(cad, file, started) {
     return status === 'OK' ? value : undefined;
   };
   let bodies, expect;
-  if (/\.(step|stp)$/i.test(file)) bodies = stage('import', () => ({ value: [cad.importStep(text)] }));
+  const isStep = /\.(step|stp)$/i.test(file);
+  if (isStep) bodies = stage('import', () => ({ value: [cad.importStep(text)] }));
   else {
     const json = JSON.parse(text), doc = json.input?.partDocument ?? json;
     expect = json.expect;
@@ -93,9 +105,32 @@ export function runCase(cad, file, started) {
       return { value: m };
     });
     stage(`tessellate${suffix}`, () => {
-      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 }), open = openEdges(mesh.positionsMM, mesh.indices);
+      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 });
       if (!mesh.positionsMM.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
+      // (Watertight body by body: separate bodies that touch share positions without sharing edges.)
+      const open = openEdgesByBody(brep, mesh);
       return open ? { status: 'INVALID', detail: `${open} edges not used exactly twice` } : {};
+    });
+    // STEP out and back in: volume, area and centroid to 1e-6, the same topology (L1 round trip).
+    if (report && mass) stage(`roundtrip${suffix}`, () => {
+      const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00' })), m = cad.brepMassProperties(back, 1);
+      const a0 = cad.brepSurfaceArea(brep), a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), size = sizeOf(brep);
+      const counts = x => JSON.stringify(x.topology.map(t => [t.vertices, t.edges, t.faces, t.shells, t.genus]));
+      if (!r.valid) return { status: 'INVALID', detail: `re-imported: ${r.issues[0]}` };
+      if (Math.abs(m.volumeMM3 - mass.volumeMM3) > 1e-6 * Math.abs(mass.volumeMM3)) return { status: 'WRONG', detail: `volume ${mass.volumeMM3} → ${m.volumeMM3}` };
+      if (Math.abs(a1 - a0) > 1e-6 * a0) return { status: 'WRONG', detail: `area ${a0} → ${a1}` };
+      if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > 1e-6 * size) return { status: 'WRONG', detail: `centroid ${mass.centroidMM} → ${m.centroidMM}` };
+      if (counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology ${counts(report)} → ${counts(r)}` };
+      return {};
+    });
+    // An incoming STEP's own validation properties (CAx-IF) against what was read.
+    if (isStep && mass) stage('gvp', () => {
+      const g = cad.stepValidationProperties(text);
+      if (g.volumeMM3 === undefined && g.areaMM2 === undefined && g.centroidMM === undefined) return { detail: 'no validation properties' };
+      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); }
+      const c = cad.compareValidationProperties(g, { volumeMM3: mass.volumeMM3, areaMM2: cad.brepSurfaceArea(brep), centroidMM: mass.centroidMM, box: { min: lo, max: hi } });
+      return c.ok ? {} : { status: 'WRONG', detail: ['volume', 'area', 'centroid'].filter(k => c[k] && !c[k].ok).map(k => `${k} off by ${c[k].difference.toExponential(2)} (limit ${c[k].limit.toExponential(2)})`).join('; ') };
     });
     results.push({ report, mass, bodyCount: b.bodyCount ?? brep.bodies.length, brep });
   });

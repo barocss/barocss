@@ -88,7 +88,7 @@ const gaussOf = (n: number) => { let r = rules.get(n); if (!r) rules.set(n, r = 
 function planarIntegrals(brep: Brep, face: BrepFace, n: Point, o: Point, maps: Maps): number[] {
   const { loops, coedges, edges } = maps;
   const e1 = (() => { const a: Point = Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], d = dot(a, n), v: Point = [a[0] - n[0] * d, a[1] - n[1] * d, a[2] - n[2] * d], l = Math.hypot(...v); return v.map(x => x / l) as Point; })();
-  const e2 = cross(n, e1), I = Array(10).fill(0) as number[];
+  const e2 = cross(n, e1), I = Array(11).fill(0) as number[];
   const P = (s: number, t: number): Point => [o[0] + s * e1[0] + t * e2[0], o[1] + s * e1[1] + t * e2[1], o[2] + s * e1[2] + t * e2[2]];
   for (const loopId of face.loops) for (const cid of loops.get(loopId)!.coedges) {
     const co = coedges.get(cid)!, curve = edges.get(co.edge)!.curve, [t0, t1] = curveDomain(curve);
@@ -100,6 +100,8 @@ function planarIntegrals(brep: Brep, face: BrepFace, n: Point, o: Point, maps: M
         const { point, derivative } = evaluateCurveD1(curve, a + (b - a) * x), d = sub(point, o), s = dot(d, e1), t = dot(d, e2), dt = dot(derivative, e2) * (b - a) * G12.w[g] * sense;
         // H(s, t)·dt: the field integrated across from s = 0.
         G4.x.forEach((y, j) => accumulate(I, P(s * y, t), n, G4.w[j] * s * dt));
+        // The face's area: ∫∫ 1 ds dt = ∮ s dt.
+        I[10] += s * dt;
       });
     }
   }
@@ -115,7 +117,7 @@ type Maps = { loops: Map<string, Brep['loops'][number]>; coedges: Map<string, Br
  */
 export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): { integrals: number[]; meshed: boolean } | null {
   const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
-  const I = Array(10).fill(0) as number[], rest = new Set<string>();
+  const I = Array(11).fill(0) as number[], rest = new Set<string>();
   for (const face of brep.faces) {
     const plane = planar(face.surface), sign = face.sense === 'forward' ? 1 : -1;
     if (plane) { planarIntegrals(brep, face, [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], plane.origin, maps).forEach((x, k) => { I[k] += x; }); continue; }
@@ -180,6 +182,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // quarter. Coverage or orientation gone wrong shows as much more.
     if (!(Math.abs(curvedArea - areaSum) <= 5e-2 * areaSum && Math.hypot(...sub(curvedVec, flatVec)) <= 5e-2 * areaSum)) return null;
     curved.forEach((x, k) => { I[k] += x; });
+    I[10] += curvedArea;
   }
   return { integrals: I, meshed: true };
 }
@@ -261,6 +264,7 @@ function patchIntegrals(face: BrepFace, I: number[]): void {
       const { point, du, dv } = evaluateSurfaceD1(S, u0 + lu * gu.x[i], v0 + lv * gv.x[j]);
       normal[0] = du[1] * dv[2] - du[2] * dv[1]; normal[1] = du[2] * dv[0] - du[0] * dv[2]; normal[2] = du[0] * dv[1] - du[1] * dv[0];
       accumulate(I, point, normal, sign * gu.w[i] * gv.w[j] * lu * lv);
+      I[10] += Math.hypot(normal[0], normal[1], normal[2]) * gu.w[i] * gv.w[j] * lu * lv;
     }
   }
 }

@@ -366,7 +366,14 @@ RB2 results (2026-10-18; D18, D19; conformance `rb2`):
 - It found the all-edges fillet's corner patches 0.18–0.36 mm off their edges: TODO for R10.
 - The countersunk STEP round trip (duplicate names, 18 open edges) stays TODO for RB3.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → **RB3–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+RB3 results (2026-10-18; D20, D21; conformance `rb3`):
+- Surface area is exact: closed forms to 1e-12 (`brepSurfaceArea`, `output.surfaceArea()`).
+- STEP files carry CAx-IF validation properties, which are read back and compared on import.
+- RB checks the STEP round trip of every output: all within 1e-6, typically 1e-11.
+- A STEP file's repeated names are numbered on import. The countersunk TODO is fixed: its plate had branched
+  into two bodies in the seed.
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → **all-edge fillet corner fix** (owner: "RB3 끝난 뒤 바로") → **RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

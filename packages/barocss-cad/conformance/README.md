@@ -22,13 +22,17 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
     "outputs": [{
       "volumeMM3": { "value": 1000, "relTol": 1e-9 },
       "centroidMM": { "value": [5, 5, 5], "absTol": 1e-9 },
+      "areaMM2": { "value": 600, "relTol": 1e-9 },  // optional: the surface area over the exact surfaces
       "bodies": 1,                                  // separate solid bodies in this output
       "topology": [{ "shells": 1, "genus": 0 }],    // per body: closed shells and genus (Euler–Poincaré)
       "faceNames": ["s.surface0", "..."],           // optional: distinct face names, "#k" numbering removed, sorted
       "faceNamePattern": "^m\\.facet\\d+$",         // optional instead: every face name matches
       "tessellation": { "segmentsPerQuarter": 8, "watertight": true }  // optional: every edge in exactly two triangles, by exact position
     }],
-    "error": { "code": "GEOMETRY", "messageIncludes": "not closed" }
+    "error": { "code": "GEOMETRY", "messageIncludes": "not closed" },
+    // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and
+    // keep their total volume and area to relTol.
+    "stepRoundTrip": { "relTol": 1e-6 }
   },
   "oracle": "how the expected values were obtained (closed form, an independent tool, or this kernel)"
 }

@@ -103,4 +103,22 @@ const filletTop = D([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0
 const topEdges = evaluateCadPart(filletTop).outputs[0].brep.edges.map(e => e.name).filter(n => /top/.test(n)), filleted = D([...filletTop.features, { id: 'f', kind: 'fillet', target: 'e', edges: topEdges, radius: 4 }]);
 writeRb2({ id: 'rb2-fillet-top-edges', step: 'RB2', decisions: ['D18'], about: 'A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight.',
   input: { partDocument: filleted }, expect: watertight(filleted, 1e-9, 1e-6, 'list'), oracle: 'this kernel' });
-console.log('written to', out, 'and', rb1, 'and', rb2);
+// RB3: surface area (closed forms where there are) and STEP round trips, two bodies with repeated names among them.
+const rb3 = resolve(import.meta.dirname, '../conformance/rb3');
+mkdirSync(rb3, { recursive: true });
+const writeRb3 = c => writeFileSync(join(rb3, `${c.id.replace(/^rb3-/, '')}.json`), compact(JSON.stringify(c, null, 2)) + '\n');
+const pi = Math.PI, slab = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+const holedBox = D([...slab, { id: 'h', kind: 'hole', target: 'e', center: [20, 15], radius: 5 }]);
+writeRb3({ id: 'rb3-holed-box', step: 'RB3', decisions: ['D20'], about: 'A 40 × 30 × 10 block with a Ø10 hole through its middle: volume 12000 − 250π, area 3800 + 50π, centroid at its middle; the STEP round trip keeps them.',
+  input: { partDocument: holedBox }, expect: { outputs: [{ volumeMM3: { value: 12000 - 250 * pi, relTol: 1e-12 }, centroidMM: { value: [20, 15, 5], absTol: 1e-9 }, areaMM2: { value: 3800 + 50 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], faceNames: measured(holedBox, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
+const cylinder = D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 's', height: 10 }]);
+writeRb3({ id: 'rb3-cylinder', step: 'RB3', decisions: ['D20'], about: 'A Ø10 × 10 cylinder: volume 250π, area 150π, centroid on its axis halfway up; the STEP round trip keeps them.',
+  input: { partDocument: cylinder }, expect: { outputs: [{ volumeMM3: { value: 250 * pi, relTol: 1e-12 }, centroidMM: { value: [0, 0, 5], absTol: 1e-9 }, areaMM2: { value: 150 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(cylinder, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
+const helicalBolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 20, hex: { across: 13, height: 5.3 }, form: 'helical' }]);
+const hb = measured(helicalBolt, 1e-9, 1e-6, 'list'); hb.outputs[0].areaMM2 = { value: +evaluateCadPart(helicalBolt).outputs[0].surfaceArea().toPrecision(12), relTol: 1e-9 };
+writeRb3({ id: 'rb3-helical-bolt-roundtrip', step: 'RB3', decisions: ['D20', 'D16'], about: 'A helical M8 × 20 bolt: its area over the exact B-spline faces, kept with its volume through STEP.',
+  input: { partDocument: helicalBolt }, expect: { ...hb, stepRoundTrip: { relTol: 1e-6 } }, oracle: 'this kernel (area by tensor Gauss over whole patches)' });
+const branches = D([...slab, { id: 'h0', kind: 'hole', target: 'e', center: [10, 10], radius: 2 }, { id: 'h1', kind: 'hole', target: 'e', center: [30, 10], radius: 2 }]);
+writeRb3({ id: 'rb3-two-bodies-one-step', step: 'RB3', decisions: ['D20'], about: 'Two holes on one block branch it into two bodies with the same face names; one STEP of both reads back valid, names numbered.',
+  input: { partDocument: branches }, expect: { ...measured(branches, 1e-9, 1e-7, null), stepRoundTrip: { relTol: 1e-9 } }, oracle: 'this kernel; each volume is 12000 − 40π (closed form) to 1e-9' });
+console.log('written to', out, 'and', rb1, 'and', rb2, 'and', rb3);
