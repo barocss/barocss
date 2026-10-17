@@ -34,6 +34,7 @@ import { generalShell } from './general-shell.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
+import { encodeBinaryStl } from './stl.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -1115,13 +1116,6 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positionsMM, ix = mesh.indices, n = ix.length / 3;
-  const bytes = new Uint8Array(84 + 50 * n), view = new DataView(bytes.buffer);
-  new TextEncoder().encodeInto('barocss part (mm)', bytes);
-  view.setUint32(80, n, true);
-  for (let t = 0; t < n; t++) {
-    const v = [0, 1, 2].map(k => [p[ix[t * 3 + k] * 3], p[ix[t * 3 + k] * 3 + 1], p[ix[t * 3 + k] * 3 + 2]]), nn = cross(sub(v[1], v[0]), sub(v[2], v[0])), l = Math.hypot(...nn) || 1, o = 84 + 50 * t;
-    [nn[0] / l, nn[1] / l, nn[2] / l, ...v.flat()].forEach((x, k) => view.setFloat32(o + 4 * k, x, true));
-  }
-  return bytes;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter });
+  return encodeBinaryStl(mesh.positionsMM, mesh.indices, 'barocss part (mm)');
 }
