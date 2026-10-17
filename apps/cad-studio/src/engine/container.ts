@@ -5,7 +5,7 @@
 //   chunk: u32 header bytes · u32 payload bytes · header (UTF-8 JSON) · zeros to a multiple of 8
 //          · payload · zeros to a multiple of 8           (all little-endian; payloads 8-aligned, so arrays map in place)
 //   chunk 0: {"kind":"document"} · the document as JSON (naming its blobs by hash)
-//   chunk k: {"kind":"blob","sha256":…,"dtype":"f64"|"u32","count":…} · the array's bytes
+//   chunk k: {"kind":"blob","sha256":…,"dtype":"f64"|"f32"|"u32","count":…} · the array's bytes
 //
 // Reading checks each blob's SHA-256 against its name before it is used. Files of either kind open; a plain JSON
 // file's inline mesh arrays stay as they are.
@@ -63,10 +63,10 @@ export async function decodeStudioFile(bytes: Uint8Array): Promise<{ text: strin
     const payload = bytes.subarray(at, at + pl); at += pad8(pl);
     if (header.kind === 'document') { text = dec.decode(payload); continue; }
     if (header.kind !== 'blob') continue;
-    const width = header.dtype === 'f64' ? 8 : header.dtype === 'u32' ? 4 : 0;
+    const width = header.dtype === 'f64' ? 8 : header.dtype === 'u32' || header.dtype === 'f32' ? 4 : 0;
     if (!width || header.count! * width !== pl || typeof header.sha256 !== 'string') throw new ContainerError('a mesh chunk is malformed');
     // (Copied into its own buffer: aligned, and not holding the whole file alive.)
-    const own = payload.slice(), array: BlobArray = width === 8 ? new Float64Array(own.buffer, 0, header.count!) : new Uint32Array(own.buffer, 0, header.count!);
+    const own = payload.slice(), array: BlobArray = width === 8 ? new Float64Array(own.buffer, 0, header.count!) : header.dtype === 'f32' ? new Float32Array(own.buffer, 0, header.count!) : new Uint32Array(own.buffer, 0, header.count!);
     if (await sha256(array) !== header.sha256) throw new ContainerError(`a mesh chunk does not match its hash (${header.sha256.slice(0, 12)}…): the file is damaged`);
     putKnownBlob(header.sha256, array); blobs++;
   }

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { NameSelection } from '../chat/tools';
-import { chatStatus, runServerTurn, type ChatStatus } from '../chat/client';
+import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../chat/client';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { diffLine, withHistory } from '../chat/proposals';
 import { treeDiff } from '../chat/transactions';
@@ -64,6 +64,8 @@ export function ChatPanel(props: ChatPanelProps) {
   /** The traces of every image attached in this conversation (image 1 first). */
   const traces = useRef<ChatImage['trace'][]>([]);
   const abort = useRef<AbortController | null>(null);
+  /** The mesh blobs this conversation has sent the server (each once, D45). */
+  const chatBlobs = useRef(newChatBlobs());
   const log = useRef<HTMLDivElement>(null);
   /** How far the agent may go on its own (D41), kept in this browser. */
   const [autonomy, setAutonomy] = useState(readAutonomy);
@@ -101,7 +103,7 @@ export function ChatPanel(props: ChatPanelProps) {
     let open = false, built: StudioDoc | null = null, previewing = 0;
     const base = props.base();
     const done = await runServerTurn({
-      text: message, images: attached, traces: traces.current, doc: base, autonomy, session: session.current, signal: controller.signal,
+      text: message, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -139,7 +141,7 @@ export function ChatPanel(props: ChatPanelProps) {
         <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
           onChange={e => { const n = Number(e.currentTarget.value); setAutonomy(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } }}>
           {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; setItems([]); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">

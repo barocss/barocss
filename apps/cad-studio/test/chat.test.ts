@@ -563,3 +563,27 @@ test('deleting a feature keeps the names mates and drawing dimensions use and th
   const blocked = deleteFeature({ ...full, mates: [mate('n1.top')] }, 1);
   assert.ok('error' in blocked && /Coincident 1 uses the face "n1.top"/.test(blocked.error), JSON.stringify(blocked));
 });
+
+test('mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes', async () => {
+  const { putBlob, blobsAsBase64 } = await import('../src/engine/blobs');
+  const P = await putBlob(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1])), I = await putBlob(Uint32Array.from([0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3]));
+  const doc = withNode(emptyDoc(), { kind: 'mesh', name: 'tet', unit: 'mm', blob: { positions: P, indices: I }, representation: 'facets' });
+  const seen: string[] = [];
+  const fake = fakeClaude((_, statePath) => { const s = JSON.parse(readFileSync(statePath, 'utf8')); seen.push(JSON.stringify((s.blobFiles ?? []).map((b: { hash: string; dtype: string }) => [b.hash.slice(0, 6), b.dtype]))); return [JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'ok', session_id: 's' })]; });
+  const work = scratch(), session = 'abcdef0123456789';
+  const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: work }));
+  try {
+    const blobs = blobsAsBase64(doc);
+    // The first turn carries them; the next names them only, and is served from what was kept.
+    assert.equal((await turn(srv.url, { text: 'hi', doc, blobSession: session, blobRefs: [P, I], blobs })).status, 200);
+    assert.equal((await turn(srv.url, { text: 'again', doc, blobSession: session, blobRefs: [P, I] })).status, 200);
+    const files = JSON.stringify([[P.slice(0, 6), 'f32'], [I.slice(0, 6), 'u32']]);
+    assert.deepEqual(seen.slice(-2), [files, files], 'both turns read the kept files');
+    // Another conversation (or a restarted server) has none: 409, saying which.
+    const r = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc, blobSession: 'fedcba9876543210', blobRefs: [P, I] }) });
+    assert.equal(r.status, 409); assert.deepEqual((await r.json()).missing, [P, I]);
+    // A blob that is not what its hash says: refused.
+    const bad = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc, blobSession: 'fedcba9876543210', blobRefs: [P], blobs: { [P]: blobs[I] } }) });
+    assert.equal(bad.status, 400);
+  } finally { await srv.close(); }
+});

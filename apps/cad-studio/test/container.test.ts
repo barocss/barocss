@@ -22,7 +22,9 @@ test('an old file (inline arrays) and the same part as blobs in the container: t
   assert.equal(encodeStudioFile(old.doc)[0], 0x7b, 'no blobs: saved as plain JSON, as before');
   const node = await meshNodeBlobs({ kind: 'mesh' as const, name: 'block', unit: 'cm', representation: 'facets' as const }, m.positions, m.indices);
   const asBlobs = withNode(emptyDoc(), node);
-  assert.equal(node.blob.positions, await sha256(Float64Array.from(m.positions)));
+  // (An STL's positions at their own precision: single, D45.)
+  assert.equal(node.blob.positions, await sha256(Float32Array.from(m.positions)));
+  assert.ok(getBlob(node.blob.positions) instanceof Float32Array);
   const bytes = encodeStudioFile(asBlobs);
   assert.ok(isContainer(bytes));
   const back = await readStudioFile(bytes);
@@ -71,7 +73,7 @@ test('blobs cross to the worker once, and to the chat server as base64 (checked)
   assert.deepEqual(await blobsFromBase64(wire), []);
   assert.deepEqual(await blobsFromBase64(bad), [node.blob.indices]);
   putKnownBlob('x', new Uint32Array(1));
-  assert.ok(getBlob(node.blob.positions) instanceof Float64Array);
+  assert.ok(getBlob(node.blob.positions) instanceof Float32Array);
 });
 
 test('fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part', async () => {

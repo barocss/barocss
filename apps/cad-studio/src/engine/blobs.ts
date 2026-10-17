@@ -5,9 +5,14 @@
 // recovery copy keeps them in IndexedDB. The store holds every blob of the session: they are not evicted.
 import type { ModelNode, StudioDoc } from './doc';
 
-export type BlobArray = Float64Array | Uint32Array;
-export type BlobType = 'f64' | 'u32';
-export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : 'u32';
+export type BlobArray = Float64Array | Float32Array | Uint32Array;
+export type BlobType = 'f64' | 'f32' | 'u32';
+export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : 'u32';
+/** Positions at their own precision (D45): single precision when every value is one, else double. */
+export function positionsArray(p: ArrayLike<number>): Float64Array | Float32Array {
+  for (let i = 0; i < p.length; i++) if (Math.fround(p[i]) !== p[i]) return Float64Array.from(p);
+  return Float32Array.from(p);
+}
 
 const store = new Map<string, BlobArray>();
 
@@ -29,11 +34,13 @@ export async function putBlob(a: BlobArray): Promise<string> {
 /** Stores an array under a hash already known (read from a file and checked, or from the studio across a wire). */
 export function putKnownBlob(hash: string, a: BlobArray): void { if (!store.has(hash)) store.set(hash, a); }
 export const getBlob = (hash: string): BlobArray | undefined => store.get(hash);
+/** An array of the type over the bytes. */
+export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : new Uint32Array(buffer);
 export const hasBlob = (hash: string): boolean => store.has(hash);
 
 /** A mesh node (without inline arrays) with its arrays stored as blobs and named. */
 export async function meshNodeBlobs<N extends object>(node: N, positions: ArrayLike<number>, indices: ArrayLike<number>): Promise<N & { blob: { positions: string; indices: string } }> {
-  const [p, i] = await Promise.all([putBlob(Float64Array.from(positions)), putBlob(Uint32Array.from(indices))]);
+  const [p, i] = await Promise.all([putBlob(positionsArray(positions)), putBlob(Uint32Array.from(indices))]);
   return { ...node, blob: { positions: p, indices: i } };
 }
 
@@ -125,10 +132,10 @@ function keys(db: IDBDatabase): Promise<Set<string>> {
 
 // ---- Over JSON (the chat server's turn): blobs as base64, beside the document ------------------------------------
 export type WireBlobs = Record<string, { dtype: BlobType; base64: string }>;
-/** The document's blobs as base64 (for a JSON request). */
-export function blobsAsBase64(doc: StudioDoc): WireBlobs {
+/** The document's blobs (or just those of `only`) as base64 (for a JSON request). */
+export function blobsAsBase64(doc: StudioDoc, only?: readonly string[]): WireBlobs {
   const out: WireBlobs = {};
-  for (const h of blobRefs(doc)) {
+  for (const h of only ?? blobRefs(doc)) {
     const a = store.get(h); if (!a) continue;
     const bytes = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
     let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
@@ -142,7 +149,7 @@ export async function blobsFromBase64(blobs: WireBlobs): Promise<string[]> {
   for (const [h, b] of Object.entries(blobs)) {
     const bin = atob(b.base64), bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const a: BlobArray = b.dtype === 'f64' ? new Float64Array(bytes.buffer) : new Uint32Array(bytes.buffer);
+    const a = arrayOf(b.dtype, bytes.buffer);
     if (await sha256(a) !== h) { bad.push(h); continue; }
     putKnownBlob(h, a);
   }

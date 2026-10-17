@@ -1258,3 +1258,51 @@ Next:
 - R3.4: M3 import repair — weld, orient, own Liepa hole fill with fairing, degenerate and floater removal, with a
   diagnostics badge.
 - R3.5: AP242 tessellated STEP.
+
+## D45 — Chat sends each blob once per conversation; positions stored at their source precision (2026-10-18, R3.3b)
+Decided (peer's follow-ups under the delegation):
+- **Chat: blobs once per conversation.** The studio gives each conversation a blob session (a random id, renewed by
+  New conversation) and remembers which hashes it has sent.
+  - A turn names all of its document's blobs (`blobRefs`) and carries only the unsent ones (`blobs`, base64).
+  - The chat server checks each blob's SHA-256 when it arrives (`node:crypto`; refused with 400 if it does not
+    match), and keeps it on disk for the conversation (`blobs-<session>/<hash>.<dtype>`): the last four
+    conversations, an hour unused at most.
+  - The MCP process reads the kept files (`blobFiles` in the state file).
+  - A turn naming blobs the server lacks (another conversation, a restarted server) is answered 409 with the
+    missing hashes. The studio sends those once and retries.
+- **Positions at their source precision.**
+  - Blobs carry a `dtype` (`f64`, `f32`, `u32`).
+  - Positions are stored as `f32` when every value is single precision: an STL's are, kept as `Math.fround` of the
+    scaled value, with no 1e-6 rounding. Otherwise they are `f64`: an OBJ with any coordinate that does not round
+    trip through f32.
+  - The kernel widens on read (the mesh feature takes `Float32Array`; facet patches stay `Float64Array`), so
+    geometry is as before.
+  - Container chunks, IndexedDB, the wire and chat carry the dtype.
+  - The import's welding key still rounds to 1e-6 mm.
+
+Evidence:
+- Studio 294/294.
+  - The fixture pair is regenerated: `block-container.bcad` is 1264 bytes (1456 before), and opens to the same 7000
+    mm³ and names as the inline file.
+  - The chat test:
+    - a first turn with blobs gives 200;
+    - a second turn naming them only gives 200, both reading the kept f32 and u32 files;
+    - another session gives 409 with both hashes;
+    - a mismatched blob gives 400.
+- Browser steps (STL, pieces, container, chat) pass. Lint clean.
+- Chat with a 1M mesh, measured on a local server:
+
+  | Turn | Body | Client encoding | Round trip |
+  |---|---|---|---|
+  | Before: every turn | 22.9 MB | 340 ms base64 | — |
+  | Now: first turn | 22.9 MB | 340 ms base64 | 56 ms |
+  | Now: later turns | 0 MB of blobs | none | 9 ms |
+
+- Container sizes (`test/bench-mesh-browser.mjs`):
+
+  | Mesh | File | Before (f64) | Old inline JSON | Open | Reopen |
+  |---|---|---|---|---|---|
+  | 200k | 3.4 MB | 4.6 MB | 10.5 MB | 0.68 s | 0.64 s |
+  | 1M | 17.2 MB | 22.9 MB | 55.3 MB | 3.4 s | 3.2 s |
+
+  The 1M file is positions f32 (6 MB) plus indices u32 (12 MB). The peer estimated about 15 MB.

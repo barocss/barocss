@@ -13,7 +13,8 @@ import type { StudioDoc } from '../src/engine/doc';
 import { SYSTEM_PROMPT, TOOLS, type NameSelection } from '../src/chat/tools';
 import { PROMPT_CHARS } from '../src/chat/proposals';
 import type { StateFile } from './cadMcp';
-import type { WireBlobs } from '../src/engine/blobs';
+import type { BlobType, WireBlobs } from '../src/engine/blobs';
+import { createHash } from 'node:crypto';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
@@ -137,6 +138,19 @@ export function createChatServer(options: ChatServerOptions) {
     } catch { resolve(null); }
   });
 
+  // Conversations' mesh blobs on disk (D45): the last four conversations, an hour unused at most.
+  const blobSessions = new Map<string, { dir: string; at: number; have: Map<string, { dtype: BlobType; path: string }> }>();
+  const blobSessionOf = (id: string) => {
+    const now = Date.now();
+    for (const [k, s] of blobSessions) if (now - s.at > 3600_000) { rmSync(s.dir, { recursive: true, force: true }); blobSessions.delete(k); }
+    let s = blobSessions.get(id);
+    if (!s) {
+      while (blobSessions.size >= 4) { const [k, old] = [...blobSessions].sort((a, b) => a[1].at - b[1].at)[0]; rmSync(old.dir, { recursive: true, force: true }); blobSessions.delete(k); }
+      const dir = join(workDir, `blobs-${id}`); mkdirSync(dir, { recursive: true });
+      s = { dir, at: now, have: new Map() }; blobSessions.set(id, s);
+    }
+    s.at = now; return s;
+  };
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
@@ -148,7 +162,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown };
+    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -156,9 +170,26 @@ export function createChatServer(options: ChatServerOptions) {
     const images = (body.images ?? []) as TurnImage[];
     if (body.traces !== undefined && (!Array.isArray(body.traces) || body.traces.length > 16 || body.traces.some(t => typeof t !== 'object' || !t || !Array.isArray((t as { layers?: unknown }).layers)))) return sendJson(res, 400, { error: '"traces" is a list of image traces.' });
 
+    // The document's mesh blobs (D45): kept per conversation on disk, each received once; a turn names them, and
+    // one naming blobs this server does not have is answered 409 with their hashes (the studio sends them then).
+    let blobFiles: StateFile['blobFiles'];
+    if (body.blobRefs !== undefined) {
+      const refs = body.blobRefs, session = body.blobSession;
+      if (!Array.isArray(refs) || !refs.every(h => typeof h === 'string' && /^[0-9a-f]{64}$/.test(h)) || typeof session !== 'string' || !/^[0-9a-f]{8,64}$/.test(session)) return sendJson(res, 400, { error: '"blobRefs" are SHA-256 hashes with a "blobSession".' });
+      if (body.blobs !== undefined && !isBlobs(body.blobs)) return sendJson(res, 400, { error: '"blobs" are hash → {dtype, base64}.' });
+      const kept = blobSessionOf(session);
+      for (const [h, b] of Object.entries((body.blobs ?? {}) as WireBlobs)) {
+        const bytes = Buffer.from(b.base64, 'base64');
+        if (createHash('sha256').update(bytes).digest('hex') !== h) return sendJson(res, 400, { error: `A mesh blob does not match its hash (${h.slice(0, 12)}…).` });
+        const path = join(kept.dir, `${h}.${b.dtype}`); writeFileSync(path, bytes); kept.have.set(h, { dtype: b.dtype, path });
+      }
+      const missing = (refs as string[]).filter(h => !kept.have.has(h));
+      if (missing.length) return sendJson(res, 409, { error: 'The chat server does not have this mesh data yet.', missing });
+      blobFiles = (refs as string[]).map(h => ({ hash: h, ...kept.have.get(h)! }));
+    }
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(isBlobs(body.blobs) ? { blobs: body.blobs } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level) } } } });
@@ -210,7 +241,7 @@ export function createChatServer(options: ChatServerOptions) {
 
 /** A short line of the part's state for the model, sent with each user message. */
 /** A turn's mesh blobs (M1): hash → {dtype, base64}. */
-const isBlobs = (v: unknown): v is WireBlobs => !!v && typeof v === 'object' && Object.values(v).every(b => !!b && typeof b === 'object' && (b.dtype === 'f64' || b.dtype === 'u32') && typeof b.base64 === 'string');
+const isBlobs = (v: unknown): v is WireBlobs => !!v && typeof v === 'object' && Object.values(v).every(b => !!b && typeof b === 'object' && (b.dtype === 'f64' || b.dtype === 'f32' || b.dtype === 'u32') && typeof b.base64 === 'string');
 export function stateNote(doc: StudioDoc, level = 2): string {
   const open = (doc.proposals ?? []).filter(p => p.status === 'open').length;
   return `[Current part: ${doc.nodes.length} feature${doc.nodes.length === 1 ? '' : 's'}. The user may have edited it since your last turn; call get_part_summary when you need its faces and edges. Autonomy L${level}: ${AUTONOMY[level]}${open ? ` ${open} open proposal${open > 1 ? 's' : ''}: list_proposals.` : ''}]`;
