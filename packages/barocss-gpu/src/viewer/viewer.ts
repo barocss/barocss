@@ -330,6 +330,15 @@ export class Viewer {
   private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean) => object;
   /** Shader materials by their WGSL: an id and their module (made on first use). */
   private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
+  /** A shader material's surface WGSL (made once per material: the sort and the draw ask for it per mesh). */
+  private shaderCode = new WeakMap<ShaderMaterial, string>();
+  /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
+  private frameBox: { box: Box3 | null } | null = null;
+  /** What the shadow map was last drawn from (light, casters and their placement): unchanged, it is kept. */
+  private shadowDrawn = '';
+  private ids = new WeakMap<object, number>();
+  private nextObjectId = 1;
+  private idOf(o: object): number { let i = this.ids.get(o); if (i === undefined) { i = this.nextObjectId++; this.ids.set(o, i); } return i; }
   private zeroParams!: Buffer;
   /** A white texel: the colour map of a material without one. */
   private white!: { texture: Texture; group: BindGroup };
@@ -592,6 +601,7 @@ export class Viewer {
 
   /** The box around every visible mesh. */
   sceneBounds(): Box3 | null {
+    if (this.frameBox) return this.frameBox.box;
     let b: Box3 | null = null;
     for (const m of this.meshes) if (m.visible && !m.geometry.disposed) b = unionBox(b, m.bounds);
     return b;
@@ -656,7 +666,8 @@ export class Viewer {
 
   /** A shader material's pipeline for a variant: its module compiled on first use (errors reported, not thrown). */
   private shaderPipeline(shader: ShaderMaterial, variant: string): PipelineKey {
-    const code = surfaceWGSL(shader);
+    let code = this.shaderCode.get(shader);
+    if (code === undefined) { code = surfaceWGSL(shader); this.shaderCode.set(shader, code); }
     let entry = this.shaders.get(code);
     if (!entry) { entry = { id: this.shaders.size + 1, module: null, device: null }; this.shaders.set(code, entry); }
     const key = `shader${entry.id}:${variant}`;
@@ -810,8 +821,8 @@ export class Viewer {
     }
     // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
     // it, so they come after the surfaces), then transparent far to near.
-    const key = (m: Mesh) => (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false);
-    opaque.sort((a, b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
+    const keys = new Map(opaque.map(m => [m, (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false)]));
+    opaque.sort((a, b) => { const x = keys.get(a)!, y = keys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; });
     transparent.sort((a, b) => b.d - a.d);
     return { opaque, transparent: transparent.map(t => t.m), culled };
   }
@@ -905,6 +916,10 @@ export class Viewer {
   }
 
   private draw(capture: Buffer | null): void {
+    this.frameBox = null; this.frameBox = { box: this.sceneBounds() };
+    try { this.drawFrame(capture); } finally { this.frameBox = null; }
+  }
+  private drawFrame(capture: Buffer | null): void {
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
@@ -913,12 +928,17 @@ export class Viewer {
       this.shadowMap?.destroy();
       this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow map' });
       this.bindFrames();
+      this.shadowDrawn = '';
     }
     this.writeUniforms(vp, shadow);
     this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame())));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();
     const enc = this.device.createCommandEncoder();
-    if (shadow && this.shadowMap) {
+    // (The shadow map is drawn again only when the light's view or a caster changed.)
+    const casters = shadow ? this.meshes.filter(m => m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') : [];
+    const drawnFrom = shadow ? [this.idOf(this.device), this.shadowMapSize, ...shadow.viewProjection, ...casters.flatMap(m => [m.slot, this.idOf(m.geometry), m.geometry.gpu ? 1 : 0, m.instances ? this.idOf(m.instances) : 0, ...m.transform])].join(',') : '';
+    if (shadow && this.shadowMap && drawnFrom !== this.shadowDrawn) {
+      this.shadowDrawn = drawnFrom;
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
       sp.setBindGroup(0, this.shadowFrameGroup);
