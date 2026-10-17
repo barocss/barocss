@@ -378,10 +378,24 @@ RB4 results (2026-10-18; D23, D24): `pnpm rb:props` runs 8 properties × 200 cas
   Lipschitz, quadrature against tessellation.
 - Known (TODO): difference and rigid motion. Found along the way and fixed (D23): mass depended on where a body
   sits, and trims were left out of the quadrature.
-- Open, with exact oracles in the corpus: an upright cylinder minus a turned box encloses 6.8e-5 too little
-  (the Boolean); its intersection integrates 8.7e-4 high; that body's centroid moves 9e-6 mm through STEP.
+- ~~Open: an upright cylinder minus a turned box encloses 6.8e-5 too little (the Boolean); its intersection
+  integrates 8.7e-4 high; that body's centroid moves 9e-6 mm through STEP.~~ Fixed by D25.
+  - The cause was not the Boolean: the trimmed faces' quadrature keyed its strips by vertex index.
+  - Now 2e-10, 2e-11 and 5e-11 mm.
+  - Both property TODOs pass.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
+- Exact-oracle families are in the corpus (93 cases; `scripts/rb/oracle-*.mjs`): boxes turned about X, Y and Z,
+  grazing placements and crossed cylinders. The "exact oracles" property covers them nightly.
+- Found along the way and fixed:
+  - sliver faces falling back to the coarse mesh;
+  - 100 nm slivers refused as cavities;
+  - sliver planes tilted in STEP;
+  - a tessellation frame flipping at 45° (one face of crossed cylinders inside out).
+- Left for RB5 (`robustness/todo.json`): grazes within 1–30 tolerances refuse or (1 nm) return an invalid body;
+  two random 10 µm and 1 µm X-turned grazes refuse; a 10 µm lens's mesh folds.
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

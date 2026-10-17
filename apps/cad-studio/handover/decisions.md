@@ -230,3 +230,83 @@ Why: metamorphic checks find what fixed tests miss. Findings (TODO, with an exac
 - an upright cylinder minus a box turned 80.79° about X encloses 6.8e-5 too little (the Boolean result);
 - its intersection integrates 8.7e-4 high at default quadrature;
 - the rigid-motion property still misses by 2.2e-5 on two tilted cylinders.
+
+(Corrected by D25: the Boolean result was exact. All three were the trimmed faces' quadrature.)
+
+## D25 — Trimmed-face mass by exact strips; grazing slivers; exact-oracle families (2026-10-18, owner: before A1)
+Root cause of RB4's cylinder − turned-box defect: not the Boolean. Against exact per-face areas the result's
+faces are right: its planar faces to 1e-7, and the trimmed cylinder face's area is 9.3965144. The mass
+quadrature was wrong. D23's strips were keyed by vertex index; a face's vertex list repeats points, so most
+boundary chords got no strip and some got two. The same mechanism explains the 9e-6 mm STEP centroid drift:
+the re-imported edges are sampled differently, so different strips went missing.
+
+Decided:
+- **Strips.** Strips are found by position. Each strip, the region between a chord and its edge in the face's
+  parameters, is integrated once:
+  - a ruled map from the chord to the edge's (u, v) curve, Φ(t, s) = L + s (C − L);
+  - C′ from the surface's tangents;
+  - Gauss–Legendre 8 × 4.
+
+  An edge straight in (u, v) to rounding gets no strip. Its probes evaluate points only, because a circle's C0
+  knots have no derivative.
+- **Coverage guards.**
+  - The domain's area is checked against the flat mesh before the strips.
+  - The face's vector area is checked against the exact ½∮ x × dx along its edges. That is computed once per
+    curve per pass, with 4 points a span for polynomial cubics (exact) and 12 for rational curves.
+  - A failure falls back to the tessellation.
+
+  The old single check, against the coarse mesh's chords, rejected thin faces. Such a face fell back to the mesh
+  and came out 2–38% low on 10 µm slivers.
+- **Shell signs (analytic Boolean).** A shell's volume about the origin is good to about tol × reach × its
+  boundary length. When |v| is within that, its nesting decides: a shell inside an odd number of other shells is
+  a cavity. Before, a 100 nm sliver could come out as "a cavity in no outer shell" (refused).
+- **Plane normals.** A bilinear plane patch takes its normal from its corners. The difference quotient across a
+  sliver's 1e-4 mm width tilted STEP planes by 2e-6 rad, and the re-imported sliver's volume then depended on the
+  centre.
+- **Cylinder tessellation frame.** The frame is right-handed (e1 × e2 = a). An axis at 45° ties its two largest
+  components, so `a` flipped sign with rounding. One face of two crossed cylinders was then wound inside out:
+  the B-rep was valid, but mass fell back to the mesh and came out 38% low.
+- **Accuracy (stated).**
+  - Quadrature mass: 1e-6 relative, with an absolute floor of 1e-12 mm³, since a sliver's volume is known
+    absolutely.
+  - Centroids: max(1e-6, 1e-11 / V) mm.
+  - Conformance `volumeMM3` takes an optional `absTol`. RB's round trip uses the same floor.
+
+Evidence:
+- **RB4 pair.**
+  - |A ∩ B| = 5.652209677: off by −1.8e-10, −1.5e-10 and −2.1e-10 at q 8, 16 and 32 (before: 8.7e-4).
+  - |A − B| = 229.905016958: off by 2.3e-11 (before: −6.8e-5).
+  - Centroids within 1.6e-8 mm; through STEP within 5e-11 mm (before: 9e-6).
+- **Families against independent oracles.**
+  - Box turned about X, Y or Z at 0.01–135°: worst 6.2e-9.
+  - Grazes 10 µm and 100 nm in: 100 nm slivers of 3e-10 mm³ within 9e-15 mm³.
+  - Crossed cylinders at 15–90°, including equal radii (Steinmetz, 16 r³/3 at 90°): worst 1.6e-8.
+- **Property sweep.** The oracle property found no wrong result in 1200 random cases over 6 seeds.
+- **Cost.** Mass of the 16-hole plate is about 30% slower (0.36 s against 0.28 s); its evaluation is unchanged.
+  All studio bench scenarios are within budget; the 16-hole plate's cold evaluate is 1.2 s against 3 s.
+- **Suites.** All conformance cases pass (7 new in `conformance/rb4-oracle`). The other suites:
+
+  | Suite | Result |
+  |---|---|
+  | kernel | 896 pass; the one failure is the known environmental Node-version test |
+  | studio | 235/235 |
+  | RB | 0 NEW |
+  | props | 0 failing |
+  | browser split/section steps | pass |
+
+Oracles:
+- `scripts/rb/oracle-cylinder-box.mjs`: an upright cylinder against a box turned about X, Y or Z. Volume and
+  first moments come from an exact piecewise-polynomial inner integral, with Gauss–Legendre in φ between every
+  kink of the outer one, to rounding.
+- `scripts/rb/oracle-cylinder-pair.mjs`: crossed cylinders by parallel slices, ∫ 4√(a² − t²)√(b² − t²) dt / sin α.
+- `scripts/rb/oracle-cases.mjs`: builds the cases. The seed writes 93 of them; the property "exact oracles"
+  runs nightly with a random seed; `pnpm test` runs the fixed slice.
+
+Known, for RB5 (`robustness/todo.json`):
+- Within 1–30 tolerances of the wall, X- and Y-turned boxes refuse (typed: the sliver is thinner than the
+  stitch's 20-tolerance vertex merge).
+- At 1 nm, X at 30° and 45° return a body that fails strict L0 (loops cross; 534 mm³ against 253 mm³). It is
+  not refused, because the strict check costs as much as the Boolean.
+- Two random X-turned grazes at 10 µm and 1 µm refuse (an edge with one use).
+- A 10 µm lens's tessellation folds: two faces share a diagonal; it has no crack.
+
