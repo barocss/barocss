@@ -5,6 +5,7 @@
 // so the solid is exact as a polyhedron and its mass, drawing and export follow from it.
 import { brepFromTriangles } from './mesh-brep.js';
 import type { Brep } from './brep-core.js';
+import { helicalThreadSolid } from './thread-helical.js';
 
 export interface ThreadSolidRequest {
   readonly id?: string;
@@ -18,6 +19,8 @@ export interface ThreadSolidRequest {
   readonly hex?: { readonly across: number; readonly height: number; readonly internal?: boolean };
   /** Steps round a turn (a multiple of 12, default 48) and along a pitch (default 12). */
   readonly around?: number; readonly along?: number;
+  /** @internal How the thread is built: faceted (the default, flat facets) or helical (B-spline faces; being measured). */
+  readonly form?: 'faceted' | 'helical';
 }
 
 /** The basic profile's radius at a phase along one pitch (0: the middle of a crest). */
@@ -29,6 +32,7 @@ export function isoThreadRadius(d: number, pitch: number, phase: number): number
 }
 
 export function threadSolid(req: ThreadSolidRequest): Brep {
+  if (req.form === 'helical') return helicalThreadSolid(req);
   const d = req.diameter, P = req.pitch, [cx, cy] = req.center ?? [0, 0], seat = req.seat ?? 0, N = req.around ?? 48, K = req.along ?? 12;
   if (!(d > 0 && P > 0 && P < d / 2)) throw new RangeError('a thread needs a diameter and a pitch below half of it');
   if (!(N >= 12 && N % 12 === 0)) throw new RangeError('steps round a turn must be a multiple of 12');

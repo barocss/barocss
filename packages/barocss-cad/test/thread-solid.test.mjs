@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep } from '../dist/index.js';
+import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep, threadSolid, brepMassProperties } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 /** π · length · the mean of r² over a pitch: the volume of the exact (unfaceted) threaded rod. */
@@ -44,4 +44,19 @@ test('a modelled M8 bolt round-trips through STEP: the export reopens with the s
   // The faces keep their names, under the import's id.
   const names = b => b.faces.map(f => f.name).sort();
   assert.deepEqual(names(back.brep), names(bolt.brep).map(n => `i.${n}`).sort());
+});
+
+test('helical threads (internal form): a bolt and a nut of B-spline faces, watertight, nearer the exact volume than the facets', () => {
+  const meanR2 = (d, P, clear = 0) => { let s = 0; const n = 100000; for (let i = 0; i < n; i++) s += (isoThreadRadius(d, P, (i + 0.5) / n) + clear) ** 2; return s / n; };
+  const hexArea = s => s * s * Math.sqrt(3) / 2;
+  const bolt = threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 24, hex: { across: 13, height: 5.3 }, form: 'helical' });
+  const nut = threadSolid({ id: 'n', diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true }, form: 'helical' });
+  for (const [b, exact] of [[bolt, Math.PI * 24 * meanR2(8, 1.25) + hexArea(13) * 5.3], [nut, (hexArea(13) - Math.PI * meanR2(8, 1.25, 0.04)) * 6.8]]) {
+    assert.equal(checkBrep(b).issues.length, 0);
+    assert.ok(b.faces.length < 200, `${b.faces.length} faces`);
+    // Quarter-turn cubic spans: within 3e-4 of the exact ISO-profile volume (the facets: about 2e-3).
+    const v = brepMassProperties(b, 1).volumeMM3;
+    assert.ok(Math.abs(v - exact) <= 3e-4 * exact, `${v} vs ${exact}`);
+  }
+  assert.deepEqual(bolt.faces.filter(f => !/\.thread#/.test(f.name)).map(f => f.name).sort(), ['b.end', 'b.head', 'b.hex0', 'b.hex1', 'b.hex2', 'b.hex3', 'b.hex4', 'b.hex5', 'b.seat']);
 });
