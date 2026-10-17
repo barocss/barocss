@@ -538,3 +538,34 @@ Plan for when it is taken up, best alongside the sketcher's entity ids (R-track 
 3. A studio sketch node version 2 that sends the tags.
 4. Conformance: a vertex inserted keeps every other side's name.
 
+## D32 — Observation: facts after every change, what changed, and detail on request (2026-10-18, A2.1)
+Decided:
+- **Facts.** Every accepted change returns `facts`, and `get_part_summary` carries them too (chat/observe.ts):
+  - built;
+  - solids;
+  - volume;
+  - mass, by each body's material (aluminium by default; the materials are in app/materials.ts);
+  - volume-weighted centroid;
+  - bounding box;
+  - face, edge and vertex counts, vertices being the distinct ends of edges.
+- **Change.** Every accepted change also returns `change`: only what moved since the step before.
+- **Detail.** `inspect` (faces and edges, by name or selector, D27) gives the detail.
+  - A face: kind, area, normal or axis (a round face's axis from its mesh), radius, centre, its adjacent faces,
+    and the feature that made it (index and label).
+  - An edge: its ends, chord, line (along an axis, oblique) or curve, its two faces, and its maker.
+- **No indices.** No mesh index is exposed anywhere. The system prompt tells the agent to read the facts and the
+  change after each step.
+
+Why: A2 asks that the agent observe what each step did without parsing the face lists, and see a face's
+context (neighbours, maker) when it needs it.
+
+Next in A2:
+- **A2.2.** Mass properties, interference and clearance, section, wall thickness and draft tools.
+- **A2.3.** `render_views`: orthographic views plus isometric with face labels, rendered at milestones and
+  cached by model hash.
+- **A2.4.** `response_format` concise or detailed, with pagination.
+
+Evidence:
+- Studio 263/263: facts and change for a plate and a hole; inspect of a top, a bore and an edge.
+- Conformance case `conformance/a2/facts-hole`, checked against closed forms.
+
