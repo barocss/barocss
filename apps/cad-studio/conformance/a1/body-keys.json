@@ -1,0 +1,152 @@
+{
+  "id": "a1-body-keys",
+  "step": "A1",
+  "decisions": [
+    "D26"
+  ],
+  "about": "A coloured, materialised and animated body keeps its key (by the stable id of the feature that made it), look, appearance and track as a box above it is moved below it and then deleted.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        },
+        {
+          "id": "n2",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            0
+          ],
+          "max": [
+            36,
+            16
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "extrude",
+          "sketch": 2,
+          "height": 16
+        },
+        {
+          "id": "n4",
+          "kind": "hole",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "center": [
+            28,
+            8
+          ],
+          "radius": 2
+        }
+      ],
+      "nextId": 5,
+      "outputs": {},
+      "bodies": {
+        "b3": {
+          "color": "#00aa00",
+          "material": "brass",
+          "name": "Bushing"
+        },
+        "b1": {
+          "color": "#ff0000"
+        }
+      },
+      "render": {
+        "appearances": {
+          "b4": {
+            "color": "#00aa00"
+          }
+        },
+        "animation": {
+          "duration": 2,
+          "turntable": false,
+          "tracks": {
+            "b4": [
+              {
+                "t": 0,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              {
+                "t": 1,
+                "offset": [
+                  0,
+                  0,
+                  10
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "operations": [
+      {
+        "op": "move",
+        "index": 1,
+        "dir": 1
+      },
+      {
+        "op": "delete",
+        "index": 3
+      }
+    ]
+  },
+  "expect": {
+    "ids": [
+      "n2",
+      "n3",
+      "n4"
+    ],
+    "nextId": 5,
+    "names": {},
+    "volumesMM3": [
+      3894.938070170253
+    ],
+    "bodyKeys": [
+      "b4"
+    ],
+    "looks": {
+      "b3": {
+        "color": "#00aa00",
+        "material": "brass",
+        "name": "Bushing"
+      }
+    },
+    "appearanceKeys": [
+      "b4"
+    ],
+    "trackKeys": [
+      "b4"
+    ]
+  },
+  "oracle": "closed forms (a box less a through hole); keys by construction"
+}

@@ -6,7 +6,7 @@
 import { leafBodies, parentsOf, prefixDoc, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { DrawingDimension } from '../drawing/types';
-import { featureId, nextSerial, nodesOfName, renameFeatureIds } from '../engine/ids';
+import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
 
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
@@ -39,7 +39,8 @@ const PROFILE: Record<string, Spec> = {
 const ON_PLANE: Spec = { 'plane?': 'plane', 'regions?': 'loops', 'holes?': 'loops' };
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const sideOf = (r: BodyRef) => r.side === 'solid' ? `b${r.node}` : `b${r.node}_${r.side}`;
+/** A body reference as the agent writes it (`node` an index), with the body's key (by its stable id). */
+const refText = (r: BodyRef, nodes: readonly ModelNode[]) => `{node ${r.node}, side ${r.side}} (body ${bodyKeyFor(nodes, r.node, r.side)})`;
 
 /** Why the node cannot be appended to `nodes`, or null. */
 export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>): string | null {
@@ -58,7 +59,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   const fields = new Map(Object.entries(spec).map(([k, t]) => [k.replace(/\?$/, ''), { type: t, optional: k.endsWith('?') }]));
   // (`id`, a feature's stable id, may come along from a document read back; the studio assigns ids itself.)
   for (const key of Object.keys(node)) if (key !== 'kind' && key !== 'id' && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
-  const leaves = leafBodies(nodes).map(sideOf);
+  const leaves = leafBodies(nodes);
   for (const [key, { type, optional }] of fields) {
     const v = node[key];
     if (v === undefined) { if (optional) continue; return `${kind}: "${key}" is required.`; }
@@ -68,7 +69,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   return null;
 }
 
-function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], parameters: Record<string, number>, leaves: string[]): string | null {
+function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], parameters: Record<string, number>, leaves: readonly BodyRef[]): string | null {
   const dim = (x: unknown) => typeof x === 'number' ? Number.isFinite(x) : isObj(x) && typeof x.parameter === 'string' && x.parameter in parameters;
   const pair = (x: unknown) => Array.isArray(x) && x.length === 2 && x.every(dim);
   const loop = (x: unknown): string | null => {
@@ -121,8 +122,8 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'ref': {
       const sides = ['solid', 'negative', 'positive', 'instance1', 'instance2', 'instance3'];
       if (!isObj(v) || !Number.isInteger(v.node) || !(sides.includes(String(v.side)) || /^part\d+$/.test(String(v.side)))) return 'a body reference {node, side: "solid"} (split halves: "negative" / "positive"; solids of a STEP file: "part0", "part1", …)';
-      const key = sideOf(v as unknown as BodyRef);
-      return leaves.includes(key) ? null : `${key} is not a visible body${leaves.length ? ` (bodies now: ${leaves.join(', ')})` : ' (there are no bodies yet)'}`;
+      const r = v as unknown as BodyRef;
+      return leaves.some(l => l.node === r.node && l.side === r.side) ? null : `${refText(r, nodes)} is not a visible body${leaves.length ? ` (bodies now: ${leaves.map(l => refText(l, nodes)).join(', ')})` : ' (there are no bodies yet)'}`;
     }
   }
   return `unchecked type ${type}`;
@@ -158,11 +159,16 @@ function renameDimension(d: DrawingDimension, rename: (name: string) => string |
   const a = rename(d.a.edge), b = rename(d.b.edge);
   return a === null || b === null ? null : { ...d, a: { ...d.a, edge: a }, b: { ...d.b, edge: b } } as DrawingDimension;
 }
-/** Records by body key (`b<i>`, `b<i>_<side>`), renumbered; the removed features' bodies dropped. */
-function renameKeys<T>(rec: Record<string, T>, removed: Set<number>, map: (i: number) => number): Record<string, T> {
+/**
+ * Records by body key (`b<k>`, `b<k>_<side>`, keyed by the stable id `n<k>` of the feature that made the body):
+ * those of features gone dropped, those of `moved` ids put under the id given. Nothing else changes as features
+ * are deleted or moved: the keys are not indices.
+ */
+function rekey<T>(rec: Record<string, T>, gone: ReadonlySet<string>, moved: ReadonlyMap<string, string> = new Map()): Record<string, T> {
   return Object.fromEntries(Object.entries(rec).flatMap(([k, v]) => {
-    const m = /^b(\d+)(_.*)?$/.exec(k);
-    return !m ? [[k, v]] : removed.has(Number(m[1])) ? [] : [[`b${map(Number(m[1]))}${m[2] ?? ''}`, v]];
+    const m = /^b(\d+)(_.*)?$/.exec(k); if (!m) return [[k, v]];
+    const id = `n${m[1]}`, to = moved.get(id);
+    return to !== undefined ? [[`b${serialOf(to)}${m[2] ?? ''}`, v]] : gone.has(id) ? [] : [[k, v]];
   }));
 }
 
@@ -199,8 +205,9 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
     const dimensions = doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => gone(name) !== undefined ? null : name); if (!r) droppedDimensions++; return r ? [r] : []; });
     out.drawing = { ...doc.drawing, dimensions };
   }
-  if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, removed, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, removed, map) } };
-  if (doc.bodies) out.bodies = renameKeys(doc.bodies, removed, map);
+  const goneIds = new Set([...removed].map(i => featureId(nodes, i)));
+  if (doc.render) out.render = { ...doc.render, appearances: rekey(doc.render.appearances, goneIds), animation: { ...doc.render.animation, tracks: rekey(doc.render.animation.tracks, goneIds) } };
+  if (doc.bodies) out.bodies = rekey(doc.bodies, goneIds);
   return { doc: prefixDoc(out, next.length), removed: [...removed].sort((a, b) => a - b), droppedDimensions };
 }
 
@@ -274,11 +281,8 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   for (let k = late[1] + 1; k < nodes.length; k++) order.push(k);
   const newIndex = new Map(order.map((old, k) => [old, k])), map = (old: number) => newIndex.get(old) ?? old;
   const next = order.map(old => renumber(nodes[old], map));
-  const out: StudioDoc = { ...doc, nodes: next };
-  const none = new Set<number>();
-  if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, none, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, none, map) } };
-  if (doc.bodies) out.bodies = renameKeys(doc.bodies, none, map);
-  return { doc: prefixDoc(out, next.length) };
+  // (Body looks, appearances and tracks are keyed by stable ids: nothing to move.)
+  return { doc: prefixDoc({ ...doc, nodes: next }, next.length) };
 }
 
 export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { doc: StudioDoc; droppedDimensions: number } | { error: string } {
@@ -311,8 +315,8 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
   const copy: BodyRef = { node: map(body.node), side: body.side };
   let out: StudioDoc = { ...doc, nodes: [...nodes, ...copies, typeof offset === 'function' ? offset(copy) : { kind: 'translate', parent: copy, offset }], nextId: serial };
   // The copy's look: the original's colour (not its name), keyed by the copy's first feature.
-  const looks = doc.bodies ?? {}, rootKey = Object.keys(looks).find(k => { const m = /^b(\d+)/.exec(k); return m && chain.has(Number(m[1])) && !/_/.test(k); });
-  if (rootKey && looks[rootKey].color) { const m = /^b(\d+)/.exec(rootKey)!; out = { ...out, bodies: { ...looks, [`b${map(Number(m[1]))}`]: { color: looks[rootKey].color } } }; }
+  const looks = doc.bodies ?? {}, rootKey = Object.keys(looks).find(k => { const at = bodyNodeOf(nodes, k); return at && chain.has(at.node) && at.side === 'solid'; });
+  if (rootKey && looks[rootKey].color) out = { ...out, bodies: { ...looks, [bodyKeyFor(out.nodes, map(bodyNodeOf(nodes, rootKey)!.node))]: { color: looks[rootKey].color } } };
   return { doc: prefixDoc(out, out.nodes.length), top };
 }
 
@@ -322,12 +326,16 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
  * ones' ids in order); what pointed into the old range points at its last node's replacement (the shape's solid).
  */
 export function replaceRange(doc: StudioDoc, start: number, count: number, next: ModelNode[]): StudioDoc {
-  // (The rebuilt nodes keep the replaced ones' ids in order, so the names the shape's faces had stay theirs.)
-  next = next.map((n, j) => j < count && doc.nodes[start + j]?.id !== undefined ? { ...n, id: doc.nodes[start + j].id } : n);
+  // (The rebuilt nodes keep the replaced ones' ids in order, so the names the shape's faces had stay theirs; the
+  // last, the shape's solid, keeps the last one's, so its body keeps its key. Others are new.)
+  const old = doc.nodes.slice(start, start + count).map((_, j) => featureId(doc.nodes, start + j)), last = next.length - 1;
+  next = next.map((n, j) => ({ ...n, id: j === last ? old[count - 1] : j < count - 1 ? old[j] : undefined }));
   const shift = next.length - count, top = start + next.length - 1;
   const map = (i: number) => i < start ? i : i < start + count ? top : i + shift;
   const after = doc.nodes.slice(start + count).map(n => renumber(n, map));
   const out: StudioDoc = { ...doc, nodes: [...doc.nodes.slice(0, start), ...next, ...after] };
-  if (doc.bodies && shift) out.bodies = renameKeys(doc.bodies, new Set(), map);
+  // (Looks keyed by a replaced node no longer there go to the shape's solid, as references into the range do.)
+  const dropped = new Map(old.slice(Math.max(0, last), count - 1).map(id => [id, old[count - 1]]));
+  if (doc.bodies && dropped.size) out.bodies = rekey(doc.bodies, new Set(), dropped);
   return prefixDoc(out, out.nodes.length);
 }

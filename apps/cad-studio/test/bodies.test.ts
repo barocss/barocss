@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { bodyName, lastFeature, lookKey, lookOf, rootOf, withLook } from '../src/app/bodies';
 import { deleteFeature } from '../src/chat/features';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok); return r.bodies; };
 
-test('a body’s look stays with it as features are added, and follows renumbering', () => {
+test('a body’s look stays with it as features are added, and as features before it are deleted (A1.1b)', () => {
   let doc = rectanglePart(40, 20, 8);
   const [plate] = bodiesOf(doc);
   doc = withLook(doc, plate, { color: '#4a90d9', name: 'Base plate' });
@@ -18,12 +18,15 @@ test('a body’s look stays with it as features are added, and follows renumberi
   assert.equal(rootOf(doc.nodes, 2), 1);
   assert.equal(lookKey(doc.nodes, holed), 'b1');
   assert.deepEqual([lookOf(doc, holed).color, bodyName(doc, holed), lastFeature(doc, holed)], ['#4a90d9', 'Base plate', 'Hole Ø6']);
-  // A sketch and box before it, then deleted: the look's key follows the plate down.
-  let two = withNode(withNode({ ...doc, nodes: [] }, { kind: 'sketch', profile: 'circle', center: [80, 0], radius: 4 }), { kind: 'extrude', sketch: 0, height: 4 });
-  two = { ...two, nodes: [...two.nodes, ...doc.nodes.map(n => n.kind === 'extrude' ? { ...n, sketch: n.sketch + 2 } : n.kind === 'hole' ? { ...n, parent: { ...n.parent, node: n.parent.node + 2 } } : n)], bodies: { b3: doc.bodies!.b1 } };
+  // A box before the plate, then deleted: the look stays keyed by the plate's stable id (A1.1b), with the plate.
+  let two = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [80, 0], radius: 4 }), { kind: 'extrude', sketch: 0, height: 4 });
+  two = withNode(withNode(two, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }), { kind: 'extrude', sketch: 2, height: 8 });
+  two = withLook(two, bodiesOf(two).find(b => b.key === 'b3')!, { color: '#4a90d9', name: 'Base plate' });
   const r = deleteFeature(two, 1);
   assert.ok(!('error' in r));
-  assert.deepEqual(r.doc.bodies, { b1: { color: '#4a90d9', name: 'Base plate' } });
+  assert.deepEqual(r.doc.bodies, { b3: { color: '#4a90d9', name: 'Base plate' } });
+  const [kept] = bodiesOf(r.doc);
+  assert.deepEqual([kept.key, bodyName(r.doc, kept)], ['b3', 'Base plate']);
   // Cleared fields go; an empty look leaves no entry.
   const plain = withLook(withLook(doc, holed, { color: undefined }), holed, { name: '' });
   assert.equal(plain.bodies, undefined);

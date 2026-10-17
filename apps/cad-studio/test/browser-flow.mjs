@@ -1936,7 +1936,7 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', old);
     await page.waitForFunction(() => /Opened an older model/.test(document.body.innerText), null, { timeout: 10000 });
     // (Read as the current schema, its features given stable ids n0, n1 — their names as they were, A1.)
-    const opened = await doc(); assert.equal(opened.schema, 2); assert.deepEqual(opened.nodes.map(n => n.id), ['n0', 'n1']);
+    const opened = await doc(); assert.equal(opened.schema, 3); assert.deepEqual(opened.nodes.map(n => n.id), ['n0', 'n1']);
     await page.click('[aria-label="Dismiss"]');
   });
 

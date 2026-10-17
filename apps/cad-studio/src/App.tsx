@@ -2,7 +2,7 @@ import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useS
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
-import { cutAfter, nextSerial } from './engine/ids';
+import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -315,7 +315,7 @@ export function App() {
     let doc: StudioDoc = { ...evaluated, nodes };
     for (const b of bodies) {
       const { min, max } = b.mesh.bounds, ref = refOf(b);
-      if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(`b${doc.nodes.length - 1}_${keep}`); }
+      if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); }
       else if (keep === 'negative' ? max[k] <= section.at + 1e-6 : min[k] >= section.at - 1e-6) kept.push(b.key);
     }
     // Latest wins: while one section is worked out, only the newest plane waits behind it.
@@ -881,7 +881,7 @@ export function App() {
     const next: StudioDoc = grow
       ? { ...doc, nodes: doc.nodes.map((n, i) => i === ref.node && n.kind === 'translate' ? { ...n, offset: n.offset.map((v, k) => Math.round((Number(v) + d[k]) * 1000) / 1000) as [number, number, number] } : n) }
       : withNode(evaluated, { kind: 'translate', parent: ref, offset: d });
-    chatSelection.current = { faces: [], edges: [], bodies: [grow ? b.key : `b${next.nodes.length - 1}`] };
+    chatSelection.current = { faces: [], edges: [], bodies: [grow ? b.key : bodyKeyFor(next.nodes, next.nodes.length - 1)] };
     commit(next);
   };
   /**
@@ -897,7 +897,7 @@ export function App() {
       if ([0, 1, 2].some(k => A.max[k] <= B.min[k] + 1e-6 || B.max[k] <= A.min[k] + 1e-6)) continue;
       const probe = withNode(evaluated, { kind: 'intersect', left: refOf(list[i]), right: refOf(list[j]) });
       const r = await engine.part(probe, revision.current++);
-      const v = r.ok ? r.bodies.find(b => b.key === `b${probe.nodes.length - 1}`)?.volumeMM3 ?? 0 : 0;
+      const v = r.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
       if (v > 1e-6) found.push({ a: list[i].key, b: list[j].key, volume: v });
     }
     setClashes(found);
@@ -1040,7 +1040,7 @@ export function App() {
         const src = bodies.find(b => b.key === clipboard.current!.key); if (!src) return;
         e.preventDefault(); const k = ++clipboard.current.pastes, w = src.mesh.bounds.max[0] - src.mesh.bounds.min[0] + 10;
         const r = duplicateBody(evaluated, refOf(src), [Math.round(w * k), 0, 0]);
-        chatSelection.current = { faces: [], edges: [], bodies: [`b${r.top}`] }; commit(r.doc); return;
+        chatSelection.current = { faces: [], edges: [], bodies: [bodyKeyFor(r.doc.nodes, r.top)] }; commit(r.doc); return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
@@ -1086,7 +1086,7 @@ export function App() {
   // the part has — tinted, so what is new reads at a glance.)
   const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
   const bodyColors = useMemo(() => {
-    const fresh = (b: BodyResult) => { const m = /^b(\d+)/.exec(b.key); return !!previewNodes && !!m && rootOf(previewNodes, Number(m[1])) >= evaluated.nodes.length; };
+    const fresh = (b: BodyResult) => { const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
     return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
   }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);

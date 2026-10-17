@@ -8,7 +8,8 @@ import { planeOf, profileMiddle } from './profiles';
 import { replaceRange } from '../chat/features';
 import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
 import type { BodyResult } from '../engine/evaluate';
-import { featureId, nodeIndexOf } from '../engine/ids';
+import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
+import { refOf } from './bodyRef';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -51,7 +52,7 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[
 
 /** The box round the bodies feature `index` made (a split's two halves together). */
 function madeBounds(ctx: Ctx, index: number): { min: V3; max: V3 } | null {
-  const own = ctx.bodies.filter(b => b.key === `b${index}` || b.key.startsWith(`b${index}_`));
+  const key = bodyKeyFor(ctx.doc.nodes, index), own = ctx.bodies.filter(b => b.key === key || b.key.startsWith(`${key}_`));
   if (!own.length) return null;
   const min = [0, 1, 2].map(k => Math.min(...own.map(b => b.mesh.bounds.min[k]))) as V3, max = [0, 1, 2].map(k => Math.max(...own.map(b => b.mesh.bounds.max[k]))) as V3;
   return { min, max };
@@ -89,7 +90,7 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
   const [a, b] = ({ z: [0, 1], x: [1, 2], y: [0, 2] } as const)[axis], c = h.center.map(num), r = num(h.radius);
   if (![...c, r].every(Number.isFinite)) return [];
   // The entry face's level: the end of the bore on the hole's side (its wall's vertices).
-  const mesh = ctx.bodies.find(x => x.key === `b${index}`)?.mesh; if (!mesh) return [];
+  const mesh = ctx.bodies.find(x => x.key === bodyKeyFor(nodes, index))?.mesh; if (!mesh) return [];
   const fid = `${featureId(nodes, index)}.`, own = new Set(mesh.faces.flatMap(f => f.name.split('+').some(s => s.startsWith(fid)) ? [f.index] : []));
   let level = h.side === 'min' ? Infinity : -Infinity;
   for (let v = 0; v < mesh.faceOfVertex.length; v++) if (own.has(mesh.faceOfVertex[v])) level = h.side === 'min' ? Math.min(level, mesh.positions[v * 3 + k]) : Math.max(level, mesh.positions[v * 3 + k]);
@@ -144,14 +145,14 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);
-        const body = ctx.bodies.find(b => b.key === `b${index}`), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.areaMM2 - a.areaMM2)[0];
+        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.areaMM2 - a.areaMM2)[0];
         if (!inner || !Number.isFinite(t0 + t)) return [];
         const m = inner.normal, at = [0, 1, 2].map(k => inner.centroid[k] + m[k] * (t - t0)) as V3;
         return [{ key: 't', at, dir: [...m] as V3, min: 0.1, step: 0.5 }];
       }
       // A fillet or chamfer: on its round (or cut) face, out of the body; out is larger.
       if (n.kind === 'fillet' || n.kind === 'chamfer') {
-        const body = ctx.bodies.find(b => b.key === `b${index}`), fid = `${featureId(now, index)}.`, face = body?.mesh.faces.find(f => f.name.split('+').some(s => s.startsWith(fid)));
+        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, face = body?.mesh.faces.find(f => f.name.split('+').some(s => s.startsWith(fid)));
         if (!face) return [];
         return [{ key: n.kind === 'fillet' ? 'r' : 'd', at: [...face.centroid] as V3, dir: [...face.normal] as V3, min: 0.1, step: 0.5 }];
       }
@@ -174,7 +175,7 @@ export function featureOfPick(sel: Selection, bodies: readonly BodyResult[], nod
   const names = face ? face.name.split('+') : edge ? edge.names.flatMap(n => n.split('|')) : [];
   const owners = names.flatMap(n => { const m = /^(n\d+)\./.exec(n), i = m ? nodeIndexOf(nodes, m[1]) : -1; return i >= 0 ? [i] : []; });
   if (!body || !owners.length) return null;
-  const owner = Math.max(...owners), top = Number(/^b(\d+)/.exec(body.key)?.[1] ?? NaN);
+  const owner = Math.max(...owners), top = /^b\d+/.test(body.key) ? refOf(body).node : NaN;
   // The path from the body's node down to the owner: nothing on it may have placed the body.
   const placed = (i: number, seen = new Set<number>()): boolean | null => {
     if (i === owner) return false;

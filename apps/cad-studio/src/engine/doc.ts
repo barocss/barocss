@@ -118,12 +118,12 @@ import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
 import { rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';
-import { nextSerial, withIds } from './ids';
+import { bodyKeyFor, nextSerial, withIds } from './ids';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  /** 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
-  schema: 1 | 2;
+  /** 3: bodies keyed by stable ids; 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
+  schema: 1 | 2 | 3;
   /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
   nextId?: number;
   units: 'mm';
@@ -146,8 +146,9 @@ export interface StudioDoc {
   /** The 2D drawing of the part (the Drawing workspace); absent until first drawn. */
   drawing?: DrawingSettings;
   /**
-   * Bodies' own names, colours and visibility, by the feature each body was first made by (`b<node>`, with
-   * `_<side>` for a split's or an import's parts): they stay with a body as features are added to it.
+   * Bodies' own names, colours and visibility, by the feature each body was first made by (`b<k>` for its
+   * stable id `n<k>`, with `_<side>` for a split's or an import's parts): they stay with a body as features are
+   * added to it, and as features before it are deleted or moved.
    */
   bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
@@ -220,7 +221,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
   return prefixDoc(doc, doc.nodes.length);
 }
 
-export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 2, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
+export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
 
 export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 
@@ -262,11 +263,12 @@ export function prefixDoc(doc: StudioDoc, marker: number): StudioDoc {
   doc = withIds(doc);
   const nodes = doc.nodes.slice(0, marker);
   const outputs: Record<string, BodyRef> = {};
-  leafBodies(nodes).forEach(ref => { outputs[bodyKey(ref)] = ref; });
+  leafBodies(nodes).forEach(ref => { outputs[bodyKey(ref, nodes)] = ref; });
   return { ...doc, nodes, outputs };
 }
 
-export const bodyKey = (ref: BodyRef) => ref.side === 'solid' ? `b${ref.node}` : `b${ref.node}_${ref.side}`;
+/** A body's key: by the stable id of the node that makes it (engine/ids.ts); without the nodes, by its index. */
+export const bodyKey = (ref: BodyRef, nodes?: readonly ModelNode[]) => nodes ? bodyKeyFor(nodes, ref.node, ref.side) : ref.side === 'solid' ? `b${ref.node}` : `b${ref.node}_${ref.side}`;
 
 export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
   // (A new feature: the next serial id, unless it brings its own, as an edit's replacement does.)

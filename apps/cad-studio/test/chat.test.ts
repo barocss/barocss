@@ -135,7 +135,7 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
 test('add_features checks nodes before the kernel; revolve and polygon profiles build', async () => {
   const s = await stateOf(rectanglePart(20, 20, 5));
   assert.match(checkNode({ kind: 'extrude', sketch: 1, height: 5 }, s.doc.nodes, {})!, /feature 1 is a extrude, not a sketch/);
-  assert.match(checkNode({ kind: 'fillet', parent: { node: 0, side: 'solid' }, edges: ['x'], radius: 1 }, s.doc.nodes, {})!, /b0 is not a visible body \(bodies now: b1\)/);
+  assert.match(checkNode({ kind: 'fillet', parent: { node: 0, side: 'solid' }, edges: ['x'], radius: 1 }, s.doc.nodes, {})!, /\{node 0, side solid\} \(body b0\) is not a visible body \(bodies now: \{node 1, side solid\} \(body b1\)\)/);
   assert.match(checkNode({ kind: 'extrude', sketch: 0, height: 5, depth: 2 }, s.doc.nodes, {})!, /unknown field "depth"/);
   assert.match(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, {})!, /defined parameter/);
   assert.equal(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, { r: 2 }), null);
@@ -175,7 +175,7 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
   assert.deepEqual(del.doc.nodes[2], { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n3.side0|n3.side1'], radius: 2, id: 'n4' });
   assert.deepEqual(del.doc.nodes.map(n => n.id), ['n2', 'n3', 'n4']);
   r = await runTool(await stateOf(doc), 'delete_feature', { index: 1 }, evaluate);
-  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.bodies.map(b => b.key), ['b2']);
+  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.bodies.map(b => b.key), ['b4'], 'the body keeps its key (its feature n4)');
   assert.ok(Math.abs(volume(r.state) - (16 * 16 * 16 - (4 - Math.PI) * 16)) < 1e-3);
 });
 
@@ -529,7 +529,7 @@ test('assembly tools: a pin added as its own part, built, mated into a plate’s
   assert.equal((TOOLS.find(t => t.name === 'select')!.input_schema.properties as any).part, undefined);
 });
 
-test('deleting a feature keeps the names mates and drawing dimensions use (A1), renumbers render keys; refuses a mate on its faces', () => {
+test('deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces', () => {
   let doc = rectanglePart(10, 10, 5);
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   const mate = (face: string) => ({ id: 'm1', kind: 'coincident' as const, a: { part: 'base', face }, b: { part: 'p', face: 'origin:xy' } });
@@ -541,7 +541,7 @@ test('deleting a feature keeps the names mates and drawing dimensions use (A1), 
   assert.equal(del.doc.mates![0].a.face, 'n3.top');
   assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n3.side0|n3.side1']);
   assert.equal(del.droppedDimensions, 1);
-  assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b1']);
+  assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b3'], 'the deleted box’s look goes; the other keeps its key');
   const blocked = deleteFeature({ ...full, mates: [mate('n1.top')] }, 1);
   assert.ok('error' in blocked && /Coincident 1 uses the face "n1.top"/.test(blocked.error), JSON.stringify(blocked));
 });

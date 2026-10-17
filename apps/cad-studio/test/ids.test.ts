@@ -9,6 +9,8 @@ import { flattenAssembly } from '../src/assembly/flatten';
 import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
 import { toPartDocument } from '../src/engine/part';
 import { readStudioDoc } from '../src/engine/migrate';
+import { defaultRender } from '../src/engine/render';
+import { lookOf, withLook } from '../src/app/bodies';
 
 // Stable feature ids (A1): a face's name keeps its feature's id however the history around it changes.
 const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volumeMM3! * 1000) / 1000); };
@@ -65,6 +67,26 @@ test('ids: parts folded into an assembly get ids past the assembly’s own; a ha
   assert.deepEqual(hand.nodes.map(n => n.id), ['n0', 'n1', 'n2']); assert.equal(nextSerial(hand), 3);
 });
 
+test('body keys (A1.1b): a coloured, materialised, animated body keeps its look, appearance and track as a feature above it is moved and deleted', () => {
+  let doc = box(box(emptyDoc(), 0, 10, 5), 20, 16, 16);
+  doc = withNode(doc, { kind: 'hole', parent: { node: 3, side: 'solid' }, center: [28, 8], radius: 2 });
+  const body = () => { const r = evaluateDoc(doc, 1); assert.ok(r.ok); return r.bodies.find(b => b.key === 'b4')!; };
+  doc = withLook(doc, body(), { color: '#00aa00', material: 'brass', name: 'Bushing' });
+  const look = { color: '#00aa00', material: 'brass', name: 'Bushing' };
+  doc = { ...doc, render: { ...defaultRender(), appearances: { b4: { ...defaultRender().defaultAppearance, roughness: 0.2 } }, animation: { ...defaultRender().animation, tracks: { b4: [{ t: 0, offset: [0, 0, 0] }, { t: 1, offset: [0, 0, 10] }] } } } };
+  const check = (what: string) => {
+    const b = body(); assert.ok(b, `${what}: the body is b4`);
+    assert.deepEqual(lookOf(doc, b), look, `${what}: its look`);
+    assert.equal(doc.render!.appearances[b.key]?.roughness, 0.2, `${what}: its appearance`);
+    assert.equal(doc.render!.animation.tracks[b.key]?.length, 2, `${what}: its track`);
+  };
+  check('before');
+  const moved = moveFeature(doc, 1, 1); assert.ok('doc' in moved, JSON.stringify(moved)); doc = moved.doc;
+  assert.deepEqual(doc.nodes.map(n => n.id), ['n2', 'n3', 'n0', 'n1', 'n4']); check('moved');
+  const del = deleteFeature(doc, 3); assert.ok('doc' in del, JSON.stringify(del)); doc = del.doc;
+  assert.deepEqual(doc.nodes.map(n => n.id), ['n2', 'n3', 'n4']); check('deleted');
+});
+
 test('ids: names parse into feature ids, rename by id, and find their nodes (a pattern copy is its node’s)', () => {
   assert.deepEqual(featureIdsOf('n2.side0|n1.top#2'), ['n2', 'n1']);
   assert.deepEqual(featureIdsOf('n1.top+n3.cap'), ['n1', 'n3']);
@@ -90,6 +112,10 @@ for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
     assert.deepEqual(doc.nodes.map(n => n.id), c.expect.ids);
     assert.equal(nextSerial(doc), c.expect.nextId);
     for (const [i, names] of Object.entries(c.expect.names)) { const n = doc.nodes[Number(i)] as { edges?: string[] }; assert.deepEqual(n.edges, names); }
+    if (c.expect.bodyKeys) { const r = evaluateDoc(doc, 1); assert.ok(r.ok); assert.deepEqual(r.bodies.map(b => b.key).sort(), c.expect.bodyKeys); }
+    if (c.expect.looks) assert.deepEqual(doc.bodies, c.expect.looks);
+    if (c.expect.appearanceKeys) assert.deepEqual(Object.keys(doc.render!.appearances).sort(), c.expect.appearanceKeys);
+    if (c.expect.trackKeys) assert.deepEqual(Object.keys(doc.render!.animation.tracks).sort(), c.expect.trackKeys);
     const got = volumes(doc).sort((a, b) => a - b), want = [...c.expect.volumesMM3].sort((a: number, b: number) => a - b);
     assert.equal(got.length, want.length); got.forEach((v, k) => assert.ok(Math.abs(v - want[k]) <= 1e-6 * want[k] + 1e-3, `${v} vs ${want[k]}`));
   });

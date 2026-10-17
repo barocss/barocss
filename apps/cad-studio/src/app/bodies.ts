@@ -4,6 +4,8 @@
 import { featureLabel, parentsOf, type BodyLook, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { commands } from './commands';
+import { refOf } from './bodyRef';
+import { bodyKeyFor } from '../engine/ids';
 
 /** The colours offered for bodies (the theme's grey is no colour). */
 export const BODY_COLOURS = ['#d9534f', '#f0ad4e', '#e8d44d', '#5cb85c', '#3fb6a8', '#4a90d9', '#8e6bd8', '#d26fa9', '#8d6e63', '#5b6470'] as const;
@@ -18,11 +20,11 @@ export function rootOf(nodes: readonly ModelNode[], index: number): number {
   }
   return index;
 }
-/** The key of a body's look: `b<first feature>`, and its side when it is one of several parts. */
+/** The key of a body's look: `b<first feature's serial>`, and its side when it is one of several parts. */
 export function lookKey(nodes: readonly ModelNode[], body: BodyResult): string {
-  const m = /^b(\d+)(_.+)?$/.exec(body.key); if (!m) return body.key;
-  const side = m[2] && m[2] !== '_negative' && !m[2].startsWith('_part') ? '' : m[2] ?? '';
-  return `b${rootOf(nodes, Number(m[1]))}${side}`;
+  if (!/^b\d+(_.+)?$/.test(body.key)) return body.key;
+  const { node, side } = refOf(body);
+  return bodyKeyFor(nodes, rootOf(nodes, node), side === 'negative' || side.startsWith('part') ? side : 'solid');
 }
 export const lookOf = (doc: StudioDoc, body: BodyResult): BodyLook => doc.bodies?.[lookKey(doc.nodes, body)] ?? {};
 /** The document with a body's look changed (empty fields dropped). */
@@ -36,20 +38,21 @@ export function withLook(doc: StudioDoc, body: BodyResult, patch: BodyLook): Stu
 /** What a body is called: its own name, else the shape or feature it was first made by (and its part). */
 export function bodyName(doc: StudioDoc, body: BodyResult): string {
   const own = lookOf(doc, body).name; if (own) return own;
-  const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); if (!m) return body.key;
+  if (!/^b\d+(_.+)?$/.test(body.key)) return body.key;
+  const ref = refOf(body), side = ref.side === 'solid' ? undefined : ref.side;
   // A part made in several steps (a bolt) is named by what it is.
-  const top = doc.nodes[Number(m[1])];
-  if (top && 'made' in top && top.made && (top.kind === 'union' || top.kind === 'rotate' || top.kind === 'thread')) return top.made.command === 'fastener' ? featureLabel(top, Number(m[1]), doc.nodes) : commands.find(c => c.id === top.made!.command)?.label ?? top.made.command;
-  const root = rootOf(doc.nodes, Number(m[1])), node = doc.nodes[root];
+  const top = doc.nodes[ref.node];
+  if (top && 'made' in top && top.made && (top.kind === 'union' || top.kind === 'rotate' || top.kind === 'thread')) return top.made.command === 'fastener' ? featureLabel(top, ref.node, doc.nodes) : commands.find(c => c.id === top.made!.command)?.label ?? top.made.command;
+  const root = rootOf(doc.nodes, ref.node), node = doc.nodes[root];
   const made = node && (node.kind === 'extrude' || node.kind === 'revolve') ? node.made : undefined;
   // (A shape by its name alone — its sizes are in its feature's label.)
   const base = made ? commands.find(c => c.id === made.command)?.label ?? made.command : node ? featureLabel(node, root, doc.nodes) : body.key;
-  return m[2] ? `${base} · ${m[2].startsWith('part') ? `solid ${Number(m[2].slice(4)) + 1}` : m[2]}` : base;
+  return side ? `${base} · ${side.startsWith('part') ? `solid ${Number(side.slice(4)) + 1}` : side}` : base;
 }
 /** The newest feature on a body, when it is not the one it was first made by (shown beside its name). */
 export function lastFeature(doc: StudioDoc, body: BodyResult): string | null {
-  const m = /^b(\d+)/.exec(body.key); if (!m) return null;
-  const top = Number(m[1]), node = doc.nodes[top];
+  if (!/^b\d+/.test(body.key)) return null;
+  const top = refOf(body).node, node = doc.nodes[top];
   return node && rootOf(doc.nodes, top) !== top && !('made' in node && node.made) ? featureLabel(node, top, doc.nodes) : null;
 }
 /** A colour as 0…1 RGB. */

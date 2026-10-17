@@ -1,10 +1,10 @@
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
-// features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b<i>` / `b<i>_negative` /
-// `b<i>_positive` of node i (whose id is n5); the solids of a STEP file holding several are `n5/k`, `b<i>_part<k>`.
+// features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
+// `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
 import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
-import { featureId, nodeIndexOf, withIds } from './ids';
+import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -96,8 +96,9 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   const m = /^([^/]+)(?:\/(\d+))?$/.exec(outputId);
   if (!m) return outputId;
   // (The node whose id the output carries; without the nodes, an id `n<i>` reads as node i.)
-  const i = nodes ? nodeIndexOf(nodes, m[1]) : Number(/^n(\d+)$/.exec(m[1])?.[1] ?? NaN);
-  if (!(i >= 0)) return outputId;
-  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate')) return `b${i}_part${m[2]}`;
-  return m[2] === undefined ? `b${i}` : `b${i}_${m[2] === '0' ? 'negative' : 'positive'}`;
+  // (Keyed by the id's serial, `b<k>` for `n<k>`, see ids.ts; the node only tells a file's solids from a split's halves.)
+  const k = serialOf(m[1]), i = nodes ? nodeIndexOf(nodes, m[1]) : k;
+  if (!(k >= 0)) return outputId;
+  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate')) return `b${k}_part${m[2]}`;
+  return m[2] === undefined ? `b${k}` : `b${k}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };

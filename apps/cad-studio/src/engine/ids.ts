@@ -70,3 +70,21 @@ export function cutAfter(name: string, from: number): boolean {
   for (const part of name.split('+')) { const m = /^n(\d+)\.cut/.exec(part); if (m && Number(m[1]) >= from) return true; }
   return false;
 }
+
+// Body keys (A1.1b): a body is keyed by the serial of the feature that produced it, `b<k>` for node `n<k>`
+// (`b<k>_<side>` for a split's halves, `b<k>_part<j>` for an import's or a separation's solids), so looks,
+// materials and animation tracks stay with it as features come and go. A document built by appending has
+// node i = n<i>, so its keys read as they always did.
+/** The serial of a feature id `n<k>` (−1 for anything else). */
+export const serialOf = (id: string): number => serial(id);
+/** The key of the body node `index` makes (`side`: 'solid', or a split's or an import's part). */
+export const bodyKeyFor = (nodes: readonly ModelNode[], index: number, side = 'solid'): string => {
+  const k = serial(featureId(nodes, index)), at = k >= 0 ? `b${k}` : `b${featureId(nodes, index)}`;
+  return side === 'solid' ? at : `${at}_${side}`;
+};
+/** The node and side a body key names (null when no node has it). */
+export function bodyNodeOf(nodes: readonly ModelNode[], key: string): { node: number; side: string } | null {
+  const m = /^b(\d+)(?:_(.+))?$/.exec(key); if (!m) return null;
+  const node = nodeIndexOf(nodes, `n${m[1]}`);
+  return node < 0 ? null : { node, side: m[2] ?? 'solid' };
+}

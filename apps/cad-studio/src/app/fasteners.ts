@@ -7,6 +7,7 @@
 // manufacturability. The data is the standards' nominal values as cross-checked (CATALOGUE.sources): check
 // them against the standard (and the supplier) before using a drawing for manufacture.
 import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { bodyKeyFor } from '../engine/ids';
 import type { Command, Ctx, HandleSpec, PlacedHole, Values } from './commands';
 
 export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
@@ -119,10 +120,10 @@ const circle = (x: number, y: number, r: number) => [{ kind: 'arc' as const, sta
 export function fastenerNodes(doc: StudioDoc, v: Values): StudioDoc {
   // (Steel, unless the body already has a material of its own: kept by its first solid, see app/bodies.ts;
   // a joint's washer and nut are named for what they are.)
-  const { doc: out, extra } = buildFastener(doc, v), first = out.nodes.findIndex((n, i) => i >= doc.nodes.length && (n.kind === 'extrude' || n.kind === 'thread')), key = `b${first}`;
+  const { doc: out, extra } = buildFastener(doc, v), first = out.nodes.findIndex((n, i) => i >= doc.nodes.length && (n.kind === 'extrude' || n.kind === 'thread')), key = bodyKeyFor(out.nodes, first);
   let bodies = { ...out.bodies };
   if (first >= 0 && !bodies[key]?.material) bodies = { ...bodies, [key]: { ...bodies[key], material: 'steel' } };
-  for (const e of extra) bodies = { ...bodies, [`b${e.node}`]: { ...bodies[`b${e.node}`], name: e.name, material: bodies[`b${e.node}`]?.material ?? 'steel' } };
+  for (const e of extra) { const k = bodyKeyFor(out.nodes, e.node); bodies = { ...bodies, [k]: { ...bodies[k], name: e.name, material: bodies[k]?.material ?? 'steel' } }; }
   return { ...out, bodies };
 }
 function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { node: number; name: string }[] } {

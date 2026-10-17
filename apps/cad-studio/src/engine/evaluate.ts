@@ -2,10 +2,19 @@ import { evaluateCadPart, type Brep, type CadPartSnapshot, exportStep } from '@b
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
-import { placedDoc, type StudioDoc } from './doc';
+import { placedDoc, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
+import { bodyNodeOf } from './ids';
+
+/** A kernel output's body key and the node and side it is now. */
+function keyed(outputId: string, nodes: readonly ModelNode[]): { key: string; ref?: BodyRef } {
+  const key = bodyKeyOf(outputId, nodes), at = bodyNodeOf(nodes, key);
+  return at ? { key, ref: { node: at.node, side: at.side as Side } } : { key };
+}
 
 export interface BodyResult {
+  /** `b<k>` by the stable id of the feature that made it (engine/ids.ts); `ref`: that feature's node and side now. */
   key: string;
+  ref?: BodyRef;
   /** 'upright' (Z-prismatic: holes, fillets, curved Booleans), 'planar' or 'curved' (general B-rep). */
   family: string; mesh: DisplayMesh;
   volumeMM3: number | null; massG: number | null;
@@ -39,7 +48,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
-  return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
+  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -68,7 +77,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
   const t0 = performance.now();
   try {
     const part = toPartDocument(doc), last = lastPreview[slot], snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastPreview[slot] = snapshot;
-    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
+    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     lastPreview[slot] = null;
@@ -105,7 +114,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
     const bodies = snapshot.outputs.map((o, i) => {
       const at = origin.outputs[i];
       if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return bodyOf(o, placed, revision, quality);
-      return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), key: bodyKeyOf(o.id, placed.nodes) };
+      return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), ...keyed(o.id, placed.nodes) };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
