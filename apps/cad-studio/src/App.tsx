@@ -1273,7 +1273,7 @@ export function App() {
               return <>
                 <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
                 <div className="kv inertia" aria-label="Moments of inertia">Ixx Iyy Izz <b>{[0, 1, 2].map(k => sig3(I[k][k])).join(' · ')} kg·mm²</b></div>
-                <div className="kv inertia muted">Ixy Iyz Ixz <b>{[[0, 1], [1, 2], [0, 2]].map(([i, j]) => sig3(I[i][j])).join(' · ')}</b></div>
+                <div className="kv inertia muted">Ixy Iyz Ixz <b>{[[0, 1], [1, 2], [0, 2]].map(([i, j]) => sig3(I[i][j], Math.max(I[0][0], I[1][1], I[2][2]))).join(' · ')}</b></div>
               </>; })()}
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>

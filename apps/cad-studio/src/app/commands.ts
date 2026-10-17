@@ -5,7 +5,7 @@ import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
-import { leafBodies, withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
+import { leafBodies, withNode, type Axis, type HolePattern, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 
@@ -312,13 +312,18 @@ const allCommands: Command[] = [
         { key: 'tend', label: 'Ends', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }], when: v => v.type === 'tapped' },
         { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind') },
         { key: 'csd', label: 'Countersink Ø', kind: 'mm', min: 1, when: v => v.type === 'countersink' },
+        { key: 'pat', label: 'Copies', kind: 'choice', options: [{ value: 'one', label: 'One hole' }, { value: 'row', label: 'In a row' }, { value: 'circle', label: 'On a circle' }] },
+        { key: 'pn', label: 'Count', kind: 'count', min: 2, max: 64, when: v => v.pat !== 'one' && v.pat !== undefined },
+        { key: 'pa', label: 'Step ' + a.toUpperCase(), kind: 'mm', when: v => v.pat === 'row' }, { key: 'pb', label: 'Step ' + b.toUpperCase(), kind: 'mm', when: v => v.pat === 'row' },
+        { key: 'qa', label: 'Circle centre ' + a.toUpperCase(), kind: 'mm', when: v => v.pat === 'circle' }, { key: 'qb', label: 'Circle centre ' + b.toUpperCase(), kind: 'mm', when: v => v.pat === 'circle' },
         { key: 'cd', label: 'Counterbore Ø', kind: 'mm', min: 1, when: v => v.type === 'counterbore' }, { key: 'ch', label: 'Counterbore depth', kind: 'mm', min: 0.5, when: v => v.type === 'counterbore' },
         { key: 'x', label: 'Centre ' + a.toUpperCase(), kind: 'mm' }, { key: 'y', label: 'Centre ' + b.toUpperCase(), kind: 'mm' }];
     },
     defaults: ctx => {
       const f = ctx.selection.faces[0]; const face = ctx.bodies[f.body].mesh.faces[f.face];
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
-      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]) };
+      // (A bolt circle about the face's middle, a row along its first axis.)
+      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]), pat: 'one', pn: 4, pa: 10, pb: 0, qa: r1(face.centroid[a]), qb: r1(face.centroid[b]) };
     },
     // Tapped: the diameter is the thread's tap drill.
     derive: (_ctx, v, changed) => v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && FASTENER_SIZES[String(v.thread)] ? { ...v, d: FASTENER_SIZES[String(v.thread)].tap } : v,
@@ -350,8 +355,16 @@ const allCommands: Command[] = [
       if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
       if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
       const tapped = v.type === 'tapped' && FASTENER_SIZES[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
-      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}) });
-      if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at });
+      // Copies on the face: a row or a bolt circle (each a hole of the kernel's, one step in the history).
+      const count = Math.round(Number(v.pn));
+      if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw new Error('A hole pattern has 2 to 64 holes.');
+      const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
+      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw new Error('The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
+      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw new Error('Put the first hole away from the circle’s centre: the copies turn round it.');
+      if (pattern && v.type === 'countersink') throw new Error('Countersunk holes are not patterned yet: pattern a through hole.');
+      const pat = pattern ? { pattern } : {};
+      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...pat });
+      if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });
       if (v.type !== 'countersink') return doc;
       // A countersink: a 90° cone from Ø csd at the face down to the hole, turned on a plane through the
       // axis (its Y into the material), a little above the face so no face lies on the face, then cut.

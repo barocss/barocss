@@ -31,3 +31,22 @@ test('tapped hole: the tap drill of its thread, the thread noted on the feature'
   assert.equal(blind.depth, 5);
   assert.equal(hole.steps!(ctx, { ...v, d: 7 })[0].done, false, 'not its tap drill');
 });
+
+test('hole patterns: a row and a bolt circle, one history step each; the count edits later', async () => {
+  const { editFields } = await import('../src/app/editFields');
+  const ctx = faceCtx('n1.top'), base = { ...hole.defaults!(ctx), d: 4, x: 6, y: 6 };
+  const row = hole.build!(ctx, { ...base, pat: 'row', pn: 4, pa: 6, pb: 0 }), rn = row.nodes.at(-1)!;
+  assert.equal(row.nodes.length, plate.nodes.length + 1, 'one node');
+  assert.equal(featureLabel(rn, row.nodes.length - 1, row.nodes), 'Hole Ø4 × 4');
+  assert.ok(Math.abs(bodiesOf(row)[0].volumeMM3! - (32 * 32 * 8 - 4 * Math.PI * 4 * 8)) < 2);
+  const ring = hole.build!(ctx, { ...base, pat: 'circle', pn: 6, x: 26, y: 16, qa: 16, qb: 16 });
+  const [b] = bodiesOf(ring);
+  assert.ok(Math.abs(b.volumeMM3! - (32 * 32 * 8 - 6 * Math.PI * 4 * 8)) < 2);
+  assert.equal(b.mesh.faces.filter(f => f.kind === 'curved').length, 6, 'six bores');
+  // The count, edited from the feature.
+  const f = editFields(ring.nodes, ring.nodes.length - 1).find(x => x.key === 'count')!;
+  assert.ok(f && f.kind === 'number');
+  const fewer = { ...ring, nodes: f.set(ring.nodes, 3) };
+  assert.equal(bodiesOf(fewer)[0].mesh.faces.filter(x => x.kind === 'curved').length, 3);
+  assert.throws(() => hole.build!(ctx, { ...base, pat: 'row', pn: 3, pa: 2, pb: 0 }), /longer than the hole/);
+});

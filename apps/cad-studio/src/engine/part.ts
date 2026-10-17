@@ -2,7 +2,7 @@
 // names read `n1.side0`, `n1.top`, `n2.side0|n1.top`, and a kernel output `n5` / `n5/0` / `n5/1` is the
 // studio body `b5` / `b5_negative` / `b5_positive`; the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
-import type { BodyRef, ModelNode, StudioDoc } from './doc';
+import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
 
 const id = (index: number) => `n${index}`;
 const ref = (r: BodyRef) => r.side === 'negative' ? `n${r.node}/0` : r.side === 'positive' ? `n${r.node}/1` : r.side.startsWith('part') ? `n${r.node}/${r.side.slice(4)}` : `n${r.node}`;
@@ -35,8 +35,15 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
   }
 }
 
+/** A node's kernel features: one, or a patterned hole's copies one after another (the last named `n<i>`). */
+function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
+  if (node.kind !== 'hole' || !node.pattern || node.pattern.count <= 1) return [featureOf(node, index)];
+  const centres = holeCentres(node.center.map(Number), node.pattern), base = featureOf(node, index) as CadPartFeature & { target: string };
+  return centres.map((center, j) => ({ ...base, id: j === centres.length - 1 ? id(index) : `${id(index)}_p${j}`, center, target: j === 0 ? base.target : `${id(index)}_p${j - 1}` }));
+}
+
 export const toPartDocument = (doc: StudioDoc): CadPartDocument =>
-  ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features: doc.nodes.map(featureOf) });
+  ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features: doc.nodes.flatMap(featuresOf) });
 
 /** Studio body key of a kernel output id (`nodes`: to tell an imported file's solids from a split's halves). */
 export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {

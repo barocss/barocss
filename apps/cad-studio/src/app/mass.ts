@@ -27,4 +27,4 @@ export function boxOf(bodies: readonly BodyResult[]): { min: V3; max: V3 } | nul
   return { min: [0, 1, 2].map(k => Math.min(...bodies.map(b => b.mesh.bounds.min[k]))) as V3, max: [0, 1, 2].map(k => Math.max(...bodies.map(b => b.mesh.bounds.max[k]))) as V3 };
 }
 /** A figure to three significant digits (no exponent below a million). */
-export const sig3 = (v: number) => { if (v === 0) return '0'; const p = Math.pow(10, Math.max(0, 2 - Math.floor(Math.log10(Math.abs(v))))); return String(Math.round(v * p) / p); };
+export const sig3 = (v: number, scale = 0) => { if (v === 0 || Math.abs(v) < 1e-6 * scale) return '0'; const p = Math.pow(10, Math.max(0, 2 - Math.floor(Math.log10(Math.abs(v))))); return String(Math.round(v * p) / p); };

@@ -69,7 +69,21 @@ export type ModelNode = SketchNode
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
-  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string };
+  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern };
+
+/**
+ * Copies of a hole on its face, the first at its centre: `count` in a row `step` apart (in the face's two
+ * coordinates), or `count` evenly round `about` (a bolt circle). The kernel gets one hole per copy.
+ */
+export type HolePattern = { count: number; step: [number, number] } | { count: number; about: [number, number] };
+/** The centres of a hole's copies (just its centre without a pattern). */
+export function holeCentres(center: readonly number[], p?: HolePattern): [number, number][] {
+  const c: [number, number] = [Number(center[0]), Number(center[1])], r6 = (v: number) => Math.round(v * 1e6) / 1e6;
+  if (!p || p.count <= 1) return [c];
+  if ('step' in p) return Array.from({ length: p.count }, (_, j) => [r6(c[0] + p.step[0] * j), r6(c[1] + p.step[1] * j)]);
+  const dx = c[0] - p.about[0], dy = c[1] - p.about[1];
+  return Array.from({ length: p.count }, (_, j) => { const a = 2 * Math.PI * j / p.count, cs = Math.cos(a), sn = Math.sin(a); return [r6(p.about[0] + dx * cs - dy * sn), r6(p.about[1] + dx * sn + dy * cs)]; });
+}
 
 import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
@@ -251,7 +265,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
     case 'revolve': return `Revolve ${node.angleDegrees}°`;
-    case 'hole': return node.thread ? `Tapped ${node.thread}` : `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;
+    case 'hole': return (node.thread ? `Tapped ${node.thread}` : `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'fillet': return `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';

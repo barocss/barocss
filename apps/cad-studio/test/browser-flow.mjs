@@ -1573,9 +1573,11 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'difference', null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await field('Type').selectOption('tapped'); await field('Centre X').fill('23'); await hudReady(); await page.waitForTimeout(300);
+    // (A bolt circle of the tapped holes: four round the top's middle.)
+    await field('Copies').selectOption('circle'); await field('Count').fill('4'); await hudReady(); await page.waitForTimeout(300); await snap('hole-bolt-circle');
     assert.equal(await field('Diameter').inputValue(), '5');
     await press('Enter');
-    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.thread === 'M6×1', null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.thread === 'M6×1' && window.__studioDoc.nodes.at(-1)?.pattern?.count === 4, null, { timeout: 15000 }); await idle();
     await snap('hole-types');
   });
 

@@ -136,7 +136,8 @@ details { margin-top: 4px; font-size: 10px; color: #b9a57c; }
 details code { display: block; white-space: pre-wrap; word-break: break-word; font: 400 10px var(--mono); margin-top: 4px; }
 .hud-actions { display: flex; align-items: center; gap: 6px; font-size: 10px; }
 
-.history { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: max(320px, calc(100vw - 980px)); padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
+/* (Centred in the room between the status line, bottom left, and the view bar, bottom right.) */
+.history { position: absolute; left: calc(270px + (100vw - 870px) / 2); bottom: 16px; transform: translateX(-50%); max-width: max(280px, calc(100vw - 900px)); padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
 .hs { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
 .hs:hover { background: #393b40; }
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
