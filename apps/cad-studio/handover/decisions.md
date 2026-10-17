@@ -979,3 +979,109 @@ Evidence: studio 287/287 after the override (285 before it); browser flow 106/10
 
 A4 is closed: transactions (D39), proposals and history (D40), rebase, partial accept, autonomy and chips (D41).
 Next on the roadmap: R3.
+
+## D42 — Facet faces (F0): mesh regions as typed arrays, polyline edges, exact mass; small meshes through the planar path until F2 (2026-10-18, R3.1)
+Decided:
+- **One union, checked by the compiler.** `BrepFace.surface` is `Surface | FacetPatch`.
+  - A `FacetPatch` is `{kind: 'facets', id, positions: Float64Array, indices: Uint32Array, bounds}`: a region's
+    own triangles, wound outward for a forward face.
+  - Widening the type made `tsc` list the 106 places that read `controlPoints`/`degreeU`. Each now has a facet
+    branch, or narrows through `nurbsOf(face, what)`, which throws a typed GEOMETRY "faceted (mesh) faces are
+    not supported yet" that part-model maps to CAPABILITY.
+  - Typed arrays never enter the document or features (they cannot be frozen or JSON-copied, f0-audit risks).
+    They live only in results.
+- **`facetBrepFromTriangles`.**
+  - The mesh is welded on numeric cell hashes (no strings).
+  - Degenerate triangles are dropped.
+  - It must be closed, consistently wound and one piece; refusals as before (`MeshBrepError`), plus "more than one
+    piece".
+  - It is turned outward by signed volume.
+  - **Regions** grow across edges whose normals turn by less than 30°.
+    - When there are more than 1000, triangle normals are smoothed over neighbours (1, 2, 4, 8 rounds) and grown
+      again.
+    - If still too many, the smallest regions merge into the neighbour sharing the most edges.
+    - A region that is the whole mesh is halved, so every face has a boundary.
+    - Faces are the edge-connected pieces, numbered by first triangle and named `<id>.region<k>`: the same file
+      gives the same names.
+  - **Edges** are degree-1 polylines through the mesh's own vertices, between corners: vertices where the
+    boundary is not one face pair passing through.
+    - A closed boundary without a corner gets one at its lowest vertex.
+    - An edge holds at most 64 points (the curve check's limit); a longer boundary gets a vertex there.
+    - Coedges are forward on the face an edge was traced from and reversed across, and loops are cut at corners.
+    - The longest loop is "outer"; on a facet face that is only a convention.
+- **Checks.**
+  - `checkBrep` validates a patch: finite values, indices in range, no triangle without area.
+  - It compares a face's boundary vector area (all loops, exactly along the polylines) with its triangles'
+    vector area. That is an exact identity for polyhedral surfaces and replaces the surface-normal test.
+  - Strict mode checks that every polyline vertex is one of the patch's.
+- **Kernel consumers.**
+  - **Tessellation** emits a facet face's own triangles: area-weighted normals smooth within the face, turned
+    over for reversed. A polyline edge is sampled at exactly its knots, so there are no cracks or T-junctions.
+  - **Mass** is exact by tetrahedra over the triangles, about the body's centre, in the quadrature pass. A
+    facet-only body reports "planar-exact".
+  - **Area** is the exact triangle sum.
+  - **Transform** maps the positions; an identity map (a rename) shares the arrays; a mirror flips the face's
+    sense only.
+  - **`faceGeometry`** returns a plane for an exactly flat region and "other" otherwise. It never throws, so
+    sketches, mates, glue and sections keep working on flat mesh faces.
+  - **Hidden lines** recognise mesh faces by kind as well as by the old name.
+  - The **analytic Boolean** and the **general shell** refuse facets at entry.
+  - **STEP** writes a facet body as the planar B-rep of its triangles (AP242 tessellated comes in R3.5) and reads
+    back with the same volume.
+- **Versioned node (D16).** The mesh node takes `representation: 'facets'`. The studio sets it on new imports.
+  Nodes without it stay the planar per-flat-group solid, so old documents' `<id>.facetK` names resolve unchanged.
+- **F0 fallback (owner, D3), one named path: `FACET_EXPLODE_TRIANGLES = 5000`, `explodeFacets` in part-model.**
+  - Booleans, holes and splits on a facet body with at most 5000 triangles go through the planar per-triangle
+    B-rep and the exact polyhedral Boolean. R2 timings: a polyhedral union with a box takes 0.94 s at 5k and
+    3.2 s at 20k, so 5000 keeps it interactive.
+  - Above that, the operation is refused with CAPABILITY: "Booleans on large meshes arrive with F1/F2 (this mesh
+    has N triangles; up to 5000 go through the planar path)".
+  - Fillets, chamfers and drafts on mesh faces are refused with CAPABILITY, because region edge names would not
+    survive the planar path; shells are refused through the general shell.
+  - The fallback is removed in the step that lands F2.
+- **Studio.**
+  - Imports are facet bodies.
+  - Flat regions show as planes and curved ones as curved (no radius probe).
+  - Region edges are drawn as creases, with no per-vertex normal search.
+  - The import toast says regions and the 5000-triangle Boolean limit.
+  - The 100k triangle cap stays until M1's binary storage (R3.3).
+
+Why:
+- F0 is the base of the mesh-body roadmap (F1, F2, SubD, QEM). A face per triangle made a 200k mesh unusable.
+- The kind-tagged union lets the compiler find every place that assumed a surface.
+- The fallback keeps today's STL Booleans working, as the owner required.
+
+Evidence:
+- Kernel `test/facet-brep.test.mjs` (7):
+  - box: 6 regions, 12 edges, valid strict, volume 1000, area 700, planes;
+  - sphere: halved into 2, volume and centroid exact;
+  - cylinder: 3 regions, 2 closed rims of 25 points, tessellated edges exactly the vertices; 26 regions at 10°;
+  - transforms: moved, mirrored, and renamed with shared arrays;
+  - noisy sphere: capped at 50 regions, exact volume;
+  - open, flipped and two-piece meshes refused;
+  - part model: faceted versus planar names; hole exact; fillet refused; a 6240-triangle hole refused;
+  - STEP round trip.
+- Kernel suite 903/904; the one failure is the known environmental demo-spawn test.
+- Conformance `conformance/r3` (5):
+  - facet box, with STEP round trip;
+  - facet frame: genus 1, 10 regions, volume 96, area 192;
+  - facet box with a hole: 1000 − 20π;
+  - fillet refused;
+  - large Boolean refused.
+- Studio 288/288, with a new import test (10 plane regions, 7000 mm³; the old planar node keeps `.facetK`). The
+  browser STL step passes and the node says facets.
+- `MESH_REP=facets pnpm bench:mesh`:
+
+  | Fixture | Before (R1, per-triangle faces) | F0 facets |
+  |---|---|---|
+  | 200k | convert 10.5 s, display 3.8–85 s, 2.2–2.6 GB | convert 0.2 s, display 76 ms, exact mass 53 ms, RSS 282 MB |
+  | noisy scan 200k | — | 449 regions, 0.26 s |
+  | 1M | 84 s + 32 s, 6.4 GB | convert 1.3 s, display 0.28 s, mass 83 ms, RSS 845 MB |
+
+- Bench within budget (16-hole plate 1.26 s of 3 s).
+
+Next:
+- R3.2: BVH point containment and the typed-array path.
+- R3.3: M1 binary mesh blob, then lift the 100k cap.
+- R3.4: M3 import repair.
+- R3.5: AP242 tessellated STEP.

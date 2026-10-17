@@ -16,10 +16,10 @@
 //   other faces        refused (BrepError GEOMETRY): poles, seams inside one face, edges off the surface
 import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from './math.js';
-import type { Curve, Point, Surface } from './types.js';
+import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { cross, dot, sub, unit } from './vec3.js';
 
-export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
+export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
 export interface BrepMesh { readonly positionsMM: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly BrepMeshFace[]; readonly edges: readonly BrepMeshEdge[] }
 export interface BrepTessellationOptions { readonly segmentsPerQuarter?: number }
@@ -64,6 +64,9 @@ export function circleOf(curve: Curve): { c: Point; r: number; e1: Point; e2: Po
 function edgeParameters(curve: Curve, perQuarter: number): number[] {
   const [t0, t1] = curveDomain(curve);
   if (isLine(curve)) return [t0, t1];
+  // A polyline (a facet face's edge): exactly its corners, the mesh vertices both faces share — any other
+  // sample would leave a crack or a T-junction against the facets.
+  if (curve.degree === 1) { const out: number[] = []; for (const k of curve.knots) if (out[out.length - 1] !== k) out.push(k); return out; }
   const circle = circleOf(curve);
   if (circle) {
     const step = Math.PI / 2 / perQuarter, total = circle.spans.reduce((a, s) => a + s.phi, 0), out = [t0];
@@ -294,7 +297,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
   const trimmed = new Map<string, CylinderFrame>(), params = new Map(brep.edges.map(e => [e.id, edgeParameters(e.curve, perQuarter)]));
   for (const face of brep.faces) {
-    if (planar(face.surface)) continue;
+    if (face.surface.kind === 'facets' || planar(face.surface)) continue;
     const frame = cylinderFrame(face.surface); if (!frame || railsOf(face, loops, coedges, edges) !== undefined) continue;
     trimmed.set(face.id, frame);
   }
@@ -302,7 +305,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   // Straight rails of a curved ruled face (a loft's side): sampled as finely as its other rail, or a
   // quarter turn's worth when both are straight (a twisted side), so the strip can follow the surface.
   for (const face of brep.faces) {
-    if (planar(face.surface) || trimmed.has(face.id) || flat(face.surface)) continue;
+    if (face.surface.kind === 'facets' || planar(face.surface) || trimmed.has(face.id) || flat(face.surface)) continue;
     const rails = railsOf(face, loops, coedges, edges); if (rails === undefined) continue;
     const ids = rails.map(r => coedges.get(loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges[r])!.edge);
     const frame = ruledFrame(face.surface), outer = loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges.map(c => coedges.get(c)!.edge);
@@ -370,7 +373,10 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
   for (const face of brep.faces) {
     if (only && !only.has(face.id)) continue;
-    const sign = face.sense === 'forward' ? 1 : -1, plane = planar(face.surface);
+    // A facet face: its own triangles (the mesh's exact points, which its polyline edges pass through), smooth
+    // within the face, turned over when its sense is reversed.
+    if (face.surface.kind === 'facets') { emitFacets(face.id, face.surface, face.sense === 'forward', positions, normals, indices, faces); continue; }
+    const surface: Surface = face.surface, sign = face.sense === 'forward' ? 1 : -1, plane = planar(surface);
     const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
     if (plane) {
       const normal: Point = [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], e2 = cross(normal, plane.e1);
@@ -685,7 +691,7 @@ function invert(x: Inversion, p: Point): XY {
   return best;
 }
 function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][] } {
-  const S = face.surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
+  const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
   const ku = (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
@@ -861,3 +867,22 @@ const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1
 /** A triangle's corner that is neither x nor y. */
 const third = (tri: readonly number[], x: number, y: number) => tri[0] !== x && tri[0] !== y ? tri[0] : tri[1] !== x && tri[1] !== y ? tri[1] : tri[2];
 const inward = (x: number, [lo, hi]: readonly [number, number], h: number) => x + h * (hi - lo) <= hi ? x + h * (hi - lo) : x - h * (hi - lo);
+
+/**
+ * A facet face's triangles into the mesh: positions as they are, each vertex's normal the area-weighted sum of
+ * its triangles' (smooth within the face, so a curved mesh region shades smooth and its creases stay at region
+ * edges), winding and normals turned over for a reversed face. Typed-array loops, no per-vertex objects.
+ */
+function emitFacets(faceId: string, f: FacetPatch, forward: boolean, positions: number[], normals: number[], indices: number[], faces: BrepMeshFace[]): void {
+  const P = f.positions, X = f.indices, nv = P.length / 3, base = positions.length / 3, indexOffset = indices.length, acc = new Float64Array(P.length);
+  for (let i = 0; i < P.length; i++) positions.push(P[i]);
+  for (let t = 0; t < X.length; t += 3) {
+    const a = X[t], b = forward ? X[t + 1] : X[t + 2], c = forward ? X[t + 2] : X[t + 1];
+    indices.push(base + a, base + b, base + c);
+    const ux = P[3 * b] - P[3 * a], uy = P[3 * b + 1] - P[3 * a + 1], uz = P[3 * b + 2] - P[3 * a + 2], vx = P[3 * c] - P[3 * a], vy = P[3 * c + 1] - P[3 * a + 1], vz = P[3 * c + 2] - P[3 * a + 2];
+    const x = uy * vz - uz * vy, y = uz * vx - ux * vz, z = ux * vy - uy * vx;
+    acc[3 * a] += x; acc[3 * a + 1] += y; acc[3 * a + 2] += z; acc[3 * b] += x; acc[3 * b + 1] += y; acc[3 * b + 2] += z; acc[3 * c] += x; acc[3 * c + 1] += y; acc[3 * c + 2] += z;
+  }
+  for (let v = 0; v < nv; v++) { const x = acc[3 * v], y = acc[3 * v + 1], z = acc[3 * v + 2], l = Math.hypot(x, y, z) || 1; normals.push(x / l, y / l, z / l); }
+  faces.push({ faceId, kind: 'facet', vertexOffset: base, vertexCount: nv, indexOffset, indexCount: indices.length - indexOffset });
+}

@@ -814,6 +814,8 @@ try {
     assert.match(await page.locator('.toast').innerText(), /STL opened[\s\S]*7,000 mm³/);
     await page.locator('.outliner .ol').first().click();
     await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    // (F0: a new import is facet faces, its regions named by the mesh.)
+    assert.equal((await doc()).nodes[0].representation, 'facets');
     await snap('stl-open');
   });
 

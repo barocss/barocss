@@ -9,7 +9,8 @@ import { faceGeometry } from './analytic-boolean.js';
 import { brepMassProperties, brepSurfaceArea } from './solid-mass.js';
 import { tessellateBrep } from './brep-tessellate.js';
 import { dot, len, scale, sub, unit } from './vec3.js';
-import type { Curve, Point, Surface } from './types.js';
+import type { Curve, FacetPatch, Point, Surface } from './types.js';
+import { brepFromTriangles } from './mesh-brep.js';
 
 // ---- export ------------------------------------------------------------------------------------------
 const real = (x: number): string => {
@@ -40,7 +41,9 @@ export interface StepExportOptions {
 
 /** One STEP file of every solid of the given B-reps (a part's bodies), as one product. */
 export function exportStep(input: Brep | readonly Brep[], options: StepExportOptions = {}): string {
-  const breps = Array.isArray(input) ? input as readonly Brep[] : [input as Brep];
+  // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
+  // reader takes. AP242 tessellated faces come with R3.5.)
+  const breps = (Array.isArray(input) ? input as readonly Brep[] : [input as Brep]).map(planarFacets);
   const name = options.name ?? breps[0]?.source.id ?? 'part', lines: string[] = [];
   let next = 1;
   const add_ = (entity: string): string => { const id = `#${next++}`; lines.push(`${id}=${entity};`); return id; };
@@ -88,7 +91,7 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   const faceId = new Map<string, string>();
   for (const f of brep.faces) {
-    const S = f.surface, g = S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2 ? faceGeometry(f) : { kind: 'other' as const };
+    const S = f.surface as Surface, g = S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2 ? faceGeometry(f) : { kind: 'other' as const };
     let surface: string, sameSense: boolean;
     if (g.kind === 'plane') {
       const e1 = unit(sub(S.controlPoints[1][0] as Point, S.controlPoints[0][0] as Point));
@@ -159,3 +162,16 @@ function bsplineSurface(S: Surface, add_: (e: string) => string, point: (p: read
 }
 
 export { importStep, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';
+
+/** A body whose faces are all facets, as the planar B-rep of its triangles (others as they are; mixed refused). */
+function planarFacets(brep: Brep): Brep {
+  if (!brep.faces.some(f => f.surface.kind === 'facets')) return brep;
+  if (!brep.faces.every(f => f.surface.kind === 'facets')) throw new BrepError('GEOMETRY', 'STEP: a body mixing mesh and other faces cannot be written yet');
+  const positions: number[] = [], indices: number[] = [];
+  for (const f of brep.faces) {
+    const F = f.surface as FacetPatch, base = positions.length / 3, X = F.indices, fw = f.sense === 'forward';
+    for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
+    for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
+  }
+  return brepFromTriangles(positions, indices, { id: brep.bodies[0]?.id ?? brep.source.id, maximumTriangles: Infinity });
+}

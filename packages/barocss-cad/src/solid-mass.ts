@@ -67,7 +67,7 @@ function quadrature(brep: Brep, q: number): number[] | null {
 export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): number {
   const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
   if (Q && Q[10] > 0) return Q[10];
-  const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
+  const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
   let area = 0;
   for (let t = 0; t < ix.length; t += 3) {
@@ -85,7 +85,7 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
  * origin over the watertight tessellation (divergence theorem).
  */
 export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): SolidMassProperties {
-  const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
+  const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
     const Q = quadrature(brep, q);

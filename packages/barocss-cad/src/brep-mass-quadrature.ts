@@ -13,6 +13,7 @@ import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './
 import { curveD1Evaluator, evaluateSurfaceD1, type CurveD1Result } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
+import { facetIntegrals } from './facet-patch.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -127,14 +128,17 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   const I = Array(11).fill(0) as number[], rest = new Set<string>();
   setCentre(brep);
   for (const face of brep.faces) {
-    const plane = planar(face.surface), sign = face.sense === 'forward' ? 1 : -1;
+    const sign = face.sense === 'forward' ? 1 : -1;
+    // (A facet face: tetrahedra from the centre over its triangles — exact, no tessellation.)
+    if (face.surface.kind === 'facets') { facetIntegrals(face.surface, sign, centre, I); continue; }
+    const plane = planar(face.surface);
     if (plane) { planarIntegrals(brep, face, [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], plane.origin, maps).forEach((x, k) => { I[k] += x; }); continue; }
     if (wholePatch(face, maps)) { patchIntegrals(face, I); continue; }
     rest.add(face.id);
   }
   if (!rest.size) return { integrals: fromCentre(I), meshed: false };
   const { mesh, parameters, segments } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
-  const moments = new Map<Curve, Point>(), surfaces = new Map(brep.faces.map(f => [f.id, f.surface])), faces = new Map(brep.faces.map(f => [f.id, f])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
+  const moments = new Map<Curve, Point>(), surfaces = new Map(brep.faces.map(f => [f.id, f.surface as Surface])), faces = new Map(brep.faces.map(f => [f.id, f])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
   for (const face of mesh.faces) {
     const flat = Array(10).fill(0) as number[], tris: [number, number, number][] = [];
@@ -351,7 +355,10 @@ function gaussNewton(at: (u: number, v: number) => Point, p: Point, seed: XY): X
  */
 function setCentre(brep: Brep): void {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const f of brep.faces) for (const row of f.surface.controlPoints) for (const q of row) for (let k = 0; k < 3; k++) { if (q[k] < lo[k]) lo[k] = q[k]; if (q[k] > hi[k]) hi[k] = q[k]; }
+  for (const f of brep.faces) {
+    if (f.surface.kind === 'facets') { const b = f.surface.bounds; for (let k = 0; k < 3; k++) { if (b[k] < lo[k]) lo[k] = b[k]; if (b[k + 3] > hi[k]) hi[k] = b[k + 3]; } continue; }
+    for (const row of f.surface.controlPoints) for (const q of row) for (let k = 0; k < 3; k++) { if (q[k] < lo[k]) lo[k] = q[k]; if (q[k] > hi[k]) hi[k] = q[k]; }
+  }
   for (let k = 0; k < 3; k++) centre[k] = lo[k] <= hi[k] ? (lo[k] + hi[k]) / 2 : 0;
 }
 /**
@@ -371,7 +378,7 @@ function fromCentre(I: number[]): number[] {
  */
 function wholePatch(face: BrepFace, maps: Maps): boolean {
   if (face.loops.length !== 1) return false;
-  const S = face.surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S);
+  const S = face.surface as Surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S);
   let size = 1; for (const row of S.controlPoints) for (const p of row) size = Math.max(size, Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2]));
   // The four boundary iso-curves sampled once (side k, sample i at SIDE[k][3i..3i+2]).
   const sides: Float64Array[] = [];
@@ -430,7 +437,7 @@ function boundaryDistance(at: (u: number, v: number) => Point, U: readonly numbe
  * four more for rational patches), the outward normal ±∂S/∂u × ∂S/∂v by the face's sense.
  */
 function patchIntegrals(face: BrepFace, I: number[]): void {
-  const S = face.surface, sign = face.sense === 'forward' ? 1 : -1, { u: U, v: V } = surfaceDomain(S);
+  const S = face.surface as Surface, sign = face.sense === 'forward' ? 1 : -1, { u: U, v: V } = surfaceDomain(S);
   const rational = S.weights.some(row => row.some(w => w !== 1));
   const gu = gaussOf(Math.min(20, Math.ceil(5 * S.degreeU / 2) + (rational ? 4 : 0))), gv = gaussOf(Math.min(20, Math.ceil(5 * S.degreeV / 2) + (rational ? 4 : 0)));
   const spansU = spans(S.knotsU, U), spansV = spans(S.knotsV, V);

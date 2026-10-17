@@ -1,6 +1,8 @@
 // STL and OBJ files as a mesh feature: the triangles read, scaled from the file's unit to millimetres
 // (the files say none: the user picks it), welded and rounded so the document stays small.
 import { readObj, readStl } from '@barocss/cad';
+/** Imported meshes go through Booleans up to this many triangles in F0 (the kernel's limit, said in the studio). */
+export { FACET_EXPLODE_TRIANGLES } from '@barocss/cad';
 
 export const MESH_UNITS = [{ value: 'mm', label: 'Millimetres', toMM: 1 }, { value: 'cm', label: 'Centimetres', toMM: 10 }, { value: 'm', label: 'Metres', toMM: 1000 }, { value: 'in', label: 'Inches', toMM: 25.4 }] as const;
 export type MeshUnit = typeof MESH_UNITS[number]['value'];

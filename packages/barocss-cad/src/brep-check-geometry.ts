@@ -4,7 +4,17 @@
 // of the model's size. Kept out of the builders' own checks (assertValidBrep): they cost point inversions.
 import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import type { Brep, BrepFace } from './brep-core.js';
-import type { Point } from './types.js';
+import type { Point, Surface } from './types.js';
+
+/** Every polyline edge vertex of a facet face is one of its patch's vertices (exactly). */
+function facetEdgesOnPatch(face: BrepFace, P: Float64Array, maps: Maps, add: (kind: string, detail: string) => void): void {
+  const have = new Set<string>();
+  for (let i = 0; i < P.length; i += 3) have.add(`${P[i]},${P[i + 1]},${P[i + 2]}`);
+  for (const lid of face.loops) for (const cid of maps.loops.get(lid)?.coedges ?? []) {
+    const e = maps.edges.get(maps.coedges.get(cid)?.edge ?? ''); if (!e) continue;
+    for (const p of e.curve.controlPoints) if (!have.has(`${p[0]},${p[1]},${p[2]}`)) { add('geometry', `edge ${e.id} leaves the facets of face ${face.id}`); return; }
+  }
+}
 
 type XY = [number, number];
 export interface StrictGeometry { maximumEdgeSurfaceGapMM: number }
@@ -20,7 +30,7 @@ interface Mapper { uv(p: Point, hint: XY | null): XY; gap(p: Point, q: XY): numb
 
 /** A flat bilinear patch: parameters by projection, the gap as the distance from its plane. */
 function planeMapper(face: BrepFace): Mapper | null {
-  const S = face.surface;
+  const S = face.surface as Surface;
   if (S.degreeU !== 1 || S.degreeV !== 1 || S.controlPoints.length !== 2 || S.controlPoints[0].length !== 2) return null;
   const [[p00, p01], [p10]] = S.controlPoints, u = sub(p10, p00), v = sub(p01, p00), n = cross(u, v), l = Math.hypot(n[0], n[1], n[2]);
   if (!(l > 0) || Math.hypot(...sub(S.controlPoints[1][1], add(p10, v))) > 1e-9 * Math.max(1, Math.hypot(...u), Math.hypot(...v))) return null;
@@ -30,7 +40,7 @@ function planeMapper(face: BrepFace): Mapper | null {
 
 /** Any other patch: Newton from the nearest of a 16 × 16 grid; closed when its sides meet (a seam) or collapse (a pole). */
 function surfaceMapper(face: BrepFace): Mapper {
-  const S = face.surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S), N = 16, grid: { a: number; b: number; p: Point }[] = [];
+  const S = face.surface as Surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S), N = 16, grid: { a: number; b: number; p: Point }[] = [];
   for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
   let size = 1; for (const g of grid) size = Math.max(size, Math.abs(g.p[0]), Math.abs(g.p[1]), Math.abs(g.p[2]));
   let seamU = 0, seamV = 0;
@@ -103,6 +113,9 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
   for (const e of brep.edges) if (e.toleranceMM > cap) add('tolerance', `edge ${e.id} tolerance ${e.toleranceMM} mm is past the cap ${cap} mm`);
   for (const v of brep.vertices) if (v.toleranceMM > cap) add('tolerance', `vertex ${v.id} tolerance ${v.toleranceMM} mm is past the cap ${cap} mm`);
   for (const face of brep.faces) {
+    // (A facet face's edges are polylines through its own vertices: on it by construction. Checked here: each
+    // polyline vertex is one of the patch's.)
+    if (face.surface.kind === 'facets') { facetEdgesOnPatch(face, face.surface.positions, maps, add); continue; }
     const mapper = planeMapper(face) ?? surfaceMapper(face), rings: XY[][] = [];
     let perimeter = 0, faceTol = 0;
     for (const lid of face.loops) {

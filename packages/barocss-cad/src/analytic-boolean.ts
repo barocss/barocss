@@ -18,7 +18,8 @@
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
 import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
-import { BrepError, buildBrep, checkBrep, lineCurve, type Brep, type BrepFace } from './brep-core.js';
+import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
+import { facetPlane } from './facet-patch.js';
 import { circleOf, polesOf } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
@@ -162,7 +163,7 @@ function normalOut(f: GFace, x: P3): P3 {
 }
 
 function surfaceOf(face: BrepFace, tol: number): Surf {
-  const S = face.surface, sign = face.sense === 'forward' ? 1 : -1, [u0, u1] = surfaceDomain(S).u, [v0, v1] = surfaceDomain(S).v;
+  const S = surfaceOfFace(face, 'analytic Boolean'), sign = face.sense === 'forward' ? 1 : -1, [u0, u1] = surfaceDomain(S).u, [v0, v1] = surfaceDomain(S).v;
   const centre = evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2), du = 1e-6 * (u1 - u0), dv = 1e-6 * (v1 - v0);
   const nParam = unit(cross(sub(evaluateSurface(S, (u0 + u1) / 2 + du, (v0 + v1) / 2), centre), sub(evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2 + dv), centre)));
   const outward = scale(nParam, sign);
@@ -352,7 +353,7 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
     for (const lid of ordered) for (const cid of loops.get(lid)!.coedges) for (const p of edges.get(coedges.get(cid)!.edge)!.curve.controlPoints) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
     // A general patch bulges past its edges (a hemisphere bounded by two meridians in one plane): its
     // control net bounds it.
-    if (surf.kind === 'nurbs') for (const row of face.surface.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
+    if (surf.kind === 'nurbs') for (const row of surfaceOfFace(face).controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
     return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [] };
   });
 }
@@ -916,6 +917,13 @@ interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
  */
 export type FaceGeometry = { readonly kind: 'plane'; readonly o: P3; readonly n: P3 } | { readonly kind: 'cylinder'; readonly c: P3; readonly a: P3; readonly r: number; readonly out: 1 | -1 } | { readonly kind: 'other' };
 export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
+  // (A facet face: a plane when the whole region is flat — sketches, mates, glue and sections keep working on a
+  // flat mesh face — else other. Never thrown on.)
+  if (face.surface.kind === 'facets') {
+    const plane = facetPlane(face.surface); if (!plane) return { kind: 'other' };
+    const s = face.sense === 'forward' ? 1 : -1;
+    return { kind: 'plane', o: plane.origin, n: [plane.normal[0] * s, plane.normal[1] * s, plane.normal[2] * s] };
+  }
   const s = surfaceOf(face, linearToleranceMM(scaleMM) * 10);
   if (s.kind === 'plane') return { kind: 'plane', o: s.o, n: s.n };
   if (s.kind === 'cylinder') return { kind: 'cylinder', c: s.c, a: s.a, r: s.r, out: s.s };
@@ -928,6 +936,7 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  */
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
   const id = options.id ?? `analytic-${operation}`;
+  for (const br of [a, b]) if (br.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'analytic Boolean: faceted (mesh) faces are not supported yet');
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);

@@ -49,6 +49,8 @@ export interface BrepProjection {
 /** `tangentEdges`: also the smooth joints between different surfaces (a fillet's boundaries), marked `tangent`. */
 /** A mesh solid's facet (brepFromTriangles names them `<id>.facet<k>`). */
 const FACET = /\.facet\d+$/;
+/** A face of a mesh solid: a planar mesh's by name, a facet face by kind (F0). */
+const meshy = (f: Brep['faces'][number]) => f.surface.kind === 'facets' || FACET.test(f.name ?? '');
 export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[]; readonly tangentEdges?: boolean }
 
 type XY = [number, number];
@@ -174,7 +176,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         const na = normalOn(ga, fs[0], mid), nb = normalOn(gb, fs[1], mid);
         // Facets of a mesh solid (a modelled thread, an STL) join smoothly within 20°: drawn only where
         // the solid's outline runs along them (one facet towards the viewer, the other away).
-        const facets = FACET.test(faceById.get(fs[0])!.name ?? '') && FACET.test(faceById.get(fs[1])!.name ?? '');
+        const facets = meshy(faceById.get(fs[0])!) && meshy(faceById.get(fs[1])!);
         if (facets && na && nb && dot(unit(na), unit(nb)) > Math.cos(Math.PI / 9)) {
           if (Math.sign(dot(na, toward)) !== Math.sign(dot(nb, toward))) kind = 'silhouette';
           else if (options.tangentEdges) kind = 'tangent';

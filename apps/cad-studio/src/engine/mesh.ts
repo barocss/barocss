@@ -77,13 +77,15 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
       displayOf.set(id, b.faces.length);
     }
     const names = [...new Set(members.map(m => baseName(nameOf.get(m))))];
-    addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), meshFace.get(root)!.kind === 'planar' ? 'plane' : 'curved', pos, nor, idx);
-    if (meshFace.get(root)!.kind !== 'planar') {
+    // (A mesh region that is flat shows as a plane: sketches and mates take it; a curved one as curved, no radius.)
+    const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(brep.faces.find(f => f.id === root)!).kind === 'plane';
+    addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), rootKind === 'planar' || flatRegion ? 'plane' : 'curved', pos, nor, idx);
+    if (rootKind !== 'planar' && rootKind !== 'facet') {
       // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).
       const face = brep.faces.find(f => f.id === root)!;
       let radius: number | undefined;
       try { const g = faceGeometry(face); if (g.kind === 'cylinder') radius = g.r; } catch { /* a general surface */ }
-      if (radius === undefined) { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
+      if (radius === undefined && face.surface.kind === 'surface') { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
       if (radius !== undefined) b.faces[b.faces.length - 1].radius = radius;
     }
   }
@@ -91,6 +93,8 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   // Vertex normal of a B-rep face at a position, to hide smooth (tangent) joints.
   const normalAt = (faceId: string, p: Vec3): Vec3 | null => {
     const f = meshFace.get(faceId)!;
+    // (A mesh region's edges are its creases, drawn: no search through its vertices.)
+    if (f.kind === 'facet') return null;
     for (let v = f.vertexOffset; v < f.vertexOffset + f.vertexCount; v++) if (P[v * 3] === p[0] && P[v * 3 + 1] === p[1] && P[v * 3 + 2] === p[2]) return [N[v * 3], N[v * 3 + 1], N[v * 3 + 2]];
     return null;
   };

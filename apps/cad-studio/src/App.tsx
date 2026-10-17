@@ -54,7 +54,7 @@ import type { Mate } from './assembly/mates';
 import type { DirectGeometry } from './engine/direct';
 import { directNow, loadDirect } from './engine/directModule';
 import { stepLengthUnit } from './engine/stepUnits';
-import { MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
+import { FACET_EXPLODE_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
 import { readStudioDoc } from './engine/migrate';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from './engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
@@ -954,13 +954,13 @@ export function App() {
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
-    const { name, format, unit } = meshAsk, next = withNode(emptyDoc(), { kind: 'mesh', name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices });
+    const { name, format, unit } = meshAsk, next = withNode(emptyDoc(), { kind: 'mesh', name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, representation: 'facets' });
     // Read before replacing the current part: a mesh that does not close keeps the part.
     const read = await engine.part(next, revision.current++);
     if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
     setMeshAsk(null); replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
     const b = read.bodies[0], faces = b?.mesh.faces.length ?? 0;
-    setToast({ title: `${format} opened`, hint: `A solid of ${faces.toLocaleString('en-US')} flat face${faces === 1 ? '' : 's'} (${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles), read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(b?.volumeMM3 ?? 0).toLocaleString('en-US')} mm³. Curved surfaces stay as their facets.`, detail: '' });
+    setToast({ title: `${format} opened`, hint: `A mesh solid of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'} (${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles, grouped where they meet at less than 30°), read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(b?.volumeMM3 ?? 0).toLocaleString('en-US')} mm³. Booleans and holes work up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles; fillets, shells and drafts on mesh faces come later.`, detail: '' });
   };
   const open = async (file: File) => {
     try {

@@ -17,3 +17,16 @@ test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat fac
   assert.ok(Math.abs(r.bodies[0].volumeMM3! - (40 * 20 - 10 * 10) * 10) < 1e-6);
   assert.equal(featureLabel(doc.nodes[0], 0, doc.nodes), 'Mesh block');
 });
+
+test('an STL imported as facet faces (F0): regions named by the node, flat ones shown as planes; an older planar node keeps its names', () => {
+  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl'))));
+  const cm = meshInMM(mesh, 'cm');
+  const facets = evaluateDoc(withNode(emptyDoc(), { kind: 'mesh', name: 'block', unit: 'cm', ...cm, representation: 'facets' }), 1);
+  assert.ok(facets.ok, facets.ok ? '' : facets.error.hint);
+  const faces = facets.bodies[0].mesh.faces;
+  assert.ok(faces.every(f => /^n\d+\.region\d+$/.test(f.name)), faces.map(f => f.name).join());
+  assert.equal(faces.length, 10); assert.ok(faces.every(f => f.kind === 'plane'));
+  assert.ok(Math.abs(facets.bodies[0].volumeMM3! - 7000) < 1e-6);
+  const planar = evaluateDoc(withNode(emptyDoc(), { kind: 'mesh', name: 'block', unit: 'cm', ...cm }), 2);
+  assert.ok(planar.ok && planar.bodies[0].mesh.faces.every(f => /\.facet\d+$/.test(f.name)));
+});

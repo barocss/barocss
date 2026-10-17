@@ -8,7 +8,7 @@
 //
 // Faces: planes bounded by lines and arcs (any region, holes included) and cylinders whose domain is a
 // rectangle (bounded by lines along the axis and circles across it). Others are refused by name.
-import { BrepError, type Brep, type BrepFace } from './brep-core.js';
+import { BrepError, isFacetFace, nurbsOf, type Brep, type BrepFace } from './brep-core.js';
 import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { circleOf } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve, evaluateSurface } from './math.js';
@@ -27,6 +27,7 @@ const refuse = (detail: string): never => { throw new BrepError('GEOMETRY', `CAP
 
 /** The shell of `body` with walls `t` thick, the faces named in `open` removed. */
 export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, id: string): Brep {
+  if (body.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'shell of a mesh body: faceted (mesh) faces are not supported yet');
   const size = Math.max(1, ...body.vertices.flatMap(v => v.point.map(Math.abs))), tol = 1e-9 * size, out = 1.37 * t;
   const loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
   /** A face's loops as point chains, each coedge as its curve in its direction. */
@@ -104,7 +105,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       C.rects.push({ th0: gaps[0].start, span: TAU - gaps[0].size, z0: Math.min(...hs), z1: Math.max(...hs) });
       return;
     }
-    const rev = revolutionOf(f.surface, size);
+    const rev = revolutionOf(nurbsOf(f), size);
     if (!rev) return refuse(`face ${name} is not a plane, a cylinder or a surface of revolution (shell of bodies with freeform faces joined to others is not supported yet)`);
     revolutions.push({ R: rev, face: f, name });
   });
@@ -124,7 +125,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       const profile = [[inner, R.z0 - t], [outer, R.z0 - t], [outer, R.z1 + t], [inner, R.z1 + t]].map(p => ({ kind: 'line' as const, start: p as XY }));
       const ring = revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: span * 180 / Math.PI });
       // Which way the revolve turns (towards +Z or −Z of its sketch): from its end face.
-      const endFace = ring.faces.find(x => x.name === `${sid}.end`), q = endFace ? scale(add(endFace.surface.controlPoints[0][0] as Point, endFace.surface.controlPoints[1][1] as Point), 0.5) : null;
+      const endFace = ring.faces.find(x => x.name === `${sid}.end`), q = endFace ? scale(add(nurbsOf(endFace).controlPoints[0][0] as Point, nurbsOf(endFace).controlPoints[1][1] as Point), 0.5) : null;
       const towards = q && Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(span)) > Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(-span)) ? -1 : 1;
       const { a, e1, e2 } = C, X = add(scale(e1, Math.cos(start)), scale(e2, Math.sin(start))), Zw = scale(add(scale(e1, -Math.sin(start)), scale(e2, Math.cos(start))), towards);
       slabs.push(transformBrep(ring, { matrix: [X[0], a[0], Zw[0], X[1], a[1], Zw[1], X[2], a[2], Zw[2]], offset: [C.c[0], C.c[1], C.c[2]] }));
@@ -156,7 +157,7 @@ function revolutionSlab(R: Revolution, f: BrepFace, name: string, uses: { curve:
     pts.push(...P);
   }
   // The outward side in the meridian plane, from the face's normal at its middle.
-  const S = f.surface, u0 = S.knotsU[0], u1 = S.knotsU[S.knotsU.length - 1], v0 = S.knotsV[0], v1 = S.knotsV[S.knotsV.length - 1], um = (u0 + u1) / 2, vm = (v0 + v1) / 2;
+  const S = nurbsOf(f), u0 = S.knotsU[0], u1 = S.knotsU[S.knotsU.length - 1], v0 = S.knotsV[0], v1 = S.knotsV[S.knotsV.length - 1], um = (u0 + u1) / 2, vm = (v0 + v1) / 2;
   const P0 = evaluateSurface(S, um, vm), Pu = evaluateSurface(S, um + 1e-6 * (u1 - u0), vm), Pv = evaluateSurface(S, um, vm + 1e-6 * (v1 - v0));
   const N = scale(cross(sub(Pu, P0), sub(Pv, P0)), f.sense === 'forward' ? 1 : -1), m0 = mer(P0), radial = unit(sub(sub(P0, c), scale(a, dot(sub(P0, c), a))));
   const nm: XY = [dot(N, radial), dot(N, a)], M = pts.map(mer);
@@ -191,7 +192,7 @@ function revolutionSlab(R: Revolution, f: BrepFace, name: string, uses: { curve:
     const dth = rmin > 1e-6 * size ? t / rmin : TAU, span = TAU - gaps[0].size + 2 * dth, full = span >= TAU - 1e-9, start = full ? 0 : gaps[0].start - dth;
     const profile = reg.outer.map(g => g.kind === 'line' ? { kind: 'line' as const, start: [g.a[0], g.a[1]] as XY } : g.kind === 'arc' ? { kind: 'arc' as const, start: end(g, 0), center: g.c as XY, direction: (g.sweep > 0 ? 'ccw' : 'cw') as 'ccw' | 'cw' } : refuse('a slab profile with a free curve'));
     const sid = `${id}_${j}`, turned = revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: full ? 360 : span * 180 / Math.PI });
-    const endFace = turned.faces.find(x => x.name === `${sid}.end`), q = endFace ? scale(add(endFace.surface.controlPoints[0][0] as Point, endFace.surface.controlPoints[1][1] as Point), 0.5) : null;
+    const endFace = turned.faces.find(x => x.name === `${sid}.end`), q = endFace ? scale(add(nurbsOf(endFace).controlPoints[0][0] as Point, nurbsOf(endFace).controlPoints[1][1] as Point), 0.5) : null;
     const towards = q && Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(span)) > Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(-span)) ? -1 : 1;
     const X = add(scale(e1, Math.cos(start)), scale(e2, Math.sin(start))), Zw = scale(add(scale(e1, -Math.sin(start)), scale(e2, Math.cos(start))), towards);
     return transformBrep(turned, { matrix: [X[0], a[0], Zw[0], X[1], a[1], Zw[1], X[2], a[2], Zw[2]], offset: [c[0], c[1], c[2]] });

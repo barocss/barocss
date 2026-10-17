@@ -85,7 +85,7 @@ type ModelNodeBase = SketchNode
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }
   /** A closed triangle mesh (an STL or OBJ file's, scaled to mm from `unit`): welded vertices, three indices a triangle. */
-  | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[] }
+  | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[]; /** 'facets' (imports from F0 on): mesh regions; absent: one planar face per flat group, as before. */ representation?: 'facets' }
   /**
    * A modelled ISO metric thread: a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`).
    * `form`: helical B-spline faces (`.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`), written on every new node;

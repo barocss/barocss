@@ -22,6 +22,20 @@ export interface Surface {
   weights: number[][];
 }
 
+/**
+ * A facet face's geometry (F0): a region of a triangle mesh, kept as typed arrays — not a surface a parameter
+ * maps. `positions` x, y, z per vertex (the region's own); `indices` three per triangle, wound so the right-hand
+ * normal points out of the solid when the face's sense is forward. `bounds` [x0, y0, z0, x1, y1, z1].
+ * Never frozen, never JSON-copied: a B-rep holding one stays out of the admitted document.
+ */
+export interface FacetPatch {
+  readonly kind: 'facets';
+  readonly id: string;
+  readonly positions: Float64Array;
+  readonly indices: Uint32Array;
+  readonly bounds: Float64Array;
+}
+
 export interface Model {
   name: string;
   version: 0;

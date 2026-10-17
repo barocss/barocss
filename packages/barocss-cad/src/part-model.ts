@@ -15,7 +15,7 @@
 //                    by its two faces. Chamfers and fillets select edges by these names, so a selection
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
-import { BrepError, buildBrep, checkBrep, lineCurve, mergeBreps, type Brep, type BrepCheckReport } from './brep-core.js';
+import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
@@ -25,6 +25,7 @@ import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
+import { facetBrepFromTriangles } from './facet-brep.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
@@ -38,7 +39,7 @@ import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import type { Point } from './types.js';
+import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { encodeBinaryStl } from './stl.js';
 
@@ -110,10 +111,12 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
   /**
-   * A closed triangle mesh (an STL or OBJ file's, in mm) as a planar solid: `positions` x, y, z per vertex,
-   * `indices` three a triangle; triangles flat against each other one face, named `${id}.facet${k}`.
+   * A closed triangle mesh (an STL or OBJ file's, in mm): `positions` x, y, z per vertex, `indices` three a
+   * triangle. `representation: 'facets'` (new imports, F0): facet faces, the mesh grouped into regions named
+   * `${id}.region${k}`. Absent (or 'planar', documents made before F0): a planar solid, triangles flat against
+   * each other one face, named `${id}.facet${k}` — kept so old documents' names resolve.
    */
-  | { readonly kind: 'mesh'; readonly positions: readonly number[]; readonly indices: readonly number[] }
+  | { readonly kind: 'mesh'; readonly positions: readonly number[]; readonly indices: readonly number[]; readonly representation?: 'facets' | 'planar' }
   /**
    * A modelled ISO metric thread (faceted helix, one solid with no Boolean): a rod of `length` below
    * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
@@ -166,7 +169,7 @@ export interface CadPartOutput {
   /** The feature id, or `id/k` for one part of a multi-part feature. */
   readonly id: string; readonly feature: string;
   /** 'upright': a Z-prismatic solid (closed-form mass, curved Booleans); otherwise a general B-rep. */
-  readonly representation: 'upright' | 'planar' | 'curved';
+  readonly representation: 'upright' | 'planar' | 'curved' | 'faceted';
   readonly brep: Brep;
   readonly bodyCount: number;
   massProperties(densityKgPerM3: number): SolidMassProperties;
@@ -235,15 +238,42 @@ function splitBodies(b: Brep): Brep[] {
 }
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
 const lineOnly = (s: PrismaticSolid) => s.slabs.every(x => x.regions.every(r => [r.outer, ...r.holes].every(ring => ring.every(g => g.kind === 'line'))));
-const planarBrep = (b: Brep) => b.faces.every(f => f.surface.degreeU === 1 && f.surface.degreeV === 1 && f.surface.controlPoints.length === 2 && f.surface.controlPoints[0].length === 2) && b.edges.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2);
-const representation = (s: Solid): CadPartOutput['representation'] => s.kind === 'upright' ? 'upright' : planarBrep(s.brep) ? 'planar' : 'curved';
+const planarBrep = (b: Brep) => b.faces.every(f => f.surface.kind === 'surface' && f.surface.degreeU === 1 && f.surface.degreeV === 1 && f.surface.controlPoints.length === 2 && f.surface.controlPoints[0].length === 2) && b.edges.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2);
+const representation = (s: Solid): CadPartOutput['representation'] => s.kind === 'upright' ? 'upright' : s.brep.faces.some(isFacetFace) ? 'faceted' : planarBrep(s.brep) ? 'planar' : 'curved';
+/**
+ * F0 fallback (owner, 2026-10-18; D3, D42): a facet body (a mesh imported as facet faces) meets a Boolean,
+ * split, hole or draft only through the planar path until F1/F2 give facets their own — exploded back to the
+ * planar per-triangle B-rep when it has at most this many triangles (R2: a polyhedral union with a box takes
+ * 0.94 s at 5k triangles, 3.2 s at 20k: interactive up to here), refused with CAPABILITY above it.
+ * Removed in the step that lands F2.
+ */
+export const FACET_EXPLODE_TRIANGLES = 5000;
+function explodeFacets(b: Brep, at: string, what: string): Brep {
+  if (!b.faces.some(isFacetFace)) return b;
+  if (!b.faces.every(isFacetFace)) throw new CadPartError('CAPABILITY', at, `${what} on a body mixing mesh and other faces is not supported yet`);
+  let count = 0; for (const f of b.faces) count += (f.surface as FacetPatch).indices.length / 3;
+  if (count > FACET_EXPLODE_TRIANGLES) throw new CadPartError('CAPABILITY', at, `${what} on large meshes arrive with F1/F2 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
+  // Every face's triangles, wound outward, into one planar mesh solid.
+  const positions: number[] = [], indices: number[] = [];
+  for (const f of b.faces) {
+    const F = f.surface as FacetPatch, base = positions.length / 3, X = F.indices, fw = f.sense === 'forward';
+    for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
+    for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
+  }
+  try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: FACET_EXPLODE_TRIANGLES }); }
+  catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
+}
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
 
 function bounds(s: Solid): { min: Point; max: Point } {
   const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
   const take = (p: readonly number[]) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); } };
   if (s.kind === 'upright') for (const slab of s.solid.slabs) for (const r of slab.regions) for (const p of sampleRing(r.outer, Math.PI / 64)) { take([p[0], p[1], slab.z0]); take([p[0], p[1], slab.z1]); }
-  else { for (const v of s.brep.vertices) take(v.point); for (const e of s.brep.edges) for (const p of e.curve.controlPoints) take(p); }
+  else {
+    for (const v of s.brep.vertices) take(v.point); for (const e of s.brep.edges) for (const p of e.curve.controlPoints) take(p);
+    // (A facet face can reach past its boundary's points: its patch's box.)
+    for (const f of s.brep.faces) if (f.surface.kind === 'facets') { const b = f.surface.bounds; take([b[0], b[1], b[2]]); take([b[3], b[4], b[5]]); }
+  }
   return { min, max };
 }
 
@@ -630,6 +660,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
       const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
       return () => {
+        if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'draft on mesh faces arrives with F1/F2');
         const brep = brepOf(target[0], at), box = bounds(target[0].solid), zN = neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
         // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
         const lift = 1e-6 * R;
@@ -730,7 +761,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!Array.isArray(P) || P.length % 3 || !P.every(x => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) <= CadPartLimits.lengthMM)) fail('INPUT', 'positions must be x, y, z numbers within ±10000 mm');
       if (!Array.isArray(I) || I.length % 3 || I.length / 3 > CadPartLimits.meshTriangles || !I.every(i => Number.isInteger(i) && i >= 0 && i < (P as number[]).length / 3)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
       return () => {
-        try { return one({ kind: 'brep', brep: brepFromTriangles(P as number[], I as number[], { id: at, maximumTriangles: CadPartLimits.meshTriangles }) }); }
+        const facets = f.representation === 'facets';
+        try { return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as number[], I as number[], { id: at, maximumTriangles: CadPartLimits.meshTriangles }) }); }
         catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
@@ -811,6 +843,9 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
     if (check) checkLumps({ kind: 'upright', solid }, at);
     return { kind: 'upright', solid };
   }
+  // (F0: a facet body, small enough, goes through the planar path; else refused, see FACET_EXPLODE_TRIANGLES.)
+  if (a.kind === 'brep' && a.brep.faces.some(isFacetFace)) a = { kind: 'brep', brep: explodeFacets(a.brep, at, 'Booleans') };
+  if (b.kind === 'brep' && b.brep.faces.some(isFacetFace)) b = { kind: 'brep', brep: explodeFacets(b.brep, at, 'Booleans') };
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
   const B = b.kind === 'upright' ? (lineOnly(b.solid) ? brepFromPrismatic(b.solid, { id: at + '_b' }) : null) : b.brep;
   if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: booleanPolyhedra(A, B, op, { id: at }) };
@@ -818,7 +853,7 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
   const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
   try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at }) }; }
   catch (cause) {
-    if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+    if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
     throw cause;
   }
 }
@@ -949,7 +984,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   });
   // Consecutive pieces meet in a cross-section, each on its side of its plane: they are glued there,
   // exactly, unless pieces further apart may touch (then they are united by a Boolean).
-  const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of f.surface.controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
+  const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of nurbsOf(f).controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
   const boxes = pieces.map(box), apart = (i: number, j: number) => [0, 1, 2].some(k => boxes[i].hi[k] < boxes[j].lo[k] - 1e-6 || boxes[j].hi[k] < boxes[i].lo[k] - 1e-6);
   const separate = pieces.every((_, i) => pieces.every((__, j) => j <= i + 1 || apart(i, j)));
   let body = pieces[0];
@@ -988,7 +1023,7 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
     catch (cause) {
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
       if (m) fail('CAPABILITY', m[1]);
-      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
       throw cause;
     }
   }
@@ -1184,6 +1219,8 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
   // tool (finishBrepEdges).
   const brep = brepOf(part, 'target'), byName = new Map(brep.edges.map(e => [e.name, e]));
+  // (F0: a mesh body's region edges cannot be rounded yet; its names would not survive the planar path.)
+  if (brep.faces.some(isFacetFace)) fail('CAPABILITY', `${kind} on mesh faces arrives with F1/F2`);
   const vertical: { x: number; y: number; z0: number; z1: number; name: string }[] = [], wedges: Brep['edges'][number][] = [], general: string[] = [];
   for (const name of names) {
     const e = byName.get(name);
@@ -1274,7 +1311,7 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const P = edge.curve.controlPoints[0], Q = edge.curve.controlPoints[1], e = unit(sub(Q, P));
   const sides = uses.map(c => {
     const f = faceOf(c.loop), s = f.surface;
-    if (!(s.degreeU === 1 && s.degreeV === 1)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need planar faces`);
+    if (s.kind !== 'surface' || !(s.degreeU === 1 && s.degreeV === 1)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need planar faces`);
     const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = cross(sub(p10, p00), sub(p01, p00)), n = unit(f.sense === 'forward' ? n0 : [-n0[0], -n0[1], -n0[2]]);
     const dir: Point = c.sense === 'forward' ? e : [-e[0], -e[1], -e[2]];
     return { n, w: unit(cross(n, dir)) }; // w: into the face, perpendicular to the edge

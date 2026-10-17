@@ -3,7 +3,7 @@
 // as it ends (time, heap, sizes, or the error it stopped at), so a step that hangs is told by the runner.
 // Run through scripts/bench-mesh.mjs (one fixture per process, for its peak memory): pnpm bench:mesh.
 import { serialize } from 'node:v8';
-import { booleanPolyhedra, brepFromTriangles, brepMassProperties, CadPartLimits, encodeBinaryStl, readStl, type Brep } from '@barocss/cad';
+import { booleanPolyhedra, brepFromTriangles, brepMassProperties, CadPartLimits, encodeBinaryStl, facetBrepFromTriangles, readStl, type Brep } from '@barocss/cad';
 import { bodyMesh, type DisplayMesh } from '../../src/engine/mesh';
 import { meshInMM } from '../../src/engine/meshImport';
 import { prepareGeometry, rayTriangles, type PreparedGeometry } from '../../../../packages/barocss-gpu/src/viewer/geometry';
@@ -43,7 +43,12 @@ const soup = step('readStl', () => readStl(file), p => ({ vertices: p.length / 3
 const welded = soup && step('weld to mm (studio)', () => meshInMM({ positions: soup, indices: null }, 'mm'), m => ({ vertices: m.positions.length / 3 }));
 // The studio's mesh feature refuses more than CadPartLimits.meshTriangles; the harness goes past it to see what follows.
 console.log(JSON.stringify({ step: 'studio limit', ok: triangles <= CadPartLimits.meshTriangles, info: true, error: triangles <= CadPartLimits.meshTriangles ? undefined : `${triangles} triangles > CadPartLimits.meshTriangles ${CadPartLimits.meshTriangles} (raised in this harness only)` }));
-const brep = welded && step('brepFromTriangles', () => brepFromTriangles(welded.positions, welded.indices, { id: 'm', maximumTriangles: 4_000_000 }), b => ({ faces: b.faces.length, edges: b.edges.length, vertices: b.vertices.length }));
+// (MESH_REP=facets: the F0 facet faces instead of a planar face per flat group.)
+const facets = process.env.MESH_REP === 'facets';
+const brep = welded && (facets
+  ? step('facetBrepFromTriangles', () => facetBrepFromTriangles(welded.positions, welded.indices, { id: 'm', maximumTriangles: 4_000_000 }), b => ({ faces: b.faces.length, edges: b.edges.length, vertices: b.vertices.length }))
+  : step('brepFromTriangles', () => brepFromTriangles(welded.positions, welded.indices, { id: 'm', maximumTriangles: 4_000_000 }), b => ({ faces: b.faces.length, edges: b.edges.length, vertices: b.vertices.length })));
+if (brep && facets) step('mass (exact, facets)', () => brepMassProperties(brep, 1000), m => ({ volume: +m.volumeMM3.toFixed(3), method: m.method }));
 const display: DisplayMesh | undefined = brep ? step('display mesh (bodyMesh)', () => bodyMesh(brep, 0, 8), m => ({ triangles: m.indices.length / 3, vertices: m.positions.length / 3, faces: m.faces.length, edgeSegments: m.edgeLines.length / 6 })) : (skip('display mesh (bodyMesh)', 'no B-rep'), undefined);
 let gpu: PreparedGeometry | undefined;
 if (display) {
@@ -62,7 +67,7 @@ if (display) {
   step('STL export', () => encodeBinaryStl(display.positions, display.indices, name).length, n => ({ MB: +(n / 2 ** 20).toFixed(2) }));
 }
 // (MESH_BOOLEANS=both|union|split|none; by default not tried past 50k triangles: a 5k mesh's union already takes about a minute.)
-const booleans = process.env.MESH_BOOLEANS ?? (triangles > 50_000 ? 'none' : 'both');
+const booleans = process.env.MESH_BOOLEANS ?? (triangles > 50_000 || facets ? 'none' : 'both');
 if (booleans === 'none' && !process.env.MESH_BOOLEANS) { skip('union with a box', 'not tried past 50k triangles (MESH_BOOLEANS=both to force)'); skip('split at y = mid (one side)', 'not tried past 50k triangles'); }
 if (brep && booleans !== 'none') {
   // A box through the ring's wall (union), and half the body cut away (a split at y = 0, one side).
