@@ -95,7 +95,11 @@ function side(loop: TrimLoop, u: number, v: number, su: number, sv: number): num
 /** Whether (u, v) is kept by every loop. */
 export function kept(loops: readonly TrimLoop[], s: Surface, u: number, v: number): boolean {
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s);
-  for (const l of loops) if (side(l, u, v, u1 - u0, v1 - v0) < 0) return false;
+  return keptAt(loops, u, v, u1 - u0, v1 - v0);
+}
+/** kept() for a domain of spans su × sv already known (in a loop over one surface). */
+export function keptAt(loops: readonly TrimLoop[], u: number, v: number, su: number, sv: number): boolean {
+  for (const l of loops) if (side(l, u, v, su, sv) < 0) return false;
   return true;
 }
 /** The loops' signed distance at (u, v): the least of them (negative where any cuts the point away). */

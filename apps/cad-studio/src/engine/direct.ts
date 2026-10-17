@@ -7,11 +7,11 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, surfaceEvaluator, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 import { approximateCurve, interpolateSurface, removeCurveKnot } from './fit';
 import { curvesSource, surfacesSource } from './curveSource';
-import { kept, projectLoop, trimmedMesh, type TrimLoop } from './trim';
+import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 
 export interface DirectObject {
   id: string; name: string; source: string; geometry: string; hidden?: boolean;
@@ -433,18 +433,19 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
       if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
     }
     // Isocurves: u = const and v = const at eight steps across each domain (ends included).
-    const dom = surfaceDomain(g), iso: number[] = [], N = 32;
+    // (Redrawn on every pole drag step: one evaluator, validated once, for all its samples.)
+    const dom = surfaceDomain(g), at = surfaceEvaluator(g), iso: number[] = [], N = 32, su = dom.u[1] - dom.u[0], sv = dom.v[1] - dom.v[0];
     for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
       const c = a[0] + (a[1] - a[0]) * k / 7;
       let prev: readonly number[] | null = null;
       let was = true;
       for (let i = 0; i <= N; i++) {
-        const t = b[0] + (b[1] - b[0]) * i / N, uv = fixU ? [c, t] : [t, c], q = evaluateSurface(g, uv[0], uv[1]), keep = !trims || kept(trims, g, uv[0], uv[1]);
+        const t = b[0] + (b[1] - b[0]) * i / N, u = fixU ? c : t, v = fixU ? t : c, q = at(u, v), keep = !trims || keptAt(trims, u, v, su, sv);
         if (prev && keep && was) iso.push(...prev, ...q); prev = q; was = keep;
       }
     }
     // The trim loops' edges on the surface.
-    for (const l of trims ?? []) for (let k = 0; k < l.uv.length; k++) { const a = l.uv[k], b = l.uv[(k + 1) % l.uv.length]; iso.push(...evaluateSurface(g, a[0], a[1]), ...evaluateSurface(g, b[0], b[1])); }
+    for (const l of trims ?? []) for (let k = 0; k < l.uv.length; k++) { const a = l.uv[k], b = l.uv[(k + 1) % l.uv.length]; iso.push(...at(a[0], a[1]), ...at(b[0], b[1])); }
     return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl), isos: new Float32Array(iso) }];
   } catch { return []; }
 }
