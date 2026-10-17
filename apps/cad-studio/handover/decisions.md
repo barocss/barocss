@@ -305,8 +305,18 @@ Oracles:
 Known, for RB5 (`robustness/todo.json`):
 - Within 1–30 tolerances of the wall, X- and Y-turned boxes refuse (typed: the sliver is thinner than the
   stitch's 20-tolerance vertex merge).
-- At 1 nm, X at 30° and 45° return a body that fails strict L0 (loops cross; 534 mm³ against 253 mm³). It is
-  not refused, because the strict check costs as much as the Boolean.
+- At 1 nm, X at 30° and 45° return a body that fails strict L0 (loops cross; 534 mm³ against 253 mm³). This is
+  RB5's first item.
+
+  A guard was tried after review (owner's delegate): the strict loop and edge-on-surface checks on the
+  Boolean's cut faces only, with an analytic chart for cylinder pieces. It cost 1–2% of Boolean time (the
+  16-hole plate; the corpus), but it was not adopted:
+  - L0's "cross or touch" also refuses results the kernel accepts on purpose: cylinder walls touching from
+    inside, schema-1 seams, shell slabs (4 kernel tests).
+  - Counting proper crossings only misses this case.
+
+  A discriminating check is needed, such as each cut face's vector area from its loops against its piece's
+  region, or tolerant stitching.
 - Two random X-turned grazes at 10 µm and 1 µm refuse (an edge with one use).
 - A 10 µm lens's tessellation folds: two faces share a diagonal; it has no crack.
 

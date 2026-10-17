@@ -392,8 +392,12 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
   - 100 nm slivers refused as cavities;
   - sliver planes tilted in STEP;
   - a tessellation frame flipping at 45° (one face of crossed cylinders inside out).
-- Left for RB5 (`robustness/todo.json`): grazes within 1–30 tolerances refuse or (1 nm) return an invalid body;
-  two random 10 µm and 1 µm X-turned grazes refuse; a 10 µm lens's mesh folds.
+- Left for RB5 (`robustness/todo.json`):
+  - **First item:** the 1 nm graze returns an invalid body (534 mm³ against 253 mm³). A cut-face strict guard
+    was tried and is not adopted: it refuses valid touching walls (D25).
+  - Grazes within 3–30 tolerances refuse.
+  - Two random 10 µm and 1 µm X-turned grazes refuse.
+  - A 10 µm lens's mesh folds.
 
 **Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 

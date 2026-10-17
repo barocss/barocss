@@ -3,19 +3,19 @@
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
     "stage": "validate",
     "status": "INVALID",
-    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
+    "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³ — returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1–2% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
   },
   {
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
     "stage": "tessellate",
     "status": "INVALID",
-    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
+    "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³ — returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1–2% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
   },
   {
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
     "stage": "expect",
     "status": "WRONG",
-    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
+    "note": "D25 (RB5, first item): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³ — returned, not refused. A guard was tried (2026-10-18): the strict loop and edge-on-surface checks on the Boolean's cut faces only, with an analytic cylinder chart, cost 1–2% of Boolean time, but L0's 'cross or touch' also refuses results the kernel accepts on purpose (cylinder walls touching from inside, schema-1 seams, shell slabs), and proper crossings alone miss this case. Needs a discriminating check (e.g. each cut face's vector area from its loops against its piece's) or tolerant stitching."
   },
   {
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
