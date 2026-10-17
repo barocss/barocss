@@ -1438,6 +1438,34 @@ try {
     await snap('fastener');
   });
 
+  await check('fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await field('Diameter').fill('6.6'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
+    await press('Escape');
+    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    // Over the hole's wall (whichever side faces the eye): the fitted bolt follows.
+    let fitted = false;
+    for (const p of [[32 - 3.2, 16, 4], [32 + 3.2, 16, 4], [32, 16 - 3.2, 4], [32, 16 + 3.2, 4]]) {
+      const [sx, sy] = await page.evaluate(q => window.__studioScreenOf(q), p);
+      await page.mouse.move(sx - 3, sy); await page.mouse.move(sx, sy); await page.waitForTimeout(250);
+      if (await field('Joint').inputValue().catch(() => '') === 'nut') { await page.mouse.click(sx, sy); fitted = true; break; }
+    }
+    assert.ok(fitted, 'a hole wall under the pointer');
+    await hudReady(); await page.waitForTimeout(300);
+    const hud = await page.evaluate(() => document.body.innerText);
+    assert.match(hud, /ISO 273 medium/); assert.match(hud, /M6×1 /); assert.match(hud, /washer \+ nut: needs 16\.8 mm/);
+    await snap('fastener-joint'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.command === 'fastener', null, { timeout: 15000 }); await idle();
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.match(await page.locator('.outliner').innerText(), /Nut ISO 4032 M6/);
+  });
+
   await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

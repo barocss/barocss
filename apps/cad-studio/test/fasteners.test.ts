@@ -4,7 +4,7 @@ import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { editCommand } from '../src/app/editCommand';
-import { FASTENER_SIZES, fastenerName, fastenerThread } from '../src/app/fasteners';
+import { FASTENER_SIZES, fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '../src/app/fasteners';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const f = commands.find(c => c.id === 'fastener')!;
@@ -38,7 +38,7 @@ test('a placed bolt edits as itself (five steps rebuilt in place); lengths follo
   assert.equal(next.nodes.length, doc.nodes.length);
   assert.equal(bodiesOf(next)[0].mesh.bounds.min[2], -40);
   assert.equal(f.derive!(ctx, { ...f.defaults!(ctx), size: 'M3', length: '80' }, ['size']).length, '30');
-  assert.throws(() => f.build!(ctx, { ...f.defaults!(ctx), size: 'M3', length: '80' }), /come 5–30 mm long/);
+  assert.throws(() => f.build!(ctx, { ...f.defaults!(ctx), size: 'M3', length: '80' }), /come 6–30 mm long/);
 });
 
 test('a bolt edited into a nut: fewer steps, and the features after it follow', async () => {
@@ -52,4 +52,51 @@ test('a bolt edited into a nut: fewer steps, and the features after it follow', 
   assert.deepEqual((next.nodes[2] as { parent: { node: number } }).parent.node, 1);
   const [nut] = bodiesOf(next);
   assert.equal(Math.round(nut.mesh.bounds.min[0] + nut.mesh.bounds.max[0]), 100, 'still moved 50 along X');
+});
+
+test('fastener data: ISO 4017 and ISO 4762 lengths apart, ISO 273 clearance and tap drills; a hole tells its size', () => {
+  const m6 = FASTENER_SIZES.M6;
+  assert.deepEqual([lengthsOf('hex-bolt', m6)[0], lengthsOf('socket-screw', m6)[0], lengthsOf('socket-screw', FASTENER_SIZES.M3)[0]], [12, 10, 5]);
+  assert.deepEqual(FASTENER_SIZES.M8.clearance, [8.4, 9, 10]);
+  assert.deepEqual(holeFit(m6, 6.6), { fit: 'clearance', series: 'medium' });
+  assert.deepEqual(holeFit(m6, 5), { fit: 'tapped' });
+  assert.deepEqual([holeFit(m6, 6), holeFit(m6, 8)], [{ fit: 'tight' }, { fit: 'loose' }]);
+  assert.deepEqual(sizeForHole(6.6), { size: 'M6', fit: { fit: 'clearance', series: 'medium' } });
+  assert.deepEqual(sizeForHole(5)?.size, 'M6', 'the M6 tap drill, not a loose M4');
+  assert.deepEqual(sizeForHole(9), { size: 'M8', fit: { fit: 'clearance', series: 'medium' } });
+  assert.equal(sizeForHole(40), null);
+});
+
+test('placed at a through hole a bolt takes washer and nut, sized and long enough; at a tap drill it is tapped', () => {
+  // Ø6.6 through 10 mm: M6, washer + nut, needs 10 + 1.6 + 5.2 + 2 = 18.8 → 20.
+  const placed = f.place!(f.defaults!(ctx), [0, 0, 10], [0, 0, 1], { d: 6.6, depth: 10, through: true });
+  const v = f.derive!(ctx, placed, Object.keys(placed));
+  assert.deepEqual([v.size, v.joint, v.grip, v.length], ['M6', 'nut', 10, '20']);
+  const doc = f.build!(ctx, v), bodies = bodiesOf(doc);
+  assert.equal(bodies.length, 3, 'bolt, washer and nut');
+  const lows = bodies.map(b => Math.round(b.mesh.bounds.min[2] * 100) / 100).sort((a, b) => a - b);
+  assert.deepEqual(lows, [-10, -6.8, -1.6], 'bolt end, nut and washer below the 10 mm plate');
+  assert.equal(doc.bodies?.[`b${doc.nodes.findIndex((n, i) => n.kind === 'extrude' && i > 3)}`]?.name, 'Washer ISO 7089 6');
+  assert.ok(fastenerFit(v).every(s => s.done), JSON.stringify(fastenerFit(v)));
+  // Too short for the joint: refused, saying how long it must be.
+  assert.throws(() => f.build!(ctx, { ...v, length: '16' }), /needs 18\.8 mm/);
+  // Ø5 blind 16 mm: M6 tapped, engaging 1.5 d = 9 mm with 2 pitches clear of the bottom: 12 (the shortest ISO 4017 M6).
+  const t = f.place!(f.defaults!(ctx), [0, 0, 10], [0, 0, 1], { d: 5, depth: 16, through: false }), tv = f.derive!(ctx, t, Object.keys(t));
+  assert.deepEqual([tv.size, tv.joint, tv.length], ['M6', 'tapped', '12']);
+  assert.ok(fastenerFit(tv).every(s => s.done), JSON.stringify(fastenerFit(tv)));
+  // Only 12 mm deep: the shortest still runs to the bottom — kept, and flagged.
+  const t2 = f.place!(f.defaults!(ctx), [0, 0, 10], [0, 0, 1], { d: 5, depth: 12, through: false }), tv2 = f.derive!(ctx, t2, Object.keys(t2));
+  assert.equal(tv2.length, '12'); assert.equal(fastenerFit(tv2).at(-1)!.done, false);
+  assert.equal(bodiesOf(f.build!(ctx, tv)).length, 1);
+  // A tapped joint in a clearance hole is flagged.
+  assert.equal(fastenerFit({ ...v, joint: 'tapped' })[0].done, false);
+});
+
+test('a bolt with washer and nut placed in a side hole turns as one: all three stand out of the face', () => {
+  const placed = f.place!(f.defaults!(ctx), [10, 0, 5], [1, 0, 0], { d: 6.6, depth: 10, through: true });
+  const v = f.derive!(ctx, placed, Object.keys(placed)), doc = f.build!(ctx, v), bodies = bodiesOf(doc);
+  assert.equal(bodies.length, 3);
+  for (const b of bodies) assert.ok(b.mesh.bounds.max[2] - b.mesh.bounds.min[2] < 13, 'turned onto X');
+  assert.ok(bodies.every(b => b.mesh.bounds.min[0] < 10.01), 'below the seat along X');
+  assert.equal(doc.nodes.at(-1)?.kind, 'rotate'); assert.equal((doc.nodes.at(-1) as { made?: { command: string } }).made?.command, 'fastener');
 });

@@ -528,7 +528,7 @@ export function App() {
         cur = { cmd: dragged, values: dragged.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, placing: true };
       }
       if (!spot || !cur.cmd.place) return done ? { ...cur, placing: false } : cur;
-      const placed = cur.cmd.place(cur.values, spot.point, spot.normal), same = Object.keys(placed).every(k => placed[k] === cur.values[k]);
+      const placed = cur.cmd.place(cur.values, spot.point, spot.normal, spot.hole), same = Object.keys(placed).every(k => placed[k] === cur.values[k]);
       if (same) return done ? { ...cur, placing: false } : cur;
       return { ...cur, values: patchValues(cur.cmd, cur.ctx, cur.values, placed), preview: 'busy', ...(done ? { placing: false } : {}) };
     });

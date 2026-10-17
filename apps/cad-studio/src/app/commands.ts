@@ -5,7 +5,7 @@ import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
-import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
+import { leafBodies, withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 
@@ -44,8 +44,9 @@ export interface Command {
   /**
    * A new shape placed with the pointer before it is sized: the values that stand it at `point` (on the
    * ground or an upward face). Starting it puts it under the pointer; a click (or a drop from the rail) sets it.
+   * `hole`: placed at a round hole's rim (its diameter, depth and whether it runs through).
    */
-  place?(values: Values, point: [number, number, number], normal?: [number, number, number]): Values;
+  place?(values: Values, point: [number, number, number], normal?: [number, number, number], hole?: PlacedHole): Values;
   /** Values that follow others (a move's Δ and the position it lands at): `changed` are the keys just set. */
   derive?(ctx: Ctx, values: Values, changed: readonly string[]): Values;
 }
@@ -195,6 +196,7 @@ const edgeSteps = (ctx: Ctx) => {
 };
 
 type V3 = [number, number, number];
+export interface PlacedHole { d: number; depth: number; through: boolean }
 /** Which way a placed shape stands (`up`: +z as built, or ±x, ±y, −z out of a side or lower face). */
 const upOf = (n: readonly number[]) => { const k = [0, 1, 2].reduce((b, i) => Math.abs(n[i]) > Math.abs(n[b]) ? i : b, 2); return (n[k] < 0 ? '-' : '+') + 'xyz'[k]; };
 /** The turn that takes the shape's +Z onto `up` (a quarter or half turn about X or Y), or null for +Z. */
@@ -214,11 +216,13 @@ function oriented(cmd: Command): Command {
   const base = (ctx: Ctx, v: Values): V3 => { const p = cmd.handles?.(ctx, { ...v, up: '+z' }).find(h => h.pair); return p ? [...p.at] as V3 : [Number(v.x), Number(v.y), Number(v.z)]; };
   return {
     ...cmd,
-    place: (v, point, normal) => ({ ...cmd.place!(v, point, normal), up: normal ? upOf(normal) : '+z' }),
+    place: (v, point, normal, hole) => ({ ...cmd.place!(v, point, normal, hole), up: normal ? upOf(normal) : '+z' }),
     build: (ctx, v) => {
       const doc = cmd.build!(ctx, v), t = TURNS[String(v.up ?? '+z')];
       if (!t) return doc;
-      return withNode(doc, { kind: 'rotate', parent: { node: doc.nodes.length - 1, side: 'solid' }, axis: t.axis, angleDegrees: t.deg, pivot: base(ctx, v) });
+      // Every body it makes turns (a bolt's nut and washer too); the last node's, the one remembered, last.
+      const last = doc.nodes.length - 1, made = leafBodies(doc.nodes).filter(r => r.node >= ctx.doc.nodes.length && r.side === 'solid').map(r => r.node).sort((a, b) => (a === last ? 1 : 0) - (b === last ? 1 : 0));
+      return made.reduce((d, node) => withNode(d, { kind: 'rotate', parent: { node, side: 'solid' }, axis: t.axis, angleDegrees: t.deg, pivot: base(ctx, v) }), doc);
     },
     handles: cmd.handles && ((ctx, v) => {
       const hs = cmd.handles!(ctx, v), up = String(v.up ?? '+z'), t = TURNS[up]; if (!t) return hs;

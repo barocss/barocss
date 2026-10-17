@@ -68,7 +68,8 @@ export interface ViewportHandle {
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
-export interface Spot { point: Vec3; normal: Vec3 }
+/** `hole`: placed at a round hole's rim — its diameter, its depth along the axis, and whether it runs through the body. */
+export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: number; through: boolean } }
 
 interface Props {
   bodies: BodyResult[];
@@ -301,11 +302,36 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     return { project, forward, size: GIZMO_PX / perMm };
   };
   const sk0 = () => propsRef.current.sketch;
+  /** The nearest face under a pixel among the bodies not in `skip` (a ray through their triangles). */
+  const pickThrough = (x: number, y: number, w: number, h: number, skip: ReadonlySet<string>): FaceRef | null => {
+    const { origin: o, dir: d } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
+    let best: FaceRef | null = null, tBest = Infinity;
+    propsRef.current.bodies.forEach((b, bi) => {
+      if (skip.has(b.key) || propsRef.current.hiddenBodies?.has(bi)) return;
+      const { min, max } = b.mesh.bounds; let t0 = 0, t1 = tBest;
+      for (let k = 0; k < 3; k++) { if (Math.abs(d[k]) < 1e-12) { if (o[k] < min[k] || o[k] > max[k]) return; continue; } let a = (min[k] - o[k]) / d[k], c = (max[k] - o[k]) / d[k]; if (a > c) [a, c] = [c, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, c); if (t0 > t1) return; }
+      const P = b.mesh.positions, I = b.mesh.indices;
+      for (let t = 0; t < I.length; t += 3) {
+        const i0 = I[t] * 3, i1 = I[t + 1] * 3, i2 = I[t + 2] * 3;
+        const e1 = [P[i1] - P[i0], P[i1 + 1] - P[i0 + 1], P[i1 + 2] - P[i0 + 2]], e2 = [P[i2] - P[i0], P[i2 + 1] - P[i0 + 1], P[i2 + 2] - P[i0 + 2]];
+        const q = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * q[0] + e1[1] * q[1] + e1[2] * q[2];
+        if (Math.abs(det) < 1e-12) continue;
+        const sv = [o[0] - P[i0], o[1] - P[i0 + 1], o[2] - P[i0 + 2]], u = (sv[0] * q[0] + sv[1] * q[1] + sv[2] * q[2]) / det; if (u < 0 || u > 1) continue;
+        const r2 = [sv[1] * e1[2] - sv[2] * e1[1], sv[2] * e1[0] - sv[0] * e1[2], sv[0] * e1[1] - sv[1] * e1[0]], v = (d[0] * r2[0] + d[1] * r2[1] + d[2] * r2[2]) / det; if (v < 0 || u + v > 1) continue;
+        const tt = (e2[0] * r2[0] + e2[1] * r2[1] + e2[2] * r2[2]) / det;
+        if (tt > 1e-6 && tt < tBest) { tBest = tt; best = { body: bi, face: b.mesh.faceOfVertex[I[t]] }; }
+      }
+    });
+    return best;
+  };
   /** Where a shape being placed stands under a pixel (to 1 mm): an upward face, else the plane last stood on, else the ground. */
   const lastSpot = useRef<Spot | null>(null);
   const spotAt = (x: number, y: number, w: number, h: number): Spot | null => {
     const r = renderer.current; if (!r) return null;
-    const p = propsRef.current, face = r.pickFace(x, y, camera.current, viewState());
+    const p = propsRef.current;
+    let face = r.pickFace(x, y, camera.current, viewState());
+    // The shape being placed is looked through (to the hole or face behind it), unless it is fitted to a hole.
+    if (face && p.placeSkip?.has(p.bodies[face.body]?.key) && !lastSpot.current?.hole) face = pickThrough(x, y, w, h, p.placeSkip) ?? face;
     const body = face ? p.bodies[face.body] : undefined, f = body?.mesh.faces[face!.face];
     const mm = snap;
     let spot: Spot | null = null;
@@ -320,9 +346,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         if (c) {
           const eye = camera.current.eye(), mid = [0, 1, 2].map(i => (c.lo[i] + c.hi[i]) / 2) as Vec3, up = eye[c.k] >= mid[c.k] ? 1 : -1;
           const point = [...mid] as Vec3; point[c.k] = up > 0 ? c.hi[c.k] : c.lo[c.k];
-          const n: Vec3 = [0, 0, 0]; n[c.k] = up; spot = { point, normal: n };
+          const n: Vec3 = [0, 0, 0]; n[c.k] = up; spot = { point, normal: n, ...(c.hole ? { hole: { d: Math.round(f.radius * 2000) / 1000, depth: Math.round((c.hi[c.k] - c.lo[c.k]) * 1000) / 1000, through: up > 0 ? c.through.lo : c.through.hi } } : {}) };
         }
       }
+    } else if (f && lastSpot.current?.hole) {
+      // Over the shape fitted to a hole: it stays in that hole (moving off the shape lets it go).
+      spot = lastSpot.current;
     } else if (f && lastSpot.current) {
       // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
       const ls = lastSpot.current, k = ls.normal.findIndex(v => v !== 0), { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
@@ -336,15 +365,33 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
    * A round hole's (or boss's) axis along X, Y or Z, when its vertices span a full circle of `r` across it:
    * its middle, both ends along the axis, and which axis.
    */
-  const roundAxes = useRef(new WeakMap<object, Map<number, { lo: Vec3; hi: Vec3; k: number } | null>>());
-  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): { lo: Vec3; hi: Vec3; k: number } | null => {
+  type RoundAxis = { lo: Vec3; hi: Vec3; k: number; hole: boolean; through: { lo: boolean; hi: boolean } };
+  const roundAxes = useRef(new WeakMap<object, Map<number, RoundAxis | null>>());
+  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): RoundAxis | null => {
     let byFace = roundAxes.current.get(mesh); if (!byFace) roundAxes.current.set(mesh, byFace = new Map());
     if (byFace.has(face)) return byFace.get(face)!;
     const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === face) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], mesh.positions[v * 3 + k]); hi[k] = Math.max(hi[k], mesh.positions[v * 3 + k]); }
     const across = (k: number) => Math.abs(hi[k] - lo[k] - 2 * r) < 0.02 * r + 1e-3;
     const k = [2, 0, 1].find(a => [0, 1, 2].filter(i => i !== a).every(across)), round = (v: number) => Math.round(v * 1000) / 1000;
-    const out = k === undefined ? null : { lo: lo.map(round) as Vec3, hi: hi.map(round) as Vec3, k };
+    if (k === undefined) { byFace.set(face, null); return null; }
+    const P = mesh.positions, mid = [0, 1, 2].map(i => (lo[i] + hi[i]) / 2);
+    // A hole, not a boss: its wall's normals point in to the axis.
+    let v0 = 0; while (v0 < mesh.faceOfVertex.length && mesh.faceOfVertex[v0] !== face) v0++;
+    const hole = [0, 1, 2].reduce((t, i) => i === k ? t : t + mesh.normals[v0 * 3 + i] * (P[v0 * 3 + i] - mid[i]), 0) < 0;
+    // Through at an end when no face of the body closes it there: no triangle across the axis at that end.
+    const closed = (at: number) => {
+      const [a, b] = [0, 1, 2].filter(i => i !== k), I = mesh.indices, q = [mid[a], mid[b]];
+      for (let t = 0; t < I.length; t += 3) {
+        const tri = [I[t], I[t + 1], I[t + 2]];
+        if (!tri.every(v => Math.abs(P[v * 3 + k] - at) < 1e-4)) continue;
+        const [p0, p1, p2] = tri.map(v => [P[v * 3 + a], P[v * 3 + b]]), side = (u: number[], w: number[]) => (w[0] - u[0]) * (q[1] - u[1]) - (w[1] - u[1]) * (q[0] - u[0]);
+        const s0 = side(p0, p1), s1 = side(p1, p2), s2 = side(p2, p0);
+        if ((s0 >= 0 && s1 >= 0 && s2 >= 0) || (s0 <= 0 && s1 <= 0 && s2 <= 0)) return true;
+      }
+      return false;
+    };
+    const out = { lo: lo.map(round) as Vec3, hi: hi.map(round) as Vec3, k, hole, through: { lo: hole && !closed(lo[k]), hi: hole && !closed(hi[k]) } };
     byFace.set(face, out); return out;
   };
   /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
