@@ -29,11 +29,22 @@ export interface Environment {
 export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Vec3 {
   if (c === undefined) return fallback;
   if (typeof c !== 'string') return c;
-  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
-  if (!m) throw new RangeError(`Not a hex colour: ${c}`);
-  const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
-  return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255) as unknown as Vec3;
+  // (Frames ask for the lights' and environment's colours every time: each string is read once; a copy is
+  // handed out.)
+  let v = parsed.get(c);
+  if (!v) {
+    const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
+    if (!m) throw new RangeError(`Not a hex colour: ${c}`);
+    const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
+    v = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255) as unknown as Vec3;
+    if (parsed.size >= 256) parsed.clear();
+    parsed.set(c, v);
+  }
+  return [v[0], v[1], v[2]];
 }
+const parsed = new Map<string, Vec3>();
+/** Writes x, y, z, w at o. */
+const put4 = (f: Float32Array, o: number, x: number, y: number, z: number, w: number) => { f[o] = x; f[o + 1] = y; f[o + 2] = z; f[o + 3] = w; };
 export const linear = (c: Vec3): Vec3 => [srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2])];
 
 /** The default rig: a key and a fill light from above and a soft hemisphere (Z up). */
@@ -55,34 +66,43 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
-  f.set([...camera.position, camera.projection === 'perspective' ? 1 : 0], 16);
+  const eye = camera.position; put4(f, 16, eye[0], eye[1], eye[2], camera.projection === 'perspective' ? 1 : 0);
   // (forward.w: the environment map's last mip level; up.w: its intensity, 0 without one.)
   const envLevels = env.map ? Math.floor(Math.log2(Math.max(env.map.width, env.map.height))) : 0;
-  f.set([...forward, envLevels], 20);
-  const amb = env.ambient ?? 0.3;
-  f.set([...linear(parseColor(env.sky, [0.85, 0.9, 1])), amb], 24);
-  f.set([...linear(parseColor(env.ground, [0.45, 0.42, 0.4])), amb], 28);
-  f.set([...normalize(camera.up), env.map ? env.mapIntensity ?? 1 : 0], 32);
-  const dirs = directionalLights(lights);
-  const points = lights.filter((l): l is PointLight => l.kind === 'point').slice(0, MAX_POINT);
-  const spots = lights.filter((l): l is SpotLight => l.kind === 'spot').slice(0, MAX_SPOT);
-  const caster = shadow ? dirs.findIndex(l => l.castShadow) : -1;
-  u.set([dirs.length, points.length, spots.length, caster + 1], 36);
+  put4(f, 20, forward[0], forward[1], forward[2], envLevels);
+  const amb = env.ambient ?? 0.3, sky = linear(parseColor(env.sky, [0.85, 0.9, 1])), ground = linear(parseColor(env.ground, [0.45, 0.42, 0.4])), up = normalize(camera.up);
+  put4(f, 24, sky[0], sky[1], sky[2], amb);
+  put4(f, 28, ground[0], ground[1], ground[2], amb);
+  put4(f, 32, up[0], up[1], up[2], env.map ? env.mapIntensity ?? 1 : 0);
+  const dirs = directionalLights(lights), points: PointLight[] = [], spots: SpotLight[] = [];
+  for (const l of lights) { if (l.kind === 'point' && points.length < MAX_POINT) points.push(l); else if (l.kind === 'spot' && spots.length < MAX_SPOT) spots.push(l); }
+  let caster = -1;
+  if (shadow) for (let i = 0; i < dirs.length && caster < 0; i++) if (dirs[i].castShadow) caster = i;
+  u[36] = dirs.length; u[37] = points.length; u[38] = spots.length; u[39] = caster + 1;
   let o = 40;
-  dirs.forEach((l, i) => { f.set([...normalize(l.direction), 0, ...linear(parseColor(l.color)), l.intensity ?? 1], o + i * 8); });
+  for (let i = 0; i < dirs.length; i++) {
+    const l = dirs[i], d = normalize(l.direction), c = linear(parseColor(l.color));
+    put4(f, o + i * 8, d[0], d[1], d[2], 0); put4(f, o + i * 8 + 4, c[0], c[1], c[2], l.intensity ?? 1);
+  }
   o += MAX_DIRECTIONAL * 8;
-  points.forEach((l, i) => { f.set([...l.position, l.range ?? 0, ...linear(parseColor(l.color)), l.intensity ?? 1], o + i * 8); });
+  for (let i = 0; i < points.length; i++) {
+    const l = points[i], c = linear(parseColor(l.color));
+    put4(f, o + i * 8, l.position[0], l.position[1], l.position[2], l.range ?? 0); put4(f, o + i * 8 + 4, c[0], c[1], c[2], l.intensity ?? 1);
+  }
   o += MAX_POINT * 8;
-  spots.forEach((l, i) => {
-    const outer = ((l.angle ?? 30) * Math.PI) / 180, inner = outer * (1 - Math.min(1, Math.max(0, l.penumbra ?? 0.2)));
-    f.set([...l.position, l.range ?? 0, ...normalize(l.direction), 0, ...linear(parseColor(l.color)), l.intensity ?? 1, Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0], o + i * 16);
-  });
+  for (let i = 0; i < spots.length; i++) {
+    const l = spots[i], outer = ((l.angle ?? 30) * Math.PI) / 180, inner = outer * (1 - Math.min(1, Math.max(0, l.penumbra ?? 0.2)));
+    const d = normalize(l.direction), c = linear(parseColor(l.color)), at = o + i * 16;
+    put4(f, at, l.position[0], l.position[1], l.position[2], l.range ?? 0); put4(f, at + 4, d[0], d[1], d[2], 0);
+    put4(f, at + 8, c[0], c[1], c[2], l.intensity ?? 1); put4(f, at + 12, Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0);
+  }
   o += MAX_SPOT * 16;
-  if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); f.set([shadow.normalOffset, shadow.texel, shadow.bias, 0], o + 16); }
-  f.set([...viewport, 0], o + 20);
+  if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); put4(f, o + 16, shadow.normalOffset, shadow.texel, shadow.bias, 0); }
+  put4(f, o + 20, viewport[0], viewport[1], viewport[2], 0);
   if (grid) {
     f.set(invert(viewProjection), o + 24);
-    f.set([grid.cell, grid.major, grid.fade, grid.height, ...linear(grid.color), grid.opacity], o + 40);
+    const c = linear(grid.color);
+    put4(f, o + 40, grid.cell, grid.major, grid.fade, grid.height); put4(f, o + 44, c[0], c[1], c[2], grid.opacity);
   }
   return f;
 }

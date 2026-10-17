@@ -7,6 +7,7 @@ import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
+type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformDirection, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
@@ -139,6 +140,7 @@ export class Mesh {
   private worldBox: Box3 | null | undefined;
   private _transform: Mat4 = identity();
   private _material: Required<Omit<Material, 'color' | 'map' | 'shader'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null };
+  private _params: Float32Array | null = null;
   private _visible: boolean;
   pickable: boolean;
   name: string | undefined;
@@ -182,12 +184,21 @@ export class Mesh {
     this._transform = Float64Array.from(m); this.worldBox = undefined; this.touch();
   }
   get material(): Readonly<Material> { return this._material; }
-  set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this.touch(); }
-  /** @internal The 64 bytes of a shader material's parameters. */
+  set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this._params = null; this.touch(); }
+  /**
+   * @internal The 64 bytes of a shader material's parameters: the same array while they stay the same (they
+   * are read every frame, so a params array changed in place is still seen), a new one when they change.
+   */
   shaderParams(): Float32Array {
-    const out = new Float32Array(16), p = this._material.shader?.params;
+    const p = this._material.shader?.params, have = this._params;
+    if (have) {
+      let same = !p || p.length <= 16;
+      for (let i = 0; same && i < 16; i++) same = have[i] === Math.fround(p && i < p.length ? p[i] : 0);
+      if (same) return have;
+    }
+    const out = new Float32Array(16);
     if (p) { if (p.length > 16) throw new RangeError('A shader material has at most 16 params'); for (let i = 0; i < p.length; i++) out[i] = p[i]; }
-    return out;
+    return this._params = out;
   }
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
@@ -336,8 +347,11 @@ export class Viewer {
   private shaderCode = new WeakMap<ShaderMaterial, string>();
   /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
   private frameBox: { box: Box3 | null } | null = null;
-  /** What the shadow map was last drawn from (light, casters and their placement): unchanged, it is kept. */
-  private shadowDrawn = '';
+  /** What the shadow map was last drawn from (device, size, light view, each caster), as numbers: unchanged, it is kept. */
+  private shadowDrawn: number[] = [];
+  private shadowNext: number[] = [];
+  /** The frame's shadow casters (a list kept from frame to frame). */
+  private casterList: Mesh[] = [];
   private ids = new WeakMap<object, number>();
   private nextObjectId = 1;
   private idOf(o: object): number { let i = this.ids.get(o); if (i === undefined) { i = this.nextObjectId++; this.ids.set(o, i); } return i; }
@@ -355,9 +369,10 @@ export class Viewer {
   private objectGroup!: BindGroup;
   private objectCapacity = 0;
   private objectData = new Float32Array(0);
-  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; output: BindGroup } | null = null;
+  // (Their views made once with them: a frame reuses them.)
+  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View } } | null = null;
   private outputBuffer!: Buffer;
-  private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer } | null = null;
+  private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
   private meshes: Mesh[] = [];
   private freeSlots: number[] = [];
   private nextSlot = 0;
@@ -661,7 +676,7 @@ export class Viewer {
     if (!mat.shader) { m.materialState?.params.destroy(); m.materialState = null; return this.mapGroup(mat.map ?? null); }
     const map = mat.map && !mat.map.disposed ? mat.map : null, data = m.shaderParams(), st = m.materialState;
     if (st && st.device === this.device && st.map === map) {
-      if (st.data.some((v, i) => v !== data[i])) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
+      if (st.data !== data) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
       return st.group;
     }
     st?.params.destroy();
@@ -790,8 +805,9 @@ export class Viewer {
     const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer depth' });
     const mask = this.device.createTexture({ size: [w, h], format: 'r32uint', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer outline mask' });
     const maskDepth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer outline depth' });
+    const views = { msaa: msaa ? msaa.createView() : null, scene: scene.createView(), depth: depth.createView(), mask: mask.createView(), maskDepth: maskDepth.createView() };
     const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }] });
-    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, output };
+    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, output, views };
     return this.targets;
   }
 
@@ -910,13 +926,31 @@ export class Viewer {
     this.drawTriangles(pass, m, !pick);
   }
 
+  /** The grid, drawn in the main pass after the opaque surfaces. */
+  private drawGrid(pass: RenderPass, current: { pipeline?: Pipeline }): void {
+    pass.setPipeline(this.pipelines.get('grid')!); pass.setBindGroup(1, this.objectGroup, [0]); current.pipeline = undefined; pass.draw(3);
+  }
+  /** Whether the shadow map must be drawn again: the light's view or a caster changed since it was (recorded when so). */
+  private shadowChanged(viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
+    const k = this.shadowNext; k.length = 0;
+    k.push(this.idOf(this.device), this.shadowMapSize);
+    for (let i = 0; i < viewProjection.length; i++) k.push(viewProjection[i]);
+    for (const m of casters) { k.push(m.slot, this.idOf(m.geometry), m.geometry.gpu ? 1 : 0, m.instances ? this.idOf(m.instances) : 0); for (let i = 0; i < m.transform.length; i++) k.push(m.transform[i]); }
+    const was = this.shadowDrawn;
+    let same = was.length === k.length;
+    for (let i = 0; same && i < k.length; i++) same = was[i] === k[i];
+    if (same) return false;
+    this.shadowDrawn = k; this.shadowNext = was;
+    return true;
+  }
   /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
   private outlineColors(): Vec3[] {
-    const colors: Vec3[] = [], key = (c: Vec3) => c.join(',');
+    const colors: Vec3[] = [];
     for (const m of this.meshes) {
       let slot = 0;
       if (m.outline && m.visible) {
-        let i = colors.findIndex(c => key(c) === key(m.outline!));
+        const o = m.outline; let i = -1;
+        for (let k = 0; k < colors.length && i < 0; k++) if (colors[k][0] === o[0] && colors[k][1] === o[1] && colors[k][2] === o[2]) i = k;
         if (i < 0 && colors.length < MAX_OUTLINES) { colors.push(m.outline); i = colors.length - 1; }
         slot = (i < 0 ? colors.length - 1 : i) + 1;
       }
@@ -938,19 +972,18 @@ export class Viewer {
       this.shadowMap?.destroy();
       this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow map' });
       this.bindFrames();
-      this.shadowDrawn = '';
+      this.shadowDrawn.length = 0;
     }
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
     this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame())));
-    const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.scene.createView();
+    const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
-    const casters = shadow ? this.meshes.filter(m => m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') : [];
-    const drawnFrom = shadow ? [this.idOf(this.device), this.shadowMapSize, ...shadow.viewProjection, ...casters.flatMap(m => [m.slot, this.idOf(m.geometry), m.geometry.gpu ? 1 : 0, m.instances ? this.idOf(m.instances) : 0, ...m.transform])].join(',') : '';
-    if (shadow && this.shadowMap && drawnFrom !== this.shadowDrawn) {
-      this.shadowDrawn = drawnFrom;
+    const casters = this.casterList; casters.length = 0;
+    if (shadow) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
+    if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
       sp.setBindGroup(0, this.shadowFrameGroup);
@@ -963,32 +996,31 @@ export class Viewer {
       sp.end();
     }
     const pass = enc.beginRenderPass({
-      colorAttachments: [{ view: targets.msaa ? targets.msaa.createView() : sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
+      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
       // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
-      depthStencilAttachment: { view: targets.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
+      depthStencilAttachment: { view: targets.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
     });
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
     let tris = 0, lines = 0;
     // Opaque surfaces, the grid (tested against them), then lines and transparent meshes over it.
     let gridDrawn = !this.grid.visible;
-    const grid = () => { pass.setPipeline(this.pipelines.get('grid')!); pass.setBindGroup(1, this.objectGroup, [0]); current.pipeline = undefined; pass.draw(3); gridDrawn = true; };
-    for (const m of [...opaque, ...transparent]) {
-      if (!gridDrawn && (m.geometry.topology === 'lines' || m.transparent)) grid();
+    for (const list of [opaque, transparent]) for (const m of list) {
+      if (!gridDrawn && (m.geometry.topology === 'lines' || m.transparent)) { this.drawGrid(pass, current); gridDrawn = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
     }
-    if (!gridDrawn) grid();
+    if (!gridDrawn) this.drawGrid(pass, current);
     pass.end();
     if (outlines.length) {
       // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
       const mask = enc.beginRenderPass({
-        colorAttachments: [{ view: targets.mask.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
-        depthStencilAttachment: { view: targets.maskDepth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+        colorAttachments: [{ view: targets.views.mask, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+        depthStencilAttachment: { view: targets.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
       });
       mask.setBindGroup(0, this.frameGroup);
       const cur: { pipeline?: Pipeline } = {};
-      for (const m of [...opaque, ...transparent]) if (m.geometry.topology === 'triangles' && (!m.transparent || m.outlineSlot)) this.drawMesh(mask, m, cur, 'mask');
+      for (const list of [opaque, transparent]) for (const m of list) if (m.geometry.topology === 'triangles' && (!m.transparent || m.outlineSlot)) this.drawMesh(mask, m, cur, 'mask');
       mask.end();
     }
     const show = enc.beginRenderPass({ colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
@@ -1066,16 +1098,16 @@ export class Viewer {
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
     const pass = enc.beginRenderPass({
       colorAttachments: [
-        { view: t.id.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
-        { view: t.z.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
-        { view: t.instance.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.views.z, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.views.instance, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
       ],
-      depthStencilAttachment: { view: t.depth.createView(), depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      depthStencilAttachment: { view: t.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
     });
     pass.setScissorRect(px, py, 1, 1);
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
-    for (const m of [...opaque, ...transparent]) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
+    for (const list of [opaque, transparent]) for (const m of list) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
     pass.end();
     enc.copyTextureToBuffer({ texture: t.id, origin: [px, py] }, { buffer: t.read, bytesPerRow: 256 }, [1, 1]);
     enc.copyTextureToBuffer({ texture: t.z, origin: [px, py] }, { buffer: t.read, offset: 256, bytesPerRow: 256 }, [1, 1]);
@@ -1106,10 +1138,12 @@ export class Viewer {
     if (t && t.width === w && t.height === h) return t;
     if (t) { t.id.destroy(); t.depth.destroy(); t.z.destroy(); t.instance.destroy(); t.read.destroy(); }
     const tex = (format: string, label: string) => this.device.createTexture({ size: [w, h], format, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC, label });
+    const id = tex('r32uint', 'pick id'), z = tex('r32float', 'pick depth'), instance = tex('r32uint', 'pick instance');
+    const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'pick z-buffer' });
     this.pickTargets = {
-      width: w, height: h, id: tex('r32uint', 'pick id'), z: tex('r32float', 'pick depth'), instance: tex('r32uint', 'pick instance'),
-      depth: this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'pick z-buffer' }),
+      width: w, height: h, id, z, instance, depth,
       read: this.device.createBuffer({ size: 768, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'pick read' }),
+      views: { id: id.createView(), z: z.createView(), instance: instance.createView(), depth: depth.createView() },
     };
     return this.pickTargets;
   }
