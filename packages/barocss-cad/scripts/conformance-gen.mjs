@@ -121,4 +121,12 @@ writeRb3({ id: 'rb3-helical-bolt-roundtrip', step: 'RB3', decisions: ['D20', 'D1
 const branches = D([...slab, { id: 'h0', kind: 'hole', target: 'e', center: [10, 10], radius: 2 }, { id: 'h1', kind: 'hole', target: 'e', center: [30, 10], radius: 2 }]);
 writeRb3({ id: 'rb3-two-bodies-one-step', step: 'RB3', decisions: ['D20'], about: 'Two holes on one block branch it into two bodies with the same face names; one STEP of both reads back valid, names numbered.',
   input: { partDocument: branches }, expect: { ...measured(branches, 1e-9, 1e-7, null), stepRoundTrip: { relTol: 1e-9 } }, oracle: 'this kernel; each volume is 12000 − 40π (closed form) to 1e-9' });
+// After RB3: every edge of a box filleted (corner balls), against the rounded box's closed form.
+{
+  const r = 3, A = 40 - 2 * r, B = 30 - 2 * r, C = 10 - 2 * r, edges = evaluateCadPart(D(slab)).outputs[0].brep.edges.map(e => e.name), doc = D([...slab, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }]);
+  const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
+  writeRb3({ id: 'rb3-fillet-all-edges', step: 'RB3', decisions: ['D22'], about: 'A 40 × 30 × 10 block with every edge filleted at r = 3: the rounded box (corner balls), strictly valid and watertight.',
+    input: { partDocument: doc }, expect: { outputs: [{ volumeMM3: { value: volume, relTol: 1e-5 }, centroidMM: { value: [20, 15, 5], absTol: 1e-4 }, areaMM2: { value: area, relTol: 1e-5 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(doc, 0, 0, 'list').outputs[0].faceNames, tessellation: { segmentsPerQuarter: 8, watertight: true } }], stepRoundTrip: { relTol: 1e-6 } },
+    oracle: 'closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches (geometry exact to 1e-9)' });
+}
 console.log('written to', out, 'and', rb1, 'and', rb2, 'and', rb3);

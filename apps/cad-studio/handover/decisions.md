@@ -176,3 +176,19 @@ Decided: when a file repeats face or edge names (several bodies exported with th
 repeats become `name#1`, `name#2`… in file order (the kernel's split-piece convention); unrepeated names stay.
 Why: a B-rep's names are unique; a two-body export broke that on re-import (the countersunk TODO). That TODO
 was itself a corpus mistake: its holes branched the plate into two bodies (fixed: holes chain).
+
+## D22 — The all-edge fillet corner: exact already; the corner ball now turned so no pole lies in the corner (2026-10-18, after RB3, owner)
+Finding: the reported 0.18–0.36 mm "corner gap" (D18's first strict run) was a false positive. The corner
+patches' edges lie exactly on the ball (every sample 2.000000 mm from its centre). The validator's inversion
+failed at the patch's pole; fixed in `d6c19b84d` with seeds off collapsed sides and Levenberg–Marquardt.
+Decided: no kernel geometry fix was needed. The corner tool's ball is now turned so both its poles lie
+outside the corner cone; before, the corner apex was its pole. The corner patches are then regular pieces of
+the sphere, where their parameters do not crowd.
+Why: mass and area integrate those trimmed patches over their parameter domains, and a pole inside bent the
+trims there. Rounded 40 × 30 × 10 box against its closed form:
+- volume within 7.5e-6 relative at r = 4.99 (before 3.6e-5), 1.1e-6 at r = 2;
+- area within 2.8e-6 (before 1.6e-5);
+- strict gaps ≤ 1e-9 and watertight across r = 0.25–4.99.
+Cost: evaluating the all-edge box takes about 0.3 s more (0.95 → 1.27 s), its mass about 0.15 s less.
+The number of corner pieces is unchanged (`f.face#1–28`); which piece carries which `#k` may differ from
+before. The conformance tolerance is 1e-5, the quadrature over the trimmed corner patches.

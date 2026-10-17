@@ -1,0 +1,41 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "s",
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [0, 0],
+      "max": [40, 30]
+    },
+    {
+      "id": "e",
+      "kind": "extrude",
+      "sketch": "s",
+      "height": 10
+    },
+    {
+      "id": "f",
+      "kind": "fillet",
+      "target": "e",
+      "edges": [
+        "e.bottom|e.side0",
+        "e.side0|e.side1",
+        "e.side0|e.top",
+        "e.side0|e.side3",
+        "e.bottom|e.side1",
+        "e.side1|e.side2",
+        "e.side1|e.top",
+        "e.bottom|e.side2",
+        "e.side2|e.side3",
+        "e.side2|e.top",
+        "e.bottom|e.side3",
+        "e.side3|e.top"
+      ],
+      "radius": 4.95
+    }
+  ]
+}

@@ -30,6 +30,8 @@ part('two-cylinders-intersect', [circle('a', 0, 0, 6), extrude('ca', 'a', 12), c
 const box = [rect('s', 0, 0, 40, 30), extrude('e', 's', 10)], edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
 part('box-fillet-all', [...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }]);
 part('box-chamfer-all', [...box, { id: 'f', kind: 'chamfer', target: 'e', edges, distance: 1.5 }]);
+// The all-edge fillet across radii, up to near half the shortest edge (10 mm).
+for (const r of [0.25, 1, 3, 4.5, 4.95]) part(`box-fillet-all-r${String(r).replace('.', '_')}`, [...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }]);
 part('box-fillet-top', [...box, { id: 'f', kind: 'fillet', target: 'e', edges: edges.filter(n => /top/.test(n)), radius: 4 }]);
 part('plate-split-mitre', [rect('s', 0, 0, 60, 20), extrude('p', 's', 10), { id: 'x', kind: 'split', target: 'p', normal: [1, 1, 0], at: 30 }]);
 part('holed-plate-split', [...[rect('s', 0, 0, 40, 30), extrude('p', 's', 6)], { id: 'h', kind: 'hole', target: 'p', center: [20, 15], radius: 5 }, { id: 'x', kind: 'split', target: 'p', axis: 'x', at: 20 }]);

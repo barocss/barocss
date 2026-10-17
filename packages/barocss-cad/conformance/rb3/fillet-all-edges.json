@@ -1,0 +1,93 @@
+{
+  "id": "rb3-fillet-all-edges",
+  "step": "RB3",
+  "decisions": [
+    "D22"
+  ],
+  "about": "A 40 × 30 × 10 block with every edge filleted at r = 3: the rounded box (corner balls), strictly valid and watertight.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [0, 0],
+          "max": [40, 30]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.bottom|e.side0",
+            "e.side0|e.side1",
+            "e.side0|e.top",
+            "e.side0|e.side3",
+            "e.bottom|e.side1",
+            "e.side1|e.side2",
+            "e.side1|e.top",
+            "e.bottom|e.side2",
+            "e.side2|e.side3",
+            "e.side2|e.top",
+            "e.bottom|e.side3",
+            "e.side3|e.top"
+          ],
+          "radius": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11418.106036232337,
+          "relTol": 0.00001
+        },
+        "centroidMM": {
+          "value": [20, 15, 5],
+          "absTol": 0.0001
+        },
+        "areaMM2": {
+          "value": 3377.769802664636,
+          "relTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches (geometry exact to 1e-9)"
+}
