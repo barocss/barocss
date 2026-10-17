@@ -139,6 +139,28 @@ joints), Round corner, and Use the face's outline (or as references).
 
 Verified at `0d4d0e6f`: unit 175/175, type-check and lint clean, browser flow 73/73 (WebGPU).
 
+Third round (2026-10-17, `ced02dd3..d722585e`): the kernel's numerical sketch profile v1 (64 points / 64
+segments / 128 constraints, `solveXYNumericalSketchPoints`; v0 is untouched) and cad-studio sketches up to 64
+points; analytic Booleans refine a surface-intersection seed only when no traced chain or known edge is within
+half a step, and curve segments keep their samples (box fillets of 8 edges 1028 → 613 ms, 4 top edges 167 →
+132 ms, volumes unchanged; subtracting the convex tools one by one was tried and reverted — it broke two
+finish tests); sketch Offset of arcs meeting at corners (moved pieces cut back or run on to meet); a sketch
+**Trim** tool (T: a piece back to its crossings, open pieces meeting end to end join — a rectangle and a circle
+over its edge become a keyhole in two clicks; the piece to go is lit red); the section view follows its dragged
+plane at once (`engine/clip.ts`: display meshes clipped and capped on the CPU, the exact kernel Split replaces
+it); fasteners fit their hole (#2094 stages 2–3, `app/fasteners.ts`): ISO 4017 / 4762 lengths apart, ISO 273
+clearance and tap drills, catalogue version and sources (ISO 4017 lengths other than M6 marked not yet
+cross-checked), a hole's Ø/depth/through from the viewport picks the size, the joint (washer + nut under the
+far face, or tapped) and the shortest length that does; the steps report the fit; the pointer looks through
+the shape being placed. Nothing was posted to #2094.
+
+Verified at `d722585e`: unit 183/183, type-check and lint clean, browser flow 76/76 (WebGPU); kernel 834/835
+(the one failure is the Split demo pinning Node 22.23.3).
+
+Still open after it: real helical threads (#2094 stage 4: a kernel helix sweep first); fillet evaluation is
+still ~130 ms for mitred box tops (the tools' unions; tools trimmed apart at the mitre would avoid them);
+sketch Extend; fasteners as assembly instances rather than features.
+
 Verified at the end of the first pass: unit 167/167, type-check and lint clean, browser flow 64/64 (WebGPU),
 QA probe 70/73 before its helper fix (the three remaining were the helper; U4x/U5x pass after it).
 The flow takes `FLOW_ONLY=<regex>` to run the first step and the matching ones. The QA probe
