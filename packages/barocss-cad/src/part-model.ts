@@ -216,10 +216,17 @@ function admit(input: unknown): CadPartDocument {
 }
 
 // ---- evaluation --------------------------------------------------------------------------------------
-type Cache = Map<string, Result>;
+/**
+ * Results by their feature's resolved definition, each with the inputs it was made from: a feature is
+ * reused when its definition is the same and every input is the very result (===) it was made from —
+ * reused inputs stay the same objects, so a key never has to spell out what is upstream of it.
+ */
+type Cache = Map<string, { deps: readonly Result[]; result: Result }[]>;
 
 export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPartSnapshot {
-  const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>(), keys = new Map<string, string>();
+  const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>();
+  const lookup = (key: string, deps: readonly Result[]) => previous?.get(key)?.find(e => e.deps.length === deps.length && e.deps.every((d, i) => d === deps[i]))?.result;
+  const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
   const consumed = new Map<string, Set<number> | 'all'>(), features: { id: string; kind: CadPartFeature['kind']; dependencies: string[] }[] = [];
   const evaluated: string[] = [], reusedIds: string[] = [];
   for (const feature of doc.features) {
@@ -253,7 +260,6 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
     };
-    const dependsKey = () => deps.map(d => keys.get(d)).join(';');
 
     let result: Result;
     const f = feature as CadPartFeature & Record<string, unknown>;
@@ -267,16 +273,18 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
           if (!Array.isArray(list) || list.length > CadPartLimits.edges) fail('INPUT', `${key} must list up to 64 loops`);
           return { [key]: (list as unknown[]).map((segments, i) => sketchOuter({ profile: 'loop', segments }, xy, dim, (code, detail) => fail(code, `${key}[${i}]: ${detail}`))) };
         };
-        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}), ...loops('regions'), ...loops('holes') };
-        keys.set(at, JSON.stringify(result));
+        const sketch: Result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}), ...loops('regions'), ...loops('holes') };
+        // (The same sketch as before is the same object, so what is built on it can be reused.)
+        const key = 'sketch:' + JSON.stringify(sketch);
+        result = lookup(key, []) ?? sketch;
+        remember(key, [], result);
       } else {
         const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at });
-        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), dependsKey()]);
-        keys.set(at, key);
-        const reused = previous?.get(key);
+        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters)]), inputs = deps.map(d => results.get(d)!);
+        const reused = lookup(key, inputs);
         result = reused ?? compute();
         (reused ? reusedIds : evaluated).push(at);
-        cache.set(key, result);
+        remember(key, inputs, result);
       }
     } catch (cause) {
       if (cause instanceof CadPartError) throw cause;

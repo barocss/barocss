@@ -615,3 +615,19 @@ test('split across an oblique plane: a mitre x + y = at, a tilted cut through a 
   refused(D([...bar, { id: 'n', kind: 'split', target: 'a', normal: [1, 1, 0], at: 40 }]), 'SELECTION', /does not cross/);
   refused(D([...bar, { id: 'z', kind: 'split', target: 'a', normal: [0, 0, 0], at: 1 }]), 'INPUT', /must not be zero/);
 });
+
+test('a long chain of features evaluates and is reused: no key spells out what is upstream of it', () => {
+  // (Keys that embedded their inputs' keys grew with each level and failed near 22 chained holes.)
+  const F = [rect('s', 0, 0, 400, 40), extrude('e', 's', 10)];
+  let last = 'e';
+  for (let k = 0; k < 120; k++) { F.push({ id: 'h' + k, kind: 'hole', target: last, center: [3 + k * 3.2, 20], radius: 1 }); last = 'h' + k; }
+  const snap = evaluateCadPart(D(F));
+  assert.ok(close(volume(snap.output(last)), 400 * 40 * 10 - 120 * pi * 10, 1e-9));
+  const same = snap.withDocument(D(F));
+  assert.equal(same.recomputation.evaluated.length, 0);
+  const edited = snap.withDocument(D(F.map((f, i) => i === F.length - 1 ? { ...f, radius: 1.2 } : f)));
+  assert.deepEqual(edited.recomputation.evaluated, [last]);
+  // An input that changed is not reused through: editing the plate rebuilds every hole on it.
+  const plate = snap.withDocument(D(F.map(f => f.id === 'e' ? { ...f, height: 12 } : f)));
+  assert.equal(plate.recomputation.evaluated.length, 121);
+});
