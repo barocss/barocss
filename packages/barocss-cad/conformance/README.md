@@ -20,7 +20,7 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
   "expect": {
     // Either the outputs (in order), or the error the document is refused with.
     "outputs": [{
-      "volumeMM3": { "value": 1000, "relTol": 1e-9 },
+      "volumeMM3": { "value": 1000, "relTol": 1e-9 },     // optional "absTol" (mm³): a floor for tiny volumes
       "centroidMM": { "value": [5, 5, 5], "absTol": 1e-9 },
       "areaMM2": { "value": 600, "relTol": 1e-9 },  // optional: the surface area over the exact surfaces
       "bodies": 1,                                  // separate solid bodies in this output
@@ -39,8 +39,9 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
 ```
 
 Rules:
-- Tolerances are part of the spec. A relative volume tolerance applies to |actual − expected| / |expected|;
-  absTol values are in mm.
+- Tolerances are part of the spec. A relative volume tolerance applies to |actual − expected| / |expected|,
+  with the volume's optional absTol (mm³) as a floor (a sliver's volume is known absolutely, to rounding);
+  other absTol values are in mm.
 - Every output must pass the strict L0 validation (topology; edges on their surfaces; loops that do not
   cross or touch; no slivers; tolerances under 1e-3 of the model's size).
 - Face and edge counts are not compared: kernels may split faces differently. Names, volumes, centroids,

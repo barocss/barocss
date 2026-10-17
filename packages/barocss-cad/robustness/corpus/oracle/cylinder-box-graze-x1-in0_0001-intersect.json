@@ -1,0 +1,79 @@
+{
+  "id": "cylinder-box-graze-x1-in0_0001-intersect",
+  "about": "A box turned 1° about X, its outermost edge 0.0001 mm into an upright cylinder's wall: intersect.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [-0.4205, -8.080604858455036],
+          "radius": 4.055
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 4.8999999999999995,
+          "from": 2.3464494393688957
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [-3.371, -3.944],
+          "max": [1.79, 2.502]
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 4.469,
+          "from": 0.247
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "x",
+          "angleDegrees": 1,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 8.703999136937037e-9,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [-0.4205000000000002, -4.0256477155643395, 4.644813081077365],
+          "absTol": 0.0011488971727447838
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)"
+}

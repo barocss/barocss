@@ -111,13 +111,14 @@ export function runCase(cad, file, started) {
       const open = openEdgesByBody(brep, mesh);
       return open ? { status: 'INVALID', detail: `${open} edges not used exactly twice` } : {};
     });
-    // STEP out and back in: volume, area and centroid to 1e-6, the same topology (L1 round trip).
+    // STEP out and back in: volume, area and centroid to 1e-6, the same topology (L1 round trip). (The volume
+    // to 1e-12 mm³ at least: a sliver's volume is known absolutely, D25.)
     if (report && mass) stage(`roundtrip${suffix}`, () => {
       const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00' })), m = cad.brepMassProperties(back, 1);
       const a0 = cad.brepSurfaceArea(brep), a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), size = sizeOf(brep);
       const counts = x => JSON.stringify(x.topology.map(t => [t.vertices, t.edges, t.faces, t.shells, t.genus]));
       if (!r.valid) return { status: 'INVALID', detail: `re-imported: ${r.issues[0]}` };
-      if (Math.abs(m.volumeMM3 - mass.volumeMM3) > 1e-6 * Math.abs(mass.volumeMM3)) return { status: 'WRONG', detail: `volume ${mass.volumeMM3} → ${m.volumeMM3}` };
+      if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(1e-6 * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume ${mass.volumeMM3} → ${m.volumeMM3}` };
       if (Math.abs(a1 - a0) > 1e-6 * a0) return { status: 'WRONG', detail: `area ${a0} → ${a1}` };
       if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > 1e-6 * size) return { status: 'WRONG', detail: `centroid ${mass.centroidMM} → ${m.centroidMM}` };
       if (counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology ${counts(report)} → ${counts(r)}` };
@@ -140,7 +141,7 @@ export function runCase(cad, file, started) {
       const r = results[k], want = expect.outputs[k];
       if (!r.mass || !r.report) return { status: 'WRONG', detail: `output ${k} has no mass or report` };
       const dv = Math.abs(r.mass.volumeMM3 - want.volumeMM3.value);
-      if (dv > want.volumeMM3.relTol * Math.abs(want.volumeMM3.value)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volumeMM3} vs ${want.volumeMM3.value}` };
+      if (dv > Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volumeMM3} vs ${want.volumeMM3.value}` };
       if (r.mass.centroidMM.some((x, i) => Math.abs(x - want.centroidMM.value[i]) > want.centroidMM.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroidMM} vs ${want.centroidMM.value}` };
       if (r.bodyCount !== want.bodies) return { status: 'WRONG', detail: `output ${k} bodies ${r.bodyCount} vs ${want.bodies}` };
       const topo = JSON.stringify(r.report.topology.map(t => ({ shells: t.shells, genus: t.genus })));

@@ -21,3 +21,25 @@ test('kernel properties: a quick slice (5 runs each, fixed seed); failures only 
     if (r.failed) assert.ok(todo.some(t => p.name.startsWith(t.property)), `${p.name}: ${JSON.stringify(r.failed.smallest)} ${JSON.stringify(r.failed.why)}`);
   }
 });
+
+test('exact oracles (D25): closed forms reproduced; a fixed slice of the families against the kernel', async () => {
+  const { cylinderBoxIntersection } = await import('../scripts/rb/oracle-cylinder-box.mjs');
+  const { crossedCylinders } = await import('../scripts/rb/oracle-cylinder-pair.mjs');
+  const { crossedCase, cylinderBoxCase, grazing, RB4_BOX, RB4_CYLINDER, VOLUME_TOL } = await import('../scripts/rb/oracle-cases.mjs');
+  // A box holding the whole cylinder (any turn about Z): π r² h. Half the cylinder (a box cut through its axis): half that.
+  const cyl = { cx: 1, cy: 2, r: 3, z0: -1, z1: 4 }, whole = Math.PI * 9 * 5;
+  assert.ok(Math.abs(cylinderBoxIntersection(cyl, { min: [-10, -10, -5], max: [10, 10, 10] }, { axis: 'z', angleDegrees: 33 }).volume - whole) <= 1e-12 * whole);
+  const half = cylinderBoxIntersection(cyl, { min: [1, -10, -5], max: [10, 10, 10] });
+  assert.ok(Math.abs(half.volume - whole / 2) <= 1e-12 * whole && Math.abs(half.centroid[0] - (1 + 4 * 3 / (3 * Math.PI))) <= 1e-12);
+  // Equal cylinders crossing at α: 16 r³ / (3 sin α).
+  for (const a of [90, 40]) assert.ok(Math.abs(crossedCylinders(2, 2, a) - 128 / (3 * Math.sin(a * Math.PI / 180))) <= 1e-12 * 100);
+  // The kernel against them: each axis at a generic and a near-right angle, a graze, crossed cylinders at 45°.
+  const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
+  const cases = [...['x', 'y', 'z'].flatMap(axis => [80.79, 89.99].map(angle => cylinderBoxCase(RB4_CYLINDER, RB4_BOX, axis, angle, 'intersect'))),
+    cylinderBoxCase(RB4_CYLINDER, RB4_BOX, 'x', 80.79, 'difference'), cylinderBoxCase(grazing(RB4_CYLINDER, RB4_BOX, 'x', 30, 1e-2), RB4_BOX, 'x', 30, 'intersect'), crossedCase(2.371, 1.583, 45)];
+  for (const c of cases) {
+    const [o] = cad.evaluateCadPart(D(c.features)).outputs, m = o.massProperties(1);
+    assert.ok(Math.abs(m.volumeMM3 - c.volume) <= Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), `${JSON.stringify(c.features.at(-2))}: ${m.volumeMM3} vs ${c.volume}`);
+    assert.ok(Math.hypot(...m.centroidMM.map((x, k) => x - c.centroid[k])) <= Math.max(1e-6, 1e-11 / c.volume), `centroid ${m.centroidMM} vs ${c.centroid}`);
+  }
+});

@@ -12,10 +12,7 @@
           "id": "As",
           "kind": "sketch",
           "profile": "circle",
-          "center": [
-            2.987,
-            2.504
-          ],
+          "center": [2.987, 2.504],
           "radius": 4.055
         },
         {
@@ -29,14 +26,8 @@
           "id": "Bs",
           "kind": "sketch",
           "profile": "rectangle",
-          "min": [
-            -3.371,
-            -3.944
-          ],
-          "max": [
-            1.79,
-            2.502
-          ]
+          "min": [-3.371, -3.944],
+          "max": [1.79, 2.502]
         },
         {
           "id": "B0",
@@ -51,11 +42,7 @@
           "target": "B0",
           "axis": "x",
           "angleDegrees": 80.79,
-          "pivot": [
-            0,
-            0,
-            0
-          ]
+          "pivot": [0, 0, 0]
         },
         {
           "id": "X",
@@ -70,16 +57,13 @@
     "outputs": [
       {
         "volumeMM3": {
-          "value": 229.905016958,
-          "relTol": 0.000001
+          "value": 229.90501695786838,
+          "relTol": 0.000001,
+          "absTol": 1e-12
         },
         "centroidMM": {
-          "value": [
-            0,
-            0,
-            0
-          ],
-          "absTol": 1000000000
+          "value": [3.0332971788061003, 2.5799847538839744, 0.7333432392177903],
+          "absTol": 0.000001
         },
         "bodies": 1,
         "topology": [
@@ -91,5 +75,5 @@
       }
     ]
   },
-  "oracle": "scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer; converged to 1e-9)"
+  "oracle": "scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)"
 }

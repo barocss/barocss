@@ -37,5 +37,15 @@ External corpora (RB6) and the ABC sweep (RB8) are fetched at run time and never
 `node scripts/rb/props.mjs` (`pnpm rb:props`) runs the metamorphic properties of `scripts/rb/property.mjs` with a
 fixed seed (20261018; `RB_PROPERTY_SEED=random` for nightly runs), `RB_PROPERTY_RUNS` cases each (default 200).
 A failure is shrunk to its smallest counterexample. Known failures in `properties-todo.json` show as TODO; any
-other failure exits 1. `--record` appends a row to `properties.jsonl`. `corpus/oracle/` holds cases checked
-against independent exact integrations (`scripts/rb/oracle-*.mjs`).
+other failure exits 1. `--record` appends a row to `properties.jsonl`.
+
+## Exact oracles (D25)
+
+`corpus/oracle/` holds cases checked against independent exact integrations (`scripts/rb/oracle-*.mjs`). The
+cases are built by `scripts/rb/oracle-cases.mjs`:
+- an upright cylinder against a box turned about X, Y or Z, from 0.01° to 90°;
+- the box's outermost edge grazing the cylinder's wall, from 10 µm in to 1 µm clear;
+- two cylinders whose axes cross obliquely.
+
+The property "exact oracles" draws random members, and `test/property.test.mjs` checks a fixed slice. Volumes
+must match to 1e-6 relative, with a floor of 1e-12 mm³; centroids to max(1e-6, 1e-11 / V) mm.

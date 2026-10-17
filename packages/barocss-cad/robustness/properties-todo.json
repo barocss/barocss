@@ -1,10 +1,1 @@
-[
-  {
-    "property": "rigid motions exact in binary64",
-    "note": "Seed 20261018 run 20 (two tilted cylinders): 2.2e-5 between a union and the same union moved by quarter turns and power-of-two steps, against the 2e-5 the quadrature claims. Since 087f5d9db the integrals are taken about the body's centre and trims' strips are integrated (the 8e-5 case passes); what remains is quadrature over faces with poles and small trimmed pieces."
-  },
-  {
-    "property": "difference: |A−B| + |A∩B| = |A|",
-    "note": "Seed 20261018 run 13 (an upright cylinder and a box turned 80.79° about X): A−B is 6.8e-5 small against an exact integration (corpus/oracle), A∩B 8.7e-4 large at default quadrature. See robustness/todo.json."
-  }
-]
+[]

@@ -1,20 +1,44 @@
 [
   {
-    "case": "corpus/oracle/cylinder-turned-box-intersect.json",
-    "stage": "expect",
-    "status": "WRONG",
-    "note": "RB4: |A∩B| 5.657110 against the exact 5.652210 (8.7e-4); the intersection's trimmed faces at default quadrature (q = 32 gives 5.652213). Mass accuracy on small Boolean-trimmed bodies."
+    "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
+    "stage": "validate",
+    "status": "INVALID",
+    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
   },
   {
-    "case": "corpus/oracle/cylinder-turned-box-difference.json",
-    "stage": "expect",
-    "status": "WRONG",
-    "note": "RB4: |A−B| 229.889419 against the exact 229.905017 (6.8e-5), stable across quadrature and tessellation: the Boolean result encloses 0.0156 mm³ too little (a piece missing or misplaced)."
+    "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
+    "stage": "tessellate",
+    "status": "INVALID",
+    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
   },
   {
-    "case": "corpus/oracle/cylinder-turned-box-difference.json",
-    "stage": "roundtrip",
+    "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
+    "stage": "expect",
     "status": "WRONG",
-    "note": "RB4: the same body's centroid moves 9e-6 mm through STEP (z 0.7333431 → 0.7333519): its quadrature is sensitive to the re-imported edges' parametrisation."
+    "note": "D25 (RB5): a box edge 1 nm (the tolerance) into the cylinder's wall. The kept pieces enclose the right 253.12 mm³, but the stitched side face's loops cross (strict L0) and the body measures 534 mm³. Should drop the sub-tolerance sliver consistently or refuse; the strict loop check is too costly to run on every Boolean (as costly as the Boolean)."
+  },
+  {
+    "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
+    "stage": "evaluate",
+    "status": "WRONG",
+    "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts."
+  },
+  {
+    "case": "corpus/oracle/cylinder-box-graze-y1-in0_01-intersect.json",
+    "stage": "tessellate",
+    "status": "INVALID",
+    "note": "D25 (RB5): a 10 µm lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error."
+  },
+  {
+    "case": "corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect.json",
+    "stage": "evaluate",
+    "status": "WRONG",
+    "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 µm / 1 µm (10⁴ / 10³ tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) — typed, not wrong, but valid input. The fixed graze family (45°, 1°) passes; which other face loses the edge's piece is open."
+  },
+  {
+    "case": "corpus/oracle/cylinder-box-graze-x27_564-in0_001-intersect.json",
+    "stage": "evaluate",
+    "status": "WRONG",
+    "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 µm / 1 µm (10⁴ / 10³ tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) — typed, not wrong, but valid input. The fixed graze family (45°, 1°) passes; which other face loses the edge's piece is open."
   }
 ]

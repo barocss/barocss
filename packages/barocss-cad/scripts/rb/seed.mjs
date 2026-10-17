@@ -4,6 +4,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluateCadPart, exportStep, threadSolid } from '../../dist/index.js';
+import { crossedCase, cylinderBoxCase, grazing, RB4_BOX, RB4_CYLINDER, VOLUME_TOL } from './oracle-cases.mjs';
 
 const root = resolve(import.meta.dirname, '../../robustness/corpus');
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
@@ -64,17 +65,36 @@ mesh('degenerate-extra', { positions: R.positions, indices: [...R.indices, R.ind
 const shift = R.positions.length / 3;
 mesh('two-shells', { positions: [...R.positions, ...R.positions.map((x, i) => i % 3 === 2 ? x + 40 : x)], indices: [...R.indices, ...R.indices.map(i => i + shift)] });
 
-// Exact oracles (conformance-format cases the kernel is checked against in the `expect` stage): a cylinder and
-// a box turned 80.79° about X, |A ∩ B| = 5.652209677 by scripts/rb/oracle-cylinder-box.mjs and |A − B| = |A| − that.
-const cylinder = [{ id: 'As', kind: 'sketch', profile: 'circle', center: [2.987, 2.504], radius: 4.055 }, { id: 'A', kind: 'extrude', sketch: 'As', height: 4.56, from: -1.544 }];
-const turned = [{ id: 'Bs', kind: 'sketch', profile: 'rectangle', min: [-3.371, -3.944], max: [1.79, 2.502] }, { id: 'B0', kind: 'extrude', sketch: 'Bs', height: 4.469, from: 0.247 }, { id: 'B', kind: 'rotate', target: 'B0', axis: 'x', angleDegrees: 80.79, pivot: [0, 0, 0] }];
-const meet = 5.652209677, whole = Math.PI * 4.055 ** 2 * 4.56;
-for (const [name, op, volume] of [['cylinder-turned-box-intersect', 'intersect', meet], ['cylinder-turned-box-difference', 'difference', whole - meet]]) {
-  mkdirSync(join(root, 'oracle'), { recursive: true });
-  writeFileSync(join(root, 'oracle', `${name}.json`), JSON.stringify({ id: name, about: `RB4's counterexample: an upright cylinder ${op === 'intersect' ? '∩' : '−'} a box turned 80.79° about X, against an independent exact integration.`,
-    input: { partDocument: D([...cylinder, ...turned, { id: 'X', kind: op, target: 'A', tool: 'B' }]) }, expect: { outputs: [{ volumeMM3: { value: +volume.toFixed(9), relTol: 1e-6 }, centroidMM: { value: [0, 0, 0], absTol: 1e9 }, bodies: 1, topology: [{ shells: 1, genus: 0 }] }] },
-    oracle: 'scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer; converged to 1e-9)' }, null, 2) + '\n');
+// Exact oracles (conformance-format cases checked in the `expect` stage, D25), from independent integrations
+// (scripts/rb/oracle-*.mjs): an upright cylinder against a box turned about X, Y or Z across angles (near 0°,
+// 45° and 90° among them), the box's outermost edge grazing the cylinder's wall (10 µm and 100 nm into it, and
+// 1 µm clear), and two cylinders whose axes cross obliquely (equal radii: the intersection curves meet).
+// RB4's counterexample keeps its name.
+const oracle = (name, about, c) => {
+  // (A sliver's centroid is known to its moments' rounding over its volume.)
+  const outputs = c.volume > 0 ? [{ volumeMM3: { value: c.volume, ...VOLUME_TOL }, centroidMM: { value: c.centroid, absTol: Math.max(1e-6, 1e-11 / c.volume) }, bodies: 1, topology: [{ shells: 1, genus: 0 }] }] : [];
+  put('oracle', `${name}.json`, compact(JSON.stringify({ id: name, about, input: { partDocument: D(c.features) }, expect: { outputs }, oracle: c.oracle }, null, 2)) + '\n');
+};
+const BOX_ORACLE = 'scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)';
+const tag = x => String(x).replace('.', '_');
+for (const op of ['intersect', 'difference']) oracle(`cylinder-turned-box-${op}`, `RB4's counterexample: an upright cylinder ${op === 'intersect' ? '∩' : '−'} a box turned 80.79° about X, against an independent exact integration.`, { ...cylinderBoxCase(RB4_CYLINDER, RB4_BOX, 'x', 80.79, op), oracle: BOX_ORACLE });
+for (const axis of ['x', 'y', 'z']) for (const angle of [0.01, 1, 30, 45, 60, 89.99, 90]) for (const op of ['intersect', 'difference'])
+  oracle(`cylinder-box-${axis}${tag(angle)}-${op}`, `An upright cylinder ${op === 'intersect' ? '∩' : '−'} a box turned ${angle}° about ${axis.toUpperCase()}.`, { ...cylinderBoxCase(RB4_CYLINDER, RB4_BOX, axis, angle, op), oracle: BOX_ORACLE });
+for (const axis of ['x', 'y', 'z']) for (const angle of [1, 45]) for (const gap of [1e-2, 1e-4, -1e-3]) for (const op of ['intersect', 'difference']) {
+  const what = gap > 0 ? `${gap} mm into` : `${-gap} mm clear of`;
+  oracle(`cylinder-box-graze-${axis}${angle}-${gap > 0 ? 'in' : 'out'}${tag(Math.abs(gap))}-${op}`, `A box turned ${angle}° about ${axis.toUpperCase()}, its outermost edge ${what} an upright cylinder's wall: ${op}.`,
+    { ...cylinderBoxCase(grazing(RB4_CYLINDER, RB4_BOX, axis, angle, gap), RB4_BOX, axis, angle, op), oracle: BOX_ORACLE });
 }
+// Within a few tolerances of the wall (10 nm and 1 nm in): refused or wrong today (robustness/todo.json, RB5).
+for (const gap of [1e-5, 1e-6]) oracle(`cylinder-box-graze-x45-in${tag(gap)}-difference`, `A box turned 45° about X, its outermost edge ${gap} mm into an upright cylinder's wall: difference.`,
+  { ...cylinderBoxCase(grazing(RB4_CYLINDER, RB4_BOX, 'x', 45, gap), RB4_BOX, 'x', 45, 'difference'), oracle: BOX_ORACLE });
+// Grazing boxes the oracle property found refused (typed: an edge with one use; robustness/todo.json, RB5).
+for (const [name, box, r, angle, gap] of [['graze-x52_389-in0_01', { min: [1.077, -0.987, -2.18], max: [2.484, 0.998, 1.897] }, 4.884, 52.389, 1e-2], ['graze-x27_564-in0_001', { min: [-4.352, -1.09, 2.525], max: [-3.323, 0.774, 9.254] }, 3.042, 27.564, 1e-3]])
+  oracle(`cylinder-box-${name}-intersect`, `A box turned ${angle}° about X, its outermost edge ${gap} mm into an upright cylinder's wall: intersect (found by the oracle property).`,
+    { ...cylinderBoxCase(grazing({ r }, box, 'x', angle, gap), box, 'x', angle, 'intersect'), oracle: BOX_ORACLE });
+for (const [a, b] of [[2.371, 1.583], [1.9, 1.9], [2.4, 2.39]]) for (const angle of [90, 45, 30])
+  oracle(`crossed-cylinders-${tag(a)}-${tag(b)}-at${angle}`, `Two cylinders (r ${a} and ${b}) whose axes cross at ${angle}°, intersected.`,
+    { ...crossedCase(a, b, angle), oracle: 'scripts/rb/oracle-cylinder-pair.mjs (parallel slices: ∫ 4√(a² − t²)√(b² − t²) dt / sin α; to rounding)' });
 
 // STEP files of this kernel's own models.
 const step = (name, breps) => put('step', `${name}.step`, exportStep(breps, { name, timestamp: '2026-10-18T00:00:00' }));

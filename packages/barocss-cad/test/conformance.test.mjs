@@ -23,7 +23,7 @@ for (const file of cases) {
     c.expect.outputs.forEach((want, k) => {
       const o = outputs[k], m = o.massProperties(1), report = o.validate();
       assert.equal(report.valid, true, report.issues[0]);
-      assert.ok(Math.abs(m.volumeMM3 - want.volumeMM3.value) <= want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), `output ${k} volume ${m.volumeMM3} vs ${want.volumeMM3.value}`);
+      assert.ok(Math.abs(m.volumeMM3 - want.volumeMM3.value) <= Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0), `output ${k} volume ${m.volumeMM3} vs ${want.volumeMM3.value}`);
       m.centroidMM.forEach((x, i) => assert.ok(Math.abs(x - want.centroidMM.value[i]) <= want.centroidMM.absTol, `output ${k} centroid ${m.centroidMM} vs ${want.centroidMM.value}`));
       assert.equal(o.bodyCount, want.bodies, `output ${k} bodies`);
       assert.deepEqual(report.topology.map(t => ({ shells: t.shells, genus: t.genus })), want.topology, `output ${k} topology`);

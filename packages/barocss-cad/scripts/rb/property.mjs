@@ -2,6 +2,8 @@
 // minimal counterexample) and the metamorphic properties a correct kernel must keep. Used by
 // scripts/rb/props.mjs (pnpm rb:props: a fixed seed, ~200 runs a property) and test/property.test.mjs (a few).
 
+import { crossedCase, cylinderBoxCase, grazing, VOLUME_TOL } from './oracle-cases.mjs';
+
 /** A seeded generator (mulberry32): the same seed, the same cases. */
 export function random(seed) {
   let a = seed >>> 0;
@@ -140,6 +142,14 @@ export function properties(cad) {
         const bound = (2 - Math.PI / 2) * r2 * 2 * (v.w + v.d) * v.dr;
         return (b < a && a - b <= bound * (1 + 1e-9)) || { a, b, bound };
       } },
+    { name: 'exact oracles: a cylinder against a box turned about X, Y or Z (or grazing it), and crossed cylinders', gen: oracleGen, shrink: oracleShrink, prop: v => {
+      const c = oracleCaseOf(v);
+      let outputs; try { outputs = cad.evaluateCadPart(D(c.features)).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
+      if (c.volume <= 0) return outputs.length === 0 || { outputs: outputs.length, exact: 0 };
+      if (outputs.length !== 1) return { outputs: outputs.length, exact: c.volume };
+      const m = outputs[0].massProperties(1), tol = Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), off = Math.hypot(...m.centroidMM.map((x, k) => x - c.centroid[k]));
+      return (Math.abs(m.volumeMM3 - c.volume) <= tol && off <= Math.max(1e-6, 1e-11 / c.volume)) || { volume: m.volumeMM3, exact: c.volume, centroidOff: off, method: m.method };
+    } },
     { name: 'mass by quadrature and by a finer and finer tessellation agree (the chord error falls)', ...pairs, prop: v => {
       let o; try { o = cad.evaluateCadPart(op(v, 'union')).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
       for (const out of o) {
@@ -150,6 +160,37 @@ export function properties(cad) {
       return true;
     } },
   ];
+}
+
+// ---- exact oracles (D25) ---------------------------------------------------------------------------------
+/**
+ * A member of the oracle families as plain data: a cylinder and a box turned about X, Y or Z by any angle
+ * (combined by intersect or difference), a quarter of them grazing (the box's outermost edge 10 µm to 100 nm
+ * into the wall: at least 100 tolerances, RB5 owns closer), or (a quarter) two cylinders crossing obliquely.
+ */
+function oracleGen(rnd) {
+  if (rnd() < 0.25) return { kind: 'crossed', a: num(rnd, 0.5, 4), b: num(rnd, 0.5, 4), angle: num(rnd, 10, 90) };
+  const box = { x: num(rnd, -6, 2), y: num(rnd, -6, 2), w: num(rnd, 1, 8), d: num(rnd, 1, 8), z0: num(rnd, -3, 3), h: num(rnd, 1, 8) };
+  const cyl = { x: num(rnd, -4, 4), y: num(rnd, -4, 4), r: num(rnd, 0.5, 5), z0: num(rnd, -4, 2), h: num(rnd, 1, 8) };
+  return { kind: 'box', axis: ['x', 'y', 'z'][Math.floor(rnd() * 3)], angle: num(rnd, 0, 180), op: rnd() < 0.5 ? 'intersect' : 'difference', box, cyl, graze: rnd() < 0.25 ? [1e-2, 1e-3, 1e-4][Math.floor(rnd() * 3)] : null };
+}
+function oracleShrink(v) {
+  const out = [];
+  if (v.kind === 'crossed') { for (const k of ['a', 'b', 'angle']) if (Math.round(v[k]) !== v[k] && Math.round(v[k]) >= (k === 'angle' ? 10 : 1)) out.push({ ...v, [k]: Math.round(v[k]) }); return out; }
+  if (v.graze !== null) out.push({ ...v, graze: null });
+  if (v.op !== 'intersect') out.push({ ...v, op: 'intersect' });
+  if (Math.round(v.angle) !== v.angle) out.push({ ...v, angle: Math.round(v.angle) });
+  for (const part of ['box', 'cyl']) for (const k of Object.keys(v[part])) {
+    const x = Math.round(v[part][k]); if (x !== v[part][k] && (!['w', 'd', 'h', 'r'].includes(k) || x >= 1)) out.push({ ...v, [part]: { ...v[part], [k]: x } });
+  }
+  return out;
+}
+/** The document and exact values of a generated member. */
+function oracleCaseOf(v) {
+  if (v.kind === 'crossed') return crossedCase(v.a, v.b, v.angle);
+  const box = { min: [v.box.x, v.box.y, v.box.z0], max: [v.box.x + v.box.w, v.box.y + v.box.d, v.box.z0 + v.box.h] };
+  const cyl = v.graze === null ? { cx: v.cyl.x, cy: v.cyl.y, r: v.cyl.r, z0: v.cyl.z0, z1: v.cyl.z0 + v.cyl.h } : grazing({ r: v.cyl.r }, box, v.axis, v.angle, v.graze);
+  return cylinderBoxCase(cyl, box, v.axis, v.angle, v.op);
 }
 
 /** A square pillow's top: a quadratic Bézier patch, flat at its border (z = 4), its middle pole raised by `bump`. */
