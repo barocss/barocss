@@ -24,7 +24,7 @@ import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from './chat/tools';
-import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody } from './chat/features';
+import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
@@ -681,12 +681,29 @@ export function App() {
   const deleteNode = (index: number) => {
     if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
     const label = featureLabel(doc.nodes[index], index, doc.nodes), r = deleteFeature(doc, index);
-    if ('error' in r) { setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return; }
+    if ('error' in r) {
+      // Others build on it: offer to delete them with it, after listing them.
+      const deps = featureDependents(doc, index);
+      if (deps.length && 'doc' in deleteFeatures(doc, [index, ...deps])) { setCascade({ index, label, deps: deps.map(k => featureLabel(doc.nodes[k], k, doc.nodes)), all: [index, ...deps] }); return; }
+      setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return;
+    }
     engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
       commit(r.doc);
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
+    });
+  };
+  /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
+  const [cascade, setCascade] = useState<{ index: number; label: string; deps: string[]; all: number[] } | null>(null);
+  const deleteCascade = () => {
+    if (!cascade) return;
+    const r = deleteFeatures(doc, cascade.all), label = cascade.label; setCascade(null);
+    if ('error' in r) { setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return; }
+    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
+      commit(r.doc);
     });
   };
   /** Copied body (⌘C) and how many copies were pasted (⌘V). */
@@ -1381,6 +1398,15 @@ export function App() {
           <div className="row-actions">
             <button className="primary" onClick={() => { commit(recovery.doc); setFileName(recovery.fileName); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300); }}>Restore</button>
             <button className="ghost" onClick={() => { clearRecovery(); setRecovery(null); }}>Discard</button>
+          </div></div>
+      </div>}
+      {cascade && <div className="toast card recovery" role="dialog" aria-label="Delete with dependents">
+        <Icon name="account_tree" className="accent" />
+        <div><div className="toast-title">Delete {cascade.label} and what is built on it?</div>
+          <div className="toast-hint">{cascade.deps.length === 1 ? 'This feature uses it and goes too' : `These ${cascade.deps.length} features use it and go too`}: {cascade.deps.join(', ')}. Undo restores them.</div>
+          <div className="row-actions">
+            <button className="primary" onClick={deleteCascade}>Delete {cascade.deps.length + 1}</button>
+            <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
       {toast && <div className="toast card" role="alert">

@@ -21,7 +21,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A11 Direct curves: chord next to length, raise curve degree, isocurve overlay (#2078, #2052, #2040)
 - [x] A12 Render: point-light range, field of view, two-sided toggle (#2070)
 - [x] A13 Direct transform: non-uniform scale and shear (#2086)
-- [ ] A14 Delete with dependents, after a review (#2058)
+- [x] A14 Delete with dependents, after a review (#2058)
 - [ ] A15 Measure: coaxial check of two round faces (#2085)
 - [ ] A16 Direct loft lines up knots first (#2064)
 - [ ] A17 Grid on a face's sketch plane (#2054)

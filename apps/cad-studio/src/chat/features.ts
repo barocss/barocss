@@ -207,6 +207,21 @@ export function bodyNodes(nodes: readonly ModelNode[], top: number): number[] {
   return [...set].sort((a, b) => b - a);
 }
 /** The document without these features, deleted last first (so earlier indices hold), or why one cannot go. */
+/**
+ * The features that depend on feature `index`, directly or through others: built on it, or naming a
+ * face or edge it made (a fillet's edges, a shell's open faces). Sketches are left out (a deleted
+ * feature takes its own sketch with it).
+ */
+export function featureDependents(doc: StudioDoc, index: number): number[] {
+  const nodes = doc.nodes, gone = new Set([index]);
+  const named = (n: ModelNode) => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : [];
+  for (let k = index + 1; k < nodes.length; k++) {
+    const n = nodes[k];
+    if (parentsOf(n).some(p => gone.has(p)) || named(n).some(name => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].some(m => gone.has(Number(m[1]))))) gone.add(k);
+  }
+  return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch').sort((a, b) => a - b);
+}
+
 export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { doc: StudioDoc; droppedDimensions: number } | { error: string } {
   let cur = doc, dropped = 0;
   const left = new Set(indices);

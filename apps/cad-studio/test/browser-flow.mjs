@@ -1431,6 +1431,13 @@ try {
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Roll to the end' }).click();
     await page.waitForFunction(() => !/rolled back/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 5000 });
+    // The box has the hole built on it: deleting it asks first, listing the hole, then takes both.
+    await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Delete' }).click();
+    await page.waitForSelector('[aria-label="Delete with dependents"]', { timeout: 5000 });
+    assert.match(await page.locator('[aria-label="Delete with dependents"]').innerText(), /Hole Ø8/);
+    await page.locator('[aria-label="Delete with dependents"] button', { hasText: 'Cancel' }).click();
+    assert.equal((await doc()).nodes.length, 3);
     await page.locator('.history .hs', { hasText: 'Hole' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Delete' }).click();
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
