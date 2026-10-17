@@ -522,7 +522,10 @@ function cylinderFrame(S: Surface): CylinderFrame | null {
   if (!S.controlPoints.every((r, i) => Math.hypot(...sub(sub(r[1], r[0]), axis)) <= 1e-9 * size && S.weights[i][0] === S.weights[i][1])) return null;
   const big = [0, 1, 2].reduce((m, i) => Math.abs(axis[i]) > Math.abs(axis[m]) ? i : m, 0), a = unit(axis[big] > 0 ? axis : [-axis[0], -axis[1], -axis[2]]);
   if (Math.abs(Math.abs(dot(cross(circle.e1, circle.e2), a)) - 1) > 1e-9) return null;
-  const e1 = circle.e1, e2 = circle.e2, c = circle.c, r = circle.r;
+  // θ counter-clockwise about a (e1 × e2 = a): then (U, V) is right-handed about the radial, which the winding
+  // relies on. (The arc may turn either way about a, and a's sign follows its largest component, which flips
+  // with rounding for an axis at 45°.)
+  const e1 = circle.e1, e2: Point = dot(cross(circle.e1, circle.e2), a) > 0 ? circle.e2 : [-circle.e2[0], -circle.e2[1], -circle.e2[2]], c = circle.c, r = circle.r;
   const u0 = S.knotsU[0], u1 = S.knotsU[S.knotsU.length - 1];
   const mid = evaluateSurfaceLocal(S, (u0 + u1) / 2, 0.5), d = sub(mid, c), ref = Math.atan2(dot(d, e2), dot(d, e1));
   const radial = unit(sub(d, [a[0] * dot(d, a), a[1] * dot(d, a), a[2] * dot(d, a)]));
