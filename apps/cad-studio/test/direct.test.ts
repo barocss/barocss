@@ -241,3 +241,27 @@ test('Sweep along a picked curve: the newest sketch carried along it, a bent rod
   assert.ok(Math.abs(r.bodies[0].volumeMM3! - want) / want < 0.01, String(r.bodies[0].volumeMM3));
   assert.equal(featureLabel(next.nodes[1], 1, next.nodes), 'Sweep along bend · quarter');
 });
+
+test('trim by a loop: a circle above the panel cuts a hole (or keeps the disc); the support stays whole', () => {
+  const w = Math.SQRT1_2, r = 4, c = [10, 10], ring = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]];
+  const circle = `@model ring { version: 0; length-unit: mm;
+  @curve #circle { type: nurbs; degree: 2; knots: [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1]; control-points: [${ring.map(([x, y]) => `[${c[0] + r * x},${c[1] + r * y},3]`).join(',')}]; weights: [${ring.map((_, k) => k % 2 ? w : 1).join(',')}]; }
+  @curve #shifted { type: nurbs; degree: 2; knots: [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1]; control-points: [${ring.map(([x, y]) => `[${c[0] + 3 + r * x},${c[1] + r * y},3]`).join(',')}]; weights: [${ring.map((_, k) => k % 2 ? w : 1).join(',')}]; }
+  @curve #open { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[2,2,0],[8,8,0]]; weights: [1,1]; }
+  @curve #eight { type: nurbs; degree: 1; knots: [0,0,0.25,0.5,0.75,1,1]; control-points: [[5,5,0],[15,15,0],[15,5,0],[5,15,0],[5,5,0]]; weights: [1,1,1,1,1]; }
+}`;
+  const d = importSource(importSource(emptyDirect(), STUDY, 'study'), circle, 'ring'), panel = byName(d, 'panel');
+  const area = (dd: DirectGeometry) => { const s = directDisplay(dd).find(x => x.id === panel)!, p = s.positions, i = s.indices!; let a = 0;
+    for (let t = 0; t < i.length; t += 3) { const A = [0, 1, 2].map(k => p[i[t] * 3 + k]), B = [0, 1, 2].map(k => p[i[t + 1] * 3 + k] - A[k]), C = [0, 1, 2].map(k => p[i[t + 2] * 3 + k] - A[k]); a += Math.hypot(B[1] * C[2] - B[2] * C[1], B[2] * C[0] - B[0] * C[2], B[0] * C[1] - B[1] * C[0]) / 2; }
+    return a; };
+  const hole = directOps.trimByCurve(d, panel, byName(d, 'circle'));
+  assert.equal(hole.objects.find(o => o.id === panel)!.trims!.length, 1);
+  assert.equal(hole.objects.find(o => o.id === panel)!.source, d.objects.find(o => o.id === panel)!.source, 'the support surface is unchanged');
+  assert.ok(Math.abs(area(hole) - (400 - Math.PI * 16)) < 0.5, `hole: ${area(hole)}`);
+  const disc = directOps.trimByCurve(d, panel, byName(d, 'circle'), 'inside');
+  assert.ok(Math.abs(area(disc) - Math.PI * 16) < 0.5, `disc: ${area(disc)}`);
+  assert.ok(Math.abs(area(directOps.untrim(hole, panel)) - 400) < 1e-6);
+  assert.throws(() => directOps.trimByCurve(d, panel, byName(d, 'open')), /does not close/);
+  assert.throws(() => directOps.trimByCurve(d, panel, byName(d, 'eight')), /crosses itself/);
+  assert.throws(() => directOps.trimByCurve(hole, panel, byName(d, 'shifted')), /crosses an earlier trim/);
+});

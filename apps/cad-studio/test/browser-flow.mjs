@@ -1020,6 +1020,21 @@ try {
     assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('lid · ') && o.hidden).length), 0, 'undo shows them again');
   });
 
+  await check('trim a warped sheet by an oval above it: a hole along the projected loop, untrim restores it', async () => {
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/warp.barocad'));
+    await page.waitForFunction(() => (window.__studioDoc.direct?.objects ?? []).filter(o => o.name.startsWith('warp · ')).length === 2, null, { timeout: 5000 });
+    await page.click('.ol.direct[title="warp · sheet"]'); await page.click('.ol.direct[title="warp · oval"]', { modifiers: ['Shift'] });
+    await page.click('.direct-panel [aria-label="Trim by the curve"]');
+    await page.waitForFunction(() => window.__studioDoc.direct.objects.find(o => o.name === 'warp · sheet')?.trims?.length === 1, null, { timeout: 5000 });
+    await page.click('.ol.direct[title="warp · sheet"]');
+    await page.waitForSelector('.direct-panel .kv:has-text("Trimmed 1 loop")');
+    await snap('trim-loop');
+    await page.click('.direct-panel [aria-label="Untrim"]');
+    await page.waitForFunction(() => !window.__studioDoc.direct.objects.find(o => o.name === 'warp · sheet')?.trims, null, { timeout: 5000 });
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.direct.objects.find(o => o.name === 'warp · sheet')?.trims?.length === 1, null, { timeout: 5000 });
+  });
+
   await check('extend a surface past an edge: the panel run on 5 mm along u', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.click('.ol.direct[title="study · panel"]');

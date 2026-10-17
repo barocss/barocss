@@ -11,8 +11,13 @@ import {
 } from '@barocss/cad';
 import { approximateCurve, interpolateSurface, removeCurveKnot } from './fit';
 import { curvesSource, surfacesSource } from './curveSource';
+import { kept, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 
-export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
+export interface DirectObject {
+  id: string; name: string; source: string; geometry: string; hidden?: boolean;
+  /** A surface's trims: loops in its (u, v) domain, each keeping what is outside it (a hole) or inside it. */
+  trims?: TrimLoop[];
+}
 export interface DirectGeometry {
   /** Authored CAD sources by key. */
   sources: Record<string, string>;
@@ -93,6 +98,16 @@ function refine(d: DirectGeometry, id: string, text: string): DirectGeometry {
 const nameOf = (d: DirectGeometry, id: string) => object(d, id).name;
 
 export const directOps = {
+  /** The surface trimmed by a closed curve projected onto it: the region inside the loop cut away (or kept alone). */
+  trimByCurve(d: DirectGeometry, surface: string, curve: string, keep: 'outside' | 'inside' = 'outside') {
+    const o = object(d, surface), loops = o.trims ?? [], uv = projectLoop(surfaceOf(d, surface), curveOf(d, curve), loops);
+    return { ...d, objects: d.objects.map(x => x.id === surface ? { ...x, trims: [...loops, { uv, keep }] } : x) };
+  },
+  /** The surface whole again (its trims taken off). */
+  untrim(d: DirectGeometry, surface: string) {
+    surfaceOf(d, surface);
+    return { ...d, objects: d.objects.map(x => { if (x.id !== surface) return x; const whole = { ...x }; delete whole.trims; return whole; }) };
+  },
   splitCurve(d: DirectGeometry, id: string, t: number) {
     const used = usedIds(d), r = splitCurveAtParameter(curveOf(d, id), { parameter: t, lowerCurveId: fresh(used, 'lower'), upperCurveId: fresh(used, 'upper') });
     return add(d, [id], r.source, [{ geometry: r.lower.id, name: `${nameOf(d, id)} · lower` }, { geometry: r.upper.id, name: `${nameOf(d, id)} · upper` }]);
@@ -390,14 +405,14 @@ export interface DirectDisplay {
 /** What the viewport draws of the visible objects. Objects that fail to evaluate are left out. */
 // Each object's display, by its source text and geometry (a pole drag re-evaluates one object, not all):
 // only the entries the last call used are kept.
-let displays = new Map<string, { text: string; out: DirectDisplay[] }>();
+let displays = new Map<string, { text: string; trims?: TrimLoop[]; out: DirectDisplay[] }>();
 export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
   if (!d) return [];
-  const used = new Map<string, { text: string; out: DirectDisplay[] }>();
+  const used = new Map<string, { text: string; trims?: TrimLoop[]; out: DirectDisplay[] }>();
   const shown = d.objects.filter(o => !o.hidden).flatMap((o): DirectDisplay[] => {
     const key = `${o.id}\u0000${o.name}\u0000${o.source}\u0000${o.geometry}`, text = d.sources[o.source], have = displays.get(key);
-    if (have && have.text === text) { used.set(key, have); return have.out; }
-    const out = displayOf(d, o); used.set(key, { text, out }); return out;
+    if (have && have.text === text && have.trims === o.trims) { used.set(key, have); return have.out; }
+    const out = displayOf(d, o); used.set(key, { text, trims: o.trims, out }); return out;
   });
   displays = used;
   return shown;
@@ -411,7 +426,8 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
       for (let i = 0; i + 1 < g.controlPoints.length; i++) ctl.push(...g.controlPoints[i], ...g.controlPoints[i + 1]);
       return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl) }];
     }
-    const p = tessellateSurface(g, { countU: 32, countV: 32, revision: 0 }).packet, ctl: number[] = [], P = g.controlPoints;
+    const trims = o.trims?.length ? o.trims : null;
+    const p = trims ? trimmedMesh(g, trims) : tessellateSurface(g, { countU: 32, countV: 32, revision: 0 }).packet, ctl: number[] = [], P = g.controlPoints;
     for (let i = 0; i < P.length; i++) for (let j = 0; j < P[i].length; j++) {
       if (i + 1 < P.length) ctl.push(...P[i][j], ...P[i + 1][j]);
       if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
@@ -421,8 +437,14 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
     for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
       const c = a[0] + (a[1] - a[0]) * k / 7;
       let prev: readonly number[] | null = null;
-      for (let i = 0; i <= N; i++) { const t = b[0] + (b[1] - b[0]) * i / N, q = fixU ? evaluateSurface(g, c, t) : evaluateSurface(g, t, c); if (prev) iso.push(...prev, ...q); prev = q; }
+      let was = true;
+      for (let i = 0; i <= N; i++) {
+        const t = b[0] + (b[1] - b[0]) * i / N, uv = fixU ? [c, t] : [t, c], q = evaluateSurface(g, uv[0], uv[1]), keep = !trims || kept(trims, g, uv[0], uv[1]);
+        if (prev && keep && was) iso.push(...prev, ...q); prev = q; was = keep;
+      }
     }
+    // The trim loops' edges on the surface.
+    for (const l of trims ?? []) for (let k = 0; k < l.uv.length; k++) { const a = l.uv[k], b = l.uv[(k + 1) % l.uv.length]; iso.push(...evaluateSurface(g, a[0], a[1]), ...evaluateSurface(g, b[0], b[1])); }
     return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl), isos: new Float32Array(iso) }];
   } catch { return []; }
 }

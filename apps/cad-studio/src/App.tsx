@@ -1455,6 +1455,7 @@ export function App() {
         onThicken={(id, thickness, side) => {
           const o = doc.direct!.objects.find(x => x.id === id)!, g = geometryOf(doc.direct!, o);
           if (g.kind !== 'surface') return;
+          if (o.trims?.length) { setToast({ title: 'Untrim it first', hint: 'Thicken uses the whole surface; a trimmed one is not thickened along its trim yet.', detail: '' }); return; }
           if (!(thickness > 0)) { setToast({ title: 'Give it a thickness', hint: 'A wall is thicker than 0 mm.', detail: '' }); return; }
           const surface = { degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) };
           setDirectSel([]); commit(withNode(evaluated, { kind: 'thicken', name: o.name, surface, thickness, ...(side !== 'normal' ? { side } : {}) }));
@@ -1463,6 +1464,7 @@ export function App() {
           const objs = ids.map(id => doc.direct!.objects.find(x => x.id === id)!), gs = objs.map(o => geometryOf(doc.direct!, o));
           const surfaces = gs.flatMap(g => g.kind === 'surface' ? [{ degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) }] : []);
           if (surfaces.length !== ids.length) return;
+          if (objs.some(o => o.trims?.length)) { setToast({ title: 'Untrim them first', hint: 'Sewing joins surfaces along their own edges; trimmed ones do not sew yet.', detail: '' }); return; }
           // (The surfaces hidden as they become the body's faces, in the same undoable step.)
           const direct = { ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) };
           setDirectSel([]); commit({ ...withNode(evaluated, { kind: 'sew', names: objs.map(o => o.name), surfaces, ...(tolerance > 0 ? { tolerance: Math.min(1, tolerance) } : {}) }), direct });

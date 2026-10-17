@@ -16,7 +16,7 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
   /** Surfaces sewn along their edges into one closed body of the part (`tolerance` mm; 0: the kernel's own). */
   onSew?(ids: string[], tolerance: number): void;
 }) {
-  const [gap, setGap] = useState(0);
+  const [gap, setGap] = useState(0), [keep, setKeep] = useState<'outside' | 'inside'>('outside');
   const objs = selected.map(id => direct.objects.find(o => o.id === id)).filter((o): o is NonNullable<typeof o> => !!o);
   const geoms = objs.map(o => { try { return geometryOf(direct, o); } catch { return null; } });
   const run = (op: () => DirectGeometry, select?: (next: DirectGeometry) => string[]) => {
@@ -46,6 +46,15 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
           {objs.length === 4 && <button className="ghost" aria-label="Fill the loop" title="A surface filling the loop the four curves make (a Coons patch)" onClick={() => run(() => directOps.fill(direct, selected), added)}>Fill</button>}
         </div>
       </div>}
+      {objs.length === 2 && geoms.some(x => x?.kind === 'surface') && geoms.some(x => x?.kind === 'curve') && (() => {
+        const s = selected[geoms.findIndex(x => x?.kind === 'surface')], c = selected[geoms.findIndex(x => x?.kind === 'curve')];
+        return <div className="render-section">
+          <div className="card-title" style={{ marginTop: 8 }}>TRIM</div>
+          <label className="field"><span>Keep</span><select aria-label="Trim keeps" value={keep} onChange={e => setKeep(e.target.value as typeof keep)}>
+            <option value="outside">Outside the loop (a hole)</option><option value="inside">Inside the loop</option></select></label>
+          <button className="ghost" aria-label="Trim by the curve" title="Project the closed curve onto the surface and cut along it; the surface itself stays whole underneath" onClick={() => run(() => directOps.trimByCurve(direct, s, c, keep), () => [s])}>Trim by the curve</button>
+        </div>;
+      })()}
       {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>SEW</div>
         <NumberField label="Gap" value={gap} onChange={setGap} />
@@ -138,9 +147,10 @@ function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direc
   const [box, setBox] = useState<[number, number, number, number]>([u[0], u[1], v[0], v[1]]);
   useEffect(() => { setAt(mid); }, [id, axis, mid]);
   useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]);
-  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
+  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!), trims = direct.objects.find(o => o.id === id)?.trims?.length ?? 0;
   return <div className="render-section">
     {g.kind === 'surface' && <div className="kv">Degree <b>{g.degreeU} × {g.degreeV}</b></div>}
+    {!!trims && <div className="kv">Trimmed <b>{trims} loop{trims > 1 ? 's' : ''}</b> <button className="ghost tiny" aria-label="Untrim" title="Take the trims off: the whole surface again" onClick={() => run(() => directOps.untrim(direct, id))}>Untrim</button></div>}
     <div className="kv">Domain <b>u {u.map(x => Math.round(x * 1e4) / 1e4).join('…')} · v {v.map(x => Math.round(x * 1e4) / 1e4).join('…')}</b></div>
     <label className="field"><span>Direction</span><select aria-label="Surface direction" value={axis} onChange={e => setAxis(e.target.value as 'u' | 'v')}><option value="u">U</option><option value="v">V</option></select></label>
     <NumberField label={`At ${axis}`} value={at} onChange={setAt} />
