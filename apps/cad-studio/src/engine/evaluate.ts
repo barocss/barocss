@@ -104,7 +104,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
     const basePart = toPartDocument(base), origin = lastBase ? lastBase.withDocument(basePart) : evaluateCadPart(basePart); lastBase = origin;
     const bodies = snapshot.outputs.map((o, i) => {
       const at = origin.outputs[i];
-      if (!at || origin.outputs.length !== snapshot.outputs.length || !sameTopology(o.brep, at.brep)) return bodyOf(o, placed, revision, quality);
+      if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return bodyOf(o, placed, revision, quality);
       return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), key: bodyKeyOf(o.id, placed.nodes) };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
@@ -113,12 +113,37 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
   }
 }
 let lastBase: CadPartSnapshot | null = null;
-/** Whether two B-reps have the same faces and edges by name, in order (a placed copy of the other). */
-function sameTopology(a: Brep, b: Brep): boolean {
-  if (a.faces.length !== b.faces.length || a.edges.length !== b.edges.length) return false;
-  for (let i = 0; i < a.faces.length; i++) if (a.faces[i].name !== b.faces[i].name) return false;
-  for (let i = 0; i < a.edges.length; i++) if (a.edges[i].name !== b.edges[i].name) return false;
+/**
+ * Whether a placed body is the part's body at the origin moved by the placement: the same faces and edges
+ * by name, in order — but for the numbers of repeated names (`x#2`), which an upright body's turn about Z
+ * renumbers by position (they are display names here: mates read faces by name without the number) — and
+ * its corners where the origin body's go under the placement (their box, to 1e-6 of its size).
+ */
+function samePlacedBody(placed: Brep, origin: Brep, m: readonly number[], t: readonly number[]): boolean {
+  if (placed.faces.length !== origin.faces.length || placed.edges.length !== origin.edges.length || placed.vertices.length !== origin.vertices.length) return false;
+  if (!sameNames(placed.faces, origin.faces) || !sameNames(placed.edges, origin.edges)) return false;
+  const a = boxOf(placed.vertices, null, null), b = boxOf(origin.vertices, m, t), size = Math.max(1, ...a.map(Math.abs));
+  for (let k = 0; k < 6; k++) if (Math.abs(a[k] - b[k]) > 1e-6 * size) return false;
   return true;
+}
+const unnumbered = (name: string | undefined) => (name ?? '').replace(/#\d+/g, '');
+/** The same names in order, or the same names (unnumbered) as sorted lists. */
+function sameNames(a: readonly { name?: string }[], b: readonly { name?: string }[]): boolean {
+  let same = true;
+  for (let i = 0; i < a.length && same; i++) same = a[i].name === b[i].name;
+  if (same) return true;
+  const x = a.map(f => unnumbered(f.name)).sort(), y = b.map(f => unnumbered(f.name)).sort();
+  for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
+  return true;
+}
+/** The box of points (moved by m, t when given): [min x, y, z, max x, y, z]. */
+function boxOf(vs: readonly { point: readonly number[] }[], m: readonly number[] | null, t: readonly number[] | null): number[] {
+  const out = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (const v of vs) {
+    const p = m && t ? move(m, t, v.point) : v.point;
+    for (let k = 0; k < 3; k++) { out[k] = Math.min(out[k], p[k]); out[k + 3] = Math.max(out[k + 3], p[k]); }
+  }
+  return out;
 }
 const move = (m: readonly number[], t: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + t[0], m[3] * p[0] + m[4] * p[1] + m[5] * p[2] + t[1], m[6] * p[0] + m[7] * p[1] + m[8] * p[2] + t[2]];
 const turn = (m: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2], m[3] * p[0] + m[4] * p[1] + m[5] * p[2], m[6] * p[0] + m[7] * p[1] + m[8] * p[2]];
