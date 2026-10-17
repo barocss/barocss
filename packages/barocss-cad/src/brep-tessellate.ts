@@ -276,17 +276,19 @@ export interface FaceParameters {
   readonly domain?: readonly (readonly [number, number, number])[];
 }
 /** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there; `only`: just those faces (their edges sampled as for the whole B-rep). */
-export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}, only: ReadonlySet<string> | null = null): { mesh: BrepMesh; parameters: Map<string, FaceParameters>; midpoints: Map<string, Point> } {
-  const parameters = new Map<string, FaceParameters>(), midpoints = new Map<string, Point>();
-  return { mesh: tessellate(brep, options, parameters, only, midpoints), parameters, midpoints };
+/** An edge's stretch between two of its samples: its curve, and the parameters at `from` (a sample point) and at the other end. */
+export interface EdgeSegment { readonly curve: Curve; readonly from: Point; readonly tFrom: number; readonly tTo: number }
+export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}, only: ReadonlySet<string> | null = null): { mesh: BrepMesh; parameters: Map<string, FaceParameters>; segments: Map<string, EdgeSegment> } {
+  const parameters = new Map<string, FaceParameters>(), segments = new Map<string, EdgeSegment>();
+  return { mesh: tessellate(brep, options, parameters, only, segments), parameters, segments };
 }
-/** The key of a mesh segment between two sample points, the same either way round (for `midpoints`). */
+/** The key of a mesh segment between two sample points, the same either way round (for `segments`). */
 export function segmentKey(a: ArrayLike<number>, b: ArrayLike<number>): string {
   const p = `${a[0]},${a[1]},${a[2]}`, q = `${b[0]},${b[1]},${b[2]}`;
   return p < q ? `${p}|${q}` : `${q}|${p}`;
 }
 
-function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null, only: ReadonlySet<string> | null = null, midpoints: Map<string, Point> | null = null): BrepMesh {
+function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null, only: ReadonlySet<string> | null = null, segments: Map<string, EdgeSegment> | null = null): BrepMesh {
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
@@ -338,11 +340,11 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
     if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
     return [e.id, s];
   }));
-  // (For mass quadrature: each segment between an edge's samples with the curve's point halfway along it, so
-  // the curved strip between the chord and the edge can be integrated too.)
-  if (midpoints) for (const e of brep.edges) {
+  // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
+  // strip between the chord and the edge can be integrated too.)
+  if (segments) for (const e of brep.edges) {
     const ts = params.get(e.id)!, s = samples.get(e.id)!;
-    for (let j = 0; j + 1 < s.length; j++) midpoints.set(segmentKey(s[j], s[j + 1]), evaluateCurve(e.curve, (ts[j] + ts[j + 1]) / 2));
+    for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
   }
   const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
   /** A loop as one ring of points (each coedge without its last point). */

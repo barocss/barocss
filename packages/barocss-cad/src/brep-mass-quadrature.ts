@@ -10,9 +10,9 @@
 // curves (a disc's rim is a circle, not its chords).
 import { planar, polesOf, segmentKey, tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
 import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
+import { curveD1Evaluator, evaluateSurfaceD1, type CurveD1Result } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
-import type { Point, Surface } from './types.js';
+import type { Curve, Point, Surface } from './types.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -97,13 +97,13 @@ function planarIntegrals(brep: Brep, face: BrepFace, n: Point, o: Point, maps: M
   const e2 = cross(n, e1), I = Array(11).fill(0) as number[];
   const P = (s: number, t: number): Point => [o[0] + s * e1[0] + t * e2[0], o[1] + s * e1[1] + t * e2[1], o[2] + s * e1[2] + t * e2[2]];
   for (const loopId of face.loops) for (const cid of loops.get(loopId)!.coedges) {
-    const co = coedges.get(cid)!, curve = edges.get(co.edge)!.curve, [t0, t1] = curveDomain(curve);
+    const co = coedges.get(cid)!, curve = edges.get(co.edge)!.curve, [t0, t1] = curveDomain(curve), d1 = curveD1Evaluator(curve);
     const knots = [t0, ...curve.knots.filter(k => k > t0 && k < t1), t1].filter((k, i, all) => i === 0 || k > all[i - 1]);
     const sense = co.sense === 'forward' ? 1 : -1;
     for (let k = 0; k + 1 < knots.length; k++) {
       const a = knots[k], b = knots[k + 1];
       G12.x.forEach((x, g) => {
-        const { point, derivative } = evaluateCurveD1(curve, a + (b - a) * x), d = sub(point, o), s = dot(d, e1), t = dot(d, e2), dt = dot(derivative, e2) * (b - a) * G12.w[g] * sense;
+        const { point, derivative } = d1(a + (b - a) * x), d = sub(point, o), s = dot(d, e1), t = dot(d, e2), dt = dot(derivative, e2) * (b - a) * G12.w[g] * sense;
         // H(s, t)·dt: the field integrated across from s = 0.
         G4.x.forEach((y, j) => accumulate(I, P(s * y, t), n, G4.w[j] * s * dt));
         // The face's area: ∫∫ 1 ds dt = ∮ s dt.
@@ -133,19 +133,18 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     rest.add(face.id);
   }
   if (!rest.size) return { integrals: fromCentre(I), meshed: false };
-  const { mesh, parameters, midpoints } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
-  const surfaces = new Map(brep.faces.map(f => [f.id, f.surface])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
+  const { mesh, parameters, segments } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
+  const moments = new Map<Curve, Point>(), surfaces = new Map(brep.faces.map(f => [f.id, f.surface])), faces = new Map(brep.faces.map(f => [f.id, f])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
   for (const face of mesh.faces) {
     const flat = Array(10).fill(0) as number[], tris: [number, number, number][] = [];
     for (let t = face.indexOffset; t < face.indexOffset + face.indexCount; t += 3) tris.push([ix[t], ix[t + 1], ix[t + 2]]);
     // Flat triangles: exact for planar faces (the rule integrates the degree-4 field exactly).
-    let areaSum = 0; const flatVec: Point = [0, 0, 0];
+    let areaSum = 0;
     for (const [a, b, c] of tris) {
       const A = point(a), B = point(b), C = point(c), n = cross(sub(B, A), sub(C, A)).map(x => x / 2) as Point, tri = Array(10).fill(0) as number[];
       for (const [wa, wb, wc, w] of RULE) accumulate(tri, [wa * A[0] + wb * B[0] + wc * C[0], wa * A[1] + wb * B[1] + wc * C[1], wa * A[2] + wb * B[2] + wc * C[2]], n, w);
       tri.forEach((x, k) => { flat[k] += x; }); areaSum += Math.hypot(...n);
-      flatVec[0] += n[0]; flatVec[1] += n[1]; flatVec[2] += n[2];
     }
     // Curved: each vertex's (u, v) (from the tessellation, else inverted), the triangle mapped through the surface.
     let fp: FaceParameters | undefined = parameters.get(face.faceId);
@@ -155,7 +154,6 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
       fp = { uv: uv as [number, number][], at: surfaceEvaluator(S) };
     }
     const { uv, at } = fp, curved = Array(10).fill(0) as number[], curvedVec: Point = [0, 0, 0];
-    let curvedArea = 0;
     const domain = fp.domain ? fp.domain.map(([a, b, c]) => [a + face.vertexOffset, b + face.vertexOffset, c + face.vertexOffset] as [number, number, number]) : tris;
     const uvArea = ([a, b, c]: readonly number[]) => { const qa = uv[a - face.vertexOffset], qb = uv[b - face.vertexOffset], qc = uv[c - face.vertexOffset]; return ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2; };
     let du = 0, dv = 0; for (const q of uv) { du = Math.max(du, Math.abs(q[0] - uv[0][0])); dv = Math.max(dv, Math.abs(q[1] - uv[0][1])); }
@@ -170,64 +168,162 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     }
     if (!sigma) return null;
     // (The hottest loop of a curved body's mass: no callbacks or temporary vectors per point.)
-    const off = face.vertexOffset, su = 2 * hu, sv = 2 * hv;
-    for (const t of domain) {
-      const qa = uv[t[0] - off], qb = uv[t[1] - off], qc = uv[t[2] - off], area = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2;
-      if (area === 0) continue;
-      for (const r of RULE) {
-        const wa = r[0], wb = r[1], wc = r[2], u = wa * qa[0] + wb * qb[0] + wc * qc[0], v = wa * qa[1] + wb * qb[1] + wc * qc[1];
-        const pu = at(u + hu, v), mu = at(u - hu, v), pv = at(u, v + hv), mv = at(u, v - hv);
-        const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
-        // The mesh is wound outward throughout: sigma times the triangle's signed (u, v) area is outward.
-        normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
-        const k = r[3] * area * sigma;
-        accumulate(curved, at(u, v), normal, k);
-        curvedVec[0] += normal[0] * k; curvedVec[1] += normal[1] * k; curvedVec[2] += normal[2] * k; curvedArea += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
-      }
+    const off = face.vertexOffset;
+    sink.at = at; sink.hu = hu; sink.hv = hv; sink.sigma = sigma; sink.curved = curved; sink.vec = curvedVec; sink.area = 0;
+    for (const t of domain) triangle(sink, uv[t[0] - off], uv[t[1] - off], uv[t[2] - off]);
+    // The surface over the domain and the flat triangles share the boundary samples: their areas differ by the
+    // surface's sag inside the triangles alone, a few % at most at 8 segments a quarter. Coverage gone wrong
+    // shows as much more. (Before the strips: those add the chord error, no small part of a thin face's area.)
+    if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) return null;
+    // The curved strips between the domain's boundary chords and the edges, each integrated at once (`strip`).
+    // (Not beside a surface's pole: there the parameters crowd and inversions are not to be trusted; such a face
+    // keeps the square-of-the-step error, extrapolated as such.)
+    // (Edges counted by position, not vertex index: a face's vertex list repeats points, and a chord counted
+    // twice would add its strip twice. Triangles of no area in (u, v) bound nothing.)
+    const pole = polesOf(surfaces.get(face.faceId)!).length > 0, users = new Map<string, { t: number; e: number }[]>();
+    if (!pole) for (let t = 0; t < domain.length; t++) {
+      const [i, j, k] = domain[t], qa = uv[i - off], qb = uv[j - off], qc = uv[k - off];
+      if ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0]) === 0) continue;
+      for (let e = 0; e < 3; e++) { const key = segmentKey(point(domain[t][e]), point(domain[t][(e + 1) % 3])), l = users.get(key); if (l) l.push({ t, e }); else users.set(key, [{ t, e }]); }
     }
-    // The curved strips between the domain's boundary chords and the edges: each a parabolic segment (4/3 of
-    // the triangle through the edge's midpoint, in the face's parameters), its integrand at its centroid,
-    // added where it lies outside the chord's triangle and taken off where inside (the trims' O(h²) error).
-    // (Not beside a surface's pole: there the parameters crowd and a midpoint's inversion is not to be trusted;
-    // such a face keeps the square-of-the-step error, extrapolated as such.)
-    const pole = polesOf(surfaces.get(face.faceId)!).length > 0, users = new Map<string, number[]>();
-    if (!pole) for (let t = 0; t < domain.length; t++) for (let e = 0; e < 3; e++) { const a = domain[t][e], b = domain[t][(e + 1) % 3], key = a < b ? `${a}-${b}` : `${b}-${a}`, l = users.get(key); if (l) l.push(t); else users.set(key, [t]); }
-    for (const list of users.values()) {
+    for (const [key, list] of users) {
       if (list.length !== 1) continue;
-      const tri = domain[list[0]];
-      for (let e = 0; e < 3; e++) {
-        const a = tri[e], b = tri[(e + 1) % 3], c = tri[(e + 2) % 3];
-        const mid = midpoints.get(segmentKey(point(a), point(b)));
-        if (!mid) continue;
-        const qa = uv[a - off], qb = uv[b - off], qc = uv[c - off], m = nearUV(at, mid, [(qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2]);
-        if (!m) continue;
-        const ex = qb[0] - qa[0], ey = qb[1] - qa[1], chord = Math.hypot(ex, ey), sm = ex * (m[1] - qa[1]) - ey * (m[0] - qa[0]), sc = ex * (qc[1] - qa[1]) - ey * (qc[0] - qa[0]);
-        // (A midpoint that inverts far off its chord — a seam, a pole — is left alone.)
-        if (!(chord > 0) || Math.abs(sm) / chord > 0.5 * chord || sm === 0 || sc === 0) continue;
-        const triArea = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2, outside = Math.sign(sm) !== Math.sign(sc);
-        const k = (outside ? 1 : -1) * Math.sign(triArea) * sigma * (2 / 3) * Math.abs(sm), cu = (qa[0] + qb[0]) / 2 + 0.4 * (m[0] - (qa[0] + qb[0]) / 2), cv = (qa[1] + qb[1]) / 2 + 0.4 * (m[1] - (qa[1] + qb[1]) / 2);
-        // (Its centroid's differences may step off a domain whose edge the trim runs along: then no correction.)
-        let pu: Point, mu: Point, pv: Point, mv: Point, x: Point;
-        try { pu = at(cu + hu, cv); mu = at(cu - hu, cv); pv = at(cu, cv + hv); mv = at(cu, cv - hv); x = at(cu, cv); } catch { continue; }
-        const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
-        normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
-        accumulate(curved, x, normal, k);
-        curvedArea += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
+      const seg = segments.get(key);
+      if (!seg) continue;
+      {
+        const tri = domain[list[0].t], a = tri[list[0].e], b = tri[(list[0].e + 1) % 3];
+        // (The segment's parameters in the direction a → b.)
+        const pa = point(a), fromA = seg.from[0] === pa[0] && seg.from[1] === pa[1] && seg.from[2] === pa[2];
+        sink.ev = curveEvaluator(seg.curve); sink.d1 = curveD1Evaluator(seg.curve);
+        strip(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
       }
     }
-    // The surface and its flat triangles share the boundary samples: their areas and vector areas (∫ n dA,
-    // which only the boundary decides) differ by the chord error alone, a few % at most at 8 segments a
-    // quarter. Coverage or orientation gone wrong shows as much more.
-    if (!(Math.abs(curvedArea - areaSum) <= 5e-2 * areaSum && Math.hypot(...sub(curvedVec, flatVec)) <= 5e-2 * areaSum)) return null;
+    // Its vector area (∫ n dA) against the exact one, ½∮ x × dx along its edges: coverage or orientation gone
+    // wrong shows as a large part of its area. (Beside a pole, without strips, the chords' sag is in it too.)
+    const exact = boundaryVectorArea(faces.get(face.faceId)!, maps, moments);
+    if (!(Math.hypot(curvedVec[0] - exact[0], curvedVec[1] - exact[1], curvedVec[2] - exact[2]) <= 5e-2 * areaSum)) return null;
     // (A face whose surface has a pole keeps an error falling with the square of the step beside it; the
     // others, their trims' strips integrated, with its cube: their parts are extrapolated apart.)
     const part = pole ? squared : cubed;
     curved.forEach((x, k) => { part[k] += x; });
-    part[10] += curvedArea;
+    part[10] += sink.area;
   }
   return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed) };
 }
 
+/** A face's vector area ∫ n dA (outward) from its boundary alone: ½∮ x × dx along each coedge's exact curve. */
+function boundaryVectorArea(face: BrepFace, maps: Maps, moments: Map<Curve, Point>): Point {
+  const out: Point = [0, 0, 0];
+  for (const loopId of face.loops) for (const cid of maps.loops.get(loopId)!.coedges) {
+    const co = maps.coedges.get(cid)!, v = curveMoment(maps.edges.get(co.edge)!.curve, moments), sense = co.sense === 'forward' ? 1 : -1;
+    out[0] += v[0] * sense; out[1] += v[1] * sense; out[2] += v[2] * sense;
+  }
+  return out;
+}
+/** ½∫ x × x′ dt along a curve (forward), once per curve in `moments`: each edge bounds two faces. */
+function curveMoment(curve: Curve, moments: Map<Curve, Point>): Point {
+  let out = moments.get(curve);
+  if (out) return out;
+  out = [0, 0, 0];
+  const [t0, t1] = curveDomain(curve), d1 = curveD1Evaluator(curve);
+  const knots = [t0, ...curve.knots.filter(k => k > t0 && k < t1), t1].filter((k, i, all) => i === 0 || k > all[i - 1]);
+  // (x × x′ on a polynomial span is a polynomial of degree 2p − 1: 4 points are exact up to cubics.)
+  const G = curve.degree <= 3 && curve.weights.every(w => w === 1) ? G4 : G12;
+  for (let k = 0; k + 1 < knots.length; k++) {
+    const a = knots[k], b = knots[k + 1];
+    for (let g = 0; g < G.x.length; g++) {
+      const { point: x, derivative: d } = d1(a + (b - a) * G.x[g]), w = (b - a) * G.w[g] / 2;
+      out[0] += (x[1] * d[2] - x[2] * d[1]) * w; out[1] += (x[2] * d[0] - x[0] * d[2]) * w; out[2] += (x[0] * d[1] - x[1] * d[0]) * w;
+    }
+  }
+  moments.set(curve, out);
+  return out;
+}
+
+/**
+ * Where a face's integrals over its parameter domain go (one face at a time): its surface `at`, the steps for
+ * its derivatives, the orientation `sigma`, the integrals, its vector area and area; for its trims' strips the
+ * edge's evaluators `ev` (points) and `d1` (with derivatives).
+ */
+const sink = { at: null as unknown as (u: number, v: number) => Point, hu: 0, hv: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
+  ev: null as unknown as (t: number) => Point, d1: null as unknown as (t: number) => CurveD1Result };
+/** One triangle of the domain (signed by its (u, v) orientation) integrated by the 16-point rule. */
+function triangle(s: typeof sink, qa: XY, qb: XY, qc: XY): void {
+  const area = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2;
+  if (area === 0) return;
+  for (const r of RULE) {
+    const wa = r[0], wb = r[1], wc = r[2];
+    surfacePoint(s, wa * qa[0] + wb * qb[0] + wc * qc[0], wa * qa[1] + wb * qb[1] + wc * qc[1], r[3] * area * s.sigma, s.curved, s.vec);
+  }
+}
+/**
+ * The surface at (u, v) with weight k (its (u, v) area times the rule's weight, signed outward by sigma) into the
+ * integrals I and vector area vec, and its share of the area. (The hottest loop of a curved body's mass: no
+ * callbacks or temporary vectors per point.)
+ */
+function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number[], vec: Point): void {
+  const at = s.at, hu = s.hu, hv = s.hv;
+  const pu = at(u + hu, v), mu = at(u - hu, v), pv = at(u, v + hv), mv = at(u, v - hv), su = 2 * hu, sv = 2 * hv;
+  const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
+  // The mesh is wound outward throughout: sigma times the signed (u, v) area is outward.
+  normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
+  accumulate(I, at(u, v), normal, k);
+  vec[0] += normal[0] * k; vec[1] += normal[1] * k; vec[2] += normal[2] * k; s.area += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
+}
+// (A strip's edge parameters and their derivatives at the t nodes, and its integrals before they are kept.)
+const ST = gauss(8), SS = gauss(4), PROBES = [0.5, 0.25, 0.75], stripC = new Float64Array(16), stripD = new Float64Array(16), stripI = Array(10).fill(0) as number[], stripVec: Point = [0, 0, 0];
+/**
+ * The strip between the domain's boundary chord p → q (in the domain's orientation) and the edge it stands for
+ * (parameters tp → tq), integrated at once: ruled from the chord L(t) to the edge's parameters C(t) on the
+ * surface, Φ(t, s) = L + s (C − L), by Gauss–Legendre (8 × 4: the strip is thin, its integrand smooth). The
+ * Jacobian's sign adds what lies outside the chord and takes off what lies inside. An edge point that cannot be
+ * put on the surface, or lands far off its chord (a seam), drops the strip; the face's vector-area check judges
+ * what is left.
+ */
+function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
+  const ex = q[0] - p[0], ey = q[1] - p[1], chord2 = ex * ex + ey * ey;
+  if (!(chord2 > 0)) return;
+  // An edge straight in (u, v) to rounding (a circle about a cylinder's axis, a ruling) leaves no strip. (Its
+  // points only: the probes can fall on a circle's C0 knots, where it has no derivative.)
+  let straight = true;
+  for (const t of PROBES) {
+    const l0 = p[0] + ex * t, l1 = p[1] + ey * t;
+    let c: XY | null; try { c = nearUV(s.at, s.ev(tp + (tq - tp) * t), [l0, l1]); } catch { return; }
+    if (!c) return;
+    const off = ex * (c[1] - l1) - ey * (c[0] - l0);
+    if (off * off > 1e-24 * chord2 * chord2) { straight = false; break; }
+  }
+  if (straight) return;
+  for (let i = 0; i < 8; i++) {
+    const t = ST.x[i], l0 = p[0] + ex * t, l1 = p[1] + ey * t;
+    let c: XY | null, E: Point, dE: Point;
+    try { ({ point: E, derivative: dE } = s.d1(tp + (tq - tp) * t)); c = nearUV(s.at, E, [l0, l1]); } catch { return; }
+    if (!c) return;
+    const off = ex * (c[1] - l1) - ey * (c[0] - l0);
+    if (off * off > 0.25 * chord2 * chord2) return;
+    // C′(t) from the surface's tangents there: dE/dt = Su du + Sv dv (least squares).
+    let Su: Point, Sv: Point;
+    try { const pu = s.at(c[0] + s.hu, c[1]), mu = s.at(c[0] - s.hu, c[1]), pv = s.at(c[0], c[1] + s.hv), mv = s.at(c[0], c[1] - s.hv); Su = sub(pu, mu); Sv = sub(pv, mv); } catch { return; }
+    Su = [Su[0] / (2 * s.hu), Su[1] / (2 * s.hu), Su[2] / (2 * s.hu)]; Sv = [Sv[0] / (2 * s.hv), Sv[1] / (2 * s.hv), Sv[2] / (2 * s.hv)];
+    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dE) * (tq - tp), r2 = dot(Sv, dE) * (tq - tp);
+    if (!(Math.abs(det) > 0)) return;
+    stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = (r1 * g22 - r2 * g12) / det; stripD[2 * i + 1] = (g11 * r2 - g12 * r1) / det;
+  }
+  stripI.fill(0); stripVec[0] = stripVec[1] = stripVec[2] = 0;
+  const area = s.area;
+  try {
+    for (let i = 0; i < 8; i++) {
+      const t = ST.x[i], l0 = p[0] + ex * t, l1 = p[1] + ey * t, c0 = stripC[2 * i], c1 = stripC[2 * i + 1], d0 = stripD[2 * i], d1 = stripD[2 * i + 1];
+      for (let j = 0; j < 4; j++) {
+        // ∂Φ/∂t = L′ + s (C′ − L′), ∂Φ/∂s = C − L; the strip's area element is −det (chord left to right).
+        const f = SS.x[j], at0 = ex + f * (d0 - ex), at1 = ey + f * (d1 - ey), as0 = c0 - l0, as1 = c1 - l1;
+        surfacePoint(s, l0 + f * as0, l1 + f * as1, -(at0 * as1 - at1 * as0) * ST.w[i] * SS.w[j] * s.sigma, stripI, stripVec);
+      }
+    }
+  } catch { s.area = area; return; }
+  for (let k = 0; k < 10; k++) s.curved[k] += stripI[k];
+  s.vec[0] += stripVec[0]; s.vec[1] += stripVec[1]; s.vec[2] += stripVec[2];
+}
 /**
  * The parameters of the surface point nearest p, by Gauss–Newton (finite differences) from a nearby seed; null
  * when it does not settle or steps off the surface's domain (its evaluator refuses: no correction there).

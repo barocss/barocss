@@ -87,6 +87,19 @@ function quotient(sum: Point, weightD1: number, point: Point, weight: number): P
 /** Endpoints use the interior span; exact C0 knots reject. Zero tangents are valid. */
 export function evaluateCurveD1(curve: Curve, parameter: number): CurveD1Result {
   validateCurve(curve);
+  return curveD1(curve, parameter, constantAxes(curve));
+}
+/** `evaluateCurveD1` for one curve, validated once: the same arithmetic, bit for bit. */
+export function curveD1Evaluator(curve: Curve): (parameter: number) => CurveD1Result {
+  validateCurve(curve);
+  const constant = constantAxes(curve);
+  return parameter => curveD1(curve, parameter, constant);
+}
+/** Which coordinates every pole shares (restored exactly, with no derivative). */
+function constantAxes(curve: Curve): boolean[] {
+  return [0, 1, 2].map(axis => curve.controlPoints.every(pole => Object.is(pole[axis], curve.controlPoints[0][axis])));
+}
+function curveD1(curve: Curve, parameter: number, constant: readonly boolean[]): CurveD1Result {
   const basis = basisD1(curve.knots, curve.degree, curve.controlPoints.length, parameter);
   const sum: Point = [0, 0, 0], sumD1: Point = [0, 0, 0];
   let weight = 0, weightD1 = 0;
@@ -99,10 +112,7 @@ export function evaluateCurveD1(curve: Curve, parameter: number): CurveD1Result 
   }
   const point = project(sum, weight), derivative = quotient(sumD1, weightD1, point, weight);
   // Finish every legacy quotient with its legacy point before restoring constants.
-  for (let axis = 0; axis < 3; axis++) {
-    const coordinate = curve.controlPoints[0][axis];
-    if (curve.controlPoints.every(pole => Object.is(pole[axis], coordinate))) { point[axis] = coordinate; derivative[axis] = 0; }
-  }
+  for (let axis = 0; axis < 3; axis++) if (constant[axis]) { point[axis] = curve.controlPoints[0][axis]; derivative[axis] = 0; }
   return { point, derivative };
 }
 
