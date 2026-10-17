@@ -29,6 +29,7 @@ import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
+import { sewSolid, SewError } from './sew-solid.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -131,6 +132,11 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
   /** An open NURBS surface thickened into a solid: `thickness` along its normal (or against it, or half each way). Faceted. */
   | { readonly kind: 'thicken'; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }; readonly thickness: CadPartDim; readonly side?: 'normal' | 'reverse' | 'both' }
+  /**
+   * Open NURBS surfaces sewn into one closed solid along their natural edges (each edge shared by exactly
+   * two of them within `tolerance` mm); the faces keep their exact surfaces.
+   */
+  | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
@@ -643,6 +649,21 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => {
         try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
         catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
+    case 'sew': {
+      const list = f.surfaces as unknown, tol = f.tolerance as unknown;
+      if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.edges) fail('INPUT', 'surfaces must list 2 to 64 NURBS surfaces');
+      if (tol !== undefined && !(typeof tol === 'number' && Number.isFinite(tol) && tol > 0 && tol <= 1)) fail('INPUT', 'tolerance must be a number of mm above 0, at most 1');
+      const surfaces = (list as unknown[]).map((g, k) => {
+        if (!isRecord(g)) fail('INPUT', `surfaces[${k}] must be a NURBS surface { degreeU, degreeV, knotsU, knotsV, controlPoints, weights }`);
+        const r = g as Record<string, unknown>, s = { kind: 'surface' as const, id: `surface${k}`, degreeU: r.degreeU as number, degreeV: r.degreeV as number, knotsU: r.knotsU as number[], knotsV: r.knotsV as number[], controlPoints: r.controlPoints as Point[][], weights: r.weights as number[][] };
+        try { validateSurface(s); } catch (cause) { fail('INPUT', `surfaces[${k}]: ${cause instanceof Error ? cause.message : String(cause)}`); }
+        return s;
+      });
+      return () => {
+        try { return one({ kind: 'brep', brep: sewSolid({ id: at, surfaces, ...(tol === undefined ? {} : { toleranceMM: tol as number }) }) }); }
+        catch (cause) { if (cause instanceof SewError) fail('GEOMETRY', cause.message); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
       };
     }
     case 'sweep-curve': {

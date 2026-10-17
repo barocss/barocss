@@ -146,6 +146,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
     case 'fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
+    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;
     case 'shell': number('t', 'Wall', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'translate': [0, 1, 2].forEach(k => number('o' + k, 'Δ' + 'XYZ'[k], 'mm', n => num((n as typeof node).offset[k]), (n, v) => { const o = [...(n as typeof node).offset] as [Dim, Dim, Dim]; o[k] = v; return { ...(n as typeof node), offset: o }; })); break;

@@ -6,14 +6,17 @@ import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directO
  * curves (join, ruled surface, sweep), one surface (split, region, iso-curve, reverse, knot, degree,
  * poles). Each tool is one undoable edit; a refusal comes back as a message.
  */
-export function DirectPanel({ direct, selected, onChange, onError, onHide, onThicken }: {
+export function DirectPanel({ direct, selected, onChange, onError, onHide, onThicken, onSew }: {
   direct: DirectGeometry; selected: string[];
   onChange(next: DirectGeometry, select?: string[]): void;
   onError(message: string): void;
   onHide(ids: string[]): void;
   /** A surface thickened into a body of the part. */
   onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void;
+  /** Surfaces sewn along their edges into one closed body of the part (`tolerance` mm; 0: the kernel's own). */
+  onSew?(ids: string[], tolerance: number): void;
 }) {
+  const [gap, setGap] = useState(0);
   const objs = selected.map(id => direct.objects.find(o => o.id === id)).filter((o): o is NonNullable<typeof o> => !!o);
   const geoms = objs.map(o => { try { return geometryOf(direct, o); } catch { return null; } });
   const run = (op: () => DirectGeometry, select?: (next: DirectGeometry) => string[]) => {
@@ -42,6 +45,11 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
           <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
           {objs.length === 4 && <button className="ghost" aria-label="Fill the loop" title="A surface filling the loop the four curves make (a Coons patch)" onClick={() => run(() => directOps.fill(direct, selected), added)}>Fill</button>}
         </div>
+      </div>}
+      {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>SEW</div>
+        <NumberField label="Gap" value={gap} onChange={setGap} />
+        <button className="ghost" aria-label="Sew into a body" title="Join the surfaces along their edges into one closed solid (edges closer than the gap meet; 0 keeps it tight)" onClick={() => onSew(selected, gap)}>Sew into a body</button>
       </div>}
       {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>

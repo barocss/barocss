@@ -516,3 +516,19 @@ test('a STEP file with two solids opens as two bodies that take features on thei
   r = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'two', step: text.text }), 3);
   assert.ok(r.ok); assert.deepEqual(r.bodies.map(b => b.key), ['b0']);
 });
+
+test('sewn surfaces become one closed body; a missing side is refused with the open edges', () => {
+  const S = (pts: [number, number, number][][]) => ({ degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: pts, weights: [[1, 1], [1, 1]] });
+  const cube = [
+    S([[[0, 0, 0], [8, 0, 0]], [[0, 8, 0], [8, 8, 0]]]), S([[[0, 0, 8], [8, 0, 8]], [[0, 8, 8], [8, 8, 8]]]),
+    S([[[0, 0, 0], [0, 0, 8]], [[8, 0, 0], [8, 0, 8]]]), S([[[0, 8, 0], [0, 8, 8]], [[8, 8, 0], [8, 8, 8]]]),
+    S([[[0, 0, 0], [0, 0, 8]], [[0, 8, 0], [0, 8, 8]]]), S([[[8, 0, 0], [8, 0, 8]], [[8, 8, 0], [8, 8, 8]]]),
+  ];
+  const node = { kind: 'sew' as const, names: cube.map((_, k) => `s${k}`), surfaces: cube }, r = evaluateDoc(withNode(emptyDoc(), node), 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(featureLabel(node, 0, [node]), 'Sew 6 surfaces');
+  assert.equal(r.bodies[0].mesh.faces.length, 6);
+  assert.ok(Math.abs(signedVolume(r.bodies[0].mesh) - 512) < 1e-6);
+  const open = evaluateDoc(withNode(emptyDoc(), { kind: 'sew', names: [], surfaces: cube.slice(1) }), 1);
+  assert.ok(!open.ok && /do not close/.test(JSON.stringify(open.error)));
+});

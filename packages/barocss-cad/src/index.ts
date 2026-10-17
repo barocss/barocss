@@ -567,6 +567,7 @@ export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOption
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
 export { thickenSolid, type ThickenSolidRequest } from './thicken-solid.js';
+export { sewSolid, SewError, type SewSolidRequest } from './sew-solid.js';
 export { CadNumericPolicy, chartRoundingBoundMM } from './numeric-policy.js';
 export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, lineCurve, mergeBreps, BrepError } from './brep-core.js';
 export type { Brep, BrepBody, BrepShell, BrepFace, BrepLoop, BrepCoedge, BrepEdge, BrepVertex, BrepCheckReport, BrepBodyTopology, BrepBuildInput, BrepFaceInput, BrepLoopInput, BrepShellInput } from './brep-core.js';

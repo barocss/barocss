@@ -1003,6 +1003,23 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'thicken', null, { timeout: 5000 });
   });
 
+  await check('sew six surfaces into a body: a domed lid on ruled walls, 1200 mm³', async () => {
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/lid.barocad'));
+    await page.waitForFunction(() => (window.__studioDoc.direct?.objects ?? []).filter(o => o.name.startsWith('lid · ')).length === 6, null, { timeout: 5000 });
+    const names = ['dome', 'floor', 'front', 'back', 'left', 'right'];
+    for (const [k, n] of names.entries()) await page.click(`.ol.direct[title="lid · ${n}"]`, k ? { modifiers: ['Shift'] } : {});
+    await page.waitForSelector('.direct-panel .card-title:has-text("6 OBJECTS")');
+    await page.click('.direct-panel [aria-label="Sew into a body"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sew', null, { timeout: 10000 });
+    await page.waitForFunction(() => /Sew 6 surfaces/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.outliner .ol', { hasText: 'Sew' }).first().click();
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('lid · ') && o.hidden).length), 6, 'the sewn surfaces are hidden');
+    await snap('sew'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'sew', null, { timeout: 5000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('lid · ') && o.hidden).length), 0, 'undo shows them again');
+  });
+
   await check('extend a surface past an edge: the panel run on 5 mm along u', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.click('.ol.direct[title="study · panel"]');

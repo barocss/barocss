@@ -78,6 +78,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
+  /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
+  | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
@@ -184,7 +186,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
-    case 'import': case 'mesh': case 'thread': case 'thicken': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -197,7 +199,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -303,6 +305,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
+    case 'sew': return `Sew ${node.names.length} surfaces`;
     case 'fillet': return `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
