@@ -3,7 +3,7 @@
 // and the normal distance between parallel planes. Picks of one face or edge measure that item alone.
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 
-export interface MeasurePick { body: number; face?: number; edge?: number }
+export interface MeasurePick { body: number; face?: number; edge?: number; vertex?: Vec3 }
 export interface MeasureResult {
   /** Shortest distance and the closest points (mm). */
   distance: number; a: Vec3; b: Vec3;
@@ -37,6 +37,7 @@ function primitives(mesh: DisplayMesh, pick: MeasurePick): { tris: [Vec3, Vec3, 
     const L = mesh.edgeLines, E = mesh.edgeOfSegment;
     for (let s = 0; 2 * s < E.length; s++) if (E[2 * s] === pick.edge) segs.push([at(L, 2 * s), at(L, 2 * s + 1)]);
   }
+  if (pick.vertex) segs.push([pick.vertex, pick.vertex]);
   return { tris, segs };
 }
 
@@ -151,6 +152,7 @@ export function roundFaceAxis(mesh: DisplayMesh, face: number): { point: Vec3; d
 
 /** One pick alone: an edge's length (and radius when it is an arc), a face's area (and radius when it is round). */
 export function measureItem(mesh: DisplayMesh, pick: MeasurePick): MeasureItem {
+  if (pick.vertex) return { label: `Point ${pick.vertex.map(v => Math.round(v * 1000) / 1000).join(', ')}` };
   if (pick.face !== undefined) {
     const f = mesh.faces[pick.face];
     return { label: f.kind === 'plane' ? 'Planar face' : 'Curved face', area: f.areaMM2, ...(f.radius ? { radius: f.radius } : {}) };

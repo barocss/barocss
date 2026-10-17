@@ -99,7 +99,7 @@ interface Props {
   /** A double-click on a body's face: pick the whole body; on an edge: its chain (`onPickChain`). */
   onPickBody?(body: number): void;
   onPickChain?(body: number, edge: number): void;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
@@ -114,6 +114,8 @@ interface Props {
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** Corners picked (shown as rings). */
+  pickedVertices?: { body: number; at: Vec3 }[];
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
   pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** A box drawn dashed round what is picked (or the part), with its size. */
@@ -147,7 +149,16 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
   const camera = useRef(new OrbitCamera());
   const frame = useRef(0);
-  const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
+  const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: Vec3 } | null }>({ face: null, edge: null });
+  /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
+  const vertexAt = (x: number, y: number, w: number, h: number, hit: { face: FaceRef | null; edge: EdgeRef | null }): { body: number; at: Vec3 } | null => {
+    const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
+    if (bi === undefined || f === 'face' || f === 'body') return null;
+    const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
+    let best: Vec3 | null = null, d0 = 7;
+    for (const e of mesh.edges) for (const p of [e.a, e.b]) { const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
+    return best ? { body: bi, at: best } : null;
+  };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
@@ -528,7 +539,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (propsRef.current.placing && !d.mode) { propsRef.current.onSpot?.(spotAt(x, y, w, h), false); return; }
     const { face, edge } = pickAt(r, x, y);
     const prev = hover.current;
-    const next = { face: edge ? null : face, edge };
+    const vertex = vertexAt(x, y, w, h, { face, edge });
+    const next = { face: edge || vertex ? null : face, edge: vertex ? null : edge, vertex };
     if (JSON.stringify(prev) !== JSON.stringify(next)) { hover.current = next; r.setState(viewState()); request(); }
     const point = surfacePoint(x, y, w, h, face) ?? planePoint(x, y, w, h, 0);
     propsRef.current.onCursor(point);
@@ -606,7 +618,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
     if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance: instance.id, instanceFace: instance.face >= 0 ? { body: instance.body, face: instance.face } : undefined }, e.shiftKey); return; }
-    const { face, edge } = pickAt(r, x, y);
+    const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
+    if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
   };
 
@@ -775,6 +788,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key="bbox">{edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
         <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
     }
+    // The corner under the pointer, and the picked ones.
+    [...(props.pickedVertices ?? []), ...(hover.current.vertex && !sk ? [hover.current.vertex] : [])].forEach((v, k) => {
+      const q = cam.project(v.at, w, h); items.push(<circle key={'vx' + k} cx={q[0]} cy={q[1]} r={5} className="vertex-mark" />);
+    });
     const ml = props.measureLine;
     if (ml) {
       const a = cam.project(ml.a, w, h), b = cam.project(ml.b, w, h), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, tw = Math.max(52, ml.label.length * 7 + 14);

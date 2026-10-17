@@ -634,7 +634,7 @@ export function App() {
     setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
   }, [sketch, doc, marker, commit, engine]);
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number } }, additive: boolean) => {
+  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
     if (sectionRef.current && !activeRef.current) return;
     if (active) {
@@ -655,10 +655,12 @@ export function App() {
     if (hit.instance) { setInstanceSel([hit.instance]); setSelection(emptySel); setDirectSel([]); return; }
     if (!additive) { setDirectSel([]); setInstanceSel([]); }
     if (measure) {
-      if (!hit.face && !hit.edge) return;
-      const p: MeasurePick = hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
+      if (!hit.face && !hit.edge && !hit.vertex) return;
+      const p: MeasurePick = hit.vertex ? { body: hit.vertex.body, vertex: hit.vertex.at } : hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
       setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
     }
+    // A corner: picked on its own (Shift adds or takes back another).
+    if (hit.vertex) { const v = hit.vertex; setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
     setSelection(prev => {
       if (!hit.face && !hit.edge) return emptySel;
       // Bodies only: the body under the click (Shift adds or takes it back).
@@ -838,7 +840,7 @@ export function App() {
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
-  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next); };
+  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
   const open = async (file: File) => {
     try {
@@ -1133,7 +1135,7 @@ export function App() {
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
-        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -1322,7 +1324,11 @@ export function App() {
       </aside>}
       {/* (A running command's HUD takes this place at the right.) */}
       {!rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
-        {sel1?.kind === 'face' && sel1.face ? (<>
+        {selection.vertices?.length ? (<>
+          <div className="card-title">SELECTION · {selection.vertices.length === 1 ? 'POINT' : `${selection.vertices.length} POINTS`}</div>
+          {selection.vertices.map((v, k) => <div key={k} className="kv">{selection.vertices!.length > 1 ? `Point ${k + 1}` : 'X Y Z'} <b>{v.at.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div>)}
+          {selection.vertices.length === 2 && (() => { const [a, b] = selection.vertices!.map(v => v.at), d = [0, 1, 2].map(k => b[k] - a[k]); return <><div className="kv">Distance <b>{fmt(Math.round(Math.hypot(d[0], d[1], d[2]) * 1000) / 1000)} mm</b></div><div className="kv">ΔX ΔY ΔZ <b>{d.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div></>; })()}
+        </>) : sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
           {sel1.face.kind === 'plane' && <div className="kv">Normal <b>{sel1.face.normal.map(v => fmt(Math.round(v * 1000) / 1000)).join(', ')}</b></div>}

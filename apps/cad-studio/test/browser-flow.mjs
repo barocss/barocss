@@ -1719,6 +1719,18 @@ try {
     await page.waitForFunction(() => !Object.values(window.__studioDoc.bodies ?? {}).some(l => l.faces), null, { timeout: 5000 });
   });
 
+  await check('corners: a click at a box corner picks the point; Shift adds another and their distance shows', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');
+    const [ax, ay] = await page.evaluate(() => window.__studioScreenOf([32, 0, 16])), [bx, by] = await page.evaluate(() => window.__studioScreenOf([0, 0, 16]));
+    await page.mouse.move(ax + 2, ay + 1); await page.waitForSelector('.vp-overlay .vertex-mark', { state: 'attached', timeout: 5000 });
+    await page.mouse.click(ax + 2, ay + 1);
+    await page.waitForFunction(() => /SELECTION · POINT[\s\S]*32, 0, 16/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.keyboard.down('Shift'); await page.mouse.click(bx - 1, by + 1); await page.keyboard.up('Shift');
+    await page.waitForFunction(() => /2 POINTS[\s\S]*Distance\s*32 mm/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await snap('corners'); await press('Escape');
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

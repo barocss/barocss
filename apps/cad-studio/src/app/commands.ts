@@ -12,7 +12,8 @@ import type { DisplayEdge } from '../engine/mesh';
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
 /** `sketches`: finished sketches picked as profiles (node indices; see app/profiles.ts). */
-export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[] }
+/** `vertices`: corners picked (ends of edges), by body and position. */
+export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number] }
 
 export type Values = Record<string, number | string>;
