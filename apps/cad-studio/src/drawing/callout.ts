@@ -21,6 +21,7 @@ export function holeCallout(nodes: readonly ModelNode[], edge: string): string |
   let out = `${count}${h.thread ? h.thread : `Ø${d}`} ${end}`;
   const next = nodes[i + 1];
   if (next?.kind === 'hole' && next.parent.node === i && same(next.center, h.center) && n(next.radius) > n(h.radius)) out += `  CBORE Ø${n(next.radius) * 2} × ${n(next.depth)} DEEP`;
-  if (h.csk) out += `  CSK Ø${n(h.csk)} × 90°`;
+  const csk = h.countersink ?? h.csk;
+  if (csk) out += `  CSK Ø${n(csk)} × 90°`;
   return out;
 }

@@ -379,22 +379,10 @@ const allCommands: Command[] = [
       const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
       if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw new Error('The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
       if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw new Error('Put the first hole away from the circle’s centre: the copies turn round it.');
-      if (pattern && v.type === 'countersink') throw new Error('Countersunk holes are not patterned yet: pattern a through hole.');
       const pat = pattern ? { pattern } : {};
-      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { csk: Number(v.csd) } : {}), ...pat });
+      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { countersink: Number(v.csd) } : {}), ...pat });
       if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });
-      if (v.type !== 'countersink') return doc;
-      // A countersink: a 90° cone from Ø csd at the face down to the hole, turned on a plane through the
-      // axis (its Y into the material), a little above the face so no face lies on the face, then cut.
-      const k = 'xyz'.indexOf(axis), [ia, ib] = HOLE_PLANE[axis].map(q => 'xyz'.indexOf(q)), face = body.mesh.faces[f.face];
-      const origin: [number, number, number] = [0, 0, 0]; origin[k] = face.centroid[k]; origin[ia] = Number(v.x); origin[ib] = Number(v.y);
-      const down: [number, number, number] = [0, 0, 0]; down[k] = side === 'max' ? -1 : 1;
-      const xAxis: [number, number, number] = [0, 0, 0]; xAxis[ia] = 1;
-      const normal: [number, number, number] = [xAxis[1] * down[2] - xAxis[2] * down[1], xAxis[2] * down[0] - xAxis[0] * down[2], xAxis[0] * down[1] - xAxis[1] * down[0]];
-      const R = Number(v.csd) / 2, r = Number(v.d) / 2, t = R - r, e = 0.5;
-      let d2 = withNode(doc, { kind: 'sketch', profile: 'polygon', points: [[0, -e], [R + e, -e], [r, t], [0, t]], plane: { origin, normal, xAxis } });
-      d2 = withNode(d2, { kind: 'revolve', sketch: d2.nodes.length - 1, axis: 'y', angleDegrees: 360 });
-      return withNode(d2, { kind: 'difference', parent: { node: doc.nodes.length - 1, side: 'solid' }, tool: { node: d2.nodes.length - 1, side: 'solid' } });
+      return doc;
     },
   },
   {

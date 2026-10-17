@@ -87,7 +87,9 @@ type ModelNodeBase = SketchNode
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
-  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern; /** A countersink's diameter at the face (its cone follows), for the callout. */ csk?: number };
+  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern;
+    /** A 90° countersink: its diameter at the face (the kernel cuts it with the hole). */ countersink?: number;
+    /** (Older documents: a countersink's diameter for the callout only, its cone the three steps after the hole.) */ csk?: number };
 
 /**
  * Copies of a hole on its face, the first at its centre: `count` in a row `step` apart (in the face's two
@@ -301,7 +303,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
     case 'revolve': return `Revolve ${node.angleDegrees}°`;
-    case 'hole': return (node.thread ? `Tapped ${node.thread}` : `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
+    case 'hole': return (node.thread ? `Tapped ${node.thread}` : `${node.countersink ? 'Countersunk' : 'Hole'} Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;

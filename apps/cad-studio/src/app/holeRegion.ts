@@ -25,7 +25,8 @@ export function holeRegions(nodes: readonly ModelNode[], indices: readonly numbe
       const start: Vec3 = [0, 0, 0]; start[k] = face; start[a] = ca; start[b] = cb;
       out.push({ start, dir, length: depth, r0: r, r1: r });
       // A countersink: a 90° cone from its diameter at the face down to the hole.
-      if (h.csk && h.csk / 2 > r) out.push({ start, dir, length: Math.min(h.csk / 2 - r, depth), r0: h.csk / 2, r1: Math.max(r, h.csk / 2 - depth) });
+      const csk = h.countersink ?? h.csk;
+      if (csk && csk / 2 > r) out.push({ start, dir, length: Math.min(csk / 2 - r, depth), r0: csk / 2, r1: Math.max(r, csk / 2 - depth) });
     }
   }
   return out;

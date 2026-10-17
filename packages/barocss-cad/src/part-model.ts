@@ -75,7 +75,7 @@ export type CadPartFeature = Base & (
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
    */
-  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max' }
+  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max'; /** A 90° countersink: its diameter at the face (wider than the hole). */ readonly countersink?: CadPartDim }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
   /** About an axis through `pivot` (default the origin) by any angle; off quarter turns about X or Y the body leaves the upright family. */
   | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
@@ -486,6 +486,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true), axis = f.axis === undefined ? 'z' : axisOf(f.axis);
       const side = f.side === undefined ? 'max' : f.side;
       if (side !== 'min' && side !== 'max') fail('INPUT', 'side must be min or max');
+      const csk = f.countersink === undefined ? null : dim(f.countersink as CadPartDim, 'countersink', true);
+      if (csk !== null && !(csk / 2 > r)) fail('INPUT', 'a countersink must be wider than the hole');
       return () => many(target.map(p => {
         // The tool: a cylinder along local z over [h0, h1], centred at local (c1, c2), turned onto the axis
         // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
@@ -497,7 +499,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           : { kind: 'brep', brep: transformBrep(brepFromPrismatic(cylinder, { id: at + '_tool' }), { matrix: axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0] }) };
         const out = boolean(p.solid, tool, 'difference', at);
         if (volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid)) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
-        return out;
+        if (csk === null) return out;
+        // The countersink: a 90° cone from Ø csk at the face down to the hole, its rim a little above the
+        // face (so no face of it lies on the face). Revolved about its profile's Y (depth into the
+        // material), then carried to the hole: s along local x, depth down local z from the face, the
+        // revolve's z along ±local y (the map turning, not mirroring), then the hole's axis permutation.
+        const R = csk / 2, e = Math.min(0.5, R), t = R - r, face = side === 'max' ? hi : lo, down = side === 'max' ? -1 : 1;
+        const cone = revolveProfile({ id: `${at}_csk`, profile: [{ kind: 'line', start: [0, -e] }, { kind: 'line', start: [R + e, -e] }, { kind: 'line', start: [r, t] }, { kind: 'line', start: [0, t] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+        const M = [1, 0, 0, 0, 0, -down, 0, down, 0], P = axis === 'z' ? [1, 0, 0, 0, 1, 0, 0, 0, 1] : axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0];
+        const mul = (A: number[], B: number[]) => [0, 1, 2].flatMap(i => [0, 1, 2].map(j => A[3 * i] * B[j] + A[3 * i + 1] * B[3 + j] + A[3 * i + 2] * B[6 + j]));
+        const o: Point = [local[0], local[1], face], offset = [0, 1, 2].map(i => P[3 * i] * o[0] + P[3 * i + 1] * o[1] + P[3 * i + 2] * o[2]) as Point;
+        const placedCone = transformBrep(cone, { matrix: mul(P, M) as unknown as BrepAffine['matrix'], offset }, n => n.split('|').map(q => q.replace(`${at}_csk.`, `${at}.countersink-`)).join('|'));
+        return boolean(out, { kind: 'brep', brep: placedCone }, 'difference', at);
       }));
     }
     case 'translate': {

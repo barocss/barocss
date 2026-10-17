@@ -647,3 +647,17 @@ test('draft: side faces turned about their line on the bottom, in (material off)
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.top'], angleDegrees: 5 }]), 'CAPABILITY', /square to the pull/);
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angleDegrees: 5 }]), 'REFERENCE', /no face e\.nope/);
 });
+
+test('hole: a 90° countersink is cut with the hole, along any axis and from either side', () => {
+  const cube = [rect('s', 0, 0, 40, 40), { id: 'b', kind: 'extrude', sketch: 's', height: 40 }];
+  // The frustum beyond the cylinder: π t/3 (R² + R r + r²) − π r² t, t = R − r.
+  const R = 6, r = 3, t = 3, extra = Math.PI * t / 3 * (R * R + R * r + r * r) - Math.PI * r * r * t;
+  for (const axis of ['x', 'y', 'z']) for (const side of ['min', 'max']) {
+    const hole = { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: r, axis, side };
+    const plain = evaluateCadPart(D([...cube, hole])).outputs[0], csk = evaluateCadPart(D([...cube, { ...hole, countersink: 2 * R }])).outputs[0];
+    assert.ok(Math.abs(plain.massProperties(1).volumeMM3 - csk.massProperties(1).volumeMM3 - extra) < 1e-3, `${axis} ${side}`);
+    assert.equal(checkBrep(csk.brep).issues.length, 0);
+    assert.ok(csk.brep.faces.some(f => /^h\.countersink-/.test(f.name ?? '')), 'the cone faces are the hole’s');
+  }
+  assert.throws(() => evaluateCadPart(D([...cube, { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: 3, countersink: 6 }])), e => e instanceof CadPartError && e.code === 'INPUT');
+});
