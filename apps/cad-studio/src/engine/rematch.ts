@@ -51,6 +51,11 @@ function alike(a: Signature, b: Signature, edge: boolean): boolean {
   return (edge ? Math.abs(c) : c) >= SAME_DIRECTION;
 }
 
+/** The names among `candidates` alike `old`, nearest first. */
+export function rankAlike(old: Signature, candidates: ReadonlyMap<string, Signature>, edge: boolean): string[] {
+  return [...candidates].filter(([, s]) => alike(old, s, edge)).map(([name, s]) => ({ name, d: Math.hypot(s.at[0] - old.at[0], s.at[1] - old.at[1], s.at[2] - old.at[2]) })).sort((x, y) => x.d - y.d).map(x => x.name);
+}
+
 /**
  * The name among `candidates` that `old` became: the nearest alike one, when clearly the nearest; or the
  * candidates when that cannot be told (none alike: an empty list).

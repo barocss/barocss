@@ -2,7 +2,8 @@
   "id": "a1-refs-edit-reopen",
   "step": "A1",
   "decisions": [
-    "D29"
+    "D29",
+    "D30"
   ],
   "about": "A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.",
   "input": {

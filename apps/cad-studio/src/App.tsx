@@ -3,7 +3,7 @@ import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
-import { captureSignatures, verifyReferences } from './engine/references';
+import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from './engine/references';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -197,6 +197,9 @@ export function App() {
   const cursorSink = useRef<((p: Vec3 | null) => void) | null>(null);
   const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
   const [toast, setToast] = useState<FriendlyError | null>(null);
+  // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
+  const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
+  const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
@@ -1000,15 +1003,23 @@ export function App() {
       void verifyOpened(parsed);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
+  // The references marked matched again (until confirmed), and the user's say on them and on the problems.
+  const refMarks = useMemo(() => markedReferences(doc), [doc]);
+  const settleRef = async (index: number, to?: string) => {
+    const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++), to);
+    setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null);
+    pushUndo(); setDoc(next); setDirty(true);
+  };
+  const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++)) });
   // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
   // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
   const verifyOpened = async (opened: StudioDoc) => {
     const r = await engine.part(opened, revision.current++); if (!r?.ok) return;
     const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++));
-    if ('error' in v) { setToast({ title: 'A stored face or edge cannot be told', hint: `${v.error} Pick it again on the feature.`, detail: '' }); return; }
-    if (!v.changes.length) return;
+    setRefProblems(v.problems);
+    if (!v.changes.length && !v.problems.length) return;
     setDoc(cur => cur.nodes === opened.nodes || JSON.stringify(cur.nodes) === JSON.stringify(opened.nodes) ? { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) } : cur); setDirty(true);
-    setToast({ title: `${v.changes.length} stored reference${v.changes.length > 1 ? 's' : ''} matched again`, hint: `${v.changes.map(c => `${c.where}: ${c.was} → ${c.now}`).join('; ')}. Check them; they stay marked until confirmed.`, detail: '' });
+
   };
   const exportStepFile = async () => {
     // (The evaluated model, with the instances placed beside it now.)
@@ -1612,6 +1623,15 @@ export function App() {
           bodyLabel={node && ref ? featureLabel(node, ref.node, evaluated.nodes) : b?.key ?? ''}
           onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })} />;
       })()}
+      {!sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) && <aside className="card refs" aria-label="References">
+        <div className="card-title">REFERENCES <span className="muted">{[refMarks.length && `${refMarks.length} matched again`, refProblems.length && `${refProblems.length} need${refProblems.length === 1 ? 's' : ''} a choice`].filter(Boolean).join(', ')}</span></div>
+        {refMarks.map(m => <div key={'m' + m.index} className="ref"><span className="what">{m.where}: <b>{m.was}</b> → <b>{m.now}</b></span>
+          <button className="ghost small" aria-label={`Confirm ${m.now}`} onClick={() => void settleRef(m.index)}>Confirm</button>
+          <button className="ghost small" aria-label={`Pick another for ${m.was}`} onClick={() => void showRefChoices(m.index)}>Pick another</button>
+          {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map(n => <button key={n} className="ghost small" onClick={() => void settleRef(m.index, n)}>{n}</button>)}</div>)}
+        {refProblems.map(p => <div key={'p' + p.index} className="ref"><span className="what">{p.where}: <b>{p.name}</b> {p.candidates.length ? 'could be any of these' : 'is gone; pick it again on the feature'}{p.node !== null ? ' (held until then)' : ''}</span>
+          {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
+      </aside>}
       {!sketch && !active && !rendering && <div className="card history" aria-label="History">
         <span className="card-title inline">HISTORY</span>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
@@ -1620,7 +1640,7 @@ export function App() {
             onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name="cad-sketch" small />{featureLabel(n, i, doc.nodes)}</button>) : null) : (
-          <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.suppressed ? ' (suppressed)' : ''} · click to edit · double-click to roll back here`}
+          <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
             onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}

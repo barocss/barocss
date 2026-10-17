@@ -4,7 +4,7 @@
 // studio does, so mated parts follow edits of the parts they are mated to.
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { faceKey, faceTableOf } from '../assembly/faces';
+import { faceKey, faceTableOf, tableOf, tablesFor } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import type { ToolDefinition } from './api';
 
@@ -17,16 +17,7 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 const json = (v: unknown) => JSON.stringify(v);
 const fail = (doc: StudioDoc, error: string, extra: Record<string, unknown> = {}): AssemblyOutcome => ({ doc, content: json({ ok: false, error, ...extra }), isError: true, changed: false, summary: error });
 
-// Face tables by part content (reading them evaluates the part).
-const tableCache = new Map<string, FaceTable>();
-function tableOf(doc: StudioDoc): FaceTable {
-  const key = faceKey(doc);
-  let t = tableCache.get(key);
-  if (!t) { t = faceTableOf(doc); tableCache.set(key, t); if (tableCache.size > 32) tableCache.delete(tableCache.keys().next().value!); }
-  return t;
-}
 const partDoc = (doc: StudioDoc, part: string) => part === BASE ? doc : doc.instances?.find(i => i.id === part)?.doc;
-const tablesFor = (doc: StudioDoc) => (part: string) => { const d = partDoc(doc, part); return d ? tableOf(d) : undefined; };
 
 /** The document with its mates solved (from the placements it has), and what cannot be met. */
 export function solveDoc(doc: StudioDoc, before?: readonly PartInstance[]): { doc: StudioDoc; problems: { mate: string; reason: string }[] } {

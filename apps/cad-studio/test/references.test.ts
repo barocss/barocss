@@ -18,7 +18,7 @@ test('signatures: written with a reference from the bodies it was picked on; a r
   const box = rectanglePart(10, 10, 5), bodies = await bodiesOf(box);
   const doc: StudioDoc = { ...box, mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p', face: 'origin:xy' } }] };
   const signed = captureSignatures(doc, bodies);
-  assert.deepEqual(signed.mates![0].a.sig, { k: 'plane', p: [5, 5, 5], d: [0, 0, 1], s: 100 });
+  assert.deepEqual(signed.mates![0].a.sig, { k: 'plane', p: [0, 0, 5], d: [0, 0, 1], s: 0 }, 'from the part’s face table');
   assert.equal(captureSignatures(signed, bodies), signed, 'nothing to write: the same document');
   // Marked re-matched (`was`): left alone by a refresh, so a wrong guess keeps its evidence.
   const marked: StudioDoc = { ...signed, mates: [{ ...signed.mates![0], a: { ...signed.mates![0].a, face: 'n1.bottom', was: 'n1.top' } }] };
@@ -46,9 +46,10 @@ for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
       doc = (readStudioDoc(JSON.stringify(doc)) as { doc: StudioDoc }).doc; // saved and reopened
     }
     const v = await verifyReferences(doc, await bodiesOf(doc), evaluate);
-    if (c.expect.error) { assert.ok('error' in v && v.error.includes(c.expect.error), JSON.stringify(v)); return; }
-    assert.ok(!('error' in v), JSON.stringify(v));
     assert.deepEqual(v.changes, c.expect.changes);
+    assert.deepEqual(v.problems.map(p => ({ where: p.where, name: p.name, candidates: p.candidates })), c.expect.problems ?? []);
+    for (const [i, why] of Object.entries(c.expect.held ?? {})) assert.deepEqual([v.doc.nodes[Number(i)].suppressed, v.doc.nodes[Number(i)].held], [true, why]);
+    if (c.expect.volumeMM3 !== undefined) { const bodies = await bodiesOf(v.doc); assert.ok(Math.abs(bodies.reduce((a, b) => a + b.volumeMM3!, 0) - c.expect.volumeMM3) < 1e-6, 'the rest builds'); }
     if (c.expect.mates) assert.deepEqual(v.doc.mates!.map(m => ({ face: m.a.face, ...(m.a.was ? { was: m.a.was } : {}) })), c.expect.mates);
   });
 }

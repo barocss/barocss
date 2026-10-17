@@ -2,7 +2,8 @@
   "id": "a1-refs-mate-renumbered",
   "step": "A1",
   "decisions": [
-    "D29"
+    "D29",
+    "D30"
   ],
   "about": "A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.",
   "input": {
@@ -44,8 +45,8 @@
             "sig": {
               "k": "plane",
               "p": [
-                5,
-                5,
+                0,
+                0,
                 5
               ],
               "d": [
@@ -53,7 +54,7 @@
                 0,
                 1
               ],
-              "s": 100
+              "s": 0
             }
           },
           "b": {
@@ -80,5 +81,5 @@
       }
     ]
   },
-  "oracle": "by construction (a box's faces; signatures written as the studio stores them)"
+  "oracle": "by construction (a box's top as the part's face table reads it: its plane's point and normal)"
 }

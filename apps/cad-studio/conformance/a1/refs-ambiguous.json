@@ -2,9 +2,10 @@
   "id": "a1-refs-ambiguous",
   "step": "A1",
   "decisions": [
-    "D29"
+    "D29",
+    "D30"
   ],
-  "about": "A signature as near two faces alike (the tops of two boxes): refused, naming both.",
+  "about": "A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.",
   "input": {
     "file": {
       "format": "barocss-cad-model",
@@ -63,8 +64,8 @@
             "sig": {
               "k": "plane",
               "p": [
-                15,
-                5,
+                10,
+                0,
                 5
               ],
               "d": [
@@ -72,7 +73,7 @@
                 0,
                 1
               ],
-              "s": 100
+              "s": 0
             }
           },
           "b": {
@@ -85,7 +86,17 @@
     "verify": true
   },
   "expect": {
-    "error": "is now one of n1.top, n3.top"
+    "changes": [],
+    "problems": [
+      {
+        "where": "mate m1",
+        "name": "n1.top",
+        "candidates": [
+          "n1.top",
+          "n3.top"
+        ]
+      }
+    ]
   },
-  "oracle": "by construction (a box's faces; signatures written as the studio stores them)"
+  "oracle": "by construction (the face tables' planes: tops at (0, 0, 5) and (20, 0, 5))"
 }

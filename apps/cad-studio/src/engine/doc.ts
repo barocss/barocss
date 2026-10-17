@@ -43,9 +43,10 @@ export type SketchNode =
  * `id`: its stable feature id (`n<k>`, see engine/ids.ts): the prefix of its faces' and edges' names.
  * `rematched`: names it stores that an edit renumbered and were matched again by their geometry (new → old,
  * engine/rematch.ts), until the user confirms them. `sigs`: the geometry of the names it stores, by name
- * (engine/references.ts).
+ * (engine/references.ts). `held`: why it is suppressed until the user picks a reference it stores again
+ * (one opened that could not be told; references.ts).
  */
-export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig> };
+export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string };
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }

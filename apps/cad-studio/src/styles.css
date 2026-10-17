@@ -47,6 +47,11 @@ button { font: inherit; color: inherit; }
 .tpl-row > .ghost { flex: 1; text-align: left; }
 .tpl-row.add input { flex: 1; min-width: 0; }
 .history .hs.suppressed { opacity: 0.45; text-decoration: line-through; }
+/* A step storing a reference matched again (or held until one is picked): marked, see engine/references.ts. */
+.history .hs.rematched { box-shadow: inset 0 -2px 0 var(--warn, #e0a030); }
+.refs { position: absolute; left: calc(270px + (100vw - 870px) / 2); bottom: 64px; transform: translateX(-50%); width: min(520px, calc(100vw - 32px)); padding: 10px; z-index: 3; }
+.refs .ref { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; padding: 3px 0; }
+.refs .ref .what { flex: 1 1 auto; min-width: 0; }
 .param-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; align-items: center; gap: 6px; margin: 4px 0; }
 .param-row.add { grid-template-columns: minmax(0, 1fr) 64px auto; }
 .param-row input, .param-row .num { min-width: 0; width: 100%; box-sizing: border-box; }

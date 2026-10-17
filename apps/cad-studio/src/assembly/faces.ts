@@ -3,7 +3,7 @@
 import { evaluateCadPart, faceGeometry } from '@barocss/cad';
 import { toPartDocument } from '../engine/part';
 import type { StudioDoc } from '../engine/doc';
-import { clean, type FaceTable, type Vec3 } from './mates';
+import { BASE, clean, type FaceTable, type Vec3 } from './mates';
 
 /** Values within a nanometre of a round number are that number (a circle read back from its NURBS). */
 const snap = (p: readonly number[]): Vec3 => [clean(p[0]), clean(p[1]), clean(p[2])];
@@ -40,3 +40,20 @@ export function faceTableOf(doc: StudioDoc): FaceTable {
 
 /** What a part's faces depend on: its nodes and parameters. */
 export const faceKey = (doc: StudioDoc) => JSON.stringify([doc.nodes, doc.parameters]);
+
+// Face tables by part content (reading them evaluates the part), shared by mates, the chat's assembly tools and
+// stored references' signatures (engine/references.ts).
+const tableCache = new Map<string, FaceTable>();
+/** A part's face table, cached by its content. */
+export function tableOf(doc: StudioDoc): FaceTable {
+  const key = faceKey(doc);
+  let t = tableCache.get(key);
+  if (!t) { t = faceTableOf(doc); tableCache.set(key, t); if (tableCache.size > 32) tableCache.delete(tableCache.keys().next().value!); }
+  return t;
+}
+/** The face tables of a document's parts: the base part's own, an instance's by its id. */
+export const tablesFor = (doc: StudioDoc) => (part: string): FaceTable | undefined => {
+  const d = part === BASE ? doc : doc.instances?.find(i => i.id === part)?.doc;
+  return d ? tableOf(d) : undefined;
+};
+

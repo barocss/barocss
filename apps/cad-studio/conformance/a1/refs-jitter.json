@@ -2,7 +2,8 @@
   "id": "a1-refs-jitter",
   "step": "A1",
   "decisions": [
-    "D29"
+    "D29",
+    "D30"
   ],
   "about": "A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.",
   "input": {
@@ -44,8 +45,8 @@
             "sig": {
               "k": "plane",
               "p": [
-                5.000000001,
-                4.999999999,
+                1e-09,
+                -1e-09,
                 5.000000001
               ],
               "d": [
@@ -53,7 +54,7 @@
                 0,
                 1
               ],
-              "s": 100
+              "s": 0
             }
           },
           "b": {
@@ -73,5 +74,5 @@
       }
     ]
   },
-  "oracle": "by construction (a box's faces; signatures written as the studio stores them)"
+  "oracle": "by construction (the face table's plane, 1e-9 mm off)"
 }
