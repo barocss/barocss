@@ -631,3 +631,19 @@ Evidence: studio 267/267. A view test checks:
 
 The sheet was inspected by eye.
 
+## D35 — Response format and pages; A2 closed (2026-10-18, A2.4)
+Decided:
+- **`response_format`.** The tools that list the part (every mutator, and `get_part_summary`) take one:
+  - `concise`: the facts and what changed, with the features by index and label only;
+  - `detailed`: every body's faces and edges;
+  - absent: as before, them when the part is small, otherwise one body at a time.
+  The default is kept, so agents written against it see no change.
+- **Pages.** A body's faces and edges come 60 to a page (`page`, from 1). Each page says how many there are and
+  how to ask for the next. This replaces a silent truncation.
+
+Why: an agent's context is the scarce resource. A concise step costs a few hundred tokens and a detailed one is
+asked for. A big body is read in pages rather than cut off.
+
+Evidence: studio 268/268 (concise and detailed results; a 30-hole plate's faces in two pages that differ; a
+concise summary). A2 is closed: facts and inspect (D32), analysis (D33), views (D34), format (D35).
+
