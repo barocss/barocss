@@ -1,0 +1,91 @@
+{
+  "id": "a1-refs-ambiguous",
+  "step": "A1",
+  "decisions": [
+    "D29"
+  ],
+  "about": "A signature as near two faces alike (the tops of two boxes): refused, naming both.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        },
+        {
+          "id": "n2",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            0
+          ],
+          "max": [
+            30,
+            10
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "extrude",
+          "sketch": 2,
+          "height": 5
+        }
+      ],
+      "nextId": 4,
+      "outputs": {},
+      "mates": [
+        {
+          "id": "m1",
+          "kind": "coincident",
+          "a": {
+            "part": "base",
+            "face": "n1.top",
+            "sig": {
+              "k": "plane",
+              "p": [
+                15,
+                5,
+                5
+              ],
+              "d": [
+                0,
+                0,
+                1
+              ],
+              "s": 100
+            }
+          },
+          "b": {
+            "part": "p",
+            "face": "origin:xy"
+          }
+        }
+      ]
+    },
+    "verify": true
+  },
+  "expect": {
+    "error": "is now one of n1.top, n3.top"
+  },
+  "oracle": "by construction (a box's faces; signatures written as the studio stores them)"
+}

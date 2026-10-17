@@ -3,6 +3,7 @@ import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
+import { captureSignatures, verifyReferences } from './engine/references';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -359,7 +360,8 @@ export function App() {
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
   const pushUndo = () => { setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]); };
-  const commit = useCallback((next: StudioDoc) => {
+  // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.)
+  const commit = useCallback((next: StudioDoc, capture = true) => {
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     pushUndo();
@@ -367,11 +369,13 @@ export function App() {
     // there (render, drawing, direct geometry, instances) is the document's newest.
     const was = evaluatedRef.current;
     next = { ...next, ...Object.fromEntries((['render', 'drawing', 'direct', 'instances'] as const).filter(k => next[k] === was[k] && doc[k] !== was[k]).map(k => [k, doc[k]])) };
+    // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
+    if (capture) next = captureSignatures(next, bodies);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
     if (!Object.keys(next.outputs).length) { setBodies([]); setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
-  }, [doc, marker]);
+  }, [doc, marker, bodies]);
   /** One undoable change of the render settings (the model and the rollback marker stay). */
   const commitRender = useCallback((next: RenderSettings) => {
     pushUndo();
@@ -931,7 +935,7 @@ export function App() {
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
-  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next); };
+  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
   // A mesh file waiting for its unit, and opening it as a part in that unit.
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
@@ -993,7 +997,18 @@ export function App() {
       replaceDoc({ ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
       if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
       setTimeout(() => viewport.current?.fit(), 300);
+      void verifyOpened(parsed);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
+  };
+  // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
+  // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
+  const verifyOpened = async (opened: StudioDoc) => {
+    const r = await engine.part(opened, revision.current++); if (!r?.ok) return;
+    const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++));
+    if ('error' in v) { setToast({ title: 'A stored face or edge cannot be told', hint: `${v.error} Pick it again on the feature.`, detail: '' }); return; }
+    if (!v.changes.length) return;
+    setDoc(cur => cur.nodes === opened.nodes || JSON.stringify(cur.nodes) === JSON.stringify(opened.nodes) ? { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) } : cur); setDirty(true);
+    setToast({ title: `${v.changes.length} stored reference${v.changes.length > 1 ? 's' : ''} matched again`, hint: `${v.changes.map(c => `${c.where}: ${c.was} → ${c.now}`).join('; ')}. Check them; they stay marked until confirmed.`, detail: '' });
   };
   const exportStepFile = async () => {
     // (The evaluated model, with the instances placed beside it now.)

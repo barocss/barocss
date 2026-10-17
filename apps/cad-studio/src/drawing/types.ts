@@ -2,6 +2,7 @@
 // part's B-rep by the kernel's hidden-line projection, and dimensions that refer to model edges by
 // their persistent names (so they keep measuring the part as it changes).
 import type { BrepProjection } from '@barocss/cad';
+import type { Sig } from '../engine/references';
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
@@ -12,13 +13,13 @@ export type XY = [number, number];
  * A point of a dimension: an end of an edge (the end nearest `near`, the model point it was picked
  * at) or a circle's centre.
  */
-export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3 }
+export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3; sig?: Sig; was?: string }
 /** A dimension's tolerance: ± one value, an upper and a lower deviation, or a fit (H7, h6, …). */
 export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviation'; upper: number; lower: number } | { kind: 'fit'; code: string };
 /** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance. */
 export type DrawingDimension = ({ tol?: Tolerance }) & (
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
-  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY }
+  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
   | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
 /**
@@ -27,7 +28,7 @@ export type DrawingDimension = ({ tol?: Tolerance }) & (
  */
 export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
-export interface EdgeRef { edge: string; near: Vec3 }
+export interface EdgeRef { edge: string; near: Vec3; sig?: Sig; was?: string }
 
 /** The revision after `rev`: A → B … Z → AA, 01 → 02, 1 → 2; none → A. */
 export function nextRevision(rev: string | undefined): string {

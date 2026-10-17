@@ -6,12 +6,14 @@
 // smallest move from where it stands. A mate that disagrees with the ones before it is refused with the
 // reason; nothing is fitted or iterated, so a solved assembly stays put when it is solved again.
 import type { PartInstance } from '../engine/doc';
+import type { Sig } from '../engine/references';
 import { dot, cross, add, sub, len } from '../engine/vec3';
 
 export type Vec3 = [number, number, number];
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
-export interface MateRef { part: string; face: string }
+/** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
+export interface MateRef { part: string; face: string; sig?: Sig; was?: string }
 /**
  * `coincident`: flat faces flush, facing each other (flip: facing the same way). `distance`: the same,
  * `distance` mm apart along the fixed face's normal. `concentric`: two round faces on one axis, the axes

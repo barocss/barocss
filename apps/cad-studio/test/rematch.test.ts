@@ -50,7 +50,7 @@ test('rematch: a dimension changed keeps every name (no guessing), and a corner 
 const a1 = join(process.cwd(), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
-  if (!c.input.edit) continue;
+  if (!c.input.edit || c.input.verify) continue;
   test(`conformance ${c.id}: ${c.about}`, async () => {
     const read = readStudioDoc(JSON.stringify(c.input.file)); assert.ok('doc' in read);
     const r = await runTool(await stateOf(read.doc), 'edit_feature', c.input.edit, evaluate);

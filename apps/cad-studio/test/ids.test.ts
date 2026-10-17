@@ -102,7 +102,7 @@ test('ids: names parse into feature ids, rename by id, and find their nodes (a p
 const a1 = join(process.cwd(), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
-  if (c.input.selectors || c.input.edit) continue; // (selectors.test.ts, rematch.test.ts)
+  if (c.input.selectors || c.input.edit || c.input.verify) continue; // (selectors, rematch, references tests)
   test(`conformance ${c.id}: ${c.about}`, () => {
     const read = readStudioDoc(JSON.stringify(c.input.file)); assert.ok('doc' in read, JSON.stringify(read));
     let doc = read.doc;

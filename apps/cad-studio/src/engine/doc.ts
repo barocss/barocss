@@ -25,7 +25,8 @@ export interface SketchOutline {
 /** A body's own look in the modelling view (see StudioDoc.bodies). */
 /** `material`: a material id (the studio's list); without one, the studio's default material. */
 /** `faces`: colours of single faces by their persistent names (`n1.top`), over the body's own. */
-export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string; faces?: Record<string, string> }
+/** `faces`: per-face colours by face name, with their faces' signatures (`faceSigs`) and re-matched names (`facesWas`, new → old), see engine/references.ts. */
+export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string; faces?: Record<string, string>; faceSigs?: Record<string, Sig>; facesWas?: Record<string, string> }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }
@@ -41,9 +42,10 @@ export type SketchNode =
  * A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history.
  * `id`: its stable feature id (`n<k>`, see engine/ids.ts): the prefix of its faces' and edges' names.
  * `rematched`: names it stores that an edit renumbered and were matched again by their geometry (new → old,
- * engine/rematch.ts), until the user confirms them.
+ * engine/rematch.ts), until the user confirms them. `sigs`: the geometry of the names it stores, by name
+ * (engine/references.ts).
  */
-export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string; rematched?: Record<string, string> };
+export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig> };
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
@@ -121,6 +123,7 @@ import type { DrawingSettings } from '../drawing/types';
 import { rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, withIds } from './ids';
+import type { Sig } from './references';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';

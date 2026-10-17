@@ -14,7 +14,7 @@ import type { BodyResult, EvalResult } from './evaluate';
 import type { Vec3 } from './mesh';
 
 /** What a stored name looked like: a face's kind, normal and centroid, or an edge's straightness, direction and midpoint. */
-export interface Signature { kind: string; at: Vec3; dir: Vec3 | null; size: number }
+export interface Signature { kind: string; at: Vec3; dir: Vec3 | null; size: number; radius?: number }
 export interface Rematch { node: number; from: string; to: string }
 
 /** Cosine of the largest angle between directions taken as the same (1°). */
@@ -29,7 +29,7 @@ const named = (n: ModelNode): { key: 'edges' | 'open' | 'faces'; edge: boolean }
 export function signaturesOf(body: BodyResult): { faces: Map<string, Signature>; edges: Map<string, Signature> } {
   const faces = new Map<string, Signature>(), edges = new Map<string, Signature>();
   for (const f of body.mesh.faces) {
-    const sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.areaMM2 };
+    const sig: Signature = { kind: f.kind, at: f.centroid, dir: f.kind === 'plane' ? f.normal : null, size: f.areaMM2, ...(f.radius ? { radius: f.radius } : {}) };
     for (const name of f.name.split('+')) faces.set(name, sig);
   }
   for (const e of body.mesh.edges) {
@@ -40,9 +40,12 @@ export function signaturesOf(body: BodyResult): { faces: Map<string, Signature>;
   return { faces, edges };
 }
 
-/** Same kind and, where there is one, the same direction (an edge's either way). */
+/** Radii taken as the same (relative). */
+export const SAME_RADIUS = 1e-6;
+/** Same kind, the same radius where there is one, and the same direction where there is one (an edge's either way). */
 function alike(a: Signature, b: Signature, edge: boolean): boolean {
   if (a.kind !== b.kind) return false;
+  if ((a.radius === undefined) !== (b.radius === undefined) || (a.radius !== undefined && Math.abs(a.radius - b.radius!) > SAME_RADIUS * Math.max(1, a.radius))) return false;
   if (!a.dir || !b.dir) return !a.dir && !b.dir;
   const c = a.dir[0] * b.dir[0] + a.dir[1] * b.dir[1] + a.dir[2] * b.dir[2];
   return (edge ? Math.abs(c) : c) >= SAME_DIRECTION;

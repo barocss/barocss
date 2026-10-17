@@ -14,6 +14,7 @@ import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from '
 import { insideRing as inside } from '../engine/geom2';
 import { resolveEdge, resolveFace, resolveNames, resolveSelectors, type NameSelection, type Resolved } from './names';
 import { rematchNames } from '../engine/rematch';
+import { captureSignatures, refreshSignatures } from '../engine/references';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -93,10 +94,14 @@ const MUTATORS = new Set(['run_command', 'add_features', 'edit_feature', 'delete
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
-async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, what: string, extra: Record<string, unknown> = {}): Promise<ToolOutcome> {
+async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, what: string, extra: Record<string, unknown> = {}, refresh = false): Promise<ToolOutcome> {
+  // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
+  next = captureSignatures(next, state.bodies);
   const r = await evaluate(next);
   if (!r) return fail(state, 'The evaluation was superseded; try again.');
   if (!r.ok) return fail(state, `${r.error.title}. ${r.error.hint}`, { detail: r.error.detail, kept: 'the part is unchanged' });
+  // (An accepted edit, its names matched against the document before it: the signatures follow the part.)
+  if (refresh) next = await refreshSignatures(next, r.bodies, evaluate);
   const entries = r.bodies.reduce((s, b) => s + b.mesh.faces.length + b.mesh.edges.length, 0);
   // On a big part, the bodies this change made (or changed) are still listed in full, when small enough.
   const fresh = new Set(state.bodies.map(b => `${b.key}:${b.volumeMM3}`));
@@ -331,7 +336,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const rm = await rematchNames(state.doc, prefixDoc({ ...state.doc, nodes: next }, next.length), evaluate);
       if ('error' in rm) return fail(state, rm.error, { kept: 'the part is unchanged' });
       return accept(state, rm.doc, evaluate, `edited ${index}: ${featureLabel(rm.doc.nodes[index], index, rm.doc.nodes)}`,
-        rm.changes.length ? { rematched: rm.changes.map(c => ({ feature: c.node, was: c.from, now: c.to })), note_rematched: 'these stored names were renumbered by the edit and matched again by their geometry; check them' } : {});
+        rm.changes.length ? { rematched: rm.changes.map(c => ({ feature: c.node, was: c.from, now: c.to })), note_rematched: 'these stored names were renumbered by the edit and matched again by their geometry; check them' } : {}, true);
     }
     case 'delete_feature': {
       const r = deleteFeature(state.doc, Number(args.index));
