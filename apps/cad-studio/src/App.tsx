@@ -26,7 +26,7 @@ import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from './chat/tools';
-import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents } from './chat/features';
+import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
@@ -696,6 +696,17 @@ export function App() {
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
       commit(r.doc);
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
+    });
+  };
+  /** Moves a history step one earlier or later (refused before what it is built on), checked by evaluating first. */
+  const reorder = (i: number, dir: -1 | 1) => {
+    if (marker !== null) { setToast({ title: 'Roll forward to reorder', hint: 'Steps are moved in the whole history: roll forward to the end first.', detail: '' }); return; }
+    const label = featureLabel(doc.nodes[i], i, doc.nodes), r = moveFeature(doc, i, dir);
+    if ('error' in r) { setToast({ title: `Cannot move ${label}`, hint: r.error, detail: '' }); return; }
+    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot move ${label} there: ${e.error.title}` }); return; }
+      commit(r.doc);
     });
   };
   /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
@@ -1385,6 +1396,8 @@ export function App() {
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
             ...(n.kind !== 'sketch' && n.kind !== 'split' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
+            { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },
+            { label: 'Move later', icon: 'arrow_forward', run: () => reorder(i, 1) },
             { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },
             ...(marker !== null ? [{ label: 'Roll to the end', icon: 'redo', run: () => setMarker(null) }] : []),
             { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteNode(i) },

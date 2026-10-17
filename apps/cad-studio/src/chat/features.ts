@@ -222,6 +222,57 @@ export function featureDependents(doc: StudioDoc, index: number): number[] {
   return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch').sort((a, b) => a - b);
 }
 
+/**
+ * The steps of the history as moved: a feature with the sketches only it uses, or a shape made in
+ * several steps (a bolt: `made.nodes`) — [first, last] index ranges in order.
+ */
+function steps(nodes: readonly ModelNode[]): [number, number][] {
+  const users = (i: number) => nodes.flatMap((n, k) => parentsOf(n).includes(i) ? [k] : []), out: [number, number][] = [];
+  let i = nodes.length - 1;
+  while (i >= 0) {
+    const n = nodes[i];
+    if (n.kind === 'sketch') { out.unshift([i, i]); i--; continue; }
+    let first = i - (('made' in n && n.made?.nodes) ? n.made.nodes - 1 : 0);
+    // Its own sketches just before it.
+    while (first > 0 && nodes[first - 1].kind === 'sketch' && users(first - 1).length && users(first - 1).every(k => k >= first && k <= i)) first--;
+    out.unshift([first, i]); i = first - 1;
+  }
+  return out;
+}
+/**
+ * The document with the history step holding feature `index` moved one step earlier (`-1`) or later
+ * (`+1`), everything that names features renumbered; or why not: a feature cannot come before what it
+ * is built on (or names the faces of), nor after what builds on it.
+ */
+export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: StudioDoc } | { error: string } {
+  const nodes = doc.nodes, all = steps(nodes), at = all.findIndex(([a, b]) => index >= a && index <= b);
+  if (at < 0) return { error: `There is no feature ${index}.` };
+  const other = all[at + dir];
+  if (!other) return { error: dir < 0 ? 'It is the first step already.' : 'It is the last step already.' };
+  const [early, late] = dir < 0 ? [other, all[at]] : [all[at], other];
+  const inEarly = (k: number) => k >= early[0] && k <= early[1];
+  const named = (n: ModelNode) => n.kind === 'fillet' || n.kind === 'chamfer' ? n.edges : n.kind === 'shell' ? n.open : [];
+  for (let k = late[0]; k <= late[1]; k++) {
+    const n = nodes[k], uses = [...parentsOf(n), ...(n.kind === 'sketch' && n.on ? [n.on.node] : [])].filter(inEarly);
+    const names = named(n).flatMap(name => [...name.matchAll(/\bn(\d+)(?=[._|/#]|$)/g)].map(m => Number(m[1]))).filter(inEarly);
+    if (uses.length || names.length) return { error: `${dir < 0 ? 'It' : 'The next step'} is built on ${dir < 0 ? 'the step before it' : 'it'}: it cannot come first.` };
+  }
+  // The new order: the late step's nodes, then the early step's.
+  const order = [...nodes.keys()].filter(k => k < early[0]);
+  for (let k = late[0]; k <= late[1]; k++) order.push(k);
+  for (let k = early[0]; k <= early[1]; k++) order.push(k);
+  for (let k = late[1] + 1; k < nodes.length; k++) order.push(k);
+  const newIndex = new Map(order.map((old, k) => [old, k])), map = (old: number) => newIndex.get(old) ?? old;
+  const next = order.map(old => renumber(nodes[old], map));
+  const out: StudioDoc = { ...doc, nodes: next };
+  if (doc.mates) out.mates = doc.mates.map(m => ({ ...m, ...[m.a, m.b].reduce((o, r, j) => ({ ...o, [j ? 'b' : 'a']: r.part === BASE ? { ...r, face: renameIds(r.face, map) } : r }), {}) }));
+  if (doc.drawing) out.drawing = { ...doc.drawing, dimensions: doc.drawing.dimensions.flatMap(d => { const r = renameDimension(d, name => renameIds(name, map)); return r ? [r] : []; }) };
+  const none = new Set<number>();
+  if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, none, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, none, map) } };
+  if (doc.bodies) out.bodies = renameKeys(doc.bodies, none, map);
+  return { doc: prefixDoc(out, next.length) };
+}
+
 export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { doc: StudioDoc; droppedDimensions: number } | { error: string } {
   let cur = doc, dropped = 0;
   const left = new Set(indices);

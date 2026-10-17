@@ -1433,6 +1433,11 @@ try {
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Roll to the end' }).click();
     await page.waitForFunction(() => !/rolled back/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 5000 });
+    // The hole cannot move before the box it is drilled in.
+    await page.locator('.history .hs', { hasText: 'Hole' }).click({ button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Move earlier' }).click();
+    await page.waitForFunction(() => /Cannot move Hole/.test(document.body.innerText), null, { timeout: 5000 });
+    await page.click('[aria-label="Dismiss"]');
     // Suppressed, the hole is left out (struck through in the history); unsuppressed, it is back.
     await page.locator('.history .hs', { hasText: 'Hole' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Suppress' }).click();
