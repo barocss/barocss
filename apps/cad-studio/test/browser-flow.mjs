@@ -951,6 +951,10 @@ try {
     assert.equal(JSON.stringify(await page.evaluate(() => window.__studioDoc.instances.map(i => i.position))), placed);
     await page.click('[aria-label="Explode"]'); await page.click('[aria-label="Explode"]');
     assert.doesNotMatch(await page.locator('[aria-label="Explode"]').innerText(), /×/);
+    // The section view cuts the placed parts with the part.
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
+    await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(500); await snap('section-instances');
+    await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
   });
 
   await check('drag a part instance with its gizmo: along X, then a turn about Z; undo puts it back', async () => {

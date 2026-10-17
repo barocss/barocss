@@ -34,7 +34,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B4 Reorder features, refused ahead of a parent (#2047)
 - [x] B5 Boolean / cut results in several pieces as separate bodies (#2061, #2063)
 - [x] B6 Exploded assembly view (#2038)
-- [ ] B7 Section view across part instances (#2055)
+- [x] B7 Section view across part instances (#2055)
 - [ ] B8 Section outline to a sketch (#2038)
 - [ ] B9 Drawing hole callouts tied to the feature (#2057)
 - [ ] B10 Document version check and migration report; templates (#2058, #2059)

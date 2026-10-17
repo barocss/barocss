@@ -374,11 +374,17 @@ export function App() {
   const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
-  const instancesShown = useMemo(() => {
+  const instancesExploded = useMemo(() => {
     if (!explode) return instancesPlaced;
     const off = explodeOffsets(bodies, instancesPlaced, explode);
     return instancesPlaced.map(i => { const d = off.get(i.id); return d ? { id: i.id, bodies: i.bodies.map(b => movedBody(b, d)) } : i; });
   }, [instancesPlaced, explode, bodies]);
+  // The section view cuts the placed parts too (their meshes clipped and capped, as the part's while dragged).
+  const instancesShown = useMemo(() => {
+    if (!section || sketch) return instancesExploded;
+    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2;
+    return instancesExploded.map(i => ({ id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(b.mesh, k, section.at, section.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }));
+  }, [instancesExploded, section, sketch]);
   const insertPart = async (file: File) => {
     try {
       const parsed = JSON.parse(await file.text()) as StudioDoc;
@@ -1045,7 +1051,9 @@ export function App() {
   }) : [];
   // The section plane: an arrow across it through the middle of the part.
   const sectionHandle: FeatureHandle | null = section && !active && !sketch && bodies.length ? (() => {
-    const k = 'xyz'.indexOf(section.axis), min = [0, 1, 2].map(i => Math.min(...bodies.map(b => b.mesh.bounds.min[i]))), max = [0, 1, 2].map(i => Math.max(...bodies.map(b => b.mesh.bounds.max[i])));
+    // (Over the part and the parts placed with it.)
+    const all = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)];
+    const k = 'xyz'.indexOf(section.axis), min = [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))), max = [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i])));
     const at = [0, 1, 2].map(i => (min[i] + max[i]) / 2) as Vec3, dir: Vec3 = [0, 0, 0]; dir[k] = section.keep === 'negative' ? 1 : -1; at[k] = section.at;
     return { id: 'section', at, dir, label: `Section ${section.axis.toUpperCase()}`, value: section.at,
       toValue: (start: number, mm: number) => Math.min(max[k] - 0.5, Math.max(min[k] + 0.5, Math.round((start + mm * dir[k]) * 2) / 2)),
@@ -1379,13 +1387,13 @@ export function App() {
 
       <div className="corner-right">
   {section && <div className="card section-bar" role="group" aria-label="Section"><span className="muted">Section</span>{(['x', 'y', 'z'] as const).map(a => <button key={a} className={section.axis === a ? 'on' : ''} aria-label={`Section across ${a.toUpperCase()}`}
-            onClick={() => { const k = 'xyz'.indexOf(a), vs = bodies.flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
+            onClick={() => { const k = 'xyz'.indexOf(a), vs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
             <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button></div>}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
           <button className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
-            onClick={() => { if (section) { setSection(null); return; } const zs = bodies.flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' }); }}>
+            onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' }); }}>
             <Icon name="cad-split" small /></button>
 
           <button onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</button>
