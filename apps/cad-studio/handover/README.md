@@ -424,23 +424,26 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | A2.4 — response format | `4d651f316` `ca3ace65a` | |
 | A3.1 — declarative requirements | `a798dce2b` `50091aada` | |
 | A3.2 — mutants and policy | `e9b66afa0` `99801dd8b` | |
-| A3.3 — panel | this step | |
+| A3.3 — panel | `ce24750eb` `48a0f2c78` | |
+| A4.1 — transactions, field registry | `deb9283ca` `2381f66f4` `7f121134b` | |
+| A4.2 — proposals, design history | `802ed22be` | Fixed D39's carry-over leak (a new or opened part inherited the old one's history and looks). |
+| A4.3 — rebase before accept, partial accept, autonomy, chips | this step | Stale proposals are never accepted blind (peer's decision). |
 
 Checks at the end:
 
 | Suite | Result |
 |---|---|
 | kernel | all pass but the known environmental Node-version test |
-| studio | 272/272 |
-| browser flow | 105/105 |
+| studio | 285/285 |
+| browser flow | 106/106 |
 | RB and props | 0 NEW |
 | bench | within budget |
 
-Pending decisions: none needing the owner. Deferred with plans: R10a (D31) and RB5's first item (D25).
+Pending decisions (reversible defaults taken): a placed part with a source file counts as locked (D40); at L2+ an agent's direct assembly edits are not forced into proposals (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: A4 (transactions and proposals).
+Next: R3.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals, A4.3 accept/reject and autonomy) → R3 … R14 → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

@@ -30,15 +30,22 @@ export interface Proposal {
   risk: Risk; checks?: ChecksDelta;
   /** One line: what it does (features added, changed, deleted; the checks' counts before → after). */
   summary: string;
-  decided?: { by: string; at: string; note?: string; model_hash?: string };
+  decided?: { by: string; at: string; note?: string; model_hash?: string; left_out?: string[] };
+  /**
+   * Made again on a changed part (D41): the base it was first made on, the one before this rebase, when, and
+   * the risk it had first (an agent may accept a rebase only when its risk is no higher and no hard requirement changes).
+   */
+  rebased?: { original: string; from: string; at: string; risk_was: Risk };
 }
 export interface HistoryEntry {
   id: string; at: string;
-  kind: 'prompt' | 'change' | 'proposal' | 'accept' | 'reject' | 'compacted';
+  kind: 'prompt' | 'change' | 'proposal' | 'rebase' | 'accept' | 'reject' | 'compacted';
   by: { agent: string; model?: string };
   prompt?: string; plan?: string; summary?: string; requirements?: string[];
   /** The model hash the step produced (a change, an accept). */
   model_hash?: string; proposal?: string; risk?: Risk;
+  /** An accept: who proposed it (its prompt, plan and requirements ride along); a rebase or accept: the base before. */
+  proposed_by?: { agent: string; model?: string }; base_was?: string;
   /** For a compacted entry: how many it stands for, by kind, and their span. */
   compacted?: { entries: number; kinds: Record<string, number>; from: string; to: string };
 }
@@ -112,3 +119,6 @@ export function diffLine(diff: TreeDiff): string {
   if (diff.requirements) parts.push('requirements');
   return parts.join(', ');
 }
+
+/** Risk levels in order. */
+export const riskRank = (level: Risk['level']) => level === 'high' ? 2 : level === 'medium' ? 1 : 0;

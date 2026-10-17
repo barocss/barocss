@@ -886,3 +886,78 @@ Evidence: studio 282/282; browser flow 106/106; bench within budget (16-hole pla
 Next: A4.3. Accept a proposal per feature, dependency-aware: unticking a parent unticks its children, with a
 rebuild preview. Then autonomy levels L1–L4 reading `risk.approval`, and viewport selections sent to chat as
 context chips.
+
+## D41 — Stale proposals are rebased before they are accepted; accept in part, dependency-aware; autonomy L1–L4; the selection as chat context (2026-10-18, A4.3)
+Decided:
+- **No blind accept of a stale proposal (peer's decision, under the delegation).** A proposal made on a part that has
+  changed since (its `base` is not the model hash now) is refused by `acceptProposal` as stale.
+  - `rebaseProposal` makes it again on the part as it is: ops replayed, and the diff, facts' change, broken
+    references, checks' delta and risk all recomputed. It stays open, keeping
+    `rebased: {original, from, at, risk_was}`.
+  - The history records a `rebase` entry (`base_was` → `model_hash`). The accept entry carries `base_was`, the
+    original base.
+  - In the studio a stale proposal shows "stale", and its only way forward is **Rebase & preview**: it commits the
+    rebased proposal (undoable), then shows its ghost. Accept appears only on the rebased version. A rebase that no
+    longer applies shows why, and the proposal stays open.
+  - An agent's `accept_proposal` on a stale proposal rebases it and returns the new preview with
+    `accepted: false`; accepting takes a second call.
+- **Accept in part.** `proposalParts(base, after)` lists the proposal's features: added, changed, deleted (sketches
+  go with their features).
+  - An added feature's children are the proposal's features that depend on it (built on it, or naming its faces and
+    edges). A changed feature has none: put back, what is built on it stands as it did before.
+  - `leaveOutClosure`: unticking a part unticks its children. `toggledLeaveOut`: ticking one back brings its
+    parents back.
+  - `partialDoc`: changed features left out are put back as they were (references renumbered to where those
+    features are now; refused when one was built on a feature the proposal deletes). Added ones are deleted with
+    the sketches only they use. Deletions are all or nothing (no tick).
+  - The studio lists the parts with ticks under a previewed proposal. Each tick rebuilds the ghost, and Accept
+    becomes "Accept 1 of 2".
+  - The decision records `left_out`; a part left out that would leave the part unbuildable is refused with the
+    kernel's reason.
+- **An approved change carries its provenance.** The accept history entry holds who decided (`by`), who proposed it
+  (`proposed_by`, agent and model), the prompt, plan and requirement ids, the risk, the model hash made, and
+  `base_was` after a rebase.
+- **Autonomy levels.** Set in the chat header (L1–L4, kept per browser). They are sent with each turn
+  (`autonomy` → `CAD_AUTONOMY`) and stated to the agent in the turn's note.
+  - L1: propose only. Part-changing tools are refused (requirements and dry runs allowed).
+  - L2 (default, today's behaviour): the agent changes the part; the user accepts proposals.
+  - L3: the agent also accepts proposals of low or medium risk that change no hard requirement.
+  - L4: the agent accepts any proposal that breaks no hard requirement (newly failing).
+  - At every level, a proposal with `approval` reasons (an assembly, mates, a drawing, a locked part) is the user's.
+  - A rebased proposal is the agent's to accept only when its risk is no higher than `risk_was` and it changes no
+    hard requirement.
+  - Pending decision (reversible default): at L2 and above an agent's direct edits of an assembly are not forced
+    into proposals. The approval rule governs acceptance of proposals, and direct edits stay undoable as one turn.
+- **The selection as context chips.** The viewport selection (faces, edges and bodies by persistent name, up to 12)
+  shows as chips above the chat input; a chip can be removed. They are sent with the message as
+  `[Selected in the viewport: face n1.top; …]`, names the tools take.
+- **Small fixes.** History times are shown in local time. A rebased accept is noted "rebased before it was
+  accepted", not with a hash.
+
+Why: the reviewer must see what will happen before it happens. A proposal replayed on a changed part is a different
+change, so it is shown again. Accepting part of a proposal and setting the agent's autonomy let a person take what
+they want from an agent's work at the pace they choose.
+
+Evidence: studio 285/285; browser flow 106/106; bench within budget; lint clean.
+- `test/proposals.test.ts`:
+  - stale refused, then rebased (both bases kept, nothing built) and accepted; the history reads proposal,
+    proposal, accept, rebase, accept, proposal, reject;
+  - in part: without the hole, with the plate 10 tall; without the edit, the plate put back at 8 with the hole and
+    block kept; a fillet goes with its block;
+  - autonomy: L1 refuses a change but allows a dry run and requirements; L1 and L2 refuse an agent's accept, L3
+    accepts; stale is rebased on the first call (`may_accept: true`) and accepted on the second; the rules table
+    (L3 high refused, L4 newly passing hard allowed and newly failing refused, approval always refused, a rebase
+    whose risk rose refused).
+- Conformance `a4/stale-rebase`: refused stale; rebased (original 00000000; n2, n3, n4 added; R2 fails before and
+  after); accepted without n4: sketch, extrude, hole.
+- Browser flow, the proposals step:
+  - P1 stale → Rebase & preview → −226.19 mm³ (−3.53%) → Before → Accept;
+  - P2 rejected;
+  - P3 rebased, its block unticked ("Accept 1 of 2"), then accepted: two holes, one extrude, `left_out` [n5];
+  - 6 history entries;
+  - the shared copy is stripped;
+  - the chat shows the n1.top chip and L1 is chosen: the turn is sent with `autonomy: 1` and the selection line;
+  - a new part starts clean.
+
+A4 is closed: transactions (D39), proposals and history (D40), rebase, partial accept, autonomy and chips (D41).
+Next on the roadmap: R3.

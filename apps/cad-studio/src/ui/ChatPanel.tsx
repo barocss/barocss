@@ -27,9 +27,22 @@ export interface ChatPanelProps {
   blocked: string | null;
   onPreview(bodies: BodyResult[] | null): void;
   onCommit(doc: StudioDoc, selection?: NameSelection): void;
+  /** What is selected in the viewport, by name: offered as context chips for the next message (A4.3). */
+  context: { kind: 'face' | 'edge' | 'body'; name: string }[];
   /** A turn that only selected (the part unchanged). */
   onSelect(selection: NameSelection): void;
   onClose(): void;
+}
+
+/** What each autonomy level lets the agent do (D41). */
+const AUTONOMY_TIPS = [
+  'L1 · Propose only: every change is a proposal you accept',
+  'L2 · Edit: the agent changes the part; you accept its proposals',
+  'L3 · Edit and accept low or medium risk proposals changing no hard requirement',
+  'L4 · Edit and accept proposals breaking no hard requirement',
+];
+function readAutonomy(): number {
+  try { const n = Number(localStorage.getItem('studio.autonomy')); return n >= 1 && n <= 4 ? n : 2; } catch { return 2; }
 }
 
 const brief = (input: unknown) => {
@@ -52,6 +65,13 @@ export function ChatPanel(props: ChatPanelProps) {
   const traces = useRef<ChatImage['trace'][]>([]);
   const abort = useRef<AbortController | null>(null);
   const log = useRef<HTMLDivElement>(null);
+  /** How far the agent may go on its own (D41), kept in this browser. */
+  const [autonomy, setAutonomy] = useState(readAutonomy);
+  /** Context chips the user removed (by name), until the selection changes. */
+  const [dropped, setDropped] = useState<string[]>([]);
+  const contextKey = props.context.map(c => c.name).join(' ');
+  useEffect(() => { setDropped([]); }, [contextKey]);
+  const chips = props.context.filter(c => !dropped.includes(c.name));
 
   useEffect(() => { let live = true; chatStatus().then(s => { if (live) setStatus(s); }); return () => { live = false; }; }, []);
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [items]);
@@ -69,7 +89,9 @@ export function ChatPanel(props: ChatPanelProps) {
     const attached = images;
     const first = traces.current.length + 1;
     const note = attached.length ? `\n\n[Attached: ${attached.map((img, k) => `image ${first + k} (${img.name}, traced into ${img.trace.layers.length} layers: ${img.trace.layers.map(l => l.id).join(', ')})`).join('; ')}]` : '';
-    const message = (text.trim() || (attached.length ? 'Model what the image shows.' : '')) + note;
+    // (The selection as context: names the tools take, A4.3.)
+    const sel = chips.length ? `\n\n[Selected in the viewport: ${(['face', 'edge', 'body'] as const).flatMap(k => { const n = chips.filter(c => c.kind === k).map(c => c.name); return n.length ? [`${k}${n.length > 1 ? 's' : ''} ${n.join(', ')}`] : []; }).join('; ')}]` : '';
+    const message = (text.trim() || (attached.length ? 'Model what the image shows.' : '')) + (text.trim() || attached.length ? sel : '') + note;
     if (!message || running || !status?.enabled || props.blocked) return;
     setText(''); setImages([]); setRunning(true);
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
@@ -79,7 +101,7 @@ export function ChatPanel(props: ChatPanelProps) {
     let open = false, built: StudioDoc | null = null, previewing = 0;
     const base = props.base();
     const done = await runServerTurn({
-      text: message, images: attached, traces: traces.current, doc: base, session: session.current, signal: controller.signal,
+      text: message, images: attached, traces: traces.current, doc: base, autonomy, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -114,6 +136,9 @@ export function ChatPanel(props: ChatPanelProps) {
       onDrop={e => { if (!e.dataTransfer.files.length) return; e.preventDefault(); if (enabled && !running) void attach(e.dataTransfer.files); }}>
       <div className="card-title">CHAT <span className="muted">{status?.model ?? ''}</span>
         <span className="grow" />
+        <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
+          onChange={e => { const n = Number(e.currentTarget.value); setAutonomy(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } }}>
+          {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
         <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
@@ -137,6 +162,8 @@ export function ChatPanel(props: ChatPanelProps) {
       {!!images.length && <div className="chat-thumbs pending" aria-label="Attached images">{images.map((img, k) => <span key={k} className="chat-thumb">
         <img src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />
         <button type="button" aria-label={`Remove ${img.name}`} onClick={() => setImages(list => list.filter((_, j) => j !== k))}><Icon name="close" small /></button></span>)}</div>}
+      {!!chips.length && <div className="chat-chips" aria-label="Selection sent as context">{chips.map(c => <span key={c.name} className="chat-chip" title={`The ${c.kind} selected in the viewport, sent with the next message`}>{c.name}
+        <button type="button" aria-label={`Leave out ${c.name}`} onClick={() => setDropped(d => [...d, c.name])}><Icon name="close" small /></button></span>)}</div>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); void send(); }}>
         <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden aria-label="Chat image file" onChange={e => { if (e.target.files) void attach([...e.target.files]); e.target.value = ''; }} />
         <button type="button" className="tool" aria-label="Attach image" title="Attach a sketch, photo or drawing (or paste / drop one)" disabled={!enabled || running || images.length >= 4} onClick={() => fileInput.current?.click()}><Icon name="image" /></button>

@@ -1,0 +1,168 @@
+{
+  "id": "a4-stale-rebase",
+  "step": "A4.3",
+  "decisions": [
+    "D41"
+  ],
+  "about": "A proposal made on another part (base 00000000): accepting it is refused as stale; rebased, its diff, checks and risk are made again on the part as it is, keeping the original base; accepted with its block left out, only the hole is made.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 2,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        }
+      ],
+      "requirements": [
+        {
+          "id": "R2",
+          "source": "at most 6200 mm³",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "<=",
+            "query": {
+              "fn": "volume"
+            },
+            "value": 6200,
+            "unit": "mm3"
+          }
+        }
+      ],
+      "proposals": [
+        {
+          "id": "P1",
+          "title": "A Ø6 hole and a block",
+          "status": "open",
+          "by": {
+            "agent": "chat"
+          },
+          "at": "2026-10-18T00:00:00Z",
+          "base": "00000000",
+          "ops": [
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "hole",
+                "faces": [
+                  "n1.top"
+                ],
+                "values": {
+                  "d": 6,
+                  "x": 10,
+                  "y": 10
+                }
+              }
+            },
+            {
+              "tool": "add_features",
+              "args": {
+                "features": [
+                  {
+                    "kind": "sketch",
+                    "profile": "rectangle",
+                    "min": [
+                      50,
+                      0
+                    ],
+                    "max": [
+                      60,
+                      10
+                    ]
+                  },
+                  {
+                    "kind": "extrude",
+                    "sketch": 3,
+                    "height": 5
+                  }
+                ]
+              }
+            }
+          ],
+          "risk": {
+            "level": "low",
+            "features_touched": 1,
+            "references_broken": 0,
+            "hard_requirements_changed": [],
+            "approval": []
+          },
+          "summary": "as first made"
+        }
+      ]
+    },
+    "accept": {
+      "id": "P1",
+      "leave_out": [
+        "n4"
+      ]
+    }
+  },
+  "expect": {
+    "stale": true,
+    "rebased": {
+      "original": "00000000",
+      "added": [
+        "n2",
+        "n3",
+        "n4"
+      ],
+      "risk": {
+        "level": "low",
+        "features_touched": 3,
+        "references_broken": 0,
+        "hard_requirements_changed": [],
+        "approval": []
+      },
+      "checks": {
+        "before": {
+          "pass": 0,
+          "fail": 1,
+          "unknown": 0
+        },
+        "after": {
+          "pass": 0,
+          "fail": 1,
+          "unknown": 0
+        },
+        "newly_failing": [],
+        "newly_passing": []
+      }
+    },
+    "accepted": {
+      "kinds": [
+        "sketch",
+        "extrude",
+        "hole"
+      ],
+      "left_out": [
+        "n4"
+      ],
+      "history": [
+        "rebase",
+        "accept"
+      ]
+    }
+  },
+  "oracle": "With the block the volume is 6400 − 226.19 + 500 = 6673.81 > 6200: R2 fails before and after. Without the block (left out), the part is the plate with the hole."
+}

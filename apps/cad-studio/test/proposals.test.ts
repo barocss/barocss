@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { acceptProposal, previewProposal, runTool, type ChatState } from '../src/chat/tools';
+import { acceptProposal, agentMayNotAccept, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
 import { compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
 import { modelHash } from '../src/chat/spec';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -50,7 +50,7 @@ test('propose: worked out on a copy (diff, checks before and after, risk), the p
   assert.equal(parse((await runTool(edited, 'list_proposals', {}, evaluate)).content).proposals[0].stale, true);
 });
 
-test('accept replays the ops (on a changed part too, said so); reject keeps the proposal; both in the history', async () => {
+test('accept replays the ops; a stale one is refused until rebased (recomputed, both bases kept); reject keeps the proposal; all in the history', async () => {
   const s0 = await stateOf(rectanglePart(40, 20, 8));
   let s = (await runTool(s0, 'propose', { title: 'hole', ops: [HOLE] }, evaluate)).state;
   s = (await runTool(s, 'propose', { title: 'another hole', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 4, x: 30, y: 10 } } }] }, evaluate)).state;
@@ -61,10 +61,21 @@ test('accept replays the ops (on a changed part too, said so); reject keeps the 
   assert.equal(a.state.doc.nodes.length, 3);
   const p1 = a.state.doc.proposals![0];
   assert.deepEqual([p1.status, p1.decided?.by, p1.decided?.model_hash, p1.decided?.note], ['accepted', 'user', modelHash(a.state.doc), undefined]);
-  // P2 was made on the part before P1: accepted after it, it is replayed on the changed part, and that is said.
-  const b = await acceptProposal(a.state, 'P2', evaluate);
+  // P2 was made on the part before P1: stale, refused blind; rebased, its diff and risk made again on the part
+  // as it is (both bases kept), then accepted.
+  const blind = await acceptProposal(a.state, 'P2', evaluate);
+  assert.ok('error' in blind && blind.stale, JSON.stringify(blind));
+  const re = await rebaseProposal(a.state, 'P2', evaluate);
+  assert.ok('state' in re, JSON.stringify(re));
+  const p2 = re.state.doc.proposals![1];
+  assert.deepEqual([p2.base, p2.rebased!.original, p2.rebased!.from, p2.status], [modelHash(a.state.doc), s.doc.proposals![1].base, s.doc.proposals![1].base, 'open']);
+  assert.equal(re.state.doc.nodes.length, 3, 'a rebase changes nothing');
+  assert.ok('error' in await rebaseProposal(re.state, 'P2', evaluate), 'nothing to rebase once current');
+  const b = await acceptProposal(re.state, 'P2', evaluate);
   assert.ok('state' in b, JSON.stringify(b)); assert.equal(b.state.doc.nodes.length, 4);
-  assert.match(b.state.doc.proposals![1].decided!.note!, /replayed on a part changed/);
+  assert.match(b.state.doc.proposals![1].decided!.note!, /rebased before/);
+  const acc = b.state.doc.history!.at(-1)!;
+  assert.deepEqual([acc.kind, acc.base_was, acc.proposed_by?.agent], ['accept', s.doc.proposals![1].base, 'chat']);
   assert.ok('error' in await acceptProposal(b.state, 'P1', evaluate), 'decided once');
   // Rejected: kept, with the reason.
   const s3r = await runTool(b.state, 'propose', { title: 'third', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 3, x: 20, y: 5 } } }] }, evaluate), s3 = s3r.state;
@@ -72,7 +83,7 @@ test('accept replays the ops (on a changed part too, said so); reject keeps the 
   const rej = rejectProposal(s3.doc, 'P3', 'not needed');
   assert.ok(!('error' in rej), JSON.stringify(rej));
   assert.deepEqual(rej.proposals!.map(q => q.status), ['accepted', 'accepted', 'rejected']);
-  assert.deepEqual(rej.history!.map(h => h.kind), ['proposal', 'proposal', 'accept', 'accept', 'proposal', 'reject']);
+  assert.deepEqual(rej.history!.map(h => h.kind), ['proposal', 'proposal', 'accept', 'rebase', 'accept', 'proposal', 'reject']);
   assert.equal(rej.history!.find(h => h.kind === 'accept')!.model_hash, p1.decided!.model_hash);
   // A proposal whose ops no longer apply (its face gone) is refused on accept, nothing changed.
   const gone = (await runTool(s0, 'propose', { title: 'on n1.top', ops: [HOLE] }, evaluate)).state;
@@ -121,6 +132,16 @@ for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
   test(`conformance ${c.id}: ${c.about}`, async () => {
     const read = readStudioDoc(JSON.stringify(c.input.file)); assert.ok('doc' in read);
     const s = await stateOf(read.doc);
+    if (c.input.accept) {
+      const blind = await acceptProposal(s, c.input.accept.id, evaluate);
+      assert.equal('error' in blind && blind.stale === true, c.expect.stale);
+      const re = await rebaseProposal(s, c.input.accept.id, evaluate); assert.ok('state' in re, JSON.stringify(re));
+      const q = re.state.doc.proposals!.find(x => x.id === c.input.accept.id)!;
+      assert.deepEqual([q.rebased!.original, re.made.diff.added.map(a => a.id), q.risk, q.checks], [c.expect.rebased.original, c.expect.rebased.added, c.expect.rebased.risk, c.expect.rebased.checks]);
+      const a = await acceptProposal(re.state, c.input.accept.id, evaluate, { leaveOut: c.input.accept.leave_out }); assert.ok('state' in a, JSON.stringify(a));
+      assert.deepEqual([a.state.doc.nodes.map(n => n.kind), a.leftOut, a.state.doc.history!.map(h => h.kind)], [c.expect.accepted.kinds, c.expect.accepted.left_out, c.expect.accepted.history]);
+      return;
+    }
     const r = await runTool(s, c.input.call.tool, c.input.call.args, evaluate), out = parse(r.content);
     assert.ok(!r.isError, r.content);
     assert.equal(modelHash(r.state.doc) === modelHash(s.doc), c.expect.model_unchanged);
@@ -133,3 +154,80 @@ for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
     assert.deepEqual(a.state.doc.history!.map(h => h.kind), c.expect.accepted.history);
   });
 }
+
+test('accept in part: a feature left out takes what depends on it; a changed one is put back as it was', async () => {
+  const s0 = await stateOf(rectanglePart(40, 20, 8));
+  // A hole, a fillet on the hole's rim edge (depends on it), a second box, and the plate made 10 tall.
+  const ops = [HOLE, { tool: 'add_features', args: { features: [{ kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 10] }, { kind: 'extrude', sketch: 3, height: 5 }] } },
+    { tool: 'edit_feature', args: { index: 1, values: { h: 10 } } }];
+  const r = await runTool(s0, 'propose', { title: 'three things', ops }, evaluate);
+  assert.ok(!r.isError, r.content);
+  const s = r.state, ghost = await previewProposal(s, 'P1', evaluate); assert.ok('doc' in ghost);
+  const parts = proposalParts(s.doc, ghost.doc);
+  assert.deepEqual(parts.map(q => [q.id, q.kind]), [['n2', 'added'], ['n4', 'added'], ['n1', 'changed']]);
+  assert.deepEqual(leaveOutClosure(parts, ['n2']), ['n2']);
+  // Without the hole: the box and the taller plate.
+  const a = await acceptProposal(s, 'P1', evaluate, { leaveOut: ['n2'] });
+  assert.ok('state' in a, JSON.stringify(a));
+  assert.deepEqual(a.leftOut, ['n2']);
+  assert.ok(!a.state.doc.nodes.some(n => n.kind === 'hole'));
+  assert.equal(a.state.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[2]), 0), 10);
+  assert.deepEqual(a.state.doc.proposals![0].decided!.left_out, ['n2']);
+  // Without the edit: the plate put back as it was (8 tall), the hole and box kept.
+  const b = await acceptProposal(s, 'P1', evaluate, { leaveOut: ['n1'] });
+  assert.ok('state' in b, JSON.stringify(b));
+  assert.equal(b.state.bodies.find(x => x.key !== 'b4')!.mesh.bounds.max[2], 8);
+  assert.ok(b.state.doc.nodes.some(n => n.kind === 'hole'));
+  assert.ok('error' in await acceptProposal(s, 'P1', evaluate, { leaveOut: ['n9'] }), 'not a part of it');
+  // A parent left out unticks its children: a fillet on the new box's edge goes with the box.
+  const withFillet = [...ops, { tool: 'run_command', args: { command: 'fillet', edges: ['n4.side0|n4.side1'], values: { radius: 1 } } }];
+  const s2 = (await runTool(s0, 'propose', { title: 'with a fillet', ops: withFillet }, evaluate)).state;
+  const g2 = await previewProposal(s2, 'P1', evaluate); assert.ok('doc' in g2);
+  const parts2 = proposalParts(s2.doc, g2.doc);
+  assert.deepEqual(parts2.find(q => q.id === 'n4')!.children, ['n5']);
+  assert.deepEqual(leaveOutClosure(parts2, ['n4']), ['n4', 'n5']);
+  const c = await acceptProposal(s2, 'P1', evaluate, { leaveOut: ['n4'] });
+  assert.ok('state' in c, JSON.stringify(c));
+  assert.deepEqual(c.leftOut, ['n4', 'n5']);
+  assert.ok(!c.state.doc.nodes.some(n => n.kind === 'fillet'));
+});
+
+test('autonomy: L1 only proposes; L2 leaves proposals to the user; L3 accepts low or medium risk; L4 anything breaking no hard requirement; approval reasons are always the user\'s', async () => {
+  const s0 = await stateOf(rectanglePart(40, 20, 8));
+  const was = process.env.CAD_AUTONOMY;
+  try {
+    process.env.CAD_AUTONOMY = '1';
+    const refused = await runTool(s0, 'run_command', HOLE.args, evaluate);
+    assert.ok(refused.isError); assert.match(parse(refused.content).error, /L1 the agent only proposes/);
+    assert.ok(!(await runTool(s0, 'apply_ops', { ops: [HOLE], dryRun: true }, evaluate)).isError, 'a dry run changes nothing');
+    assert.ok(!(await runTool(s0, 'set_requirements', { requirements: [R1] }, evaluate)).isError, 'requirements are the brief');
+    const prop = await runTool(s0, 'propose', { title: 'hole', ops: [HOLE] }, evaluate);
+    assert.ok(!prop.isError);
+    assert.match(parse((await runTool(prop.state, 'accept_proposal', { id: 'P1' }, evaluate)).content).error, /L1 the user accepts/);
+    process.env.CAD_AUTONOMY = '2';
+    assert.ok((await runTool(prop.state, 'accept_proposal', { id: 'P1' }, evaluate)).isError);
+    process.env.CAD_AUTONOMY = '3';
+    const ok = await runTool(prop.state, 'accept_proposal', { id: 'P1' }, evaluate);
+    assert.ok(!ok.isError, ok.content);
+    assert.deepEqual([ok.state.doc.nodes.length, ok.state.doc.proposals![0].decided!.by, ok.state.doc.history!.at(-1)!.by.agent], [3, 'chat', 'chat']);
+    // Stale: the first call rebases and shows it, the second accepts.
+    let st = (await runTool(s0, 'propose', { title: 'a', ops: [HOLE] }, evaluate)).state;
+    st = (await runTool(st, 'propose', { title: 'b', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 4, x: 30, y: 10 } } }] }, evaluate)).state;
+    st = (await runTool(st, 'accept_proposal', { id: 'P1' }, evaluate)).state;
+    const first = await runTool(st, 'accept_proposal', { id: 'P2' }, evaluate), f = parse(first.content);
+    assert.ok(!first.isError, first.content);
+    assert.deepEqual([f.rebased, f.accepted, f.may_accept, first.state.doc.nodes.length], ['P2', false, true, 3]);
+    const second = await runTool(first.state, 'accept_proposal', { id: 'P2' }, evaluate);
+    assert.ok(!second.isError, second.content); assert.equal(second.state.doc.nodes.length, 4);
+  } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
+  // The rules themselves.
+  const base = { id: 'P1', title: 't', status: 'open' as const, by: { agent: 'chat' }, at: 't', base: '0', ops: [], summary: '' };
+  const risk = (level: 'low' | 'medium' | 'high', extra = {}) => ({ level, features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [], ...extra });
+  assert.equal(agentMayNotAccept({ ...base, risk: risk('medium') }, 3), null);
+  assert.match(agentMayNotAccept({ ...base, risk: risk('high') }, 3)!, /L3/);
+  assert.equal(agentMayNotAccept({ ...base, risk: risk('high', { hard_requirements_changed: ['R2'] }), checks: { before: { pass: 0, fail: 1, unknown: 0 }, after: { pass: 1, fail: 0, unknown: 0 }, newly_failing: [], newly_passing: ['R2'] } }, 4), null, 'L4: a hard requirement newly passing');
+  assert.match(agentMayNotAccept({ ...base, risk: risk('high', { hard_requirements_changed: ['R2'] }), checks: { before: { pass: 1, fail: 0, unknown: 0 }, after: { pass: 0, fail: 1, unknown: 0 }, newly_failing: ['R2'], newly_passing: [] } }, 4)!, /breaks hard requirement R2/);
+  assert.match(agentMayNotAccept({ ...base, risk: risk('low', { approval: ['drawing'] }) }, 4)!, /always needs the user/);
+  assert.match(agentMayNotAccept({ ...base, risk: risk('medium'), rebased: { original: 'a', from: 'a', at: 't', risk_was: risk('low') } }, 4)!, /rebased and its risk rose/);
+  assert.equal(agentMayNotAccept({ ...base, risk: risk('low'), rebased: { original: 'a', from: 'a', at: 't', risk_was: risk('medium') } }, 3), null);
+});

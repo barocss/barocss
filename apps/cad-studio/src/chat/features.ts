@@ -133,7 +133,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
  * A node's references to other nodes by index renumbered. (Names need nothing: they carry the features' stable
  * ids, engine/ids.ts.)
  */
-function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
+export function renumber(node: ModelNode, map: (i: number) => number): ModelNode {
   const ref = (r: BodyRef): BodyRef => ({ ...r, node: map(r.node) });
   const n = { ...node } as Record<string, unknown> & ModelNode;
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);

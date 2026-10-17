@@ -147,7 +147,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown };
+    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -158,8 +158,10 @@ export function createChatServer(options: ChatServerOptions) {
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}) } satisfies StateFile));
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS) } } } });
-    const prompt = `${stateNote(body.doc as StudioDoc)}\n\n${body.text}`;
+    // (How far the agent may go on its own, D41: 1–4, else the default 2.)
+    const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level) } } } });
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');
@@ -206,6 +208,14 @@ export function createChatServer(options: ChatServerOptions) {
 }
 
 /** A short line of the part's state for the model, sent with each user message. */
-export function stateNote(doc: StudioDoc): string {
-  return `[Current part: ${doc.nodes.length} feature${doc.nodes.length === 1 ? '' : 's'}. The user may have edited it since your last turn; call get_part_summary when you need its faces and edges.]`;
+export function stateNote(doc: StudioDoc, level = 2): string {
+  const open = (doc.proposals ?? []).filter(p => p.status === 'open').length;
+  return `[Current part: ${doc.nodes.length} feature${doc.nodes.length === 1 ? '' : 's'}. The user may have edited it since your last turn; call get_part_summary when you need its faces and edges. Autonomy L${level}: ${AUTONOMY[level]}${open ? ` ${open} open proposal${open > 1 ? 's' : ''}: list_proposals.` : ''}]`;
 }
+/** What each autonomy level lets the agent do (D41), as told to it each turn. */
+const AUTONOMY: Record<number, string> = {
+  1: 'propose every change (propose); the user accepts it.',
+  2: 'change the part; the user accepts proposals.',
+  3: 'change the part, and accept your own proposals of low or medium risk that change no hard requirement.',
+  4: 'change the part, and accept proposals that break no hard requirement.',
+};

@@ -4,8 +4,9 @@ import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
-import { checkSpec, expectedOf, type Outcome } from './chat/spec';
+import { checkSpec, expectedOf, modelHash, type Outcome } from './chat/spec';
 import { rejectProposal, stripHistory, type Proposal } from './chat/proposals';
+import type { ProposalPart } from './chat/tools';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from './engine/references';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
@@ -117,6 +118,8 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 /** What a command is about to add, in its preview. */
 const PREVIEW_TINT = '#7fb2f0';
+/** A history entry's time, local and short (as stored, if not a time). */
+const whenOf = (at: string) => { const d = new Date(at); return Number.isNaN(d.getTime()) ? at : d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); };
 
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
 interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
@@ -1034,25 +1037,50 @@ export function App() {
   }, [doc.requirements, bodies, evaluated, busy, active, sketch, previewBodies]);
   // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
   // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
-  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean } | null>(null);
+  // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
+  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
   const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   const partEval = (d: StudioDoc) => engine.part(d, revision.current++);
   useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
-  const showProposal = async (p: Proposal) => {
-    if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); return; }
+  const hashNow = useMemo(() => modelHash(doc), [doc]);
+  const showProposal = async (p: Proposal, from: StudioDoc = doc) => {
+    if (ghost?.id === p.id && from === doc) { setGhost(null); setPreviewBodies(null); return; }
     if (active || sketch || marker !== null) return;
     setProposalBusy(true);
-    const r = await (await import('./chat/tools')).previewProposal({ doc, bodies }, p.id, partEval);
+    const tools = await import('./chat/tools'), r = await tools.previewProposal({ doc: from, bodies }, p.id, partEval);
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} does not apply to the part as it is`, hint: r.error, detail: '' }); return; }
-    setGhost({ id: p.id, bodies: r.bodies, after: true }); setPreviewBodies(r.bodies);
+    setGhost({ id: p.id, bodies: r.bodies, after: true, full: r.doc, parts: tools.proposalParts(from, r.doc), leaveOut: [] }); setPreviewBodies(r.bodies);
+  };
+  /** A stale proposal made again on the part as it is, then shown (D41): only the rebased one can be accepted. */
+  const rebaseIt = async (p: Proposal) => {
+    if (active || sketch || marker !== null) return;
+    setProposalBusy(true);
+    const r = await (await import('./chat/tools')).rebaseProposal({ doc, bodies }, p.id, partEval);
+    setProposalBusy(false);
+    if ('error' in r) { setToast({ title: `${p.id} could not be rebased`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
+    commit(r.state.doc, false);
+    await showProposal(r.state.doc.proposals!.find(q => q.id === p.id)!, r.state.doc);
+  };
+  /** A feature of the shown proposal ticked or unticked: the ghost rebuilt without what is left out. */
+  const tickPart = async (id: string, on: boolean) => {
+    if (!ghost) return;
+    const tools = await import('./chat/tools'), leaveOut = tools.toggledLeaveOut(ghost.parts, ghost.leaveOut, id, on);
+    const partial = tools.partialDoc(doc, ghost.full, ghost.parts, leaveOut);
+    if ('error' in partial) { setToast({ title: 'Cannot leave that out', hint: partial.error, detail: '' }); return; }
+    setProposalBusy(true);
+    const r = await partEval(partial.doc);
+    setProposalBusy(false);
+    if (!r.ok) { setToast({ title: `Without ${leaveOut.join(', ')} the part does not build`, hint: `${r.error.title}. ${r.error.hint}`, detail: '' }); return; }
+    setGhost(g => g && { ...g, leaveOut, bodies: r.bodies, after: true }); setPreviewBodies(r.bodies);
   };
   const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
   const acceptIt = async (p: Proposal) => {
     if (active || sketch) return;
     if (marker !== null) { setToast({ title: 'Roll forward to accept', hint: 'A proposal applies to the whole part: drag the rollback bar to the end first.', detail: '' }); return; }
     setProposalBusy(true);
-    const r = await (await import('./chat/tools')).acceptProposal({ doc, bodies }, p.id, partEval);
+    const leaveOut = ghost?.id === p.id ? ghost.leaveOut : [];
+    const r = await (await import('./chat/tools')).acceptProposal({ doc, bodies }, p.id, partEval, { leaveOut });
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} could not be applied`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
     setGhost(null); setPreviewBodies(null); commit(r.state.doc, false);
@@ -1167,6 +1195,12 @@ export function App() {
         onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
   };
   activeRef.current = active;
+  /** The viewport selection by name, for the chat's context chips (A4.3). */
+  const chatContext = useMemo(() => [
+    ...selection.faces.flatMap(f => { const n = bodies[f.body]?.mesh.faces[f.face]?.name.split('+')[0]; return n ? [{ kind: 'face' as const, name: n }] : []; }),
+    ...selection.edges.flatMap(e => { const n = bodies[e.body]?.mesh.edges[e.edge]?.names[0]; return n ? [{ kind: 'edge' as const, name: n }] : []; }),
+    ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
+  ].slice(0, 12), [selection, bodies]);
   const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
   // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
   // (A command's preview: the bodies it adds — first made by one of its new features, not built on a body
@@ -1530,18 +1564,22 @@ export function App() {
         {!!doc.proposals?.length && <><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
           <button className={'tool tiny' + (decidedShown ? ' on' : '')} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></button></div>
         {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
-          const shown = ghost?.id === p.id, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
+          const shown = ghost?.id === p.id, stale = p.status === 'open' && p.base !== hashNow, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
           return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
             <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
-            <div className="muted">{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
+            <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
             {p.plan && <div className="proposal-plan">{p.plan}</div>}
             {shown && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
+            {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
+              <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
+              <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}
             {p.status === 'open' ? <div className="proposal-actions">
-              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
+              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy || stale} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
               {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
               <span className="grow" />
               <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
-              <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>Accept</button>
+              {stale ? <button className="primary small" disabled={proposalBusy} title="The part changed since this was proposed: make it again on the part as it is, and look before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
+                : <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>{shown && ghost.leaveOut.length ? `Accept ${ghost.parts.length - ghost.leaveOut.length} of ${ghost.parts.length}` : 'Accept'}</button>}
             </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
           </div>;
         })}</>}
@@ -1551,7 +1589,7 @@ export function App() {
         {historyOpen && doc.history.slice(-40).reverse().map(h => <div key={h.id} className={'hist ' + h.kind} title={h.prompt ?? h.plan ?? h.summary}>
           <span className="mono muted">{h.kind}</span> {h.kind === 'prompt' ? `“${(h.prompt ?? '').slice(0, 80)}${(h.prompt?.length ?? 0) > 80 ? '…' : ''}”` : h.summary}
           {h.kind === 'prompt' && h.summary && <span className="muted"> → {h.summary}</span>}
-          <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {h.at.slice(0, 16).replace('T', ' ')}</span></div>)}</>}
+          <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {whenOf(h.at)}</span></div>)}</>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside>
@@ -1791,7 +1829,7 @@ export function App() {
       {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
-        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} /></Suspense>}
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} /></Suspense>}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {historyMenu && doc.nodes[historyMenu.index] && (() => {
