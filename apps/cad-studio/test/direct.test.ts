@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { loadDirect } from '../src/engine/directModule';
 import assert from 'node:assert/strict';
 import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from '../src/engine/direct';
 
@@ -225,6 +226,8 @@ test('direct geometry: poles listed by key and moved one at a time', () => {
 });
 
 test('Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path', async () => {
+  // (The app loads the direct tools with the document's direct geometry; here, before the command asks.)
+  await loadDirect();
   const { commands } = await import('../src/app/commands');
   const { evaluateDoc } = await import('../src/engine/evaluate');
   const { emptyDoc, withNode, featureLabel } = await import('../src/engine/doc');

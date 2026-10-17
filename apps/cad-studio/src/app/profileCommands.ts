@@ -6,7 +6,7 @@ import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc
 import { toLocal, toWorld } from '../sketch/plane';
 import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { faceProfile } from './faceProfile';
-import { geometryOf } from '../engine/direct';
+import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
@@ -190,7 +190,9 @@ function pickedPath(ctx: Ctx): { name: string; path: { degree: number; knots: nu
   const ids = ctx.direct ?? [], d = ctx.doc.direct;
   if (ids.length !== 1 || !d) return 'Pick one curve as the path (in the Browser, under Curves and surfaces): draw it in a sketch and Make curves, or take a model edge as a curve.';
   const o = d.objects.find(x => x.id === ids[0]); if (!o) return 'The picked curve is gone.';
-  const g = geometryOf(d, o); if (g.kind !== 'curve') return 'The path must be a curve, not a surface.';
+  // (The direct tools load with the document's direct geometry; a moment after it opens they are there.)
+  const direct = directNow(); if (!direct) return 'The curve tools are still loading: try again in a moment.';
+  const g = direct.geometryOf(d, o); if (g.kind !== 'curve') return 'The path must be a curve, not a surface.';
   return { name: o.name, path: { degree: g.degree, knots: [...g.knots], controlPoints: g.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...g.weights] } };
 }
 

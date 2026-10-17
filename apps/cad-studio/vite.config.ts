@@ -28,5 +28,11 @@ export default defineConfig({
   worker: { format: 'es' },
   server: { host: '127.0.0.1', port: 52020, strictPort: true, fs: { allow: [repo] }, proxy: { '/api/chat': chat } },
   preview: { proxy: { '/api/chat': chat } },
-  build: { target: 'es2022', outDir: 'dist' },
+  build: {
+    target: 'es2022', outDir: 'dist',
+    // The kernel's modules have no side effects at load (checked: no top-level statements but declarations),
+    // so its parts that only lazily loaded code uses (the direct curve and surface tools) stay out of the
+    // first load instead of riding along in the chunk the app shares with them.
+    rolldownOptions: { treeshake: { moduleSideEffects: (id: string) => !/[\\/]packages[\\/]barocss-cad[\\/]src[\\/]/.test(id) } },
+  },
 });

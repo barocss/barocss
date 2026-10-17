@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
@@ -15,17 +15,13 @@ import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
-import { RenderPanel } from './ui/RenderPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
-import { DirectPanel } from './ui/DirectPanel';
 import { ParametersPanel } from './ui/ParametersPanel';
 import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
-import { DrawingWorkspace } from './ui/DrawingWorkspace';
-import { ChatPanel } from './ui/ChatPanel';
 import { TooltipLayer } from './ui/Tooltip';
-import { resolveNames, type NameSelection } from './chat/tools';
+import { resolveNames, type NameSelection } from './chat/names';
 import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
@@ -49,7 +45,8 @@ import { flattenAssembly } from './assembly/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from './assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
-import { directDisplay, directIGES, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
+import type { DirectGeometry } from './engine/direct';
+import { directNow, loadDirect } from './engine/directModule';
 import { stepLengthUnit } from './engine/stepUnits';
 import { MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
 import { readStudioDoc } from './engine/migrate';
@@ -64,6 +61,13 @@ import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
 import { SketchHistory } from './sketch/history';
+
+// Workspaces off the first screen load when first opened (the chat's tools, the drawing and the render panel).
+const ChatPanel = lazy(() => import('./ui/ChatPanel').then(m => ({ default: m.ChatPanel })));
+const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({ default: m.DrawingWorkspace })));
+const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
+const DirectPanel = lazy(() => import('./ui/DirectPanel').then(m => ({ default: m.DirectPanel })));
+const emptyDirect = (): DirectGeometry => ({ sources: {}, objects: [] });
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'cad-sk-rect', hint: 'Click two corners' },
@@ -383,14 +387,19 @@ export function App() {
     if (select) setDirectSel(select);
   }, [doc, marker]);
   const poleObj = directSel.length === 1 ? directSel[0] : null;
-  const poles = useMemo(() => { if (!poleObj || !doc.direct) return []; try { return polesOf(doc.direct, poleObj); } catch { return []; } }, [doc.direct, poleObj]);
+  // The direct tools load when the document first has direct geometry (state: re-render once they are in).
+  const [directReady, setDirectReady] = useState(() => !!directNow());
+  useEffect(() => { if (doc.direct?.objects.length && !directReady) void loadDirect().then(() => setDirectReady(true)); }, [doc.direct, directReady]);
+  const D = directReady ? directNow() : null;
+  const poles = useMemo(() => { if (!poleObj || !doc.direct || !D) return []; try { return D.polesOf(doc.direct, poleObj); } catch { return []; } }, [doc.direct, poleObj, D]);
   const poleHere = pole && pole.id === poleObj ? poles.find(p => p.key === pole.key) ?? null : null;
   const poleMoved = (delta: readonly number[]) => poleHere!.at.map((v, k) => v + delta[k]);
   // While a pole is dragged, its object is shown re-evaluated with the pole where the gizmo has it.
   const directShown = useMemo(() => {
-    if (poleDrag && poleHere && poleObj && doc.direct) try { return directDisplay(movePole(doc.direct, poleObj, poleHere.key, poleHere.at.map((v, k) => v + poleDrag[k]))); } catch { /* shown as it was */ }
-    return directDisplay(doc.direct);
-  }, [doc.direct, poleDrag, poleHere, poleObj]);
+    if (!D) return [];
+    if (poleDrag && poleHere && poleObj && doc.direct) try { return D.directDisplay(D.movePole(doc.direct, poleObj, poleHere.key, poleHere.at.map((v, k) => v + poleDrag[k]))); } catch { /* shown as it was */ }
+    return D.directDisplay(doc.direct);
+  }, [doc.direct, poleDrag, poleHere, poleObj, D]);
   /** One undoable change of the placed instances. */
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
     pushUndo();
@@ -645,7 +654,7 @@ export function App() {
   }, [sketch, bodies]);
 
   /** The sketch's shapes as curves of the direct geometry (one per shape, through the sketch plane); the sketch is left. */
-  const sketchToCurves = () => {
+  const sketchToCurves = async () => {
     if (!sketch) return;
     const shapes = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])], P = sketch.plane;
     const curves = shapes.flatMap(s => s.kind === 'circle' ? [circleCurve(P, s.c, s.r)]
@@ -654,13 +663,15 @@ export function App() {
           : s.points.length >= 2 ? [outlineCurve(P, s.points, s.bulges, s.closed)] : []);
     if (!curves.length) { setToast({ title: 'Nothing to make curves of', hint: 'Draw lines, arcs or circles in the sketch first.', detail: '' }); return; }
     if (curves.length > 16) { setToast({ title: 'Too many shapes', hint: 'Make curves of at most 16 shapes at a time.', detail: '' }); return; }
+    const { importSource } = await loadDirect();
     const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Sketch curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('sketch', curves), `Sketch curve ${made + 1}`);
     setSketch(null); commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id));
   };
   /** The picked edges as curves of the direct geometry. */
-  const edgesToCurves = () => {
+  const edgesToCurves = async () => {
     const curves = selection.edges.flatMap(e => { const c = bodies[e.body] ? edgeCurve(bodies[e.body].mesh, e.edge) : null; return c ? [c] : []; });
     if (!curves.length) return;
+    const { importSource } = await loadDirect();
     const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Edge curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('edges', curves.slice(0, 16)), `Edge curve ${made + 1}`);
     commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id));
   };
@@ -960,7 +971,7 @@ export function App() {
       }
       // An IGES file adds its curves and surfaces as direct geometry too, saying what came in.
       if (/\.(igs|iges)$/i.test(file.name)) {
-        const r = importIGESFile(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(igs|iges)$/i, ''));
+        const r = (await loadDirect()).importIGESFile(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(igs|iges)$/i, ''));
         commitDirect(r.direct, r.direct.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
         setToast({ title: 'IGES opened', hint: `${r.curves} curve${r.curves === 1 ? '' : 's'} and ${r.surfaces} surface${r.surfaces === 1 ? '' : 's'} added as curves and surfaces (Direct), in mm.`, detail: '' });
         setTimeout(() => viewport.current?.fit(), 300);
@@ -968,7 +979,7 @@ export function App() {
       }
       // A CAD source adds its curves and surfaces to the part as direct geometry.
       if (/\.(barocad|cad)$/i.test(file.name)) {
-        const next = importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(barocad|cad)$/i, ''));
+        const next = (await loadDirect()).importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(barocad|cad)$/i, ''));
         commitDirect(next, next.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
         setTimeout(() => viewport.current?.fit(), 300);
         return;
@@ -1259,7 +1270,7 @@ export function App() {
     onMove: (delta, done) => {
       if (!done) { setPoleDrag(delta); return; }
       setPoleDrag(null); if (delta.every(v => v === 0)) return;
-      try { commitDirect(movePole(doc.direct!, poleObj, poleHere.key, poleMoved(delta)), [poleObj]); }
+      try { commitDirect(D!.movePole(doc.direct!, poleObj, poleHere.key, poleMoved(delta)), [poleObj]); }
       catch (e) { setToast({ title: 'The pole could not be moved', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
     },
   } : null;
@@ -1336,8 +1347,8 @@ export function App() {
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>
         <button className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
-        {!!doc.direct?.objects.some(o => !o.hidden) && <button className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={() => {
-          try { downloadBytes(new TextEncoder().encode(directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
+        {!!doc.direct?.objects.some(o => !o.hidden) && <button className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
+          try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
           catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
         }}><Icon name="polyline" /></button>}
         <button className="tool" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>
@@ -1415,12 +1426,12 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
-      {rendering && !sketch && <RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
+      {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage} fov={fov}
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
-        onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} />}
+        onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
       {!rendering && !sketch && measure && <aside className="card props" aria-label="Measurement">
         <div className="card-title">MEASURE <button className="tool tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></button></div>
         {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
@@ -1461,11 +1472,11 @@ export function App() {
       })()}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
-      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
+      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <Suspense fallback={null}><DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }}
         onThicken={(id, thickness, side) => {
-          const o = doc.direct!.objects.find(x => x.id === id)!, g = geometryOf(doc.direct!, o);
+          const o = doc.direct!.objects.find(x => x.id === id)!, g = D!.geometryOf(doc.direct!, o);
           if (g.kind !== 'surface') return;
           if (o.trims?.length) { setToast({ title: 'Untrim it first', hint: 'Thicken uses the whole surface; a trimmed one is not thickened along its trim yet.', detail: '' }); return; }
           if (!(thickness > 0)) { setToast({ title: 'Give it a thickness', hint: 'A wall is thicker than 0 mm.', detail: '' }); return; }
@@ -1473,14 +1484,14 @@ export function App() {
           setDirectSel([]); commit(withNode(evaluated, { kind: 'thicken', name: o.name, surface, thickness, ...(side !== 'normal' ? { side } : {}) }));
         }}
         onSew={(ids, tolerance) => {
-          const objs = ids.map(id => doc.direct!.objects.find(x => x.id === id)!), gs = objs.map(o => geometryOf(doc.direct!, o));
+          const objs = ids.map(id => doc.direct!.objects.find(x => x.id === id)!), gs = objs.map(o => D!.geometryOf(doc.direct!, o));
           const surfaces = gs.flatMap(g => g.kind === 'surface' ? [{ degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) }] : []);
           if (surfaces.length !== ids.length) return;
           if (objs.some(o => o.trims?.length)) { setToast({ title: 'Untrim them first', hint: 'Sewing joins surfaces along their own edges; trimmed ones do not sew yet.', detail: '' }); return; }
           // (The surfaces hidden as they become the body's faces, in the same undoable step.)
           const direct = { ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) };
           setDirectSel([]); commit({ ...withNode(evaluated, { kind: 'sew', names: objs.map(o => o.name), surfaces, ...(tolerance > 0 ? { tolerance: Math.min(1, tolerance) } : {}) }), direct });
-        }} />}
+        }} /></Suspense>}
       {clashes && !rendering && !sketch && <aside className="card props" aria-label="Interference">
         <div className="card-title">INTERFERENCE <button className="tool tiny" aria-label="Close interference" onClick={() => setClashes(null)}><Icon name="close" small /></button></div>
         {clashes === 'busy' ? <div className="empty">Checking…</div> : !clashes.length ? <div className="empty">No bodies overlap.</div>
@@ -1568,7 +1579,7 @@ export function App() {
       </aside>}
       </div>
 
-      {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
 
       {active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />}
 
@@ -1633,10 +1644,10 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
-      {chat && !rendering && !drawing && <ChatPanel base={() => evaluated} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
+      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => evaluated} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
-        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} />}
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} /></Suspense>}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {historyMenu && doc.nodes[historyMenu.index] && (() => {

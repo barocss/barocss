@@ -2,7 +2,7 @@
 // the HUD and built by the same `build`), raw feature nodes for what has no command (sketched profiles,
 // revolves, sweeps, lofts), the feature editor's fields, delete, measure, select and a part summary.
 // Each change is evaluated by the engine before it is kept; the result is what the model reads back.
-import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Selection, type Values } from '../app/commands';
+import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
@@ -12,9 +12,10 @@ import { checkNode, deleteFeature } from './features';
 import type { ImageTrace, Pt } from './trace';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
 import { insideRing as inside } from '../engine/geom2';
+import { resolveNames, type NameSelection } from './names';
+export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
-export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
 /** The part as the chat turn has built it so far. */
 /** `images`: traces of the images attached in this conversation (image 1 first). */
 export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[] }
@@ -64,23 +65,6 @@ const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3);
 const json = (v: unknown) => JSON.stringify(v);
 
-/** Faces, edges and bodies by name → mesh indices; unknown names are returned. */
-export function resolveNames(bodies: BodyResult[], names: Partial<NameSelection>): { selection: Selection; unknown: string[] } {
-  const selection: Selection = { faces: [], edges: [], bodies: [] }, unknown: string[] = [];
-  for (const name of names.faces ?? []) {
-    const hit = bodies.flatMap((b, bi) => b.mesh.faces.flatMap(f => f.name.split('+').includes(name) || f.id === name ? [{ body: bi, face: f.index }] : []))[0];
-    if (hit) { if (!selection.faces.some(f => f.body === hit.body && f.face === hit.face)) selection.faces.push(hit); } else unknown.push(name);
-  }
-  for (const name of names.edges ?? []) {
-    const hit = bodies.flatMap((b, bi) => b.mesh.edges.flatMap(e => e.names.includes(name) ? [{ body: bi, edge: e.index }] : []))[0];
-    if (hit) { if (!selection.edges.some(e => e.body === hit.body && e.edge === hit.edge)) selection.edges.push(hit); } else unknown.push(name);
-  }
-  for (const key of names.bodies ?? []) {
-    const i = bodies.findIndex(b => b.key === key);
-    if (i >= 0) { if (!selection.bodies.includes(i)) selection.bodies.push(i); } else unknown.push(key);
-  }
-  return { selection, unknown };
-}
 
 /** The visible bodies, with their faces and edges by name when `detail` (capped for big parts). */
 export function describeBodies(doc: StudioDoc, bodies: BodyResult[], detail: boolean, cap = 120) {
