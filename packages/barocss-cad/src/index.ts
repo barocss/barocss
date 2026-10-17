@@ -1,5 +1,5 @@
 export * from './types.js';
-export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, sampleCurve, sampleSurface } from './math.js';
+export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, curveEvaluator, surfaceEvaluator, sampleCurve, sampleSurface } from './math.js';
 export * from './iges.js';
 export * from './packet.js';
 export * from './preview.js';
