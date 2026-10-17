@@ -43,7 +43,7 @@ const sideOf = (r: BodyRef) => r.side === 'solid' ? `b${r.node}` : `b${r.node}_$
 export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>): string | null {
   if (!isObj(node)) return 'A feature is an object with a "kind".';
   const kind = String(node.kind);
-  if (kind === 'import') return 'STEP imports are opened from a file, not written in chat.';
+  if (kind === 'import' || kind === 'mesh') return 'STEP, STL and OBJ files are opened from a file, not written in chat.';
   let spec: Spec;
   if (kind === 'sketch') {
     const p = PROFILE[String(node.profile)];

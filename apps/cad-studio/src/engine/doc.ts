@@ -66,6 +66,8 @@ type ModelNodeBase = SketchNode
   /** A body read from a STEP file (the file's text is kept in the document). */
   /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
   | { kind: 'import'; name: string; step: string; solids?: number }
+  /** A closed triangle mesh (an STL or OBJ file's, scaled to mm from `unit`): welded vertices, three indices a triangle. */
+  | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[] }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
@@ -174,7 +176,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
-    case 'import': return [];
+    case 'import': case 'mesh': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -187,7 +189,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -305,6 +307,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'separate': return 'Separate pieces';
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
+    case 'mesh': return `Mesh ${node.name}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
   }

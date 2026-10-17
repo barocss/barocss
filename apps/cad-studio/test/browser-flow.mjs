@@ -790,6 +790,21 @@ try {
     assert.match(await page.locator('.history').innerText(), /Hole Ø12/);
   });
 
+  await check('open an STL in centimetres: the unit asked for, the block in mm with its hole, its flat faces merged', async () => {
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    assert.match(await page.locator('[aria-label="Mesh units"]').innerText(), /4 × 2 × 1 mm/);
+    await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    assert.match(await page.locator('[aria-label="Mesh units"]').innerText(), /40 × 20 × 10 mm/);
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh', null, { timeout: 15000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /STL opened[\s\S]*7,000 mm³/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await snap('stl-open');
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());

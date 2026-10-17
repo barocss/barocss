@@ -24,6 +24,7 @@ import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
+import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -104,6 +105,11 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
   /**
+   * A closed triangle mesh (an STL or OBJ file's, in mm) as a planar solid: `positions` x, y, z per vertex,
+   * `indices` three a triangle; triangles flat against each other one face, named `${id}.f${k}`.
+   */
+  | { readonly kind: 'mesh'; readonly positions: readonly number[]; readonly indices: readonly number[] }
+  /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
    * order of its B-rep's bodies; refused for a body in one piece.
    */
@@ -152,7 +158,7 @@ export interface CadPartSnapshot {
   withDocument(document: CadPartDocument): CadPartSnapshot;
   save(): string;
 }
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, lengthMM: 10000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, lengthMM: 10000, meshTriangles: 100_000 });
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
@@ -541,6 +547,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
         if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
         return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
+      };
+    }
+    case 'mesh': {
+      const P = f.positions as unknown, I = f.indices as unknown;
+      if (!Array.isArray(P) || P.length % 3 || !P.every(x => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) <= CadPartLimits.lengthMM)) fail('INPUT', 'positions must be x, y, z numbers within ±10000 mm');
+      if (!Array.isArray(I) || I.length % 3 || I.length / 3 > CadPartLimits.meshTriangles || !I.every(i => Number.isInteger(i) && i >= 0 && i < (P as number[]).length / 3)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
+      return () => {
+        try { return one({ kind: 'brep', brep: brepFromTriangles(P as number[], I as number[], { id: at, maximumTriangles: CadPartLimits.meshTriangles }) }); }
+        catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'shell': {

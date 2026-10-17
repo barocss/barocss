@@ -50,6 +50,7 @@ import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, typ
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
 import { stepLengthUnit } from './engine/stepUnits';
+import { MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
 import { readStudioDoc } from './engine/migrate';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from './engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
@@ -901,6 +902,19 @@ export function App() {
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
+  // A mesh file waiting for its unit, and opening it as a part in that unit.
+  const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
+  const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
+  const openMesh = async () => {
+    if (!meshAsk || !meshInUnit) return;
+    const { name, format, unit } = meshAsk, next = withNode(emptyDoc(), { kind: 'mesh', name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices });
+    // Read before replacing the current part: a mesh that does not close keeps the part.
+    const read = await engine.part(next, revision.current++);
+    if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
+    setMeshAsk(null); replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
+    const b = read.bodies[0], faces = b?.mesh.faces.length ?? 0;
+    setToast({ title: `${format} opened`, hint: `A solid of ${faces.toLocaleString('en-US')} flat face${faces === 1 ? '' : 's'} (${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles), read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(b?.volumeMM3 ?? 0).toLocaleString('en-US')} mm³. Curved surfaces stay as their facets.`, detail: '' });
+  };
   const open = async (file: File) => {
     try {
       // A STEP file starts a new part from its solids.
@@ -917,6 +931,13 @@ export function App() {
         replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         const vol = read.bodies.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * unit.toMM ** 3;
         setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.toMM !== 1 ? `, scaled ×${unit.toMM} to millimetres` : ''}; ${Math.round(vol).toLocaleString('en-US')} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
+        return;
+      }
+      // An STL or OBJ file starts a new part from its closed mesh, once its unit is chosen (the files say none).
+      if (/\.(stl|obj)$/i.test(file.name)) {
+        const name = file.name.replace(/\.(stl|obj)$/i, '');
+        try { setMeshAsk({ name, format: /\.obj$/i.test(file.name) ? 'OBJ' : 'STL', mesh: readMeshFile(file.name, new Uint8Array(await file.arrayBuffer())), unit: 'mm' }); }
+        catch (e) { setToast({ title: 'Could not open this file', hint: `${e instanceof Error ? e.message : String(e)}. Your part is unchanged.`, detail: '' }); }
         return;
       }
       // An IGES file adds its curves and surfaces as direct geometry too, saying what came in.
@@ -1303,7 +1324,7 @@ export function App() {
         }}><Icon name="polyline" /></button>}
         <button className="tool" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.igs,.iges,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
       <TooltipLayer />
@@ -1617,6 +1638,18 @@ export function App() {
           { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
         ]} />}
 
+      {meshAsk && meshInUnit && <div className="toast card recovery" role="dialog" aria-label="Mesh units">
+        <Icon name="straighten" className="accent" />
+        <div><div className="toast-title">Open {meshAsk.name}.{meshAsk.format.toLowerCase()}: in what unit?</div>
+          <div className="toast-hint">{meshAsk.format} files carry no unit. In {meshAsk.unit} it is {meshInUnit.size.map(fmt).join(' × ')} mm.</div>
+          <div className="row-actions">
+            <select aria-label="Mesh unit" value={meshAsk.unit} onChange={e => setMeshAsk(m => m && { ...m, unit: e.target.value as MeshUnit })}>
+              {MESH_UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+            </select>
+            <button className="primary" onClick={() => void openMesh()}>Open</button>
+            <button className="ghost" onClick={() => setMeshAsk(null)}>Cancel</button>
+          </div></div>
+      </div>}
       {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
         <Icon name="history" className="accent" />
         <div><div className="toast-title">Unsaved work from {new Date(recovery.savedAt).toLocaleString()}</div>
