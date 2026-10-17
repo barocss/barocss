@@ -11,6 +11,8 @@ export interface MeasureResult {
   angle?: number;
   /** Between two parallel planes: their distance along the normal. */
   normalDistance?: number;
+  /** Between two round faces (cylinders): the angle between their axes and the distance between them. */
+  axes?: { angle: number; offset: number; coaxial: boolean };
 }
 export interface MeasureItem { label: string; length?: number; area?: number; radius?: number }
 
@@ -106,8 +108,45 @@ export function measureBetween(ma: DisplayMesh, pa: MeasurePick, mb: DisplayMesh
       }
     }
   } else if (fa.line && fb.line) result.angle = deg(dot(fa.line, fb.line));
+  // Two round faces: their axes (coaxial within 0.001° and 0.001 mm).
+  const xa = pa.face !== undefined ? roundFaceAxis(ma, pa.face) : null, xb = pb.face !== undefined ? roundFaceAxis(mb, pb.face) : null;
+  if (xa && xb) {
+    const angle = deg(dot(xa.dir, xb.dir)), w = sub(xb.point, xa.point), off = sub(w, scale3(xa.dir, dot(w, xa.dir)));
+    const offset = angle < 1e-6 ? len(off) : (() => { const n = cross3(xa.dir, xb.dir); return Math.abs(dot(w, n)) / len(n); })();
+    result.axes = { angle, offset, coaxial: angle < 1e-3 && offset < 1e-3 };
+  }
   else if ((fa.plane && fb.line) || (fa.line && fb.plane)) { const n = (fa.plane ?? fb.plane)!.n, l = (fa.line ?? fb.line)!; result.angle = 90 - deg(dot(n, l)); }
   return result;
+}
+
+const cross3 = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const scale3 = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
+/**
+ * A cylindrical face's axis (a point on it and its direction): the direction square to every vertex
+ * normal, the point the normals' feet at the face's radius gather round. Null for any other face.
+ */
+export function roundFaceAxis(mesh: DisplayMesh, face: number): { point: Vec3; dir: Vec3 } | null {
+  const f = mesh.faces[face]; if (!f || f.kind !== 'curved' || !f.radius) return null;
+  const vs: number[] = []; for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === face) vs.push(v);
+  if (vs.length < 3) return null;
+  const N = (v: number): Vec3 => [mesh.normals[v * 3], mesh.normals[v * 3 + 1], mesh.normals[v * 3 + 2]], P = (v: number): Vec3 => [mesh.positions[v * 3], mesh.positions[v * 3 + 1], mesh.positions[v * 3 + 2]];
+  // The axis: the cross of the two most different normals.
+  let best = 0, dir: Vec3 = [0, 0, 1];
+  const n0 = N(vs[0]);
+  for (const v of vs) { const c = cross3(n0, N(v)); if (len(c) > best) { best = len(c); dir = scale3(c, 1 / len(c)); } }
+  if (best < 1e-3 || vs.some(v => Math.abs(dot(N(v), dir)) > 1e-2)) return null;
+  // The centre: a least-squares circle (x² + y² + Dx + Ey + F = 0) through the vertices seen along the
+  // axis (the display normals are averaged, so only their plane is exact, not their direction).
+  const e1 = len(cross3(dir, [1, 0, 0])) > 0.5 ? scale3(cross3(dir, [1, 0, 0]), 1 / len(cross3(dir, [1, 0, 0]))) : scale3(cross3(dir, [0, 1, 0]), 1 / len(cross3(dir, [0, 1, 0]))), e2 = cross3(dir, e1);
+  const A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [0, 0, 0];
+  for (const v of vs) { const p = P(v), x = dot(p, e1), y = dot(p, e2), row = [x, y, 1], r = -(x * x + y * y); for (let i = 0; i < 3; i++) { b[i] += row[i] * r; for (let j = 0; j < 3; j++) A[i][j] += row[i] * row[j]; } }
+  const det = (M: number[][]) => M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+  const D0 = det(A); if (Math.abs(D0) < 1e-12) return null;
+  const solve = (k: number) => det(A.map((row, i) => row.map((x, j) => j === k ? b[i] : x))) / D0;
+  const D = solve(0), E = solve(1), F = solve(2), cx = -D / 2, cy = -E / 2, r = Math.sqrt(Math.max(0, cx * cx + cy * cy - F));
+  if (Math.abs(r - f.radius) > 0.05 * f.radius) return null;
+  const along = dot(P(vs[0]), dir), point: Vec3 = [0, 1, 2].map(k => e1[k] * cx + e2[k] * cy + dir[k] * along) as Vec3;
+  return { point, dir };
 }
 
 /** One pick alone: an edge's length (and radius when it is an arc), a face's area (and radius when it is round). */

@@ -55,3 +55,24 @@ test('measure: between two bodies, the closest points span the gap', () => {
   const d = measureBetween(a, { body: 0, face: right }, b, { body: 1, face: left });
   assert.ok(near(d.distance, 15) && near(d.normalDistance!, 15) && near(d.b[0] - d.a[0], 15), JSON.stringify(d));
 });
+
+test('measure: two round faces on one axis are coaxial; off it, by how much', async () => {
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { rectanglePart, withNode } = await import('../src/engine/doc');
+  const { measureBetween, roundFaceAxis } = await import('../src/app/measure');
+  let doc = rectanglePart(40, 20, 10);
+  doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 3 });
+  doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [10, 10], radius: 2 });
+  doc = withNode(doc, { kind: 'extrude', sketch: 3, height: 30, from: -10 });
+  doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [13, 10], radius: 1 });
+  doc = withNode(doc, { kind: 'extrude', sketch: 5, height: 30, from: -10 });
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok);
+  const round = (b: number) => r.bodies[b].mesh.faces.findIndex(f => f.kind === 'curved');
+  const [plate, pin, other] = [0, 1, 2];
+  const ax = roundFaceAxis(r.bodies[plate].mesh, round(plate))!;
+  assert.ok(Math.abs(Math.abs(ax.dir[2]) - 1) < 1e-6 && Math.abs(ax.point[0] - 10) < 1e-6 && Math.abs(ax.point[1] - 10) < 1e-6, JSON.stringify(ax));
+  const same = measureBetween(r.bodies[plate].mesh, { body: plate, face: round(plate) }, r.bodies[pin].mesh, { body: pin, face: round(pin) });
+  assert.equal(same.axes?.coaxial, true);
+  const off = measureBetween(r.bodies[plate].mesh, { body: plate, face: round(plate) }, r.bodies[other].mesh, { body: other, face: round(other) });
+  assert.ok(off.axes && !off.axes.coaxial && Math.abs(off.axes.offset - 3) < 1e-6 && off.axes.angle < 1e-6);
+});
