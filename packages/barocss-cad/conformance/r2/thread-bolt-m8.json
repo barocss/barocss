@@ -1,0 +1,51 @@
+{
+  "id": "r2-thread-bolt-m8",
+  "step": "R2",
+  "decisions": [
+    "D8"
+  ],
+  "about": "The default (faceted) M8 × 24 hex bolt: one closed body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "b",
+          "kind": "thread",
+          "diameter": 8,
+          "pitch": 1.25,
+          "length": 24,
+          "hex": {
+            "across": 13,
+            "height": 5.3
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1765.33458615,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [0.001561401, -0.001136828, -5.562700196],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "this kernel (faceted helix; the ISO-profile volume is 2e-3 away by design)"
+}

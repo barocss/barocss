@@ -1,0 +1,70 @@
+// Writes the R2 conformance cases (conformance/r2/*.json): each input part document with the outputs this
+// kernel produces, where no closed form exists. Closed-form expectations are written as such. Run after
+// build:library: node scripts/conformance-gen.mjs. Review the diff: a changed value is a changed contract.
+import { writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { evaluateCadPart, checkBrep } from '../dist/index.js';
+
+const out = resolve(import.meta.dirname, '../conformance/r2');
+const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
+const base = name => name.replace(/#\d+$/, '');
+
+/** A torus of n × m quads, lumpy (closed, consistently wound). Positions rounded to 1e-6 mm, as the studio keeps them. */
+function torus(n, m) {
+  const P = [], I = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) {
+    const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m, r = 4 * (1 + 0.15 * Math.sin(3 * u) * Math.cos(2 * v));
+    P.push(...[(12 + r * Math.cos(v)) * Math.cos(u), (12 + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v)].map(x => Math.round(x * 1e6) / 1e6));
+  }
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) {
+    const a = i * m + j, b = ((i + 1) % n) * m + j, c = ((i + 1) % n) * m + (j + 1) % m, d = i * m + (j + 1) % m;
+    I.push(a, b, c, a, c, d);
+  }
+  return { positions: P, indices: I };
+}
+const bilinear = (p00, p01, p10, p11) => ({ degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[p00, p01], [p10, p11]], weights: [[1, 1], [1, 1]] });
+
+/** Expected outputs measured on this kernel (volume to relTol, centroid to absTol). */
+function measured(doc, relTol, absTol, names) {
+  const outputs = evaluateCadPart(doc).outputs.map(o => {
+    const m = o.massProperties(1), topo = checkBrep(o.brep).topology;
+    const row = { volumeMM3: { value: +m.volumeMM3.toPrecision(12), relTol }, centroidMM: { value: m.centroidMM.map(x => +x.toFixed(9)), absTol }, bodies: o.bodyCount, topology: topo.map(t => ({ shells: t.shells, genus: t.genus })) };
+    if (names === 'list') row.faceNames = [...new Set(o.brep.faces.map(f => base(f.name ?? f.id)))].sort();
+    else if (names) row.faceNamePattern = names;
+    return row;
+  });
+  return { outputs };
+}
+function refused(doc) {
+  try { evaluateCadPart(doc); } catch (e) { return { error: { code: e.code, messageIncludes: e.message.replace(/^.*?: /, '').slice(0, 40) } }; }
+  throw new Error('expected a refusal');
+}
+// (Arrays of numbers on one line each: a mesh's thousands of coordinates stay readable as data.)
+const compact = text => text.replace(/\[\s*(-?[\d.e+-]+(?:,\s*-?[\d.e+-]+)*)\s*\]/g, (_, list) => `[${list.split(/,\s*/).join(', ')}]`);
+const write = c => writeFileSync(join(out, `${c.id.replace(/^r2-/, '')}.json`), compact(JSON.stringify(c, null, 2)) + '\n');
+
+const ring = torus(24, 16), ringDoc = f => D([{ id: 'm', kind: 'mesh', ...ring }, ...f]);
+const block = [{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [13, -3], max: [20, 3] }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 12, from: -6 }];
+write({ id: 'r2-mesh-union-box', step: 'R2', decisions: ['D9'], about: 'A closed 768-triangle mesh ring united with a block through its wall (polyhedral Boolean).',
+  input: { partDocument: ringDoc([...block, { id: 'u', kind: 'union', target: 'm', tool: 'b' }]) }, expect: measured(ringDoc([...block, { id: 'u', kind: 'union', target: 'm', tool: 'b' }]), 1e-9, 1e-7, null),
+  oracle: 'this kernel (exact rational predicates); the ring volume itself is the divergence-theorem sum of its triangles' });
+write({ id: 'r2-mesh-split-y', step: 'R2', decisions: ['D9'], about: 'The mesh ring split across Y = 0.5 into two bodies whose volumes add to the ring\'s.',
+  input: { partDocument: ringDoc([{ id: 's', kind: 'split', target: 'm', axis: 'y', at: 0.5 }]) }, expect: measured(ringDoc([{ id: 's', kind: 'split', target: 'm', axis: 'y', at: 0.5 }]), 1e-9, 1e-7, null),
+  oracle: 'this kernel; the two volumes sum to the ring volume to 1e-12' });
+const hole = { positions: ring.positions, indices: ring.indices.slice(6) };
+write({ id: 'r2-mesh-open-refused', step: 'R2', decisions: ['D3'], about: 'A mesh with one quad missing is refused as not closed (no repair).',
+  input: { partDocument: D([{ id: 'm', kind: 'mesh', ...hole }]) }, expect: refused(D([{ id: 'm', kind: 'mesh', ...hole }])), oracle: 'contract: open meshes are refused with GEOMETRY' });
+const c = (x, y, z) => [x, y, z];
+const cube = [bilinear(c(0, 0, 0), c(0, 10, 0), c(10, 0, 0), c(10, 10, 0)), bilinear(c(0, 0, 10), c(10, 0, 10), c(0, 10, 10), c(10, 10, 10)), bilinear(c(0, 0, 0), c(10, 0, 0), c(0, 0, 10), c(10, 0, 10)),
+  bilinear(c(0, 10, 0), c(0, 10, 10), c(10, 10, 0), c(10, 10, 10)), bilinear(c(0, 0, 0), c(0, 0, 10), c(0, 10, 0), c(0, 10, 10)), bilinear(c(10, 0, 0), c(10, 10, 0), c(10, 0, 10), c(10, 10, 10))];
+const sewDoc = D([{ id: 's', kind: 'sew', surfaces: cube }]);
+write({ id: 'r2-sewn-cube', step: 'R2', decisions: ['D14'], about: 'Six bilinear patches, some facing in, sewn into a closed 10 mm cube facing out.',
+  input: { partDocument: sewDoc }, expect: { outputs: [{ volumeMM3: { value: 1000, relTol: 1e-12 }, centroidMM: { value: [5, 5, 5], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(sewDoc, 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
+const disc = [{ id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 10 }, { id: 'ts', kind: 'sketch', profile: 'rectangle', min: [-2, -2], max: [2, 2] }, { id: 't', kind: 'extrude', sketch: 'ts', height: 6, from: 8 }, { id: 'u', kind: 'union', target: 'c', tool: 't' }];
+const v = 250 * Math.PI + 64, cz = (250 * Math.PI * 5 + 64 * 12) / v;
+write({ id: 'r2-cylinder-block-union', step: 'R2', decisions: ['D10'], about: 'A Ø10 × 10 cylinder with a 4 × 4 block rising through its top: volume 250π + 64.',
+  input: { partDocument: D(disc) }, expect: { outputs: [{ volumeMM3: { value: v, relTol: 1e-8 }, centroidMM: { value: [0, 0, cz], absTol: 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(D(disc), 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
+const bolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 24, hex: { across: 13, height: 5.3 } }]);
+write({ id: 'r2-thread-bolt-m8', step: 'R2', decisions: ['D8'], about: 'The default (faceted) M8 × 24 hex bolt: one closed body.',
+  input: { partDocument: bolt }, expect: measured(bolt, 1e-9, 1e-6, null), oracle: 'this kernel (faceted helix; the ISO-profile volume is 2e-3 away by design)' });
+console.log('written to', out);

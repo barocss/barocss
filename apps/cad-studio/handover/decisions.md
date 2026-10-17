@@ -76,3 +76,36 @@ Why: helical bolt split 5.7 → 1.8 s with the same result (`189c0f9e8`).
 Decided: `pnpm bench:mesh` (and `--facets`) runs deterministic generated fixtures, each in its own process
 with a timeout, and reports the first failure. It has no budgets until the facet path exists.
 Why: honest numbers for M0/F0 without network fixtures or flaky CI gates (`f5d237c9f`).
+
+## D13 — Twisted ruled faces get rows by their twist (2026-10-18, R2)
+Decided: a twisted ruled face is cut across its rulings into ⌈twist / (π/2/perQuarter)⌉ rows: at least 2,
+at most the old 2·perQuarter. The twist is the largest angle its normal turns along a ruling.
+Why: a thread flank 0.7 mm across had 16 rows. The helical bolt's display went from 51k to 9.3k triangles with
+the same chord error (`afdf0dbe5`).
+
+## D14 — Sewing is hashed and evaluates once-validated (2026-10-18, R2)
+Decided: `sewSolid` welds corners through tolerance-sized cells, keeping the lowest index within tol as the
+scan did. It pairs sides through their two corners, and evaluates through `curveEvaluator`/`surfaceEvaluator`.
+Why: identical output, 2.1× faster at 1536 patches (`984872627`).
+
+## D15 — Conformance cases are part documents with toleranced expectations (2026-10-18, owner rule)
+Decided: `packages/barocss-cad/conformance/<step>/*.json` holds an input part document and the expected
+outputs: volume (relative tolerance), centroid (absolute), bodies, shells and genus per body, and face names
+or a name pattern. A refusal is expected as an error code plus message text. Face and edge counts are never
+compared. `test/conformance.test.mjs` checks every case, and `scripts/conformance-gen.mjs` regenerates the
+kernel-measured values; a changed value is a changed contract.
+Why: a spec plus conformance suite for a later reimplementation, and goldens for RB.
+
+## D16 — Proposed: the helical thread as the default (2026-10-18, R2; decision is the owner's)
+Proposal: switch `thread` to the helical B-spline form. On the R2 code (M8×30):
+- split works in 3.7 s (faceted fails as non-manifold after 13 s);
+- interference 2.6 s against 9.0 s;
+- display 9.3k triangles against 28k;
+- drawing 0.69 s against 0.98 s;
+- STEP 273 kB against 19.4 MB;
+- mate faces are named.
+
+Its mass takes 0.47 s against 0.26 s.
+
+Open: switching renames thread faces (`.thread#k` instead of `.facetK`) for documents saved before, so the
+switch needs a document version or a per-node form.
