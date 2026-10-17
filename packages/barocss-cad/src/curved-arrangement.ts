@@ -436,7 +436,13 @@ export function regionInteriorPoint(region: CurveRegion2): XY | null {
     const y = y0 + (y1 - y0) * f, xs = crossingsAt(rings, y).sort((a, b) => a - b);
     for (let k = 0; k + 1 < xs.length; k += 2) {
       const p: XY = [(xs[k] + xs[k + 1]) / 2, y];
-      let d = Infinity; for (const ring of rings) for (const g of ring) d = Math.min(d, segDistance(g, p));
+      // (A candidate no farther from the boundary than the best so far is dropped at once; a general
+      // curve whose padded sample box is no nearer than the nearest so far is not measured.)
+      let d = Infinity;
+      scan: for (const ring of rings) for (const g of ring) {
+        if (g.kind === 'curve') { const { lo, hi } = samples(g); if (Math.hypot(Math.max(lo[0] - p[0], 0, p[0] - hi[0]), Math.max(lo[1] - p[1], 0, p[1] - hi[1])) >= d) continue; }
+        d = Math.min(d, segDistance(g, p)); if (d <= clearance) break scan;
+      }
       if (d > clearance) { clearance = d; best = p; }
     }
   }
