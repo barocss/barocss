@@ -47,7 +47,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B17 Fasteners as assembly instances; cosmetic thread drawn in the viewport and drawings; countersunk screws (#2092) — 2da7b7f2f, c23912345, bfc1d538b, 97decca68; also a hole’s whole region shown see-through (82efbc619)
 - [x] B18 Oblique split plane (#2072) — 2c151cf7d
 - [x] B19 Texture maps (#2070) — e7e5565d8
-- [ ] B20 Shared part definitions and explicit reference update (#2048)
+- [x] B20 Shared part definitions and explicit reference update (#2048) — 5c7107441
 - [ ] B21 STL / OBJ import with a unit choice (#2044)
 
 ## C. Kernel or GPU, large
