@@ -456,3 +456,18 @@ test('a plate with six fully placed holes solves (the kernel’s larger sketch p
   assert.ok(r.ok, r.ok ? '' : r.reason);
   assert.deepEqual(r.ok && r.circles?.map(c => c.map(v => Math.round(v * 1e6) / 1e6)), circles);
 });
+
+test('concentric circles of an outline (radii kept, listed, removable); loose circles are refused', () => {
+  const C = (i: number): SketchPick => ({ kind: 'circle', i });
+  let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [20, 15], r: 8 }, { c: [23, 14], r: 4 }, { c: [45, 12], r: 3 }] };
+  assert.equal(constraintOptions(s, [C(0), C(1)]).coincident, null);
+  s = ok(applyConstraint(s, [C(0), C(1)], 'coincident'));
+  const [a, b] = [s.circles![0].c, s.circles![1].c];
+  assert.ok(Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-6, `one centre: ${a} ${b}`);
+  assert.deepEqual([s.circles![0].r, s.circles![1].r], [8, 4], 'radii kept');
+  assert.equal(constraintOptions(s, [C(1), C(0)]).coincident, 'Already concentric');
+  assert.ok(constraintEntries(s).some(e => e.label === 'Concentric' && e.detail === 'circle 1 · circle 2'));
+  const id = constraintEntries(s).find(e => e.label === 'Concentric')!.id;
+  assert.equal(constraintEntries(removeConstraint(s, id)).some(e => e.label === 'Concentric'), false);
+  assert.match(constraintOptions(s, [{ kind: 'circle', i: 0, done: true } as SketchPick, C(1)]).coincident!, /on their own/);
+});

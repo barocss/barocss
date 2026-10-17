@@ -75,7 +75,12 @@ const pairRule = (kind: SketchRule['kind'], a: number, b: number) => (r: SketchR
 export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Record<ConstraintKind, string | null> {
   if (picks.some(p => p.kind === 'circle')) {
     const why = 'A circle takes dimensions: its diameter, or its centre from an outline point (Dimension)';
-    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident: why };
+    // Two circles: one centre (concentric).
+    const { points, edges, circles } = split(s, picks), loose = picks.some(p => p.kind === 'circle' && p.done);
+    const coincident = loose ? 'Circles drawn on their own move freely: attach them to the outline (draw them inside it) to constrain them'
+      : circles.length === 2 && !points.length && !edges.length ? (hasRule(s, r => r.kind === 'cconc' && ((r.a === circles[0] && r.b === circles[1]) || (r.a === circles[1] && r.b === circles[0]))) ? 'Already concentric' : null)
+        : 'Select two circles (same centre)';
+    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident };
   }
   const { points, edges, lines, arcs } = split(s, picks), hv = hvOf(s);
   const onlyLines = (min: number, max = Infinity) => points.length === 0 && arcs.length === 0 && lines.length >= min && lines.length <= max;
@@ -133,7 +138,11 @@ export function distanceKey(s: Polygon, a: number, b: number): string {
 /** Applies one constraint to the selection: the solved outline, or why it is refused. */
 export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: ConstraintKind): EditResult {
   const why = constraintOptions(s, picks)[kind]; if (why) return { ok: false, reason: why };
-  const { points, lines, arcs } = split(s, picks), hv = hvOf(s), rules = s.rules ?? [];
+  const { points, lines, arcs, circles } = split(s, picks), hv = hvOf(s), rules = s.rules ?? [];
+  if (circles.length) {
+    // (Only coincident is open to circles: two of them about one centre.)
+    return checkEdit({ ...s, hv, rules: [...rules, { kind: 'cconc', a: Math.min(circles[0], circles[1]), b: Math.max(circles[0], circles[1]) }] }, s, `Concentric circle ${circles[0] + 1} and circle ${circles[1] + 1}`);
+  }
   switch (kind) {
     case 'horizontal': case 'vertical': {
       const key = kind === 'horizontal' ? 'h' : 'v', other = kind === 'horizontal' ? 'v' : 'h';
@@ -308,6 +317,7 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'cedge') add(id, 'Distance', `edge ${r.edge + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [E(r.edge), C(r.circle)]);
     else if (r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') add(id, pairName[r.kind], `circle ${r.a + 1} – circle ${r.b + 1} = ${round(r.value)}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') add(id, circleDimName[r.kind], `point ${r.a + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [P(r.a), C(r.circle)]);
+    else if (r.kind === 'cconc') add(id, 'Concentric', `circle ${r.a + 1} · circle ${r.b + 1}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);
   });

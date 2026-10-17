@@ -10,7 +10,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 
 - [x] A1 Sketch Extend to a boundary, Split a segment at a point (#2051, #2038)
 - [x] A2 Arc by centre, start and end (#2051)
-- [ ] A3 Concentric for two separate circles (#2053)
+- [x] A3 Concentric for two separate circles (#2053)
 - [ ] A4 Hole types Countersunk and Tapped (thread note) (#2037, #2093)
 - [ ] A5 IGES import (kernel `importIGES`) (#2060)
 - [ ] A6 Import / export reports: STEP import (what came in, units), STL fallback notice, PDF/SVG omissions (#2044, #2060, #2057, #2034)
