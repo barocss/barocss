@@ -46,6 +46,8 @@ import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, typ
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, type DirectGeometry } from './engine/direct';
 import { stepLengthUnit } from './engine/stepUnits';
+import { readStudioDoc } from './engine/migrate';
+import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from './app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
@@ -202,6 +204,8 @@ export function App() {
   /** The Body panel: inertia about the centre of mass or the origin; the bounding box drawn. */
   const [inertiaAt, setInertiaAt] = useState<'centre' | 'origin'>('centre');
   const [showBox, setShowBox] = useState(false);
+  /** The templates menu and the name a template is saved under. */
+  const [templatesOpen, setTemplatesOpen] = useState(false), [templateName, setTemplateName] = useState('');
   /** The Parameters panel. */
   const [paramsOpen, setParamsOpen] = useState(false);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
@@ -387,8 +391,9 @@ export function App() {
   }, [instancesExploded, section, sketch]);
   const insertPart = async (file: File) => {
     try {
-      const parsed = JSON.parse(await file.text()) as StudioDoc;
-      if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
+      const read = readStudioDoc(await file.text());
+      if ('error' in read) throw new Error(read.error);
+      const parsed = read.doc;
       const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
       let n = 1; while (used.has(`inst${n}`)) n++;
       // Placed to the right of everything shown.
@@ -868,9 +873,12 @@ export function App() {
         setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
-      const parsed = JSON.parse(await file.text()) as StudioDoc;
-      if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
-      replaceDoc({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
+      // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
+      const read = readStudioDoc(await file.text());
+      if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
+      const parsed = read.doc;
+      replaceDoc({ ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
+      if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
       setTimeout(() => viewport.current?.fit(), 300);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
@@ -1165,6 +1173,16 @@ export function App() {
         <button className="tool" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
         <button className="tool" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
+        <span className="tpl-anchor"><button className={'tool' + (templatesOpen ? ' on' : '')} aria-label="New from a template" data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template" onClick={() => setTemplatesOpen(v => !v)}><Icon name="library_add" /></button>
+          {templatesOpen && <div className="card templates" role="menu" aria-label="Templates">
+            <div className="card-title">NEW FROM A TEMPLATE</div>
+            {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
+              <button className="ghost" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</button>
+              {t.own && <button className="tool tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></button>}
+            </div>)}
+            <div className="tpl-row add"><input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
+              <button className="ghost small" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</button></div>
+          </div>}</span>
         <button className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>
         <button className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>

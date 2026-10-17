@@ -36,6 +36,11 @@ button { font: inherit; color: inherit; }
 .vp-overlay .bbox-line { stroke: #7fb2f0; stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.85; }
 .kv-check { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted, #8a93a0); }
 .part-summary { margin-bottom: 10px; }
+.tpl-anchor { position: relative; display: inline-flex; }
+.templates { position: absolute; top: 40px; right: 0; width: 240px; padding: 10px; z-index: 30; }
+.tpl-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+.tpl-row > .ghost { flex: 1; text-align: left; }
+.tpl-row.add input { flex: 1; min-width: 0; }
 .history .hs.suppressed { opacity: 0.45; text-decoration: line-through; }
 .param-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; align-items: center; gap: 6px; margin: 4px 0; }
 .param-row.add { grid-template-columns: minmax(0, 1fr) 64px auto; }

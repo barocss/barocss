@@ -1690,6 +1690,22 @@ try {
     assert.equal((await doc()).nodes.at(-1).kind, 'separate');
   });
 
+  await check('templates: a part from the plate template, kept as a template, started again from it; an older file opens with a note', async () => {
+    await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from Plate with a hole"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
+    await page.click('[aria-label="New from a template"]'); await page.fill('[aria-label="Template name"]', 'My plate'); await page.click('[aria-label="Save as a template"]');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 5000 });
+    await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from My plate"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 15000 });
+    await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="Remove template My plate"]');
+    // A file saved before schemas: opened, with what was filled in.
+    const old = join(out, 'old-model.bcad'); (await import('node:fs')).writeFileSync(old, JSON.stringify({ format: 'barocss-cad-model', nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 10] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: {} }));
+    await page.setInputFiles('input[aria-label="Model file"]', old);
+    await page.waitForFunction(() => /Opened an older model/.test(document.body.innerText), null, { timeout: 10000 });
+    assert.equal((await doc()).schema, 1);
+    await page.click('[aria-label="Dismiss"]');
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
