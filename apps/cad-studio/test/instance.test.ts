@@ -19,3 +19,17 @@ test('instances: a part placed by rotation then a move, in display and in STEP',
   const hidden = stepFor({ ...part, instances: [{ ...inst, hidden: true }] }, 'assembly');
   assert.ok('text' in hidden && (hidden.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length === 1);
 });
+
+test('exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts', async () => {
+  const { explodeOffsets, movedBody } = await import('../src/assembly/explode');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { rectanglePart } = await import('../src/engine/doc');
+  const r = evaluateDoc(rectanglePart(10, 10, 10), 1); assert.ok(r.ok);
+  const b = r.bodies[0], right = movedBody(b, [30, 0, 0]), left = movedBody(b, [-30, 0, 0]);
+  const off = explodeOffsets([b], [{ id: 'r', bodies: [right] }, { id: 'l', bodies: [left] }], 1);
+  assert.deepEqual(off.get('r'), [30, 0, 0]); assert.deepEqual(off.get('l'), [-30, 0, 0]);
+  assert.deepEqual(movedBody(right, off.get('r')!).mesh.bounds.min, [60, 0, 0]);
+  assert.equal(explodeOffsets([b], [{ id: 'r', bodies: [right] }], 0).size, 0, 'off: nothing moves');
+  // An instance at the middle goes straight up.
+  assert.ok(explodeOffsets([], [{ id: 'm', bodies: [b] }, { id: 'n', bodies: [b] }], 1).get('m')![2] > 0);
+});

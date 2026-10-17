@@ -944,6 +944,13 @@ try {
     const text = await (await download).createReadStream().then(s => new Promise(r => { let t = ''; s.on('data', c => t += c); s.on('end', () => r(t)); }));
     const solids = (text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, own = await page.evaluate(() => Object.keys(window.__studioDoc.outputs).length);
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
+    // The exploded view spreads them for display only: the placements stay; three more clicks and it is off.
+    const placed = JSON.stringify(await page.evaluate(() => window.__studioDoc.instances.map(i => i.position)));
+    await page.click('[aria-label="Explode"]'); assert.match(await page.locator('[aria-label="Explode"]').innerText(), /×0\.5/);
+    await page.click('[aria-label="Explode"]'); await page.waitForTimeout(300); await snap('exploded');
+    assert.equal(JSON.stringify(await page.evaluate(() => window.__studioDoc.instances.map(i => i.position))), placed);
+    await page.click('[aria-label="Explode"]'); await page.click('[aria-label="Explode"]');
+    assert.doesNotMatch(await page.locator('[aria-label="Explode"]').innerText(), /×/);
   });
 
   await check('drag a part instance with its gizmo: along X, then a turn about Z; undo puts it back', async () => {

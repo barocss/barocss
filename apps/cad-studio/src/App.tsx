@@ -41,6 +41,7 @@ import { sketchShapes } from './sketch/reopen';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
+import { explodeOffsets, movedBody } from './assembly/explode';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, type DirectGeometry } from './engine/direct';
@@ -370,7 +371,14 @@ export function App() {
     setDoc({ ...doc, instances, mates }); setDirty(true);
   }, [doc, marker]);
   const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
-  const instancesShown = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
+  const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
+  // The exploded view (display only): each instance pushed out from the middle by the explode factor.
+  const [explode, setExplode] = useState(0);
+  const instancesShown = useMemo(() => {
+    if (!explode) return instancesPlaced;
+    const off = explodeOffsets(bodies, instancesPlaced, explode);
+    return instancesPlaced.map(i => { const d = off.get(i.id); return d ? { id: i.id, bodies: i.bodies.map(b => movedBody(b, d)) } : i; });
+  }, [instancesPlaced, explode, bodies]);
   const insertPart = async (file: File) => {
     try {
       const parsed = JSON.parse(await file.text()) as StudioDoc;
@@ -1051,7 +1059,7 @@ export function App() {
   const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
   const selectedInst = instanceSel.length === 1 ? doc.instances?.find(i => i.id === instanceSel[0]) : undefined;
   const instGizmo: TransformGizmo | null = (() => {
-    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft) return null;
+    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft || explode) return null;
     const ib = instanceBodies.get(selectedInst.id), axes = gizmoAxes(selectedInst, assembly.freedom[selectedInst.id]);
     if (!ib?.bodies.length || !axes) return null;
     const lo = [0, 1, 2].map(k => Math.min(...ib.bodies.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...ib.bodies.map(b => b.mesh.bounds.max[k])));
@@ -1384,6 +1392,8 @@ export function App() {
           <button onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</button>
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
+        {(doc.instances?.length ?? 0) > 0 && <button className={'chip snap' + (explode ? ' on' : '')} aria-label="Explode" data-tip="Exploded view" data-tip-desc="Spread the parts out from the middle to see how they go together (display only): click for more, then off"
+          onClick={() => setExplode(e => [0, 0.5, 1, 2][([0, 0.5, 1, 2].indexOf(e) + 1) % 4])}><Icon name="open_with" small />{explode ? `Explode ×${explode}` : 'Explode'}</button>}
         <button className="chip snap" aria-label="Selection filter" data-tip="Selection filter" data-tip-desc="What a click picks: anything, or only faces, edges or whole bodies (click for the next)"
           onClick={() => setPickFilter(f => { const all = ['all', 'face', 'edge', 'body'] as const, n = all[(all.indexOf(f) + 1) % all.length]; try { localStorage.setItem('studio.pick', n); } catch { /* private mode */ } return n; })}>
           <Icon name="ads_click" small />{({ all: 'Pick all', face: 'Faces', edge: 'Edges', body: 'Bodies' } as const)[pickFilter]}</button>
