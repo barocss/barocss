@@ -3,15 +3,11 @@
 import type { SketchShape, SketchState } from '../viewport/Viewport';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
+import { segmentDistance as toSegment } from '../engine/geom2';
 
 /** Plane coordinates → screen pixels. */
 export type Project = (u: number, v: number) => readonly number[];
 
-const toSegment = (p: readonly number[], a: readonly number[], b: readonly number[]) => {
-  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
-  const t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
-  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
-};
 
 /**
  * The outline point within `pointPx` of (x, y), else the nearest edge or circle (its rim or centre: the

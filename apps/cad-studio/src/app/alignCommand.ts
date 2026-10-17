@@ -2,16 +2,15 @@
 // on" and "align" do: a picked face of the body to move, then a click on the face it goes to. The body is
 // turned (a quarter or half turn about X, Y or Z through its centre) when the faces do not already face each
 // other, then moved so they touch — or touch with their middles lined up — with an optional gap.
-import { withNode, type Axis, type BodyRef, type ModelNode } from '../engine/doc';
+import { withNode, type Axis, type ModelNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Command, Ctx, Values } from './commands';
+import { dot, cross } from '../engine/vec3';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
-const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: readonly number[], b: readonly number[]): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6 || 0;
-const refOf = (body: BodyResult): BodyRef => { const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); return { node: Number(m?.[1] ?? 0), side: (m?.[2] ?? 'solid') as BodyRef['side'] }; };
+import { refOf } from './bodyRef';
 
 /** v turned right-handed about coordinate axis k by deg (multiples of 90° come out exact). */
 export function turnAbout(v: readonly number[], k: 0 | 1 | 2, deg: number): V3 {

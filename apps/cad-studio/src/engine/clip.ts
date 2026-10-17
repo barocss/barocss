@@ -3,6 +3,7 @@
 // outer and hole, triangulated). The kernel's exact section (a Split) replaces it when it arrives.
 import { triangulatePolygonWithHoles } from '@barocss/cad';
 import type { DisplayFace, DisplayMesh, Vec3 } from './mesh';
+import { signedArea as area, insideRing as inside } from './geom2';
 
 type XY = [number, number];
 
@@ -75,8 +76,6 @@ export function clipMesh(m: DisplayMesh, k: 0 | 1 | 2, at: number, keep: 'negati
     }
     if (ring.length >= 3) loops.push(ring);
   }
-  const area = (r: XY[]) => r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
-  const inside = (p: XY, r: XY[]) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
   const depth = loops.map((r, i) => loops.filter((o, j) => j !== i && Math.abs(area(o)) > Math.abs(area(r)) && inside(r[0], o)).length);
   // The cap faces out of the kept side: its normal along −keep.
   const nCap: Vec3 = [0, 0, 0]; nCap[k] = -sg;

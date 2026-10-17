@@ -5,9 +5,10 @@ import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
-import { leafBodies, planeText, withNode, type Axis, type HolePattern, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
+import { leafBodies, planeText, withNode, type Axis, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
+import { refOf } from './bodyRef';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -71,10 +72,7 @@ export interface HandleSpec {
   pair?: { key: string; dir: [number, number, number] };
 }
 
-export function refOf(body: BodyResult): BodyRef {
-  const m = /^b(\d+)(?:_(.+))?$/.exec(body.key);
-  return { node: Number(m?.[1] ?? 0), side: (m?.[2] ?? 'solid') as Side };
-}
+export { refOf };
 
 /**
  * A selection carried onto newly evaluated bodies: each face, edge and body to the one of the same body

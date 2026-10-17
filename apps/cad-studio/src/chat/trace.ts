@@ -2,6 +2,7 @@
 // the background is found (transparency, else the border colour), the foreground is split into a few
 // flat colours, and each mask (the whole silhouette and every colour) becomes simplified polygon loops
 // with their holes. Pure: pixels in, polygons out (grid pixels, y down); the tool scales them to mm.
+import { signedArea as area } from '../engine/geom2';
 
 export type Pt = [number, number];
 export interface TraceRegion { outer: Pt[]; holes: Pt[][] }
@@ -114,7 +115,6 @@ export function traceLoops(m: Uint8Array, W: number, H: number): Pt[][] {
   return loops;
 }
 
-const area = (p: Pt[]) => { let a = 0; for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return a / 2; };
 
 /** Pixel stairs softened: each vertex averaged with its neighbours (twice), so diagonals come out straight. */
 export function smooth(p: Pt[]): Pt[] {

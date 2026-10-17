@@ -7,11 +7,9 @@ import { toLocal, toWorld } from '../sketch/plane';
 import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { faceProfile } from './faceProfile';
 import type { Command, Ctx, Field, Values } from './commands';
-import type { BodyResult } from '../engine/evaluate';
-import type { Side } from '../engine/doc';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
-const refOf = (body: BodyResult): BodyRef => { const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); return { node: Number(m?.[1] ?? 0), side: (m?.[2] ?? 'solid') as Side }; };
+import { refOf } from './bodyRef';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */

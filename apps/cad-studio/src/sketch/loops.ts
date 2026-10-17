@@ -3,6 +3,7 @@
 import type { SketchShape } from '../viewport/Viewport';
 import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
+import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -78,11 +79,6 @@ export function ringsCross(a: P2[], b: P2[]): boolean {
   return false;
 }
 
-const segDist = (p: P2, a: P2, b: P2) => {
-  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
-  const t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
-  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
-};
 /** The distance from a point to a closed ring's boundary. */
 export const ringDistance = (p: P2, ring: P2[]) => ring.reduce((d, a, i) => Math.min(d, segDist(p, a, ring[(i + 1) % ring.length])), Infinity);
 
@@ -127,14 +123,6 @@ export function loopOf(n: SketchNode): DocSegment[] {
   }
 }
 
-const inside = (p: P2, ring: P2[]) => {
-  let c = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const a = ring[i], b = ring[j];
-    if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c;
-  }
-  return c;
-};
 
 /**
  * One sketch node of the closed shapes: a shape inside another is a hole of it, the others are regions;

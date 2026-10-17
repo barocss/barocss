@@ -5,11 +5,11 @@
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import type { LoopSegment, SketchNode } from '../engine/doc';
 import { planeOfFace, toLocal } from '../sketch/plane';
+import { signedArea as area } from '../engine/geom2';
 
 type XY = [number, number];
 // To 0.1 µm: the display mesh is single precision, so authored sizes come back rounded off.
 const r4 = (x: number) => Math.round(x * 1e4) / 1e4 || 0;
-const area = (ring: readonly XY[]) => ring.reduce((s, p, i) => { const q = ring[(i + 1) % ring.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
 
 /** The closed boundary loops of face `face` of a display mesh, as world points (in triangle winding order). */
 export function faceBoundary(mesh: DisplayMesh, face: number): Vec3[][] {

@@ -1,11 +1,10 @@
 // Sketch planes: where a sketch lies in the part (world, Z up, mm). A sketch's own coordinates (u, v) run
 // along xAxis and normal × xAxis from origin; its solids grow along the normal. Any flat face takes one.
 import type { Vec3 } from '../engine/mesh';
+import { dot, cross } from '../engine/vec3';
 
 export interface SketchPlane { origin: Vec3; normal: Vec3; xAxis: Vec3 }
 
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 /** Rounding noise off: components near 0 or ±1 become exactly that. */
 const clean = (v: Vec3): Vec3 => v.map(c => Math.abs(c) < 1e-9 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-9 ? Math.sign(c) : c) as Vec3;
 /** Lengths to a micrometre, so face positions read as authored. */

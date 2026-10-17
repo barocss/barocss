@@ -51,7 +51,7 @@ export function sampleOutline(points: P2[], bulges: number[] | undefined, closed
   if (!closed && n) out.push(points[n - 1]);
   return out;
 }
-export const signedArea = (ring: P2[]) => ring.reduce((s, p, i) => s + cross(p, ring[(i + 1) % ring.length]), 0) / 2;
+export { signedArea } from '../engine/geom2';
 
 export function outlineSegments(points: P2[], bulges: number[] | undefined): LoopSegment[] {
   return points.map((start, i) => {

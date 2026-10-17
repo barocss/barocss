@@ -11,6 +11,7 @@ import type { ToolDefinition } from './api';
 import { checkNode, deleteFeature } from './features';
 import type { ImageTrace, Pt } from './trace';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
+import { insideRing as inside } from '../engine/geom2';
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
 export interface NameSelection { faces: string[]; edges: string[]; bodies: string[] }
@@ -183,7 +184,6 @@ export function layerSketches(t: ImageTrace, layerId: string, width: number, at:
   const map = (p: Pt): [number, number] => [r3(at[0] + (p[0] - box.minX) * k), r3(at[1] + (box.maxY - p[1]) * k)];
   // (Image y runs down: flipping it reverses each loop's turn, which the kernel orients itself.)
   const loop = (pts: Pt[]) => pts.map(p => ({ kind: 'line' as const, start: map(p) }));
-  const inside = (p: Pt, poly: Pt[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
   const depth = (r: typeof layer.regions[number]) => layer.regions.filter(o => o !== r && inside(r.outer[0], o.outer)).length;
   const levels = new Map<number, typeof layer.regions>();
   for (const r of layer.regions) { const d = depth(r); levels.set(d, [...(levels.get(d) ?? []), r]); }

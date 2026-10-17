@@ -1,5 +1,7 @@
 // Z-up orbit camera with perspective/orthographic projection. Matrices are column-major (WebGL).
 import type { Vec3 } from '../engine/mesh';
+export { sub, dot, cross, unit as normalize } from '../engine/vec3';
+import { sub, dot, cross, unit as normalize } from '../engine/vec3';
 
 export type Mat4 = Float32Array;
 
@@ -136,7 +138,3 @@ export function mul(a: Mat4, b: Mat4): Mat4 {
   return o;
 }
 
-export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-export const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-export const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-export const normalize = (a: Vec3): Vec3 => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };

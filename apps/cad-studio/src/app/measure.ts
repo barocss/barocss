@@ -2,6 +2,7 @@
 // them (closest points on their triangles and segments), the angle between planes and straight edges,
 // and the normal distance between parallel planes. Picks of one face or edge measure that item alone.
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { sub, add, scale, dot, cross, len, unit } from '../engine/vec3';
 
 export interface MeasurePick { body: number; face?: number; edge?: number; vertex?: Vec3 }
 export interface MeasureResult {
@@ -16,13 +17,6 @@ export interface MeasureResult {
 }
 export interface MeasureItem { label: string; length?: number; area?: number; radius?: number }
 
-const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const scale = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a: Vec3) => Math.hypot(a[0], a[1], a[2]);
-const unit = (a: Vec3): Vec3 => scale(a, 1 / (len(a) || 1));
 const at = (p: ArrayLike<number>, i: number): Vec3 => [p[3 * i], p[3 * i + 1], p[3 * i + 2]];
 
 /** A pick's triangles (a face) or segments (an edge). */

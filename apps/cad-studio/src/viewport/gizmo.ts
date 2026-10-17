@@ -4,6 +4,7 @@
 // draw in screen space for a camera, which handle a point hits, and what a drag means in mm or degrees.
 // The viewport draws and dispatches; callers apply the values.
 import type { Vec3 } from '../engine/mesh';
+import { segmentDistance as segDist, insideRing as insidePolygon } from '../engine/geom2';
 
 export type Axis3 = 0 | 1 | 2;
 type XY = [number, number];
@@ -89,11 +90,6 @@ export function handleLayout(h: FeatureHandle, P: Projector): { from: XY; to: XY
   return { from: P.project(h.at), to: P.project(at(h.at, [[h.dir, 0.62 * P.size]])) };
 }
 
-const segDist = (p: XY, a: XY, b: XY) => {
-  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy, t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
-  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
-};
-const insidePolygon = (p: XY, ring: XY[]) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const a = ring[i], b = ring[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 const polyDist = (p: XY, pts: XY[]) => pts.slice(1).reduce((m, q, i) => Math.min(m, segDist(p, pts[i], q)), Infinity);
 
 /** The handle under a screen point: plane squares, then the nearest arrow, arc or feature handle within a few px. */

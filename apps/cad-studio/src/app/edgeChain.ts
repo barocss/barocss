@@ -2,10 +2,8 @@
 // it end to end and carries on in the same direction (tangent at the joint, within 10°) — the rim of a
 // rounded rectangle, a filleted outline. Stops at corners.
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { sub, unit, dot } from '../engine/vec3';
 
-const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const unit = (a: Vec3): Vec3 => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /** Each edge's polyline, in order from its `a` to its `b` end. */
 function polylines(mesh: DisplayMesh): Map<number, Vec3[]> {

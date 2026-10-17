@@ -338,10 +338,12 @@ export function App() {
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
+  /** The document as it is, kept for undo (redo is gone once something new is done). */
+  const pushUndo = () => { setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]); };
   const commit = useCallback((next: StudioDoc) => {
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (render, drawing, direct geometry, instances) is the document's newest.
     const was = evaluatedRef.current;
@@ -353,17 +355,17 @@ export function App() {
   }, [doc, marker]);
   /** One undoable change of the render settings (the model and the rollback marker stay). */
   const commitRender = useCallback((next: RenderSettings) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, render: next }); setDirty(true);
   }, [doc, marker]);
   /** One undoable change of the drawing settings (the model stays). */
   const commitDrawing = useCallback((next: DrawingSettings) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, drawing: next }); setDirty(true);
   }, [doc, marker]);
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, direct: next }); setDirty(true);
     if (select) setDirectSel(select);
   }, [doc, marker]);
@@ -378,7 +380,7 @@ export function App() {
   }, [doc.direct, poleDrag, poleHere, poleObj]);
   /** One undoable change of the placed instances. */
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, instances: next }); setDirty(true);
     if (select) setInstanceSel(select);
   }, [doc, marker]);
@@ -402,11 +404,11 @@ export function App() {
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, instances: next.instances, pendingParts: next.pendingParts }); setDirty(true);
   }, [doc, marker]);
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
-    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    pushUndo();
     setDoc({ ...doc, instances, mates }); setDirty(true);
   }, [doc, marker]);
   const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
@@ -1668,7 +1670,7 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !recovery && <div className="toast card" role="alert">
+      {toast && !cascade && !recovery && !meshAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}</div>

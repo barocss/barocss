@@ -4,6 +4,8 @@
 // seams and smooth (tangent) joints, with connected pieces between the same two faces joined. Faces and
 // edges carry their persistent B-rep names, which features use to refer to them.
 import { faceGeometry, revolutionOf, tessellateBrep, type Brep } from '@barocss/cad';
+export { sub, cross, dot, len, unit as norm } from './vec3';
+import { sub, cross, dot, len, unit as norm } from './vec3';
 
 export type Vec3 = [number, number, number];
 
@@ -133,8 +135,3 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
 }
 
 const vec = (a: ArrayLike<number>, i: number): Vec3 => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]];
-export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-export const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-export const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-export const len = (a: Vec3) => Math.hypot(a[0], a[1], a[2]);
-export const norm = (a: Vec3): Vec3 => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
