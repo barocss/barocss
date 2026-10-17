@@ -1,7 +1,7 @@
 // Writes the R2 conformance cases (conformance/r2/*.json): each input part document with the outputs this
 // kernel produces, where no closed form exists. Closed-form expectations are written as such. Run after
 // build:library: node scripts/conformance-gen.mjs. Review the diff: a changed value is a changed contract.
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluateCadPart, checkBrep } from '../dist/index.js';
 
@@ -67,4 +67,19 @@ write({ id: 'r2-cylinder-block-union', step: 'R2', decisions: ['D10'], about: 'A
 const bolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 24, hex: { across: 13, height: 5.3 } }]);
 write({ id: 'r2-thread-bolt-m8', step: 'R2', decisions: ['D8'], about: 'The default (faceted) M8 × 24 hex bolt: one closed body.',
   input: { partDocument: bolt }, expect: measured(bolt, 1e-9, 1e-6, null), oracle: 'this kernel (faceted helix; the ISO-profile volume is 2e-3 away by design)' });
-console.log('written to', out);
+
+// RB1: the broken-mesh refusals the robustness taxonomy counts as acceptable (typed GEOMETRY errors).
+const rb1 = resolve(import.meta.dirname, '../conformance/rb1');
+mkdirSync(rb1, { recursive: true });
+const writeRb1 = c => writeFileSync(join(rb1, `${c.id.replace(/^rb1-/, '')}.json`), compact(JSON.stringify(c, null, 2)) + '\n');
+const flippedIdx = [...ring.indices]; for (let t = 30; t < 40; t++) [flippedIdx[3 * t + 1], flippedIdx[3 * t + 2]] = [flippedIdx[3 * t + 2], flippedIdx[3 * t + 1]];
+const apex = ring.positions.length / 3, shift = apex;
+for (const [name, about, m] of [
+  ['mesh-flipped-refused', 'A mesh with ten triangles wound the wrong way is refused (no repair).', { positions: ring.positions, indices: flippedIdx }],
+  ['mesh-fin-refused', 'A mesh with an extra triangle pair on one of its edges (non-manifold) is refused.', { positions: [...ring.positions, ring.positions[0] + 3, ring.positions[1], ring.positions[2] + 3], indices: [...ring.indices, ring.indices[0], ring.indices[1], apex, ring.indices[1], ring.indices[0], apex] }],
+  ['mesh-two-shells-refused', 'A mesh of two separate closed shells is refused as one body.', { positions: [...ring.positions, ...ring.positions.map((x, i) => i % 3 === 2 ? x + 40 : x)], indices: [...ring.indices, ...ring.indices.map(i => i + shift)] }],
+]) {
+  const doc = D([{ id: 'm', kind: 'mesh', ...m }]);
+  writeRb1({ id: `rb1-${name}`, step: 'RB1', decisions: ['D17'], about, input: { partDocument: doc }, expect: refused(doc), oracle: 'contract: broken meshes are refused with GEOMETRY, never repaired silently' });
+}
+console.log('written to', out, 'and', rb1);

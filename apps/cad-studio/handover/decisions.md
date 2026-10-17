@@ -109,3 +109,19 @@ Its mass takes 0.47 s against 0.26 s.
 
 Open: switching renames thread faces (`.thread#k` instead of `.facetK`) for documents saved before, so the
 switch needs a document version or a per-node form.
+
+## D17 — Robustness runs: a fixed taxonomy, known failures as TODO, trend rows per commit (2026-10-18, RB1)
+Decided: `pnpm rb` (`packages/barocss-cad/scripts/rb/`) runs each case in a worker process with a SIGKILL
+timeout. Each stage is classified as OK / REFUSED / INVALID / WRONG / CRASH / TIMEOUT / TOL_BLOWUP.
+- A kernel's own error type is a REFUSED; a built-in type (TypeError, RangeError…) escaping is a CRASH.
+- A refusal where outputs were expected is WRONG.
+- Tessellation must be watertight by position.
+- Known failures live in `robustness/todo.json`: TODO while they fail, IMPROVEMENT once fixed. Anything else
+  failing is NEW and fails the run.
+- `--record` appends a trend row keyed by commit and dataset hash.
+- The seed corpus is generated (`rb:seed`): part families, broken meshes, STEP exports of our models.
+
+Why: one honest pass-rate table per commit, comparable over time, before the larger corpora (RB6/RB8).
+The first run found a STEP round-trip bug (duplicate face names and open edges after re-importing a
+countersunk plate; TODO). By exact position, the helical builder's direct output has 342 open tessellation
+edges (for RB2).

@@ -1,0 +1,35 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "s",
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [0, 0],
+      "max": [40, 30]
+    },
+    {
+      "id": "p",
+      "kind": "extrude",
+      "sketch": "s",
+      "height": 6
+    },
+    {
+      "id": "h",
+      "kind": "hole",
+      "target": "p",
+      "center": [20, 15],
+      "radius": 5
+    },
+    {
+      "id": "x",
+      "kind": "split",
+      "target": "p",
+      "axis": "x",
+      "at": 20
+    }
+  ]
+}

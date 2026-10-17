@@ -351,10 +351,15 @@ R2 / B0 results (2026-10-18, `014e2f821`…`38e06b110`; decisions D9–D16; conf
 - Sewing 1536 patches: 2.4 → 1.1 s.
 - Proposal D16: the helical thread as default. The owner decides; it needs a document version for the face
   names.
-- Known: the helical bolt's mesh has 316 edges not used exactly twice by position (pre-existing, at the trimmed
-  ends); RB2 should catch it. Faceted bolt split still fails (touching facets).
+- Known: the helical builder's direct output tessellates with 342 edges not used exactly twice by exact
+  position (its STEP round trip comes out watertight). RB2 should catch it. Faceted bolt split still fails (touching facets).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → **RB1–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+RB1 results (2026-10-18): `pnpm rb` in `packages/barocss-cad` ([robustness/README.md](../../../packages/barocss-cad/robustness/README.md)).
+- First run over 9 conformance cases and 27 seed cases: all stages pass, except the re-imported countersunk
+  plate STEP (duplicate face names, 18 open edges), which is a TODO.
+- The broken meshes are refused with GEOMETRY, as their rb1 conformance cases require.
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → **RB2–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

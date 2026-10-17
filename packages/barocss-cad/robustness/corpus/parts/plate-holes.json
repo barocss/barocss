@@ -1,0 +1,49 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "s",
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [0, 0],
+      "max": [40, 30]
+    },
+    {
+      "id": "p",
+      "kind": "extrude",
+      "sketch": "s",
+      "height": 6
+    },
+    {
+      "id": "h0",
+      "kind": "hole",
+      "target": "p",
+      "center": [8, 8],
+      "radius": 2
+    },
+    {
+      "id": "h1",
+      "kind": "hole",
+      "target": "p",
+      "center": [32, 8],
+      "radius": 2
+    },
+    {
+      "id": "h2",
+      "kind": "hole",
+      "target": "p",
+      "center": [8, 22],
+      "radius": 2
+    },
+    {
+      "id": "h3",
+      "kind": "hole",
+      "target": "p",
+      "center": [32, 22],
+      "radius": 2
+    }
+  ]
+}
