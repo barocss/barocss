@@ -24,7 +24,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A14 Delete with dependents, after a review (#2058)
 - [x] A15 Measure: coaxial check of two round faces (#2085)
 - [x] A16 Direct loft lines up knots first (#2064)
-- [ ] A17 Grid on a face's sketch plane (#2054)
+- [x] A17 Grid on a face's sketch plane (#2054) — already there: the viewport draws the sketch plane's grid on any plane but the ground's (checked 2026-10-17)
 
 ## B. App (sometimes a small kernel adapter), medium
 
