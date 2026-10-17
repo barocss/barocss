@@ -15,7 +15,7 @@
 // other edges (between curved faces, or where the faces meet tangentially) are refused with the reason.
 import { BrepError, buildBrep, lineCurve, type Brep } from './brep-core.js';
 import { booleanAnalytic, faceGeometry, type FaceGeometry } from './analytic-boolean.js';
-import { brepFromPrismatic, prismaticFromProfile } from './prismatic-solid.js';
+import { brepFromPrismatic, nameEdges, prismaticFromProfile } from './prismatic-solid.js';
 import { revolveProfile } from './revolve.js';
 import { transformBrep } from './brep-transform.js';
 import { circleOf } from './brep-tessellate.js';
@@ -166,34 +166,73 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     const tool = straight ? straightTool(e, uses, E0.x, E1.x, runs, size, kind, id, trim) : arcTool(e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol);
     (tool.convex ? convexTools : concaveTools).push(tool.brep);
   }
-  // Tools that share a face or volume (a tangent chain's pieces, mitred tools) are joined by Booleans;
-  // the joined groups touch at most along lines (a corner blend's trimmed tools), so they are applied
-  // together, as one B-rep of several bodies; the corner tools (apart from each other) after them.
+  // Tools apart from the others (touching at most along lines: a corner blend's trimmed tools) are applied
+  // together, as one B-rep of several bodies; those sharing a face or volume with another (a tangent
+  // chain's pieces, mitred tools) one by one, else joined by Booleans; the corner tools (apart from each
+  // other) after them.
   let out = body;
-  const apply = (tools: Brep[], op: 'difference' | 'union') => { if (tools.length) out = booleanAnalytic(out, combine(joinTouching(tools, id), id), op, { id }); };
+  const apply = (tools: Brep[], op: 'difference' | 'union') => {
+    if (!tools.length) return;
+    const groups = touchingGroups(tools), apart = groups.filter(g => g.length === 1).map(g => g[0]), was = out;
+    if (!groups.some(g => g.length > 1)) { out = booleanAnalytic(out, combine(apart, id), op, { id }); return; }
+    // Overlapping tools each on its own (cheaper than joining them first, the result the same); where
+    // that fails (a step meets the last along an edge, a drafted wall), joined first as before.
+    try {
+      if (apart.length) out = booleanAnalytic(out, combine(apart, id), op, { id });
+      for (const g of groups) if (g.length > 1) for (const t of g) out = booleanAnalytic(out, t, op, { id });
+      out = renumbered(out, id);
+    } catch (cause) {
+      if (!(cause instanceof BrepError)) throw cause;
+      out = booleanAnalytic(was, combine(groups.map(g => g.length === 1 ? g[0] : g.reduce((acc, t) => booleanAnalytic(acc, t, 'union', { id: `${id}_tools` }))), id), op, { id });
+    }
+  };
   apply(convexTools, 'difference');
   apply(cornerTools, 'difference');
   apply(concaveTools, 'union');
   return out;
 }
 
-/** Tools meeting over a face or a volume, joined: bounding boxes overlapping in at least two directions. */
-function joinTouching(tools: Brep[], id: string): Brep[] {
-  // (Edges bound a tool tightly; a surface's control net only loosely.)
+/**
+ * The feature's repeated face names numbered by where the faces lie (their edges' box centre, x then y
+ * then z), and every edge named again from its faces: the names do not depend on the order the tools
+ * were applied in.
+ */
+function renumbered(brep: Brep, id: string): Brep {
+  const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  const centre = (f: Brep['faces'][number]): Point => {
+    const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity];
+    for (const l of f.loops) for (const c of loops.get(l)!.coedges) for (const q of edges.get(coedges.get(c)!.edge)!.curve.controlPoints) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k]); hi[k] = Math.max(hi[k], q[k]); }
+    return [0, 1, 2].map(k => (lo[k] + hi[k]) / 2) as Point;
+  };
+  let size = 1; for (const v of brep.vertices) for (const x of v.point) size = Math.max(size, Math.abs(x));
+  const eps = 1e-6 * size, byPlace = (a: Point, b: Point) => { for (let k = 0; k < 3; k++) if (Math.abs(a[k] - b[k]) > eps) return a[k] - b[k]; return 0; };
+  const base = (n: string) => n.split('#')[0], groups = new Map<string, Brep['faces'][number][]>();
+  for (const f of brep.faces) if (f.name?.startsWith(`${id}.`)) groups.set(base(f.name), [...(groups.get(base(f.name)) ?? []), f]);
+  const name = new Map<string, string>();
+  for (const [b, list] of groups) {
+    if (list.length === 1) { name.set(list[0].id, b); continue; }
+    const at = new Map(list.map(f => [f.id, centre(f)]));
+    [...list].sort((x, y) => byPlace(at.get(x.id)!, at.get(y.id)!)).forEach((f, k) => name.set(f.id, `${b}#${k + 1}`));
+  }
+  const faces = brep.faces.map(f => name.has(f.id) ? { ...f, name: name.get(f.id)! } : f), faceName = new Map(faces.map(f => [f.id, f.name ?? '']));
+  const facesOf = new Map<string, Set<string>>();
+  for (const c of brep.coedges) { const set = facesOf.get(c.edge) ?? new Set<string>(); set.add(faceName.get(loops.get(c.loop)!.face)!); facesOf.set(c.edge, set); }
+  const renamed = brep.edges.map(e => ({ ...e, name: [...(facesOf.get(e.id) ?? [])].sort().join('|') }));
+  nameEdges(renamed);
+  return { ...brep, faces, edges: renamed };
+}
+/** Tools meeting over a face or a volume, in groups: bounding boxes overlapping in at least two directions. */
+function touchingGroups(tools: Brep[]): Brep[][] {
   const tight = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity];
     for (const e of b.edges) for (const q of e.curve.controlPoints) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k]); hi[k] = Math.max(hi[k], q[k]); }
     return { lo, hi }; };
   const boxes = tools.map(tight), size = Math.max(1, ...boxes.flatMap(b => [...b.lo, ...b.hi].map(Math.abs))), eps = 1e-7 * size;
-  const meet = (a: { lo: Point; hi: Point }, b: { lo: Point; hi: Point }) => {
-    const over = [0, 1, 2].map(k => Math.min(a.hi[k], b.hi[k]) - Math.max(a.lo[k], b.lo[k]));
-    return over.every(o => o >= -eps) && over.filter(o => o > eps).length >= 2;
-  };
+  const meet = (a: { lo: Point; hi: Point }, b: { lo: Point; hi: Point }) => { const over = [0, 1, 2].map(k => Math.min(a.hi[k], b.hi[k]) - Math.max(a.lo[k], b.lo[k])); return over.every(o => o >= -eps) && over.filter(o => o > eps).length >= 2; };
   const root = tools.map((_, i) => i), find = (x: number): number => root[x] === x ? x : (root[x] = find(root[x]));
   for (let i = 0; i < tools.length; i++) for (let j = i + 1; j < tools.length; j++) if (meet(boxes[i], boxes[j])) root[find(i)] = find(j);
   const members = new Map<number, Brep[]>(); tools.forEach((t, i) => members.set(find(i), [...(members.get(find(i)) ?? []), t]));
-  return [...members.values()].map(list => list.reduce((acc, t) => booleanAnalytic(acc, t, 'union', { id: `${id}_tools` })));
+  return [...members.values()];
 }
-
 /** Several B-reps apart from each other (or touching along lines) as one B-rep of several bodies. */
 function combine(breps: Brep[], id: string): Brep {
   if (breps.length === 1) return breps[0];
