@@ -57,12 +57,38 @@ function integrate(s: CurveSegment2, g: (p: XY, d: XY) => number): number {
   return acc;
 }
 /** Points along a parametric curve's polyline (n pieces, both ends included). */
-const polyline = (s: CurveSegment2, n: number) => Array.from({ length: n + 1 }, (_, k) => segAt(s, k / n));
+const areas = new WeakMap<CurveSegment2, number>();
+const polyline = (s: CurveSegment2, n: number) => s.kind === 'curve' && n === CURVE_SAMPLES ? samplesOf(s) : Array.from({ length: n + 1 }, (_, k) => segAt(s, k / n));
+/** A general curve's CURVE_SAMPLES + 1 samples and their box padded by the longest chord, once per segment. */
+const sampled = new WeakMap<CurveSegment2, { ps: XY[]; lo: XY; hi: XY }>();
+function samples(s: CurveSegment2) {
+  let r = sampled.get(s);
+  if (!r) {
+    const ps = Array.from({ length: CURVE_SAMPLES + 1 }, (_, k) => segAt(s, k / CURVE_SAMPLES)), lo: XY = [Infinity, Infinity], hi: XY = [-Infinity, -Infinity];
+    let pad = 0;
+    for (let k = 0; k <= CURVE_SAMPLES; k++) {
+      for (const a of [0, 1]) { lo[a] = Math.min(lo[a], ps[k][a]); hi[a] = Math.max(hi[a], ps[k][a]); }
+      if (k) pad = Math.max(pad, Math.hypot(ps[k][0] - ps[k - 1][0], ps[k][1] - ps[k - 1][1]));
+    }
+    r = { ps, lo: [lo[0] - pad, lo[1] - pad], hi: [hi[0] + pad, hi[1] + pad] }; sampled.set(s, r);
+  }
+  return r;
+}
+const samplesOf = (s: CurveSegment2) => samples(s).ps;
+/** A general curve's 2 CURVE_SAMPLES + 1 samples (crossings with horizontal lines), once per segment. */
+const denseSampled = new WeakMap<CurveSegment2, XY[]>();
+function denseSamples(s: CurveSegment2): XY[] {
+  let r = denseSampled.get(s);
+  if (!r) { r = Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => segAt(s, k / (CURVE_SAMPLES * 2))); denseSampled.set(s, r); }
+  return r;
+}
+/** Whether p is surely farther than eps from a general curve (outside its padded sample box). */
+const surelyOff = (s: CurveSegment2, p: XY, eps: number) => { if (s.kind !== 'curve') return false; const { lo, hi } = samples(s); return p[0] < lo[0] - eps || p[1] < lo[1] - eps || p[0] > hi[0] + eps || p[1] > hi[1] + eps; };
 const CURVE_SAMPLES = 64;
 /** Area contribution ½∮(x dy − y dx) of a segment. */
 export function segArea(s: CurveSegment2): number {
   if (s.kind === 'line') return (s.a[0] * s.b[1] - s.b[0] * s.a[1]) / 2;
-  if (s.kind === 'curve') return integrate(s, (p, d) => (p[0] * d[1] - p[1] * d[0]) / 2);
+  if (s.kind === 'curve') { let a = areas.get(s); if (a === undefined) { a = integrate(s, (p, d) => (p[0] * d[1] - p[1] * d[0]) / 2); areas.set(s, a); } return a; }
   const t1 = s.t0 + s.sweep;
   return (s.r * s.r * s.sweep + s.c[0] * s.r * (Math.sin(t1) - Math.sin(s.t0)) - s.c[1] * s.r * (Math.cos(t1) - Math.cos(s.t0))) / 2;
 }
@@ -80,7 +106,8 @@ export function paramOf(s: CurveSegment2, p: XY): number {
   if (s.kind === 'curve') {
     // Nearest polyline sample, then golden-section search on the squared distance around it.
     const d2 = (u: number) => { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; };
-    let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const v = d2(k / CURVE_SAMPLES); if (v < bd) { bd = v; best = k; } }
+    const ps = samplesOf(s);
+    let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const q = ps[k], v = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; if (v < bd) { bd = v; best = k; } }
     let lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
     for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
     return (lo + hi) / 2;
@@ -101,7 +128,7 @@ export function segDistance(s: CurveSegment2, p: XY): number {
 /** Intersection points of two segments (crossings, tangencies, endpoints touching, overlap ends). */
 /** Points shared by two segments (crossings, tangencies, touching ends, overlap ends) within eps. */
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
-  const out: XY[] = [], on = (x: CurveSegment2, p: XY) => segDistance(x, p) <= eps;
+  const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
   const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
   if (s.kind === 'curve' || t.kind === 'curve') {
@@ -366,9 +393,10 @@ function crossingsAt(rings: readonly (readonly CurveSegment2[])[], y: number): n
     const g = ring[si], start = segEnd(ring[(si - 1 + ring.length) % ring.length]);
     // The segment as points at parameters, its first point replaced by the shared vertex.
     const us = g.kind === 'line' ? [0, 1] : g.kind === 'curve' ? Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2)) : arcCuts(g);
-    const at = (u: number): XY => u === 0 ? start : segAt(g, u);
+    const dense = g.kind === 'curve' ? denseSamples(g) : null;
+    const at = (u: number, k: number): XY => u === 0 ? start : dense ? dense[k] : segAt(g, u);
     for (let k = 0; k + 1 < us.length; k++) {
-      let lo = us[k], hi = us[k + 1]; const a = at(lo), b = at(hi);
+      let lo = us[k], hi = us[k + 1]; const a = at(lo, k), b = at(hi, k + 1);
       if (above(a[1]) === above(b[1])) continue;
       if (g.kind === 'line') { xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); continue; }
       const aAbove = above(a[1]);
@@ -387,7 +415,7 @@ function arcCuts(g: Extract<CurveSegment2, { kind: 'arc' }>): number[] {
 /** Whether p is inside the region (boundary points: `boundary`, decided by tolerance). */
 export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 'in' | 'out' | 'boundary' {
   const rings = [region.outer, ...region.holes];
-  for (const ring of rings) for (const g of ring) if (segDistance(g, p) <= tolerance) return 'boundary';
+  for (const ring of rings) for (const g of ring) if (!surelyOff(g, p, tolerance) && segDistance(g, p) <= tolerance) return 'boundary';
   return crossingsAt(rings, p[1]).filter(x => x > p[0]).length % 2 === 1 ? 'in' : 'out';
 }
 /**

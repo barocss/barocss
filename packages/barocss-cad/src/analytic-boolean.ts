@@ -479,12 +479,13 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       const k = exactly(curve3Of(f, seg), tol);
       if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u)) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
     }
-    const onAlong = (x: P3) => along.some(k => onCurve(k, x, 10 * tol) !== null || len(sub(x, startOf(k))) <= 10 * tol || len(sub(x, endOf(k))) <= 10 * tol);
+    const alongWithin = (x: P3, r: number) => along.some(k => onCurve(k, x, r) !== null || len(sub(x, startOf(k))) <= r || len(sub(x, endOf(k))) <= r);
+    const onAlong = (x: P3) => alongWithin(x, 10 * tol);
     const PA = { at: (p: XY) => to3Extended(fa, p), box: box(fa) }, PB = { at: (p: XY) => to3Extended(fb, p), box: box(fb) };
     let chains;
     // Ends of curves already found on either face (from their other neighbours) that lie on both surfaces.
     const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x) <= 100 * tol && offSurface(fb, x) <= 100 * tol);
-    try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong } : {}), ...(given.length ? { seeds: given } : {}) }); }
+    try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong, skipNear: alongWithin } : {}), ...(given.length ? { seeds: given } : {}) }); }
     catch (e) { if (e instanceof SurfaceIntersectionError) throw new Refused(`the surfaces of ${fa.name ?? 'a face'} and ${fb.name ?? 'a face'} meet along a curve that cannot be traced (${e.message.replace(/^Surface intersection: /, '')})`); throw e; }
     for (const chain of chains) {
       // A chain running along such an edge is that edge again.
