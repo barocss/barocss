@@ -10,7 +10,7 @@ import type { FriendlyError } from '../engine/errors';
 import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
-import { sheetPdf } from '../drawing/pdf';
+import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
 import { VIEW_IDS, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
@@ -281,7 +281,12 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   }, [layout, sheet, views, section]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
-  const exportPdf = () => { if (sheet) downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf'); };
+  const exportPdf = () => {
+    if (!sheet) return;
+    downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf');
+    const missing = pdfMissing(sheet);
+    if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
+  };
   useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]);
 
   // What follows the cursor: the snap, the hovered edge, and the dimension being placed or dragged.

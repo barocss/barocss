@@ -775,6 +775,7 @@ try {
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     assert.match(await outliner(), /1 body/); await iso();
+    assert.match(await page.evaluate(() => document.body.innerText), /STEP opened[\s\S]*1 solid, in millimetres/);
     // A file holding two solids opens as two bodies.
     const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
     const box = (id, x, w, h) => [{ id: id + 's', kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + w, w] }, { id, kind: 'extrude', sketch: id + 's', height: h }];

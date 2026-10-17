@@ -6,6 +6,12 @@ import { textWidth } from './text';
 const PT = 72 / 25.4;
 const n = (v: number) => { const r = Math.round(v * 1e4) / 1e4; return Object.is(r, -0) ? '0' : String(r); };
 
+/** The characters of the sheet's text a PDF in its standard fonts cannot show (they print as ?). */
+export function pdfMissing(sheet: Sheet): string[] {
+  const ok = new Set(['…', 'Ø', 'ø', '°', '±', '×', '·', '–', '—', '’']), out = new Set<string>();
+  for (const g of sheet.groups) for (const m of g.marks) if (m.kind === 'text') for (const ch of m.text) { const c = ch.charCodeAt(0); if (!ok.has(ch) && (c < 0x20 || (c > 0x7e && (c < 0xa0 || c > 0xff)))) out.add(ch); }
+  return [...out];
+}
 /** WinAnsi bytes of a string (characters outside it print as ?), escaped for a PDF string. */
 function winAnsi(s: string): string {
   const special: Record<string, number> = { '…': 0x85, 'Ø': 0xd8, 'ø': 0xf8, '°': 0xb0, '±': 0xb1, '×': 0xd7, '·': 0xb7, '–': 0x96, '—': 0x97, '’': 0x92 };
