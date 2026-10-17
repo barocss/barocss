@@ -484,7 +484,7 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   // affine metric keeps Rivara's termination); ties are broken by index.
   const span = frame.r * step, width = (a: number, b: number) => Math.hypot(uv[a][0] - uv[b][0], (uv[a][1] - uv[b][1]) / 20) + 1e-15 * (a + b) / (a * b + 1);
   const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => width(e[0], e[1]) > width(m[0], m[1]) ? e : m); };
-  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
     pts.push(frame.at(mid[0], mid[1])); uv.push(mid);
@@ -544,6 +544,36 @@ function isSmoothPatch(S: Surface): boolean {
  * arc length), and refined by longest-edge bisection until the surface normals across every interior
  * edge differ by at most one angular step. Boundary edges are never split.
  */
+interface Inversion { readonly at: (u: number, v: number) => Point; readonly U: readonly [number, number]; readonly V: readonly [number, number]; readonly seeds: readonly { a: number; b: number; p: Point }[]; readonly done: number }
+/** Newton steps from a seed (a, b) to the surface point nearest p. */
+function newtonUV(x: Inversion, start: { a: number; b: number }, p: Point): XY {
+  const { at, U, V } = x;
+  let a = start.a, b = start.b;
+  for (let it = 0; it < 40; it++) {
+    const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
+    const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
+    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), det = g11 * g22 - g12 * g12;
+    if (Math.abs(det) < 1e-300) break;
+    const stepA = (r1 * g22 - r2 * g12) / det, stepB = (g11 * r2 - g12 * r1) / det;
+    a = Math.min(U[1], Math.max(U[0], a + stepA)); b = Math.min(V[1], Math.max(V[0], b + stepB));
+    if (Math.abs(stepA) < 1e-14 * (U[1] - U[0]) && Math.abs(stepB) < 1e-14 * (V[1] - V[0])) break;
+  }
+  return [a, b];
+}
+/** A boundary point's (u, v): Newton from the four nearest seeds (nearest first, ties in grid order). */
+function invert(x: Inversion, p: Point): XY {
+  const near: { a: number; b: number }[] = [], nd: number[] = [];
+  for (const g of x.seeds) {
+    const d = (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2;
+    if (near.length === 4 && d >= nd[3]) continue;
+    let k = near.length < 4 ? near.length : 3;
+    while (k > 0 && nd[k - 1] > d) k--;
+    near.splice(k, 0, g); nd.splice(k, 0, d); if (near.length > 4) { near.pop(); nd.pop(); }
+  }
+  let best: XY = [near[0].a, near[0].b], bd = Infinity;
+  for (const g of near) { const q = newtonUV(x, g, p), e = x.at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= x.done) break; }
+  return best;
+}
 function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][] } {
   const S = face.surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
@@ -552,33 +582,15 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const N = 24, grid: { a: number; b: number; p: Point }[] = [];
   for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
   const polar = new Set(polesOf(S).flatMap(q => grid.filter(g => q.along === 0 ? g.b === q.at : g.a === q.at)));
-  const newton = (start: { a: number; b: number }, p: Point): XY => {
-    let a = start.a, b = start.b;
-    for (let it = 0; it < 40; it++) {
-      const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
-      const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
-      const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), det = g11 * g22 - g12 * g12;
-      if (Math.abs(det) < 1e-300) break;
-      const stepA = (r1 * g22 - r2 * g12) / det, stepB = (g11 * r2 - g12 * r1) / det;
-      a = Math.min(U[1], Math.max(U[0], a + stepA)); b = Math.min(V[1], Math.max(V[0], b + stepB));
-      if (Math.abs(stepA) < 1e-14 * (U[1] - U[0]) && Math.abs(stepB) < 1e-14 * (V[1] - V[0])) break;
-    }
-    return [a, b];
-  };
-  // From the nearest grid points off the poles (a pole's parameters say nothing about the free one).
-  const invert = (p: Point): XY => {
-    const near = grid.filter(g => !polar.has(g)).map(g => ({ g, d: (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2 })).sort((x, y) => x.d - y.d);
-    let best: XY = [near[0].g.a, near[0].g.b], bd = Infinity;
-    for (const { g } of near.slice(0, 4)) { const q = newton(g, p), e = at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= 1e-12 * (Lu + Lv + 1)) break; }
-    return best;
-  };
+  // (Inversion seeds: the grid off the poles, a pole's parameters saying nothing about the free one.)
+  const inv: Inversion = { at, U, V, seeds: grid.filter(g => !polar.has(g)), done: 1e-12 * (Lu + Lv + 1) };
   // A boundary point at a pole stands for a whole side of the domain: it becomes that side's two ends
   // (at its neighbours' free coordinate), so the domain polygon stays a polygon; the triangles on that
   // side collapse in space and are dropped at the end.
   const poles = polesOf(S), atPole = (p: Point) => poles.find(q => Math.hypot(p[0] - q.point[0], p[1] - q.point[1], p[2] - q.point[2]) <= 1e-9 * (Lu + Lv + 1));
   const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [];
   for (const r of rings) {
-    const base = r.map(invert), before = pts.length;
+    const base = r.map(p => invert(inv, p)), before = pts.length;
     r.forEach((p, i) => {
       const q = atPole(p);
       if (!q) { pts.push(p); uv.push(base[i]); return; }
@@ -630,11 +642,12 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // Lawson flips to the Delaunay triangulation (in the arc-length scaled domain) of the ear-clipped
   // polygon: ears along a nearly straight boundary are slivers spanning long chords, which no
   // bisection of interior edges would otherwise remove.
-  const P2 = (i: number) => mirror(flat(uv[i]));
-  const orient = (a: number, b: number, c: number) => { const A = P2(a), B = P2(b), C = P2(c); return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]); };
+  // (The scaled, mirrored domain point's coordinates, without a vector per call: these run per edge.)
+  const X = (i: number) => flip ? -(uv[i][0] * ku) : uv[i][0] * ku, Y = (i: number) => uv[i][1] * kv;
+  const orient = (a: number, b: number, c: number) => { const ax = X(a), ay = Y(a); return (X(b) - ax) * (Y(c) - ay) - (Y(b) - ay) * (X(c) - ax); };
   const incircle = (a: number, b: number, c: number, d: number) => {
-    const [A, B, C, D] = [a, b, c, d].map(P2), r = [A, B, C].map(q => [q[0] - D[0], q[1] - D[1]]);
-    return r.reduce((acc, q, i) => { const s1 = r[(i + 1) % 3], s2 = r[(i + 2) % 3]; return acc + (q[0] * q[0] + q[1] * q[1]) * (s1[0] * s2[1] - s1[1] * s2[0]); }, 0) / 3;
+    const dx = X(d), dy = Y(d), r0x = X(a) - dx, r0y = Y(a) - dy, r1x = X(b) - dx, r1y = Y(b) - dy, r2x = X(c) - dx, r2y = Y(c) - dy;
+    return (0 + (r0x * r0x + r0y * r0y) * (r1x * r2y - r1y * r2x) + (r1x * r1x + r1y * r1y) * (r2x * r0y - r2y * r0x) + (r2x * r2x + r2y * r2y) * (r0x * r1y - r0y * r1x)) / 3;
   };
   const flat3 = (t: number) => { const [a, b, c] = tris[t], l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
   const flipAll = () => {
@@ -643,7 +656,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
       for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) {
         const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
         if (o === undefined) continue;
-        const d = tris[o].find(v => v !== x && v !== y)!, scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
+        const d = third(tris[o], x, y), scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
         // A flat triangle (three boundary points in a line) has no circumcircle: flip it whenever it can be.
         if (!flat3(t) && incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
         unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
@@ -678,10 +691,10 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const boundary: [XY, XY][] = []; off = 0;
   for (const r of ringsUV) { for (let i = 0; i < r.length; i++) boundary.push([r[i], r[(i + 1) % r.length]]); off += r.length; }
   const cell = Math.min(Math.abs((U[1] - U[0]) * ku) / Math.max(nu, 1), Math.abs((V[1] - V[0]) * kv) / Math.max(nv, 1));
-  const orientP = (a: number, b: number, P: XY) => { const A = P2(a), B = P2(b); return (B[0] - A[0]) * (P[1] - A[1]) - (B[1] - A[1]) * (P[0] - A[0]); };
+  const orientP = (a: number, b: number, P: XY) => { const ax = X(a), ay = Y(a); return (X(b) - ax) * (P[1] - ay) - (Y(b) - ay) * (P[0] - ax); };
   const legalize = (t: number, x: number, y: number): void => {
     const o = across(t, x, y); if (o === undefined) return;
-    const m = tris[t].find(v => v !== x && v !== y)!, d = tris[o].find(v => v !== x && v !== y)!;
+    const m = third(tris[t], x, y), d = third(tris[o], x, y);
     if (incircle(x, y, m, d) <= 1e-9 * len2(x, y) ** 4) return;
     unlink(t); unlink(o); tris[t] = [m, x, d]; tris[o] = [d, y, m]; link(t); link(o);
     legalize(t, x, d); legalize(o, d, y);
@@ -720,7 +733,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     } else {
       const x = tris[t][at3.edge], y = tris[t][(at3.edge + 1) % 3], c2 = tris[t][(at3.edge + 2) % 3], o = across(t, x, y);
       if (o === undefined) { pts.pop(); uv.pop(); nrm.pop(); continue; }
-      const d = tris[o].find(v => v !== x && v !== y)!;
+      const d = third(tris[o], x, y);
       unlink(t); unlink(o); tris[t] = [x, m, c2]; tris[o] = [y, m, d]; link(t); link(o);
       tris.push([m, y, c2]); link(tris.length - 1); tris.push([m, x, d]); link(tris.length - 1);
       legalize(t, c2, x); legalize(tris.length - 2, y, c2); legalize(o, d, y); legalize(tris.length - 1, x, d);
@@ -735,4 +748,6 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 /** x + h·(span) inside [lo, hi], or x − h·(span) at the upper end. */
+/** A triangle's corner that is neither x nor y. */
+const third = (tri: readonly number[], x: number, y: number) => tri[0] !== x && tri[0] !== y ? tri[0] : tri[1] !== x && tri[1] !== y ? tri[1] : tri[2];
 const inward = (x: number, [lo, hi]: readonly [number, number], h: number) => x + h * (hi - lo) <= hi ? x + h * (hi - lo) : x - h * (hi - lo);
