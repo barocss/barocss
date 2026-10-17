@@ -72,8 +72,8 @@ const v3 = (v: readonly number[]) => v.map(r3);
 const json = (v: unknown) => JSON.stringify(v);
 
 
-/** The visible bodies, with their faces and edges by name when `detail` (capped for big parts). */
-export function describeBodies(doc: StudioDoc, bodies: BodyResult[], detail: boolean, cap = 120) {
+/** The visible bodies, with their faces and edges by name when `detail` (`cap` a page, page `page` from 1). */
+export function describeBodies(doc: StudioDoc, bodies: BodyResult[], detail: boolean, cap = 120, page = 1) {
   return bodies.map(b => {
     const ref = refOf(b), node = doc.nodes[ref.node], m = b.mesh;
     const out: Record<string, unknown> = {
@@ -82,9 +82,10 @@ export function describeBodies(doc: StudioDoc, bodies: BodyResult[], detail: boo
       face_count: m.faces.length, edge_count: m.edges.length,
     };
     if (detail) {
-      out.faces = m.faces.slice(0, cap).map(f => ({ name: f.name.split('+')[0], ...(f.name.includes('+') ? { also: f.name.split('+').slice(1) } : {}), kind: f.kind, normal: v3(f.normal), centre: v3(f.centroid), area_mm2: r3(f.areaMM2), ...(f.radius ? { radius: r3(f.radius) } : {}) }));
-      out.edges = m.edges.slice(0, cap).map(e => ({ name: e.names[0], from: v3(e.a), to: v3(e.b), ...(e.straight ? { line: e.axis ? `along ${e.axis}` : 'oblique' } : { line: 'curve' }) }));
-      if (m.faces.length > cap || m.edges.length > cap) out.truncated = `first ${cap} faces/edges shown`;
+      const from = (page - 1) * cap, pages = Math.max(1, Math.ceil(Math.max(m.faces.length, m.edges.length) / cap));
+      out.faces = m.faces.slice(from, from + cap).map(f => ({ name: f.name.split('+')[0], ...(f.name.includes('+') ? { also: f.name.split('+').slice(1) } : {}), kind: f.kind, normal: v3(f.normal), centre: v3(f.centroid), area_mm2: r3(f.areaMM2), ...(f.radius ? { radius: r3(f.radius) } : {}) }));
+      out.edges = m.edges.slice(from, from + cap).map(e => ({ name: e.names[0], from: v3(e.a), to: v3(e.b), ...(e.straight ? { line: e.axis ? `along ${e.axis}` : 'oblique' } : { line: 'curve' }) }));
+      if (pages > 1) out.page = { page, pages, note: `faces and edges ${from + 1}–${from + cap}; the next page: get_part_summary {"body": "${b.key}", "page": ${Math.min(pages, page + 1)}}` };
     }
     return out;
   });
@@ -113,9 +114,9 @@ async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, wha
   const facts = factsOf(next, r.bodies), change = changeOf(factsOf(state.doc, state.bodies), facts);
   const result = {
     ok: true, did: what, ...extra, feature_count: next.nodes.length, facts, change,
-    bodies: entries <= DETAIL_LIMIT ? describeBodies(next, r.bodies, true)
+    ...(responseFormat === 'concise' ? {} : { bodies: entries <= DETAIL_LIMIT || responseFormat === 'detailed' ? describeBodies(next, r.bodies, true)
       : r.bodies.map(b => describeBodies(next, [b], !fresh.has(`${b.key}:${b.volumeMM3}`) && b.mesh.faces.length + b.mesh.edges.length <= DETAIL_LIMIT)[0]),
-    ...(entries > DETAIL_LIMIT ? { note: 'faces and edges of other bodies: get_part_summary {"body": key}' } : {}),
+    ...(entries > DETAIL_LIMIT && responseFormat !== 'detailed' ? { note: 'faces and edges of other bodies: get_part_summary {"body": key}' } : {}) }),
   };
   return { state: { ...state, doc: next, bodies: r.bodies }, content: json(result), isError: false, changed: true, summary: `${what} → ${r.bodies.length} bod${r.bodies.length === 1 ? 'y' : 'ies'}${r.bodies[0]?.volumeMM3 != null ? `, ${Math.round(r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0))} mm³` : ''}` };
 }
@@ -267,18 +268,24 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
 
+/**
+ * How much a result lists (A2.4): 'concise' facts and what changed without the bodies' faces and edges,
+ * 'detailed' them all (paged), else ('auto') them when the part is small. Set per call from `response_format`.
+ */
+let responseFormat: 'auto' | 'concise' | 'detailed' = 'auto';
 async function runPartTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
+  responseFormat = args.response_format === 'concise' || args.response_format === 'detailed' ? args.response_format : 'auto';
   if ('__invalid_json' in args) return fail(state, 'The tool input was not valid JSON; send it again.');
   switch (name) {
     case 'get_part_summary': {
       // Big parts (lofted figures) have hundreds of faces: list them for one body at a time, the rest by count.
       const only = typeof args.body === 'string' ? args.body : null;
       if (only && !state.bodies.some(b => b.key === only)) return fail(state, `No body "${only}"; bodies: ${state.bodies.map(b => b.key).join(', ') || 'none'}.`);
-      const many = state.bodies.reduce((n, b) => n + b.mesh.faces.length + b.mesh.edges.length, 0) > 160;
-      const list = describeBodies(state.doc, state.bodies, false).map((b, i) => only === b.key || (!only && !many) ? describeBodies(state.doc, [state.bodies[i]], true, 60)[0] : b);
+      const many = state.bodies.reduce((n, b) => n + b.mesh.faces.length + b.mesh.edges.length, 0) > 160, page = Math.max(1, Math.floor(Number(args.page) || 1));
+      const list = describeBodies(state.doc, state.bodies, false).map((b, i) => responseFormat !== 'concise' && (only === b.key || (!only && (!many || responseFormat === 'detailed'))) ? describeBodies(state.doc, [state.bodies[i]], true, 60, page)[0] : b);
       const body = { feature_count: state.doc.nodes.length, facts: factsOf(state.doc, state.bodies), parameters: state.doc.parameters,
-        features: features(state.doc).map(f => ({ ...f, node: f.node.kind === 'sketch' ? { kind: 'sketch', profile: f.node.profile } : f.node })),
+        features: features(state.doc).map(f => responseFormat === 'concise' ? { index: f.index, label: f.label } : { ...f, node: f.node.kind === 'sketch' ? { kind: 'sketch', profile: f.node.profile } : f.node }),
         bodies: list, ...(many && !only ? { note: 'Faces and edges are listed per body: call again with {"body": key}.' } : {}) };
       return { state, content: json(body), isError: false, changed: false, summary: `${state.doc.nodes.length} features, ${state.bodies.length} bod${state.bodies.length === 1 ? 'y' : 'ies'}` };
     }
@@ -516,7 +523,7 @@ const PART_TOOLS: ToolDefinition[] = [
   {
     name: 'get_part_summary',
     description: 'The current part: every feature node by index (sketch outlines abbreviated), parameters, and each visible body with volume and bounds, and its faces and edges by persistent name (e.g. face "n1.top", edge "n1.side0|n1.side1"). On a big part, faces and edges are listed for the one body named in "body". Call it before referring to faces or edges you have not seen in a result.',
-    input_schema: { type: 'object', properties: { body: { type: 'string', description: 'A body key (e.g. "b27") to list the faces and edges of.' } }, additionalProperties: false },
+    input_schema: { type: 'object', properties: { body: { type: 'string', description: 'A body key (e.g. "b27") to list the faces and edges of.' }, page: { type: 'integer', description: 'The page of that body\'s faces and edges (60 a page, from 1).' } }, additionalProperties: false },
   },
   {
     name: 'run_command',
@@ -637,6 +644,10 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { faces: selectorList('Faces'), edges: selectorList('Edges'), bodies: nameList }, additionalProperties: false },
   },
 ];
+
+/** `response_format` on the tools that list the part (A2.4). */
+const RESPONSE_FORMAT = { type: 'string', enum: ['concise', 'detailed'], description: 'concise: facts and what changed only; detailed: every body\'s faces and edges (paged); default: those when the part is small.' };
+for (const t of PART_TOOLS) if (MUTATORS.has(t.name) || t.name === 'get_part_summary') (t.input_schema as { properties: Record<string, unknown> }).properties.response_format = RESPONSE_FORMAT;
 
 /** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
 export const TOOLS: ToolDefinition[] = [

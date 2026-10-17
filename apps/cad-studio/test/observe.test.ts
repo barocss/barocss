@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 
@@ -51,3 +51,21 @@ for (const file of readdirSync(a2).filter(f => f.endsWith('.json'))) {
     for (const [k, v] of Object.entries(c.expect.change)) assert.ok(near(out.change[k], v), `change ${k}: ${out.change[k]} vs ${v}`);
   });
 }
+
+test('response format: concise keeps facts and change only; detailed lists every body; a body\'s faces and edges come in pages', async () => {
+  const s = await stateOf(rectanglePart(80, 40, 8));
+  let r = parse((await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 4, x: 10, y: 10 }, response_format: 'concise' }, evaluate)).content);
+  assert.equal(r.bodies, undefined); assert.ok(r.facts && r.change);
+  r = parse((await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 4, x: 10, y: 10 }, response_format: 'detailed' }, evaluate)).content);
+  assert.ok(r.bodies[0].faces.length > 0);
+  // A plate with a row of 30 holes: over 60 faces, listed a page at a time.
+  let doc = s.doc;
+  for (let k = 0; k < 30; k++) doc = withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: [4 + 2.4 * k, 20], radius: 0.5 });
+  const big = await stateOf(doc), key = big.bodies[0].key;
+  const p1 = parse((await runTool(big, 'get_part_summary', { body: key }, evaluate)).content).bodies[0];
+  const p2 = parse((await runTool(big, 'get_part_summary', { body: key, page: 2 }, evaluate)).content).bodies[0];
+  assert.deepEqual([p1.page.page, p2.page.page, p1.page.pages >= 2], [1, 2, true]);
+  assert.notDeepEqual(p1.faces.map((f: { name: string }) => f.name), p2.faces.map((f: { name: string }) => f.name));
+  const concise = parse((await runTool(big, 'get_part_summary', { response_format: 'concise' }, evaluate)).content);
+  assert.equal(concise.bodies[0].faces, undefined); assert.deepEqual(Object.keys(concise.features[0]), ['index', 'label']);
+});
