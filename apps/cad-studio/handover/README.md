@@ -191,12 +191,25 @@ per-edge allocation, 49 → 31 ms (`b31d45aab`); mass quadrature in scalars (`ff
 (`cae8a9920`); a pole-drag step of a direct surface 17.4 → 4.4 ms (`8d36bd7d0`). Rule from the owner since
 then: no functions made inside functions on hot paths (module helpers with a context instead).
 
-Tangent cylinders: a cross hole whose side touches a vertical hole's wall from inside is refused
-("These round features only graze each other"; kernel CAPABILITY, `8cc93fc6d`) — before, it failed in one
-order and built ~21 mm³ short in the other. Building it needs the cylinder–cylinder cut to clip its two
-loops at the tangential crossing (`analytic-boolean.ts`, crossing-axes branch, double zero).
+Tangent cylinders: a cross hole whose side touches a vertical hole's wall from inside is built in either
+order (`5d24f6374`, replacing the refusal of `8cc93fc6d`): the crossing quadratic's two roots are cut at
+the touch so every cut piece ends there; volumes match exact integration within 5e-6. Touching from
+outside stays refused (not a manifold solid).
 
-Verified: browser flow 102/102 at `77c06d2b9` (WebGPU), then the new tangent-hole step; unit 234/234;
+Second perf pass (P1–P8, one commit each): benchmarks with budgets — `pnpm bench`, `bench:browser`,
+`bench:memory`, `bench:assembly`, all opt-in (`df011d3a6`, `da1e4a454`, `fdbc9efaa`); the worker gets each
+node once and only what it evaluates (`3d11e41ae`: a mesh-import preview step 16 ms → 0.01 ms of cloning);
+reference/field comparisons on hot paths (`8c145cad0`); viewer frames without per-frame views and strings
+(`04ec89405`); long-session memory checked flat (main 28 → 32 MB over 200 edits, worker 17 → 18 MB, GPU
+buffers constant); many-hole faces triangulate without cubic searches (`d88ffa6dd`: a 120-hole plate's
+mesh 4.3 → 0.7 s, its drawing 17.8 → 4.6 s); copies of a part share its tessellation and mass
+(`fdbc9efaa`: 120 copies shown 2.2 → 0.34 s); the first load leaves the chat, drawing, render and direct
+tools for later (`d55d81e9f`: 1377 → 837 kB, 406 → 263 kB gzip); no AO while the camera moves (`1ade490f0`:
+orbit GPU 5.7 → 4.5 ms, the still frame identical). Still open from P6: a modelled M8 bolt's STEP is
+23.6 MB, over the 4 MB import limit (`CadPartLimits.fileBytes`); its drawing takes 1.7 s; copies turned
+about Z are tessellated as placed (the kernel renumbers an upright body's repeated faces when it turns it).
+
+Verified: browser flow 102/103 at `1ade490f0` (WebGPU; the one failure a test race, fixed in `bf3138604`); unit 235/235;
 kernel 853 + the one environmental failure (the Split demo pins Node 22.23.3). Note: `@barocss/cad`'s
 exports point at `src`, so editing kernel sources while a browser flow runs reloads the page mid-step.
 
