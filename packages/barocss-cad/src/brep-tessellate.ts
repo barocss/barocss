@@ -427,13 +427,26 @@ const add3 = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[
  * for rails on opposite ones (a ruled patch's) each rail point's share of the way along them, with the
  * surface between paired points.
  */
+// A surface's ruled frame, made once per surface object (a face's tessellation asks for it more than once).
+const ruledFrames = new WeakMap<Surface, ReturnType<typeof makeRuledFrame>>();
 function ruledFrame(S: Surface) {
+  let f = ruledFrames.get(S); if (!f) ruledFrames.set(S, f = makeRuledFrame(S));
+  return f;
+}
+function makeRuledFrame(S: Surface) {
   const at = surfaceEvaluator(S), d = surfaceDomain(S), size = Math.max(1, ...S.controlPoints.flat().map(p => Math.hypot(...p))), tol = 1e-7 * size;
   const isos = [{ along: d.u, fix: d.v[0] }, { along: d.u, fix: d.v[1] }, { along: d.v, fix: d.u[0] }, { along: d.v, fix: d.u[1] }];
   const point = (i: number, t: number): Point => i < 2 ? at(t, isos[i].fix) : at(isos[i].fix, t);
+  // Each iso-line's coarse samples (the projection's starting search), worked out once per iso-line.
+  const N = 64, coarse: ({ t: number; p: Point }[] | null)[] = [null, null, null, null];
+  const samplesOf = (i: number) => {
+    let c = coarse[i];
+    if (!c) { const [t0, t1] = isos[i].along; c = []; for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N; c.push({ t, p: point(i, t) }); } coarse[i] = c; }
+    return c;
+  };
   const project = (i: number, p: Point): [number, number] => {
-    const [t0, t1] = isos[i].along, N = 64; let best = t0, dist = Infinity;
-    for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N, e = Math.hypot(...sub(point(i, t), p)); if (e < dist) { dist = e; best = t; } }
+    const [t0, t1] = isos[i].along; let best = t0, dist = Infinity;
+    for (const c of samplesOf(i)) { const e = Math.hypot(c.p[0] - p[0], c.p[1] - p[1], c.p[2] - p[2]); if (e < dist) { dist = e; best = c.t; } }
     let lo = Math.max(t0, best - (t1 - t0) / N), hi = Math.min(t1, best + (t1 - t0) / N);
     for (let it = 0; it < 60; it++) { const a = lo + (hi - lo) * 0.382, b = lo + (hi - lo) * 0.618; if (Math.hypot(...sub(point(i, a), p)) < Math.hypot(...sub(point(i, b), p))) hi = b; else lo = a; }
     const t = (lo + hi) / 2; return [t, Math.hypot(...sub(point(i, t), p))];
