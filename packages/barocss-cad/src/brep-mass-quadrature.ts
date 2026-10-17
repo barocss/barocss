@@ -34,6 +34,7 @@ function accumulate(I: number[], p: Point, n: Point, w: number) {
 const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const normal: Point = [0, 0, 0];
 
 /** Newton's closest point on a surface, from the nearest of a coarse grid or a hint (null when off the surface). */
 function inverter(S: Surface) {
@@ -150,16 +151,20 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
       if (s0) { sigma = s0; best = l; }
     }
     if (!sigma) return null;
-    for (const [a, b, c] of domain) {
-      const qa = uv[a - face.vertexOffset], qb = uv[b - face.vertexOffset], qc = uv[c - face.vertexOffset], area = uvArea([a, b, c]);
+    // (The hottest loop of a curved body's mass: no callbacks or temporary vectors per point.)
+    const off = face.vertexOffset, su = 2 * hu, sv = 2 * hv;
+    for (const t of domain) {
+      const qa = uv[t[0] - off], qb = uv[t[1] - off], qc = uv[t[2] - off], area = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2;
       if (area === 0) continue;
-      for (const [wa, wb, wc, w] of RULE) {
-        const u = wa * qa[0] + wb * qb[0] + wc * qc[0], v = wa * qa[1] + wb * qb[1] + wc * qc[1];
-        const Su = sub(at(u + hu, v), at(u - hu, v)).map(x => x / (2 * hu)) as Point, Sv = sub(at(u, v + hv), at(u, v - hv)).map(x => x / (2 * hv)) as Point;
+      for (const r of RULE) {
+        const wa = r[0], wb = r[1], wc = r[2], u = wa * qa[0] + wb * qb[0] + wc * qc[0], v = wa * qa[1] + wb * qb[1] + wc * qc[1];
+        const pu = at(u + hu, v), mu = at(u - hu, v), pv = at(u, v + hv), mv = at(u, v - hv);
+        const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
         // The mesh is wound outward throughout: sigma times the triangle's signed (u, v) area is outward.
-        const n = cross(Su, Sv), k = w * area * sigma;
-        accumulate(curved, at(u, v), n, k);
-        curvedVec[0] += n[0] * k; curvedVec[1] += n[1] * k; curvedVec[2] += n[2] * k; curvedArea += Math.hypot(...n) * Math.abs(k);
+        normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
+        const k = r[3] * area * sigma;
+        accumulate(curved, at(u, v), normal, k);
+        curvedVec[0] += normal[0] * k; curvedVec[1] += normal[1] * k; curvedVec[2] += normal[2] * k; curvedArea += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
       }
     }
     // The surface and its flat triangles share the boundary samples: their areas and vector areas (∫ n dA,
