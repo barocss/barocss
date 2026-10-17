@@ -291,7 +291,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
     const frame = cylinderFrame(face.surface); if (!frame || railsOf(face, loops, coedges, edges) !== undefined) continue;
     trimmed.set(face.id, frame);
   }
-  const refined = new Set<string>(), gridded = new Set<string>(), rows = 2 * perQuarter;
+  const refined = new Set<string>(), gridded = new Map<string, number>(), rows = 2 * perQuarter;
   // Straight rails of a curved ruled face (a loft's side): sampled as finely as its other rail, or a
   // quarter turn's worth when both are straight (a twisted side), so the strip can follow the surface.
   for (const face of brep.faces) {
@@ -299,12 +299,14 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
     const rails = railsOf(face, loops, coedges, edges); if (rails === undefined) continue;
     const ids = rails.map(r => coedges.get(loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges[r])!.edge);
     const frame = ruledFrame(face.surface), outer = loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges.map(c => coedges.get(c)!.edge);
-    // A twisted side (its normal turns along its rulings) is also cut into rows: its two straight
+    // A twisted side (its normal turns along its rulings) is also cut into rows, one per quarter
+    // turn's step of that twist (at least two, at most a quarter turn's worth): its two straight
     // sides sampled at the rows, so its neighbours share those points.
-    const sideIds = outer.filter((_, i) => i !== rails[0] && i !== rails[1]);
-    if (outer.length === 4 && frame.twisted() && sideIds.every(id => isLine(edges.get(id)!.curve) && (!refined.has(id) || params.get(id)!.length === rows + 1))) {
-      for (const id of sideIds) { const [t0, t1] = curveDomain(edges.get(id)!.curve); params.set(id, Array.from({ length: rows + 1 }, (_, j) => j === rows ? t1 : t0 + (t1 - t0) * j / rows)); refined.add(id); }
-      gridded.add(face.id);
+    const sideIds = outer.filter((_, i) => i !== rails[0] && i !== rails[1]), twist = outer.length === 4 ? frame.twist() : 0;
+    const across = Math.max(2, Math.min(rows, Math.ceil(twist / (Math.PI / 2 / perQuarter))));
+    if (twist > 0 && sideIds.every(id => isLine(edges.get(id)!.curve) && (!refined.has(id) || params.get(id)!.length === across + 1))) {
+      for (const id of sideIds) { const [t0, t1] = curveDomain(edges.get(id)!.curve); params.set(id, Array.from({ length: across + 1 }, (_, j) => j === across ? t1 : t0 + (t1 - t0) * j / across)); refined.add(id); }
+      gridded.set(face.id, across);
     }
     ids.forEach((id, k) => {
       const e = edges.get(id)!, o = edges.get(ids[1 - k])!; if (!isLine(e.curve) || refined.has(id)) return;
@@ -383,15 +385,16 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
     // iso-lines (so the strip follows its rulings), else by their share of each side.
     let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
     const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
-    if (gridded.has(face.id) && across && n === m && right.length === rows - 1 && left.length === rows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
+    const gridRows = gridded.get(face.id) ?? 0;
+    if (gridRows && across && n === m && right.length === gridRows - 1 && left.length === gridRows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
       // A twisted side with its rails paired point for point: rows between them on the surface (its
       // straight sides were sampled at the rows), so it is followed across as well as along.
       const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
-      const index = (k: number, r: number) => r === 0 ? k : r === rows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + rows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
+      const index = (k: number, r: number) => r === 0 ? k : r === gridRows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + gridRows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
       const inner: Point[] = [];
-      for (let r = 1; r < rows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / rows));
+      for (let r = 1; r < gridRows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / gridRows));
       const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
-      for (let r = 0; r < rows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
+      for (let r = 0; r < gridRows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
       emit(face.id, 'ruled', all, cells, null); continue;
     }
     while (i < n || j < m) {
@@ -467,12 +470,14 @@ function makeRuledFrame(S: Surface) {
     return x.ia < 2 ? at(x.ta[k], fix) : at(fix, x.ta[k]);
   };
   /** The normal turns along the rulings (the v-lines): not a plane, cylinder or cone (not developable). */
-  const twisted = () => {
+  /** How far (radians) the normal turns along a ruling, the most over nine of them (0: not twisted). */
+  const twist = () => {
     const normal = (u: number, v: number): Point => { const hu = 1e-6 * (d.u[1] - d.u[0]), hv = 1e-6 * (d.v[1] - d.v[0]) * (v > (d.v[0] + d.v[1]) / 2 ? -1 : 1), p = at(u, v), n = cross(sub(at(u + hu, v), p), sub(at(u, v + hv), p)); return unit(hv < 0 ? [-n[0], -n[1], -n[2]] : n); };
-    for (let k = 0; k <= 8; k++) { const u = d.u[0] + (d.u[1] - d.u[0]) * (0.05 + 0.9 * k / 8); if (Math.hypot(...sub(normal(u, d.v[0]), normal(u, d.v[1]))) > 1e-4) return true; }
-    return false;
+    let most = 0;
+    for (let k = 0; k <= 8; k++) { const u = d.u[0] + (d.u[1] - d.u[0]) * (0.05 + 0.9 * k / 8), gap = Math.hypot(...sub(normal(u, d.v[0]), normal(u, d.v[1]))); if (gap > most) most = gap; }
+    return most > 1e-4 ? 2 * Math.asin(Math.min(1, most / 2)) : 0;
   };
-  return { isoOf, project, point, across, between, twisted };
+  return { isoOf, project, point, across, between, twist };
 }
 
 /** Two rails facing each other with straight sides between them (each one line or a chain of lines). */
