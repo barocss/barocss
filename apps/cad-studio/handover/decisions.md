@@ -693,3 +693,45 @@ Evidence:
   mass unknown. Malformed requirements are refused.
 - Conformance case `conformance/a3/plate-brief`.
 
+## D37 — Checks tried on mutants; the iteration policy kept by the tools (2026-10-18, A3.2)
+Decided:
+- **Mutation check (`check_spec {validate: true}`).** The suite runs on at most 8 cheap mutants
+  (`MAX_MUTANTS`), each one evaluation and one run of the suite:
+  - every body scaled ×1.15 and ×0.87;
+  - the first two parameters ±15%, or with none the first extrusion's height;
+  - the features the subjects come from suppressed;
+  - the trivial stub, a box as big as the part.
+
+  The report states how many were tried and built, their labels, and the time.
+- **Vacuous, unverified, invariant.**
+  - A mutant that does not build, or on which a check is unknown (its subject gone), does not apply to that
+    check. It is never a pass.
+  - A check that passes on the model and on every mutant it applies to is **vacuous**: it cannot tell this model
+    from a changed one. The exception is a requirement declared `invariant: true` with an `invariant_reason`
+    (one piece, no interference), which is listed as **invariant**.
+  - Fewer than two applicable mutants makes a check **unverified**, not vacuous.
+- **Policy, in the tool layer, not only in the prompt.** `ChatState.policy` remembers across a session:
+  - **best snapshot:** most checks passing, then the least relative miss;
+  - **rounds:** each failing requirement's rounds without a smaller miss;
+  - **passedHard:** the hard requirements that passed at the last check;
+  - **calls:** the tool calls made.
+
+  Every `check_spec` reports the best snapshot (`this_is_best`), the rounds without progress, the tool calls and
+  the turn budget (`CAD_MAX_TURNS`, passed by the chat server). After two rounds without progress on a
+  requirement it adds a hint: start again from the brief, the checks and the best snapshot.
+- **Regression guard.** A change that breaks a hard requirement that passed at the last check is refused, naming
+  it with its measured and expected values, unless it carries `because`.
+- **`restore_best`.** It puts the best snapshot back.
+- **Refused calls.** A refused call leaves the state the very same object.
+
+Why: CADTests-style mutation catches always-passing checks before they are trusted, and an iteration policy kept
+by the tools holds even when the agent's loop forgets it.
+
+Evidence (studio 272/272):
+- A bbox length check and a hole-diameter check are not vacuous (the mutants change them). "Under 100 tall" is
+  vacuous. "One piece" is a declared invariant.
+- With no mutant building, every check is unverified.
+- Three checks without progress give rounds T: 2 and the restart hint.
+- Scaling the plate ×1.5 is refused for breaking L (measured 60) and made with `because`. `restore_best` brings
+  back the 40 mm plate.
+
