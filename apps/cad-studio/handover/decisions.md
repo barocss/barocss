@@ -384,3 +384,26 @@ Next in A1 (open):
 - **A1.4 sketch-entity side names.** `side[sk.l3]` instead of `side3`, versioned per node as D16 did, so that
   editing a sketch does not renumber the sides.
 
+## D27 — Selectors: a face or edge said by what it is, resolved to its name (2026-10-18, A1.2)
+Decided: wherever the agent tools take a face or an edge (`run_command` faces and edges, `select`, `measure`
+a and b), a selector may stand in for the name. Each resolves to the persistent name(s) it stands for, and the
+result reports them (`resolved: [{selector, names}]`), so the agent learns the name and uses it afterwards.
+- **`{feature, role}`.** The feature is an index or a stable id. The role is exact (`top`, `bottom`, `side2`,
+  `cut`) or a family (`side`, one of its sides).
+- **`{normal, pick}`.** The flat face facing the direction (to 1e-9 in cosine), the farthest along it (`max`,
+  the default) or the nearest (`min`).
+- **`on` and `all`.** Either may take `on` (a body key) and `all: true` (every face that fits).
+- **`{between: [face, face]}`.** The edge two faces share.
+
+Several faces fitting is refused with them listed; none fitting is refused with what there is (the feature's
+faces, the bodies). No mesh index is exposed. The system prompt and tool schemas say so; selectors are JSON
+objects next to names (`anyOf` string or object).
+
+Why: A1 asks that an agent can say "the top of feature 1" or "the face at +X" without first reading the name
+list. Refusing ambiguity, rather than picking one, keeps a plan from silently acting on the wrong face.
+
+Evidence:
+- Studio 249/249, including 3 selector tests: roles, families, directions, `on`, refusals, and a fillet and a
+  measure through `runTool`.
+- Conformance case `conformance/a1/selectors` (7 selectors, two of them refusals).
+
