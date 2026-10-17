@@ -1306,3 +1306,90 @@ Evidence:
   | 1M | 17.2 MB | 22.9 MB | 55.3 MB | 3.4 s | 3.2 s |
 
   The 1M file is positions f32 (6 MB) plus indices u32 (12 MB). The peer estimated about 15 MB.
+
+## D46 — Mesh diagnosis and repair as explicit steps; fill patches as faces; open sheets said so; crossings refused (2026-10-18, R3.4a)
+Decided (repair as a recorded step, per the peer under the delegation; this is the kernel part, the studio follows
+in R3.4b):
+- **`diagnoseMesh(positions, indices)`** changes nothing. It counts:
+  - welded corners, degenerate and duplicate triangles;
+  - edges of more than two triangles;
+  - two-triangle edges run the same way;
+  - holes (each with its edge count, perimeter and centre);
+  - pieces with their volumes, and floaters (under 1% of the largest);
+  - self-intersections.
+  
+  It also says whether the mesh is closed as it is.
+- **`repairMesh(positions, indices, steps)`** takes explicit steps (`DEFAULT_REPAIR`: all on, floaters under 1%) and
+  returns new arrays, a report of what each step did, and per triangle the fill patch it belongs to. The caller keeps
+  the original; the studio stores the result as its own blob (R3.4b).
+  - **weld:** numeric cell hashes (the facet builder's).
+  - **degenerate:** a repeated corner, no area at the weld size, or the same three corners twice either way round.
+  - **fins:** at each edge of more than two triangles, the pieces (through two-triangle edges) meeting there other
+    than the largest, when open or enclosing no volume.
+  - **orient:** breadth first across two-triangle edges, each neighbour turned to run the edge the other way; then
+    each closed piece outward. Both kinds of turn are counted.
+  - **fill:** our own Liepa fill.
+    - A minimum-area triangulation by dynamic programming (O(n³), up to 120 corners); past that, an ear clipping in
+      the loop's Newell plane.
+    - Liepa's refinement: a triangle is split at its centroid when √2 × the distance to each corner exceeds both
+      densities.
+    - Relaxation by Delaunay flips (opposite angles past π), on an incrementally kept edge map and a work queue.
+    - Umbrella fairing of the new vertices (30 rounds, the rim fixed).
+    - A safety cap of 64 × the initial triangles + 20000.
+    - Holes can be skipped by number. Reported: holes filled and left, fill triangles, the largest perimeter, the
+      area added.
+  - **floaters:** closed pieces under `minFraction` of the largest volume (reported with their volume), or kept
+    (`floaters: false`).
+  - After the steps, the report says whether the result is closed and manifold, and how many self-intersections
+    and non-manifold edges remain.
+- **Fill patches are faces of their own.** `facetBrepFromTriangles(…, {groups})`: regions do not cross a group's
+  edge and are not merged across it, and a group k's faces are named `<prefix>.fill<k>.region<f>`. The studio can
+  then show the guessed surface as what it is.
+- **Open sheets are said so, never faked.** `{open: true}` (the mesh node's `open`) takes an open mesh as a `sheet`
+  body: an open shell, boundary edges with one use, corners along an open boundary counted as if it had a twin. Then:
+  - its mass refuses: "an open mesh (a sheet) encloses no volume";
+  - Booleans refuse: "… need a closed solid: this mesh is open (a sheet)".
+  
+  Without `open`, an open mesh is refused as before.
+- **Self-intersections are reported, not repaired.**
+  - Found with a uniform grid over triangle boxes (a cell about twice a mean edge; each pair tested once, in the
+    first cell the two share) and an exact-enough segment–triangle test (strict interior; shared corners skip).
+  - The count and up to 64 positions are given.
+  - A Boolean on a facet body that crosses itself (checked when the F0 path explodes it) is refused with GEOMETRY
+    "… need a mesh that does not cross itself: this one does in N places (near x, y, z); repair does not fix that
+    yet".
+  - Repairing crossings (remeshing the intersection curves) is out of scope until F3 (facet × facet).
+
+Evidence:
+- Kernel `test/mesh-repair.test.mjs` 8/8:
+  - clean box: nothing reported;
+  - square hole in a flat top: 1 hole of 30 mm perimeter; filled flat to exactly 1000 mm³ with 50 mm² added; the
+    patch is its own face `m.fill0.region*`; skipped, it is open and builds only as a sheet;
+  - spherical cap hole: refined past its rim, closed, volume between the open mesh and the whole;
+  - 3 flipped triangles and a fully inside-out mesh: counted, exact volume;
+  - fin, degenerate and duplicates: 1 fin, 2 degenerate, 2 duplicates, closed, exact;
+  - floaters: 3 of 1 mm³ each dropped (3 mm³), the 216 mm³ piece kept;
+  - a box with a corner pushed through its bottom: crossings found and a hole refused;
+  - open sheet: no mass, no hole.
+- Studio `test/mesh-repair-corpus.test.ts` runs the M0 broken set on the 20k organic torus:
+  - hole: 1, filled, volume within 1%;
+  - flipped: 50, exact;
+  - non-manifold: 1 fin, exact;
+  - degenerate: 10;
+  - shells: 4 pieces, 3 floaters, 24 mm³;
+  - self-intersect: crossings found.
+- Conformance `r3` 34/34, with three new cases (which RB runs too):
+  - `mesh-filled`: the repaired box with its fill group, 1000 mm³ and 700 mm² exactly, watertight;
+  - `mesh-crossing-hole-refused`;
+  - `mesh-sheet-hole-refused`.
+- Kernel suite 921/922; the one failure is the known environmental test. Studio 295/295.
+- Bench, a sphere with a cap off:
+
+  | Mesh | Diagnose | Repair | Fill added |
+  |---|---|---|---|
+  | 11k | 39 ms | 74 ms | +1812 triangles |
+  | 196k | 0.42 s | 1.5 s | +45k triangles |
+  | 991k (1000-edge hole) | 2.4 s | 9.2 s | +212k triangles |
+
+  At first the relaxation made one swap per pass and the closing check copied the index array per edge (22.9 s at
+  11k); both are fixed.

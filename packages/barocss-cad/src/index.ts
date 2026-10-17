@@ -567,6 +567,7 @@ export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOption
 export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type FacetBrepOptions } from './facet-brep.js';
 export { facetArea, facetPlane, facetVectorArea } from './facet-patch.js';
 export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './facet-bvh.js';
+export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh-repair.js';
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
 export { thickenSolid, type ThickenSolidRequest } from './thicken-solid.js';

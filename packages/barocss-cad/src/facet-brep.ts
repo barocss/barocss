@@ -6,7 +6,8 @@
 // boundaries become polyline edges (degree-1 curves through the mesh's own vertices, so both faces and the
 // edge share those points exactly); a closed boundary without a junction gets one vertex. Every shell has at
 // least two regions, so every face has a boundary. Faces are named `<id>.region<k>`, k in the order of each
-// region's first triangle in the file: the same file gives the same names.
+// region's first triangle in the file: the same file gives the same names. An open mesh is taken only when asked
+// (`open`: a sheet body, its open edges its boundary, M3); a repair's fill patches keep to faces of their own (`groups`).
 import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import { MeshBrepError, type MeshBrepOptions } from './mesh-brep.js';
 import type { Curve, FacetPatch, Point } from './types.js';
@@ -17,6 +18,16 @@ export interface FacetBrepOptions extends MeshBrepOptions {
   readonly creaseDegrees?: number;
   /** At most this many regions (a noisy scan is smoothed, then merged, to stay under it); default 1000. */
   readonly maximumRegions?: number;
+  /**
+   * Take an open mesh (edges with one triangle) as a sheet body (not a solid: no volume), its open edges the sheet's
+   * boundary — said by the caller, never assumed (M3: what repair could not close). Default: refused.
+   */
+  readonly open?: boolean;
+  /**
+   * Per input triangle, a group (≥ 0) its region keeps to — a repair's fill patch k, so the patch is a face of its own,
+   * named `<prefix>.fill<k>.region<f>` — or −1.
+   */
+  readonly groups?: ArrayLike<number>;
 }
 
 const UNSET = 0xffffffff;
@@ -27,7 +38,7 @@ const POLYLINE = 64;
 export function facetBrepFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): Brep {
   const m = welded(positions, indices, options), pieces = componentsOf(m.across, m.I.length / 3);
   if (pieces.count > 1) throw new MeshBrepError(`the mesh is more than one piece (${pieces.count} pieces): open each piece as its own body`);
-  return pieceBrep(m.id, m.P, m.I, options);
+  return pieceBrep(m.id, m.P, m.I, m.G, options);
 }
 /**
  * Each closed, connected piece of the mesh as a B-rep of its own (a kit, a figure with separate eyes, a scan
@@ -37,12 +48,12 @@ export function facetBrepFromTriangles(positions: ArrayLike<number>, indices: Ar
  */
 export function facetBrepsFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): Brep[] {
   const m = welded(positions, indices, options), nt = m.I.length / 3, pieces = componentsOf(m.across, nt);
-  if (pieces.count === 1) return [pieceBrep(m.id, m.P, m.I, options)];
-  const lists: number[][] = Array.from({ length: pieces.count }, () => []);
-  for (let t = 0; t < nt; t++) lists[pieces.of[t]].push(m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]);
+  if (pieces.count === 1) return [pieceBrep(m.id, m.P, m.I, m.G, options)];
+  const lists: number[][] = Array.from({ length: pieces.count }, () => []), groups: number[][] = Array.from({ length: pieces.count }, () => []);
+  for (let t = 0; t < nt; t++) { lists[pieces.of[t]].push(m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]); if (m.G) groups[pieces.of[t]].push(m.G[t]); }
   return lists.map((list, j) => {
-    if (list.length < 12) throw new MeshBrepError(`piece ${j} of the mesh has fewer than four triangles: it encloses nothing`);
-    return pieceBrep(`${m.id}_part${j}`, m.P, Uint32Array.from(list), options, `${m.id}.part${j}`);
+    if (list.length < 12 && !options.open) throw new MeshBrepError(`piece ${j} of the mesh has fewer than four triangles: it encloses nothing`);
+    return pieceBrep(`${m.id}_part${j}`, m.P, Uint32Array.from(list), m.G ? Int32Array.from(groups[j]) : null, options, `${m.id}.part${j}`);
   });
 }
 /** How many closed pieces the mesh is in, and each one's triangle count and enclosed volume (|V|), in file order. */
@@ -55,7 +66,7 @@ export function facetPieces(positions: ArrayLike<number>, indices: ArrayLike<num
 }
 
 /** The mesh welded, its degenerate triangles dropped, checked closed and consistently wound (every piece). */
-function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions): { id: string; P: Float64Array; I: Uint32Array; across: Int32Array } {
+function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions): { id: string; P: Float64Array; I: Uint32Array; across: Int32Array; G: Int32Array | null } {
   const id = (options.id ?? 'mesh').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
   const n = positions.length / 3, count = indices ? indices.length / 3 : n / 3, limit = options.maximumTriangles ?? 200_000;
   if (!Number.isInteger(n) || !Number.isInteger(count)) throw new MeshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
@@ -66,30 +77,34 @@ function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null,
   const { P, remap } = weldVertices(positions, n, weld);
   const nv = P.length / 3;
   // Triangles without the degenerate ones (a repeated corner, or no area at the weld size).
-  const T: number[] = [];
+  const T: number[] = [], G: number[] = [];
   for (let t = 0; t < count; t++) {
     const a = remap[indices ? indices[3 * t] : 3 * t], b = remap[indices ? indices[3 * t + 1] : 3 * t + 1], c = remap[indices ? indices[3 * t + 2] : 3 * t + 2];
     if (a === b || b === c || a === c) continue;
     if (!(triangleArea2(P, a, b, c) > weld * weld)) continue;
-    T.push(a, b, c);
+    T.push(a, b, c); if (options.groups) G.push(options.groups[t] ?? -1);
   }
   const I = Uint32Array.from(T);
-  if (I.length / 3 < 4) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
-  return { id, P, I, across: adjacency(I, nv) };
+  if (I.length / 3 < (options.open ? 1 : 4)) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
+  return { id, P, I, across: adjacency(I, nv, !!options.open), G: options.groups ? Int32Array.from(G) : null };
 }
 /** One piece as a B-rep: turned outward, grown into regions, assembled (faces named `<prefix>.region<k>`). */
-function pieceBrep(id: string, P: Float64Array, I: Uint32Array, options: FacetBrepOptions, prefix = id): Brep {
+function pieceBrep(id: string, P: Float64Array, I: Uint32Array, G: Int32Array | null, options: FacetBrepOptions, prefix = id): Brep {
   const nt = I.length / 3, nv = P.length / 3;
-  let vol = 0;
-  for (let t = 0; t < nt; t++) vol += det3(P, I[3 * t], I[3 * t + 1], I[3 * t + 2]);
-  if (vol < 0) for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; }
-  const across = adjacency(I, nv);
-  const region = regions(P, I, across, Math.cos((options.creaseDegrees ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
-  return assemble(id, P, I, across, region, prefix);
+  let across = adjacency(I, nv, !!options.open), open = false;
+  for (let h = 0; h < across.length && !open; h++) open = across[h] < 0;
+  // (A closed piece outward; an open one, a sheet, as wound: it has no inside.)
+  if (!open) {
+    let vol = 0;
+    for (let t = 0; t < nt; t++) vol += det3(P, I[3 * t], I[3 * t + 1], I[3 * t + 2]);
+    if (vol < 0) { for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; } across = adjacency(I, nv, false); }
+  }
+  const region = regions(P, I, across, G, Math.cos((options.creaseDegrees ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
+  return assemble(id, P, I, across, region, G, open, prefix);
 }
 
 /** Corners on one grid cell of the weld size are one vertex: a hash of the integer cell, checked, no strings. */
-function weldVertices(positions: ArrayLike<number>, n: number, weld: number): { P: Float64Array; remap: Uint32Array } {
+export function weldVertices(positions: ArrayLike<number>, n: number, weld: number): { P: Float64Array; remap: Uint32Array } {
   let cap = 16; while (cap < 2 * n) cap *= 2;
   const table = new Int32Array(cap).fill(-1), cells = new Float64Array(3 * n), out = new Float64Array(3 * n), remap = new Uint32Array(n);
   let m = 0;
@@ -111,7 +126,7 @@ function weldVertices(positions: ArrayLike<number>, n: number, weld: number): { 
  * The triangle across each edge (as the half-edge index 3t + k there), from directed edges keyed a·nv + b.
  * Refused unless every edge has exactly two triangles running it opposite ways.
  */
-function adjacency(I: Uint32Array, nv: number): Int32Array {
+function adjacency(I: Uint32Array, nv: number, allowOpen = false): Int32Array {
   const nt = I.length / 3, across = new Int32Array(3 * nt).fill(-1), seen = new Map<number, number>();
   for (let h = 0; h < 3 * nt; h++) {
     const t = (h / 3) | 0, a = I[h], b = I[3 * t + (h % 3 + 1) % 3], key = a * nv + b;
@@ -123,7 +138,7 @@ function adjacency(I: Uint32Array, nv: number): Int32Array {
     const t = (h / 3) | 0, a = I[h], b = I[3 * t + (h % 3 + 1) % 3], back = seen.get(b * nv + a);
     if (back === undefined) open++; else across[h] = back;
   }
-  if (open) throw new MeshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
+  if (open && !allowOpen) throw new MeshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
   return across;
 }
 
@@ -134,7 +149,7 @@ function componentsOf(across: Int32Array, nt: number): { of: Uint32Array; count:
   for (let s = 0; s < nt; s++) {
     if (of[s] !== UNSET) continue;
     let head = 0, tail = 0; queue[tail++] = s; of[s] = count;
-    while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const u = (across[3 * t + k] / 3) | 0; if (of[u] === UNSET) { of[u] = count; queue[tail++] = u; } } }
+    while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const o = across[3 * t + k]; if (o < 0) continue; const u = (o / 3) | 0; if (of[u] === UNSET) { of[u] = count; queue[tail++] = u; } } }
     count++;
   }
   return { of, count };
@@ -147,7 +162,7 @@ function componentsOf(across: Int32Array, nt: number): { of: Uint32Array; count:
  * edges with. A region that is the whole mesh is split in two (breadth first to half its triangles), so
  * every face has a boundary. Numbered by first triangle.
  */
-function regions(P: Float64Array, I: Uint32Array, across: Int32Array, cos: number, maximum: number): Uint32Array {
+function regions(P: Float64Array, I: Uint32Array, across: Int32Array, G: Int32Array | null, cos: number, maximum: number): Uint32Array {
   const nt = I.length / 3, N = new Float64Array(3 * nt);
   for (let t = 0; t < nt; t++) {
     const a = 3 * I[3 * t], b = 3 * I[3 * t + 1], c = 3 * I[3 * t + 2];
@@ -155,17 +170,19 @@ function regions(P: Float64Array, I: Uint32Array, across: Int32Array, cos: numbe
     const x = uy * vz - uz * vy, y = uz * vx - ux * vz, z = ux * vy - uy * vx, l = Math.hypot(x, y, z) || 1;
     N[3 * t] = x / l; N[3 * t + 1] = y / l; N[3 * t + 2] = z / l;
   }
-  let region = grow(N, across, cos), rounds = 0;
+  let region = grow(N, across, G, cos), rounds = 0;
   for (const next of [1, 2, 4, 8]) {
     if (countOf(region) <= maximum) break;
     for (; rounds < next; rounds++) smooth(N, across);
-    region = grow(N, across, cos);
+    region = grow(N, across, G, cos);
   }
-  if (countOf(region) > maximum) region = merge(region, across, maximum);
-  if (countOf(region) === 1) region = halve(across, nt);
+  if (countOf(region) > maximum) region = merge(region, across, G, maximum);
+  // (A closed mesh of one region is halved, so every face has a boundary; an open one has its own.)
+  let open = false; for (let h = 0; h < across.length && !open; h++) open = across[h] < 0;
+  if (countOf(region) === 1 && !open) region = halve(across, nt);
   return region;
 }
-function grow(N: Float64Array, across: Int32Array, cos: number): Uint32Array {
+function grow(N: Float64Array, across: Int32Array, G: Int32Array | null, cos: number): Uint32Array {
   const nt = N.length / 3, region = new Uint32Array(nt).fill(UNSET), queue = new Int32Array(nt);
   let r = 0;
   for (let s = 0; s < nt; s++) {
@@ -174,8 +191,9 @@ function grow(N: Float64Array, across: Int32Array, cos: number): Uint32Array {
     while (head < tail) {
       const t = queue[head++];
       for (let k = 0; k < 3; k++) {
-        const u = (across[3 * t + k] / 3) | 0;
-        if (region[u] !== UNSET || N[3 * u] * N[3 * t] + N[3 * u + 1] * N[3 * t + 1] + N[3 * u + 2] * N[3 * t + 2] < cos) continue;
+        const o = across[3 * t + k]; if (o < 0) continue;
+        const u = (o / 3) | 0;
+        if (region[u] !== UNSET || (G && G[u] !== G[t]) || N[3 * u] * N[3 * t] + N[3 * u + 1] * N[3 * t + 1] + N[3 * u + 2] * N[3 * t + 2] < cos) continue;
         region[u] = r; queue[tail++] = u;
       }
     }
@@ -188,14 +206,14 @@ function smooth(N: Float64Array, across: Int32Array): void {
   const nt = N.length / 3, M = new Float64Array(N.length);
   for (let t = 0; t < nt; t++) {
     let x = N[3 * t], y = N[3 * t + 1], z = N[3 * t + 2];
-    for (let k = 0; k < 3; k++) { const u = 3 * ((across[3 * t + k] / 3) | 0); x += N[u]; y += N[u + 1]; z += N[u + 2]; }
+    for (let k = 0; k < 3; k++) { const o = across[3 * t + k]; if (o < 0) continue; const u = 3 * ((o / 3) | 0); x += N[u]; y += N[u + 1]; z += N[u + 2]; }
     const l = Math.hypot(x, y, z) || 1; M[3 * t] = x / l; M[3 * t + 1] = y / l; M[3 * t + 2] = z / l;
   }
   N.set(M);
 }
 function countOf(region: Uint32Array): number { let m = 0; for (let i = 0; i < region.length; i++) if (region[i] + 1 > m) m = region[i] + 1; return m; }
 /** The smallest regions merged, one at a time, into the neighbour they share the most edges with. */
-function merge(region: Uint32Array, across: Int32Array, maximum: number): Uint32Array {
+function merge(region: Uint32Array, across: Int32Array, G: Int32Array | null, maximum: number): Uint32Array {
   const nt = region.length, k = countOf(region), parent = new Uint32Array(k), size = new Float64Array(k);
   for (let r = 0; r < k; r++) parent[r] = r;
   const find = (r: number) => { while (parent[r] !== r) { parent[r] = parent[parent[r]]; r = parent[r]; } return r; };
@@ -203,7 +221,8 @@ function merge(region: Uint32Array, across: Int32Array, maximum: number): Uint32
   const order = Array.from({ length: k }, (_, r) => r).sort((a, b) => size[a] - size[b] || a - b);
   // Shared edge counts per region pair (each region's neighbours).
   const shared: Map<number, number>[] = Array.from({ length: k }, () => new Map());
-  for (let h = 0; h < 3 * nt; h++) { const a = region[(h / 3) | 0], b = region[(across[h] / 3) | 0]; if (a !== b) shared[a].set(b, (shared[a].get(b) ?? 0) + 1); }
+  // (Never across a group's edge: a fill patch stays its own.)
+  for (let h = 0; h < 3 * nt; h++) { const o = across[h]; if (o < 0) continue; const t = (h / 3) | 0, u = (o / 3) | 0; if (G && G[t] !== G[u]) continue; const a = region[t], b = region[u]; if (a !== b) shared[a].set(b, (shared[a].get(b) ?? 0) + 1); }
   let left = k;
   for (const r of order) {
     if (left <= maximum) break;
@@ -224,18 +243,18 @@ function halve(across: Int32Array, nt: number): Uint32Array {
   let head = 0, tail = 0; queue[tail++] = 0; region[0] = 0;
   while (head < tail && tail < half) {
     const t = queue[head++];
-    for (let k = 0; k < 3 && tail < half; k++) { const u = (across[3 * t + k] / 3) | 0; if (region[u] === 1) { region[u] = 0; queue[tail++] = u; } }
+    for (let k = 0; k < 3 && tail < half; k++) { const o = across[3 * t + k]; if (o < 0) continue; const u = (o / 3) | 0; if (region[u] === 1) { region[u] = 0; queue[tail++] = u; } }
   }
   return region;
 }
 /** Faces (each edge-connected piece of a region, numbered by first triangle), polyline edges and vertices; built and checked. */
-function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array, prefix = id): Brep {
+function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array, G: Int32Array | null, open: boolean, prefix = id): Brep {
   const nt = I.length / 3, nv = P.length / 3, piece = new Uint32Array(nt).fill(UNSET), queue = new Int32Array(nt);
   let faces = 0;
   for (let s = 0; s < nt; s++) {
     if (piece[s] !== UNSET) continue;
     let head = 0, tail = 0; queue[tail++] = s; piece[s] = faces;
-    while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const u = (across[3 * t + k] / 3) | 0; if (piece[u] === UNSET && region[u] === region[t]) { piece[u] = faces; queue[tail++] = u; } } }
+    while (head < tail) { const t = queue[head++]; for (let k = 0; k < 3; k++) { const o = across[3 * t + k]; if (o < 0) continue; const u = (o / 3) | 0; if (piece[u] === UNSET && region[u] === region[t]) { piece[u] = faces; queue[tail++] = u; } } }
     faces++;
   }
   const w: Walk = { I, across, piece, nt };
@@ -243,9 +262,11 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
   const corner = new Uint8Array(nv), degree = new Uint16Array(nv), pairAt = new Float64Array(nv).fill(-1);
   for (let h = 0; h < 3 * nt; h++) {
     if (!boundary(w, h)) continue;
-    const v = I[h], a = piece[(h / 3) | 0], b = piece[(across[h] / 3) | 0], p = a < b ? a * faces + b : b * faces + a;
-    if (degree[v] < 65535) degree[v]++;
-    if (pairAt[v] < 0) pairAt[v] = p; else if (pairAt[v] !== p) corner[v] = 1;
+    // (An open edge — a sheet's boundary — pairs its face with "nothing", faces; it has no twin, so it is counted at
+    // its far end too, as the twin would be: a vertex along an open boundary is then no corner.)
+    const a = piece[(h / 3) | 0], b = across[h] < 0 ? faces : piece[(across[h] / 3) | 0], p = a < b ? a * (faces + 1) + b : b * (faces + 1) + a;
+    markEnd(I[h], p, degree, pairAt, corner);
+    if (across[h] < 0) markEnd(I[nextHalf(h)], p, degree, pairAt, corner);
   }
   for (let v = 0; v < nv; v++) if (degree[v] && degree[v] !== 2) corner[v] = 1;
   // Edges: chains of boundary half-edges from corner to corner, traced on one face (forward there,
@@ -259,7 +280,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
       const pts = [I[from]]; let h = from; from = -1;
       for (let guard = 0; ; guard++) {
         if (guard > 3 * nt) throw new MeshBrepError('a region boundary does not close');
-        edgeOf[h] = edges.length; edgeOf[across[h]] = edges.length;
+        edgeOf[h] = edges.length; if (across[h] >= 0) edgeOf[across[h]] = edges.length;
         const end = I[nextHalf(h)]; pts.push(end);
         if (corner[end]) break;
         const g = nextBoundary(w, h);
@@ -301,19 +322,26 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
     if (!loops.length) throw new MeshBrepError(`region ${f} has no boundary`);
     // (The longest boundary is the outer loop: on a facet face, which is "outer" is a convention only.)
     loops.sort((a, b) => b.length - a.length);
-    inputs.push({ id: `${id}_f${f}`, name: `${prefix}.region${f}`, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
+    // (A repair's fill patch k keeps its own name: shown as what it is, a guess.)
+    const g = G ? G[tris[f][0]] : -1;
+    inputs.push({ id: `${id}_f${f}`, name: g >= 0 ? `${prefix}.fill${g}.region${f}` : `${prefix}.region${f}`, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
       loops: loops.map((l, k) => ({ kind: k === 0 ? 'outer' as const : 'inner' as const, uses: l.uses })) });
   }
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...vertexIds].sort((a, b) => a[0] - b[0]).map(([v, s]) => ({ id: s, point: [P[3 * v], P[3 * v + 1], P[3 * v + 2]] as Point })), edges,
-    bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces: inputs, closed: true }] }] });
+    bodies: [{ id, kind: open ? 'sheet' : 'solid', shells: [{ id: `${id}_shell`, faces: inputs, closed: !open }] }] });
   assertValidBrep(brep);
   return brep;
 }
 
+/** A boundary edge's end at v, of face pair p: counted, and v a corner when its pairs differ. */
+function markEnd(v: number, p: number, degree: Uint16Array, pairAt: Float64Array, corner: Uint8Array): void {
+  if (degree[v] < 65535) degree[v]++;
+  if (pairAt[v] < 0) pairAt[v] = p; else if (pairAt[v] !== p) corner[v] = 1;
+}
 interface Walk { readonly I: Uint32Array; readonly across: Int32Array; readonly piece: Uint32Array; readonly nt: number }
 const nextHalf = (h: number) => h - h % 3 + (h % 3 + 1) % 3;
 /** Whether the triangle across half-edge h is in another face. */
-const boundary = (w: Walk, h: number) => w.piece[(h / 3) | 0] !== w.piece[(w.across[h] / 3) | 0];
+const boundary = (w: Walk, h: number) => w.across[h] < 0 || w.piece[(h / 3) | 0] !== w.piece[(w.across[h] / 3) | 0];
 /** The boundary half-edge of the same face leaving where h ends: round that vertex inside the face, across interior edges. */
 function nextBoundary(w: Walk, h: number): number {
   let g = nextHalf(h);

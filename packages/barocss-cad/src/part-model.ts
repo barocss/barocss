@@ -25,7 +25,8 @@ import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
-import { facetBrepFromTriangles, facetBrepsFromTriangles } from './facet-brep.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
+import { selfIntersections } from './mesh-repair.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
@@ -121,7 +122,11 @@ export type CadPartFeature = Base & (
    * `positions` and `indices` may be typed arrays (Float64Array or Float32Array; Uint32Array): taken as they are —
    * not copied, frozen or written into the reuse key (hashed once per array); never changed after they are passed.
    */
-  | { readonly kind: 'mesh'; readonly positions: readonly number[] | Float64Array | Float32Array; readonly indices: readonly number[] | Uint32Array; readonly representation?: 'facets' | 'planar'; readonly each?: boolean }
+  /**
+   * `open` (facets): an open mesh taken as a sheet body (what repair could not close: no volume, no Booleans), never
+   * assumed. `groups`: per triangle, the repair fill patch it belongs to (≥ 0, its own faces `….fill<k>.region<f>`) or −1.
+   */
+  | { readonly kind: 'mesh'; readonly positions: readonly number[] | Float64Array | Float32Array; readonly indices: readonly number[] | Uint32Array; readonly representation?: 'facets' | 'planar'; readonly each?: boolean; readonly open?: boolean; readonly groups?: readonly number[] | Int32Array }
   /**
    * A modelled ISO metric thread (faceted helix, one solid with no Boolean): a rod of `length` below
    * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
@@ -261,6 +266,7 @@ let facetLimit = FACET_EXPLODE_TRIANGLES;
 function explodeFacets(b: Brep, at: string, what: string): Brep {
   if (!b.faces.some(isFacetFace)) return b;
   if (!b.faces.every(isFacetFace)) throw new CadPartError('CAPABILITY', at, `${what} on a body mixing mesh and other faces is not supported yet`);
+  if (b.bodies.some(x => x.kind === 'sheet')) throw new CadPartError('GEOMETRY', at, `${what} need a closed solid: this mesh is open (a sheet)`);
   let count = 0; for (const f of b.faces) count += (f.surface as FacetPatch).indices.length / 3;
   if (count > facetLimit) throw new CadPartError('CAPABILITY', at, count <= FACET_EXPLODE_TRIANGLES
     ? `${what} on meshes over ${facetLimit} triangles are not previewed (this mesh has ${count}): apply to run it (up to ${FACET_EXPLODE_TRIANGLES})`
@@ -272,6 +278,10 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
     for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
     for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
   }
+  // (A mesh crossing itself has no inside to cut: refused with where, D46. Its faces' vertices are welded first.)
+  const welded = weldVertices(positions, positions.length / 3, 1e-9 * Math.max(1, ...positions.map(Math.abs))), wi = Uint32Array.from(indices, v => welded.remap[v]);
+  const crossing = selfIntersections(welded.P, wi);
+  if (crossing.count) throw new CadPartError('GEOMETRY', at, `${what} need a mesh that does not cross itself: this one does in ${crossing.count} place${crossing.count > 1 ? 's' : ''} (near ${crossing.at[0].map(x => +x.toFixed(2)).join(', ')}); repair does not fix that yet`);
   try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: count }); }
   catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
 }
@@ -307,7 +317,7 @@ function admit(input: unknown): CadPartDocument {
   }
   return copyDocument(doc) as CadPartDocument;
 }
-const isMeshArray = (v: unknown): v is Float64Array | Float32Array | Uint32Array => v instanceof Float64Array || v instanceof Float32Array || v instanceof Uint32Array;
+const isMeshArray = (v: unknown): v is Float64Array | Float32Array | Uint32Array | Int32Array => v instanceof Float64Array || v instanceof Float32Array || v instanceof Uint32Array || v instanceof Int32Array;
 /** A deep copy of the document's JSON values; a mesh's typed arrays shared as they are (they are never changed). */
 function copyDocument(v: unknown): unknown {
   if (isMeshArray(v)) return v;
@@ -330,7 +340,7 @@ function meshArrayOk(v: unknown, what: 'positions' | 'indices', nv = 0): boolean
 }
 /** A typed array's reuse key: its kind, length and an FNV-1a hash of its bytes, worked out once per array. */
 const arrayHashes = new WeakMap<object, string>();
-function hashOfArray(a: Float64Array | Float32Array | Uint32Array): string {
+function hashOfArray(a: Float64Array | Float32Array | Uint32Array | Int32Array): string {
   let h = arrayHashes.get(a);
   if (h === undefined) {
     const bytes = new Uint32Array(a.buffer, a.byteOffset, a.byteLength >> 2);
@@ -818,10 +828,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const nv = (P as ArrayLike<number>).length / 3;
       if (!meshArrayOk(I, 'indices', nv)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
       if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
+      if (f.open !== undefined && typeof f.open !== 'boolean') fail('INPUT', 'open must be true or false');
+      const G = f.groups as unknown;
+      if (G !== undefined && (!(Array.isArray(G) || G instanceof Int32Array) || (G as ArrayLike<number>).length * 3 !== (I as ArrayLike<number>).length)) fail('INPUT', 'groups must give one number a triangle');
       // (A planar mesh solid — a face per flat group — stays under its own, lower limit: its faces are B-rep faces.)
       if (f.representation !== 'facets' && (I as ArrayLike<number>).length / 3 > CadPartLimits.planarMeshTriangles) fail('INPUT', `a planar mesh solid takes at most ${CadPartLimits.planarMeshTriangles} triangles (import it as facets)`);
       return () => {
-        const facets = f.representation === 'facets', opts = { id: at, maximumTriangles: CadPartLimits.meshTriangles };
+        const facets = f.representation === 'facets', opts = { id: at, maximumTriangles: CadPartLimits.meshTriangles, ...(f.open ? { open: true } : {}), ...(G !== undefined ? { groups: G as ArrayLike<number> } : {}) };
         try {
           if (facets && f.each) return many(facetBrepsFromTriangles(P as ArrayLike<number>, I as ArrayLike<number>, opts).map(brep => ({ kind: 'brep' as const, brep })));
           return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as ArrayLike<number>, I as ArrayLike<number>, opts) });
@@ -1428,7 +1441,11 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
-    massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
+    massProperties(density: number) {
+      // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
+      if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');
+      return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
+    },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
     exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
     validate() { return validated ??= checkBrep(brep, { strict: true }); },
