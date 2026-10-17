@@ -53,6 +53,8 @@ interface PFace {
   min: Point; max: Point; cuts: [V, V][]; coplanar: number[]; name?: string;
   /** The plane in binary64: normal, offset, |normal| and the face's reach from the origin (for error bounds). */
   nf?: Point; of?: number; nn?: number; reach?: number;
+  /** The rings in binary64, projected on the face's (i, j) plane (made when first needed). */
+  flat?: Float64Array[];
 }
 /** A persistent name without its `#k` piece number. */
 export const baseName = (name: string) => name.replace(/#\d+$/, '');
@@ -173,7 +175,9 @@ function classify(p: V, normal: V, others: PFace[]): Where {
     const r = RAYS[k], rf = RAYS_F[k];
     let crossings = 0, degenerate = false;
     for (const g of others) {
-      if (g.nf && missed(g, px, py, pz, pr, rf)) continue;
+      const clear = g.nf ? crossing(g, px, py, pz, pr, rf) : 0;
+      if (clear < 0) continue;
+      if (clear > 0) { crossings++; continue; }
       const denom = vdot(g.normal, r), dist = sub(g.offset, vdot(g.normal, p));
       if (denom.n === 0n) { if (dist.n === 0n) { degenerate = true; break; } continue; }
       const t = div(dist, denom); if (sgn(t) <= 0) continue;
@@ -185,36 +189,54 @@ function classify(p: V, normal: V, others: PFace[]): Where {
   }
   throw new BrepError('GEOMETRY', 'polyhedral Boolean: every classification ray was degenerate');
 }
-/** Whether the ray p + t·r (t > 0) clearly misses face g: crossing its plane clearly behind p, or clearly outside its box. */
-function missed(g: PFace, px: number, py: number, pz: number, pr: number, r: Point): boolean {
+/**
+ * Whether the ray p + t·r (t > 0) clearly misses face g (−1: crossing its plane clearly behind p, or clearly
+ * outside the face) or clearly crosses it (1: the crossing point clearly inside, away from every edge), or
+ * 0 when only the exact test can tell.
+ */
+function crossing(g: PFace, px: number, py: number, pz: number, pr: number, r: Point): number {
   const n = g.nf!, denom = n[0] * r[0] + n[1] * r[1] + n[2] * r[2], dist = g.of! - (n[0] * px + n[1] * py + n[2] * pz);
   // (A ray nearly in the plane, or a point nearly on it, is left to the exact test.)
-  if (Math.abs(denom) < 1e-6 * g.nn! || Math.abs(dist) <= slack(g, pr)) return false;
+  if (Math.abs(denom) < 1e-6 * g.nn! || Math.abs(dist) <= slack(g, pr)) return 0;
   const t = dist / denom;
-  if (t < 0) return true;
+  if (t < 0) return -1;
   const x = px + t * r[0], y = py + t * r[1], z = pz + t * r[2], m = 1e-7 * (1 + t) * Math.max(pr, g.reach!);
-  return x < g.min[0] - m || x > g.max[0] + m || y < g.min[1] - m || y > g.max[1] + m || z < g.min[2] - m || z > g.max[2] + m;
+  if (x < g.min[0] - m || x > g.max[0] + m || y < g.min[1] - m || y > g.max[1] + m || z < g.min[2] - m || z > g.max[2] + m) return -1;
+  // (The point's error is at most m in 3D, so at most m in the projection: a point farther than m from every
+  // edge is on the side binary64 says.)
+  const c = [x, y, z];
+  return insideFlat(g, c[g.i], c[g.j], m);
+}
+/** 1 inside, −1 outside the face's projected rings, 0 within `m` of an edge. */
+function insideFlat(g: PFace, x: number, y: number, m: number): number {
+  if (!g.flat) g.flat = g.rings.map(ring => { const out = new Float64Array(2 * ring.length); ring.forEach((p, k) => { out[2 * k] = num(p[g.i]); out[2 * k + 1] = num(p[g.j]); }); return out; });
+  let inside = false;
+  for (const ring of g.flat) {
+    const len = ring.length / 2;
+    for (let k = 0; k < len; k++) {
+      const ax = ring[2 * k], ay = ring[2 * k + 1], b = (k + 1) % len, bx = ring[2 * b], by = ring[2 * b + 1];
+      const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey, s = l2 > 0 ? Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / l2)) : 0;
+      if (Math.hypot(x - ax - s * ex, y - ay - s * ey) <= m) return 0;
+      if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+    }
+  }
+  return inside ? 1 : -1;
 }
 
 /** A + B, A ∩ B or A − B for B-reps with planar faces and straight edges. */
 export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanOperation, options: { readonly id?: string } = {}): Brep {
   const A = facesOf(a, 0), B = facesOf(b, 1);
   // 1. Cuts.
-  const near = (f: PFace, g: PFace) => [0, 1, 2].every(k => f.min[k] <= g.max[k] + 1e-9 * (1 + Math.abs(g.max[k])) && g.min[k] <= f.max[k] + 1e-9 * (1 + Math.abs(f.max[k])));
-  for (const fa of A) for (const fb of B) {
-    if (!near(fa, fb)) continue;
-    const D = vcross(fa.normal, fb.normal);
-    if (vzero(D)) {
-      if (cmp(mul(fa.offset, fb.normal[fa.axis]), mul(fb.offset, fa.normal[fa.axis])) !== 0) continue; // parallel, apart
-      for (const r of fb.rings) r.forEach((p, k) => fa.cuts.push([p, r[(k + 1) % r.length]]));
-      for (const r of fa.rings) r.forEach((p, k) => fb.cuts.push([p, r[(k + 1) % r.length]]));
-      continue;
-    }
-    // A point on both planes: solve Na·x = da, Nb·x = db, D·x = 0 (Cramer).
-    const det = vdot(D, D), P0 = vscale(vadd(vscale(vcross(fb.normal, D), fa.offset), vscale(vcross(D, fa.normal), fb.offset)), div({ n: 1n, d: 1n }, det));
-    for (const [lo, hi] of overlap(intervals(fa, P0, D), intervals(fb, P0, D))) {
-      const s: [V, V] = [vadd(P0, vscale(D, lo)), vadd(P0, vscale(D, hi))]; fa.cuts.push(s); fb.cuts.push(s);
-    }
+  // (Pairs whose boxes meet, found through B's faces sorted by their lowest x; each A face's partners are
+  // then taken in B's order, so the cuts come in the order they always did.)
+  const byLowX = B.map((_, k) => k).sort((x, y) => B[x].min[0] - B[y].min[0]), lowX = Float64Array.from(byLowX, k => B[k].min[0]);
+  let widest = 0; for (const f of B) widest = Math.max(widest, f.max[0] - f.min[0]);
+  const partners: number[] = [];
+  for (const fa of A) {
+    partners.length = 0;
+    for (let at = lowerBound(lowX, fa.min[0] - widest - 1e-9 * (1 + Math.abs(fa.min[0]) + widest)); at < byLowX.length && lowX[at] <= fa.max[0] + 1e-9 * (1 + Math.abs(fa.max[0])); at++) if (near(fa, B[byLowX[at]])) partners.push(byLowX[at]);
+    partners.sort((x, y) => x - y);
+    for (const k of partners) cutPair(fa, B[k]);
   }
   // 2–3. Pieces and their classes.
   type Piece = { face: PFace; loops: V[][]; where: Where };
@@ -256,18 +278,22 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
   for (const f of faces) for (const l of f.loops) for (const p of l) vertex.set(vkey(p), p);
   // (Vertices sorted by x: an edge looks only at those within its x range, then its box, then exactly.)
   const all = [...vertex.values()], nums = new Map(all.map(p => [vkey(p), vnum(p)]));
-  const byX = all.map(p => ({ p, n: nums.get(vkey(p))! })).sort((a, b) => a.n[0] - b.n[0]), xs = Float64Array.from(byX, v => v.n[0]);
+  const byX = all.map(p => ({ p, k: vkey(p), n: nums.get(vkey(p))! })).sort((a, b) => a.n[0] - b.n[0]), xs = Float64Array.from(byX, v => v.n[0]);
   const split = (l: V[]): V[] => l.flatMap((p, k) => {
-    const r = l[(k + 1) % l.length], pn = nums.get(vkey(p))!, rn = nums.get(vkey(r))!, d = vsub(r, p), dd = vdot(d, d);
+    const r = l[(k + 1) % l.length], pk = vkey(p), rk = vkey(r), pn = nums.get(pk)!, rn = nums.get(rk)!;
+    let d: V | null = null, dd: Q = ZERO;
     const lo = [0, 1, 2].map(i => Math.min(pn[i], rn[i]) - 1e-9 * (1 + Math.abs(pn[i]) + Math.abs(rn[i]))), hi = [0, 1, 2].map(i => Math.max(pn[i], rn[i]) + 1e-9 * (1 + Math.abs(pn[i]) + Math.abs(rn[i])));
     const inner: V[] = [];
     for (let at = lowerBound(xs, lo[0]); at < xs.length && xs[at] <= hi[0]; at++) {
-      const { p: v, n: vn } = byX[at];
-      if (vn[1] < lo[1] || vn[1] > hi[1] || vn[2] < lo[2] || vn[2] > hi[2] || offLine(pn, rn, vn)) continue;
+      const { p: v, n: vn, k: vk } = byX[at];
+      if (vk === pk || vk === rk || vn[1] < lo[1] || vn[1] > hi[1] || vn[2] < lo[2] || vn[2] > hi[2] || offLine(pn, rn, vn)) continue;
+      if (!d) { d = vsub(r, p); dd = vdot(d, d); }
       const w = vsub(v, p); if (!vzero(vcross(d, w))) continue;
       const t = div(vdot(w, d), dd); if (sgn(t) > 0 && cmp(t, { n: 1n, d: 1n }) < 0) inner.push(v);
     }
-    inner.sort((u, v) => cmp(vdot(vsub(u, p), d), vdot(vsub(v, p), d)));
+    if (!inner.length) return [p];
+    const along = d!;
+    inner.sort((u, v) => cmp(vdot(vsub(u, p), along), vdot(vsub(v, p), along)));
     return [p, ...inner];
   });
   const loopsOf = faces.map(f => f.loops.map(split));
@@ -322,6 +348,26 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
     bodies: bodies.map(bd => ({ id: bd.id, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(fi => ({ id: 'f' + fi, name: faceNames[fi], surface: planeSurface('p' + fi, faces[fi].normal, loopsOf[fi].flat().map(vnum)), sense: 'forward' as const,
         loops: faceUses[fi].map((uses, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses })) })) })) })) });
+}
+/** The cuts faces fa and fb make in each other: along their planes' line, or along each other's edges when coplanar. */
+function cutPair(fa: PFace, fb: PFace): void {
+  const D = vcross(fa.normal, fb.normal);
+  if (vzero(D)) {
+    if (cmp(mul(fa.offset, fb.normal[fa.axis]), mul(fb.offset, fa.normal[fa.axis])) !== 0) return; // parallel, apart
+    for (const r of fb.rings) r.forEach((p, k) => fa.cuts.push([p, r[(k + 1) % r.length]]));
+    for (const r of fa.rings) r.forEach((p, k) => fb.cuts.push([p, r[(k + 1) % r.length]]));
+    return;
+  }
+  // A point on both planes: solve Na·x = da, Nb·x = db, D·x = 0 (Cramer).
+  const det = vdot(D, D), P0 = vscale(vadd(vscale(vcross(fb.normal, D), fa.offset), vscale(vcross(D, fa.normal), fb.offset)), div({ n: 1n, d: 1n }, det));
+  for (const [lo, hi] of overlap(intervals(fa, P0, D), intervals(fb, P0, D))) {
+    const s: [V, V] = [vadd(P0, vscale(D, lo)), vadd(P0, vscale(D, hi))]; fa.cuts.push(s); fb.cuts.push(s);
+  }
+}
+/** Whether the boxes of two faces meet (with a relative margin). */
+function near(f: PFace, g: PFace): boolean {
+  for (let k = 0; k < 3; k++) if (f.min[k] > g.max[k] + 1e-9 * (1 + Math.abs(g.max[k])) || g.min[k] > f.max[k] + 1e-9 * (1 + Math.abs(f.max[k]))) return false;
+  return true;
 }
 /** Whether v is clearly off the line through p and r (binary64 distance far past rounding). */
 function offLine(p: Point, r: Point, v: Point): boolean {

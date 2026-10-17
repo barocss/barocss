@@ -3,7 +3,7 @@
 // as it ends (time, heap, sizes, or the error it stopped at), so a step that hangs is told by the runner.
 // Run through scripts/bench-mesh.mjs (one fixture per process, for its peak memory): pnpm bench:mesh.
 import { serialize } from 'node:v8';
-import { booleanPolyhedra, brepFromTriangles, CadPartLimits, encodeBinaryStl, readStl, type Brep } from '@barocss/cad';
+import { booleanPolyhedra, brepFromTriangles, brepMassProperties, CadPartLimits, encodeBinaryStl, readStl, type Brep } from '@barocss/cad';
 import { bodyMesh, type DisplayMesh } from '../../src/engine/mesh';
 import { meshInMM } from '../../src/engine/meshImport';
 import { prepareGeometry, rayTriangles, type PreparedGeometry } from '../../../../packages/barocss-gpu/src/viewer/geometry';
@@ -70,7 +70,7 @@ if (brep && booleans !== 'none') {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < xs.length; v += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], xs[v + k]); hi[k] = Math.max(hi[k], xs[v + k]); }
   const mid = [0, 1, 2].map(k => (lo[k] + hi[k]) / 2), span = [0, 1, 2].map(k => hi[k] - lo[k]);
-  if (booleans !== 'split') step('union with a box', () => booleanPolyhedra(b, boxBrep('box', [hi[0] - 0.15 * span[0], mid[1] - 0.1 * span[1], mid[2] - 0.6 * span[2]], [hi[0] + 0.1 * span[0], mid[1] + 0.1 * span[1], mid[2] + 0.6 * span[2]]), 'union', { id: 'u' }), r => ({ faces: r.faces.length }));
-  if (booleans !== 'union') step('split at y = mid (one side)', () => booleanPolyhedra(b, boxBrep('half', [lo[0] - 1, mid[1] + 1e-3 * span[1], lo[2] - 1], [hi[0] + 1, hi[1] + 1, hi[2] + 1]), 'difference', { id: 's' }), r => ({ faces: r.faces.length }));
+  if (booleans !== 'split') step('union with a box', () => booleanPolyhedra(b, boxBrep('box', [hi[0] - 0.15 * span[0], mid[1] - 0.1 * span[1], mid[2] - 0.6 * span[2]], [hi[0] + 0.1 * span[0], mid[1] + 0.1 * span[1], mid[2] + 0.6 * span[2]]), 'union', { id: 'u' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volumeMM3.toFixed(2) }));
+  if (booleans !== 'union') step('split at y = mid (one side)', () => booleanPolyhedra(b, boxBrep('half', [lo[0] - 1, mid[1] + 1e-3 * span[1], lo[2] - 1], [hi[0] + 1, hi[1] + 1, hi[2] + 1]), 'difference', { id: 's' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volumeMM3.toFixed(2) }));
 } else if (booleans !== 'none') { skip('union with a box', 'no B-rep'); skip('split at y = mid (one side)', 'no B-rep'); }
 console.log(JSON.stringify({ step: 'end', ok: true, info: true, peakHeapMB: Math.round(peakHeap / 2 ** 20), maxRSSMB: Math.round(process.resourceUsage().maxRSS / 1024) }));
