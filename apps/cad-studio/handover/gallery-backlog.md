@@ -44,7 +44,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B14 Curves and surfaces made in the app: draw a curve, take a sketch or model edge as a curve (unlocks #2080, #2081, #2083, #2086, #2087, #2090)
 - [x] B15 Direct tools: surface × surface curve, curve × plane points, point in / out (#2052, #2074, #2083, #2073) — the exact band between two plane cuts (#2082) is left to Extract region (a UV window) for now
 - [x] B16 Drag control points in the viewport (#2029, #2090) — 0d26ea88e
-- [ ] B17 Fasteners as assembly instances; cosmetic thread drawn in the viewport and drawings; countersunk screws (#2092)
+- [x] B17 Fasteners as assembly instances; cosmetic thread drawn in the viewport and drawings; countersunk screws (#2092) — 2da7b7f2f, c23912345, bfc1d538b, 97decca68; also a hole’s whole region shown see-through (82efbc619)
 - [ ] B18 Oblique split plane (#2072)
 - [ ] B19 Texture maps (#2070)
 - [ ] B20 Shared part definitions and explicit reference update (#2048)
