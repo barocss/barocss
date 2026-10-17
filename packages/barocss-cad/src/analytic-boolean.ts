@@ -167,8 +167,10 @@ function surfaceOf(face: BrepFace, tol: number): Surf {
   const nParam = unit(cross(sub(evaluateSurface(S, (u0 + u1) / 2 + du, (v0 + v1) / 2), centre), sub(evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2 + dv), centre)));
   const outward = scale(nParam, sign);
   if (S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2) {
-    const [[p00], [p10]] = S.controlPoints as P3[][], e1 = unit(sub(p10, p00)), n = outward, e2 = cross(n, e1);
-    const p11 = S.controlPoints[1][1] as P3;
+    // (The normal from the corners, ∂u × ∂v at the centre: a difference quotient over a sliver's width loses
+    // digits, and a tilted plane no longer closes the shell.)
+    const [[p00, p01], [p10, p11]] = S.controlPoints as P3[][], e1 = unit(sub(p10, p00));
+    const n = scale(unit(cross(add(sub(p10, p00), sub(p11, p01)), add(sub(p01, p00), sub(p11, p10)))), sign), e2 = cross(n, e1);
     if (Math.abs(dot(sub(p11, p00), n)) > tol) throw new BrepError('GEOMETRY', `analytic Boolean: face ${face.id} is a twisted bilinear patch`);
     return { kind: 'plane', o: p00, n, e1, e2: unit(e2) };
   }
@@ -1103,6 +1105,16 @@ function fitPieces(k: Curve3, tol: number, depth = 0): Curve3[] {
   return [...fitPieces({ ...k, t1: m }, tol, depth + 1), ...fitPieces({ ...k, t0: m }, tol, depth + 1)];
 }
 
+/** A region's boundary length (its curves by 16 chords each). */
+function regionLength(region: CurveRegion2): number {
+  let total = 0;
+  for (const ring of [region.outer, ...region.holes]) for (const g of ring) {
+    let last = segAtAny(g, 0);
+    for (let k = 1; k <= 16; k++) { const q = segAtAny(g, k / 16); total += Math.hypot(q[0] - last[0], q[1] - last[1]); last = q; }
+  }
+  return total;
+}
+
 function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
@@ -1191,15 +1203,25 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   const asFaces = (members: number[]): GFace[] => members.map(i => ({ ...pieces[i].face, region: pieces[i].region, out: pieces[i].out }));
   // With general surfaces the volume is approximate (domain-triangulated pieces): its sign comes from
   // whether a point just outside a face lies within the shell (a cavity's faces face its void).
+  const reach = P.reduce((r, x) => Math.max(r, len(x)), 1);
   const groups = [...shells.values()].map(m => {
     const v = m.reduce((acc, i) => acc + volume(i), 0);
-    if (!m.some(i => pieces[i].face.surf.kind === 'nurbs')) return { members: m, volume: v };
+    // (The pieces' traced boundaries are good to the tolerance, so the volume about the origin is good to about
+    // tol × reach × their length: a shell thinner than that — a sliver where an edge grazes a wall — has no
+    // sign of its own. Its nesting decides it below.)
+    if (!m.some(i => pieces[i].face.surf.kind === 'nurbs')) return { members: m, volume: v, unsure: Math.abs(v) <= tol * reach * m.reduce((acc, i) => acc + regionLength(pieces[i].region), 0) };
     // (A point by a seam or an edge can be misjudged: several pieces vote, the volume's sign breaks a tie.)
     const faces = asFaces(m), voters = m.filter((_, k) => k % Math.max(1, Math.floor(m.length / 7)) === 0).slice(0, 7);
     const votes = voters.reduce((acc, i) => { const p = pieces[i], x = p.key, n = normalOut({ ...p.face, out: p.out }, x); return acc + (classify(add(x, scale(n, 1000 * tol)), null, faces, tol) === 'in' ? 1 : -1); }, 0);
     const inward = votes > 0 || (votes === 0 && v < 0);
-    return { members: m, volume: (inward ? -1 : 1) * Math.max(Math.abs(v), tol) };
+    return { members: m, volume: (inward ? -1 : 1) * Math.max(Math.abs(v), tol), unsure: false };
   });
+  // A shell without a sure sign is a cavity when an odd number of the other shells enclose it, else an outer one.
+  for (const g of groups) {
+    if (!g.unsure) continue;
+    const x = pieces[g.members[0]].key, depth = groups.filter(o => o !== g && classify(x, null, asFaces(o.members), tol) === 'in').length;
+    g.volume = (depth % 2 ? -1 : 1) * Math.max(Math.abs(g.volume), tol * tol * tol);
+  }
   const bodies = groups.filter(g => g.volume > 0).map(g => ({ outer: g, cavities: [] as typeof groups }));
   for (const c of groups.filter(g => g.volume <= 0)) {
     const x = pieces[c.members[0]].key; let best = -1;
