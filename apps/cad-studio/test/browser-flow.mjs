@@ -1502,6 +1502,11 @@ try {
     assert.match(await page.locator('.palette-list').innerText(), /Select edges of one body to round/);
     await press('Escape'); await page.click('[aria-label="Toggle light or dark theme"]');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+    // A light look at a part with a selection, the browser open, the cube and a command running.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top'))); await page.waitForTimeout(300); await snap('light-selected');
+    await press('h'); await hudReady(); await page.waitForTimeout(300); await snap('light-command'); await press('Escape');
   });
 } finally {
   await browser.close(); await server.close();

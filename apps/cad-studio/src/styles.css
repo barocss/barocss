@@ -76,7 +76,7 @@ button { font: inherit; color: inherit; }
 .tool.on { background: var(--accent); color: var(--accent-ink); }
 .tool.off { opacity: 0.4; }
 .tool.tiny { width: 22px; height: 22px; }
-.toolbar { position: absolute; top: 50px; left: 12px; width: 44px; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 120px); overflow-y: auto; }
+.toolbar { position: absolute; top: 50px; left: 12px; width: 44px; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
 .tool-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .sep { height: 1px; width: 26px; background: var(--line); margin: 4px 0; }
 
@@ -326,3 +326,6 @@ button.chip.snap:hover { background: #3a3c41; }
 .ol-caret { width: 16px; height: 22px; flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
 .ol-caret:disabled { visibility: hidden; }
 .ol.ol-step { display: flex; align-items: center; gap: 6px; width: calc(100% - 22px); margin-left: 22px; font-size: 11px; color: var(--text-2); }
+/* A short window: the rail's buttons a little smaller, so the whole set fits (else it scrolls). */
+@media (max-height: 960px) { .toolbar .tool { width: 30px; height: 30px; } .toolbar .tool .cad-icon { width: 18px; height: 18px; } .toolbar .sep { margin: 2px 0; } }
+@media (max-height: 820px) { .toolbar .tool { width: 28px; height: 26px; } .toolbar .tool .cad-icon { width: 16px; height: 16px; } }
