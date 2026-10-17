@@ -17,14 +17,15 @@ import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
-import { checkRequirement, checkSpec, expectedOf, type Requirement } from './spec';
+import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
 /** The part as the chat turn has built it so far. */
 /** `images`: traces of the images attached in this conversation (image 1 first). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[] }
+/** `policy`: what the tools remember across a session's checks (chat/spec.ts). */
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -96,7 +97,7 @@ function features(doc: StudioDoc) {
   return doc.nodes.map((n, i) => ({ index: i, label: featureLabel(n, i, doc.nodes), node: n }));
 }
 
-const MUTATORS = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
+const MUTATORS = new Set(['set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -106,6 +107,14 @@ async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, wha
   const r = await evaluate(next);
   if (!r) return fail(state, 'The evaluation was superseded; try again.');
   if (!r.ok) return fail(state, `${r.error.title}. ${r.error.hint}`, { detail: r.error.detail, kept: 'the part is unchanged' });
+  // (A change breaking a hard requirement that passed at the last check is refused, unless it says why.)
+  const broken: string[] = [];
+  if (state.policy?.passedHard.length && !because) for (const id of state.policy.passedHard) {
+    const req = next.requirements?.find(q => q.id === id); if (!req) continue;
+    const o = await runCheck(next, r.bodies, evaluate, req.check);
+    if (o.status === 'fail') broken.push(`${id} ("${req.source}": measured ${JSON.stringify(o.measured)}, expected ${expectedOf(req.check)})`);
+  }
+  if (broken.length) return fail(state, `This change breaks hard requirement${broken.length > 1 ? 's' : ''} that passed: ${broken.join('; ')}. Change it otherwise, or make it anyway with "because": why.`, { kept: 'the part is unchanged' });
   // (An accepted edit, its names matched against the document before it: the signatures follow the part.)
   if (refresh) next = await refreshSignatures(next, r.bodies, evaluate);
   const entries = r.bodies.reduce((s, b) => s + b.mesh.faces.length + b.mesh.edges.length, 0);
@@ -243,6 +252,14 @@ export function surfaceAt(outline: Pt[], centre: Pt, depth: number, p: Pt): numb
  * re-solved after it, as after a change of the base part.
  */
 export async function runTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
+  // (Every call counted; the policy rides on the state the call leaves.)
+  const policy = { ...(state.policy ?? newPolicy()) }; policy.calls++;
+  const out = await runToolCounted({ ...state, policy }, name, input, evaluate);
+  // (A refused call leaves the state as it was: the very same object, uncounted.)
+  if (out.isError) return { ...out, state };
+  return { ...out, state: { ...out.state, policy: out.state.policy ?? policy } };
+}
+async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
     const out = await runAssemblyTool(state, name, args, evaluate);
@@ -274,9 +291,12 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
  * 'detailed' them all (paged), else ('auto') them when the part is small. Set per call from `response_format`.
  */
 let responseFormat: 'auto' | 'concise' | 'detailed' = 'auto';
+/** The reason a change may break a passing hard requirement (`because`), per call. */
+let because = '';
 async function runPartTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
   responseFormat = args.response_format === 'concise' || args.response_format === 'detailed' ? args.response_format : 'auto';
+  because = typeof args.because === 'string' ? args.because : '';
   if ('__invalid_json' in args) return fail(state, 'The tool input was not valid JSON; send it again.');
   switch (name) {
     case 'get_part_summary': {
@@ -490,8 +510,18 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     }
     case 'check_spec': {
       if (!state.doc.requirements?.length) return fail(state, 'There are no requirements yet: set_requirements first, from the brief.');
-      const { outcomes: _, ...report } = await checkSpec(state.doc, state.bodies, evaluate);
-      return { state, content: json(report), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
+      const { outcomes, ...report } = await checkSpec(state.doc, state.bodies, evaluate);
+      // (validate: the suite against cheap mutants, to catch checks that cannot fail; the policy: best, rounds, hint.)
+      const validation = args.validate === true ? await validateSuite(state.doc, state.bodies, evaluate, outcomes) : undefined;
+      const turns = typeof process !== 'undefined' && process.env?.CAD_MAX_TURNS ? Number(process.env.CAD_MAX_TURNS) : undefined;
+      const { policy, out } = updatePolicy(state.policy ?? newPolicy(), state.doc, report, outcomes, turns);
+      return { state: { ...state, policy }, content: json({ ...report, ...(validation ?? {}), policy: out }), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
+    }
+    case 'restore_best': {
+      const best = state.policy?.best;
+      if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
+      if (best.hash === modelHash(state.doc)) return fail(state, 'The part is the best snapshot already.');
+      return accept(state, best.doc, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing)`);
     }
     case 'render_views': {
       const highlight = strings(args.highlight), sec = isObj(args.section) ? args.section : undefined;
@@ -650,7 +680,12 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'check_spec',
-    description: 'Runs every requirement\'s check against the part as it stands: {model_hash, summary {pass, fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}], unknowns [{req_id, why}]}; passes as counts only. A mass check on a body without a material is unknown.',
+    description: 'validate: true also runs the checks on cheap mutants (bodies scaled, parameters ±15%, a subject\'s feature suppressed, a stub box) and lists those that cannot fail (vacuous), cannot be tried (unverified) or are declared invariant. Every report carries the policy: the best snapshot, rounds without progress, a restart hint after two. Runs every requirement\'s check against the part as it stands: {model_hash, summary {pass, fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}], unknowns [{req_id, why}]}; passes as counts only. A mass check on a body without a material is unknown.',
+    input_schema: { type: 'object', properties: { validate: { type: 'boolean' } }, additionalProperties: false },
+  },
+  {
+    name: 'restore_best',
+    description: 'Puts the part back to the best snapshot check_spec has seen this session (most requirements passing, then the smallest misses): the restart point when repairs stop making progress.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
@@ -673,6 +708,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
 /** `response_format` on the tools that list the part (A2.4). */
 const RESPONSE_FORMAT = { type: 'string', enum: ['concise', 'detailed'], description: 'concise: facts and what changed only; detailed: every body\'s faces and edges (paged); default: those when the part is small.' };
 for (const t of PART_TOOLS) if (MUTATORS.has(t.name) || t.name === 'get_part_summary') (t.input_schema as { properties: Record<string, unknown> }).properties.response_format = RESPONSE_FORMAT;
+/** `because` on the tools that change the part (A3.2): why a change may break a hard requirement that passed. */
+for (const t of PART_TOOLS) if (MUTATORS.has(t.name) && t.name !== 'set_requirements') (t.input_schema as { properties: Record<string, unknown> }).properties.because = { type: 'string', description: 'Why this change may break a hard requirement that passed at the last check (else such a change is refused).' };
 
 /** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
 export const TOOLS: ToolDefinition[] = [

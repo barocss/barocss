@@ -53,3 +53,50 @@ for (const file of readdirSync(a3).filter(f => f.endsWith('.json'))) {
     assert.deepEqual(rep.unknowns.map((u: { req_id: string }) => u.req_id), c.expect.unknowns);
   });
 }
+
+test('mutation check: a check that cannot fail is vacuous, a declared invariant is not, one with too few usable mutants is unverified', async () => {
+  let s = await stateOf(rectanglePart(40, 20, 8));
+  s = (await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 20, y: 10 } }, evaluate)).state;
+  s = (await runTool(s, 'set_requirements', { requirements: [
+    { id: 'L', source: '40 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } },
+    { id: 'H', source: 'an 8 mm hole', hard: true, check: { op: '==', query: { fn: 'hole_diameter', face: { feature: 2, role: 'side0' } }, value: 8, tol: 0.01 } },
+    { id: 'Z', source: 'under 100 tall', hard: false, check: { op: '<=', query: { fn: 'bbox', axis: 'z' }, value: 100 } },
+    { id: 'ONE', source: 'one piece', hard: true, invariant: true, invariant_reason: 'one piece whatever its sizes', check: { op: '==', query: { fn: 'count_solids' }, value: 1 } },
+  ] }, evaluate)).state;
+  const rep = parse((await runTool(s, 'check_spec', { validate: true }, evaluate)).content);
+  assert.equal(rep.summary.pass, 4);
+  assert.ok(rep.mutants.built >= 4 && rep.mutants.tried <= 8, JSON.stringify(rep.mutants));
+  assert.deepEqual(rep.vacuous.map((v: { req_id: string }) => v.req_id), ['Z']);
+  assert.deepEqual(rep.invariant, [{ req_id: 'ONE', reason: 'one piece whatever its sizes' }]);
+  assert.deepEqual(rep.unverified, []);
+  // No mutant builds: every passing check is unverified, never vacuous.
+  const onlyModel = async (d: StudioDoc) => d === s.doc ? evaluate(d) : null;
+  const rep2 = parse((await runTool(s, 'check_spec', { validate: true }, onlyModel)).content);
+  assert.equal(rep2.mutants.built, 0); assert.deepEqual(rep2.vacuous, []);
+  assert.deepEqual(rep2.unverified.map((v: { req_id: string }) => v.req_id).sort(), ['H', 'L', 'Z']);
+  assert.ok(typeof rep.mutants.ms === 'number');
+});
+
+test('policy: the best snapshot, rounds without progress and a restart hint; a change breaking a passed hard requirement is refused unless it says why', async () => {
+  let s = await stateOf(rectanglePart(40, 20, 8));
+  s = (await runTool(s, 'set_requirements', { requirements: [
+    { id: 'L', source: '40 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } },
+    { id: 'T', source: 'at most 6 thick', hard: true, check: { op: '<=', query: { fn: 'bbox', axis: 'z' }, value: 6 } },
+  ] }, evaluate)).state;
+  let rep: Record<string, any> = {};
+  for (let k = 0; k < 3; k++) { const r = await runTool(s, 'check_spec', {}, evaluate); s = r.state; rep = parse(r.content); }
+  assert.deepEqual(rep.policy.rounds_without_progress, { T: 2 });
+  assert.match(rep.policy.hint, /no progress on T for 2 rounds: start again from the brief/);
+  assert.equal(rep.policy.best.this_is_best, true); assert.ok(rep.policy.tool_calls >= 4);
+  // Scaling the plate breaks L (passed, hard): refused; with a reason, made.
+  const scale = { command: 'scale', bodies: ['b1'], values: { factor: 1.5 } };
+  let r = await runTool(s, 'run_command', scale, evaluate);
+  assert.ok(r.isError, r.content); assert.match(parse(r.content).error, /breaks hard requirement that passed: L \("40 long": measured 60/);
+  r = await runTool(s, 'run_command', { ...scale, because: 'trying a bigger plate' }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  // The best snapshot is the one before: restore_best puts it back.
+  s = (await runTool(s, 'check_spec', {}, evaluate)).state;
+  r = await runTool(s, 'restore_best', {}, evaluate);
+  assert.ok(!r.isError, r.content);
+  assert.equal(parse(r.content).facts.bbox.max[0], 40);
+});

@@ -4,7 +4,7 @@
 // measure, analysis), their subjects by names or selectors (A1: stable feature ids; selectors resolve to names).
 // `check_spec` runs every predicate against the part as it stands: pass, fail, or unknown with why (an assumed
 // material, a missing reference, an analysis that does not apply). Failures in full, passes by count.
-import { featureLabel, type StudioDoc } from '../engine/doc';
+import { emptyDoc, featureLabel, leafBodies, prefixDoc, withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { measureBetween, type MeasurePick } from '../app/measure';
@@ -38,6 +38,8 @@ export interface Requirement {
   hard: boolean;
   /** stated: given; assumed: chosen where the brief said nothing; ambiguous: the brief can be read more ways. */
   basis?: 'stated' | 'assumed' | 'ambiguous';
+  /** Meant to hold under any change (one piece, no interference): not flagged as vacuous; `invariant_reason` says why. */
+  invariant?: boolean; invariant_reason?: string;
   check: Predicate;
 }
 
@@ -170,5 +172,103 @@ export function checkRequirement(r: unknown): string | null {
   if (f.fn === 'distance_between' && (f.a === undefined || f.b === undefined)) return `${q.id}: distance_between takes a and b (faces or edges)`;
   if ((f.fn === 'radius' || f.fn === 'hole_diameter') && f.face === undefined) return `${q.id}: ${f.fn} takes a face`;
   if (f.fn === 'clearance' && (typeof f.a !== 'string' || typeof f.b !== 'string')) return `${q.id}: clearance takes two body keys a and b`;
+  if (q.invariant === true && (typeof q.invariant_reason !== 'string' || !q.invariant_reason)) return `${q.id}: an invariant requirement says why (invariant_reason)`;
   return null;
+}
+
+// ---- the suite checked against mutants (A3.2) ------------------------------------------------------------------
+/** At most this many mutants a validation (each is one evaluation and one run of the suite). */
+export const MAX_MUTANTS = 8;
+/**
+ * Cheap mutants of the model, each a document: every body scaled ×1.15 and ×0.87 (about the origin), the first
+ * parameters ±15% (else the first extrusion's height), the features the requirements' subjects come from
+ * suppressed, and the trivial stub (a box as big as the part).
+ */
+export function mutantsOf(doc: StudioDoc, bodies: readonly BodyResult[], outcomes: ReadonlyMap<string, Outcome>): { label: string; doc: StudioDoc }[] {
+  const out: { label: string; doc: StudioDoc }[] = [];
+  const scaled = (factor: number) => leafBodies(doc.nodes).reduce((d, ref) => withNode(d, { kind: 'scale', parent: ref, factor, pivot: [0, 0, 0] }), doc);
+  out.push({ label: 'every body ×1.15', doc: scaled(1.15) }, { label: 'every body ×0.87', doc: scaled(0.87) });
+  const params = Object.keys(doc.parameters).slice(0, 2);
+  for (const k of params) for (const f of [1.15, 0.85]) out.push({ label: `parameter ${k} ×${f}`, doc: { ...doc, parameters: { ...doc.parameters, [k]: doc.parameters[k] * f } } });
+  if (!params.length) {
+    const i = doc.nodes.findIndex(n => n.kind === 'extrude' && typeof n.height === 'number');
+    if (i >= 0) for (const f of [1.15, 0.85]) { const nodes = [...doc.nodes], n = nodes[i] as { height: number }; nodes[i] = { ...nodes[i], height: n.height * f } as typeof nodes[number]; out.push({ label: `feature ${i} height ×${f}`, doc: prefixDoc({ ...doc, nodes }, nodes.length) }); }
+  }
+  const owners = [...new Set([...outcomes.values()].flatMap(o => o.entities ?? []).flatMap(n => n.split(/[|+]/).map(p => nodeIndexOf(doc.nodes, p.split('.')[0]))).filter(i => i > 0))].slice(0, 2);
+  for (const i of owners) { const nodes = doc.nodes.map((n, k) => k === i ? { ...n, suppressed: true as const } : n); out.push({ label: `feature ${i} suppressed`, doc: prefixDoc({ ...doc, nodes }, nodes.length) }); }
+  const facts = factsOf(doc, bodies);
+  if (facts.bbox) {
+    const { min, max } = facts.bbox;
+    const stub = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [min[0], min[1]], max: [max[0], max[1]] }), { kind: 'extrude', sketch: 0, height: max[2] - min[2], from: min[2] });
+    out.push({ label: 'the stub (a box as big as the part)', doc: { ...stub, requirements: doc.requirements } });
+  }
+  return out.slice(0, MAX_MUTANTS);
+}
+
+export interface Validation {
+  mutants: { built: number; tried: number; ms: number; labels: string[] };
+  vacuous: { req_id: string; why: string }[]; unverified: { req_id: string; why: string }[]; invariant: { req_id: string; reason: string }[];
+}
+/**
+ * The suite against the mutants: a predicate that passes on the model and on every mutant it applies to (built,
+ * its subject resolving) is vacuous — it cannot tell this model from a broken one — unless declared invariant;
+ * one with fewer than two mutants it applies to is unverified.
+ */
+export async function validateSuite(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, outcomes: ReadonlyMap<string, Outcome>): Promise<Validation> {
+  const t = performance.now(), mutants = mutantsOf(doc, bodies, outcomes), passes = new Map<string, number>(), applies = new Map<string, number>();
+  let built = 0;
+  for (const m of mutants) {
+    const r = await evaluate(m.doc); if (!r?.ok) continue;
+    built++;
+    for (const req of doc.requirements ?? []) {
+      const o = await runCheck(m.doc, r.bodies, evaluate, req.check); if (o.status === 'unknown') continue;
+      applies.set(req.id, (applies.get(req.id) ?? 0) + 1); if (o.status === 'pass') passes.set(req.id, (passes.get(req.id) ?? 0) + 1);
+    }
+  }
+  const out: Validation = { mutants: { built, tried: mutants.length, ms: Math.round(performance.now() - t), labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
+  for (const req of doc.requirements ?? []) {
+    if (outcomes.get(req.id)?.status !== 'pass') continue;
+    const n = applies.get(req.id) ?? 0, p = passes.get(req.id) ?? 0;
+    if (req.invariant) out.invariant.push({ req_id: req.id, reason: req.invariant_reason ?? '' });
+    else if (n < 2) out.unverified.push({ req_id: req.id, why: `only ${n} mutant${n === 1 ? '' : 's'} applied (built, its subject resolving)` });
+    else if (p === n) out.vacuous.push({ req_id: req.id, why: `passes on every mutant it applies to (${p} of ${n}): it cannot tell this model from a changed one; tighten it, or declare it invariant with a reason` });
+  }
+  return out;
+}
+
+// ---- the iteration policy, kept by the tools (A3.2) ------------------------------------------------------------
+/** What the tools remember across a session's checks: the best snapshot, each failing requirement's rounds. */
+export interface Policy {
+  best?: { hash: string; pass: number; score: number; doc: StudioDoc };
+  /** Each failing requirement's last |delta| and checks run since it last improved. */
+  last: Record<string, number>; rounds: Record<string, number>;
+  /** Hard requirements passing at the last check: a change breaking one is refused unless it says why. */
+  passedHard: string[];
+  calls: number;
+}
+export const newPolicy = (): Policy => ({ last: {}, rounds: {}, passedHard: [], calls: 0 });
+/** A failing suite's score (higher is better): minus each failure's miss relative to what it asked for. */
+const scoreOf = (doc: StudioDoc, failures: readonly Failure[]) => -failures.reduce((a, f) => {
+  const req = doc.requirements?.find(r => r.id === f.req_id), ref = Math.max(1e-9, Math.abs(req?.check.value ?? req?.check.max ?? req?.check.min ?? 1));
+  return a + Math.abs(f.delta ?? 1) / ref;
+}, 0);
+/** The policy after a check: the best snapshot, the rounds without progress, and what to tell the agent. */
+export function updatePolicy(policy: Policy, doc: StudioDoc, report: Report, outcomes: ReadonlyMap<string, Outcome>, maxTurns?: number): { policy: Policy; out: Record<string, unknown> } {
+  const p: Policy = { ...policy, last: { ...policy.last }, rounds: { ...policy.rounds } };
+  const score = scoreOf(doc, report.failures);
+  if (!p.best || report.summary.pass > p.best.pass || report.summary.pass === p.best.pass && score > p.best.score) p.best = { hash: report.model_hash, pass: report.summary.pass, score, doc };
+  for (const f of report.failures) {
+    const d = Math.abs(f.delta ?? Infinity), was = p.last[f.req_id];
+    p.rounds[f.req_id] = was !== undefined && !(d < was - 1e-9) ? (p.rounds[f.req_id] ?? 0) + 1 : 0;
+    p.last[f.req_id] = Math.min(d, was ?? Infinity);
+  }
+  for (const id of Object.keys(p.rounds)) if (!report.failures.some(f => f.req_id === id)) { delete p.rounds[id]; delete p.last[id]; }
+  p.passedHard = (doc.requirements ?? []).filter(r => r.hard && outcomes.get(r.id)?.status === 'pass').map(r => r.id);
+  const stuck = Object.entries(p.rounds).filter(([, n]) => n >= 2).map(([id]) => id);
+  return { policy: p, out: {
+    best: { model_hash: p.best.hash, pass: p.best.pass, this_is_best: p.best.hash === report.model_hash },
+    ...(Object.keys(p.rounds).length ? { rounds_without_progress: p.rounds } : {}),
+    ...(stuck.length ? { hint: `no progress on ${stuck.join(', ')} for 2 rounds: start again from the brief, these checks and the best snapshot (${p.best.hash}), rather than patching further` } : {}),
+    tool_calls: p.calls, ...(maxTurns ? { turns_budget: maxTurns } : {}),
+  } };
 }

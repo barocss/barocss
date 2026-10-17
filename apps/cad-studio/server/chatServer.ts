@@ -157,7 +157,7 @@ export function createChatServer(options: ChatServerOptions) {
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}) } satisfies StateFile));
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath } } } });
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS) } } } });
     const prompt = `${stateNote(body.doc as StudioDoc)}\n\n${body.text}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
