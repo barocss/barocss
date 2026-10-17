@@ -7,6 +7,8 @@ export interface Appearance {
   color: Hex; metallic: number; roughness: number; opacity: number;
   /** A material of the settings by name: its authored shader colours the surface (times the colour). */
   shader?: string;
+  /** Both sides of each face lit (open or thin shells seen from inside); one side by default. */
+  twoSided?: boolean;
 }
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
@@ -114,7 +116,7 @@ const obj = (v: unknown): Record<string, unknown> => v && typeof v === 'object' 
 export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   const o = obj(v);
   return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
-    ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}) };
+    ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}), ...(o.twoSided === true ? { twoSided: true } : {}) };
 }
 
 /** Render settings from a saved document (anything missing or out of range takes the default). */

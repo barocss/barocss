@@ -7,7 +7,7 @@ import { Icon } from './atoms';
  * The Render workspace's panel: the appearance of the selected bodies (or of every body without one),
  * the lights, the environment and the saved camera. Every change is one undoable edit of the settings.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available }: {
+export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -17,6 +17,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   onExport(): void;
   /** False when the viewport draws without WebGPU (no rendering). */
   available: boolean;
+  /** The view's vertical field of view (degrees), and setting it. */
+  fov: number; onFov(degrees: number): void;
 }) {
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
@@ -62,6 +64,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Metallic', current.metallic, v => setLook({ metallic: v }))}
         {slider('Roughness', current.roughness, v => setLook({ roughness: v }))}
         {slider('Opacity', current.opacity, v => setLook({ opacity: v }), 0.05)}
+        {check('Two-sided', !!current.twoSided, v => setLook({ twoSided: v || undefined }))}
         <label className="field"><span>Shader</span>
           <select aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
             <option value="">None</option>
@@ -84,6 +87,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
               <label className="field" key={a}><span>{a}</span><span className="num"><input type="number" step="any" aria-label={`Light ${i + 1} ${a}`} value={l.position[k]}
                 onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) { const p = [...l.position] as [number, number, number]; p[k] = v; setLight(i, { ...l, position: p }); } }} /><em>mm</em></span></label>))}
             {l.kind === 'spot' && slider('Cone', l.angle, v => setLight(i, { ...l, angle: v }), 5, 80, 1)}
+            {l.kind !== 'directional' && <>{slider('Range', l.range, v => setLight(i, { ...l, range: v }), 0, 1000, 5)}<div className="muted small">{l.range ? `Fades out over ${l.range} mm` : 'Range 0: no fall-off with distance'}</div></>}
             {slider('Intensity', l.intensity, v => setLight(i, { ...l, intensity: v }), 0, 5)}
             {color('Colour', l.color, v => setLight(i, { ...l, color: v }))}
             {l.kind === 'directional' && check('Shadow', l.castShadow, v => onChange({ ...render, lights: render.lights.map((x, k) => x.kind === 'directional' ? { ...x, castShadow: k === i ? v : v ? false : x.castShadow } : x) }))}
@@ -111,6 +115,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {check('Grid', env.grid, v => setEnv({ grid: v }))}
         {check('Edges', env.edges, v => setEnv({ edges: v }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
+        {slider('Field of view', fov, onFov, 10, 90, 1)}
         <div className="row-actions">
           <button className="ghost" onClick={onSaveCamera}>Save this view</button>
           <button className="ghost" disabled={!render.camera} onClick={onUseCamera}>Go to saved view</button>

@@ -197,7 +197,7 @@ export class GpuRenderer implements ViewRenderer {
       const ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
-        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader) }
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided }
         : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null };
       const hidden = !!view.hiddenBodies?.has(bi);
       b.surface.pickable = !ghost && !hidden; b.surface.visible = !hidden;
@@ -316,7 +316,7 @@ export class GpuRenderer implements ViewRenderer {
     for (const it of this.instances) {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.surfaces.forEach((m, bi) => {
-        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader) }
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided }
           : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: null };
         m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.

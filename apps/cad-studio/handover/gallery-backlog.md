@@ -19,7 +19,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A9 Selection filter: faces / edges / bodies (#2049)
 - [x] A10 Hide construction shapes in a sketch (#2069)
 - [x] A11 Direct curves: chord next to length, raise curve degree, isocurve overlay (#2078, #2052, #2040)
-- [ ] A12 Render: point-light range, field of view, two-sided toggle (#2070)
+- [x] A12 Render: point-light range, field of view, two-sided toggle (#2070)
 - [ ] A13 Direct transform: non-uniform scale and shear (#2086)
 - [ ] A14 Delete with dependents, after a review (#2058)
 - [ ] A15 Measure: coaxial check of two round faces (#2085)

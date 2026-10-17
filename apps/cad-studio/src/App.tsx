@@ -199,6 +199,8 @@ export function App() {
   /** The Body panel: inertia about the centre of mass or the origin; the bounding box drawn. */
   const [inertiaAt, setInertiaAt] = useState<'centre' | 'origin'>('centre');
   const [showBox, setShowBox] = useState(false);
+  /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
+  const [fov, setFov] = useState(32);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
   const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[] } | null>(null);
   const sectionRef = useRef(section); sectionRef.current = section;
@@ -1163,9 +1165,10 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
-        onChange={commitRender} onExport={exportImage}
+        onChange={commitRender} onExport={exportImage} fov={fov}
+        onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
-        onUseCamera={() => { if (render.camera) viewport.current?.setCamera(render.camera); }} />}
+        onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} />}
       {!rendering && !sketch && measure && <aside className="card props" aria-label="Measurement">
         <div className="card-title">MEASURE <button className="tool tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></button></div>
         {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">

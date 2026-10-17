@@ -832,11 +832,16 @@ try {
     await page.waitForSelector('[aria-label="Render"]');
     await page.locator('.outliner .ol').first().click();
     await page.selectOption('[aria-label="Appearance preset"]', 'brass');
+    await page.check('.render-panel [aria-label="Two-sided"]');
     await page.click('.render-panel [role="tab"]:text-is("Lights")');
     await page.click('.render-panel button:text-is("Add point")');
+    await page.locator('.render-panel [aria-label="Range"]').last().fill('200');
     await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    await page.locator('.render-panel [aria-label="Field of view"]').fill('50');
     await page.click('.render-panel button:text-is("Save this view")');
     const r = await page.evaluate(() => window.__studioDoc.render);
+    assert.equal(Object.values(r.appearances)[0].twoSided, true); assert.equal(r.lights.at(-1).range, 200);
+    assert.ok(Math.abs(r.camera.fovY - 50 * Math.PI / 180) < 1e-6, 'the field of view is saved with the view');
     assert.equal(Object.values(r.appearances)[0].color, '#d6b25a');
     assert.equal(r.lights.at(-1).kind, 'point');
     assert.ok(r.camera && r.camera.distance > 0);
