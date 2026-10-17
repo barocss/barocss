@@ -187,7 +187,13 @@ export interface CadPartSnapshot {
   withDocument(document: CadPartDocument): CadPartSnapshot;
   save(): string;
 }
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, lengthMM: 10000, meshTriangles: 100_000 });
+/**
+ * `stepBytes`: an imported STEP file's text. A STEP file is read whole, and a solid of many faces holds
+ * about 17 times its text in memory while it is built (a 19 MB faceted M8 bolt: about 320 MB): 32 MiB keeps
+ * that near half a gigabyte, within a browser worker, and holds the studio's own exports of modelled
+ * threads. The part document's own text stays at `fileBytes`.
+ */
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, lengthMM: 10000, meshTriangles: 100_000 });
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
@@ -595,7 +601,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
-      if ((f.step as string).length > CadPartLimits.fileBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.fileBytes} bytes`);
+      if ((f.step as string).length > CadPartLimits.stepBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.stepBytes} bytes`);
       return () => {
         let brep: Brep;
         try { brep = importStep(f.step as string, { id: at }); }

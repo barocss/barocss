@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError } from '../dist/index.js';
+import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 /** π · length · the mean of r² over a pitch: the volume of the exact (unfaceted) threaded rod. */
@@ -29,4 +29,19 @@ test('modelled threads: a rod, a hex head bolt and a hex nut, each one valid fac
   const nv = nut.massProperties(1).volumeMM3, bore = exactRod(8.08, 1.25, 6.8);
   assert.ok(nv > hexArea * 6.8 - exactRod(8, 1.25, 6.8) - 10 && nv < hexArea * 6.8 - bore * 0.97, String(nv));
   assert.throws(() => evaluateCadPart(D([{ id: 'x', kind: 'thread', diameter: 8, pitch: 5, length: 10 }])), e => e instanceof CadPartError && /pitch below half/.test(e.message));
+});
+
+test('a modelled M8 bolt round-trips through STEP: the export reopens with the same volume, faces and names', () => {
+  const bolt = evaluateCadPart(D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 30, center: [0, 0], seat: 0, hex: { across: 13, height: 5.3 } }])).outputs[0];
+  const step = exportStep([bolt.brep], { name: 'bolt' });
+  // (Over the part document's 4 MiB, within the STEP import's 32 MiB.)
+  assert.ok(step.length > CadPartLimits.fileBytes && step.length <= CadPartLimits.stepBytes, `${step.length}`);
+  const back = evaluateCadPart(D([{ id: 'i', kind: 'import', step }])).outputs[0];
+  assert.equal(checkBrep(back.brep).issues.length, 0);
+  assert.equal(back.brep.faces.length, bolt.brep.faces.length);
+  const v0 = bolt.massProperties(1).volumeMM3, v1 = back.massProperties(1).volumeMM3;
+  assert.ok(Math.abs(v1 - v0) <= 1e-9 * v0, `${v1} vs ${v0}`);
+  // The faces keep their names, under the import's id.
+  const names = b => b.faces.map(f => f.name).sort();
+  assert.deepEqual(names(back.brep), names(bolt.brep).map(n => `i.${n}`).sort());
 });

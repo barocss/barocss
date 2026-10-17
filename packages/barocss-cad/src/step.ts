@@ -39,7 +39,9 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   const add_ = (entity: string): string => { const id = `#${next++}`; lines.push(`${id}=${entity};`); return id; };
   const points = new Map<string, string>();
   const point = (p: readonly number[]) => { const k = p.map(real).join(','); let id = points.get(k); if (!id) { id = add_(`CARTESIAN_POINT('',(${k}))`); points.set(k, id); } return id; };
-  const direction = (d: readonly number[]) => add_(`DIRECTION('',(${d.map(real).join(',')}))`);
+  // (Directions shared like points: a faceted solid's planes, lines and their axes repeat the same few.)
+  const directions = new Map<string, string>();
+  const direction = (d: readonly number[]) => { const k = d.map(real).join(','); let id = directions.get(k); if (!id) { id = add_(`DIRECTION('',(${k}))`); directions.set(k, id); } return id; };
   const placement = (o: Point, z: Point, x: Point) => add_(`AXIS2_PLACEMENT_3D('',${point(o)},${direction(z)},${direction(x)})`);
 
   // Product structure, units and the representation context.
