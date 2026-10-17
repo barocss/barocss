@@ -596,3 +596,38 @@ Evidence (studio 266/266), each against closed forms:
 - **Wall.** 8 mm.
 - **Draft.** Four walls at 0°, all under 1°.
 
+## D34 — render_views: exact line views on one PNG sheet, faces numbered with a legend (2026-10-18, A2.3)
+Decided: `render_views` returns one 1000 × 1000 PNG and its legend (chat/views.ts).
+- **Layout.** Four views: front, top, right and isometric, third-angle.
+- **Edges.** From the kernel's exact hidden-line projection (`projectBrepHiddenLines`, as drawings use): visible
+  edges solid, hidden ones thin and dashed. Line views are used rather than a shaded render because shading
+  hides CAD-specific faults.
+- **Faces.**
+  - A light fill where a face shows, from our own z-buffer of the display mesh in the same projection.
+  - A Set-of-Mark number on each face that shows at least 60 px, placed at the pixel deepest inside what shows
+    (a chamfer distance transform; among nearly-deepest pixels, the one nearest its centre). So a face with a
+    hole is not labelled at its rim.
+  - The legend maps number → face name; `views.<id>.visible_faces` lists every face that shows in a view, and
+    `mm_per_px` gives the scale.
+- **Options.**
+  - `highlight` fills faces red and rings their labels; it is meant for A3's failed checks.
+  - `section` cuts the part first, keeping the side whose cut faces look at the matching view (y > at for the
+    front, x < at for the right, z < at for the top).
+- **Own code, no dependency.** Antialiased lines, a 3 × 5 digit font and the PNG encoding (CRC, filter 0) are our
+  own. The deflate is the web-standard `CompressionStream`, so the module works in Node, where the MCP server
+  runs the tools, and in the browser bundle.
+- **Image delivery.** Tool outcomes carry `images`, and the MCP server returns them as image content.
+- **Cost.** Rendered only on request (the description says: at milestones or when something seems wrong) and
+  cached by model and options. A plate with a hole renders in well under a second; the cached repeat in under
+  50 ms.
+- **Stated accuracy.** Edges are exact; fill and labels follow the display mesh's chord error.
+
+Evidence: studio 267/267. A view test checks:
+- the PNG signature and 1000 × 1000 size, at 34 kB;
+- the top labelled, and the bore seen in the isometric view through the hole;
+- the top view showing the top and not the bottom;
+- the cache;
+- a y-section whose front view shows the cut face.
+
+The sheet was inspected by eye.
+
