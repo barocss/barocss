@@ -6,6 +6,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { lookOf } from '../app/bodies';
 import { materialOf } from '../app/materials';
+import { materialFact } from './analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
 
@@ -16,6 +17,8 @@ export interface Facts {
   /** Every body built (the kernel refuses what it cannot build: a failed change keeps the part as it was). */
   built: true;
   solids: number; volume_mm3: number; mass_g: number; centroid: Vec3 | null;
+  /** Each body's material; `assumed`: none set, aluminium taken (then `mass_assumed`: the mass is not a measured fact). */
+  materials: { body: string; material: string; assumed: boolean }[]; mass_assumed: boolean;
   bbox: { min: Vec3; max: Vec3 } | null;
   faces: number; edges: number; vertices: number;
 }
@@ -38,7 +41,8 @@ export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
     for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
     faces += b.mesh.faces.length; edges += b.mesh.edges.length; vertices += vertexCount(b);
   }
-  return { built: true, solids: bodies.length, volume_mm3: r3(volume), mass_g: r3(mass), centroid: volume > 0 ? v3(c.map(x => x / volume)) : null,
+  const materials = bodies.map(b => ({ body: b.key, ...materialFact(doc, b) }));
+  return { built: true, solids: bodies.length, volume_mm3: r3(volume), mass_g: r3(mass), centroid: volume > 0 ? v3(c.map(x => x / volume)) : null, materials, mass_assumed: materials.some(m => m.assumed),
     bbox: bodies.length ? { min: v3(lo), max: v3(hi) } : null, faces, edges, vertices };
 }
 

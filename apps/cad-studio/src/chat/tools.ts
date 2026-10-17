@@ -15,6 +15,7 @@ import { insideRing as inside } from '../engine/geom2';
 import { resolveEdge, resolveFace, resolveNames, resolveSelectors, type NameSelection, type Resolved } from './names';
 import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
+import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 export { resolveNames, type NameSelection };
 
@@ -440,6 +441,34 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       })();
       return { state, content: json(resolved.length ? { ...out, resolved } : out), isError: false, changed: false, summary: json(out) };
     }
+    case 'mass_properties': {
+      const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
+      if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
+      const out = massProperties(state.doc, shown);
+      return { state, content: json({ bodies: out, ...(out.some(b => b.assumed) ? { note: 'a body without a material is taken as aluminium: set its material before using its mass' } : {}) }), isError: false, changed: false, summary: `mass of ${out.length}` };
+    }
+    case 'interference': {
+      const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
+      return { state, content: json({ pairs: out, note: 'overlap by the kernel; clearance on the display mesh (to its chord error on curved faces)' }), isError: false, changed: false, summary: `${out.length} pairs` };
+    }
+    case 'section': {
+      const axis = String(args.axis), at = Number(args.at);
+      if (!['x', 'y', 'z'].includes(axis) || !Number.isFinite(at)) return fail(state, 'A section takes an axis (x, y or z) and where along it (at, mm).');
+      const out = await section(state.doc, state.bodies, evaluate, axis as 'x' | 'y' | 'z', at);
+      if (typeof out === 'string') return fail(state, out);
+      return { state, content: json({ axis, at, cut: out }), isError: false, changed: false, summary: `section ${axis} = ${at}` };
+    }
+    case 'wall_thickness': case 'draft': {
+      const b = state.bodies.find(x => x.key === String(args.body)) ?? (state.bodies.length === 1 && args.body === undefined ? state.bodies[0] : undefined);
+      if (!b) return fail(state, `Which body? ${state.bodies.map(x => x.key).join(', ')}`);
+      if (name === 'wall_thickness') {
+        const out = wallThickness(b, args.below === undefined ? undefined : Number(args.below));
+        return { state, content: json({ ...out, note: 'on the display mesh: good to its chord error on curved walls' }), isError: false, changed: false, summary: `wall of ${b.key}` };
+      }
+      const pull = Array.isArray(args.pull) && args.pull.length === 3 ? args.pull.map(Number) as [number, number, number] : [0, 0, 1] as [number, number, number];
+      const out = draftAnalysis(b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
+      return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
+    }
     case 'inspect': {
       const r = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges) });
       if (r.error) return fail(state, r.error);
@@ -558,6 +587,31 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { a: oneSelector('A face or edge'), b: oneSelector('An optional second face or edge') }, required: ['a'], additionalProperties: false },
   },
   {
+    name: 'mass_properties',
+    description: 'Each body\'s volume, surface area, mass by its material (none set: aluminium, said as assumed), centroid, inertia about it (kg·m²) and box.',
+    input_schema: { type: 'object', properties: { bodies: { ...nameList, description: 'Body keys (default: all).' } }, additionalProperties: false },
+  },
+  {
+    name: 'interference',
+    description: 'Every pair of bodies (or of those given): overlapping pairs with the overlap\'s volume, the others\' smallest clearance and where.',
+    input_schema: { type: 'object', properties: { bodies: { ...nameList, description: 'Body keys (default: all).' } }, additionalProperties: false },
+  },
+  {
+    name: 'section',
+    description: 'A section across x, y or z at a position: each body it cuts, with the cut\'s area, its regions and its box. The part is not changed.',
+    input_schema: { type: 'object', properties: { axis: { type: 'string', enum: ['x', 'y', 'z'] }, at: { type: 'number' } }, required: ['axis', 'at'], additionalProperties: false },
+  },
+  {
+    name: 'wall_thickness',
+    description: 'A body\'s thinnest wall (inward from each face to the next wall) with where and on which face; with "below", every face thinner than that.',
+    input_schema: { type: 'object', properties: { body: { type: 'string' }, below: { type: 'number' } }, additionalProperties: false },
+  },
+  {
+    name: 'draft',
+    description: 'Draft of a body\'s flat walls against a pull direction (default +Z): each wall\'s angle in degrees (negative: an undercut) and those under min_deg (default 1).',
+    input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, min_deg: { type: 'number' } }, additionalProperties: false },
+  },
+  {
     name: 'inspect',
     description: 'Detail of faces and edges: a face\'s kind, area, normal or axis, radius, centre, the faces next to it and the feature that made it; an edge\'s ends, chord, line or curve, its two faces and the feature that made it.',
     input_schema: { type: 'object', properties: { faces: selectorList('Faces'), edges: selectorList('Edges') }, additionalProperties: false },
@@ -579,7 +633,7 @@ export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD 
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
-Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 
