@@ -202,6 +202,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
+  // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
+  // move a full frame is drawn with it, the same as before. (One function, kept for the component's life.)
+  const settle = useRef(0), requestRef = useRef<() => void>(() => undefined);
+  const moving = useRef(() => {
+    const r = renderer.current; if (!r) return;
+    r.interacting = true; window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => { if (renderer.current) { renderer.current.interacting = false; requestRef.current(); } }, 180);
+  });
   const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; snap?: SnapPoint | null; trim?: { kind: 'trim' | 'extend' | 'split'; points: [number, number][] } | null }>({ cursor: null });
   /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
   const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
@@ -266,6 +274,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       setTick(t => t + 1);
     });
   };
+  requestRef.current = request;
 
   // WebGPU (the @barocss/gpu viewer) when the browser has it, else WebGL2; ?renderer=webgl2 forces the latter.
   useEffect(() => {
@@ -535,8 +544,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   const onPointerMove = (e: React.PointerEvent) => {
     const { x, y, w, h } = local(e); const d = drag.current; const r = renderer.current; if (!r) return;
-    if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; request(); return; }
-    if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; request(); return; }
+    if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
+    if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
@@ -714,7 +723,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   const onWheel = (e: React.WheelEvent) => {
     const { x, y, w, h } = local(e);
-    camera.current.zoom(Math.exp(e.deltaY * 0.0015), (x / w) * 2 - 1, 1 - (y / h) * 2); request();
+    camera.current.zoom(Math.exp(e.deltaY * 0.0015), (x / w) * 2 - 1, 1 - (y / h) * 2); moving.current(); request();
   };
 
   // Overlay: sketch preview, dimension labels and the move gizmo, projected each frame.

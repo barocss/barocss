@@ -29,6 +29,8 @@ export type ThemeName = 'dark' | 'light';
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
   aoEnabled: boolean;
+  /** While the camera moves: ambient occlusion is left out (it comes back, unchanged, when the camera stops). */
+  interacting: boolean;
   setTheme(name: ThemeName): void;
   setBodies(results: BodyResult[]): void;
   setState(view: ViewState): void;
@@ -187,6 +189,7 @@ export class Renderer implements ViewRenderer {
   private uniforms = new Map<WebGLProgram, Map<string, WebGLUniformLocation | null>>();
   private theme: Theme = THEMES.dark;
   aoEnabled = true;
+  interacting = false;
 
   constructor(readonly canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, preserveDrawingBuffer: false });
@@ -386,7 +389,7 @@ export class Renderer implements ViewRenderer {
     const size = bounds ? Math.hypot(bounds.max[0] - bounds.min[0], bounds.max[1] - bounds.min[1], bounds.max[2] - bounds.min[2]) : 50;
     gl.uniform1f(this.u(this.ao, 'uRadius'), Math.max(1, size * 0.045));
     gl.uniform1f(this.u(this.ao, 'uFocal'), camera.ortho ? h / (2 * camera.distance * Math.tan(camera.fovY / 2)) * camera.distance : h / (2 * Math.tan(camera.fovY / 2)));
-    gl.uniform1f(this.u(this.ao, 'uStrength'), this.aoEnabled ? t.ao : 0);
+    gl.uniform1f(this.u(this.ao, 'uStrength'), this.aoEnabled && !this.interacting ? t.ao : 0);
     gl.bindVertexArray(this.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null); gl.activeTexture(gl.TEXTURE0);
   }

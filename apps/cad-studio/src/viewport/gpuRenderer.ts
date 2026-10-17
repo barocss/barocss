@@ -42,6 +42,7 @@ function signature(r: BodyResult): string {
 
 export class GpuRenderer implements ViewRenderer {
   aoEnabled = true;
+  interacting = false;
   private theme: Theme = THEMES.dark;
   private bodies: Body[] = [];
   /** A shadow catcher under the bodies (the ground their shadow falls on). */
@@ -269,10 +270,10 @@ export class GpuRenderer implements ViewRenderer {
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
       const envMap = e.map ? this.imageTexture(e.map.image) : null;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
     } else {
       v.lights = this.lights(camera);
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
     }
     // The display's pixel ratio as it is now (it changes with the browser zoom, or on another screen).
     v.resize(pixelRatio());

@@ -15,19 +15,20 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME, head
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 // Counted from the page's start: queue submits, and the CPU time of each animation-frame callback.
 await page.addInitScript(() => {
-  const w = window; w.__bench = { submits: 0, frames: 0, frameMS: 0 };
-  if (w.GPUQueue) { const submit = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) { w.__bench.submits++; return submit.apply(this, a); }; }
+  const w = window; w.__bench = { submits: 0, frames: 0, frameMS: 0, gpuMS: 0 };
+  // (GPU time: from each submit until the queue reports that work done.)
+  if (w.GPUQueue) { const submit = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) { w.__bench.submits++; const t0 = performance.now(), r = submit.apply(this, a); this.onSubmittedWorkDone().then(() => { w.__bench.gpuMS += performance.now() - t0; }); return r; }; }
   const raf = w.requestAnimationFrame.bind(w);
   w.requestAnimationFrame = cb => raf(t => { const t0 = performance.now(); try { cb(t); } finally { w.__bench.frames++; w.__bench.frameMS += performance.now() - t0; } });
 });
 const rows = [];
 const measure = async (name, budget, act) => {
   await page.waitForTimeout(500);
-  await page.evaluate(() => { window.__bench.submits = 0; window.__bench.frames = 0; window.__bench.frameMS = 0; });
+  await page.evaluate(() => { window.__bench.submits = 0; window.__bench.frames = 0; window.__bench.frameMS = 0; window.__bench.gpuMS = 0; });
   const t0 = Date.now(); await act(); await page.waitForTimeout(400);
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0;
   const avg = b.frames ? b.frameMS / b.frames : 0;
-  rows.push({ name, submits: b.submits, frames: b.frames, avgFrameMS: +avg.toFixed(2), wallMS: wall, ok: b.submits <= budget.submits && avg <= budget.avgFrameMS, budget });
+  rows.push({ name, submits: b.submits, frames: b.frames, avgFrameMS: +avg.toFixed(2), gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall, ok: b.submits <= budget.submits && avg <= budget.avgFrameMS, budget });
 };
 try {
   await page.goto(server.resolvedUrls.local[0]);
@@ -44,5 +45,5 @@ try {
     await page.mouse.up({ button: 'left' });
   });
 } finally { await browser.close(); await server.close(); }
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(34)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits})  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  wall ${r.wallMS} ms`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(34)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits})  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  GPU ${String(r.gpuMS).padStart(5)} ms/submit  wall ${r.wallMS} ms`);
 process.exit(rows.length === 2 && rows.every(r => r.ok) ? 0 : 1);
