@@ -289,6 +289,14 @@ Order (checkpoint with SHAs and numbers after each step; the owner wants to see 
    classification, AP242 tessellated STEP; a typed-array path that skips freezing and deep copies. With it
    **M1** binary mesh blob in .bcad (content-hashed, own format, migration) and **M3** import gate and repair
    (weld, orient, own Liepa hole fill with fairing, degenerate and floater removal) with a diagnostics badge.
+   **F0 fallback (owner, 2026-10-18: "F0 동안 작은 STL은 기존 평면 경로로 boolean이 되게 fallback을 유지하고,
+   F1/F2가 들어오면 걷어내자")**: imported meshes become facet faces by default; a Boolean, split or other
+   refused operation on a facet body under a size threshold (chosen from the R2 polyhedral numbers so it stays
+   interactive; state it and why) explodes it to the planar per-triangle B-rep and runs the polyhedral path.
+   Above it, refuse with a clear code naming the missing capability ("Booleans on large meshes arrive with
+   F1/F2"). One named code path with a test; **remove it in the step that lands F2**. Version the mesh node so
+   old .bcad files keep resolving `<id>.facetK` names. Region grouping needs smoothed normals or a size cap
+   (the noisy scan); M1 binary storage comes before lifting the 100k cap.
 4. **R4 — F1**: facet × plane split and section with an exact planar cap (each vertex's sign once, one tie rule).
 5. **R5 — SD1 SubD**: a `subd` node storing the cage (OpenSubdiv rules: smooth, sharp crease, boundary edge
    and corner), no 64-surface or inline-surface limits; regular regions as exact bicubic patches packed into
