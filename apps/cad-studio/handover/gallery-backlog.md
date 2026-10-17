@@ -56,7 +56,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] C2 Sweep along a sketched / 3D path (#2030) — 8cc997b4f (faceted; sharp corners not mitred, closed paths refused)
 - [x] C3 Draft on chosen faces; offset face (#2037) — 28ce8b1fa (faces that meet refused; an offset over a drafted face can leave a 0.1 µm sliver from the outline rounding)
 - [x] C4 Thicken an open surface (#2089) — b6dd85b85 (faceted)
-- [ ] C5 Surface trim by a loop, fill, extend, sew into a solid (#2042, #2043, #2050) — fill and extend 4ce2c0bb4; trim by a loop and sew still to do
+- [x] C5 Surface trim by a loop, fill, extend, sew into a solid (#2042, #2043, #2050) — fill and extend 4ce2c0bb4; sew 7c3bebdb8; trim by a loop 91819d596 (a display trim of direct surfaces: thicken and sew take untrimmed ones)
 - [x] C6 Least-squares curve fit; knot removal (#2042, #2052) — f482d5741
 - [x] C7 Splines in sketches (#2051) — ded1806bf (kept as tangent arcs; the spline points are not editable after drawing)
 - [x] C8 Symmetry constraint (#2039) — 01c9c0f43 (about an edge of the outline)
