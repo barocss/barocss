@@ -320,3 +320,52 @@ Known, for RB5 (`robustness/todo.json`):
 - Two random X-turned grazes at 10 µm and 1 µm refuse (an edge with one use).
 - A 10 µm lens's tessellation folds: two faces share a diagonal; it has no crack.
 
+## D26 — Stable feature ids: a face keeps its feature's name through deletes, moves and inserts (2026-10-18, A1.1)
+Decided:
+- **Ids.** Every studio node carries `id`, `n<k>`. The serial k is handed out once by `StudioDoc.nextId` and
+  never again, and the kernel feature is that id.
+  - A document built by appending numbers its features as they come (node i is `n<i>`), so names read exactly
+    as before.
+  - A node without an id takes `n<i>` when that is free and was never handed out (i ≥ `nextId`), else the next
+    serial (`withIds`, engine/ids.ts).
+- **Schema 2.** A schema-1 file reads with node i as `n<i>`: every stored name, whether a fillet's edges, a
+  mate's face or a drawing dimension's edge, resolves unchanged. A note says the ids were given. Nothing is
+  renamed (the D16 rule).
+- **History edits rename nothing.** Deleting, moving or rebuilding a range renumbers only index references
+  (parents, sketches, body keys `b<i>`); names keep their ids.
+  - A replaced range keeps the old nodes' ids in order.
+  - `edit_feature` with a whole feature keeps the feature's id.
+  - `add_features` ignores ids an agent sends, and `checkNode` accepts `id`, so a document read back can be
+    sent again.
+- **New features.**
+  - A duplicated body is new features: fresh ids, and its fillets name the copies' edges.
+  - Parts folded into an assembly move their ids past the assembly's own (by serial; with nothing deleted, by
+    node count, as before).
+  - A section's splits are the next ids: their cut faces are `n<next>.cut…`.
+- **Readers by name.** Every reader of names now goes by id: threads (keyed by feature id), hole callouts,
+  edit handles, picking a face's feature, dependents, reorder checks, flatten, part conversion and output body
+  keys.
+
+Why: A1's first need is that a name an agent or a user stored keeps meaning the same face when the history
+changes around it. Before, deleting or moving a feature renamed every later name (`renameIds`), and a name kept
+outside the document (an agent's plan, a note) went stale.
+
+Evidence:
+- Studio 243/243, with 5 new A1 tests:
+  - ids are never reused;
+  - names survive insert, move and delete, with volumes checked;
+  - a duplicate gets fresh ids;
+  - a rebuilt range keeps its ids;
+  - flattened instances get unique ids.
+- 3 conformance cases (`apps/cad-studio/conformance/a1`): schema-1 read, delete, move.
+- The full browser flow passes (102 + 1 updated: the older-file step now reads schema 2 with ids n0 and n1).
+- Bench unchanged.
+
+Next in A1 (open):
+- **A1.2 selectors.** `{feature, role}` and `{on, normal, pick}`, each resolved to its name and returning it.
+  Exposed to the agent tools; no kernel indices.
+- **A1.3 re-match.** A stored name that no longer resolves after an edit is matched again by geometric
+  signature (surface kind, normal or axis, area, centroid), and refused with the candidates when ambiguous.
+- **A1.4 sketch-entity side names.** `side[sk.l3]` instead of `side3`, versioned per node as D16 did, so that
+  editing a sketch does not renumber the sides.
+
