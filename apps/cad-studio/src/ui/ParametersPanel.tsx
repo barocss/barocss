@@ -6,6 +6,7 @@ import type { ModelNode, StudioDoc } from '../engine/doc';
 import { Icon } from './atoms';
 
 const NAME = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
+const without = <T,>(o: Record<string, T>, key: string): Record<string, T> => Object.fromEntries(Object.entries(o).filter(([k]) => k !== key));
 
 /** The nodes with every reference to `from` made `to` (a name, or a number: the reference dropped). */
 export function renameParameter(nodes: readonly ModelNode[], from: string, to: string | number): ModelNode[] {
@@ -34,8 +35,7 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
     set({ parameters: next, nodes: renameParameter(doc.nodes, from, to), configurations: Object.fromEntries(Object.entries(configs).map(([c, vs]) => [c, Object.fromEntries(Object.entries(vs).map(([k, v]) => [k === from ? to : k, v]))])) });
   };
   const remove = (name: string) => {
-    const { [name]: value, ...rest } = params;
-    set({ parameters: rest, nodes: renameParameter(doc.nodes, name, value) });
+    set({ parameters: without(params, name), nodes: renameParameter(doc.nodes, name, params[name]) });
   };
   const add = () => {
     const name = adding.name.trim(), v = Number(adding.value);
@@ -52,7 +52,7 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
     {Object.entries(params).map(([name, value]) => <div key={name} className="param-row">
       <input className="kv-input" aria-label={`Name of ${name}`} defaultValue={name} key={'n' + name} onBlur={e => rename(name, e.currentTarget.value)} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
       <span className="num"><input type="number" step="any" aria-label={`Value of ${name}`} value={draft[name] ?? String(value)} onChange={e => setDraft(d => ({ ...d, [name]: e.target.value }))}
-        onBlur={() => { if (draft[name] !== undefined) { setValue(name, draft[name]); setDraft(({ [name]: _, ...d }) => d); } }} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} /></span>
+        onBlur={() => { if (draft[name] !== undefined) { setValue(name, draft[name]); setDraft(d => without(d, name)); } }} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} /></span>
       <span className="muted small" title="Features using it">{parameterUses(doc.nodes, name)}×</span>
       <button className="tool tiny" aria-label={`Delete ${name}`} data-tip="Delete" data-tip-desc="Its uses keep its value as a number" onClick={() => remove(name)}><Icon name="close" small /></button>
     </div>)}
@@ -66,7 +66,7 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
       {Object.keys(configs).map(c => <div key={c} className="param-row">
         <span className={c === current ? 'accent' : ''}>{c}{c === current ? ' · now' : ''}</span>
         <button className="ghost small" aria-label={`Apply ${c}`} onClick={() => set({ parameters: { ...params, ...Object.fromEntries(Object.entries(configs[c]).filter(([k]) => k in params)) } })}>Apply</button>
-        <button className="tool tiny" aria-label={`Delete configuration ${c}`} onClick={() => { const { [c]: _, ...rest } = configs; set({ configurations: rest }); }}><Icon name="close" small /></button>
+        <button className="tool tiny" aria-label={`Delete configuration ${c}`} onClick={() => { set({ configurations: without(configs, c) }); }}><Icon name="close" small /></button>
       </div>)}
       <div className="param-row add">
         <input className="kv-input" aria-label="Configuration name" placeholder="Save these values as…" value={configName} onChange={e => setConfigName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
