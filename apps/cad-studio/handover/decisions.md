@@ -320,7 +320,7 @@ Known, for RB5 (`robustness/todo.json`):
 - Two random X-turned grazes at 10 µm and 1 µm refuse (an edge with one use).
 - A 10 µm lens's tessellation folds: two faces share a diagonal; it has no crack.
 
-## D26 — Stable feature ids: a face keeps its feature's name through deletes, moves and inserts (2026-10-18, A1.1)
+## D26 — Stable feature ids: a face keeps its feature's name, a body its key, through deletes, moves and inserts (2026-10-18, A1.1, A1.1b)
 Decided:
 - **Ids.** Every studio node carries `id`, `n<k>`. The serial k is handed out once by `StudioDoc.nextId` and
   never again, and the kernel feature is that id.
@@ -360,6 +360,21 @@ Evidence:
 - 3 conformance cases (`apps/cad-studio/conformance/a1`): schema-1 read, delete, move.
 - The full browser flow passes (102 + 1 updated: the older-file step now reads schema 2 with ids n0 and n1).
 - Bench unchanged.
+
+A1.1b, body keys (owner's delegate, after review). Bodies are keyed by the stable id of the feature that makes
+them: `b<k>` for `n<k>`, `b<k>_<side>` for split halves, `b<k>_part<j>` for a file's or a separation's solids.
+- **Why.** The maps keyed by body are document state: looks (colour, material, name, hidden, face colours),
+  render appearances and animation tracks. With index keys, a delete or move either rewrote them, so holders
+  outside the document went stale, or attached them to the wrong body.
+- **What changes.** Nothing is re-keyed on move. A delete drops only the deleted features' keys. A rebuilt range
+  gives its solid the old last node's id, so the shape keeps its key. A document built by appending has the
+  same keys as before.
+- **Schema 3.** A schema-2 file's index-keyed maps move to the id keys once on read, with a note; schema-1 files
+  are identical.
+- **Code.** `BodyResult.ref` carries the body's node and side now (`refOf`). Agent tools return and accept the id
+  keys, and `checkNode` names a bad reference with its body key.
+- **Tests.** A coloured, brass, animated body keeps its look, appearance and track through a move and a delete
+  above it, plus the schema-2 → 3 migration. The conformance case is `conformance/a1/body-keys`.
 
 Next in A1 (open):
 - **A1.2 selectors.** `{feature, role}` and `{on, normal, pick}`, each resolved to its name and returning it.
