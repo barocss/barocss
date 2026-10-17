@@ -1,7 +1,7 @@
 import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
-import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
+import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
 import { checkSpec, expectedOf, type Outcome } from './chat/spec';
@@ -371,9 +371,9 @@ export function App() {
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
-    // there (render, drawing, direct geometry, instances, requirements) is the document's newest.
+    // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
-    next = { ...next, ...Object.fromEntries((['render', 'drawing', 'direct', 'instances', 'requirements'] as const).filter(k => next[k] === was[k] && doc[k] !== was[k]).map(k => [k, doc[k]])) };
+    next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);

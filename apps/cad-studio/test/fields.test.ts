@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { carryOver, NODE_EXTRA_FIELDS, rectanglePart, STUDIO_DOC_FIELDS, withNode, type ModelNode, type NodeExtras, type StudioDoc } from '../src/engine/doc';
+import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
+import { flattenAssembly } from '../src/assembly/flatten';
+import { readStudioDoc } from '../src/engine/migrate';
+import { defaultRender } from '../src/engine/render';
+import { defaultDrawing } from '../src/drawing/types';
+
+// Every field a document or a node can hold survives every path that rebuilds one: a field added to the types
+// without being carried fails here (the lists are checked against the types at compile time, engine/doc.ts).
+type DocField = typeof STUDIO_DOC_FIELDS[number];
+
+/** A document with every field set (the type makes the list complete), and every node extra on some node. */
+function full(): StudioDoc {
+  let base = rectanglePart(40, 20, 8);
+  base = withNode(base, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 2 });
+  base = withNode(base, { kind: 'fillet', parent: { node: 2, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 1 });
+  base = withNode(withNode(base, { kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [70, 10] }), { kind: 'extrude', sketch: 4, height: 5 });
+  const extras: { [K in keyof NodeExtras]-?: NonNullable<NodeExtras[K]> } = {
+    suppressed: true, id: 'n3', rematched: { 'n1.side0|n1.top': 'n1.side1|n1.top' }, sigs: { 'n1.side0|n1.top': { k: 'line', p: [20, 0, 8], d: [1, 0, 0], s: 40 } }, held: 'test hold',
+  };
+  // (The fillet carries every extra; it is held and suppressed, so the part still builds.)
+  const nodes = base.nodes.map((n, i) => i === 3 ? { ...n, ...extras } as ModelNode : n);
+  const values: { [K in DocField]-?: NonNullable<StudioDoc[K]> } = {
+    format: 'barocss-cad-model', schema: 3, nextId: base.nextId!, units: 'mm', parameters: { w: 40 },
+    configurations: { big: { w: 60 } }, pendingParts: { p: { doc: rectanglePart(5, 5, 5), rev: 'A', name: 'P' } },
+    nodes, outputs: base.outputs, render: { ...defaultRender(), appearances: { b2: { ...defaultRender().defaultAppearance, roughness: 0.3 } } },
+    direct: { sources: { s: 'cube' }, objects: [] }, instances: [{ id: 'i1', name: 'pin', doc: rectanglePart(4, 4, 10), position: [0, 0, 20], rotation: [0, 0, 0] }],
+    drawing: defaultDrawing(), bodies: { b2: { color: '#ff0000', faceSigs: {}, facesWas: {} } },
+    mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top', sig: { k: 'plane', p: [0, 0, 8], d: [0, 0, 1], s: 0 } }, b: { part: 'i1', face: 'n1.bottom' } }],
+    requirements: [{ id: 'R1', source: '40 long', hard: true, basis: 'assumed', confirmed: { by: 'user', at: '2026-10-18T00:00:00Z' }, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } }],
+  };
+  return values as StudioDoc;
+}
+/** The document's own fields (not the model's): kept as they were. */
+const OWN = STUDIO_DOC_FIELDS.filter(k => !['nodes', 'outputs', 'nextId', 'schema'].includes(k));
+function assertKept(what: string, before: StudioDoc, after: StudioDoc, own: readonly DocField[] = OWN) {
+  for (const k of STUDIO_DOC_FIELDS) assert.ok(after[k] !== undefined, `${what}: ${k} dropped`);
+  for (const k of own) assert.deepEqual(after[k], before[k], `${what}: ${k} changed`);
+  const fillet = after.nodes.find(n => n.id === 'n3');
+  if (fillet) for (const f of NODE_EXTRA_FIELDS) assert.ok(fillet[f] !== undefined, `${what}: the fillet's ${f} dropped`);
+}
+
+test('fields: every document and node field survives carry-over, delete, move, duplicate, replace, save and open', () => {
+  const doc = full();
+  // A command built on an evaluated document older than this one (none of the document's own fields).
+  const was: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs, nextId: doc.nextId };
+  assertKept('carry-over', doc, carryOver(withNode(was, { kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [1, 0, 0] }), was, doc));
+  // (The separate box goes: its looks, if any, with it; everything else stays.)
+  const del = deleteFeature(doc, 5); assert.ok('doc' in del, JSON.stringify(del));
+  assertKept('delete', doc, del.doc);
+  const moved = moveFeature(doc, 5, -1); assert.ok('doc' in moved, JSON.stringify(moved));
+  assertKept('move', doc, moved.doc);
+  assertKept('duplicate', doc, duplicateBody(doc, { node: 5, side: 'solid' }, [0, 30, 0]).doc, OWN.filter(k => k !== 'bodies'));
+  assertKept('replace', doc, replaceRange(doc, 4, 2, [{ kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [72, 10] }, { kind: 'extrude', sketch: 4, height: 5 }]));
+  for (const schema of [3, 2]) {
+    const read = readStudioDoc(JSON.stringify({ ...doc, schema })); assert.ok('doc' in read, JSON.stringify(read));
+    assertKept(`save and open (schema ${schema})`, doc, read.doc);
+  }
+});
+
+test('fields: an instance\'s node extras survive flattening, their names moved with the ids', () => {
+  const part = full(), asm: StudioDoc = { ...rectanglePart(50, 50, 2), instances: [{ id: 'a', name: 'A', doc: part, position: [0, 0, 0], rotation: [0, 0, 0] }] };
+  const flat = flattenAssembly(asm), fillet = flat.nodes.find(n => n.kind === 'fillet')!;
+  for (const f of NODE_EXTRA_FIELDS) assert.ok(fillet[f] !== undefined, `flatten: ${f} dropped`);
+  const shifted = (fillet as { edges: string[] }).edges[0];
+  assert.ok(fillet.sigs![shifted], `the signature is under the shifted name ${shifted}: ${Object.keys(fillet.sigs!)}`);
+  assert.ok(fillet.rematched![shifted], 'the mark too');
+});

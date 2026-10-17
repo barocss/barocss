@@ -46,7 +46,15 @@ export type SketchNode =
  * (engine/references.ts). `held`: why it is suppressed until the user picks a reference it stores again
  * (one opened that could not be told; references.ts).
  */
-export type ModelNode = ModelNodeBase & { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string };
+export type ModelNode = ModelNodeBase & NodeExtras;
+/** What the studio keeps on any node besides the feature itself (see the fields above). */
+export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string };
+/**
+ * Every NodeExtras field, checked at compile time to be all of them: a test sets each and runs every path that
+ * rebuilds nodes, so a new field is either carried or fails it (test/fields.test.ts).
+ */
+export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held'] as const satisfies readonly (keyof NodeExtras)[];
+const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
@@ -228,6 +236,25 @@ export function placedDoc(inst: PartInstance): StudioDoc {
     }
   }
   return prefixDoc(doc, doc.nodes.length);
+}
+
+/**
+ * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
+ * and the field test go by this list, so a new field is carried through commits or fails the test.
+ */
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements'] as const satisfies readonly (keyof StudioDoc)[];
+const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
+/** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
+const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
+/**
+ * A command's result `next`, built on the evaluated document `was`, with every field it left as it found there
+ * taken from the document `doc` as it is now (the evaluated one follows model edits only): nothing the document
+ * holds is dropped because a command rebuilt it from a copy.
+ */
+export function carryOver(next: StudioDoc, was: StudioDoc, doc: StudioDoc): StudioDoc {
+  const out: Record<string, unknown> = { ...next };
+  for (const k of STUDIO_DOC_FIELDS) if (!MODEL_FIELDS.has(k) && next[k] === was[k] && doc[k] !== was[k]) { if (doc[k] === undefined) delete out[k]; else out[k] = doc[k]; }
+  return out as unknown as StudioDoc;
 }
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
