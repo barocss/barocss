@@ -481,3 +481,35 @@ Evidence:
 - Full browser flow 103/103.
 - Bench unchanged.
 
+## D30 — References shown and settled; every part's mates signed; a reference that cannot be told holds only its feature (2026-10-18, A1.3c)
+Decided:
+- **Shown.** A "References" card says "N matched again, M need a choice" at once on open. Each re-matched
+  reference is listed with *was → now*, **Confirm** and **Pick another** (the alike candidates nearest its stored
+  signature). Each problem is listed with its candidates, or "gone; pick it again on the feature". A history step
+  holding a mark or held is underlined, and its tooltip says what was matched or why it is held.
+- **Settled.** Confirming or picking (`confirmReference`) clears the mark, takes the signature from that face or
+  edge as the part now stands, and releases a feature held for it. It is one undoable change.
+- **A refusal on open no longer stops the open.** `verifyReferences` lists problems (ambiguous: the candidates;
+  gone: none) instead of failing.
+  - The feature storing such a reference is held, `suppressed` with `held` saying why, so the rest of the part
+    builds and a reference that cannot be told is never built on.
+  - A mate, dimension or colour with a problem is listed only.
+  - Nothing else changes.
+- **Coverage.**
+  - Mates on every part, the base and each instance (sub-assemblies too), are signed from that part's face table
+    (plane: point and normal; cylinder or bore: axis point, axis one way, radius), in the part's own coordinates.
+  - Holes and face-anchored sketches store their placement as geometry (a centre and an axis; a `DocPlane`), not
+    a face name, so there is nothing to match.
+  - Agent-held selections are not stored in the document. A4's proposals will join this list when they hold some.
+
+Evidence:
+- Studio 260/260. New conformance case `refs-gone`: the file opens, the fillet is held with its reason and listed,
+  and the box builds at 600 mm³. The mate cases now use face-table signatures; ambiguity is a problem, not an
+  abort.
+- Browser flow 104/104, with a new step:
+  - a file whose fillet edge a renumbering kernel would name otherwise opens with it matched again;
+  - the card says "1 matched again" and the step is marked;
+  - Confirm clears the mark;
+  - a file with a gone reference opens with the fillet held, "1 needs a choice", and the box built.
+- Bench unchanged.
+
