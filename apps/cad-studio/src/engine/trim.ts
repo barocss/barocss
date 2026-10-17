@@ -2,7 +2,9 @@
 // regions away — each loop keeps what lies outside it (a hole) or inside it (an island). A loop
 // comes from a closed curve projected onto the surface (each sample to its nearest surface point);
 // the display mesh is the surface's grid clipped along the loops.
-import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain, type Curve, type Surface } from '@barocss/cad';
+import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, type Curve, type Surface } from '@barocss/cad';
+
+type At = (u: number, v: number) => readonly number[];
 
 type UV = [number, number];
 export interface TrimLoop { uv: UV[]; keep: 'outside' | 'inside' }
@@ -12,27 +14,27 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
 const len3 = (a: readonly number[]) => Math.hypot(a[0], a[1], a[2]);
 
 /** The nearest point of the surface to p, from a seed (u, v): Gauss–Newton on the surface's tangents. */
-function nearest(s: Surface, p: readonly number[], seed: UV): { uv: UV; gap: number } {
+const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+function nearest(s: Surface, at: At, p: readonly number[], seed: UV): { uv: UV; gap: number } {
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), hu = (u1 - u0) * 1e-6, hv = (v1 - v0) * 1e-6;
-  const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
   let [u, v] = seed;
   for (let it = 0; it < 20; it++) {
-    const q = evaluateSurface(s, u, v), r = sub3(q, p);
+    const q = at(u, v), r = sub3(q, p);
     const ua = clamp(u - hu, u0, u1), ub = clamp(u + hu, u0, u1), va = clamp(v - hv, v0, v1), vb = clamp(v + hv, v0, v1);
-    const su = sub3(evaluateSurface(s, ub, v), evaluateSurface(s, ua, v)).map(x => x / (ub - ua)), sv = sub3(evaluateSurface(s, u, vb), evaluateSurface(s, u, va)).map(x => x / (vb - va));
+    const su = scaled(sub3(at(ub, v), at(ua, v)), 1 / (ub - ua)), sv = scaled(sub3(at(u, vb), at(u, va)), 1 / (vb - va));
     const a = dot3(su, su), b = dot3(su, sv), c = dot3(sv, sv), det = a * c - b * b, gu = dot3(su, r), gv = dot3(sv, r);
     if (!(Math.abs(det) > 1e-300)) break;
     const du = -(c * gu - b * gv) / det, dv = -(a * gv - b * gu) / det, nu = clamp(u + du, u0, u1), nv = clamp(v + dv, v0, v1);
     const done = Math.abs(nu - u) < (u1 - u0) * 1e-12 && Math.abs(nv - v) < (v1 - v0) * 1e-12;
     u = nu; v = nv; if (done) break;
   }
-  return { uv: [u, v], gap: len3(sub3(evaluateSurface(s, u, v), p)) };
+  return { uv: [u, v], gap: len3(sub3(at(u, v), p)) };
 }
 
 /** Whether segments ab and cd cross or touch (collinear ones only when they overlap). */
+const turn = (p: UV, q: UV, r: UV) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
 function crosses(a: UV, b: UV, c: UV, d: UV): boolean {
-  const o = (p: UV, q: UV, r: UV) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
-  const d1 = o(c, d, a), d2 = o(c, d, b), d3 = o(a, b, c), d4 = o(a, b, d);
+  const o = turn, d1 = o(c, d, a), d2 = o(c, d, b), d3 = o(a, b, c), d4 = o(a, b, d);
   if (d1 === 0 && d2 === 0) { const k = Math.abs(d[0] - c[0]) >= Math.abs(d[1] - c[1]) ? 0 : 1; return Math.max(a[k], b[k]) >= Math.min(c[k], d[k]) && Math.max(c[k], d[k]) >= Math.min(a[k], b[k]); }
   return d1 * d2 <= 0 && d3 * d4 <= 0;
 }
@@ -49,23 +51,24 @@ const crossesAny = (a: readonly UV[], b: readonly UV[], self: boolean) => {
  * close, not to cross itself or the earlier loops, and to enclose some area; else why not.
  */
 export function projectLoop(s: Surface, c: Curve, earlier: readonly TrimLoop[] = [], samples = 160): UV[] {
-  const [t0, t1] = curveDomain(c), ends = len3(sub3(evaluateCurve(c, t0), evaluateCurve(c, t1)));
+  const [t0, t1] = curveDomain(c), C = curveEvaluator(c), S = surfaceEvaluator(s), ends = len3(sub3(C(t0), C(t1)));
   let size = 0; for (const p of c.controlPoints) size = Math.max(size, len3(sub3(p, c.controlPoints[0])));
   if (ends > Math.max(1e-6, size * 1e-6)) throw new Error('The curve does not close: trim by a closed curve (a loop).');
   // Seeds from a grid of the surface, then each sample from the one before (the loop moves smoothly).
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), G = 24, grid: { uv: UV; p: number[] }[] = [];
-  for (let i = 0; i <= G; i++) for (let j = 0; j <= G; j++) { const uv: UV = [u0 + (u1 - u0) * i / G, v0 + (v1 - v0) * j / G]; grid.push({ uv, p: evaluateSurface(s, uv[0], uv[1]) }); }
+  for (let i = 0; i <= G; i++) for (let j = 0; j <= G; j++) { const uv: UV = [u0 + (u1 - u0) * i / G, v0 + (v1 - v0) * j / G]; grid.push({ uv, p: S(uv[0], uv[1]) as number[] }); }
   const out: UV[] = []; let prev: UV | null = null;
   for (let k = 0; k < samples; k++) {
-    const p = evaluateCurve(c, t0 + (t1 - t0) * k / samples);
-    let best = nearest(s, p, prev ?? grid.reduce((b, g) => len3(sub3(g.p, p)) < len3(sub3(b.p, p)) ? g : b).uv);
+    const p = C(t0 + (t1 - t0) * k / samples);
+    const seed = nearestSeed(grid, p);
+    let best = nearest(s, S, p, prev ?? seed);
     // (A jump to a far point of the surface: seeded again from the whole grid.)
-    if (prev) { const fromGrid = nearest(s, p, grid.reduce((b, g) => len3(sub3(g.p, p)) < len3(sub3(b.p, p)) ? g : b).uv); if (fromGrid.gap < best.gap - 1e-9) best = fromGrid; }
+    if (prev) { const fromGrid = nearest(s, S, p, seed); if (fromGrid.gap < best.gap - 1e-9) best = fromGrid; }
     out.push(best.uv); prev = best.uv;
   }
   if (crossesAny(out, out, true)) throw new Error('The curve crosses itself on the surface: trim by a simple loop.');
   if (Math.abs(area(out)) < (u1 - u0) * (v1 - v0) * 1e-6) throw new Error('The curve encloses nothing on the surface (it lies along it edge-on, or off its edge).');
-  if (earlier.some(l => crossesAny(out, l.uv, false))) throw new Error('The curve crosses an earlier trim of the surface.');
+  for (const l of earlier) if (crossesAny(out, l.uv, false)) throw new Error('The curve crosses an earlier trim of the surface.');
   return out;
 }
 
@@ -92,7 +95,41 @@ function side(loop: TrimLoop, u: number, v: number, su: number, sv: number): num
 /** Whether (u, v) is kept by every loop. */
 export function kept(loops: readonly TrimLoop[], s: Surface, u: number, v: number): boolean {
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s);
-  return loops.every(l => side(l, u, v, u1 - u0, v1 - v0) >= 0);
+  for (const l of loops) if (side(l, u, v, u1 - u0, v1 - v0) < 0) return false;
+  return true;
+}
+/** The loops' signed distance at (u, v): the least of them (negative where any cuts the point away). */
+function field(loops: readonly TrimLoop[], u: number, v: number, su: number, sv: number): number {
+  let m = Infinity; for (const l of loops) m = Math.min(m, side(l, u, v, su, sv)); return m;
+}
+/** The grid point nearest p (the first such, in grid order). */
+function nearestSeed(grid: readonly { uv: UV; p: number[] }[], p: readonly number[]): UV {
+  let best = grid[0], bd = len3(sub3(best.p, p));
+  for (let k = 1; k < grid.length; k++) { const d = len3(sub3(grid[k].p, p)); if (d < bd) { bd = d; best = grid[k]; } }
+  return best.uv;
+}
+const scaled = (a: number[], k: number) => [a[0] * k, a[1] * k, a[2] * k];
+
+/** A mesh under construction: vertices by their (u, v) (shared by the triangles round them). */
+interface Mesh { at: At; u0: number; u1: number; v0: number; v1: number; su: number; sv: number; pos: number[]; nrm: number[]; idx: number[]; seen: Map<string, number> }
+function vertexOf(m: Mesh, u: number, v: number): number {
+  const key = `${u},${v}`; let k = m.seen.get(key); if (k !== undefined) return k;
+  const at = m.at, p = at(u, v), h = 1e-5;
+  const ua = Math.max(m.u0, u - h * m.su), ub = Math.min(m.u1, u + h * m.su), va = Math.max(m.v0, v - h * m.sv), vb = Math.min(m.v1, v + h * m.sv);
+  const du = sub3(at(ub, v), at(ua, v)), dv = sub3(at(u, vb), at(u, va));
+  const c = [du[1] * dv[2] - du[2] * dv[1], du[2] * dv[0] - du[0] * dv[2], du[0] * dv[1] - du[1] * dv[0]], l = len3(c) || 1;
+  k = m.pos.length / 3; m.pos.push(p[0], p[1], p[2]); m.nrm.push(c[0] / l, c[1] / l, c[2] / l); m.seen.set(key, k); return k;
+}
+/** One grid triangle (corners' u, v and field value in t, nine numbers), clipped to field ≥ 0. */
+function clipInto(m: Mesh, t: readonly number[], ids: number[]): void {
+  ids.length = 0;
+  for (let a = 0; a < 3; a++) {
+    const b = (a + 1) % 3, pu = t[3 * a], pv = t[3 * a + 1], pf = t[3 * a + 2], qf = t[3 * b + 2];
+    if (pf >= 0) ids.push(vertexOf(m, pu, pv));
+    if ((pf >= 0) !== (qf >= 0)) { const f = pf / (pf - qf); ids.push(vertexOf(m, pu + (t[3 * b] - pu) * f, pv + (t[3 * b + 1] - pv) * f)); }
+  }
+  if (ids.length < 3) return;
+  for (let k = 1; k + 1 < ids.length; k++) m.idx.push(ids[0], ids[k], ids[k + 1]);
 }
 
 /**
@@ -101,33 +138,13 @@ export function kept(loops: readonly TrimLoop[], s: Surface, u: number, v: numbe
  */
 export function trimmedMesh(s: Surface, loops: readonly TrimLoop[], n = 64): { positions: Float32Array; normals: Float32Array; indices: Uint32Array } {
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), su = u1 - u0, sv = v1 - v0;
-  const field = (u: number, v: number) => loops.reduce((m, l) => Math.min(m, side(l, u, v, su, sv)), Infinity);
   const F: number[][] = [];
-  for (let i = 0; i <= n; i++) { const row: number[] = []; for (let j = 0; j <= n; j++) row.push(field(u0 + su * i / n, v0 + sv * j / n)); F.push(row); }
-  const pos: number[] = [], nrm: number[] = [], idx: number[] = [], seen = new Map<string, number>();
-  const vertex = (u: number, v: number) => {
-    const key = `${u},${v}`; let k = seen.get(key); if (k !== undefined) return k;
-    const p = evaluateSurface(s, u, v), h = 1e-5;
-    const ua = Math.max(u0, u - h * su), ub = Math.min(u1, u + h * su), va = Math.max(v0, v - h * sv), vb = Math.min(v1, v + h * sv);
-    const du = sub3(evaluateSurface(s, ub, v), evaluateSurface(s, ua, v)), dv = sub3(evaluateSurface(s, u, vb), evaluateSurface(s, u, va));
-    const c = [du[1] * dv[2] - du[2] * dv[1], du[2] * dv[0] - du[0] * dv[2], du[0] * dv[1] - du[1] * dv[0]], l = len3(c) || 1;
-    k = pos.length / 3; pos.push(p[0], p[1], p[2]); nrm.push(c[0] / l, c[1] / l, c[2] / l); seen.set(key, k); return k;
-  };
-  // One triangle of the grid (corners in (u, v) with their field values), clipped to field ≥ 0.
-  const clip = (t: [number, number, number][]) => {
-    const keptPts: [number, number][] = [];
-    for (let a = 0; a < 3; a++) {
-      const p = t[a], q = t[(a + 1) % 3];
-      if (p[2] >= 0) keptPts.push([p[0], p[1]]);
-      if ((p[2] >= 0) !== (q[2] >= 0)) { const f = p[2] / (p[2] - q[2]); keptPts.push([p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f]); }
-    }
-    if (keptPts.length < 3) return;
-    const ids = keptPts.map(([u, v]) => vertex(u, v));
-    for (let k = 1; k + 1 < ids.length; k++) idx.push(ids[0], ids[k], ids[k + 1]);
-  };
+  for (let i = 0; i <= n; i++) { const row: number[] = []; for (let j = 0; j <= n; j++) row.push(field(loops, u0 + su * i / n, v0 + sv * j / n, su, sv)); F.push(row); }
+  const m: Mesh = { at: surfaceEvaluator(s), u0, u1, v0, v1, su, sv, pos: [], nrm: [], idx: [], seen: new Map() }, t = Array<number>(9).fill(0), ids: number[] = [];
+  const set = (k: number, a: number, b: number) => { t[3 * k] = u0 + su * a / n; t[3 * k + 1] = v0 + sv * b / n; t[3 * k + 2] = F[a][b]; };
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-    const c = (a: number, b: number): [number, number, number] => [u0 + su * a / n, v0 + sv * b / n, F[a][b]];
-    clip([c(i, j), c(i + 1, j), c(i + 1, j + 1)]); clip([c(i, j), c(i + 1, j + 1), c(i, j + 1)]);
+    set(0, i, j); set(1, i + 1, j); set(2, i + 1, j + 1); clipInto(m, t, ids);
+    set(0, i, j); set(1, i + 1, j + 1); set(2, i, j + 1); clipInto(m, t, ids);
   }
-  return { positions: new Float32Array(pos), normals: new Float32Array(nrm), indices: new Uint32Array(idx) };
+  return { positions: new Float32Array(m.pos), normals: new Float32Array(m.nrm), indices: new Uint32Array(m.idx) };
 }
