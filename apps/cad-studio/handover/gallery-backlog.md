@@ -60,7 +60,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] C6 Least-squares curve fit; knot removal (#2042, #2052) — f482d5741
 - [x] C7 Splines in sketches (#2051) — ded1806bf (kept as tangent arcs; the spline points are not editable after drawing)
 - [x] C8 Symmetry constraint (#2039) — 01c9c0f43 (about an edge of the outline)
-- [ ] C9 Zebra / curvature maps (#2033); image-based lighting, alpha cutout (#2070) — zebra, curvature and cutout 1602f92e4; image-based lighting still to do
+- [x] C9 Zebra / curvature maps (#2033); image-based lighting, alpha cutout (#2070) — zebra, curvature and cutout 1602f92e4; image-based lighting ffc65bb14
 
 ## Carried over
 
