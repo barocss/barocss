@@ -932,7 +932,12 @@ export function App() {
       if (done) commitInstances((doc.instances ?? []).map(i => i.id === selectedInst.id ? next(i) : i));
     };
     return { origin: [centre[0] + d[0], centre[1] + d[1], centre[2] + d[2]], move: axes.move, turn: axes.turn,
-      onMove: (delta, done) => place(i => movedInstance(i, delta), { kind: 'move', delta }, done, delta.every(v => v === 0)),
+      onMove: (raw, done) => {
+        // Lined up with the part's bodies and the other placed parts when it comes close (as bodies are).
+        const others = [...bodies.map(b => b.mesh.bounds), ...[...instanceBodies.entries()].filter(([id]) => id !== selectedInst.id).flatMap(([, v]) => v.bodies.map(b => b.mesh.bounds))];
+        const delta = alignMove({ min: lo, max: hi }, others, raw, raw.map(v => v !== 0), Math.max(1, Math.max(...[0, 1, 2].map(k => hi[k] - lo[k])) * 0.02)).move;
+        place(i => movedInstance(i, delta), { kind: 'move', delta }, done, delta.every(v => v === 0));
+      },
       onTurn: (axis, degrees, done) => place(i => turnedInstance(i, axis, degrees, centre), { kind: 'turn', axis, degrees, centre }, done, degrees === 0) };
   })();
   // Placed: the preview goes once the instance is evaluated where it landed (or after a moment, when the mates put it back).
