@@ -485,3 +485,19 @@ test('tangent: an outline edge and one of its circles come to touch, the radius 
   assert.ok(constraintEntries(s).some(e => e.label === 'Tangent'));
   assert.match(constraintOptions(s, [Pt(1), C(0)]).tangent!, /straight edge and a circle/);
 });
+
+test('symmetric: two points mirror each other across an edge’s line; two degrees of freedom less', () => {
+  // A dart with its first edge on the X axis: points 2 and 5 are near mirror images across it.
+  const s = close([[0, 0], [10, 0], [16, 7], [-5, 6], [-5, -6], [16, -8]]);
+  assert.match(constraintOptions(s, [Pt(2), Pt(5)]).symmetric ?? '', /two points and a straight edge/);
+  assert.match(constraintOptions(s, [Pt(1), Pt(5), E(0)]).symmetric ?? '', /own ends/);
+  const before = dof(s), t = ok(applyConstraint(s, [Pt(2), Pt(5), E(0)], 'symmetric'));
+  const [a, b] = [t.points[2], t.points[5]], L0 = t.points[0], L1 = t.points[1];
+  // Mirror of a across the line L0–L1 is b.
+  const d: P2 = [L1[0] - L0[0], L1[1] - L0[1]], l2 = d[0] * d[0] + d[1] * d[1], k = ((a[0] - L0[0]) * d[0] + (a[1] - L0[1]) * d[1]) / l2;
+  const foot: P2 = [L0[0] + d[0] * k, L0[1] + d[1] * k], mirror: P2 = [2 * foot[0] - a[0], 2 * foot[1] - a[1]];
+  assert.ok(Math.hypot(mirror[0] - b[0], mirror[1] - b[1]) < 1e-6, JSON.stringify({ a, b, mirror }));
+  assert.equal(dof(t), before - 2);
+  assert.match(constraintEntries(t).map(c => c.label + ' ' + c.detail).join(' | '), /Symmetric point 3 · point 6 about edge 1/);
+  assert.match(constraintOptions(t, [Pt(5), Pt(2), E(0)]).symmetric ?? '', /Already symmetric/);
+});

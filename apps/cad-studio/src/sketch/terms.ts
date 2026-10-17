@@ -31,7 +31,9 @@ export type SketchRule =
   /** Two of the outline's circles about one centre (their radii free). */
   | { kind: 'cconc'; a: number; b: number }
   /** A straight edge tangent to one of the outline's circles (touching it on the side it was drawn). */
-  | { kind: 'ctan'; edge: number; circle: number };
+  | { kind: 'ctan'; edge: number; circle: number }
+  /** Two points mirror images of each other across a straight edge's line. */
+  | { kind: 'symmetric'; a: number; b: number; line: number };
 
 const angle = (v: P2) => Math.atan2(v[1], v[0]);
 const wrap = (a: number) => { const w = Math.atan2(Math.sin(a), Math.cos(a)); return w === -Math.PI ? Math.PI : w; };
@@ -103,6 +105,21 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
       distance(k, 'p' + r.edge, points[r.edge], centre(r.circle), circles[r.circle], r.axis, r.value);
     else if ((r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') && r.a !== r.b && r.a >= 0 && r.b >= 0 && r.a < circles.length && r.b < circles.length)
       distance(k, centre(r.a), circles[r.a], centre(r.b), circles[r.b], r.kind === 'ccdist' ? null : r.kind === 'ccdx' ? 0 : 1, r.value);
+    else if (r.kind === 'symmetric' && point(r.a) && point(r.b) && r.a !== r.b && line(r.line)) {
+      // A helper M: the pair's middle (a–M and M–b in line and of one length), on the edge's line (in line
+      // with its end farther from M), and the pair square to the edge.
+      const A = points[r.a], B = points[r.b], la = r.line, lb = (r.line + 1) % n, L0 = points[la], L1 = points[lb];
+      const M: P2 = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], far = Math.hypot(M[0] - L0[0], M[1] - L0[1]) >= Math.hypot(M[0] - L1[0], M[1] - L1[1]) ? la : lb;
+      helpers.push({ id: 'sm' + k, position: M });
+      segments.push({ id: 'sa' + k, startPointId: 'p' + r.a, endPointId: 'sm' + k }, { id: 'sb' + k, startPointId: 'sm' + k, endPointId: 'p' + r.b },
+        { id: 'sab' + k, startPointId: 'p' + r.a, endPointId: 'p' + r.b }, { id: 'sl' + k, startPointId: 'p' + far, endPointId: 'sm' + k });
+      const dir = (p: P2, q: P2) => angle([q[0] - p[0], q[1] - p[1]]), edge = dir(L0, L1);
+      const toM = far === la ? dir(L0, M) : dir(L1, M), across = dir(A, B);
+      constraints.push({ id: id + 'c', kind: 'signed-angle', segmentA: 'sa' + k, segmentB: 'sb' + k, angleRad: 0 },
+        { id: id + 'e', kind: 'equal-length', segmentA: 'sa' + k, segmentB: 'sb' + k },
+        { id: id + 'm', kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sl' + k, angleRad: nearest(wrap(toM - edge), [0, Math.PI, -Math.PI]) },
+        { id, kind: 'signed-angle', segmentA: 's' + r.line, segmentB: 'sab' + k, angleRad: nearest(wrap(across - edge), [Math.PI / 2, -Math.PI / 2]) });
+    }
     else if (r.kind === 'ctan' && line(r.edge) && r.circle >= 0 && r.circle < circles.length && radii[r.circle] > 0) {
       // The touching point F: on the edge's line (in line with its farther end), the circle's radius from
       // its centre, square to the edge.

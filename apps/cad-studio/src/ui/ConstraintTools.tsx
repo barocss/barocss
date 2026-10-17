@@ -11,7 +11,7 @@ import './constraints.css';
 const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }[] = [
   { kind: 'horizontal', sym: 'H', label: 'Horizontal', short: 'Horiz' }, { kind: 'vertical', sym: 'V', label: 'Vertical', short: 'Vert' },
   { kind: 'parallel', sym: '∥', label: 'Parallel', short: 'Parallel' }, { kind: 'perpendicular', sym: '⊥', label: 'Perpendicular', short: 'Perp' },
-  { kind: 'equal', sym: '=', label: 'Equal', short: 'Equal' }, { kind: 'coincident', sym: '◎', label: 'Coincident', short: 'Centre' }, { kind: 'tangent', sym: '⌒', label: 'Tangent', short: 'Tangent' }, { kind: 'fix', sym: '⚓', label: 'Fix', short: 'Fix' },
+  { kind: 'equal', sym: '=', label: 'Equal', short: 'Equal' }, { kind: 'coincident', sym: '◎', label: 'Coincident', short: 'Centre' }, { kind: 'tangent', sym: '⌒', label: 'Tangent', short: 'Tangent' }, { kind: 'symmetric', sym: '⟷', label: 'Symmetric', short: 'Sym' }, { kind: 'fix', sym: '⚓', label: 'Fix', short: 'Fix' },
 ];
 
 const pickName = (s: Polygon, p: SketchPick) => p.kind === 'point' ? `point ${p.i + 1}` : p.kind === 'circle' ? `circle ${p.i + 1}` : `${s.bulges?.[p.i] ? 'arc' : 'edge'} ${p.i + 1}`;

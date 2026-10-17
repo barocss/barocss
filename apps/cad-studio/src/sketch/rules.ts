@@ -13,7 +13,7 @@ export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
  * circles (`circles`), or with `done` a finished circle shape of the sketch (`done` index) not yet attached.
  */
 export interface SketchPick { kind: 'point' | 'edge' | 'circle'; i: number; done?: true }
-export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendicular' | 'equal' | 'fix' | 'coincident' | 'tangent';
+export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendicular' | 'equal' | 'fix' | 'coincident' | 'tangent' | 'symmetric';
 
 export const isSettled = (s: SketchShape | null | undefined): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;
 export const samePick = (a: SketchPick, b: SketchPick) => a.kind === b.kind && a.i === b.i && !a.done === !b.done;
@@ -83,7 +83,7 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     const tangent = loose ? 'Circles drawn on their own move freely: attach them to the outline to constrain them'
       : circles.length === 1 && edges.length === 1 && !points.length && !isArc(s, edges[0]) ? (hasRule(s, r => r.kind === 'ctan' && r.edge === edges[0] && r.circle === circles[0]) ? 'Already tangent' : null)
         : 'Select a straight edge and a circle (the edge touching it)';
-    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident, tangent };
+    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident, tangent, symmetric: why };
   }
   const { points, edges, lines, arcs } = split(s, picks), hv = hvOf(s);
   const onlyLines = (min: number, max = Infinity) => points.length === 0 && arcs.length === 0 && lines.length >= min && lines.length <= max;
@@ -101,6 +101,9 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     equal: points.length || edges.length < 2 || (lines.length && arcs.length) ? 'Select two or more lines (same length) or arcs (same radius)' : null,
     fix: !points.length || edges.length ? 'Select one or more points' : !fixable.length ? (points.includes(0) && points.length === 1 ? 'Point 1 is the sketch anchor: it is already fixed' : 'Already fixed') : null,
     coincident, tangent: 'Select a straight edge and a circle (the edge touching it)',
+    symmetric: points.length !== 2 || lines.length !== 1 || arcs.length ? 'Select two points and a straight edge (the line they mirror across)'
+      : [lines[0], (lines[0] + 1) % s.points.length].some(i => points.includes(i)) ? 'The points must not be the edge’s own ends'
+        : hasRule(s, r => r.kind === 'symmetric' && r.line === lines[0] && ((r.a === points[0] && r.b === points[1]) || (r.a === points[1] && r.b === points[0]))) ? 'Already symmetric' : null,
   };
 }
 const pairOf = (a: number, b: number): ArcPair => a < b ? [a, b] : [b, a];
@@ -169,6 +172,8 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
       if (!added.length) return { ok: false, reason: 'Already equal' };
       return checkEdit({ ...s, hv, rules: [...rules, ...added] }, s, `Equal length ${list(lines.map(i => edgeName(s, i)))}`);
     }
+    case 'symmetric':
+      return checkEdit({ ...s, hv, rules: [...rules, { kind: 'symmetric', a: points[0], b: points[1], line: lines[0] }] }, s, `Point ${points[0] + 1} and point ${points[1] + 1} symmetric about ${edgeName(s, lines[0])}`);
     case 'fix': {
       const add = points.filter(i => i !== 0 && !hasRule(s, r => r.kind === 'fix' && r.point === i));
       return checkEdit({ ...s, hv, rules: [...rules, ...add.map((i): SketchRule => ({ kind: 'fix', point: i, at: [...s.points[i]] as P2 }))] }, s,
@@ -323,6 +328,7 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') add(id, pairName[r.kind], `circle ${r.a + 1} – circle ${r.b + 1} = ${round(r.value)}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') add(id, circleDimName[r.kind], `point ${r.a + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [P(r.a), C(r.circle)]);
     else if (r.kind === 'ctan') add(id, 'Tangent', `edge ${r.edge + 1} · circle ${r.circle + 1}`, [E(r.edge), C(r.circle)]);
+    else if (r.kind === 'symmetric') add(id, 'Symmetric', `point ${r.a + 1} · point ${r.b + 1} about edge ${r.line + 1}`, [P(r.a), P(r.b), E(r.line)]);
     else if (r.kind === 'cconc') add(id, 'Concentric', `circle ${r.a + 1} · circle ${r.b + 1}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);
