@@ -1,6 +1,6 @@
 import { planeLabel } from '../sketch/plane';
 import { isConvex } from '../sketch/loops';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '../sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '../sketch/rules';
@@ -14,9 +14,12 @@ const NONE: SketchPick[] = [];
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
-  onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void }) {
+  onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
+  /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
+  onOffset?(d: number): void }) {
+  const [offsetBy, setOffsetBy] = useState(2);
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className="field" key={id}><span>{label}</span>
@@ -147,6 +150,14 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi }: { sketch:
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
       </>}
       {solved?.ok && <div className="kv solver">Solver<b>rank {solved.rank} · {solved.dof} DOF</b></div>}
+      {onOffset && <>
+        <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
+        <div className="sk-offset">
+          <span className="num"><input aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy} onChange={e => setOffsetBy(Number(e.target.value))} /><em>mm</em></span>
+          <button className="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</button>
+          <button className="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</button>
+        </div>
+      </>}
     </aside>
   );
 }

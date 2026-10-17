@@ -31,6 +31,7 @@ import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
+import { offsetShape } from './sketch/offset';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
@@ -530,6 +531,15 @@ export function App() {
     viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   }, [sketch, bodies]);
 
+  /** Offsets the newest closed shape of the sketch by `d` (out when positive) as a shape beside it. */
+  const offsetSketch = (d: number) => {
+    if (!sketch) return;
+    const target = sketch.shape && shapeNode(sketch.shape) ? sketch.shape : [...(sketch.done ?? [])].reverse().find(x => !x.construction && shapeNode(x));
+    if (!target) { setToast({ title: 'Nothing to offset', hint: 'Draw a closed shape first.', detail: '' }); return; }
+    const r = offsetShape(target, d);
+    if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
+    setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
+  };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
     const node = doc.nodes[index]; if (node?.kind !== 'sketch') return;
@@ -1087,7 +1097,7 @@ export function App() {
       </aside>
       <div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}

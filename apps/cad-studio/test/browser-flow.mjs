@@ -1331,6 +1331,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     const nodes = (await doc()).nodes.length;
@@ -1504,6 +1505,17 @@ try {
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await field('Centre X').fill('24'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.filter(n => n.kind === 'hole').length === 2, null, { timeout: 15000 });
+  });
+
+  await check('sketch offset: a rectangle offset 2 mm in makes a frame profile', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);
+    await page.fill('[aria-label="Offset distance"]', '2'); await page.click('[aria-label="Offset inward"]');
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.done').length >= 2, null, { timeout: 5000 });
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const n = (await doc()).nodes[0];
+    assert.equal(n.holes?.length, 1, 'the inner rectangle is the profile’s hole');
   });
 
   await check('command palette and light theme', async () => {
