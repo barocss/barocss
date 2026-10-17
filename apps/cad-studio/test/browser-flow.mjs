@@ -111,6 +111,8 @@ try {
     // Crossing the edge makes a notch (B-rep part model); missing the plate is refused with the reason.
     await field('Centre X').fill('2'); await field('Diameter').fill('8');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    // Its whole cylinder shows see-through beside the notch.
+    await page.click('.views button:text-is("Iso")'); await page.waitForTimeout(500); await page.screenshot({ path: join(out, '07a-hole-region-edge.png') });
     await field('Centre X').fill('300');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused', null, { timeout: 15000 });
     assert.match(await page.locator('.hud-error').innerText(), /misses the body/);

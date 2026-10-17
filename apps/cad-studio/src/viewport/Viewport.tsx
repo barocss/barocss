@@ -6,6 +6,7 @@ import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
+import { regionMesh, type ToolRegion } from '../app/holeRegion';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 import { extendPreview, splitPreview, trimPreview } from '../sketch/trim';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type PlaneKind, type SketchPlane } from '../sketch/plane';
@@ -129,6 +130,8 @@ interface Props {
   /** Direct curves and surfaces, and the selected ones. */
   direct?: DirectDisplay[];
   directSelection?: string[];
+  /** See-through regions of the tool being placed or edited (a hole's whole cylinder). */
+  regions?: ToolRegion[];
   /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
   poles?: { key: string; at: Vec3 }[];
   pickedPole?: string | null;
@@ -267,6 +270,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo, props.handles]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
+  useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);

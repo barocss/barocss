@@ -32,6 +32,7 @@ import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
+import { addedHoles, holeGroup, holeRegions, type ToolRegion } from './app/holeRegion';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from './sketch/trim';
@@ -1156,6 +1157,22 @@ export function App() {
   }, [instDrag, instanceBodies]);
   const instancePreview = useMemo(() => instDrag ? { id: instDrag.id, matrix: previewMatrix(instDrag.drag) } : null, [instDrag]);
 
+  // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
+  // only a notch shows of it otherwise.
+  const regions = useMemo((): ToolRegion[] => {
+    if (rendering || drawing || sketch) return [];
+    if (active?.cmd.id === 'hole' && active.cmd.build && active.ctx.selection.faces[0]) {
+      try {
+        const next = active.cmd.build(active.ctx, active.values), b = active.ctx.bodies[active.ctx.selection.faces[0].body];
+        return b ? holeRegions(next.nodes, addedHoles(next.nodes, active.ctx.doc.nodes.length), b.mesh.bounds) : [];
+      } catch { return []; }
+    }
+    if (active || editNode === null || doc.nodes[editNode]?.kind !== 'hole') return [];
+    const group = holeGroup(doc.nodes, editNode), cut = new RegExp(`\\bn(${group.join('|')})\\.side`);
+    const b = bodies.find(x => x.mesh.faces.some(f => cut.test(f.name))) ?? bodies[selection.bodies[0] ?? -1];
+    return b ? holeRegions(doc.nodes, group, b.mesh.bounds) : [];
+  }, [active, editNode, doc.nodes, bodies, selection.bodies, rendering, drawing, sketch]);
+
   // The picked pole's gizmo: drag it along an axis; let go, the curve or surface is edited (one undo step).
   const poleMode = !active && !sketch && !rendering && !drawing && !measure && !assembly.draft;
   const poleGizmo: TransformGizmo | null = poleMode && poleHere && poleObj && doc.direct ? {
@@ -1175,7 +1192,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}

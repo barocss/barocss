@@ -49,6 +49,7 @@ export class GpuRenderer implements ViewRenderer {
   /** Direct curves and surfaces: their meshes by object id, and the control nets of the selected ones. */
   private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
   private controls: Mesh[] = [];
+  private regions: Mesh[] = [];
   /** Placed instances of other parts: their bodies' surfaces and edges. */
   private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
   private instanceSelection: readonly string[] = [];
@@ -282,6 +283,17 @@ export class GpuRenderer implements ViewRenderer {
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(b); }
     for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(b); }
     return { min, max };
+  }
+
+  /** Tool regions: a see-through blue surface and its rims. */
+  setRegions(mesh: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; rims: Float32Array } | null): void {
+    for (const m of this.regions) { m.remove(); m.geometry.dispose(); }
+    this.regions = [];
+    if (mesh && mesh.indices.length) {
+      this.regions.push(this.viewer.add({ positions: mesh.positions, normals: mesh.normals, indices: mesh.indices }, { material: { color: '#4aa8ff', roughness: 0.6, opacity: 0.22, doubleSided: true }, pickable: false, castShadow: false }));
+      this.regions.push(this.viewer.add({ positions: mesh.rims, topology: 'lines' }, { material: { color: '#6cbcff', unlit: true, lineWidth: 1.4, opacity: 0.9 }, pickable: false, castShadow: false }));
+    }
+    this.viewer.requestRender();
   }
 
   /** Direct geometry: surfaces as two-sided meshes, curves as lines; the selected ones outlined with their control nets. */
