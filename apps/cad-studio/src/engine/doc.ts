@@ -125,6 +125,7 @@ import { rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, withIds } from './ids';
 import type { Sig } from './references';
+import type { Requirement } from '../chat/spec';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -159,6 +160,8 @@ export interface StudioDoc {
   bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
+  /** The brief as requirements with executable checks (chat/spec.ts). */
+  requirements?: Requirement[];
 }
 
 /** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */

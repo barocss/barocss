@@ -17,6 +17,7 @@ import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
+import { checkRequirement, checkSpec, expectedOf, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 export { resolveNames, type NameSelection };
 
@@ -95,7 +96,7 @@ function features(doc: StudioDoc) {
   return doc.nodes.map((n, i) => ({ index: i, label: featureLabel(n, i, doc.nodes), node: n }));
 }
 
-const MUTATORS = new Set(['run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
+const MUTATORS = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -478,6 +479,20 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const out = draftAnalysis(b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
       return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
     }
+    case 'set_requirements': {
+      const list = Array.isArray(args.requirements) ? args.requirements : null;
+      if (!list) return fail(state, 'Pass "requirements": a list of {id, source, hard, basis?, subject?, assume?, check: {op, query, value | min, max, tol?, unit?}}.');
+      for (const r of list) { const why = checkRequirement(r); if (why) return fail(state, why); }
+      const ids = list.map(r => (r as Requirement).id); if (new Set(ids).size !== ids.length) return fail(state, 'Requirement ids repeat.');
+      const kept = args.replace === true ? [] : (state.doc.requirements ?? []).filter(r => !ids.includes(r.id));
+      const doc = { ...state.doc, requirements: [...kept, ...(list as Requirement[])] };
+      return { state: { ...state, doc }, content: json({ ok: true, requirements: doc.requirements.map(r => ({ id: r.id, hard: r.hard, check: `${r.check.query.fn} ${expectedOf(r.check)}` })) }), isError: false, changed: true, summary: `${list.length} requirement${list.length === 1 ? '' : 's'} set` };
+    }
+    case 'check_spec': {
+      if (!state.doc.requirements?.length) return fail(state, 'There are no requirements yet: set_requirements first, from the brief.');
+      const { outcomes: _, ...report } = await checkSpec(state.doc, state.bodies, evaluate);
+      return { state, content: json(report), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
+    }
     case 'render_views': {
       const highlight = strings(args.highlight), sec = isObj(args.section) ? args.section : undefined;
       if (sec && (!['x', 'y', 'z'].includes(String(sec.axis)) || !Number.isFinite(Number(sec.at)))) return fail(state, 'A section takes an axis (x, y or z) and at (mm).');
@@ -629,6 +644,16 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, min_deg: { type: 'number' } }, additionalProperties: false },
   },
   {
+    name: 'set_requirements',
+    description: 'Keeps the brief as requirements, each with a check that can be run: {id, source (the words quoted), hard (true: must hold), basis (stated | assumed | ambiguous), subject?, assume?, check: {op: "==" | "<=" | ">=" | "between", query: {fn, …}, value | min and max, tol?, unit?}}. query.fn: bbox {axis, body?}, volume {body?}, mass {body?}, count_solids, count_faces_of_kind {kind: plane | curved, body?}, distance_between {a, b}, radius {face}, hole_diameter {face}, min_wall {body?}, draft_min {body?, pull?}, clearance {a, b: body keys}. Faces and edges by name or selector. Write them before modelling. Adds to (or with replace: true, replaces) those there; an id given again replaces its requirement.',
+    input_schema: { type: 'object', properties: { requirements: { type: 'array', items: { type: 'object' } }, replace: { type: 'boolean' } }, required: ['requirements'], additionalProperties: false },
+  },
+  {
+    name: 'check_spec',
+    description: 'Runs every requirement\'s check against the part as it stands: {model_hash, summary {pass, fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}], unknowns [{req_id, why}]}; passes as counts only. A mass check on a body without a material is unknown.',
+    input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
     name: 'render_views',
     description: 'The part as engineering views on one image: front, top, right and isometric, edges by exact hidden-line projection (visible solid, hidden dashed), each face that shows numbered (the legend gives its name). Look at it at milestones or when something seems wrong, not after every step. highlight: faces to fill red (e.g. a failed check\'s); section: cut first across an axis at a position.',
     input_schema: { type: 'object', properties: { highlight: { ...nameList, description: 'Face names to fill red.' }, section: { type: 'object', properties: { axis: { type: 'string', enum: ['x', 'y', 'z'] }, at: { type: 'number' } }, required: ['axis', 'at'], additionalProperties: false } }, additionalProperties: false },
@@ -659,7 +684,7 @@ export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD 
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
-Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 
