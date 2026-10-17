@@ -32,6 +32,8 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/pro
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
+import { faceProfile } from './app/faceProfile';
+import { sketchShapes } from './sketch/reopen';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
@@ -46,7 +48,6 @@ import { profileOf, shapeNode } from './sketch/loops';
 import { commitDimension, isSettled } from './sketch/rules';
 import { sketchClick, startPicking } from './sketch/select';
 import { SketchHistory } from './sketch/history';
-import { sketchShapes } from './sketch/reopen';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'cad-sk-rect', hint: 'Click two corners' },
@@ -472,7 +473,8 @@ export function App() {
       if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face, or clear the selection to sketch on XY.', detail: '' }); return; }
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
-      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base } } : { kind: 'xy', offset: 0 };
+      const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
+      const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}) } } : { kind: 'xy', offset: 0 };
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
@@ -1097,7 +1099,8 @@ export function App() {
       </aside>
       <div className="right-col">
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
+        ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}

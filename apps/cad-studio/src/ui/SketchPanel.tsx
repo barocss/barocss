@@ -14,11 +14,13 @@ const NONE: SketchPick[] = [];
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
-  onOffset?(d: number): void }) {
+  onOffset?(d: number): void;
+  /** Adds the face's own outline and holes (as references when `asRefs`); absent when not sketching on a face as it is. */
+  onUseOutline?(asRefs: boolean): void }) {
   const [offsetBy, setOffsetBy] = useState(2);
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
@@ -150,6 +152,13 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset }:
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
       </>}
       {solved?.ok && <div className="kv solver">Solver<b>rank {solved.rank} · {solved.dof} DOF</b></div>}
+      {onUseOutline && <>
+        <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
+        <div className="sk-offset">
+          <button className="ghost" aria-label="Use the face outline" data-tip="Use its outline" data-tip-desc="The face's edges (outline and holes) as shapes of this sketch" onClick={() => onUseOutline(false)}>Use its outline</button>
+          <button className="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</button>
+        </div>
+      </>}
       {onOffset && <>
         <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
         <div className="sk-offset">

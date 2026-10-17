@@ -1530,6 +1530,20 @@ try {
     assert.equal(n.profile, 'loop'); assert.equal(n.segments.filter(x => x.kind === 'arc').length, 1);
   });
 
+  await check('sketch on a face: use its outline, offset it in, and the ring is the profile', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('s'); await page.waitForSelector('[aria-label="Use the face outline"]', { timeout: 5000 });
+    await page.click('[aria-label="Use the face outline"]');
+    await page.fill('[aria-label="Offset distance"]', '3'); await page.click('[aria-label="Offset inward"]');
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sketch', null, { timeout: 10000 });
+    const n = (await doc()).nodes.at(-1);
+    assert.equal(n.holes?.length, 1); assert.deepEqual(n.on, { node: 1, side: 'solid' });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
