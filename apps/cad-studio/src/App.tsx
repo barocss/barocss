@@ -1102,6 +1102,8 @@ export function App() {
           <div className="sep" />
           <button className={'tool' + (sketch.construct ? ' on' : '')} data-tip="Construction" data-tip-key="X" data-tip-desc="Draw references: dashed shapes to snap to, not part of the profile" aria-label="Construction"
             onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></button>
+          {(sketch.done ?? []).some(d => d.construction) && <button className={'tool' + (sketch.hideConstruction ? ' on' : '')} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
+            onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></button>}
           <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
           <div key={g} className="tool-group">

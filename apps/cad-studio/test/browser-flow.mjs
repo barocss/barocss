@@ -1402,6 +1402,11 @@ try {
     await press('x'); await press('r'); await clickAt(cx - 80, cy - 40); await clickAt(cx + 80, cy + 40);
     await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.construction').length >= 1, null, { timeout: 5000 });
     await snap('construction');
+    // Hidden, the reference is not drawn; shown again, it is.
+    await page.click('[aria-label="Hide construction"]');
+    await page.waitForFunction(() => !document.querySelector('.vp-overlay .sk-shape.construction'), null, { timeout: 3000 });
+    await page.click('[aria-label="Show construction"]');
+    await page.waitForFunction(() => !!document.querySelector('.vp-overlay .sk-shape.construction'), null, { timeout: 3000 });
     await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
     const node = (await doc()).nodes[0];

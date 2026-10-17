@@ -17,7 +17,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] A7 Mass: inertia (kernel `inertiaCentroidKgM2`, about a picked axis), the part's combined centre of mass, the bounds box drawn (#2056, #2041)
 - [x] A8 Drawing title block: Rev field (#2057)
 - [x] A9 Selection filter: faces / edges / bodies (#2049)
-- [ ] A10 Hide construction shapes in a sketch (#2069)
+- [x] A10 Hide construction shapes in a sketch (#2069)
 - [ ] A11 Direct curves: chord next to length, raise curve degree, isocurve overlay (#2078, #2052, #2040)
 - [ ] A12 Render: point-light range, field of view, two-sided toggle (#2070)
 - [ ] A13 Direct transform: non-uniform scale and shear (#2086)

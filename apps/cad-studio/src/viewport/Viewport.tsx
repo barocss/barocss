@@ -48,7 +48,9 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
   /** New shapes are drawn as construction (references) while this is on (X). */
-  construct?: boolean }
+  construct?: boolean;
+  /** Construction shapes hidden (not drawn, not snapped to); they stay with the sketch. */
+  hideConstruction?: boolean }
 export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
 
@@ -158,7 +160,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const key = JSON.stringify(sk.plane), bodies = propsRef.current.bodies;
     if (!modelSnapCache.current || modelSnapCache.current.bodies !== bodies || modelSnapCache.current.plane !== key) modelSnapCache.current = { bodies, plane: key, points: modelSnaps(bodies.map(b => b.mesh), sk.plane) };
     const live = liveShape.current as SnapShape | null;
-    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...modelSnapCache.current.points, ...(sk.done ?? []).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
+    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...modelSnapCache.current.points, ...(sk.done ?? []).filter(d => !(sk.hideConstruction && d.construction)).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
     const hit = nearestSnap(points, q => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; }, [x, y]);
     return hit ? { at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4], snap: hit } : { at: [snap(p[0]), snap(p[1])], snap: null };
   };
@@ -666,6 +668,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       // Shapes finished earlier in this sketch (regions and holes of one profile).
       // (Open pieces — a trimmed shape's rest — as lines with their ends.)
       (sk.done ?? []).forEach((d, i) => {
+        if (sk.hideConstruction && d.construction) return;
         const cls = 'sk-shape done' + (d.construction ? ' construction' : '');
         if (d.kind === 'polygon' && !d.closed) {
           items.push(<polyline key={'done' + i} points={sampleOutline(d.points, d.bulges, false).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls + ' open'} />);
