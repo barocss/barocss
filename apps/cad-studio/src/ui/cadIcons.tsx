@@ -189,6 +189,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sk-circle': <><circle cx="12" cy="12" r="7.5" style={tone(0.12)} /><circle cx="12" cy="12" r="7.5" />{ghost('M12 12l5.3-5.3')}{dots([[12, 12], [17.3, 6.7]])}</>,
   'cad-sk-line': <>{line('M4 18L9 7l6 8 5-9')}{dots([[4, 18], [9, 7], [15, 15], [20, 6]])}</>,
   'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,
+  // Centre arc: the centre and the two ends lit, the radii to them ghosted.
+  'cad-sk-carc': <>{ghost('M7 17l10-0.01M7 17l8.5-8.5')}{line('M17 17A10 10 0 0 0 14.07 9.93')}{dots([[7, 17], [17, 17], [14.07, 9.93]])}</>,
   'cad-sk-slot': <><path d="M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z" style={tone(0.12)} />{line('M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z')}{ghost('M8 12h8')}{dots([[8, 12], [16, 12]])}</>,
   // Trim: a line across two others, the piece between them cut away (dashed), its new ends lit.
   'cad-sk-trim': <>{line('M7.5 4.5v15M16.5 4.5v15')}{line('M3 12h4.5M16.5 12h4.5')}<path d="M9.6 12h4.8" className="ac" strokeDasharray="1.4 1.7" />{dots([[7.5, 12], [16.5, 12]])}</>,

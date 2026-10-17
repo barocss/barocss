@@ -9,7 +9,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 ## A. App only, small
 
 - [x] A1 Sketch Extend to a boundary, Split a segment at a point (#2051, #2038)
-- [ ] A2 Arc by centre, start and end (#2051)
+- [x] A2 Arc by centre, start and end (#2051)
 - [ ] A3 Concentric for two separate circles (#2053)
 - [ ] A4 Hole types Countersunk and Tapped (thread note) (#2037, #2093)
 - [ ] A5 IGES import (kernel `importIGES`) (#2060)

@@ -20,7 +20,7 @@ import { ViewCube } from './ViewCube';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -479,7 +479,20 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
+      if (sk.tool !== 'carc') carc.current = null;
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
+      else if (sk.tool === 'carc') {
+        const d = carc.current;
+        if (d && c) {
+          d.cursor = c;
+          if (d.a) {
+            // How far it has turned: the pointer's angle about the centre, followed step by step (either way round).
+            const t = Math.atan2(c[1] - d.c[1], c[0] - d.c[0]); let dt = t - (d.last ?? t);
+            if (dt > Math.PI) dt -= 2 * Math.PI; if (dt < -Math.PI) dt += 2 * Math.PI;
+            d.sweep = Math.max(-2 * Math.PI + 1e-3, Math.min(2 * Math.PI - 1e-3, d.sweep + dt)); d.last = t;
+          }
+        }
+      }
       else if (cutting(sk)) {
         const all = sketchShapesOf(sk), q: [number, number] | null = p ? [p[0], p[1]] : null, tol = trimReach(x, y, w, h, sk), kind = sk.tool as 'trim' | 'extend' | 'split';
         const points = !q ? null : kind === 'trim' ? trimPreview(all, q, tol) : kind === 'extend' ? extendPreview(all, q, tol) : (pt => pt ? [pt] : null)(splitPreview(all, q, tol));
@@ -514,6 +527,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   const drafting = useRef(false);
   const slotStage = useRef(0);
+  /** The centre arc being drawn: its centre, then its start and how far it has turned (signed, radians). */
+  const carc = useRef<{ c: [number, number]; a?: [number, number]; last?: number; sweep: number; cursor?: [number, number] } | null>(null);
+  const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
+    const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
+    return [r6(d.c[0] + r * Math.cos(t)), r6(d.c[1] + r * Math.sin(t))];
+  };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
@@ -532,6 +551,22 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
+      if (sk.tool === 'carc') {
+        const d = carc.current;
+        if (!d) carc.current = { c, sweep: 0, cursor: c };
+        else if (!d.a) { if (c[0] !== d.c[0] || c[1] !== d.c[1]) carc.current = { ...d, a: c, last: Math.atan2(c[1] - d.c[1], c[0] - d.c[0]), sweep: 0 }; }
+        else if (Math.abs(d.sweep) > 1e-3) {
+          // The end where clicked (on the circle at its angle), turned the way the pointer went round.
+          const a0 = Math.atan2(d.a[1] - d.c[1], d.a[0] - d.c[0]), t = Math.atan2(c[1] - d.c[1], c[0] - d.c[0]), sg = Math.sign(d.sweep);
+          let sw = ((sg * (t - a0)) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+          while (sw + 2 * Math.PI < Math.abs(d.sweep) + Math.PI) sw += 2 * Math.PI;
+          if (sw < 1e-3 || sw > 2 * Math.PI - 1e-3) { request(); return; }
+          d.sweep = sg * sw;
+          const e = carcEnd(d); carc.current = null;
+          emit({ kind: 'polygon', points: [d.a, e], bulges: [Math.round(Math.tan(d.sweep / 4) * 1e9) / 1e9, 0], closed: false }, true);
+        }
+        request(); return;
+      }
       if (sk.tool === 'rectangle') {
         if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }, true); }
         else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
@@ -689,6 +724,25 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         if (marks) { items.push(...marks.svg); editor = marks.html; }
       }
       // The trim tool's target: the piece a click removes.
+      // The centre arc being drawn: its circle while the start is chosen, then the arc so far and its radii.
+      const ca = sk.tool === 'carc' ? carc.current : null;
+      if (ca) {
+        const C = P(ca.c[0], ca.c[1]); items.push(<circle key="ca-c" cx={C[0]} cy={C[1]} r={3} className="sk-point" />);
+        if (!ca.a && ca.cursor) {
+          const r = Math.hypot(ca.cursor[0] - ca.c[0], ca.cursor[1] - ca.c[1]), ring = Array.from({ length: 73 }, (_, k) => P(ca.c[0] + r * Math.cos(k * Math.PI / 36), ca.c[1] + r * Math.sin(k * Math.PI / 36)));
+          const q = P(ca.cursor[0], ca.cursor[1]);
+          items.push(<polyline key="ca-r" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-guide" fill="none" />, <line key="ca-l" x1={C[0]} y1={C[1]} x2={q[0]} y2={q[1]} className="sk-guide" />);
+          if (r > 0) items.push(label((C[0] + q[0]) / 2, (C[1] + q[1]) / 2 - 18, 'R' + fmtLen(r), 'live-carc-r'));
+        } else if (ca.a) {
+          const r = Math.hypot(ca.a[0] - ca.c[0], ca.a[1] - ca.c[1]), t0 = Math.atan2(ca.a[1] - ca.c[1], ca.a[0] - ca.c[0]), n = Math.max(2, Math.ceil(Math.abs(ca.sweep) / (Math.PI / 36)));
+          const arc = Array.from({ length: n + 1 }, (_, k) => P(ca.c[0] + r * Math.cos(t0 + ca.sweep * k / n), ca.c[1] + r * Math.sin(t0 + ca.sweep * k / n)));
+          const A = P(ca.a[0], ca.a[1]), E = arc[arc.length - 1];
+          items.push(<polyline key="ca-arc" points={arc.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />,
+            <line key="ca-a" x1={C[0]} y1={C[1]} x2={A[0]} y2={A[1]} className="sk-guide" />, <line key="ca-e" x1={C[0]} y1={C[1]} x2={E[0]} y2={E[1]} className="sk-guide" />,
+            <circle key="ca-ap" cx={A[0]} cy={A[1]} r={3.5} className="sk-point" />);
+          if (Math.abs(ca.sweep) > 1e-3) items.push(label(E[0] + 30, E[1] - 14, (Math.round(Math.abs(ca.sweep) * 1800 / Math.PI) / 10) + '°', 'live-carc-a'));
+        }
+      }
       const trim = cutting(sk) && sketchDraft.current.trim?.kind === sk.tool ? sketchDraft.current.trim : null;
       if (trim?.kind === 'split') { const p = P(trim.points[0][0], trim.points[0][1]); items.push(<circle key="split" cx={p[0]} cy={p[1]} r={5} className="sk-split" />); }
       else if (trim) items.push(<polyline key="trim" points={trim.points.map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={trim.kind === 'extend' ? 'sk-extend' : 'sk-trim'} />);

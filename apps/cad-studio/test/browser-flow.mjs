@@ -1585,6 +1585,21 @@ try {
     assert.equal(n.profile, 'polygon'); assert.equal(n.points.length, 5, 'the split edge has a point: ' + JSON.stringify(n.points));
   });
 
+  await check('sketch centre arc: centre, start, turn to the end; a line across its ends closes a D profile', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('q'); const [cx, cy] = await canvasCenter();
+    await clickAt(cx, cy); await clickAt(cx + 60, cy);
+    for (let k = 1; k <= 12; k++) { const t = k * Math.PI / 12; await page.mouse.move(cx + 60 * Math.cos(t), cy - 60 * Math.sin(t)); }
+    await snap('sketch-centre-arc'); await page.mouse.click(cx - 60, cy);
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.open').length >= 1, null, { timeout: 5000 });
+    // The line from the arc's end back to its start (the points as drawn, on screen).
+    const b = await page.locator('canvas').boundingBox(), arc = await page.evaluate(() => document.querySelector('.vp-overlay .sk-shape.open').getAttribute('points').split(' ').map(p => p.split(',').map(Number)));
+    await press('l'); await clickAt(b.x + arc.at(-1)[0], b.y + arc.at(-1)[1]); await clickAt(b.x + arc[0][0], b.y + arc[0][1]);
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const n = (await doc()).nodes[0];
+    assert.equal(n.profile, 'loop'); assert.deepEqual(n.segments.map(x => x.kind).sort(), ['arc', 'line']);
+  });
+
   await check('sketch: pick a rectangle corner with Select and round it', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
     await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);

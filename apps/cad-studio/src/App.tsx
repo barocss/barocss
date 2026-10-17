@@ -32,7 +32,7 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/pro
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
-import { extendAt, splitAt, trimAt } from './sketch/trim';
+import { extendAt, joinOpen, splitAt, trimAt } from './sketch/trim';
 import { clipMesh } from './engine/clip';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
@@ -56,6 +56,7 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'circle', key: 'C', label: 'Circle', icon: 'cad-sk-circle', hint: 'Click centre, then radius' },
   { tool: 'polygon', key: 'L', label: 'Line', icon: 'cad-sk-line', hint: 'Click points, click the first point to close · A switches to arcs' },
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
+  { tool: 'carc', key: 'Q', label: 'Centre arc', icon: 'cad-sk-carc', hint: 'Click the centre, then the start (the radius), then turn to the end and click · it joins lines that meet its ends' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
   { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
   { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
@@ -84,9 +85,9 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
-  // (Trimming works on open lines too: an open chain stays for it.)
-  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || tool === 'trim' || tool === 'extend' || tool === 'split') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
-  return { ...s, tool, shape: null, ...(keep ? { done: [...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }] } : {}) };
+  // (So do open lines and arcs: pieces meeting end to end join into an outline, and Trim works on them.)
+  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || s.shape.kind === 'polygon') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
+  return { ...s, tool, shape: null, ...(keep ? { done: joinOpen([...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }]) } : {}) };
 };
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
@@ -139,12 +140,13 @@ export function App() {
   const sketchHistory = useRef(new SketchHistory());
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
-    const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction) ? prev : null;
+    // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
+    const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction || (prev.kind === 'polygon' && !prev.closed && !prev.pending && prev.points.length >= 2)) ? prev : null;
     // A new shape is construction while the mode is on; the one being drawn stays what it began as.
     if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
     if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
-    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: [...(s.done ?? []), keep] } : {}) });
+    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape, ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}) });
   }, []);
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
@@ -574,7 +576,8 @@ export function App() {
   const finishSketch = useCallback(() => {
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
-    const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
+    // (Open lines and arcs meeting end to end are one outline.)
+    const shapes = joinOpen((sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
     const profile = profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
     // Construction shapes are kept with the sketch (they come back when it is reopened).
