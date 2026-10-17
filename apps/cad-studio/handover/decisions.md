@@ -513,3 +513,28 @@ Evidence:
   - a file with a gone reference opens with the fillet held, "1 needs a choice", and the box built.
 - Bench unchanged.
 
+## D31 — Sketch-entity side names (A1.4) deferred; A1 closes on stable ids, selectors and signatures (2026-10-18)
+Decided: A1.4, naming an extrusion's sides by a stable sketch-entity id (`side[s3]`) instead of position
+(`side3`), is deferred and recorded here rather than shipped.
+
+Scope found:
+- **Kernel.** The kernel names sides by position in five generators: prismatic, drafted, loft, revolve, and the
+  part-model loops. Stable side names need a new public part-document field (per-segment tags) honoured by all
+  of them, and a per-node version so old documents keep `sideK` (D16).
+- **Studio.** The sketcher has no stable segment identity: its constraints and driving dimensions are indexed by
+  segment as well.
+
+Why deferred (policy 6, risk over value now): the harm, a name landing on another side after a sketch edit, is
+already caught.
+- On edit, the names are matched again by geometry (D28).
+- On open, they are verified against stored signatures (D29).
+- Ambiguity is refused and shown (D30).
+
+Stable side names would mainly avoid the re-match notices.
+
+Plan for when it is taken up, best alongside the sketcher's entity ids (R-track sketch work):
+1. Segment ids in polygon and loop profiles, kept through vertex insertion.
+2. An optional `sideTags` on the kernel profile, used by every generator for `side[tag]`.
+3. A studio sketch node version 2 that sends the tags.
+4. Conformance: a vertex inserted keeps every other side's name.
+
