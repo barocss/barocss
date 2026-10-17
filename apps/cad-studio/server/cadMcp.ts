@@ -39,7 +39,7 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
         const out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
         state = out.state; changed ||= out.changed;
         if (out.changed || msg.params?.name === 'select') save();
-        return reply(msg.id, { content: [{ type: 'text', text: out.content }], isError: out.isError });
+        return reply(msg.id, { content: [{ type: 'text', text: out.content }, ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], isError: out.isError });
       }
       default: return error(msg.id, -32601, `Unknown method ${msg.method}`);
     }

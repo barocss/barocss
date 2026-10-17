@@ -181,6 +181,11 @@ function placeBody(b: BodyResult, m: readonly number[], t: readonly number[]): B
   return { ...b, mesh, ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
 }
 
+/** The part's bodies as B-reps, keyed as the studio keys them (for exact views: chat/views.ts). */
+export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
+  return snapshotOf(doc).outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), brep: o.brep }));
+}
+
 /** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */
 export function stepFor(doc: StudioDoc, name: string): { text: string } | { error: string } {
   try {

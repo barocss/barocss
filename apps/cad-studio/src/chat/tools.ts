@@ -16,6 +16,7 @@ import { resolveEdge, resolveFace, resolveNames, resolveSelectors, type NameSele
 import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
+import { renderViews } from './views';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 export { resolveNames, type NameSelection };
 
@@ -24,7 +25,8 @@ export { resolveNames, type NameSelection };
 /** `images`: traces of the images attached in this conversation (image 1 first). */
 export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[] }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string }
+/** `images`: PNGs to show the model along with the text (base64). */
+export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
@@ -469,6 +471,14 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const out = draftAnalysis(b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
       return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
     }
+    case 'render_views': {
+      const highlight = strings(args.highlight), sec = isObj(args.section) ? args.section : undefined;
+      if (sec && (!['x', 'y', 'z'].includes(String(sec.axis)) || !Number.isFinite(Number(sec.at)))) return fail(state, 'A section takes an axis (x, y or z) and at (mm).');
+      const r = await renderViews(state.doc, state.bodies, evaluate, { ...(highlight.length ? { highlight } : {}), ...(sec ? { section: { axis: String(sec.axis) as 'x' | 'y' | 'z', at: Number(sec.at) } } : {}) });
+      if (typeof r === 'string') return fail(state, r);
+      const { image, ...rest } = r;
+      return { state, content: json(rest), isError: false, changed: false, summary: `views (${Object.keys(r.legend).length} faces labelled)`, images: [{ data: image, mediaType: 'image/png' }] };
+    }
     case 'inspect': {
       const r = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges) });
       if (r.error) return fail(state, r.error);
@@ -610,6 +620,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'draft',
     description: 'Draft of a body\'s flat walls against a pull direction (default +Z): each wall\'s angle in degrees (negative: an undercut) and those under min_deg (default 1).',
     input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, min_deg: { type: 'number' } }, additionalProperties: false },
+  },
+  {
+    name: 'render_views',
+    description: 'The part as engineering views on one image: front, top, right and isometric, edges by exact hidden-line projection (visible solid, hidden dashed), each face that shows numbered (the legend gives its name). Look at it at milestones or when something seems wrong, not after every step. highlight: faces to fill red (e.g. a failed check\'s); section: cut first across an axis at a position.',
+    input_schema: { type: 'object', properties: { highlight: { ...nameList, description: 'Face names to fill red.' }, section: { type: 'object', properties: { axis: { type: 'string', enum: ['x', 'y', 'z'] }, at: { type: 'number' } }, required: ['axis', 'at'], additionalProperties: false } }, additionalProperties: false },
   },
   {
     name: 'inspect',
