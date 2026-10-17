@@ -923,6 +923,28 @@ try {
     assert.match((await download).suggestedFilename(), /\.igs$/);
   });
 
+  await check('drag a surface pole with its gizmo; undo puts it back', async () => {
+    const id = await page.evaluate(() => window.__studioDoc.direct.objects.find(o => o.name === 'study · panel').id);
+    await page.click('.ol.direct[title="study · panel"]');
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .pole-mark').length === 4, null, { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const at = await page.evaluate(() => { const c = document.querySelectorAll('.vp-overlay .pole-mark')[3]; return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
+    await page.mouse.click(svg.x + at[0], svg.y + at[1]);
+    await page.waitForSelector('.vp-overlay .pole-mark.picked'); await page.waitForSelector('[data-gizmo=moveZ]', { timeout: 5000 });
+    const end = n => page.evaluate(([sel, n]) => { const el = document.querySelector(sel), g = k => Number(el.getAttribute(k)); return [g('x1') + (g('x2') - g('x1')) * n, g('y1') + (g('y2') - g('y1')) * n]; }, ['[data-gizmo=moveZ] line:nth-of-type(2)', n]);
+    const a0 = await end(0.5), a1 = await end(1), sources = await page.evaluate(() => Object.keys(window.__studioDoc.direct.sources).length);
+    await page.mouse.move(svg.x + a0[0], svg.y + a0[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + a0[0] + (a1[0] - a0[0]) * 2, svg.y + a0[1] + (a1[1] - a0[1]) * 2, { steps: 8 }); await page.mouse.up();
+    await page.waitForFunction(n => Object.keys(window.__studioDoc.direct.sources).length > n, sources, { timeout: 5000 });
+    const src = await page.evaluate(i => { const d = window.__studioDoc.direct, o = d.objects.find(x => x.id === i); return d.sources[o.source]; }, id);
+    const pts = [...src.matchAll(/\[(-?[\d.e-]+),(-?[\d.e-]+),(-?[\d.e-]+)\]/g)].map(m => m.slice(1).map(Number));
+    assert.ok(pts.some(p => p[2] > -4), `one pole raised above z = -5: ${JSON.stringify(pts)}`);
+    assert.equal(pts.filter(p => p[2] === -5).length, 3, 'the other poles stay');
+    await snap('direct-pole-drag');
+    await press('Meta+z');
+    await page.waitForFunction(n => Object.keys(window.__studioDoc.direct.sources).length === n, sources, { timeout: 5000 });
+  });
+
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);

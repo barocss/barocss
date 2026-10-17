@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, type DirectGeometry } from '../src/engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from '../src/engine/direct';
 
 /** A `.barocad` study: an arc, a line above it and a bilinear panel. */
 export const STUDY = `@model study {
@@ -211,4 +211,15 @@ test('direct: a curve\'s crossings with a plane; two surfaces\' intersection cur
   assert.throws(() => surfaceIntersection(both, byName(both, 'panel'), byName(both, 'panel')), /cannot be intersected|do not meet/);
   const r = evaluateDoc(rectanglePart(10, 10, 10), 1); assert.ok(r.ok);
   assert.deepEqual([[5, 5, 5], [20, 5, 5], [10, 5, 5]].map(p => pointInBody(r.bodies[0].mesh, p as [number, number, number])), ['inside', 'outside', 'boundary']);
+});
+
+test('direct geometry: poles listed by key and moved one at a time', () => {
+  let d = importSource(emptyDirect(), STUDY, 'study');
+  const arc = byName(d, 'arc'), panel = byName(d, 'panel');
+  assert.deepEqual(polesOf(d, arc).map(p => p.key), ['0', '1', '2']);
+  assert.deepEqual(polesOf(d, panel).map(p => p.key), ['0,0', '0,1', '1,0', '1,1']);
+  d = movePole(d, arc, '1', [10, 15, 2]);
+  assert.deepEqual(polesOf(d, arc)[1].at, [10, 15, 2]);
+  d = movePole(d, panel, '1,1', [20, 20, 3]);
+  assert.deepEqual(polesOf(d, panel).map(p => p.at[2]), [-5, -5, -5, 3]);
 });

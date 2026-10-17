@@ -349,6 +349,18 @@ export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
 }
 
 /** An object's parameter domain(s), for the tools' fields. */
+/** The poles of a curve (keys "i") or a surface (keys "i,j"), for picking and dragging in the viewport. */
+export function polesOf(d: DirectGeometry, id: string): { key: string; at: [number, number, number] }[] {
+  const g = geometryOf(d, object(d, id));
+  if (g.kind === 'curve') return g.controlPoints.map((p, i) => ({ key: String(i), at: [p[0], p[1], p[2]] }));
+  return g.controlPoints.flatMap((row, i) => row.map((p, j) => ({ key: `${i},${j}`, at: [p[0], p[1], p[2]] as [number, number, number] })));
+}
+/** The object with one pole (a `polesOf` key) moved to `at`. */
+export function movePole(d: DirectGeometry, id: string, key: string, at: readonly number[]): DirectGeometry {
+  const pole = { xMM: at[0], yMM: at[1], zMM: at[2] }, [i, j] = key.split(',').map(Number);
+  return key.includes(',') ? directOps.editSurfacePole(d, id, i, j, pole) : directOps.editCurvePole(d, id, i, pole);
+}
+
 export function domainsOf(d: DirectGeometry, id: string): { kind: 'curve'; t: [number, number] } | { kind: 'surface'; u: [number, number]; v: [number, number] } {
   const g = geometryOf(d, object(d, id));
   if (g.kind === 'curve') return { kind: 'curve', t: curveDomain(g) };

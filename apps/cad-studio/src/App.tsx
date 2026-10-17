@@ -44,7 +44,7 @@ import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
-import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, type DirectGeometry } from './engine/direct';
+import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
 import { stepLengthUnit } from './engine/stepUnits';
 import { readStudioDoc } from './engine/migrate';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from './engine/curveSource';
@@ -139,6 +139,9 @@ export function App() {
   const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
+  /** The picked pole of the one selected direct object, and how far its gizmo has dragged it. */
+  const [pole, setPole] = useState<{ id: string; key: string } | null>(null);
+  const [poleDrag, setPoleDrag] = useState<Vec3 | null>(null);
   const [sketchError, setSketchError] = useState<string | null>(null);
   // The last shape handed to the sketch, ahead of React's batched re-render (rapid pointer events).
   const liveShape = useRef<SketchShape | null>(null);
@@ -346,7 +349,15 @@ export function App() {
     setDoc({ ...doc, direct: next }); setDirty(true);
     if (select) setDirectSel(select);
   }, [doc, marker]);
-  const directShown = useMemo(() => directDisplay(doc.direct), [doc.direct]);
+  const poleObj = directSel.length === 1 ? directSel[0] : null;
+  const poles = useMemo(() => { if (!poleObj || !doc.direct) return []; try { return polesOf(doc.direct, poleObj); } catch { return []; } }, [doc.direct, poleObj]);
+  const poleHere = pole && pole.id === poleObj ? poles.find(p => p.key === pole.key) ?? null : null;
+  const poleMoved = (delta: readonly number[]) => poleHere!.at.map((v, k) => v + delta[k]);
+  // While a pole is dragged, its object is shown re-evaluated with the pole where the gizmo has it.
+  const directShown = useMemo(() => {
+    if (poleDrag && poleHere && poleObj && doc.direct) try { return directDisplay(movePole(doc.direct, poleObj, poleHere.key, poleHere.at.map((v, k) => v + poleDrag[k]))); } catch { /* shown as it was */ }
+    return directDisplay(doc.direct);
+  }, [doc.direct, poleDrag, poleHere, poleObj]);
   /** One undoable change of the placed instances. */
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
@@ -1145,6 +1156,18 @@ export function App() {
   }, [instDrag, instanceBodies]);
   const instancePreview = useMemo(() => instDrag ? { id: instDrag.id, matrix: previewMatrix(instDrag.drag) } : null, [instDrag]);
 
+  // The picked pole's gizmo: drag it along an axis; let go, the curve or surface is edited (one undo step).
+  const poleMode = !active && !sketch && !rendering && !drawing && !measure && !assembly.draft;
+  const poleGizmo: TransformGizmo | null = poleMode && poleHere && poleObj && doc.direct ? {
+    origin: poleMoved(poleDrag ?? [0, 0, 0]) as Vec3, move: [0, 1, 2],
+    onMove: (delta, done) => {
+      if (!done) { setPoleDrag(delta); return; }
+      setPoleDrag(null); if (delta.every(v => v === 0)) return;
+      try { commitDirect(movePole(doc.direct!, poleObj, poleHere.key, poleMoved(delta)), [poleObj]); }
+      catch (e) { setToast({ title: 'The pole could not be moved', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+    },
+  } : null;
+
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
     : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
@@ -1152,8 +1175,8 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

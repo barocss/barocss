@@ -129,6 +129,10 @@ interface Props {
   /** Direct curves and surfaces, and the selected ones. */
   direct?: DirectDisplay[];
   directSelection?: string[];
+  /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
+  poles?: { key: string; at: Vec3 }[];
+  pickedPole?: string | null;
+  onPickPole?(key: string): void;
   /** Placed instances of other parts, and the selected ones. */
   instances?: { id: string; bodies: BodyResult[] }[];
   instanceSelection?: string[];
@@ -622,6 +626,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     // A finished sketch's outline (or inside its main loop) comes before the bodies behind it.
     const prof = profileAt(x, y, w, h);
     if (prof !== null) { propsRef.current.onPickProfile?.(prof, e.shiftKey); return; }
+    const poles = propsRef.current.poles;
+    if (poles?.length) {
+      let best: string | null = null, d0 = 8;
+      for (const p of poles) { const q = camera.current.project(p.at, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = p.key; } }
+      if (best !== null) { propsRef.current.onPickPole?.(best); return; }
+    }
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
@@ -796,6 +806,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key="bbox">{edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
         <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
     }
+    // The selected curve's or surface's poles, the picked one ringed.
+    if (!sk) (props.poles ?? []).forEach(p => {
+      const q = cam.project(p.at, w, h), on = p.key === props.pickedPole;
+      items.push(<circle key={'pole' + p.key} cx={q[0]} cy={q[1]} r={on ? 5.5 : 3.5} className={on ? 'pole-mark picked' : 'pole-mark'} />);
+    });
     // The corner under the pointer, and the picked ones.
     [...(props.pickedVertices ?? []), ...(hover.current.vertex && !sk ? [hover.current.vertex] : [])].forEach((v, k) => {
       const q = cam.project(v.at, w, h); items.push(<circle key={'vx' + k} cx={q[0]} cy={q[1]} r={5} className="vertex-mark" />);
