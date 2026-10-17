@@ -264,10 +264,9 @@ function cornerTool(V: Point, C: Point, outs: Point[], r: number, id: string): B
   const rays = [[0, 1, 2], [1, 2, 0], [2, 0, 1]].map(([i, j, k]) => { const u = unit(cross(outs[i], outs[j])); return dot(u, outs[k]) < 0 ? u : scale(u, -1); });
   const reach = 4 * (len(sub(V, C)) + r), pts: Point[] = [C, ...rays.map(u => add(C, scale(u, reach)))];
   const cone = tetrahedron(pts, `${id}.tool`);
-  // The ball about an axis whose poles both lie outside the cone (each has a negative part along one of the
-  // edges), so the corner patch is a regular piece of the sphere: no pole inside it, where its parameters
-  // crowd and the trims bend in them. Its seams lie in no plane of the cone.
-  const axis = unit(add(outs[0], add(scale(outs[1], -0.9), scale(outs[2], -0.37)))), any = unit(add(outs[2], scale(outs[0], 0.53))), e1 = unit(sub(any, scale(axis, dot(any, axis)))), e3 = cross(e1, axis);
+  // The ball about an axis through the cone towards V (its pole is the corner's apex, its seams lie in no
+  // plane of the cone).
+  const axis = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), e1 = unit(sub(any, scale(axis, dot(any, axis)))), e3 = cross(e1, axis);
   const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
   const placed = transformBrep(ball, { matrix: [e1[0], axis[0], e3[0], e1[1], axis[1], e3[1], e1[2], axis[2], e3[2]], offset: [C[0], C[1], C[2]] });
   return booleanAnalytic(cone, { ...placed, faces: placed.faces.map(f => ({ ...f, name: `${id}.face` })) }, 'difference', { id: `${id}_c` });

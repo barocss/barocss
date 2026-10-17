@@ -53,15 +53,15 @@
       {
         "volumeMM3": {
           "value": 11418.106036232337,
-          "relTol": 0.00001
+          "relTol": 0.00005
         },
         "centroidMM": {
           "value": [20, 15, 5],
-          "absTol": 0.0001
+          "absTol": 0.0005
         },
         "areaMM2": {
           "value": 3377.769802664636,
-          "relTol": 0.00001
+          "relTol": 0.00005
         },
         "bodies": 1,
         "topology": [
@@ -89,5 +89,5 @@
       "relTol": 0.000001
     }
   },
-  "oracle": "closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches (geometry exact to 1e-9)"
+  "oracle": "closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches, which hold their ball's pole (geometry exact to 1e-9)"
 }

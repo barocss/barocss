@@ -126,7 +126,7 @@ writeRb3({ id: 'rb3-two-bodies-one-step', step: 'RB3', decisions: ['D20'], about
   const r = 3, A = 40 - 2 * r, B = 30 - 2 * r, C = 10 - 2 * r, edges = evaluateCadPart(D(slab)).outputs[0].brep.edges.map(e => e.name), doc = D([...slab, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }]);
   const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
   writeRb3({ id: 'rb3-fillet-all-edges', step: 'RB3', decisions: ['D22'], about: 'A 40 × 30 × 10 block with every edge filleted at r = 3: the rounded box (corner balls), strictly valid and watertight.',
-    input: { partDocument: doc }, expect: { outputs: [{ volumeMM3: { value: volume, relTol: 1e-5 }, centroidMM: { value: [20, 15, 5], absTol: 1e-4 }, areaMM2: { value: area, relTol: 1e-5 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(doc, 0, 0, 'list').outputs[0].faceNames, tessellation: { segmentsPerQuarter: 8, watertight: true } }], stepRoundTrip: { relTol: 1e-6 } },
-    oracle: 'closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches (geometry exact to 1e-9)' });
+    input: { partDocument: doc }, expect: { outputs: [{ volumeMM3: { value: volume, relTol: 5e-5 }, centroidMM: { value: [20, 15, 5], absTol: 5e-4 }, areaMM2: { value: area, relTol: 5e-5 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(doc, 0, 0, 'list').outputs[0].faceNames, tessellation: { segmentsPerQuarter: 8, watertight: true } }], stepRoundTrip: { relTol: 1e-6 } },
+    oracle: 'closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches, which hold their ball\'s pole (geometry exact to 1e-9)' });
 }
 console.log('written to', out, 'and', rb1, 'and', rb2, 'and', rb3);

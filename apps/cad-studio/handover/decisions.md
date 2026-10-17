@@ -177,18 +177,19 @@ repeats become `name#1`, `name#2`… in file order (the kernel's split-piece con
 Why: a B-rep's names are unique; a two-body export broke that on re-import (the countersunk TODO). That TODO
 was itself a corpus mistake: its holes branched the plate into two bodies (fixed: holes chain).
 
-## D22 — The all-edge fillet corner: exact already; the corner ball now turned so no pole lies in the corner (2026-10-18, after RB3, owner)
+## D22 — The all-edge fillet corner is exact; the corner ball keeps its pole at the apex, so names hold (2026-10-18, after RB3, owner)
 Finding: the reported 0.18–0.36 mm "corner gap" (D18's first strict run) was a false positive. The corner
 patches' edges lie exactly on the ball (every sample 2.000000 mm from its centre). The validator's inversion
-failed at the patch's pole; fixed in `d6c19b84d` with seeds off collapsed sides and Levenberg–Marquardt.
-Decided: no kernel geometry fix was needed. The corner tool's ball is now turned so both its poles lie
-outside the corner cone; before, the corner apex was its pole. The corner patches are then regular pieces of
-the sphere, where their parameters do not crowd.
-Why: mass and area integrate those trimmed patches over their parameter domains, and a pole inside bent the
-trims there. Rounded 40 × 30 × 10 box against its closed form:
-- volume within 7.5e-6 relative at r = 4.99 (before 3.6e-5), 1.1e-6 at r = 2;
-- area within 2.8e-6 (before 1.6e-5);
-- strict gaps ≤ 1e-9 and watertight across r = 0.25–4.99.
-Cost: evaluating the all-edge box takes about 0.3 s more (0.95 → 1.27 s), its mass about 0.15 s less.
-The number of corner pieces is unchanged (`f.face#1–28`); which piece carries which `#k` may differ from
-before. The conformance tolerance is 1e-5, the quadrature over the trimmed corner patches.
+failed at the patch's pole; fixed in `d6c19b84d` with seeds off collapsed sides and Levenberg–Marquardt. No
+kernel geometry fix was needed.
+Tried and reverted: turning the ball so no pole lies in the corner (`071705e31`) made mass and area 5× more
+accurate (volume 3.6e-5 → 7.5e-6 at r = 4.99). But it reassigned every `f.face#k` of an all-edge fillet,
+cylinder pieces included, because pieces are numbered by position across all of them. Mates, faces picked for
+holes and sketches, and chat references store those names, and D16's rule is that saved documents keep
+resolving. Versioning the fillet feature was not worth a 5× gain inside an already small error, so the ball
+keeps its pole at the corner apex and the numbering is exactly as before (checked face by face).
+Stated accuracy: rounded 40 × 30 × 10 box against its closed form, volume and area within 5e-5 relative
+(3.6e-5 at r = 4.99, shrinking with finer quadrature: 2e-7 at q = 32). Strict gaps ≤ 1e-9; watertight across
+r = 0.25–4.99.
+Future: pole-aware quadrature for trimmed patches (re-parametrize near a pole) would give the accuracy without
+moving any geometry or name.
