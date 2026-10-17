@@ -10,8 +10,38 @@ export type EditField =
   | { kind: 'choice'; key: string; label: string; options: { value: string; label: string }[]; get(nodes: Nodes): string; set(nodes: Nodes, value: string): ModelNode[] }
   | { kind: 'toggle'; key: string; label: string; get(nodes: Nodes): boolean; set(nodes: Nodes, value: boolean): ModelNode[] };
 
-/** A dimension's number (a parameter reference is not edited here: NaN). */
-const num = (v: Dim | undefined) => typeof v === 'number' ? v : NaN;
+/**
+ * A dimension's number. A parameter reference reads as its value while a field with the document's
+ * parameters runs (see `editFields`), noting which parameter it read; else NaN (not edited).
+ */
+let PARAMS: Record<string, number> | null = null, SEEN: string[] = [];
+const num = (v: Dim | undefined) => {
+  if (typeof v === 'number') return v;
+  if (v && PARAMS && v.parameter in PARAMS) { SEEN.push(v.parameter); return PARAMS[v.parameter]; }
+  return NaN;
+};
+function within<T>(params: Record<string, number>, f: () => T): { value: T; seen: string[] } {
+  const p = PARAMS, s0 = SEEN; PARAMS = params; SEEN = [];
+  try { return { value: f(), seen: SEEN }; } finally { PARAMS = p; SEEN = s0; }
+}
+/** The one numeric leaf that changed from `a` to `b` (its path), or null when none or several did. */
+function changedLeaf(a: unknown, b: unknown, path: (string | number)[] = []): (string | number)[] | null | 'many' {
+  if (a === b) return null;
+  if (typeof b === 'number') return typeof a === 'number' || (a !== null && typeof a === 'object') ? path : 'many';
+  if (!b || typeof b !== 'object' || !a || typeof a !== 'object') return 'many';
+  let found: (string | number)[] | null = null;
+  for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const r = changedLeaf((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], [...path, Array.isArray(b) ? Number(k) : k]);
+    if (r === 'many' || (r && found)) return 'many';
+    if (r) found = r;
+  }
+  return found;
+}
+const setAt = (root: unknown, path: (string | number)[], value: unknown): unknown => {
+  if (!path.length) return value;
+  const [k, ...rest] = path, copy = (Array.isArray(root) ? [...root] : { ...(root as object) }) as Record<string | number, unknown>;
+  copy[k] = setAt(copy[k], rest, value); return copy;
+};
 const replace = (nodes: Nodes, i: number, node: ModelNode): ModelNode[] => nodes.map((n, k) => k === i ? node : n);
 const axes = (list: string[]) => list.map(v => ({ value: v, label: v.toUpperCase() }));
 
@@ -38,7 +68,39 @@ function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
   return out;
 }
 
-export function editFields(nodes: Nodes, i: number): EditField[] {
+/**
+ * With the document's parameters, a number field reads parameter references as their values, says
+ * which parameter it is bound to, and binds or unbinds one (a field that writes its value to one place,
+ * as it is: a diameter stored as a radius cannot take a parameter).
+ */
+export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nodes: Nodes): string | null; bind(nodes: Nodes, name: string): ModelNode[] | null };
+export function editFields(nodes: Nodes, i: number, params?: Record<string, number>): EditField[] {
+  const raw = editFieldsRaw(nodes, i);
+  if (!params) return raw;
+  return raw.map(f => f.kind !== 'number' ? f : {
+    ...f,
+    get: n => within(params, () => f.get(n)).value,
+    set: (n, v) => within(params, () => f.set(n, v)).value,
+    param: (n: Nodes) => { const r = within(params, () => f.get(n)); return r.seen.length === 1 ? r.seen[0] : null; },
+    bind: (n: Nodes, name: string) => {
+      if (!(name in params)) return null;
+      const next = within(params, () => f.set(n, params[name])).value;
+      // (The value must land as it is in one place: then that place holds the reference.)
+      const where = changedLeaf(n, next);
+      if (where === 'many') return null;
+      if (where === null) {
+        // Already that value somewhere: find the leaf the field reads.
+        const probe = within(params, () => f.set(n, params[name] + 1)).value, at = changedLeaf(n, probe);
+        if (!at || at === 'many' || getAt(probe, at) !== params[name] + 1) return null;
+        return setAt(n, at, { parameter: name }) as ModelNode[];
+      }
+      return getAt(next, where) === params[name] ? setAt(next, where, { parameter: name }) as ModelNode[] : null;
+    },
+  } as BindableField);
+}
+const getAt = (root: unknown, path: (string | number)[]): unknown => path.reduce<unknown>((o, k) => (o as Record<string | number, unknown>)?.[k], root);
+
+function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;

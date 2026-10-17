@@ -1611,6 +1611,33 @@ try {
     await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
+  await check('parameters: a chamfer bound to C follows it; a configuration saves and applies values', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side0|n1.top')));
+    await press(' '); await page.locator('.palette input').fill('chamfer'); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'chamfer', null, { timeout: 15000 }); await idle(); await press('Escape');
+    await page.click('[aria-label="Parameters"]');
+    await page.fill('[aria-label="New parameter name"]', 'C'); await page.fill('[aria-label="New parameter value"]', '3'); await page.click('[aria-label="Add parameter"]');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
+    await page.click('[aria-label="Close parameters"]');
+    await page.click('.outliner [aria-label="Show its features"]');
+    await page.locator('.outliner .ol-step', { hasText: 'Chamfer' }).click();
+    await page.waitForSelector('[aria-label="Distance parameter"]', { timeout: 5000 });
+    await page.selectOption('[aria-label="Distance parameter"]', 'C');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => JSON.stringify(window.__studioDoc.nodes.at(-1)?.distance) === '{"parameter":"C"}', null, { timeout: 10000 }); await idle();
+    await page.click('[aria-label="Parameters"]');
+    await page.fill('[aria-label="Configuration name"]', 'small'); await page.click('[aria-label="Save configuration"]');
+    await page.fill('[aria-label="Value of C"]', '6'); await press('Tab');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 6, null, { timeout: 5000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'chamfer', null, { timeout: 5000 });
+    await page.click('[aria-label="Apply small"]');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
+    assert.match(await page.locator('[aria-label="Parameters"].props, aside[aria-label="Parameters"]').innerText(), /small · now/);
+    await snap('parameters'); await page.click('[aria-label="Close parameters"]');
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

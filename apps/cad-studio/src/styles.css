@@ -36,6 +36,10 @@ button { font: inherit; color: inherit; }
 .vp-overlay .bbox-line { stroke: #7fb2f0; stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.85; }
 .kv-check { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted, #8a93a0); }
 .part-summary { margin-bottom: 10px; }
+.param-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; align-items: center; gap: 6px; margin: 4px 0; }
+.param-row.add { grid-template-columns: minmax(0, 1fr) 64px auto; }
+.param-row input, .param-row .num { min-width: 0; width: 100%; box-sizing: border-box; }
+select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px; }
 .vp-overlay .sk-extend { fill: none; stroke: #5fd08a; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
 .vp-overlay .sk-split { fill: none; stroke: #5fd08a; stroke-width: 2.5; pointer-events: none; }
 .vp-overlay .sk-end { fill: #ef6f6c; stroke: none; pointer-events: none; }

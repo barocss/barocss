@@ -97,6 +97,8 @@ export interface StudioDoc {
   schema: 1;
   units: 'mm';
   parameters: Record<string, number>;
+  /** Saved sets of parameter values by name (a configuration applies its set). */
+  configurations?: Record<string, Record<string, number>>;
   nodes: ModelNode[];
   outputs: Record<string, BodyRef>;
   /** How the part is rendered (the Render workspace); absent until first rendered. */

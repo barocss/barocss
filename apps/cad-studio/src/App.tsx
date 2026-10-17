@@ -19,6 +19,8 @@ import { RenderPanel } from './ui/RenderPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { DirectPanel } from './ui/DirectPanel';
+import { ParametersPanel } from './ui/ParametersPanel';
+import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
 import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
@@ -199,6 +201,8 @@ export function App() {
   /** The Body panel: inertia about the centre of mass or the origin; the bounding box drawn. */
   const [inertiaAt, setInertiaAt] = useState<'centre' | 'origin'>('centre');
   const [showBox, setShowBox] = useState(false);
+  /** The Parameters panel. */
+  const [paramsOpen, setParamsOpen] = useState(false);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
@@ -1099,6 +1103,7 @@ export function App() {
         <button className="tool" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
         <button className="tool" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
+        <button className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>
         <button className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>
@@ -1180,6 +1185,8 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
+      {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
+        onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage} fov={fov}
@@ -1287,7 +1294,7 @@ export function App() {
             <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge; Shift-click adds more of the same (edges to round, faces to open). For a Boolean, Shift-click a second body in the Outliner.</div>}
-        {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
@@ -1434,13 +1441,14 @@ function iconFor(n: ModelNode) {
     translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
-function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void }) {
+function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void; parameters: Record<string, number>; onRefuse(message: string): void }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
   useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
-  const fields = editFields(draft, index).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const fields = editFields(draft, index, parameters).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const names = Object.keys(parameters);
   const changed = draft !== nodes;
   return (
     <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete(); }}>
@@ -1448,7 +1456,10 @@ function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete }: 
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
         <label key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}</span>
+          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={!!(f as BindableField).param?.(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
+            {names.length > 0 && 'bind' in f && <select className="param-bind" aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
+              onChange={e => { const b = f as BindableField, name = e.target.value; if (!name) { setDraft(d => b.set(d, b.get(d))); return; } const next = b.bind(draft, name); if (next) { setDraft(next); setTyped(m => { const { [f.key]: _, ...rest } = m; return rest; }); } else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`); }}>
+              <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
             : f.kind === 'choice' ? <select aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
         </label>

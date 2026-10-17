@@ -29,7 +29,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 ## B. App (sometimes a small kernel adapter), medium
 
 - [x] B1 Feature pattern: holes (and other features) in a row or on a bolt circle on their body (#2035, #2079, #2088)
-- [ ] B2 Named parameters panel and configurations (parameter sets) (#2036, #2047, #2063)
+- [x] B2 Named parameters panel and configurations (parameter sets) (#2036, #2047, #2063)
 - [ ] B3 Suppress / restore a feature (#2039)
 - [ ] B4 Reorder features, refused ahead of a parent (#2047)
 - [ ] B5 Boolean / cut results in several pieces as separate bodies (#2061, #2063)
