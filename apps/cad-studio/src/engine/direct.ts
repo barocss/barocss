@@ -9,8 +9,8 @@ import {
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
   tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
-import { interpolateSurface } from './fit';
-import { surfacesSource } from './curveSource';
+import { approximateCurve, interpolateSurface, removeCurveKnot } from './fit';
+import { curvesSource, surfacesSource } from './curveSource';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
 export interface DirectGeometry {
@@ -214,6 +214,23 @@ export const directOps = {
     // (Back to u along the first index when the run was across v.)
     const grid = alongU ? all : all[0].map((_, j) => all.map(r => r[j]));
     return add(d, [id], surfacesSource('extended', [interpolateSurface(grid)]), [{ geometry: 's1', name: `${nameOf(d, id)} · extended` }]);
+  },
+  /**
+   * The curve fitted again with `count` poles (least squares through 64 samples of it, cubic, its ends
+   * kept); its name says the largest gap from the samples, in mm.
+   */
+  refitCurve(d: DirectGeometry, id: string, count: number) {
+    const c = curveOf(d, id), pts = sampleCurve(c, 64).map(s => [s.point[0], s.point[1], s.point[2]] as [number, number, number]);
+    const f = approximateCurve(pts, Math.round(count)), fc: Curve = { kind: 'curve', id: 'f', degree: f.degree, knots: f.knots, controlPoints: f.points, weights: f.weights };
+    // The largest distance from a sample to the fit (each against the nearest of 512 points along it).
+    const along = sampleCurve(fc, 512).map(s => s.point), worst = Math.max(...pts.map(p => Math.min(...along.map(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])))));
+    return add(d, [id], curvesSource('fitted', [{ degree: f.degree, knots: f.knots, points: f.points, weights: f.weights }]), [{ geometry: 'c1', name: `${nameOf(d, id)} · ${f.points.length} poles (±${Math.round(worst * 1000) / 1000})` }]);
+  },
+  /** The curve without its interior knot nearest `u`, when it stays within `tol` mm; refused when the knot carries shape. */
+  removeCurveKnot(d: DirectGeometry, id: string, u: number, tol: number) {
+    const c = curveOf(d, id), r = removeCurveKnot({ degree: c.degree, knots: [...c.knots], points: c.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...c.weights] }, u, tol);
+    if (!r) throw new Error(`That knot cannot come out without moving the curve more than ${tol} mm (or it has none inside).`);
+    return add(d, [id], curvesSource('knot', [r]), [{ geometry: 'c1', name: `${nameOf(d, id)} · knot removed` }]);
   },
   /** Move, turn or scale objects in place: each to a new source with its transformed geometry. */
   transform(d: DirectGeometry, ids: string[], matrixOf: (centre: [number, number, number]) => CadAffineMatrix3x4) {

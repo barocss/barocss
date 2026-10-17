@@ -75,7 +75,7 @@ function NumberField({ label, value, onChange, lazy }: { label: string; value: n
 function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
   const dom = domainsOf(direct, id), t = dom.kind === 'curve' ? dom.t : [0, 1] as [number, number];
   const mid = (t[0] + t[1]) / 2;
-  const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]);
+  const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]), [tol, setTol] = useState(0.01), [poles, setPoles] = useState(6);
   useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
   return <div className="render-section">
@@ -95,6 +95,11 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
     <NumberField label="From t" value={from} onChange={setFrom} />
     <NumberField label="To t" value={to} onChange={setTo} />
     <button className="ghost" onClick={() => run(() => directOps.curveInterval(direct, id, from, to))}>Trim to interval</button>
+    <div className="card-title" style={{ marginTop: 8 }}>SIMPLIFY</div>
+    <NumberField label="Within mm" value={tol} onChange={setTol} />
+    <button className="ghost" aria-label="Remove the knot" title="Take out the knot nearest t, if the curve moves no more than the tolerance" onClick={() => run(() => directOps.removeCurveKnot(direct, id, at, tol), added)}>Remove knot near t</button>
+    <NumberField label="Poles" value={poles} onChange={setPoles} />
+    <button className="ghost" aria-label="Refit the curve" title="Fit the curve again with this many poles (least squares, cubic): its name says the largest gap" onClick={() => run(() => directOps.refitCurve(direct, id, poles), added)}>Refit</button>
     <Crossings id={id} direct={direct} />
     {g.kind === 'curve' && <Poles rows={g.controlPoints.map((p, i) => ({ key: String(i), label: `P${i}`, point: p, weight: g.weights[i] }))}
       onEdit={(k, pole) => run(() => directOps.editCurvePole(direct, id, Number(k), pole))} />}

@@ -96,3 +96,38 @@ export function interpolateSurface(grid: readonly (readonly P3[])[], p = 3, q = 
   const P = Array.from({ length: nu }, (_, i) => interpolateCurve(R.map(col => col[i]), qv, vb, V).points);
   return { degreeU: pu, degreeV: qv, knotsU: U, knotsV: V, points: P, weights: P.map(r => r.map(() => 1)) };
 }
+
+/**
+ * The curve with one interior knot taken out (The NURBS Book A5.8), when the curve it leaves stays within
+ * `tol` mm of the original; null when it does not (the knot carries shape). The knot is the one nearest `u`.
+ */
+export function removeCurveKnot(c: FitCurve, u: number, tol: number): FitCurve | null {
+  const p = c.degree, U = [...c.knots], n = c.points.length - 1, m = n + p + 1;
+  // The interior knot nearest u, its last index and multiplicity.
+  const inner = U.slice(p + 1, m - p); if (!inner.length) return null;
+  const knot = inner.reduce((b, x) => Math.abs(x - u) < Math.abs(b - u) ? x : b, inner[0]);
+  const r = U.lastIndexOf(knot), s = U.filter(x => x === knot).length;
+  // Homogeneous poles (w·P, w).
+  const Pw = c.points.map((q, i) => [q[0] * c.weights[i], q[1] * c.weights[i], q[2] * c.weights[i], c.weights[i]]);
+  const ord = p + 1, fout = Math.floor((2 * r - s - p) / 2), last = r - s, first = r - p, off = first - 1;
+  if (first < 1 || last + 1 > n) return null;
+  const temp: number[][] = []; temp[0] = Pw[off]; temp[last + 1 - off] = Pw[last + 1];
+  const comb = (a: number[], ka: number, b: number[], kb: number) => a.map((x, k) => ka * x + kb * b[k]);
+  let i = first, j = last, ii = 1, jj = last - off;
+  while (j - i > 0) {
+    const ai = (knot - U[i]) / (U[i + ord] - U[i]), aj = (knot - U[j]) / (U[j + ord] - U[j]);
+    temp[ii] = comb(Pw[i], 1 / ai, temp[ii - 1], -(1 - ai) / ai);
+    temp[jj] = comb(Pw[j], 1 / (1 - aj), temp[jj + 1], -aj / (1 - aj));
+    i++; ii++; j--; jj--;
+  }
+  // (The tolerance on homogeneous poles, scaled as the book does for weights and the curve's reach.)
+  const wmin = Math.min(...c.weights), pmax = Math.max(...c.points.map(q => Math.hypot(q[0], q[1], q[2]))), TOL = tol * wmin / (1 + pmax);
+  const gap = (a: number[], b: number[]) => Math.hypot(...a.map((x, k) => x - b[k]));
+  let ok: boolean;
+  if (j - i < 0) ok = gap(temp[ii - 1], temp[jj + 1]) <= TOL;
+  else { const ai = (knot - U[i]) / (U[i + ord] - U[i]); ok = gap(Pw[i], comb(temp[ii + 1], ai, temp[ii - 1], 1 - ai)) <= TOL; }
+  if (!ok) return null;
+  for (i = first, j = last; j - i > 0; i++, j--) { Pw[i] = temp[i - off]; Pw[j] = temp[j - off]; }
+  U.splice(r, 1); Pw.splice(fout, 1);
+  return { degree: p, knots: U, points: Pw.map(q => [q[0] / q[3], q[1] / q[3], q[2] / q[3]] as P3), weights: Pw.map(q => q[3]) };
+}

@@ -992,6 +992,17 @@ try {
     await page.waitForFunction(n => window.__studioDoc.direct.objects.length === n, before, { timeout: 5000 });
   });
 
+  await check('refit a curve with fewer poles: the arc refitted, its largest gap in its name', async () => {
+    const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
+    await page.click('.ol.direct[title="rail"]');
+    await page.fill('.direct-panel [aria-label="Poles"]', '4'); await page.locator('.direct-panel [aria-label="Poles"]').blur();
+    await page.click('.direct-panel [aria-label="Refit the curve"]');
+    await page.waitForFunction(n => window.__studioDoc.direct.objects.length === n + 1, before, { timeout: 10000 });
+    assert.match(await page.evaluate(() => window.__studioDoc.direct.objects.at(-1).name), /rail · 4 poles \(±0(\.\d+)?\)/);
+    await press('Meta+z');
+    await page.waitForFunction(n => window.__studioDoc.direct.objects.length === n, before, { timeout: 5000 });
+  });
+
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);

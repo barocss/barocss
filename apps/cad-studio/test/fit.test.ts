@@ -41,3 +41,22 @@ test('fill: four sides of a square fill it flat; a surface extended past an edge
   assert.equal(d.objects.find(o => o.id === panel)!.hidden, true, 'the original is hidden');
   void curveDomain;
 });
+
+test('knot removal: a knot inserted comes out again (the curve unchanged); one that shapes the curve stays; a curve refitted with fewer poles', async () => {
+  const { removeCurveKnot } = await import('../src/engine/fit');
+  let d = importSource(emptyDirect(), `@model k { version: 0; length-unit: mm;
+  @curve #wave { type: nurbs; degree: 3; knots: [0,0,0,0,0.5,1,1,1,1]; control-points: [[0,0,0],[5,10,0],[10,-10,0],[15,10,0],[20,0,0]]; weights: [1,1,1,1,1]; } }`, 'k');
+  const wave = d.objects[0].id, g0 = geometryOf(d, d.objects[0]) as Curve;
+  d = directOps.insertCurveKnot(d, wave, 0.25);
+  const g1 = geometryOf(d, d.objects[0]) as Curve; assert.equal(g1.controlPoints.length, 6);
+  const back = removeCurveKnot({ degree: 3, knots: [...g1.knots], points: g1.controlPoints.map(p => [...p] as [number, number, number]), weights: [...g1.weights] }, 0.25, 1e-6)!;
+  assert.ok(back && back.points.length === 5);
+  back.points.forEach((p, k) => assert.ok(near(p, g0.controlPoints[k], 1e-9), `pole ${k}`));
+  // The original's own knot shapes it: refused at a tight tolerance.
+  assert.equal(removeCurveKnot({ degree: 3, knots: [...g0.knots], points: g0.controlPoints.map(p => [...p] as [number, number, number]), weights: [...g0.weights] }, 0.5, 1e-3), null);
+  assert.throws(() => directOps.removeCurveKnot(importSource(emptyDirect(), `@model k { version: 0; length-unit: mm;
+  @curve #wave { type: nurbs; degree: 3; knots: [0,0,0,0,0.5,1,1,1,1]; control-points: [[0,0,0],[5,10,0],[10,-10,0],[15,10,0],[20,0,0]]; weights: [1,1,1,1,1]; } }`, 'k'), d.objects[0].id, 0.5, 1e-3), /cannot come out/);
+  // Refitted with 5 poles: within a fraction of a mm of its own samples.
+  const r = directOps.refitCurve(d, wave, 5), name = r.objects.at(-1)!.name, gap = Number(/±([\d.]+)/.exec(name)![1]);
+  assert.match(name, /5 poles/); assert.ok(gap < 1, name);
+});
