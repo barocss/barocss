@@ -244,6 +244,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     else webgl();
     return () => { live = false; observer?.disconnect(); renderer.current?.dispose?.(); renderer.current = null; };
   }, []);
+  // A new pixel ratio (the window on another screen, the page zoomed) draws again at the new resolution.
+  useEffect(() => {
+    let query: MediaQueryList | null = null;
+    const watch = () => { query?.removeEventListener('change', changed); query = matchMedia(`(resolution: ${devicePixelRatio}dppx)`); query.addEventListener('change', changed); };
+    const changed = () => { watch(); request(); };
+    watch(); addEventListener('resize', request);
+    return () => { query?.removeEventListener('change', changed); removeEventListener('resize', request); };
+  }, []);
 
   useEffect(() => {
     const r = renderer.current; if (!r) return;

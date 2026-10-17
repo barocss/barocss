@@ -282,7 +282,7 @@ export class Renderer implements ViewRenderer {
   }
 
   resize(): [number, number] {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
     const w = Math.max(1, Math.round(this.canvas.clientWidth * dpr)), h = Math.max(1, Math.round(this.canvas.clientHeight * dpr));
     if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
     return [w, h];

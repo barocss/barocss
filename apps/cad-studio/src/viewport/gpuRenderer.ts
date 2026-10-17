@@ -13,6 +13,9 @@ import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import type { OrbitCamera } from './camera';
 import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
 
+/** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
+const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
+
 interface Theme { bgTop: Vec3; bgBottom: Vec3; grid: Vec3; gridOpacity: number; base: Vec3; edge: Vec3; ao: number; shadow: number }
 const THEMES: Record<ThemeName, Theme> = {
   dark: { bgTop: [0.180, 0.188, 0.208], bgBottom: [0.094, 0.098, 0.106], grid: [0.55, 0.55, 0.57], gridOpacity: 0.16, base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], ao: 0.9, shadow: 0.45 },
@@ -59,7 +62,7 @@ export class GpuRenderer implements ViewRenderer {
 
   /** A renderer on the canvas, or an error when WebGPU is not available (the caller falls back). */
   static async create(canvas: HTMLCanvasElement): Promise<GpuRenderer> {
-    const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] } });
+    const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio() });
     viewer.outlineWidth = 2;
     const r = new GpuRenderer(canvas, viewer);
     r.setTheme('dark');
@@ -243,7 +246,8 @@ export class GpuRenderer implements ViewRenderer {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
     }
-    v.resize();
+    // The display's pixel ratio as it is now (it changes with the browser zoom, or on another screen).
+    v.resize(pixelRatio());
     v.render();
   }
 
