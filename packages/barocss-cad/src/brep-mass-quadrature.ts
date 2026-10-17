@@ -1,15 +1,17 @@
-// Volume integrals of a B-rep over its exact surfaces: each display triangle of a curved face is
-// integrated in the face's parameter domain (Gauss points mapped through the surface itself), so the
-// result no longer carries the tessellation's chord error; only trims that are not straight in (u, v)
-// keep a small error along them. Faces tessellated without parameters (ruled strips) are inverted onto
-// their surface first. Planar faces are integrated by Green's theorem along their exact edge curves (a
-// disc's rim is a circle, not its chords). Every face is checked against its flat triangles; one that
-// disagrees by more than its chord error could explain returns null, and the caller falls back to the
-// tessellation.
-import { tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
-import { curveDomain, surfaceDomain, surfaceEvaluator } from './math.js';
-import { evaluateCurveD1 } from './derivatives.js';
-import type { Brep } from './brep-core.js';
+// Volume integrals of a B-rep over its exact surfaces. A curved face that is a whole patch (its one loop
+// runs along the patch's domain boundary) is integrated by tensor Gauss–Legendre over each knot span with
+// the surface's analytic derivatives: no tessellation, exact to rounding for polynomial patches. Each
+// display triangle of any other curved face is integrated in the face's parameter domain (Gauss points
+// mapped through the surface itself), so the result no longer carries the tessellation's chord error; only
+// trims that are not straight in (u, v) keep a small error along them. Faces tessellated without
+// parameters (ruled strips) are inverted onto their surface first; each is checked against its flat
+// triangles, and one that disagrees by more than its chord error could explain returns null (the caller
+// falls back to the tessellation). Planar faces are integrated by Green's theorem along their exact edge
+// curves (a disc's rim is a circle, not its chords).
+import { planar, tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
+import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
+import type { Brep, BrepFace } from './brep-core.js';
 import type { Point, Surface } from './types.js';
 
 type XY = readonly [number, number];
@@ -76,14 +78,15 @@ const gauss = (n: number): { x: number[]; w: number[] } => {
   }
   return { x, w };
 };
-const G4 = gauss(4), G12 = gauss(12);
+const G4 = gauss(4), G12 = gauss(12), rules = new Map<number, { x: number[]; w: number[] }>();
+const gaussOf = (n: number) => { let r = rules.get(n); if (!r) rules.set(n, r = gauss(n)); return r; };
 
 /**
  * A planar face's ten integrals by Green's theorem in its plane (o; e1, e2 with e1 × e2 the outward
  * normal n): ∫∫ h ds dt = ∮ H dt, H(s, t) = ∫₀ˢ h(σ, t) dσ, along each coedge's exact curve.
  */
-function planarIntegrals(brep: Brep, faceId: string, n: Point, o: Point): number[] {
-  const face = brep.faces.find(f => f.id === faceId)!, loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
+function planarIntegrals(brep: Brep, face: BrepFace, n: Point, o: Point, maps: Maps): number[] {
+  const { loops, coedges, edges } = maps;
   const e1 = (() => { const a: Point = Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], d = dot(a, n), v: Point = [a[0] - n[0] * d, a[1] - n[1] * d, a[2] - n[2] * d], l = Math.hypot(...v); return v.map(x => x / l) as Point; })();
   const e2 = cross(n, e1), I = Array(10).fill(0) as number[];
   const P = (s: number, t: number): Point => [o[0] + s * e1[0] + t * e2[0], o[1] + s * e1[1] + t * e2[1], o[2] + s * e1[2] + t * e2[2]];
@@ -103,31 +106,36 @@ function planarIntegrals(brep: Brep, faceId: string, n: Point, o: Point): number
   return I;
 }
 
-/** The ten volume integrals over the exact surfaces, or null when a face cannot be integrated so. */
-export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): number[] | null {
-  const { mesh, parameters } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }), P = mesh.positionsMM, ix = mesh.indices;
+type Maps = { loops: Map<string, Brep['loops'][number]>; coedges: Map<string, Brep['coedges'][number]>; edges: Map<string, Brep['edges'][number]> };
+
+/**
+ * The ten volume integrals over the exact surfaces, or null when a face cannot be integrated so;
+ * `meshed`: whether any face was integrated over its tessellation (its result then depends on
+ * `segmentsPerQuarter`, and the caller extrapolates).
+ */
+export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): { integrals: number[]; meshed: boolean } | null {
+  const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
+  const I = Array(10).fill(0) as number[], rest = new Set<string>();
+  for (const face of brep.faces) {
+    const plane = planar(face.surface), sign = face.sense === 'forward' ? 1 : -1;
+    if (plane) { planarIntegrals(brep, face, [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], plane.origin, maps).forEach((x, k) => { I[k] += x; }); continue; }
+    if (wholePatch(face, maps)) { patchIntegrals(face, I); continue; }
+    rest.add(face.id);
+  }
+  if (!rest.size) return { integrals: I, meshed: false };
+  const { mesh, parameters } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
   const surfaces = new Map(brep.faces.map(f => [f.id, f.surface]));
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
-  let size = 1; for (let i = 0; i < P.length; i++) size = Math.max(size, Math.abs(P[i]));
-  const I = Array(10).fill(0) as number[];
   for (const face of mesh.faces) {
     const flat = Array(10).fill(0) as number[], tris: [number, number, number][] = [];
     for (let t = face.indexOffset; t < face.indexOffset + face.indexCount; t += 3) tris.push([ix[t], ix[t + 1], ix[t + 2]]);
     // Flat triangles: exact for planar faces (the rule integrates the degree-4 field exactly).
-    let scale = 0, areaSum = 0; const flatVec: Point = [0, 0, 0];
+    let areaSum = 0; const flatVec: Point = [0, 0, 0];
     for (const [a, b, c] of tris) {
       const A = point(a), B = point(b), C = point(c), n = cross(sub(B, A), sub(C, A)).map(x => x / 2) as Point, tri = Array(10).fill(0) as number[];
       for (const [wa, wb, wc, w] of RULE) accumulate(tri, [wa * A[0] + wb * B[0] + wc * C[0], wa * A[1] + wb * B[1] + wc * C[1], wa * A[2] + wb * B[2] + wc * C[2]], n, w);
-      tri.forEach((x, k) => { flat[k] += x; }); scale += Math.abs(tri[0]); areaSum += Math.hypot(...n);
+      tri.forEach((x, k) => { flat[k] += x; }); areaSum += Math.hypot(...n);
       flatVec[0] += n[0]; flatVec[1] += n[1]; flatVec[2] += n[2];
-    }
-    if (face.kind === 'planar') {
-      const [a, b, c] = tris[0] ?? [];
-      if (a === undefined) continue;
-      const nn = cross(sub(point(b), point(a)), sub(point(c), point(a))), l = Math.hypot(...nn);
-      const exact = planarIntegrals(brep, face.faceId, nn.map(x => x / l) as Point, point(a));
-      if (!(Math.abs(exact[0] - flat[0]) <= 5e-2 * scale + 1e-6 * areaSum * size)) return null;
-      exact.forEach((x, k) => { I[k] += x; }); continue;
     }
     // Curved: each vertex's (u, v) (from the tessellation, else inverted), the triangle mapped through the surface.
     let fp: FaceParameters | undefined = parameters.get(face.faceId);
@@ -173,5 +181,93 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     if (!(Math.abs(curvedArea - areaSum) <= 5e-2 * areaSum && Math.hypot(...sub(curvedVec, flatVec)) <= 5e-2 * areaSum)) return null;
     curved.forEach((x, k) => { I[k] += x; });
   }
-  return I;
+  return { integrals: I, meshed: true };
+}
+
+/**
+ * Whether a curved face is its whole patch: one loop, every edge on the patch's domain boundary (sampled
+ * at nine points, each within 1e-7 of the surface's size of one of the four boundary iso-curves), and the
+ * loop as long as that boundary (to 1e-3, both measured as 64-segment polylines a curve). A closed loop made
+ * only of boundary pieces, as long as the boundary, goes round it once: the face is the full domain.
+ */
+function wholePatch(face: BrepFace, maps: Maps): boolean {
+  if (face.loops.length !== 1) return false;
+  const S = face.surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S);
+  let size = 1; for (const row of S.controlPoints) for (const p of row) size = Math.max(size, Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2]));
+  // The four boundary iso-curves sampled once (side k, sample i at SIDE[k][3i..3i+2]).
+  const sides: Float64Array[] = [];
+  for (let k = 0; k < 4; k++) {
+    const out = new Float64Array(3 * (ISO_SAMPLES + 1));
+    for (let i = 0; i <= ISO_SAMPLES; i++) { const q = sidePoint(at, U, V, k, i / ISO_SAMPLES); out[3 * i] = q[0]; out[3 * i + 1] = q[1]; out[3 * i + 2] = q[2]; }
+    sides.push(out);
+  }
+  const tol = 1e-7 * size;
+  // (The loop must also be as long as the boundary: a surface can stop short of the face its loop bounds.)
+  let perimeter = 0, length = 0;
+  for (const s of sides) perimeter += polylineLength(s);
+  for (const cid of maps.loops.get(face.loops[0])!.coedges) {
+    const curve = maps.edges.get(maps.coedges.get(cid)!.edge)!.curve, c = curveEvaluator(curve), [t0, t1] = curveDomain(curve);
+    let last: Point | null = null;
+    for (let k = 0; k <= EDGE_SAMPLES; k++) {
+      const p = c(t0 + (t1 - t0) * k / EDGE_SAMPLES);
+      if (k % (EDGE_SAMPLES / 8) === 0 && !(boundaryDistance(at, U, V, sides, p) <= tol)) return false;
+      if (last) length += Math.hypot(p[0] - last[0], p[1] - last[1], p[2] - last[2]);
+      last = p;
+    }
+  }
+  return Math.abs(length - perimeter) <= 1e-3 * perimeter;
+}
+const EDGE_SAMPLES = 64;
+/** The length of a polyline of points (x, y, z each). */
+function polylineLength(s: Float64Array): number {
+  let out = 0;
+  for (let i = 3; i < s.length; i += 3) out += Math.hypot(s[i] - s[i - 3], s[i + 1] - s[i - 2], s[i + 2] - s[i - 1]);
+  return out;
+}
+const ISO_SAMPLES = 64;
+/** The point at fraction s along boundary side k of the domain: u = U0, u = U1 (along v), v = V0, v = V1 (along u). */
+function sidePoint(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], k: number, s: number): Point {
+  return k < 2 ? at(U[k], V[0] + (V[1] - V[0]) * s) : at(U[0] + (U[1] - U[0]) * s, V[k - 2]);
+}
+/** The distance from p to the domain boundary's image: the nearest cached sample, refined by golden section on its side. */
+function boundaryDistance(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], sides: Float64Array[], p: Point): number {
+  let side = 0, best = 0, bestD = Infinity;
+  for (let k = 0; k < 4; k++) for (let i = 0; i <= ISO_SAMPLES; i++) {
+    const s = sides[k], d = Math.hypot(s[3 * i] - p[0], s[3 * i + 1] - p[1], s[3 * i + 2] - p[2]);
+    if (d < bestD) { bestD = d; side = k; best = i; }
+  }
+  const d = (s: number) => { const q = sidePoint(at, U, V, side, s); return Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]); };
+  let a = Math.max(0, best - 1) / ISO_SAMPLES, b = Math.min(ISO_SAMPLES, best + 1) / ISO_SAMPLES;
+  const g = (Math.sqrt(5) - 1) / 2;
+  let x1 = b - g * (b - a), x2 = a + g * (b - a), f1 = d(x1), f2 = d(x2);
+  for (let it = 0; it < 60 && b - a > 1e-15; it++) {
+    if (f1 < f2) { b = x2; x2 = x1; f2 = f1; x1 = b - g * (b - a); f1 = d(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + g * (b - a); f2 = d(x2); }
+  }
+  return Math.min(bestD, f1, f2);
+}
+/**
+ * A whole patch's ten integrals, added to I: tensor Gauss–Legendre on each knot span, n points a direction
+ * from the integrand's degree (field cubic in the point, the point degree p, its Jacobian 2p − 1: n = ⌈5p/2⌉,
+ * four more for rational patches), the outward normal ±∂S/∂u × ∂S/∂v by the face's sense.
+ */
+function patchIntegrals(face: BrepFace, I: number[]): void {
+  const S = face.surface, sign = face.sense === 'forward' ? 1 : -1, { u: U, v: V } = surfaceDomain(S);
+  const rational = S.weights.some(row => row.some(w => w !== 1));
+  const gu = gaussOf(Math.min(20, Math.ceil(5 * S.degreeU / 2) + (rational ? 4 : 0))), gv = gaussOf(Math.min(20, Math.ceil(5 * S.degreeV / 2) + (rational ? 4 : 0)));
+  const spansU = spans(S.knotsU, U), spansV = spans(S.knotsV, V);
+  for (let a = 0; a + 1 < spansU.length; a++) for (let b = 0; b + 1 < spansV.length; b++) {
+    const u0 = spansU[a], lu = spansU[a + 1] - u0, v0 = spansV[b], lv = spansV[b + 1] - v0;
+    for (let i = 0; i < gu.x.length; i++) for (let j = 0; j < gv.x.length; j++) {
+      const { point, du, dv } = evaluateSurfaceD1(S, u0 + lu * gu.x[i], v0 + lv * gv.x[j]);
+      normal[0] = du[1] * dv[2] - du[2] * dv[1]; normal[1] = du[2] * dv[0] - du[0] * dv[2]; normal[2] = du[0] * dv[1] - du[1] * dv[0];
+      accumulate(I, point, normal, sign * gu.w[i] * gv.w[j] * lu * lv);
+    }
+  }
+}
+/** A knot vector's distinct values inside the domain, ends included. */
+function spans(knots: readonly number[], range: readonly number[]): number[] {
+  const out = [range[0]];
+  for (const k of knots) if (k > out[out.length - 1] && k < range[1]) out.push(k);
+  out.push(range[1]);
+  return out;
 }

@@ -142,6 +142,17 @@ test('random boxes and cylinders along x, y and z: valid watertight results, vol
   assert.ok(checked >= 25, `${checked} checked, ${refused} refused`);
 });
 
+test('mass: a whole B-spline patch is integrated over its spans, a wall whose surface stops short of its loop is not', () => {
+  const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
+  // The seamed wall is its whole patch: tensor Gauss on the exact surface, no tessellation.
+  const whole = brepMassProperties(seamed, 1);
+  assert.ok(Math.abs(whole.volumeMM3 - 250 * pi) < 1e-11 * 250 * pi, `${whole.volumeMM3}`);
+  assert.ok(Math.abs(whole.centroidMM[2] - 5) < 1e-11, `${whole.centroidMM}`);
+  // After a union the wall's surface spans 315° while its loop goes all round: integrated as trimmed.
+  const r = booleanAnalytic(seamed, box([-2, -2, 8], [2, 2, 14]), 'union'), v = brepMassProperties(r, 1).volumeMM3;
+  assert.ok(Math.abs(v - (250 * pi + 64)) < 1e-8 * (250 * pi + 64), `${v}`);
+});
+
 test('full-turn walls with a seam (schema-1 cylinders) are accepted', () => {
   const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
   const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volumeMM3;

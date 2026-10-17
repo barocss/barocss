@@ -55,8 +55,9 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
   if (curved && q > 0) {
     let Q: number[] | null = null;
     try {
-      const coarse = brepQuadratureIntegrals(brep, q), fine = coarse && brepQuadratureIntegrals(brep, 2 * q);
-      Q = coarse && fine ? fine.map((x, k) => (4 * x - coarse[k]) / 3) : null;
+      // (Integrated without the tessellation, the result does not depend on q: no second pass.)
+      const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
+      Q = coarse && fine ? (coarse.meshed ? fine.integrals.map((x, k) => (4 * x - coarse.integrals[k]) / 3) : coarse.integrals) : null;
     } catch { Q = null; }
     if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
   }

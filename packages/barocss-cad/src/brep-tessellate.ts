@@ -258,7 +258,8 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   return tris;
 }
 
-function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2: Point } | null {
+/** A flat bilinear patch's frame (its normal along ∂S/∂u × ∂S/∂v), or null when the surface is not one. */
+export function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2: Point } | null {
   if (surface.degreeU !== 1 || surface.degreeV !== 1 || surface.controlPoints.length !== 2 || surface.controlPoints[0].length !== 2) return null;
   const [[p00, p01], [p10, p11]] = surface.controlPoints, u = sub(p10, p00), v = sub(p01, p00), n = cross(u, v);
   const corner = sub(p11, [p10[0] + v[0], p10[1] + v[1], p10[2] + v[2]]);
@@ -274,13 +275,13 @@ export interface FaceParameters {
   /** The triangles covering the domain (local indices) when they differ from the mesh's: on a pole side, those collapsed in space. */
   readonly domain?: readonly (readonly [number, number, number])[];
 }
-/** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there. */
-export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}): { mesh: BrepMesh; parameters: Map<string, FaceParameters> } {
+/** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there; `only`: just those faces (their edges sampled as for the whole B-rep). */
+export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}, only: ReadonlySet<string> | null = null): { mesh: BrepMesh; parameters: Map<string, FaceParameters> } {
   const parameters = new Map<string, FaceParameters>();
-  return { mesh: tessellate(brep, options, parameters), parameters };
+  return { mesh: tessellate(brep, options, parameters, only), parameters };
 }
 
-function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null): BrepMesh {
+function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null, only: ReadonlySet<string> | null = null): BrepMesh {
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
@@ -345,6 +346,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
 
   for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
   for (const face of brep.faces) {
+    if (only && !only.has(face.id)) continue;
     const sign = face.sense === 'forward' ? 1 : -1, plane = planar(face.surface);
     const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
     if (plane) {
