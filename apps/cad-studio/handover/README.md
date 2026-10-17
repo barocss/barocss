@@ -174,6 +174,32 @@ contract (a test checks it), so it was left for the kernel owner;
 a GPU clipping plane would make the section view instant; sketch trim/offset/construction lines; the
 QA `test/qa/ui-probe.mjs` predates the new sketch flow (Finish no longer opens Extrude).
 
+### Gallery backlog and perf pass (2026-10-17, same branch, local commits only)
+
+The gallery backlog (`handover/gallery-backlog.md`) is done, A → B → C and the carried-over items; each line
+there names its commit. Last additions: sew surfaces into a solid (kernel `sew`, `7c3bebdb8`), trim a direct
+surface by a closed curve (`91819d596`; a display trim, thicken and sew take untrimmed surfaces), a
+countersunk hole as one `hole` with `countersink` (`dda679abb`), ISO 4017 lengths M3–M12 cross-checked
+(`b5b9ad450`), mitred fillets 110 → 56 ms (`25a98599e`).
+
+Perf work handed over by the CAD/GPU common-functions session (B1–B4, D1/D4; D3 and D5 skipped: frozen
+zero-native contract modules), measured before and after, names and volumes unchanged unless noted:
+patterns in a balanced union tree, 1269 → 445 ms for a stepped body × 12 (`1ecb6fabb`); a hole's miss check
+from its faces, 16 holes 2.9 → 1.0 s (`dafa648bc`, `77c06d2b9`); `curveEvaluator` without allocation
+(`db8079c1f`); `regionInteriorPoint` pruning (`a043e2ebf`); curved-face tessellation without per-point and
+per-edge allocation, 49 → 31 ms (`b31d45aab`); mass quadrature in scalars (`ffe7df8c5`); evaluators exported
+(`cae8a9920`); a pole-drag step of a direct surface 17.4 → 4.4 ms (`8d36bd7d0`). Rule from the owner since
+then: no functions made inside functions on hot paths (module helpers with a context instead).
+
+Tangent cylinders: a cross hole whose side touches a vertical hole's wall from inside is refused
+("These round features only graze each other"; kernel CAPABILITY, `8cc93fc6d`) — before, it failed in one
+order and built ~21 mm³ short in the other. Building it needs the cylinder–cylinder cut to clip its two
+loops at the tangential crossing (`analytic-boolean.ts`, crossing-axes branch, double zero).
+
+Verified: browser flow 102/102 at `77c06d2b9` (WebGPU), then the new tangent-hole step; unit 234/234;
+kernel 853 + the one environmental failure (the Split demo pins Node 22.23.3). Note: `@barocss/cad`'s
+exports point at `src`, so editing kernel sources while a browser flow runs reloads the page mid-step.
+
 ## 4. Open items (not done)
 
 QA stopped after its fifth pass on `d5fa5fa6` (see `test/qa/REPORT.md`): every routed finding is fixed there and
