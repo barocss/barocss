@@ -48,7 +48,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B18 Oblique split plane (#2072) — 2c151cf7d
 - [x] B19 Texture maps (#2070) — e7e5565d8
 - [x] B20 Shared part definitions and explicit reference update (#2048) — 5c7107441
-- [ ] B21 STL / OBJ import with a unit choice (#2044)
+- [x] B21 STL / OBJ import with a unit choice (#2044) — 767666c5e
 
 ## C. Kernel or GPU, large
 
