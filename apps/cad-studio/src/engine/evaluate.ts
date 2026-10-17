@@ -24,6 +24,24 @@ const ALUMINIUM = 2700;
 // The last successful evaluation: unchanged features are reused by the next one.
 let last: CadPartSnapshot | null = null;
 
+// Unchanged features keep their B-rep objects from one evaluation to the next: their tessellation (per
+// quality) and mass properties are worked out once. The meshes handed out are copies (the worker
+// transfers their buffers away).
+const meshes = new WeakMap<Brep, Map<number, DisplayMesh>>();
+const masses = new WeakMap<Brep, ReturnType<CadPartSnapshot['outputs'][number]['massProperties']> | null>();
+function meshOf(brep: Brep, revision: number, quality: number): DisplayMesh {
+  let byQuality = meshes.get(brep); if (!byQuality) meshes.set(brep, byQuality = new Map());
+  let m = byQuality.get(quality); if (!m) byQuality.set(quality, m = bodyMesh(brep, revision, quality));
+  return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };
+}
+/** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
+function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number): BodyResult {
+  let m = masses.get(o.brep);
+  if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
+  const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
+  return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
+}
+
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
   const part = toPartDocument(doc);
   return last ? last.withDocument(part) : evaluateCadPart(part);
@@ -33,11 +51,7 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   const t0 = performance.now();
   try {
     const snapshot = snapshotOf(doc); last = snapshot;
-    const bodies: BodyResult[] = snapshot.outputs.map(o => {
-      let volumeMM3: number | null = null, massG: number | null = null, centroid: [number, number, number] | undefined, inertia: number[][] | undefined;
-      try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; centroid = [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]]; inertia = m.inertiaCentroidKgM2.map(r => [...r]); } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
-    });
+    const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
@@ -53,7 +67,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8): 
   const t0 = performance.now();
   try {
     const part = toPartDocument(doc), snapshot = lastPreview ? lastPreview.withDocument(part) : evaluateCadPart(part); lastPreview = snapshot;
-    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3: null, massG: null }));
+    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     lastPreview = null;
@@ -65,11 +79,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8): 
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => {
-      let volumeMM3: number | null = null, massG: number | null = null, centroid: [number, number, number] | undefined, inertia: number[][] | undefined;
-      try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; centroid = [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]]; inertia = m.inertiaCentroidKgM2.map(r => [...r]); } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG, ...(centroid ? { centroid } : {}), ...(inertia ? { inertia } : {}), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
-    });
+    const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => bodyOf(o, doc, revision, quality));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };

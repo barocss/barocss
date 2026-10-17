@@ -270,7 +270,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   }, [props.bodies, backend]);
 
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody]);
-  useEffect(() => { request(); }, [props.sketch, props.gizmo, props.handles]);
+  // (Handles and gizmos are new objects on every render of the app: drawn again only when they move.)
+  const shapeOf = (v: unknown) => JSON.stringify(v, (_k, x) => typeof x === 'function' ? undefined : x);
+  const overlayKey = shapeOf([props.gizmo, props.handles]);
+  useEffect(() => { request(); }, [props.sketch, overlayKey]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);

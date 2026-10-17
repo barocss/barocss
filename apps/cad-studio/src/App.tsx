@@ -108,6 +108,13 @@ const PREVIEW_TINT = '#7fb2f0';
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
 interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
 
+/** The pointer's point to 0.1 mm (it renders again only when that text changes). */
+function CursorReadout({ sink }: { sink: React.MutableRefObject<((p: Vec3 | null) => void) | null> }) {
+  const [text, setText] = useState('');
+  useEffect(() => { sink.current = p => setText(p ? ` · ${p.map(v => fmt(Math.round(v * 10) / 10)).join(', ')}` : ''); return () => { sink.current = null; }; }, [sink]);
+  return <>{text}</>;
+}
+
 export function App() {
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
@@ -167,7 +174,9 @@ export function App() {
   const [chat, setChat] = useState(false);
   /** What a chat turn asked to show selected once its part is evaluated. */
   const chatSelection = useRef<NameSelection | null>(null);
-  const [cursor, setCursor] = useState<Vec3 | null>(null);
+  // The pointer's model point, shown in the status bar by its own component (a move re-renders only it).
+  const cursorSink = useRef<((p: Vec3 | null) => void) | null>(null);
+  const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
   const [toast, setToast] = useState<FriendlyError | null>(null);
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
@@ -1218,7 +1227,7 @@ export function App() {
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
+        onPick={onPick} onCursor={onCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
@@ -1516,7 +1525,7 @@ export function App() {
       </div>}
 
       <div className="corner-left">
-        <span className="mono muted">{busy ? 'Computing…' : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}{cursor ? ` · ${cursor.map(v => fmt(Math.round(v * 10) / 10)).join(', ')}` : ''}</span>
+        <span className="mono muted">{busy ? 'Computing…' : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
       <div className="corner-right">

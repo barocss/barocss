@@ -25,7 +25,8 @@ const ACCENT: Vec3 = [0.910, 0.761, 0.353];
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string }
+/** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
 function signature(r: BodyResult): string {
@@ -79,6 +80,7 @@ export class GpuRenderer implements ViewRenderer {
   /** Render settings (the Render workspace), or null for the modelling look. */
   setRender(settings: RenderSettings | null): void {
     this.settings = settings;
+    for (const b of this.bodies) b.state = '';
     this.applyLook();
     if (this.view) this.setState(this.view);
   }
@@ -90,7 +92,7 @@ export class GpuRenderer implements ViewRenderer {
     this.viewer.grid = { visible: env ? env.grid : true, cell: 10, major: 5, color: t.grid, opacity: t.gridOpacity };
     for (const b of this.bodies) {
       if (b.edges) { b.edges.material = { color: t.edge }; b.edges.visible = env ? env.edges : true; }
-      this.paint(b, new Map());
+      this.paint(b, new Map()); b.state = '';
     }
     if (this.ground) { this.ground.material = { opacity: env ? 0.55 : t.shadow }; this.ground.visible = env ? env.ground : true; }
     this.showProps();
@@ -121,7 +123,7 @@ export class GpuRenderer implements ViewRenderer {
         geometries.push(g);
         edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false });
       }
-      const body: Body = { result, surface, edges, highlight: null, geometries, sig: sigs[bi] };
+      const body: Body = { result, surface, edges, highlight: null, geometries, sig: sigs[bi], state: '' };
       this.paint(body, new Map());
       return body;
     });
@@ -182,11 +184,17 @@ export class GpuRenderer implements ViewRenderer {
       const faceState = new Map<number, number>();
       if (view.hoverFace?.body === bi) faceState.set(view.hoverFace.face, 1);
       for (const f of view.selectedFaces) if (f.body === bi) faceState.set(f.face, 2);
-      this.paint(b, faceState, view.bodyColors?.get(bi), view.faceColors?.get(bi));
       // Hovered and selected edges: their segments again, wider and in the accent colour.
       const edgeState = new Map<number, number>();
       if (view.hoverEdge?.body === bi) edgeState.set(view.hoverEdge.edge, 1);
       for (const e of view.selectedEdges) if (e.body === bi) edgeState.set(e.edge, 2);
+      // (Only a body whose look changed is painted again: a hover repaints one body, not all.)
+      const t = view.transforms?.get(bi), faces = view.faceColors?.get(bi);
+      const state = JSON.stringify([[...faceState], [...edgeState], view.selectedEdges.length > 0, view.bodyColors?.get(bi) ?? null, faces ? [...faces] : null,
+        view.ghostBodies.has(bi), !!view.hiddenBodies?.has(bi), view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0, t ? Array.from(t) : view.offsets.get(bi) ?? null]);
+      if (state === b.state) return;
+      b.state = state;
+      this.paint(b, faceState, view.bodyColors?.get(bi), faces);
       this.dropHighlight(b);
       if (edgeState.size) {
         const L = b.result.mesh.edgeLines, E = b.result.mesh.edgeOfSegment, pts: number[] = [], colors: number[] = [];

@@ -61,11 +61,13 @@ export const rgbOf = (hex: string): [number, number, number] => { const v = pars
  */
 export function describeChange(before: StudioDoc, after: StudioDoc): string {
   const a = before.nodes, b = after.nodes, label = (n: StudioDoc['nodes'][number], i: number, all: StudioDoc['nodes']) => featureLabel(n, i, all);
+  // (Edits keep the nodes they leave alone: the same object is the same node, without writing it out.)
+  const differ = (x: unknown, y: unknown) => x !== y && JSON.stringify(x) !== JSON.stringify(y);
   if (b.length > a.length) { const i = b.length - 1; return label(b[i], i, b); }
-  if (b.length < a.length) { const gone = a.findIndex((n, i) => JSON.stringify(n) !== JSON.stringify(b[i])); const i = gone < 0 ? a.length - 1 : gone; return `delete ${label(a[i], i, a)}`; }
-  const i = b.findIndex((n, k) => JSON.stringify(n) !== JSON.stringify(a[k]));
+  if (b.length < a.length) { const gone = a.findIndex((n, i) => differ(n, b[i])); const i = gone < 0 ? a.length - 1 : gone; return `delete ${label(a[i], i, a)}`; }
+  const i = a === b ? -1 : b.findIndex((n, k) => differ(n, a[k]));
   if (i >= 0) return `edit ${label(b[i], i, b)}`;
-  if (JSON.stringify(before.bodies ?? {}) !== JSON.stringify(after.bodies ?? {})) return 'body look';
+  if (differ(before.bodies ?? {}, after.bodies ?? {})) return 'body look';
   return 'change';
 }
 
