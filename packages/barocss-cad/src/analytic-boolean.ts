@@ -861,6 +861,8 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
  * Newton on (u, v, t). Null when a hit grazes the surface (degenerate ray).
  */
 function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
+  // (The patch lies in its control points' box: a ray that misses the box, widened, meets nothing.)
+  if (rayMissesBox(s.hullMin, s.hullMax, x, dir, 10 * tol)) return [];
   const n = 24, G = (i: number, j: number) => s.grid[i * 25 + j], out: number[] = [];
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const tri of [[G(i, j), G(i + 1, j), G(i + 1, j + 1)], [G(i, j), G(i + 1, j + 1), G(i, j + 1)]]) {
     const e1 = sub(tri[1].x, tri[0].x), e2 = sub(tri[2].x, tri[0].x), h = cross(dir, e2), a = dot(e1, h);
@@ -887,6 +889,19 @@ function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
     if (!out.some(o => Math.abs(o - t) <= 10 * tol)) out.push(t);
   }
   return out;
+}
+
+/** Whether the half-line x + t·dir (t ≥ −pad) misses the box [lo − pad, hi + pad]. */
+function rayMissesBox(lo: P3, hi: P3, x: P3, dir: P3, pad: number): boolean {
+  let near = -pad, far = Infinity;
+  for (let k = 0; k < 3; k++) {
+    const a = lo[k] - pad, b = hi[k] + pad;
+    if (Math.abs(dir[k]) < 1e-300) { if (x[k] < a || x[k] > b) return true; continue; }
+    let t0 = (a - x[k]) / dir[k], t1 = (b - x[k]) / dir[k]; if (t0 > t1) { const t = t0; t0 = t1; t1 = t; }
+    if (t0 > near) near = t0; if (t1 < far) far = t1;
+    if (near > far) return true;
+  }
+  return false;
 }
 
 // ---- the Boolean -------------------------------------------------------------------------------------
