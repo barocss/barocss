@@ -1125,6 +1125,18 @@ export class Viewer {
         const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2];
         return [M[0] * px + M[4] * py + M[8] * pz + M[12], M[1] * px + M[5] * py + M[9] * pz + M[13], M[3] * px + M[7] * py + M[11] * pz + M[15]];
       };
+      // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
+      const bx = g.bounds;
+      if (bx) {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, front = true;
+        for (let c = 0; c < 8 && front; c++) {
+          const px = c & 1 ? bx.max[0] : bx.min[0], py = c & 2 ? bx.max[1] : bx.min[1], pz = c & 4 ? bx.max[2] : bx.min[2];
+          const w = M[3] * px + M[7] * py + M[11] * pz + M[15]; if (w < 1e-6) { front = false; break; }
+          const sxp = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw, syp = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch;
+          x0 = Math.min(x0, sxp); x1 = Math.max(x1, sxp); y0 = Math.min(y0, syp); y1 = Math.max(y1, syp);
+        }
+        if (front && (x < x0 - radius || x > x1 + radius || y < y0 - radius || y > y1 + radius)) continue;
+      }
       for (let sgm = 0; sgm < g.elementCount / 2; sgm++) {
         const ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1;
         let a = clip(ia), b = clip(ib), s0 = 0, s1 = 1;

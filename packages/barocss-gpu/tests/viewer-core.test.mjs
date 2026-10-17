@@ -155,3 +155,33 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.deepEqual(parseColor('#f80'), [1, 0x88 / 255, 0]);
   assert.throws(() => parseColor('red'), /hex/);
 });
+
+test('ray picking on a large mesh (through its hierarchy) finds what a test of every triangle finds', () => {
+  // A wavy 60 × 60 sheet (7200 triangles) and rays from every side.
+  const N = 60, P = [], I = [];
+  for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) P.push(i, j, 3 * Math.sin(i * 0.3) * Math.cos(j * 0.25));
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a = j * (N + 1) + i; I.push(a, a + 1, a + N + 2, a, a + N + 2, a + N + 1); }
+  const g = prepareGeometry({ positions: P, indices: I });
+  const brute = (o, d) => {
+    let best = null;
+    for (let t = 0; t < I.length / 3; t++) {
+      const v = k => [P[3 * I[3 * t + k]], P[3 * I[3 * t + k] + 1], P[3 * I[3 * t + k] + 2]], [a, b, c] = [v(0), v(1), v(2)];
+      const e1 = b.map((x, k) => x - a[k]), e2 = c.map((x, k) => x - a[k]), cr = (x, y) => [x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]], dt = (x, y) => x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
+      const p = cr(d, e2), det = dt(e1, p); if (Math.abs(det) < 1e-20) continue;
+      const s = o.map((x, k) => x - a[k]), u = dt(s, p) / det; if (u < -1e-7 || u > 1 + 1e-7) continue;
+      const q = cr(s, e1), w = dt(d, q) / det; if (w < -1e-7 || u + w > 1 + 1e-7) continue;
+      const dist = dt(e2, q) / det; if (dist > 0 && (!best || dist < best.t)) best = { triangle: t, t: dist };
+    }
+    return best;
+  };
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 200; k++) {
+    const o = [rnd() * 80 - 10, rnd() * 80 - 10, rnd() < 0.5 ? 20 : -20], target = [rnd() * N, rnd() * N, 0], d = target.map((x, i) => x - o[i]);
+    const got = rayTriangles(g, o, d), want = brute(o, d);
+    assert.equal(got?.triangle ?? null, want?.triangle ?? null, `ray ${k}`);
+    if (want) assert.ok(Math.abs(got.t - want.t) < 1e-4, `${got.t} vs ${want.t}`); // (the geometry holds float32 positions)
+  }
+  // Along an axis (zero direction components), and missing the sheet's box altogether.
+  assert.equal(rayTriangles(g, [10.3, 20.6, 50], [0, 0, -1])?.triangle, brute([10.3, 20.6, 50], [0, 0, -1])?.triangle);
+  assert.equal(rayTriangles(g, [100, 100, 50], [0, 0, -1]), null);
+});

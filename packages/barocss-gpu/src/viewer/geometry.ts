@@ -1,7 +1,7 @@
 // Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking) and
 // its vertex data as the viewer uploads it: positions, normals and linear RGBA8 colours.
 import { boxOfPositions, type Box3 } from './bounds.js';
-import { cross, dot, srgbToLinear, sub, type Vec3 } from './math.js';
+import { cross, srgbToLinear, sub, type Vec3 } from './math.js';
 
 export interface GeometryInput {
   /** x, y, z per vertex. */
@@ -93,24 +93,98 @@ export function vertexNormals(positions: Float32Array, indices: ArrayLike<number
   return n;
 }
 
-/** The nearest triangle a ray (in the geometry's own space) hits: its index and distance along the ray. */
-export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3): { triangle: number; t: number } | null {
-  if (g.topology !== 'triangles') return null;
-  const P = g.positions, I = g.indices, at = (i: number): Vec3 => [P[3 * i], P[3 * i + 1], P[3 * i + 2]];
-  let best: { triangle: number; t: number } | null = null;
-  for (let t = 0; t < g.elementCount; t += 3) {
-    const a = at(I ? I[t] : t), b = at(I ? I[t + 1] : t + 1), c = at(I ? I[t + 2] : t + 2);
-    // Möller–Trumbore, both faces.
-    const e1 = sub(b, a), e2 = sub(c, a), p = cross(direction, e2), det = dot(e1, p);
-    if (Math.abs(det) < 1e-20) continue;
-    const inv = 1 / det, s = sub(origin, a), u = dot(s, p) * inv;
-    if (u < -1e-7 || u > 1 + 1e-7) continue;
-    const q = cross(s, e1), v = dot(direction, q) * inv;
-    if (v < -1e-7 || u + v > 1 + 1e-7) continue;
-    const d = dot(e2, q) * inv;
-    if (d > 0 && (!best || d < best.t)) best = { triangle: t / 3, t: d };
+/** Where a ray enters the box at `box[at…at + 5]` (min, max; its parameter, 0 when it starts inside), or Infinity when it misses it. */
+function slab(box: ArrayLike<number>, at: number, ox: number, oy: number, oz: number, ix: number, iy: number, iz: number): number {
+  let t0 = 0, t1 = Infinity;
+  for (let k = 0; k < 3; k++) {
+    const o = k === 0 ? ox : k === 1 ? oy : oz, inv = k === 0 ? ix : k === 1 ? iy : iz, mn = box[at + k], mx = box[at + 3 + k];
+    // (A tolerance as the triangle test's, so a hit on a box face is not lost.)
+    const lo = mn - 1e-7 * (1 + Math.abs(mn)), hi = mx + 1e-7 * (1 + Math.abs(mx));
+    let a = (lo - o) * inv, b = (hi - o) * inv;
+    if (Number.isNaN(a) || Number.isNaN(b)) { if (o < lo || o > hi) return Infinity; continue; }
+    if (a > b) { const x = a; a = b; b = x; }
+    if (a > t0) t0 = a;
+    if (b < t1) t1 = b;
+    if (t0 > t1) return Infinity;
   }
-  return best;
+  return t0;
+}
+
+/** A bounding volume hierarchy over a geometry's triangles: boxes (min, max per node), children or a run of triangles. */
+interface Bvh { box: Float64Array; left: Int32Array; right: Int32Array; start: Int32Array; count: Int32Array; order: Uint32Array }
+const BVH_LEAF = 8, BVH_FROM = 1024;
+const bvhs = new WeakMap<PreparedGeometry, Bvh>();
+function bvhOf(g: PreparedGeometry): Bvh {
+  const have = bvhs.get(g); if (have) return have;
+  const P = g.positions, I = g.indices, n = g.elementCount / 3, order = new Uint32Array(n), c = new Float64Array(n * 3), tb = new Float64Array(n * 6);
+  for (let t = 0; t < n; t++) {
+    order[t] = t;
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    for (let k = 0; k < 3; k++) {
+      const v = I ? I[3 * t + k] : 3 * t + k, x = P[3 * v], y = P[3 * v + 1], z = P[3 * v + 2];
+      if (x < x0) x0 = x; if (y < y0) y0 = y; if (z < z0) z0 = z; if (x > x1) x1 = x; if (y > y1) y1 = y; if (z > z1) z1 = z;
+    }
+    tb.set([x0, y0, z0, x1, y1, z1], 6 * t); c[3 * t] = (x0 + x1) / 2; c[3 * t + 1] = (y0 + y1) / 2; c[3 * t + 2] = (z0 + z1) / 2;
+  }
+  const box: number[] = [], left: number[] = [], right: number[] = [], start: number[] = [], count: number[] = [];
+  const build = (lo: number, hi: number): number => {
+    const id = left.length; left.push(-1); right.push(-1); start.push(lo); count.push(hi - lo);
+    const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity], cb = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    for (let i = lo; i < hi; i++) { const t = order[i]; for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k], tb[6 * t + k]); b[k + 3] = Math.max(b[k + 3], tb[6 * t + k + 3]); cb[k] = Math.min(cb[k], c[3 * t + k]); cb[k + 3] = Math.max(cb[k + 3], c[3 * t + k]); } }
+    box.push(...b);
+    if (hi - lo <= BVH_LEAF) return id;
+    // Split at the middle of the longest extent of the centres (falling back to halves when they coincide).
+    const ax = [0, 1, 2].reduce((m, k) => cb[k + 3] - cb[k] > cb[m + 3] - cb[m] ? k : m, 0), mid = (cb[ax] + cb[ax + 3]) / 2;
+    let i = lo, j = hi - 1;
+    while (i <= j) { if (c[3 * order[i] + ax] < mid) i++; else { const x = order[i]; order[i] = order[j]; order[j] = x; j--; } }
+    if (i === lo || i === hi) i = (lo + hi) >> 1;
+    const l = build(lo, i), r = build(i, hi);
+    left[id] = l; right[id] = r; count[id] = 0;
+    return id;
+  };
+  build(0, n);
+  const out: Bvh = { box: Float64Array.from(box), left: Int32Array.from(left), right: Int32Array.from(right), start: Int32Array.from(start), count: Int32Array.from(count), order };
+  bvhs.set(g, out);
+  return out;
+}
+
+/**
+ * The nearest triangle a ray (in the geometry's own space) hits: its index and distance along the ray.
+ * A ray missing the geometry's box is rejected at once; a large geometry is searched through a
+ * bounding volume hierarchy built the first time it is picked.
+ */
+export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3): { triangle: number; t: number } | null {
+  if (g.topology !== 'triangles' || !g.bounds) return null;
+  const [ox, oy, oz] = origin, [dx, dy, dz] = direction, ix = 1 / dx, iy = 1 / dy, iz = 1 / dz;
+  if (slab([...g.bounds.min, ...g.bounds.max], 0, ox, oy, oz, ix, iy, iz) === Infinity) return null;
+  const P = g.positions, I = g.indices;
+  let bestT = Infinity, bestTri = -1;
+  // Möller–Trumbore, both faces, with no allocation.
+  const test = (t: number) => {
+    const a = I ? I[3 * t] : 3 * t, b = I ? I[3 * t + 1] : 3 * t + 1, c = I ? I[3 * t + 2] : 3 * t + 2;
+    const ax = P[3 * a], ay = P[3 * a + 1], az = P[3 * a + 2];
+    const e1x = P[3 * b] - ax, e1y = P[3 * b + 1] - ay, e1z = P[3 * b + 2] - az, e2x = P[3 * c] - ax, e2y = P[3 * c + 1] - ay, e2z = P[3 * c + 2] - az;
+    const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz;
+    if (Math.abs(det) < 1e-20) return;
+    const inv = 1 / det, sx = ox - ax, sy = oy - ay, sz = oz - az, u = (sx * px + sy * py + sz * pz) * inv;
+    if (u < -1e-7 || u > 1 + 1e-7) return;
+    const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, v = (dx * qx + dy * qy + dz * qz) * inv;
+    if (v < -1e-7 || u + v > 1 + 1e-7) return;
+    const d = (e2x * qx + e2y * qy + e2z * qz) * inv;
+    if (d > 0 && d < bestT) { bestT = d; bestTri = t; }
+  };
+  const n = g.elementCount / 3;
+  if (n < BVH_FROM) for (let t = 0; t < n; t++) test(t);
+  else {
+    const h = bvhOf(g), stack = [0];
+    while (stack.length) {
+      const node = stack.pop()!;
+      if (slab(h.box, 6 * node, ox, oy, oz, ix, iy, iz) >= bestT) continue;
+      if (h.left[node] < 0) { for (let i = h.start[node], e = i + h.count[node]; i < e; i++) test(h.order[i]); continue; }
+      stack.push(h.left[node], h.right[node]);
+    }
+  }
+  return bestTri < 0 ? null : { triangle: bestTri, t: bestT };
 }
 
 /** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */
