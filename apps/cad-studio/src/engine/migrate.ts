@@ -4,7 +4,7 @@
 import { prefixDoc, type StudioDoc } from './doc';
 
 export const SCHEMA = 1;
-const KINDS = new Set(['sketch', 'extrude', 'revolve', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'hole']);
+const KINDS = new Set(['sketch', 'extrude', 'revolve', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'thicken', 'hole']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
   let raw: unknown;

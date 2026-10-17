@@ -6,11 +6,13 @@ import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directO
  * curves (join, ruled surface, sweep), one surface (split, region, iso-curve, reverse, knot, degree,
  * poles). Each tool is one undoable edit; a refusal comes back as a message.
  */
-export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
+export function DirectPanel({ direct, selected, onChange, onError, onHide, onThicken }: {
   direct: DirectGeometry; selected: string[];
   onChange(next: DirectGeometry, select?: string[]): void;
   onError(message: string): void;
   onHide(ids: string[]): void;
+  /** A surface thickened into a body of the part. */
+  onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void;
 }) {
   const objs = selected.map(id => direct.objects.find(o => o.id === id)).filter((o): o is NonNullable<typeof o> => !!o);
   const geoms = objs.map(o => { try { return geometryOf(direct, o); } catch { return null; } });
@@ -33,7 +35,7 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
         onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)}
         onStretch={k => run(() => directOps.stretch(direct, selected, k))} onShear={(a, b, k) => run(() => directOps.shear(direct, selected, a, b, k))} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
-      {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
+      {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} onThicken={onThicken} />}
       {objs.length >= 3 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
         <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
@@ -110,7 +112,8 @@ function Crossings({ id, direct }: { id: string; direct: DirectGeometry }) {
   </>;
 }
 
-function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
+function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[]; onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void }) {
+  const [wall, setWall] = useState(2), [wallSide, setWallSide] = useState<'normal' | 'reverse' | 'both'>('normal');
   const dom = domainsOf(direct, id), u = dom.kind === 'surface' ? dom.u : [0, 1] as [number, number], v = dom.kind === 'surface' ? dom.v : [0, 1] as [number, number];
   const [axis, setAxis] = useState<'u' | 'v'>('u');
   const range = axis === 'u' ? u : v, mid = (range[0] + range[1]) / 2;
@@ -132,6 +135,13 @@ function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGe
       <button className="ghost" onClick={() => run(() => directOps.reverseSurface(direct, id, axis), added)}>Reverse</button>
     </div>
     <SurfacePoint id={id} direct={direct} u={u} v={v} />
+    {onThicken && <>
+      <div className="card-title" style={{ marginTop: 8 }}>THICKEN</div>
+      <NumberField label="Thickness" value={wall} onChange={setWall} />
+      <label className="field"><span>Side</span><select aria-label="Thicken side" value={wallSide} onChange={e => setWallSide(e.target.value as typeof wallSide)}>
+        <option value="normal">Along the normal</option><option value="reverse">Against it</option><option value="both">Half each way</option></select></label>
+      <button className="ghost" aria-label="Thicken into a body" onClick={() => onThicken(id, wall, wallSide)}>Thicken into a body</button>
+    </>}
     <div className="card-title" style={{ marginTop: 8 }}>REGION</div>
     {(['u from', 'u to', 'v from', 'v to'] as const).map((l, k) => <NumberField key={l} label={l} value={box[k]} onChange={x => setBox(b => b.map((y, j) => j === k ? x : y) as typeof b)} />)}
     <button className="ghost" onClick={() => run(() => directOps.surfaceRegion(direct, id, [box[0], box[1]], [box[2], box[3]]), added)}>Extract region</button>

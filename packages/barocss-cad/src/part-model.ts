@@ -27,7 +27,8 @@ import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
-import { validateCurve } from './math.js';
+import { validateCurve, validateSurface } from './math.js';
+import { thickenSolid } from './thicken-solid.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -128,6 +129,8 @@ export type CadPartFeature = Base & (
    * in (material taken off), negative out (material added). The faces by name.
    */
   | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
+  /** An open NURBS surface thickened into a solid: `thickness` along its normal (or against it, or half each way). Faceted. */
+  | { readonly kind: 'thicken'; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }; readonly thickness: CadPartDim; readonly side?: 'normal' | 'reverse' | 'both' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
@@ -629,6 +632,17 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // The wedges together, then off the body (or onto it) at once.
         const all = wedges.filter(w => !empty(w)).reduce<Solid | null>((u, w) => u ? boolean(u, w, 'union', at) : w, null);
         return one(all ? boolean(target[0].solid, all, a > 0 ? 'difference' : 'union', at) : target[0].solid);
+      };
+    }
+    case 'thicken': {
+      const g = f.surface as Record<string, unknown>, t = dim(f.thickness as CadPartDim, 'thickness', true), side = f.side ?? 'normal';
+      if (!isRecord(g)) fail('INPUT', 'surface must be a NURBS surface { degreeU, degreeV, knotsU, knotsV, controlPoints, weights }');
+      if (side !== 'normal' && side !== 'reverse' && side !== 'both') fail('INPUT', 'side must be normal, reverse or both');
+      const surface = { kind: 'surface' as const, id: 'surface', degreeU: g.degreeU as number, degreeV: g.degreeV as number, knotsU: g.knotsU as number[], knotsV: g.knotsV as number[], controlPoints: g.controlPoints as Point[][], weights: g.weights as number[][] };
+      try { validateSurface(surface); } catch (cause) { fail('INPUT', `surface: ${cause instanceof Error ? cause.message : String(cause)}`); }
+      return () => {
+        try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
+        catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'sweep-curve': {

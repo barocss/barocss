@@ -969,6 +969,18 @@ try {
     await page.waitForFunction(n => Object.keys(window.__studioDoc.direct.sources).length === n, sources, { timeout: 5000 });
   });
 
+  await check('thicken a surface into a body: the flat panel 3 mm thick', async () => {
+    await page.click('.ol.direct[title="study · panel"]');
+    await page.fill('.direct-panel [aria-label="Thickness"]', '3'); await page.locator('.direct-panel [aria-label="Thickness"]').blur();
+    await page.click('.direct-panel [aria-label="Thicken into a body"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thicken', null, { timeout: 10000 });
+    await page.waitForFunction(() => /Thicken study · panel 3/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.outliner .ol', { hasText: 'Thicken' }).first().click();
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('thicken'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'thicken', null, { timeout: 5000 });
+  });
+
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);

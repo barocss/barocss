@@ -48,7 +48,7 @@ import { flattenAssembly } from './assembly/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from './assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
-import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
+import { directDisplay, directIGES, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
 import { stepLengthUnit } from './engine/stepUnits';
 import { MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
 import { readStudioDoc } from './engine/migrate';
@@ -1447,7 +1447,14 @@ export function App() {
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
-        onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }} />}
+        onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }}
+        onThicken={(id, thickness, side) => {
+          const o = doc.direct!.objects.find(x => x.id === id)!, g = geometryOf(doc.direct!, o);
+          if (g.kind !== 'surface') return;
+          if (!(thickness > 0)) { setToast({ title: 'Give it a thickness', hint: 'A wall is thicker than 0 mm.', detail: '' }); return; }
+          const surface = { degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) };
+          setDirectSel([]); commit(withNode(evaluated, { kind: 'thicken', name: o.name, surface, thickness, ...(side !== 'normal' ? { side } : {}) }));
+        }} />}
       {clashes && !rendering && !sketch && <aside className="card props" aria-label="Interference">
         <div className="card-title">INTERFERENCE <button className="tool tiny" aria-label="Close interference" onClick={() => setClashes(null)}><Icon name="close" small /></button></div>
         {clashes === 'busy' ? <div className="empty">Checking…</div> : !clashes.length ? <div className="empty">No bodies overlap.</div>
