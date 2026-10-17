@@ -6,7 +6,7 @@ import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
-import { measureBetween, measureItem, type MeasurePick } from './app/measure';
+import { measureBetween, measureItem, pointInBody, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
 import { DRAG_TYPE, Viewport, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
@@ -1404,6 +1404,7 @@ export function App() {
               </>; })()}
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
+            <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
           {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
@@ -1567,6 +1568,17 @@ function iconFor(n: ModelNode) {
   if ('made' in n && n.made) return 'cad-' + n.made.command;
   return ({ extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
     translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch' } as Record<string, string>)[n.kind] ?? 'category';
+}
+
+/** A point tried against a body: inside, outside or on it. */
+function PointTest({ mesh }: { mesh: BodyResult['mesh'] }) {
+  const [p, setP] = useState<[number, number, number]>([0, 0, 0]), [res, setRes] = useState<string | null>(null);
+  useEffect(() => setRes(null), [mesh, p]);
+  return <div className="point-test">
+    <div className="kv"><span>Point test</span><span className="pt-xyz">{(['X', 'Y', 'Z'] as const).map((a, k) => <input key={a} type="number" step="any" aria-label={`Point ${a}`} value={p[k]} onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) setP(q => q.map((x, j) => j === k ? v : x) as typeof q); }} onKeyDown={e => e.stopPropagation()} />)}
+      <button className="ghost small" aria-label="Test the point" onClick={() => setRes(pointInBody(mesh, p))}>Test</button></span></div>
+    {res && <div className="kv"><span /><b aria-label="Point is">{res === 'inside' ? 'inside the body' : res === 'outside' ? 'outside the body' : 'on its surface'}</b></div>}
+  </div>;
 }
 
 function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void; parameters: Record<string, number>; onRefuse(message: string): void }) {

@@ -893,6 +893,9 @@ try {
     await page.locator('.ol.direct', { hasText: 'panel' }).click(); await page.waitForTimeout(300); await snap('direct-isocurves');
     await page.click('.direct-panel button:text-is("Iso-curve")');
     await page.locator('.ol.direct', { hasText: 'arc' }).first().click();
+    // Where the arc crosses X = 10: once, at its top.
+    await page.selectOption('[aria-label="Crossing plane"]', 'x'); await page.fill('.direct-panel [aria-label="At"]', '10'); await page.click('[aria-label="Find crossings"]');
+    assert.match(await page.locator('[aria-label="Crossing"]').innerText(), /10, 5, 0/);
     await page.click('.direct-panel button:text-is("Split")');
     await page.waitForSelector('.direct-panel .card-title:has-text("2 OBJECTS")');
     await page.locator('.ol.direct', { hasText: 'top' }).click();

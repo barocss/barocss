@@ -607,3 +607,6 @@ export type { DraftedExtrusionInput } from './drafted-extrusion.js';
 export type { EdgeFinishKind } from './edge-finish.js';
 export { faceGeometry } from './analytic-boolean.js';
 export type { FaceGeometry } from './analytic-boolean.js';
+/** General marching intersection of two parametric patches (used inside the analytic Booleans). */
+export { intersectPatches, chainCurve, SurfaceIntersectionError } from './surface-intersection.js';
+export type { Patch, IntersectionChain } from './surface-intersection.js';

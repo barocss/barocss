@@ -112,16 +112,14 @@ export function measureBetween(ma: DisplayMesh, pa: MeasurePick, mb: DisplayMesh
   // Two round faces: their axes (coaxial within 0.001° and 0.001 mm).
   const xa = pa.face !== undefined ? roundFaceAxis(ma, pa.face) : null, xb = pb.face !== undefined ? roundFaceAxis(mb, pb.face) : null;
   if (xa && xb) {
-    const angle = deg(dot(xa.dir, xb.dir)), w = sub(xb.point, xa.point), off = sub(w, scale3(xa.dir, dot(w, xa.dir)));
-    const offset = angle < 1e-6 ? len(off) : (() => { const n = cross3(xa.dir, xb.dir); return Math.abs(dot(w, n)) / len(n); })();
+    const angle = deg(dot(xa.dir, xb.dir)), w = sub(xb.point, xa.point), off = sub(w, scale(xa.dir, dot(w, xa.dir)));
+    const offset = angle < 1e-6 ? len(off) : (() => { const n = cross(xa.dir, xb.dir); return Math.abs(dot(w, n)) / len(n); })();
     result.axes = { angle, offset, coaxial: angle < 1e-3 && offset < 1e-3 };
   }
   else if ((fa.plane && fb.line) || (fa.line && fb.plane)) { const n = (fa.plane ?? fb.plane)!.n, l = (fa.line ?? fb.line)!; result.angle = 90 - deg(dot(n, l)); }
   return result;
 }
 
-const cross3 = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const scale3 = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
 /**
  * A cylindrical face's axis (a point on it and its direction): the direction square to every vertex
  * normal, the point the normals' feet at the face's radius gather round. Null for any other face.
@@ -134,11 +132,11 @@ export function roundFaceAxis(mesh: DisplayMesh, face: number): { point: Vec3; d
   // The axis: the cross of the two most different normals.
   let best = 0, dir: Vec3 = [0, 0, 1];
   const n0 = N(vs[0]);
-  for (const v of vs) { const c = cross3(n0, N(v)); if (len(c) > best) { best = len(c); dir = scale3(c, 1 / len(c)); } }
+  for (const v of vs) { const c = cross(n0, N(v)); if (len(c) > best) { best = len(c); dir = scale(c, 1 / len(c)); } }
   if (best < 1e-3 || vs.some(v => Math.abs(dot(N(v), dir)) > 1e-2)) return null;
   // The centre: a least-squares circle (x² + y² + Dx + Ey + F = 0) through the vertices seen along the
   // axis (the display normals are averaged, so only their plane is exact, not their direction).
-  const e1 = len(cross3(dir, [1, 0, 0])) > 0.5 ? scale3(cross3(dir, [1, 0, 0]), 1 / len(cross3(dir, [1, 0, 0]))) : scale3(cross3(dir, [0, 1, 0]), 1 / len(cross3(dir, [0, 1, 0]))), e2 = cross3(dir, e1);
+  const e1 = len(cross(dir, [1, 0, 0])) > 0.5 ? scale(cross(dir, [1, 0, 0]), 1 / len(cross(dir, [1, 0, 0]))) : scale(cross(dir, [0, 1, 0]), 1 / len(cross(dir, [0, 1, 0]))), e2 = cross(dir, e1);
   const A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [0, 0, 0];
   for (const v of vs) { const p = P(v), x = dot(p, e1), y = dot(p, e2), row = [x, y, 1], r = -(x * x + y * y); for (let i = 0; i < 3; i++) { b[i] += row[i] * r; for (let j = 0; j < 3; j++) A[i][j] += row[i] * row[j]; } }
   const det = (M: number[][]) => M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
@@ -173,4 +171,25 @@ export function measureItem(mesh: DisplayMesh, pick: MeasurePick): MeasureItem {
     }
   }
   return { label: 'Curve', length };
+}
+
+/**
+ * Where a point is against a closed body: inside, outside, or on its boundary (within 1e-6 of its size
+ * from a face), by its distance to the faces and the parity of a ray's crossings through them.
+ */
+export function pointInBody(mesh: DisplayMesh, p: Vec3): 'inside' | 'outside' | 'boundary' {
+  const P = mesh.positions, I = mesh.indices, b = mesh.bounds, size = Math.max(1, ...[0, 1, 2].map(k => b.max[k] - b.min[k])), tol = 1e-6 * size;
+  for (let t = 0; t < I.length; t += 3) { const q = closestOnTriangle(p, at(P, I[t]), at(P, I[t + 1]), at(P, I[t + 2])); if (len(sub(q, p)) <= tol) return 'boundary'; }
+  if ([0, 1, 2].some(k => p[k] < b.min[k] - tol || p[k] > b.max[k] + tol)) return 'outside';
+  // A slightly tilted ray (off the mesh's edges and vertices): odd crossings, inside.
+  const d = unit([1, 0.0137, 0.0071]);
+  let n = 0;
+  for (let t = 0; t < I.length; t += 3) {
+    const a = at(P, I[t]), e1 = sub(at(P, I[t + 1]), a), e2 = sub(at(P, I[t + 2]), a), h = cross(d, e2), det = dot(e1, h);
+    if (Math.abs(det) < 1e-15) continue;
+    const s = sub(p, a), u = dot(s, h) / det; if (u < 0 || u > 1) continue;
+    const q = cross(s, e1), v = dot(d, q) / det; if (v < 0 || u + v > 1) continue;
+    if (dot(e2, q) / det > 0) n++;
+  }
+  return n % 2 ? 'inside' : 'outside';
 }

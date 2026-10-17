@@ -190,3 +190,25 @@ test('curves made in the studio: a sketch outline, a circle and model edges as e
   // (The rim is two half circles, each an edge.)
   assert.ok(Math.abs(curveLength(e, e.objects[1].id) - 4 * Math.PI) < 1e-4, `half the rim, as an arc: ${curveLength(e, e.objects[1].id)}`);
 });
+
+test('direct: a curve\'s crossings with a plane; two surfaces\' intersection curve; a point in or out of a body', async () => {
+  const { curvePlaneCrossings, surfaceIntersection } = await import('../src/engine/direct');
+  const { pointInBody } = await import('../src/app/measure');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { rectanglePart } = await import('../src/engine/doc');
+  const d = importSource(emptyDirect(), STUDY, 'study'), arc = byName(d, 'arc');
+  // The arc (0,0)…(20,0), bulging to y = 5 at x = 10: X = 10 once, Y = 2 twice, Y = 9 never.
+  const one = curvePlaneCrossings(d, arc, 'x', 10);
+  assert.equal(one.length, 1); assert.ok(Math.abs(one[0].point[1] - 5) < 1e-9);
+  assert.equal(curvePlaneCrossings(d, arc, 'y', 2).length, 2); assert.equal(curvePlaneCrossings(d, arc, 'y', 9).length, 0);
+  // The panel (z = −5) and a wall at y = 10 from z = −10 to 0: they meet along y = 10, z = −5, 20 long.
+  const wall = `@model wall { version: 0; length-unit: mm; @surface #w { type: nurbs; degree-u: 1; degree-v: 1; knots-u: [0,0,1,1]; knots-v: [0,0,1,1]; control-points: [[[0,10,-10],[0,10,0]],[[20,10,-10],[20,10,0]]]; weights: [[1,1],[1,1]]; } }`;
+  const both = importSource(d, wall, 'wall'), m = surfaceIntersection(both, byName(both, 'panel'), byName(both, 'w'));
+  assert.equal(m.count, 1);
+  const cut = m.direct.objects.at(-1)!.id;
+  assert.ok(Math.abs(curveLength(m.direct, cut) - 20) < 1e-6, String(curveLength(m.direct, cut)));
+  assert.ok(Math.abs(analyzeCurve(m.direct, cut, 0.5 * (domainsOf(m.direct, cut) as { t: [number, number] }).t[1]).point[2] + 5) < 1e-6);
+  assert.throws(() => surfaceIntersection(both, byName(both, 'panel'), byName(both, 'panel')), /cannot be intersected|do not meet/);
+  const r = evaluateDoc(rectanglePart(10, 10, 10), 1); assert.ok(r.ok);
+  assert.deepEqual([[5, 5, 5], [20, 5, 5], [10, 5, 5]].map(p => pointInBody(r.bodies[0].mesh, p as [number, number, number])), ['inside', 'outside', 'boundary']);
+});

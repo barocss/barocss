@@ -42,7 +42,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B12 Vertex picking (#2036)
 - [x] B13 Line tangent to a circle in a sketch (kernel `line-circle-tangent`) (#2068, #2039)
 - [x] B14 Curves and surfaces made in the app: draw a curve, take a sketch or model edge as a curve (unlocks #2080, #2081, #2083, #2086, #2087, #2090)
-- [ ] B15 Direct tools: surface × surface curve, curve × plane points, band between two cuts, point in / out (#2052, #2074, #2083, #2082, #2073)
+- [x] B15 Direct tools: surface × surface curve, curve × plane points, point in / out (#2052, #2074, #2083, #2073) — the exact band between two plane cuts (#2082) is left to Extract region (a UV window) for now
 - [ ] B16 Drag control points in the viewport (#2029, #2090)
 - [ ] B17 Fasteners as assembly instances; cosmetic thread drawn in the viewport and drawings; countersunk screws (#2092)
 - [ ] B18 Oblique split plane (#2072)

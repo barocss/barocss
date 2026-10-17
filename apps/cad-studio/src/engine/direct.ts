@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -247,6 +247,57 @@ function compatible(d: DirectGeometry, ids: string[]): Curve[] {
     for (let guard = 0; have() < n && guard < 8; guard++) w = directOps.insertCurveKnot(w, id, k);
   }
   return ids.map(id => curveOf(w, id));
+}
+
+/** Where a curve crosses the plane `axis` = `at`: its parameters and points (sampled, then bisected to 1e-12). */
+export function curvePlaneCrossings(d: DirectGeometry, id: string, axis: 'x' | 'y' | 'z', at: number): { t: number; point: [number, number, number] }[] {
+  const c = curveOf(d, id), [t0, t1] = curveDomain(c), k = 'xyz'.indexOf(axis), f = (t: number) => evaluateCurve(c, t)[k] - at, N = 512, out: { t: number; point: [number, number, number] }[] = [];
+  if (Array.from({ length: 33 }, (_, i) => f(t0 + (t1 - t0) * i / 32)).every(v => Math.abs(v) < 1e-9)) throw new Error(`The curve lies in the plane ${axis.toUpperCase()} = ${at}: it does not cross it.`);
+  let pt = t0, pf = f(t0);
+  if (Math.abs(pf) < 1e-12) out.push({ t: t0, point: [...evaluateCurve(c, t0)] as [number, number, number] });
+  for (let i = 1; i <= N; i++) {
+    const t = t0 + (t1 - t0) * i / N, v = f(t);
+    if (Math.abs(v) < 1e-12) out.push({ t, point: [...evaluateCurve(c, t)] as [number, number, number] });
+    else if (pf * v < 0 && Math.abs(pf) >= 1e-12) {
+      let lo = pt, hi = t, flo = pf;
+      for (let it = 0; it < 80 && hi - lo > 1e-14 * (1 + Math.abs(hi)); it++) { const m = (lo + hi) / 2, fm = f(m); if (flo * fm <= 0) hi = m; else { lo = m; flo = fm; } }
+      const tt = (lo + hi) / 2; out.push({ t: tt, point: [...evaluateCurve(c, tt)] as [number, number, number] });
+    }
+    pt = t; pf = v;
+  }
+  return out;
+}
+/**
+ * Where two surfaces meet, as curves (each traced chain a polyline through its points, at most 64), or
+ * why not: none where they do not meet, refused where they touch or overlap along a curve.
+ */
+export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { direct: DirectGeometry; count: number } {
+  const A = surfaceOf(d, a), B = surfaceOf(d, b), da = surfaceDomain(A), db = surfaceDomain(B);
+  // Past its domain a patch runs on along its tangent plane (so the marcher's corrections converge at an edge).
+  const patch = (s: Surface, dom: { u: [number, number]; v: [number, number] }) => ({
+    at: (p: [number, number]) => {
+      const u = Math.min(dom.u[1], Math.max(dom.u[0], p[0])), v = Math.min(dom.v[1], Math.max(dom.v[0], p[1])), q = evaluateSurface(s, u, v);
+      if (u === p[0] && v === p[1]) return q;
+      const hu = 1e-6 * (dom.u[1] - dom.u[0]), hv = 1e-6 * (dom.v[1] - dom.v[0]), su = u - hu >= dom.u[0] ? -1 : 1, sv = v - hv >= dom.v[0] ? -1 : 1;
+      const qu = evaluateSurface(s, u + su * hu, v), qv = evaluateSurface(s, u, v + sv * hv), du = p[0] - u, dv = p[1] - v;
+      return [0, 1, 2].map(k => q[k] + (qu[k] - q[k]) / (su * hu) * du + (qv[k] - q[k]) / (sv * hv) * dv) as [number, number, number];
+    },
+    box: [[dom.u[0], dom.v[0]], [dom.u[1], dom.v[1]]] as [[number, number], [number, number]],
+  });
+  const pa = patch(A, da), pb = patch(B, db), pts = [...A.controlPoints.flat(), ...B.controlPoints.flat()];
+  const lo = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), hi = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))), diag = Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
+  let chains;
+  try { chains = intersectPatches(pa, pb, { step: diag / 120, tolerance: 1e-6 * diag }); }
+  catch (e) { if (e instanceof SurfaceIntersectionError) throw new Error(`These surfaces cannot be intersected: ${e.message.replace(/^Surface intersection: /, '')}.`); throw e; }
+  if (!chains.length) throw new Error('These surfaces do not meet.');
+  const num = (v: number) => String(Math.round(v * 1e9) / 1e9);
+  const curves = chains.slice(0, 16).map((ch, k) => {
+    const ps = [...ch.points, ...(ch.closed ? [ch.points[0]] : [])], step = Math.max(1, Math.ceil((ps.length - 1) / 63)), poly = ps.filter((_, i) => i % step === 0 || i === ps.length - 1);
+    return `  @curve #x${k + 1} { type: nurbs; degree: 1; knots: [${[0, ...poly.map((_, i) => i), poly.length - 1].join(',')}]; control-points: [${poly.map(p => `[${p.map(num).join(',')}]`).join(',')}]; weights: [${poly.map(() => 1).join(',')}]; }`;
+  });
+  const text = `@model meet {\n  version: 0;\n  length-unit: mm;\n${curves.join('\n')}\n}`;
+  const direct = importSource(d, text, `${nameOf(d, a)} × ${nameOf(d, b)}`);
+  return { direct, count: curves.length };
 }
 
 /** A short prefix none of whose role names is taken (the operations derive helper ids from it). */

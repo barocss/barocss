@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { analyzeCurve, analyzeSurface, curveLength, directOps, domainsOf, geometryOf, type DirectGeometry } from '../engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directOps, domainsOf, geometryOf, surfaceIntersection, type DirectGeometry } from '../engine/direct';
 
 /**
  * The tools for selected direct curves and surfaces: one curve (split, knot, trim, reverse, poles), two
@@ -37,6 +37,10 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
       {objs.length >= 3 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
         <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+      </div>}
+      {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>
+        <button className="ghost" aria-label="Intersect the surfaces" title="The curves where the two surfaces meet" onClick={() => run(() => surfaceIntersection(direct, selected[0], selected[1]).direct, added)}>Intersection curves</button>
       </div>}
       {objs.length === 2 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>TWO CURVES</div>
@@ -86,9 +90,24 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
     <NumberField label="From t" value={from} onChange={setFrom} />
     <NumberField label="To t" value={to} onChange={setTo} />
     <button className="ghost" onClick={() => run(() => directOps.curveInterval(direct, id, from, to))}>Trim to interval</button>
+    <Crossings id={id} direct={direct} />
     {g.kind === 'curve' && <Poles rows={g.controlPoints.map((p, i) => ({ key: String(i), label: `P${i}`, point: p, weight: g.weights[i] }))}
       onEdit={(k, pole) => run(() => directOps.editCurvePole(direct, id, Number(k), pole))} />}
   </div>;
+}
+
+/** Where the curve crosses a plane square to X, Y or Z, at a value. */
+function Crossings({ id, direct }: { id: string; direct: DirectGeometry }) {
+  const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [at, setAt] = useState(0), [found, setFound] = useState<ReturnType<typeof curvePlaneCrossings> | null>(null), [note, setNote] = useState<string | null>(null);
+  useEffect(() => { setFound(null); setNote(null); }, [id, axis, at]);
+  return <>
+    <div className="card-title" style={{ marginTop: 8 }}>CROSSINGS</div>
+    <label className="field"><span>Plane</span><select aria-label="Crossing plane" value={axis} onChange={e => setAxis(e.target.value as 'x' | 'y' | 'z')}><option value="x">X =</option><option value="y">Y =</option><option value="z">Z =</option></select></label>
+    <NumberField label="At" value={at} onChange={setAt} />
+    <button className="ghost" aria-label="Find crossings" onClick={() => { try { setFound(curvePlaneCrossings(direct, id, axis, at)); } catch (e) { setFound(null); setNote(e instanceof Error ? e.message : String(e)); } }}>Find crossings</button>
+    {note && !found && <div className="muted small">{note}</div>}
+    {found && (found.length ? found.map((c, k) => <div key={k} className="kv" aria-label="Crossing">t {fmtNum(c.t, 5)} <b>{c.point.map(v => fmtNum(v, 3)).join(', ')}</b></div>) : <div className="muted small">The curve does not cross {axis.toUpperCase()} = {at}.</div>)}
+  </>;
 }
 
 function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
