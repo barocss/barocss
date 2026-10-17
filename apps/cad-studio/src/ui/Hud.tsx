@@ -40,7 +40,7 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
         {active.error.detail && <details><summary>Kernel detail</summary><code>{active.error.detail}</code></details>}
       </div>}
       <div className="hud-actions">
-        <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>Esc</Kbd> cancel</span>
+        <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
         <button className="ghost" onClick={onCancel}>Cancel</button>
         <button className="primary" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</button>

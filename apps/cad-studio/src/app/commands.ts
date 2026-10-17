@@ -81,15 +81,22 @@ export function refOf(body: BodyResult): BodyRef {
 export function carrySelection(sel: Selection, from: readonly BodyResult[], to: readonly BodyResult[]): Selection {
   if (from === to) return sel;
   const index = new Map(to.map((b, i) => [b.key, i]));
+  // (A body that became another — a hole added to it — is found by the names it still carries.)
   const faces = sel.faces.flatMap(f => {
-    const b = from[f.body], face = b?.mesh.faces[f.face], i = b ? index.get(b.key) : undefined; if (!face || i === undefined) return [];
-    const names = face.name.split('+'), hit = to[i].mesh.faces.find(g => g.name.split('+').some(n => names.includes(n)));
-    return hit ? [{ body: i, face: hit.index }] : [];
+    const b = from[f.body], face = b?.mesh.faces[f.face]; if (!face) return [];
+    const names = face.name.split('+'), same = (g: { name: string }) => g.name.split('+').some(n => names.includes(n)), i = index.get(b.key);
+    const at = i !== undefined ? [i] : to.flatMap((t, k) => t.mesh.faces.some(same) ? [k] : []);
+    if (at.length !== 1) return [];
+    const hit = to[at[0]].mesh.faces.find(same);
+    return hit ? [{ body: at[0], face: hit.index }] : [];
   });
   const edges = sel.edges.flatMap(e => {
-    const b = from[e.body], edge = b?.mesh.edges[e.edge], i = b ? index.get(b.key) : undefined; if (!edge || i === undefined) return [];
-    const hit = to[i].mesh.edges.find(g => g.names.some(n => edge.names.includes(n)));
-    return hit ? [{ body: i, edge: hit.index }] : [];
+    const b = from[e.body], edge = b?.mesh.edges[e.edge]; if (!edge) return [];
+    const same = (g: { names: string[] }) => g.names.some(n => edge.names.includes(n)), i = index.get(b.key);
+    const at = i !== undefined ? [i] : to.flatMap((t, k) => t.mesh.edges.some(same) ? [k] : []);
+    if (at.length !== 1) return [];
+    const hit = to[at[0]].mesh.edges.find(same);
+    return hit ? [{ body: at[0], edge: hit.index }] : [];
   });
   const bodies = sel.bodies.flatMap(k => { const i = from[k] ? index.get(from[k].key) : undefined; return i === undefined ? [] : [i]; });
   const out: Selection = { faces, edges, bodies, ...(sel.sketches ? { sketches: sel.sketches } : {}) };

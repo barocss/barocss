@@ -120,9 +120,11 @@ test('a selection follows re-evaluated bodies by name', () => {
   const out = carrySelection(sel, a, b);
   assert.equal(b[0].mesh.faces[out.faces[0].face].name, a[0].mesh.faces[sel.faces[0].face].name);
   assert.deepEqual(out.bodies, [0]);
-  // A body that is gone takes its picks with it.
+  // A body that became another (a hole added to it): its face is found by name on the new one.
   const hole = bodiesOf(withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 3 }));
-  assert.deepEqual(carrySelection(sel, a, hole), { faces: [], edges: [], bodies: [] });
+  const carried = carrySelection(sel, a, hole);
+  assert.equal(hole[0].mesh.faces[carried.faces[0].face].name.split('+')[0], 'n1.top');
+  assert.deepEqual(carried.bodies, []);
 });
 
 test('deleting a body takes all it was built from; features delete last first', () => {

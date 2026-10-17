@@ -268,6 +268,7 @@ export function App() {
         const prev = bodiesRef.current;
         setBodies(result.bodies);
         if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else setSelection(sel => carrySelection(sel, prev, result.bodies));
+        if (again.current) { setRestart(again.current); again.current = null; }
         chatSelection.current = null;
       }
       else setToast(result.error);
@@ -438,6 +439,9 @@ export function App() {
     return () => { live = false; clearTimeout(t); };
   }, [active?.values, active?.cmd, engine]);
 
+  /** The command to start again once what Shift-Enter applied is the part (its bodies evaluated). */
+  const again = useRef<Command | null>(null);
+  const [restart, setRestart] = useState<Command | null>(null);
   // Apply while the preview is still computing (just after a drag or a typed value) waits for it.
   const applyWhenReady = useRef<Command | null>(null);
   const apply = useCallback(() => {
@@ -495,6 +499,8 @@ export function App() {
     setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, selection, bodies, engine, commit, evaluated.nodes]);
 
+  // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
+  useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
   // Placing a new shape: it follows the pointer over the ground and upward faces; a click or a drop sets
   // it there. Dragging a shape's button from the rail onto the viewport starts it as the drag comes in.
   const dragCmd = useRef<string | null>(null);
@@ -766,7 +772,8 @@ export function App() {
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
-      if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
+      // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
+      if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit') again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
