@@ -13,6 +13,7 @@ import type { StudioDoc } from '../src/engine/doc';
 import { SYSTEM_PROMPT, TOOLS, type NameSelection } from '../src/chat/tools';
 import { PROMPT_CHARS } from '../src/chat/proposals';
 import type { StateFile } from './cadMcp';
+import type { WireBlobs } from '../src/engine/blobs';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
@@ -147,7 +148,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown };
+    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -157,7 +158,7 @@ export function createChatServer(options: ChatServerOptions) {
 
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(isBlobs(body.blobs) ? { blobs: body.blobs } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level) } } } });
@@ -208,6 +209,8 @@ export function createChatServer(options: ChatServerOptions) {
 }
 
 /** A short line of the part's state for the model, sent with each user message. */
+/** A turn's mesh blobs (M1): hash → {dtype, base64}. */
+const isBlobs = (v: unknown): v is WireBlobs => !!v && typeof v === 'object' && Object.values(v).every(b => !!b && typeof b === 'object' && (b.dtype === 'f64' || b.dtype === 'u32') && typeof b.base64 === 'string');
 export function stateNote(doc: StudioDoc, level = 2): string {
   const open = (doc.proposals ?? []).filter(p => p.status === 'open').length;
   return `[Current part: ${doc.nodes.length} feature${doc.nodes.length === 1 ? '' : 's'}. The user may have edited it since your last turn; call get_part_summary when you need its faces and edges. Autonomy L${level}: ${AUTONOMY[level]}${open ? ` ${open} open proposal${open > 1 ? 's' : ''}: list_proposals.` : ''}]`;

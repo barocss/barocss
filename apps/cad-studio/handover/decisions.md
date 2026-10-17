@@ -1191,3 +1191,70 @@ Evidence:
   back.
 
 Next: R3.3, M1 — a binary mesh blob in .bcad, then lift the 100k cap.
+
+## D44 — M1: mesh arrays as SHA-256 blobs; the .bcad container; recovery blobs in IndexedDB; the mesh cap lifted to 2M (2026-10-18, R3.3)
+Decided (container design per the peer, under the delegation):
+- **Blobs.** A mesh node names its arrays: `blob: {positions, indices}`, the SHA-256 (WebCrypto, browser and Node)
+  of each array's bytes.
+  - The arrays live in a blob store (`engine/blobs.ts`): `Float64Array` positions, `Uint32Array` indices.
+  - The document stays small whatever the mesh, so undo copies, the recovery copy, the worker wire and JSON
+    comparisons stop carrying megabytes.
+  - Identical arrays are one blob (nodes, undo steps, pieces).
+  - The store keeps every blob of the session; nothing is evicted.
+  - New imports are blobs. Inline nodes (`positions`/`indices`, files from before M1) still evaluate and open as
+    before.
+- **The .bcad container (`engine/container.ts`), our own, no dependencies.**
+  - A document naming no blobs is written as plain JSON, as always.
+  - One that names blobs is written as:
+    - a header: `BCADPACK` · u32 version 1 · u32 chunk count;
+    - chunks: u32 header bytes · u32 payload bytes · UTF-8 JSON header · payload, each padded to 8 bytes, so arrays
+      map aligned;
+    - chunk 0 is `{kind: 'document'}` with the JSON;
+    - then `{kind: 'blob', sha256, dtype: 'f64' | 'u32', count}` with the raw little-endian bytes.
+  - No base64 and no compression in the file.
+  - Reading:
+    - checks each blob's SHA-256 against its name ("does not match its hash: the file is damaged");
+    - refuses a cut-short file, or one from a newer container version;
+    - refuses a document naming blobs it does not hold.
+  - Saving a document whose blob is not loaded is refused, not written incomplete.
+- **Where blobs travel.**
+  - Worker: `WireSender` sends each blob once, beside the nodes. A restarted worker gets them again.
+  - Chat server: the turn's JSON carries the document's blobs as base64; the MCP process checks them and puts them
+    in its store. The document still names them, so the chat's result keeps blob nodes.
+  - Templates (they stand alone in localStorage): written back inline, and refused if a blob is missing.
+- **Recovery.** The localStorage copy names the blobs, and the blobs go to IndexedDB (`studio.blobs`, keyed by hash)
+  beside it. Restore loads them first; if they are gone it says so and does not restore a part it cannot build.
+  Saving or discarding garbage-collects the IndexedDB blobs.
+- **The cap.** `CadPartLimits.meshTriangles` is now 2,000,000 for facet meshes, lifted after the browser round trip
+  below. Planar mesh solids (old nodes, a B-rep face per flat group) keep 100,000 as `planarMeshTriangles`. The
+  Boolean limits of D43 (16000 committed, 5000 preview) are unchanged.
+
+Why: a mesh's arrays were the document — 55 MB of JSON at 1M triangles, copied through every undo step, recovery
+write and wire message — and the reason for the 100k cap.
+
+Evidence:
+- Studio 293/293. `test/container.test.ts`:
+  - The fixture pair `test/fixtures/block-inline.bcad` (plain JSON, inline) and `block-container.bcad` (blobs) open
+    as the same bodies, volumes and face names (7000 mm³).
+  - inline → blobs → container → read gives the same summary; inline again (templates) gives the old file's part.
+  - Two nodes with one mesh are deduplicated to 2 blobs.
+  - A flipped byte is refused by hash; a ghost blob is refused on open and on save; version 9 is refused; a
+    cut-short file is refused.
+  - The wire sends blobs once; base64 round-trips and an altered blob is refused.
+- Browser flow 108/108. The new step:
+  - an STL opens as blobs;
+  - unsaved, it is reloaded and restored from the IndexedDB blobs;
+  - saved as `BCADPACK`, it reopens as the same 7000 mm³ body.
+- Kernel 910/911; the one failure is the known environmental test. Lint clean.
+- `test/bench-mesh-browser.mjs` (Chromium, headless WebGPU). Read is from file to the units dialog; open includes
+  the blobs, evaluation and display.
+
+  | Mesh | Read | Open | Save | File | Old inline JSON | Reopen |
+  |---|---|---|---|---|---|---|
+  | 200k | 0.18 s | 0.66 s | 0.06 s | 4.6 MB | 10.5 MB | 0.64 s |
+  | 1M | 0.64 s | 3.5 s | 0.21 s | 22.9 MB | 55.3 MB | 3.3 s |
+
+Next:
+- R3.4: M3 import repair — weld, orient, own Liepa hole fill with fairing, degenerate and floater removal, with a
+  diagnostics badge.
+- R3.5: AP242 tessellated STEP.

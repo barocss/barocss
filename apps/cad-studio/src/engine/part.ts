@@ -2,6 +2,7 @@
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
 // features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
+import { getBlob } from './blobs';
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
 import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
@@ -104,12 +105,19 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
 };
 
 /**
- * A mesh node's arrays as typed arrays, made once per node array (R3.2): the kernel takes them without copying,
- * freezing or writing them into its reuse key (it hashes each array object once), and a node's arrays never change.
+ * A mesh node's arrays as typed arrays: from the blob store when the node names blobs (M1), else made once per
+ * inline node array (R3.2). The kernel takes them without copying, freezing or writing them into its reuse key (it
+ * hashes each array object once); a blob or a node's arrays never change.
  */
 const typedMeshes = new WeakMap<readonly number[], { positions: Float64Array; indices: Uint32Array }>();
-function meshArrays(node: { positions: number[]; indices: number[] }): { positions: Float64Array; indices: Uint32Array } {
-  let t = typedMeshes.get(node.positions);
-  if (!t || t.indices.length !== node.indices.length) { t = { positions: Float64Array.from(node.positions), indices: Uint32Array.from(node.indices) }; typedMeshes.set(node.positions, t); }
+function meshArrays(node: { positions?: number[]; indices?: number[]; blob?: { positions: string; indices: string } }): { positions: Float64Array; indices: Uint32Array } {
+  if (node.blob) {
+    const p = getBlob(node.blob.positions), i = getBlob(node.blob.indices);
+    if (!(p instanceof Float64Array) || !(i instanceof Uint32Array)) throw new Error(`The mesh's data (${(p ? node.blob.indices : node.blob.positions).slice(0, 12)}…) is not loaded: open the file it was saved in again`);
+    return { positions: p, indices: i };
+  }
+  const P = node.positions ?? [], I = node.indices ?? [];
+  let t = typedMeshes.get(P);
+  if (!t || t.indices.length !== I.length) { t = { positions: Float64Array.from(P), indices: Uint32Array.from(I) }; typedMeshes.set(P, t); }
   return t;
 }

@@ -23,6 +23,8 @@ import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
+import { collectRecoveryBlobs, loadRecoveryBlobs, meshNodeBlobs, saveRecoveryBlobs } from './engine/blobs';
+import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
@@ -55,7 +57,6 @@ import type { DirectGeometry } from './engine/direct';
 import { directNow, loadDirect } from './engine/directModule';
 import { stepLengthUnit } from './engine/stepUnits';
 import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from './engine/meshImport';
-import { readStudioDoc } from './engine/migrate';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from './engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from './app/mass';
@@ -213,7 +214,8 @@ export function App() {
   // Keep a recovery copy a moment after each change while unsaved; none once saved.
   useEffect(() => {
     if (!dirty) return;
-    const t = setTimeout(() => writeRecovery(fileName, doc), 800);
+    // (A mesh's blobs to IndexedDB beside it: the localStorage copy names them, M1.)
+    const t = setTimeout(() => { writeRecovery(fileName, doc); void saveRecoveryBlobs(doc); }, 800);
     return () => clearTimeout(t);
   }, [doc, fileName, dirty]);
   useEffect(() => {
@@ -468,7 +470,7 @@ export function App() {
   }, [instancesExploded, section, sketch]);
   const insertPart = async (file: File) => {
     try {
-      const read = readStudioDoc(await file.text());
+      const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) throw new Error(read.error);
       const parsed = read.doc;
       const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
@@ -955,15 +957,23 @@ export function App() {
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
-  const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
+  // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
+  // recovery copy and its blobs go.)
+  const writeFile = (d: StudioDoc, name: string) => {
+    try { const bytes = encodeStudioFile(d); downloadBytes(bytes, name, bytes[0] === 0x7b ? 'application/json' : 'application/octet-stream'); return true; }
+    catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
+  };
+  const save = () => { if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(null); };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
-  const saveShared = () => downloadBytes(new TextEncoder().encode(JSON.stringify(stripHistory(doc), null, 2)), `${fileName}-shared.bcad`, 'application/json');
+  const saveShared = () => { writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
   // A mesh file waiting for its unit, and opening it as a part in that unit.
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
-    const { name, format, unit } = meshAsk, node = { kind: 'mesh' as const, name, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, representation: 'facets' as const };
+    const { name, format, unit } = meshAsk;
+    // (Its arrays as blobs, by their SHA-256: the document names them, M1.)
+    const node = await meshNodeBlobs({ kind: 'mesh' as const, name, unit, representation: 'facets' as const }, meshInUnit.positions, meshInUnit.indices);
     // Read before replacing the current part: a mesh that does not close keeps the part. Read piece by piece, so a
     // file of several closed pieces (a kit, separate eyes, a scan's floaters) opens as that many bodies (D42).
     const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++);
@@ -1016,7 +1026,7 @@ export function App() {
         return;
       }
       // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
-      const read = readStudioDoc(await file.text());
+      const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
       const parsed = read.doc;
       replaceDoc({ ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
@@ -1648,7 +1658,7 @@ export function App() {
           shared={inst.part ? sharing(doc, inst.part.id).length : 0} pending={inst.part ? doc.pendingParts?.[inst.part.id] : undefined}
           onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
           onRevision={async file => {
-            const read = readStudioDoc(await file.text());
+            const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
             if ('error' in read) { setToast({ title: 'Could not read that part', hint: read.error, detail: '' }); return; }
             const r = offerRevision(doc, inst.part!.id, read.doc, file.name);
             if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else commitParts(r.doc);
@@ -1901,8 +1911,12 @@ export function App() {
         <div><div className="toast-title">Unsaved work from {new Date(recovery.savedAt).toLocaleString()}</div>
           <div className="toast-hint">“{recovery.fileName}” was not saved. Restore it, or discard the copy.</div>
           <div className="row-actions">
-            <button className="primary" onClick={() => { commit(recovery.doc); setFileName(recovery.fileName); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300); }}>Restore</button>
-            <button className="ghost" onClick={() => { clearRecovery(); setRecovery(null); }}>Discard</button>
+            <button className="primary" onClick={async () => {
+              const missing = await loadRecoveryBlobs(recovery.doc);
+              if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
+              commit(recovery.doc); setFileName(recovery.fileName); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
+            }}>Restore</button>
+            <button className="ghost" onClick={() => { clearRecovery(); setRecovery(null); void collectRecoveryBlobs(null); }}>Discard</button>
           </div></div>
       </div>}
       {cascade && <div className="toast card recovery" role="dialog" aria-label="Delete with dependents">

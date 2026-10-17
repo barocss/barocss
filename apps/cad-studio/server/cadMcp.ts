@@ -7,15 +7,18 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import type { ImageTrace } from '../src/chat/trace';
 import { runTool, TOOLS, type ChatState } from '../src/chat/tools';
+import { blobsFromBase64, type WireBlobs } from '../src/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; images?: ImageTrace[] }
+/** `blobs`: the document's mesh blobs (M1), read into the store before the first call. */
+export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; images?: ImageTrace[]; blobs?: WireBlobs }
 
 let revision = 1;
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
 
 export async function serveMcp(statePath: string, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout) {
   const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
+  if (saved.blobs) await blobsFromBase64(saved.blobs);
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
   let changed = saved.changed;

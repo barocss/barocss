@@ -211,7 +211,7 @@ export interface CadPartSnapshot {
  * that near half a gigabyte, within a browser worker, and holds the studio's own exports of modelled
  * threads. The part document's own text stays at `fileBytes`.
  */
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, lengthMM: 10000, meshTriangles: 100_000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
@@ -818,6 +818,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const nv = (P as ArrayLike<number>).length / 3;
       if (!meshArrayOk(I, 'indices', nv)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
       if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
+      // (A planar mesh solid — a face per flat group — stays under its own, lower limit: its faces are B-rep faces.)
+      if (f.representation !== 'facets' && (I as ArrayLike<number>).length / 3 > CadPartLimits.planarMeshTriangles) fail('INPUT', `a planar mesh solid takes at most ${CadPartLimits.planarMeshTriangles} triangles (import it as facets)`);
       return () => {
         const facets = f.representation === 'facets', opts = { id: at, maximumTriangles: CadPartLimits.meshTriangles };
         try {

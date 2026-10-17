@@ -1,6 +1,7 @@
 // The browser side of the chat server (server/chatServer.ts, reached through the dev server's
 // /api/chat proxy): whether chat is available, and one turn streamed as server-sent events.
 import type { StudioDoc } from '../engine/doc';
+import { blobRefs, blobsAsBase64 } from '../engine/blobs';
 import type { NameSelection } from './tools';
 
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
@@ -39,7 +40,7 @@ export function eventParser(onEvent: (e: TurnEvent) => void) {
 export async function runServerTurn(o: { text: string; doc: StudioDoc; session?: string; autonomy?: number; images?: { media_type: string; data: string }[]; traces?: unknown[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string }): Promise<Extract<TurnEvent, { type: 'done' }>> {
   let done: Extract<TurnEvent, { type: 'done' }> | null = null;
   try {
-    const res = await fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: o.text, doc: o.doc, ...(o.autonomy ? { autonomy: o.autonomy } : {}), ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}) }), signal: o.signal });
+    const res = await fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: o.text, doc: o.doc, ...(blobRefs(o.doc).size ? { blobs: blobsAsBase64(o.doc) } : {}), ...(o.autonomy ? { autonomy: o.autonomy } : {}), ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}) }), signal: o.signal });
     if (!res.ok || !res.body) {
       const t = await res.text().catch(() => '');
       let msg = t; try { msg = JSON.parse(t).error ?? t; } catch { /* plain text */ }

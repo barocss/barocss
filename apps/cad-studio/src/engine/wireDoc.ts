@@ -4,6 +4,7 @@
 // the worker once; later requests name it. Both sides keep the same table and forget, at the same
 // request, the nodes no request has named for a while (they process the requests in one order).
 import type { ModelNode, PartInstance, StudioDoc } from './doc';
+import { blobRefs, getBlob, putKnownBlob, type BlobArray } from './blobs';
 
 export interface WireDoc {
   doc: Omit<StudioDoc, 'nodes'> & { nodes: [] };
@@ -11,6 +12,8 @@ export interface WireDoc {
   ids: number[];
   /** Nodes the worker does not have yet. */
   added: [number, ModelNode][];
+  /** Mesh blobs the worker does not have yet (M1): hash and array, each sent once (a copy; the store keeps its own). */
+  blobs?: [string, BlobArray][];
 }
 
 /** Requests between prunes, and how many requests a node may go unnamed before it is forgotten. */
@@ -30,6 +33,7 @@ export class WireSender {
   private used = new Map<number, { node: ModelNode; at: number }>();
   private next = 1;
   private seq = 0;
+  private sentBlobs = new Set<string>();
   pack(doc: StudioDoc): WireDoc {
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {
@@ -38,7 +42,9 @@ export class WireSender {
       this.used.set(id, { node, at: seq }); ids.push(id);
     }
     if (seq % PRUNE_EVERY === 0) for (const [id, u] of this.used) if (u.at < seq - KEEP_FOR) { this.used.delete(id); this.ids.delete(u.node); }
-    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added };
+    const blobs: [string, BlobArray][] = [];
+    for (const h of blobRefs(doc)) { const a = getBlob(h); if (a && !this.sentBlobs.has(h)) { this.sentBlobs.add(h); blobs.push([h, a]); } }
+    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added, ...(blobs.length ? { blobs } : {}) };
   }
 }
 
@@ -48,6 +54,7 @@ export class WireReceiver {
   private seq = 0;
   unpack(w: WireDoc): StudioDoc {
     const seq = ++this.seq;
+    for (const [h, a] of w.blobs ?? []) putKnownBlob(h, a);
     for (const [id, node] of w.added) this.nodes.set(id, { node, at: seq });
     const nodes: ModelNode[] = [];
     for (const id of w.ids) {

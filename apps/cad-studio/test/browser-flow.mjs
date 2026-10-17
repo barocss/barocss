@@ -854,6 +854,34 @@ try {
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
+  await check('a mesh saved as the container opens again the same; unsaved, its copy (blobs in IndexedDB) comes back after a reload', async () => {
+    const fs = await import('node:fs');
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const node = (await doc()).nodes[0];
+    assert.ok(node.blob && !node.positions, 'the document names its arrays by hash');
+    // Unsaved: the recovery copy, its blobs in IndexedDB, restored after a reload.
+    await page.waitForTimeout(1500);
+    await page.reload();
+    await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
+    await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    // Saved: the container (BCADPACK), opened again as the same body.
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const bytes = fs.readFileSync(await saved.path());
+    assert.equal(bytes.subarray(0, 8).toString('latin1'), 'BCADPACK');
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 5000 });
+    const file = join(out, 'block.bcad'); fs.writeFileSync(file, bytes);
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());
