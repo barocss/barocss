@@ -343,7 +343,18 @@ R1 results (2026-10-18, `f5d237c9f`; `pnpm bench:mesh`, `pnpm bench:mesh --facet
 - Reference only (dropped by the owner's decision, not to be adopted): manifold-3d WASM did 1M union
   0.45–0.6 s, split 0.57–0.66 s; meshoptimizer simplify 1M → 100k 0.4 s.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 → **RB1–RB4** → R3 … R14 → **RB5–RB9**.
+R2 / B0 results (2026-10-18, `014e2f821`…`38e06b110`; decisions D9–D16; conformance `conformance/r2`):
+- Polyhedral Boolean, union with a box: 2k 16.3 → 0.44 s, 5k 49 → 0.94 s, 20k 409 → 3.2 s. The 20k volume
+  agrees with manifold-3d's to 0.02 mm³.
+- Helical M8×30 bolt: mass 5.9 → 0.47 s; half-space cut 5.7 → 1.4 s; studio split 18 → 3.7 s; display 51k
+  → 9.3k triangles.
+- Sewing 1536 patches: 2.4 → 1.1 s.
+- Proposal D16: the helical thread as default. The owner decides; it needs a document version for the face
+  names.
+- Known: the helical bolt's mesh has 316 edges not used exactly twice by position (pre-existing, at the trimmed
+  ends); RB2 should catch it. Faceted bolt split still fails (touching facets).
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → **RB1–RB4** → R3 … R14 → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),
