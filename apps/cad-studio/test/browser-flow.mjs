@@ -1432,6 +1432,16 @@ try {
     await snap('fastener');
   });
 
+  await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    for (const [i, e] of ['n1.side0|n1.side1', 'n1.side1|n1.side2', 'n1.side2|n1.side3', 'n1.side0|n1.side3'].entries()) assert.ok(await page.evaluate(([n, add]) => window.__studioPickEdge(n, add), [e, i > 0]));
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
+    const ok = await page.evaluate(() => window.__studioChainTop?.());
+    assert.equal(ok, 8, 'four lines and four arcs');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

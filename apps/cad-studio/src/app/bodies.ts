@@ -54,3 +54,17 @@ export function lastFeature(doc: StudioDoc, body: BodyResult): string | null {
 }
 /** A colour as 0…1 RGB. */
 export const rgbOf = (hex: string): [number, number, number] => { const v = parseInt(hex.replace('#', ''), 16); return [(v >> 16 & 255) / 255, (v >> 8 & 255) / 255, (v & 255) / 255]; };
+
+/**
+ * What a change to the document did, in a few words (the undo and redo buttons say what they undo):
+ * features added, deleted or edited, or a body's look changed.
+ */
+export function describeChange(before: StudioDoc, after: StudioDoc): string {
+  const a = before.nodes, b = after.nodes, label = (n: StudioDoc['nodes'][number], i: number, all: StudioDoc['nodes']) => featureLabel(n, i, all);
+  if (b.length > a.length) { const i = b.length - 1; return label(b[i], i, b); }
+  if (b.length < a.length) { const gone = a.findIndex((n, i) => JSON.stringify(n) !== JSON.stringify(b[i])); const i = gone < 0 ? a.length - 1 : gone; return `delete ${label(a[i], i, a)}`; }
+  const i = b.findIndex((n, k) => JSON.stringify(n) !== JSON.stringify(a[k]));
+  if (i >= 0) return `edit ${label(b[i], i, b)}`;
+  if (JSON.stringify(before.bodies ?? {}) !== JSON.stringify(after.bodies ?? {})) return 'body look';
+  return 'change';
+}

@@ -42,3 +42,14 @@ test('instance drag: fixed, hidden and fully mated parts get no gizmo; a part th
   assert.deepEqual(gizmoAxes(block, { turns: 0, slides: 2 }), { move: [0, 1, 2], turn: [] });
   assert.deepEqual(gizmoAxes(block, undefined), { move: [0, 1, 2], turn: [0, 1, 2] });
 });
+
+test('a dragged move lines up with other bodies’ sides and middles within the tolerance', async () => {
+  const { alignMove } = await import('../src/assembly/drag');
+  const box = { min: [0, 0, 0], max: [10, 10, 10] }, other = { min: [30, 0, 0], max: [50, 10, 20] };
+  // Dragged along X to 19.4: its high side (29.4) is drawn onto the other's low side (30).
+  assert.deepEqual(alignMove(box, [other], [19.4, 0, 0], [true, false, false], 1), { move: [20, 0, 0], snapped: [0] });
+  // Too far (2.5 mm off) or along an axis not dragged: left as it is.
+  assert.deepEqual(alignMove(box, [other], [17.5, 0, 3.6], [true, false, false], 1).move, [17.5, 0, 3.6]);
+  // Middles line up too (Z: 5 + 4.6 → the other's middle 10).
+  assert.deepEqual(alignMove(box, [other], [0, 0, 4.6], [false, false, true], 1).move, [0, 0, 5]);
+});

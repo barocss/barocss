@@ -13,7 +13,7 @@ export function TooltipLayer() {
     const show = (el: HTMLElement) => {
       const r = el.getBoundingClientRect(), side = r.left < 80 ? 'right' : 'below';
       setTip({ title: el.dataset.tip ?? '', key: el.dataset.tipKey || undefined, desc: el.dataset.tipDesc || undefined, off: el.dataset.tipOff || undefined,
-        x: side === 'right' ? r.right + 10 : r.left + r.width / 2, y: side === 'right' ? r.top + r.height / 2 : r.bottom + 8, side });
+        x: side === 'right' ? r.right + 10 : Math.min(window.innerWidth - 130, Math.max(130, r.left + r.width / 2)), y: side === 'right' ? r.top + r.height / 2 : r.bottom + 8, side });
     };
     const over = (e: MouseEvent) => {
       const el = (e.target as HTMLElement | null)?.closest?.('[data-tip]') as HTMLElement | null;

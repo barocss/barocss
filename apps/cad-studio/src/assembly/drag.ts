@@ -51,3 +51,20 @@ export function previewMatrix(drag: InstanceDrag): Float64Array {
   m[12] = t[0] + c[0]; m[13] = t[1] + c[1]; m[14] = t[2] + c[2];
   return m;
 }
+
+/**
+ * A dragged move lined up with other bodies, as CAD tools snap: along each axis being dragged, when the
+ * moving box's low side, middle or high side comes within `tol` mm of another body's low side, middle or
+ * high side, it is put exactly there. Returns the move and the axes that snapped.
+ */
+export function alignMove(box: { min: readonly number[]; max: readonly number[] }, others: readonly { min: readonly number[]; max: readonly number[] }[], move: readonly number[], dragged: readonly boolean[], tol: number): { move: [number, number, number]; snapped: number[] } {
+  const out = [...move] as [number, number, number], snapped: number[] = [];
+  for (let k = 0; k < 3; k++) {
+    if (!dragged[k]) continue;
+    const mine = [box.min[k], (box.min[k] + box.max[k]) / 2, box.max[k]].map(v => v + out[k]);
+    let best = tol, shift = 0;
+    for (const o of others) for (const t of [o.min[k], (o.min[k] + o.max[k]) / 2, o.max[k]]) for (const m of mine) { const d = t - m; if (Math.abs(d) < best) { best = Math.abs(d); shift = d; } }
+    if (best < tol) { out[k] = Math.round((out[k] + shift) * 1000) / 1000; snapped.push(k); }
+  }
+  return { move: out, snapped };
+}
