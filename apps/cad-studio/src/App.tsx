@@ -119,6 +119,13 @@ function CursorReadout({ sink }: { sink: React.MutableRefObject<((p: Vec3 | null
   return <>{text}</>;
 }
 
+/** Whether an instance places the same part the same way (what its evaluation depends on). */
+function samePlacement(a: PartInstance, b: PartInstance): boolean {
+  if (a === b) return true;
+  if (a.position.some((v, k) => v !== b.position[k]) || a.rotation.some((v, k) => v !== b.rotation[k])) return false;
+  return a.doc === b.doc || JSON.stringify(a.doc) === JSON.stringify(b.doc);
+}
+
 export function App() {
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
@@ -149,7 +156,9 @@ export function App() {
   const turnFrom = useRef<RenderCamera | null>(null);
   /** Selected part instances (by id), and their evaluated bodies (by id, with the placed document they are of). */
   const [instanceSel, setInstanceSel] = useState<string[]>([]);
-  const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; bodies: BodyResult[] }>>(new Map());
+  // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
+  const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
+  const instanceRun = useRef(0);
   const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
@@ -392,13 +401,15 @@ export function App() {
   useEffect(() => {
     let live = true;
     (async () => {
-      const next = new Map<string, { key: string; bodies: BodyResult[] }>();
+      const next = new Map<string, { key: string; inst: PartInstance; bodies: BodyResult[] }>();
       for (const inst of doc.instances ?? []) {
-        const placed = placedDoc(inst), key = JSON.stringify(placed.nodes), have = instanceBodies.get(inst.id);
-        if (have && have.key === key) { next.set(inst.id, have); continue; }
-        const r = await engine.part(placed, revision.current++);
+        // The same placement of the same part (objects are replaced on edit, so by reference first; a new
+        // object only when its content changed, compared then).
+        const have = instanceBodies.get(inst.id);
+        if (have && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
+        const r = await engine.part(placedDoc(inst), revision.current++);
         if (!live) return;
-        if (r.ok) next.set(inst.id, { key, bodies: r.bodies });
+        if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, inst, bodies: r.bodies });
         else setToast(r.error);
       }
       if (live) setInstanceBodies(next);
@@ -510,7 +521,8 @@ export function App() {
       const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
       if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
       if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
-        let k = -1; candidate.nodes.forEach((n, i) => { if (JSON.stringify(n) !== JSON.stringify(ctx.doc.nodes[i])) k = i; });
+        // (The last node the drag changed: nodes it left are the same objects, compared by content only if not.)
+        let k = -1; for (let i = 0; i < candidate.nodes.length; i++) { const n = candidate.nodes[i], o = ctx.doc.nodes[i]; if (n !== o && JSON.stringify(n) !== JSON.stringify(o)) k = i; }
         if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
       }
       window.clearTimeout(fullTimer.current);

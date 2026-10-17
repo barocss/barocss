@@ -155,6 +155,31 @@ interface Props {
 }
 
 
+type InstanceFace = { id: string; body: number; face: number };
+type Hover = { face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: readonly number[] } | null };
+const sameRef = (a: { body: number; face?: number; edge?: number } | null | undefined, b: { body: number; face?: number; edge?: number } | null | undefined) =>
+  a === b || (!!a && !!b && a.body === b.body && a.face === b.face && a.edge === b.edge);
+/** Whether two hover states pick the same face, edge and vertex (they are compared on every pointer move). */
+function sameHover(a: Hover, b: Hover): boolean {
+  if (!sameRef(a.face, b.face) || !sameRef(a.edge, b.edge)) return false;
+  const p = a.vertex ?? null, q = b.vertex ?? null;
+  return p === q || (!!p && !!q && p.body === q.body && p.at[0] === q.at[0] && p.at[1] === q.at[1] && p.at[2] === q.at[2]);
+}
+/** Whether two gizmo hits are the same part of the gizmo. */
+function sameGizmoHit(a: GizmoHit | null, b: GizmoHit | null): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.kind !== b.kind) return false;
+  if (a.kind === 'handle') return a.index === (b as typeof a).index;
+  if (a.kind === 'plane') return a.axes[0] === (b as typeof a).axes[0] && a.axes[1] === (b as typeof a).axes[1];
+  return a.axis === (b as typeof a).axis;
+}
+function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i].id !== b[i].id || a[i].body !== b[i].body || a[i].face !== b[i].face) return false;
+  return true;
+}
+
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(props, ref) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<ViewRenderer | null>(null);
@@ -285,9 +310,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
-  // (By content: the list is rebuilt on every render.)
-  const instanceFacesKey = JSON.stringify(props.instanceFaces ?? []);
-  useEffect(() => { renderer.current?.setInstanceFaces?.(JSON.parse(instanceFacesKey)); request(); }, [instanceFacesKey, props.instances, backend]);
+  // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
+  const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
+  if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];
+  const instanceFaces = instanceFacesRef.current;
+  useEffect(() => { renderer.current?.setInstanceFaces?.([...instanceFaces]); request(); }, [instanceFaces, props.instances, backend]);
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
@@ -513,7 +540,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
-      if (JSON.stringify(hot) !== JSON.stringify(gizmoHot.current)) { gizmoHot.current = hot; request(); }
+      if (!sameGizmoHit(hot, gizmoHot.current)) { gizmoHot.current = hot; request(); }
       if (hot) { canvas.current!.style.cursor = 'grab'; return; }
       canvas.current!.style.cursor = '';
     }
@@ -570,7 +597,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const prev = hover.current;
     const vertex = vertexAt(x, y, w, h, { face, edge });
     const next = { face: edge || vertex ? null : face, edge: vertex ? null : edge, vertex };
-    if (JSON.stringify(prev) !== JSON.stringify(next)) { hover.current = next; r.setState(viewState()); request(); }
+    if (!sameHover(prev, next)) { hover.current = next; r.setState(viewState()); request(); }
     const point = surfacePoint(x, y, w, h, face) ?? planePoint(x, y, w, h, 0);
     propsRef.current.onCursor(point);
   };
