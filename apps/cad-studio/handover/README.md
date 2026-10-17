@@ -343,6 +343,78 @@ R1 results (2026-10-18, `f5d237c9f`; `pnpm bench:mesh`, `pnpm bench:mesh --facet
 - Reference only (dropped by the owner's decision, not to be adopted): manifold-3d WASM did 1M union
   0.45–0.6 s, split 0.57–0.66 s; meshoptimizer simplify 1M → 100k 0.4 s.
 
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 → **RB1–RB4** → R3 … R14 → **RB5–RB9**.
+
+**Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
+INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),
+TIMEOUT or TOL_BLOWUP. Reports give the pass rate per operation × category × input class with p50/p95 time,
+one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix shows as IMPROVEMENT.
+- **RB1 harness**: `bench:mesh`'s per-fixture child process, SIGKILL timeout, crash capture and JSONL,
+  generalised into a dataset runner (a directory of files → a worker pool). Adds the taxonomy, a trend file
+  keyed by commit and file hash, and TODO/IMPROVEMENT markers.
+- **RB2 L0 validator**: `checkBrep` gains edge-on-surface within tolerance (today only caught at
+  `brep-tessellate.ts:684`), self-intersecting wires, sliver faces and a tolerance-growth cap. It runs on every
+  result in tests. `importStep` validates as part of its result.
+- **RB3 L1 round trip and GVP**: STEP export → import keeps volume, area, centroid and topology counts to about
+  1e-6 relative. CAx-IF Geometric Validation Properties (volume, area, centroid, box) are written into exported
+  STEP and read and compared on import. CAx-IF thresholds are the outer bound: volume/area < 1%, centroid
+  < 0.1% of the box diagonal. A surface-area API (area exists only through the mesh today).
+- **RB4 L3 metamorphic and property tests**: our own small harness with seeds and shrinking, no library.
+  Properties: |A∪B| = |A| + |B| − |A∩B|; |A−B| + |A∩B| = |A|; ∪ and ∩ commute; invariance under exact
+  rigid transforms (90° turns, power-of-two moves); volume × s³ under uniform scale; knot insertion and degree
+  elevation keep mass; fillet volume monotone and Lipschitz in radius; exact and fine-tessellation mass
+  converge. CI runs a fixed seed (~200 runs per property); nightly runs random seeds.
+- After R14:
+  - **RB5 L4 fuzz**: random CSG trees and chained operations, capped per operation. Degeneracy generators:
+    coincident faces, ε offsets 0 and 1e-12–1e-6, tangent cylinders and spheres, vertex-on-face, near-seam.
+    A fillet radius × edge length grid.
+  - **RB6 CI corpus (~100 files) with goldens**: NIST MBE PMI, MFCAD++ (CC BY), FreeCAD-library STEP (CC-BY,
+    attribution kept). Goldens are generated once with the existing OCP tooling
+    (`packages/barocss-cad/scripts/exchange.mjs`) and committed as JSON; there is no live OCCT dependency.
+    Compare volume, area, centroid, Betti/genus and validity, never face counts. A disagreement is a triage
+    signal, not a verdict.
+  - **RB7 STEP import hardening (L)**:
+    - LENGTH_UNIT and conversion-based units: inch files come in 25.4× too big today;
+    - UNCERTAINTY_MEASURE and per-entity tolerance, with light healing;
+    - PCURVEs;
+    - assemblies (NAUO, MAPPED_ITEM, CDSR transforms);
+    - complex B-spline forms without `_WITH_KNOTS`: a TypeError at `step-import.ts:255/289` today; refuse
+      first, then support;
+    - OFFSET_SURFACE, SHELL_BASED_SURFACE_MODEL/OPEN_SHELL, POLYLINE/COMPOSITE/OFFSET_CURVE, VERTEX_LOOP;
+    - closed or periodic B-spline faces with seams, and edges that need splitting (`:93`, `:479`).
+  - **RB8 nightly ABC sweep**: 1–5k models fetched at run time and never committed, deduplicated with
+    UV-Net-style filters, stratified by face count (10–30, 30–100, 100–500). Pass rates per stage (parse,
+    validate, tessellate, Boolean, fillet, shell), compared with OCP goldens where available. No
+    non-commercial datasets (Fusion 360 Gallery, Text2CAD, CAD-Recode) and no GrabCAD.
+  - **RB9 AI scenario ladder**: 13 scenarios with acceptance predicates computed by our kernel:
+    1. block with hole
+    2. washer
+    3. printed phone stand
+    4. machined plate
+    5. sheet-metal L-bracket
+    6. load bracket (beam stress)
+    7. bolted joint
+    8. snap-fit box
+    9. PCB enclosure
+    10. sheet-metal PCB enclosure
+    11. print-in-place toy
+    12. 5-part assembly
+    13. product from a brief
+
+    Parameters are sampled per run; 5 trials per scenario on fresh documents; pass@k and pass^k;
+    a Requirement Score; checks validated against mutants; no VLM in the score; the checker is hidden
+    from the agent.
+
+**Standing rule for every R and RB step (owner, 2026-10-18).** Each finished step leaves:
+1. a short decision record in [`decisions.md`](decisions.md) (ADR-style);
+2. conformance fixtures in `packages/barocss-cad/conformance/` (not published: outside the package's
+   `files`). These are representative inputs (JSON part documents or STEP) with expected outputs (volume,
+   area, centroid, topology/Betti, face and edge names, error codes, tolerances) in an
+   implementation-independent format.
+
+Purpose: a spec plus conformance suite, so a fresh implementation can be tried after the roadmap. The
+fixtures double as RB goldens.
+
 Ground rules as before: local only, small commits, no functions inside hot-path functions, tests + lint +
 bench + a short studio flow, a changeset for published package changes, name/contract shifts reported, and
 anything whose risk outweighs its value skipped with the reason.
