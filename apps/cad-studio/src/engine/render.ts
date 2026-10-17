@@ -9,6 +9,8 @@ export interface Appearance {
   shader?: string;
   /** Both sides of each face lit (open or thin shells seen from inside); one side by default. */
   twoSided?: boolean;
+  /** A colour map (an image, as a data URL) multiplied into the colour, box-projected: one repeat every `scale` mm. */
+  texture?: { image: string; scale: number };
 }
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
@@ -116,7 +118,8 @@ const obj = (v: unknown): Record<string, unknown> => v && typeof v === 'object' 
 export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   const o = obj(v);
   return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
-    ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}), ...(o.twoSided === true ? { twoSided: true } : {}) };
+    ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}), ...(o.twoSided === true ? { twoSided: true } : {}),
+    ...(typeof obj(o.texture).image === 'string' && /^data:image\//.test(obj(o.texture).image as string) ? { texture: { image: obj(o.texture).image as string, scale: num(obj(o.texture).scale, 0.1, 10000, 20) } } : {}) };
 }
 
 /** Render settings from a saved document (anything missing or out of range takes the default). */
@@ -170,4 +173,18 @@ export function directionFrom(azimuth: number, elevation: number): [number, numb
 export function anglesOf(d: readonly [number, number, number]): [number, number] {
   const l = Math.hypot(d[0], d[1], d[2]) || 1;
   return [Math.round((Math.atan2(-d[1], -d[0]) * 180) / Math.PI), Math.round((Math.asin(Math.max(-1, Math.min(1, -d[2] / l))) * 180) / Math.PI)];
+}
+
+/**
+ * Box-projected texture coordinates of a mesh: each vertex mapped on the plane across its normal's
+ * largest component (X: Y and Z, Y: X and Z, Z: X and Y), one repeat every `scale` mm.
+ */
+export function tiledUVs(positions: ArrayLike<number>, normals: ArrayLike<number>, scale: number): Float32Array {
+  const n = positions.length / 3, out = new Float32Array(n * 2), s = 1 / Math.max(1e-6, scale);
+  for (let v = 0; v < n; v++) {
+    const ax = Math.abs(normals[3 * v]), ay = Math.abs(normals[3 * v + 1]), az = Math.abs(normals[3 * v + 2]);
+    const [a, b] = ax >= ay && ax >= az ? [1, 2] : ay >= az ? [0, 2] : [0, 1];
+    out[2 * v] = positions[3 * v + a] * s; out[2 * v + 1] = positions[3 * v + b] * s;
+  }
+  return out;
 }

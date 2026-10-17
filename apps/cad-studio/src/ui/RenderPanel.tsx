@@ -7,7 +7,7 @@ import { Icon } from './atoms';
  * The Render workspace's panel: the appearance of the selected bodies (or of every body without one),
  * the lights, the environment and the saved camera. Every change is one undoable edit of the settings.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov }: {
+export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -19,6 +19,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   available: boolean;
   /** The view's vertical field of view (degrees), and setting it. */
   fov: number; onFov(degrees: number): void;
+  onError?(message: string): void;
 }) {
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
@@ -65,6 +66,19 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Roughness', current.roughness, v => setLook({ roughness: v }))}
         {slider('Opacity', current.opacity, v => setLook({ opacity: v }), 0.05)}
         {check('Two-sided', !!current.twoSided, v => setLook({ twoSided: v || undefined }))}
+        <div className="field"><span>Texture</span>
+          <span className="texture-row">
+            {current.texture && <img className="texture-thumb" src={current.texture.image} alt="" />}
+            <label className="ghost small file-button">{current.texture ? 'Replace…' : 'Image…'}
+              <input type="file" accept="image/*" aria-label="Texture image" hidden onChange={async e => {
+                const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
+                try { setLook({ texture: { image: await textureImage(file), scale: current.texture?.scale ?? 20 } }); }
+                catch { onError?.('That file is not an image the browser can read.'); }
+              }} /></label>
+            {current.texture && <button className="tool tiny" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></button>}
+          </span></div>
+        {current.texture && <label className="field"><span>Repeat every</span><span className="num"><input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
+          onChange={e => { const v = Number(e.target.value); if (v > 0) setLook({ texture: { ...current.texture!, scale: v } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>}
         <label className="field"><span>Shader</span>
           <select aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
             <option value="">None</option>
@@ -176,4 +190,12 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
     </div>)}
     <button className="ghost" onClick={addMaterial}>Add material</button>
   </div>;
+}
+
+/** An image file as a data URL for a texture, at most 1024 pixels across (PNG keeps transparency; others JPEG). */
+async function textureImage(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file), k = Math.min(1, 1024 / Math.max(bitmap.width, bitmap.height));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bitmap.width * k)); c.height = Math.max(1, Math.round(bitmap.height * k));
+  c.getContext('2d')!.drawImage(bitmap, 0, 0, c.width, c.height); bitmap.close();
+  return c.toDataURL(file.type === 'image/png' || file.type === 'image/gif' ? 'image/png' : 'image/jpeg', 0.9);
 }

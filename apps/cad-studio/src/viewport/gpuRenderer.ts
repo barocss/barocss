@@ -4,10 +4,10 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
-import { createViewer, multiply, rotation, translation, type Geometry, type Light, type Mesh, type Viewer } from '@barocss/gpu/viewer';
+import { createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type Viewer } from '@barocss/gpu/viewer';
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '../engine/evaluate';
-import { appearanceOf, type RenderSettings } from '../engine/render';
+import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '../engine/render';
 import type { DirectDisplay } from '../engine/direct';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import type { OrbitCamera } from './camera';
@@ -26,7 +26,7 @@ const HOVER: Vec3 = [0.62, 0.55, 0.36];
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 /** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string }
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
 function signature(r: BodyResult): string {
@@ -51,6 +51,9 @@ export class GpuRenderer implements ViewRenderer {
   private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
   private controls: Mesh[] = [];
   private regions: Mesh[] = [];
+  /** Colour maps by image (null while one loads), and the tiling each instance surface has. */
+  private maps = new Map<string, ImageTexture | null>();
+  private instanceTiles = new WeakMap<Mesh, { tile?: number }>();
   private threads: Mesh | null = null;
   /** Placed instances of other parts: their bodies' surfaces and edges. */
   private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
@@ -211,8 +214,8 @@ export class GpuRenderer implements ViewRenderer {
       const ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
-        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided }
-        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null };
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b) }
+        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b) };
       const hidden = !!view.hiddenBodies?.has(bi);
       b.surface.pickable = !ghost && !hidden; b.surface.visible = !hidden;
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
@@ -301,6 +304,29 @@ export class GpuRenderer implements ViewRenderer {
     this.viewer.requestRender();
   }
 
+  /**
+   * A look's colour map, loaded once per image (the bodies are painted again when it arrives), and the
+   * geometry's texture coordinates to match: tiled every `scale` mm with a map, else as made (the
+   * part's box, which shader materials read).
+   */
+  private mapFor(g: Geometry, mesh: DisplayMesh, look: Appearance | null, keep: { tile?: number }) {
+    const t = look?.texture, tile = t ? t.scale : undefined;
+    if (keep.tile !== tile) { g.setUVs(t ? tiledUVs(mesh.positions, mesh.normals, t.scale) : boxUVs(mesh.positions, mesh.normals, mesh.bounds)); keep.tile = tile; }
+    if (!t) return null;
+    if (this.maps.has(t.image)) return this.maps.get(t.image) ?? null;
+    this.maps.set(t.image, null);
+    void (async () => {
+      try {
+        const bitmap = await createImageBitmap(await (await fetch(t.image)).blob());
+        this.maps.set(t.image, this.viewer.createTexture(bitmap));
+        for (const b of this.bodies) b.state = '';
+        if (this.view) this.setState(this.view);
+        this.paintInstances(); this.viewer.requestRender();
+      } catch { /* not an image the browser reads: drawn without it */ }
+    })();
+    return null;
+  }
+
   /** Tool regions: a see-through blue surface and its rims. */
   setRegions(mesh: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; rims: Float32Array } | null): void {
     for (const m of this.regions) { m.remove(); m.geometry.dispose(); }
@@ -349,8 +375,10 @@ export class GpuRenderer implements ViewRenderer {
     for (const it of this.instances) {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.surfaces.forEach((m, bi) => {
-        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided }
-          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: null };
+        const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
+        const dm = this.instanceMeshes.get(it.id)?.[bi];
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm ? this.mapFor(m.geometry, dm, look, tiles) : null }
+          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: null, map: null };
         m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];

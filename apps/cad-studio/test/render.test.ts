@@ -36,3 +36,14 @@ test('render animation: keys interpolate linearly and hold at the ends; keys at 
   const r = readRender({ animation: { duration: 2, tracks: { b1: [{ t: 5, offset: [1, 2, 3] }, { t: 'x' }], b2: 'no' }, turntable: true } });
   assert.deepEqual(r.animation, { duration: 2, tracks: { b1: [{ t: 2, offset: [1, 2, 3] }] }, turntable: true });
 });
+
+test('a texture: kept from a saved document only as an image data URL, its repeat in range; tiled coordinates every repeat', async () => {
+  const { readAppearance, tiledUVs } = await import('../src/engine/render');
+  const base = defaultRender().defaultAppearance, png = 'data:image/png;base64,iVBORw0KGgo=';
+  assert.deepEqual(readAppearance({ ...base, texture: { image: png, scale: 25 } }, base).texture, { image: png, scale: 25 });
+  assert.equal(readAppearance({ ...base, texture: { image: 'https://example.com/a.png', scale: 25 } }, base).texture, undefined, 'no outside URLs');
+  assert.equal(readAppearance({ ...base, texture: { image: png, scale: -3 } }, base).texture!.scale, 0.1);
+  // A vertex on a face looking up Z maps by X and Y; one looking along X by Y and Z.
+  const uv = tiledUVs([10, 20, 5, 4, 30, 50], [0, 0, 1, 1, 0, 0], 10);
+  assert.deepEqual([...uv].map(x => Math.round(x * 1e6) / 1e6), [1, 2, 3, 5]);
+});

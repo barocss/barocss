@@ -114,6 +114,14 @@ export class Geometry {
     else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
     this.owner.requestRender();
   }
+  /** Replace the texture coordinates (two per vertex) of a triangle geometry: a colour map's placement. */
+  setUVs(uvs: ArrayLike<number>): void {
+    if (this.data.topology !== 'triangles') throw new RangeError('Only triangle geometry has texture coordinates');
+    if (uvs.length !== this.data.vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+    this.data.uvs = Float32Array.from(uvs);
+    if (this.gpu?.uvs) this.gpu.device.queue.writeBuffer(this.gpu.uvs, 0, this.data.uvs);
+    this.owner.requestRender();
+  }
   /** Release the GPU buffers (meshes using it stop drawing). */
   dispose(): void { this.disposed = true; this.release(); this.owner.forget(this); this.owner.requestRender(); }
   /** @internal */ release(): void {

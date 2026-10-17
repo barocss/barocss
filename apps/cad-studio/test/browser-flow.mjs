@@ -881,9 +881,16 @@ try {
     assert.match(shaded.scene, /#plinth/);
     assert.match(shaded.materials.material1, /#ff0000/, 'the refused draft did not replace the applied source');
     assert.equal(Object.values(shaded.appearances)[0].shader, 'material1');
+    // A colour map: an image, repeated every 16 mm across the faces.
+    await page.selectOption('[aria-label="Shader material"]', '');
+    await page.setInputFiles('.render-panel [aria-label="Texture image"]', join(root, 'test/fixtures/checker.png'));
+    await page.waitForFunction(() => /^data:image\/png/.test(Object.values(window.__studioDoc.render.appearances)[0].texture?.image ?? ''), null, { timeout: 5000 });
+    await page.fill('.render-panel [aria-label="Texture repeat"]', '16');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].texture?.scale === 16);
+    await page.waitForTimeout(600); await snap('render-texture');
     // Undo takes the saved view back; Model returns to the modelling look.
     await page.evaluate(() => document.activeElement?.blur());
-    for (let k = 0; k < 8; k++) await press('Meta+z');
+    for (let k = 0; k < 20 && await page.evaluate(() => !!window.__studioDoc.render?.camera); k++) await press('Meta+z');
     await page.waitForFunction(() => !window.__studioDoc.render?.camera);
     await page.click('.mode button:text-is("Model")');
     await page.waitForSelector('[aria-label="Selection"]');
