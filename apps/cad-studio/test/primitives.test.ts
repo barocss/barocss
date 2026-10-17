@@ -69,3 +69,24 @@ test('Shell has a wall arrow when made and when edited', () => {
   const [eh] = edit.handles!(ectx, edit.defaults!(ectx));
   assert.equal(eh.key, 't');
 });
+
+test('a shape placed on a side face stands out of it: turned about where it was placed; arrows and puck turn too', () => {
+  const cyl = commands.find(c => c.id === 'cylinder')!, v0 = cyl.defaults!(ctx);
+  // On a +X face at x = 20, centred at (y 5, z 4): the bar runs along +X from there.
+  const v = cyl.place!({ ...v0, r: 3, h: 10 }, [20, 5, 4], [1, 0, 0]);
+  assert.equal(v.up, '+x');
+  const doc = cyl.build!(ctx, v), [b] = (evaluateDoc(doc, 1) as { bodies: BodyResult[] }).bodies;
+  assert.deepEqual([...b.mesh.bounds.min, ...b.mesh.bounds.max].map(x => Math.round(x * 100) / 100), [20, 2, 1, 30, 8, 7]);
+  const hs = cyl.handles!(ctx, v);
+  assert.deepEqual(hs.map(h => h.key), ['y', 'r', 'h']);
+  assert.deepEqual([hs[0].pair?.key, hs[2].dir], ['z', [1, 0, 0]]);
+  // It edits as itself, turned the same way.
+  const edit = editCommand(doc.nodes.length - 1, doc.nodes)!;
+  assert.equal(edit.label, 'Edit Cylinder');
+  const longer = edit.build!({ ...ctx, doc }, { ...edit.defaults!({ ...ctx, doc }), h: 16 });
+  assert.equal(Math.round((evaluateDoc(longer, 2) as { bodies: BodyResult[] }).bodies[0].mesh.bounds.max[0]), 36);
+  // Under a face (−Z) a box hangs down from it.
+  const box = commands.find(c => c.id === 'box')!, bv = box.place!({ ...box.defaults!(ctx), w: 10, d: 10, h: 4 }, [0, 0, 8], [0, 0, -1]);
+  const [hb] = (evaluateDoc(box.build!(ctx, bv), 3) as { bodies: BodyResult[] }).bodies;
+  assert.deepEqual([hb.mesh.bounds.min[2], hb.mesh.bounds.max[2]].map(Math.round), [4, 8]);
+});

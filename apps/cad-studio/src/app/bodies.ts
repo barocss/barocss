@@ -39,7 +39,7 @@ export function bodyName(doc: StudioDoc, body: BodyResult): string {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); if (!m) return body.key;
   // A part made in several steps (a bolt) is named by what it is.
   const top = doc.nodes[Number(m[1])];
-  if (top?.kind === 'union' && top.made) return featureLabel(top, Number(m[1]), doc.nodes);
+  if (top && 'made' in top && top.made && (top.kind === 'union' || top.kind === 'rotate')) return top.made.command === 'fastener' ? featureLabel(top, Number(m[1]), doc.nodes) : commands.find(c => c.id === top.made!.command)?.label ?? top.made.command;
   const root = rootOf(doc.nodes, Number(m[1])), node = doc.nodes[root];
   const made = node && (node.kind === 'extrude' || node.kind === 'revolve') ? node.made : undefined;
   // (A shape by its name alone — its sizes are in its feature's label.)
@@ -50,7 +50,7 @@ export function bodyName(doc: StudioDoc, body: BodyResult): string {
 export function lastFeature(doc: StudioDoc, body: BodyResult): string | null {
   const m = /^b(\d+)/.exec(body.key); if (!m) return null;
   const top = Number(m[1]), node = doc.nodes[top];
-  return node && rootOf(doc.nodes, top) !== top && !(node.kind === 'union' && node.made) ? featureLabel(node, top, doc.nodes) : null;
+  return node && rootOf(doc.nodes, top) !== top && !('made' in node && node.made) ? featureLabel(node, top, doc.nodes) : null;
 }
 /** A colour as 0…1 RGB. */
 export const rgbOf = (hex: string): [number, number, number] => { const v = parseInt(hex.replace('#', ''), 16); return [(v >> 16 & 255) / 255, (v >> 8 & 255) / 255, (v & 255) / 255]; };

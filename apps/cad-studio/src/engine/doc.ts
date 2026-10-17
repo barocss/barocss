@@ -42,7 +42,7 @@ export type ModelNode = SketchNode
   | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
-  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim] }
+  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim]; made?: Made }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
@@ -217,7 +217,7 @@ export function dropStaleMade(before: readonly ModelNode[], after: ModelNode[]):
     for (let k = Math.max(0, from); k <= i; k++) if (!same(k)) return true;
     return n.kind !== 'union' && 'sketch' in n && !same(n.sketch);
   };
-  return after.map((n, i) => (n.kind === 'extrude' || n.kind === 'revolve' || n.kind === 'union') && stale(n, i) ? (({ made: _made, ...rest }) => rest as ModelNode)(n as ModelNode & { made?: Made }) : n);
+  return after.map((n, i) => 'made' in n && stale(n, i) ? (({ made: _made, ...rest }) => rest as ModelNode)(n as ModelNode & { made?: Made }) : n);
 }
 /** A shape command's solid by its shape and main sizes: Box 32×32×16, Cylinder Ø16×24, Sphere Ø20 … */
 export function shapeLabel(made: Made): string {
@@ -240,7 +240,7 @@ export function shapeLabel(made: Made): string {
 }
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
-  if ((node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union') && node.made) return shapeLabel(node.made);
+  if ('made' in node && node.made) return shapeLabel(node.made);
   switch (node.kind) {
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

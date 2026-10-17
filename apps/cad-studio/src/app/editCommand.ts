@@ -110,10 +110,10 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
  * nodes were changed since (by the feature editor), so its values no longer describe them.
  */
 function shapeEdit(index: number, nodes: readonly ModelNode[]): Command | null {
-  const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union') ? node : null, made = solid?.made;
+  const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union' || node.kind === 'rotate') ? node : null, made = solid?.made;
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
-  if (n === 2 && (solid.kind === 'union' || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch')) return null;
+  if (n === 2 && (solid.kind === 'union' || solid.kind === 'rotate' || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch')) return null;
   const rebuild = (ctx: Ctx, v: Values) => {
     const built = cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, start) } }, v).nodes.slice(start);
     if (built.length !== n) throw new Error(`${cmd.label} no longer builds in place (it would make ${built.length} steps, not ${n}).`);

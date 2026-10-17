@@ -45,7 +45,7 @@ export interface Command {
    * A new shape placed with the pointer before it is sized: the values that stand it at `point` (on the
    * ground or an upward face). Starting it puts it under the pointer; a click (or a drop from the rail) sets it.
    */
-  place?(values: Values, point: [number, number, number]): Values;
+  place?(values: Values, point: [number, number, number], normal?: [number, number, number]): Values;
   /** Values that follow others (a move's Δ and the position it lands at): `changed` are the keys just set. */
   derive?(ctx: Ctx, values: Values, changed: readonly string[]): Values;
 }
@@ -187,12 +187,50 @@ const edgeSteps = (ctx: Ctx) => {
   return [{ label: 'Edges', text: !n ? 'pick edges or a face' : `${n} edge${n === 1 ? '' : 's'}${faces ? ` round the picked face${faces === 1 ? '' : 's'}` : ''}`, done: n > 0 }];
 };
 
+type V3 = [number, number, number];
+/** Which way a placed shape stands (`up`: +z as built, or ±x, ±y, −z out of a side or lower face). */
+const upOf = (n: readonly number[]) => { const k = [0, 1, 2].reduce((b, i) => Math.abs(n[i]) > Math.abs(n[b]) ? i : b, 2); return (n[k] < 0 ? '-' : '+') + 'xyz'[k]; };
+/** The turn that takes the shape's +Z onto `up` (a quarter or half turn about X or Y), or null for +Z. */
+const TURNS: Record<string, { axis: 'x' | 'y'; deg: number } | null> = { '+z': null, '-z': { axis: 'x', deg: 180 }, '+x': { axis: 'y', deg: 90 }, '-x': { axis: 'y', deg: -90 }, '+y': { axis: 'x', deg: -90 }, '-y': { axis: 'x', deg: 90 } };
+function turnPoint(p: readonly number[], pivot: readonly number[], t: { axis: 'x' | 'y'; deg: number }): V3 {
+  const k = t.axis === 'x' ? 0 : 1, i = (k + 1) % 3, j = (k + 2) % 3, a = t.deg * Math.PI / 180, c = Math.round(Math.cos(a)), s = Math.round(Math.sin(a));
+  const d = [p[0] - pivot[0], p[1] - pivot[1], p[2] - pivot[2]], out = [...d] as V3;
+  out[i] = d[i] * c - d[j] * s; out[j] = d[i] * s + d[j] * c;
+  return [out[0] + pivot[0], out[1] + pivot[1], out[2] + pivot[2]];
+}
+/**
+ * A shape that stands out of the face it is placed on: on a side or lower face it is turned (about its base,
+ * the point it was placed at) so its +Z points out of the face; its arrows turn with it and its puck slides
+ * it across that face.
+ */
+function oriented(cmd: Command): Command {
+  const base = (ctx: Ctx, v: Values): V3 => { const p = cmd.handles?.(ctx, { ...v, up: '+z' }).find(h => h.pair); return p ? [...p.at] as V3 : [Number(v.x), Number(v.y), Number(v.z)]; };
+  return {
+    ...cmd,
+    place: (v, point, normal) => ({ ...cmd.place!(v, point, normal), up: normal ? upOf(normal) : '+z' }),
+    build: (ctx, v) => {
+      const doc = cmd.build!(ctx, v), t = TURNS[String(v.up ?? '+z')];
+      if (!t) return doc;
+      return withNode(doc, { kind: 'rotate', parent: { node: doc.nodes.length - 1, side: 'solid' }, axis: t.axis, angleDegrees: t.deg, pivot: base(ctx, v) });
+    },
+    handles: cmd.handles && ((ctx, v) => {
+      const hs = cmd.handles!(ctx, v), up = String(v.up ?? '+z'), t = TURNS[up]; if (!t) return hs;
+      const pivot = base(ctx, v), k = 'xyz'.indexOf(up[1]), [a, b] = [0, 1, 2].filter(i => i !== k), unitOf = (i: number): V3 => { const d: V3 = [0, 0, 0]; d[i] = 1; return d; };
+      const turn = (p: readonly number[]) => turnPoint(p, pivot, t), turnDir = (d: readonly number[]) => turnPoint([pivot[0] + d[0], pivot[1] + d[1], pivot[2] + d[2]], pivot, t).map((x, i) => Math.round((x - pivot[i]) * 1e9) / 1e9) as V3;
+      return hs.map(h => h.pair
+        // The puck slides the base across the face (the values of the two axes in it).
+        ? { ...h, at: pivot, key: 'xyz'[a], dir: unitOf(a), pair: { key: 'xyz'[b], dir: unitOf(b) } }
+        : { ...h, at: turn(h.at), dir: turnDir(h.dir), ...(h.arc ? { arc: { centre: turn(h.arc.centre), axis: turnDir(h.arc.axis), from: turn(h.arc.from) } } : {}) });
+    }),
+  };
+}
+
 /** A shape command whose solid remembers how it was made (its values), so picking it edits them again. */
 function remembered(cmd: Command): Command {
   const build = cmd.build!;
   return { ...cmd, build: (ctx, v) => {
     const d = build(ctx, v), last = d.nodes[d.nodes.length - 1], added = d.nodes.length - ctx.doc.nodes.length;
-    return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union') && added > 0
+    return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union' || last.kind === 'rotate') && added > 0
       ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v }, ...(added !== 2 ? { nodes: added } : {}) } }] } : d;
   } };
 }
@@ -512,6 +550,6 @@ const allCommands: Command[] = [
     available: ctx => ctx.bodies.length > 1 ? ok : no('Interference needs two or more bodies.'), action: 'interference' },
   { id: 'measure', label: 'Measure', icon: 'cad-measure', hint: 'Distances, angles and sizes between picked faces and edges', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
 ];
-export const commands: Command[] = allCommands.map(c => c.place && c.build ? remembered(c) : c);
+export const commands: Command[] = allCommands.map(c => c.place && c.build ? remembered(oriented(c)) : c);
 
 export const commandById = (id: string) => commands.find(c => c.id === id);

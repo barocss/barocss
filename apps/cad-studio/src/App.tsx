@@ -217,6 +217,11 @@ export function App() {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { pickRef.current({ face: { body: b, face: i }, edge: null, point: null }, false); return true; } }
       return false;
     };
+    // Where a model point is on the page (CSS px), for clicks that must land on a face.
+    (window as unknown as { __studioScreenOf: (p: Vec3) => [number, number] | null }).__studioScreenOf = p => {
+      const c = document.querySelector('.vp-canvas') as HTMLCanvasElement | null, cam = viewport.current?.camera; if (!c || !cam) return null;
+      const r = c.getBoundingClientRect(), q = cam.project(p, r.width, r.height); return [r.left + q[0], r.top + q[1]];
+    };
     // A double-click on the first top edge of the first body, as the viewport reports it: how many edges it picks.
     (window as unknown as { __studioChainTop: () => number }).__studioChainTop = () => {
       const m = bodies[0]?.mesh, e = m ? m.edges.findIndex(x => x.straight && x.a[2] >= m.bounds.max[2] - 1e-6 && x.b[2] >= m.bounds.max[2] - 1e-6) : -1;
@@ -499,7 +504,7 @@ export function App() {
         cur = { cmd: dragged, values: dragged.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, placing: true };
       }
       if (!spot || !cur.cmd.place) return done ? { ...cur, placing: false } : cur;
-      const placed = cur.cmd.place(cur.values, spot.point), same = Object.keys(placed).every(k => placed[k] === cur.values[k]);
+      const placed = cur.cmd.place(cur.values, spot.point, spot.normal), same = Object.keys(placed).every(k => placed[k] === cur.values[k]);
       if (same) return done ? { ...cur, placing: false } : cur;
       return { ...cur, values: patchValues(cur.cmd, cur.ctx, cur.values, placed), preview: 'busy', ...(done ? { placing: false } : {}) };
     });
@@ -1274,7 +1279,7 @@ const MATERIALS = [
 
 /** A feature's icon in the history: the CAD icon of the command that makes it (a shape's own). */
 function iconFor(n: ModelNode) {
-  if ((n.kind === 'extrude' || n.kind === 'revolve' || n.kind === 'union') && n.made) return 'cad-' + n.made.command;
+  if ('made' in n && n.made) return 'cad-' + n.made.command;
   return ({ extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
     translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch' } as Record<string, string>)[n.kind] ?? 'category';
 }

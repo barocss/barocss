@@ -1442,6 +1442,20 @@ try {
     assert.equal(ok, 8, 'four lines and four arcs');
   });
 
+  await check('a cylinder clicked onto a box’s side face stands out of it', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('At X').fill('0'); await field('At Y').fill('0'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400);
+    // The box's +X face (x = 32): its middle, on screen.
+    const [sx, sy] = await page.evaluate(() => window.__studioScreenOf([32, 16, 8]));
+    await page.click('.shapes [aria-label="Cylinder"]'); await hudReady();
+    await page.mouse.move(sx - 6, sy, { steps: 3 }); await page.mouse.move(sx, sy); await page.waitForTimeout(300); await page.mouse.click(sx, sy);
+    await page.waitForFunction(() => /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await hudReady(); await page.waitForTimeout(250); await snap('side-cylinder'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate' && window.__studioDoc.nodes.at(-1)?.made?.values.up === '+x', null, { timeout: 15000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

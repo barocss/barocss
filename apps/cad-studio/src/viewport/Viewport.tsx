@@ -301,12 +301,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const mm = (v: number) => Math.round(v);
     let spot: Spot | null = null;
     if (f && body && !p.placeSkip?.has(body.key)) {
-      if (f.kind === 'plane' && f.normal[2] > 0.99) { const q = surfacePoint(x, y, w, h, face); if (q) spot = { point: [mm(q[0]), mm(q[1]), Math.round(q[2] * 1000) / 1000], normal: [0, 0, 1] }; }
+      // A flat face facing along X, Y or Z: the point on it (to 1 mm across it), and its normal.
+      const k = f.kind === 'plane' ? [0, 1, 2].find(i => Math.abs(Math.abs(f.normal[i]) - 1) < 1e-6) : undefined;
+      if (k !== undefined) { const q = surfacePoint(x, y, w, h, face); if (q) { const n: Vec3 = [0, 0, 0]; n[k] = Math.sign(f.normal[k]); spot = { point: q.map((v, i) => i === k ? Math.round(v * 1000) / 1000 : mm(v)) as Vec3, normal: n }; } }
       // Over an upright round hole (or boss): its axis, at its upper rim — a bolt goes straight in.
       else if (f.kind === 'curved' && f.radius !== undefined) { const c = roundAxis(body.mesh, face!.face, f.radius); if (c) spot = { point: c, normal: [0, 0, 1] }; }
     } else if (f && lastSpot.current) {
       // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
-      const q = planePoint(x, y, w, h, lastSpot.current.point[2]); if (q) spot = { point: [mm(q[0]), mm(q[1]), lastSpot.current.point[2]], normal: lastSpot.current.normal };
+      const ls = lastSpot.current, k = ls.normal.findIndex(v => v !== 0), { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
+      if (Math.abs(dir[k]) > 1e-6) { const t = (ls.point[k] - origin[k]) / dir[k]; if (t > 0) spot = { point: [0, 1, 2].map(i => i === k ? ls.point[k] : mm(origin[i] + dir[i] * t)) as Vec3, normal: ls.normal }; }
     }
     if (!spot) { const q = planePoint(x, y, w, h, 0); if (q) spot = { point: [mm(q[0]), mm(q[1]), 0], normal: [0, 0, 1] }; }
     lastSpot.current = spot;
