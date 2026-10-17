@@ -735,3 +735,36 @@ Evidence (studio 272/272):
 - Scaling the plate ×1.5 is refused for breaking L (measured 60) and made with `because`. `restore_best` brings
   back the 40 mm plate.
 
+## D38 — The requirements panel: checked as the part changes, a person warned and never blocked (2026-10-18, A3.3)
+Decided:
+- **The panel.** The studio's Browser lists the requirements.
+  - Each row: ✓, ✗ or ?, the id, the source quote, the measured value against what it asks for, hard or soft,
+    and its basis (stated, assumed or ambiguous).
+  - The header gives counts and says "checking…" or "stale".
+  - A filter shows the failing only.
+- **Click.** Clicking a row selects its subject faces and edges in the viewport.
+- **Editable assumptions.** An assumed or ambiguous requirement is editable in place: a value and **Confirm**.
+  Confirming makes it stated and records `confirmed: {by: 'user', at}`, so a later reviewer or agent can tell
+  what the user agreed to and what the AI assumed.
+- **When checks run.** After evaluation settles: debounced (350 ms), a stale run dropped, and none while a command
+  previews, a sketch is open or the engine is busy. The panel runs only when there are requirements, so the
+  bench paths are untouched.
+- **People are warned, never blocked.** A person's edit is never refused. A hard requirement that passed and now
+  fails is said at once in a toast ("W now fails", what it measures, "your change is kept"). Only agent tool
+  calls meet the regression guard (D37).
+- **Fix: requirements carried over on commit.** Commands build on the evaluated document, which follows model
+  edits only. `commit` now carries the document's requirements over, like render, drawing and instances.
+  Before, a nudge after a confirmation reverted the confirmation.
+- **Cost.** `min_wall` traces its rays through a uniform grid of the triangles (Amanatides–Woo, early exit)
+  instead of testing every triangle: 4k triangles 447 → 78 ms, 8k 115 ms, same results.
+
+Evidence:
+- Studio 272/272.
+- Browser flow 105/105, with a new step:
+  - a brief opens as 1 ✓ 1 ✗;
+  - the assumed height is set and confirmed: stated, confirmed by user, 2 ✓;
+  - the second box is moved 10 mm left by the user: "W now fails" is said and the move is kept.
+- Bench unchanged.
+
+A3 is closed: requirements and `check_spec` (D36), mutants and policy (D37), the panel (D38).
+

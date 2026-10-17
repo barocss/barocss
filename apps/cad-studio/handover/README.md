@@ -406,7 +406,41 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
   - Two random 10 µm and 1 µm X-turned grazes refuse.
   - A 10 µm lens's mesh folds.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 checklist panel) → **A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+**Overnight summary (2026-10-18, under the owner's delegation; commits local, nothing pushed):**
+
+| Step | Commits | Result |
+|---|---|---|
+| D25 — cylinder − turned-box defect | `2f1591d92` `7fcf3a06f` `948cd76e1` `b7a924fa7` `3f43c5aba` `b23800e71` | Not the Boolean but the trimmed-face quadrature. Now 2e-10; the STEP drift 9e-6 → 5e-11 mm; 93 oracle cases. |
+| 1 nm graze guard | `604f78b0c` | Tried and not adopted: it refuses valid touching walls. RB5's first item. |
+| A1.1, A1.1b — stable feature ids and body keys | `13e720230` `5625d829b` `cab16ec04` `9523d9a9b` | Schemas 2 and 3. |
+| A1.2 — selectors | `e50baa9ad` `31c8af68c` | |
+| A1.3 — re-match on edit | `2455c0a02` `7fd748b60` | |
+| A1.3b — signatures | `bdc247ca1` `9a4611c11` | |
+| A1.3c — references card, holds | `f10cc6a67` `8b919e96c` | |
+| A1.4 — sketch-entity side names | `8ff632c6a` | Deferred: D31, R10a. |
+| A2.1 — facts and inspect | `0c18974c7` `b56b8ba98` | |
+| A2.2 — analysis tools, assumed mass | `4eda0269e` `5d61428b7` | |
+| A2.3 — render_views PNG | `fa1b3313b` `84dc64919` | |
+| A2.4 — response format | `4d651f316` `ca3ace65a` | |
+| A3.1 — declarative requirements | `a798dce2b` `50091aada` | |
+| A3.2 — mutants and policy | `e9b66afa0` `99801dd8b` | |
+| A3.3 — panel | this step | |
+
+Checks at the end:
+
+| Suite | Result |
+|---|---|
+| kernel | all pass but the known environmental Node-version test |
+| studio | 272/272 |
+| browser flow | 105/105 |
+| RB and props | 0 NEW |
+| bench | within budget |
+
+Pending decisions: none needing the owner. Deferred with plans: R10a (D31) and RB5's first item (D25).
+
+Next: A4 (transactions and proposals).
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),
