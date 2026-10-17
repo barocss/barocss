@@ -1518,6 +1518,22 @@ try {
     assert.equal(n.holes?.length, 1, 'the inner rectangle is the profile’s hole');
   });
 
+  await check('sketch trim: a rectangle and a circle on its edge trimmed into one keyhole outline', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);
+    await press('c'); await clickAt(cx + 100, cy); await clickAt(cx + 140, cy);
+    await press('t'); await page.mouse.move(cx + 100, cy + 4);
+    await page.waitForSelector('.vp-overlay .sk-trim', { timeout: 5000 }); await snap('sketch-trim-hover');
+    await clickAt(cx + 100, cy + 4);
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.done.open').length === 1, null, { timeout: 5000 });
+    await clickAt(cx + 62, cy);
+    await page.waitForFunction(() => document.querySelectorAll('.vp-overlay .sk-shape.done').length === 1 && !document.querySelector('.vp-overlay .sk-shape.done.open'), null, { timeout: 5000 });
+    await snap('sketch-trimmed'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const n = (await doc()).nodes[0];
+    assert.equal(n.profile, 'loop'); assert.equal(n.segments.filter(x => x.kind === 'arc').length, 1); assert.ok(!n.holes && !n.regions);
+  });
+
   await check('sketch: pick a rectangle corner with Select and round it', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
     await clickAt(cx - 100, cy - 60); await clickAt(cx + 100, cy + 60);

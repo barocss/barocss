@@ -32,6 +32,7 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/pro
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
+import { trimAt } from './sketch/trim';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
@@ -55,6 +56,7 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'polygon', key: 'L', label: 'Line', icon: 'cad-sk-line', hint: 'Click points, click the first point to close · A switches to arcs' },
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
+  { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
   { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
   { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'cad-sk-dim', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
@@ -79,7 +81,8 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
-  const keep = s.shape && (shapeNode(s.shape) || (s.shape.construction && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
+  // (Trimming works on open lines too: an open chain stays for it.)
+  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || tool === 'trim') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
   return { ...s, tool, shape: null, ...(keep ? { done: [...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }] } : {}) };
 };
 
@@ -542,6 +545,14 @@ export function App() {
     if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
   };
+  /** Trims the piece of the sketch at `at` (plane mm) back to its crossings; open pieces meeting end to end join. */
+  const trimSketch = (at: [number, number], tol: number) => {
+    if (!sketch) return;
+    const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
+    const r = trimAt(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
+    if ('error' in r) { setToast({ title: 'Nothing to trim there', hint: r.error, detail: '' }); return; }
+    setSketch(s => s && { ...s, shape: null, done: r.shapes, picked: [] });
+  };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
     const node = doc.nodes[index]; if (node?.kind !== 'sketch') return;
@@ -987,6 +998,7 @@ export function App() {
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
         onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
+        onSketchTrim={trimSketch}
         onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
         onDimCommit={(key, value) => {
           const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
