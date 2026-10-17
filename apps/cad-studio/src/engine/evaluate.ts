@@ -58,19 +58,20 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   }
 }
 
-let lastPreview: CadPartSnapshot | null = null;
+/** The previews' caches: a command's, and the section view's (each reuses its own last snapshot). */
+const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { preview: null, section: null };
 /**
  * A command's preview: through its own cache (the features it leaves alone are not built again while
  * it is dragged) and without mass properties (worked out when the part is evaluated).
  */
-export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(doc), snapshot = lastPreview ? lastPreview.withDocument(part) : evaluateCadPart(part); lastPreview = snapshot;
+    const part = toPartDocument(doc), last = lastPreview[slot], snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
-    lastPreview = null;
+    lastPreview[slot] = null;
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
 }

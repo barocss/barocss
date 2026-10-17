@@ -320,32 +320,43 @@ export interface DirectDisplay {
 }
 
 /** What the viewport draws of the visible objects. Objects that fail to evaluate are left out. */
+// Each object's display, by its source text and geometry (a pole drag re-evaluates one object, not all):
+// only the entries the last call used are kept.
+let displays = new Map<string, { text: string; out: DirectDisplay[] }>();
 export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
   if (!d) return [];
-  return d.objects.filter(o => !o.hidden).flatMap((o): DirectDisplay[] => {
-    try {
-      const g = geometryOf(d, o);
-      if (g.kind === 'curve') {
-        const pts = sampleCurve(g, 128).map(s => s.point), seg: number[] = [], ctl: number[] = [];
-        for (let i = 0; i + 1 < pts.length; i++) seg.push(...pts[i], ...pts[i + 1]);
-        for (let i = 0; i + 1 < g.controlPoints.length; i++) ctl.push(...g.controlPoints[i], ...g.controlPoints[i + 1]);
-        return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl) }];
-      }
-      const p = tessellateSurface(g, { countU: 32, countV: 32, revision: 0 }).packet, ctl: number[] = [], P = g.controlPoints;
-      for (let i = 0; i < P.length; i++) for (let j = 0; j < P[i].length; j++) {
-        if (i + 1 < P.length) ctl.push(...P[i][j], ...P[i + 1][j]);
-        if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
-      }
-      // Isocurves: u = const and v = const at eight steps across each domain (ends included).
-      const dom = surfaceDomain(g), iso: number[] = [], N = 32;
-      for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
-        const c = a[0] + (a[1] - a[0]) * k / 7;
-        let prev: readonly number[] | null = null;
-        for (let i = 0; i <= N; i++) { const t = b[0] + (b[1] - b[0]) * i / N, q = fixU ? evaluateSurface(g, c, t) : evaluateSurface(g, t, c); if (prev) iso.push(...prev, ...q); prev = q; }
-      }
-      return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl), isos: new Float32Array(iso) }];
-    } catch { return []; }
+  const used = new Map<string, { text: string; out: DirectDisplay[] }>();
+  const shown = d.objects.filter(o => !o.hidden).flatMap((o): DirectDisplay[] => {
+    const key = `${o.id}\u0000${o.name}\u0000${o.source}\u0000${o.geometry}`, text = d.sources[o.source], have = displays.get(key);
+    if (have && have.text === text) { used.set(key, have); return have.out; }
+    const out = displayOf(d, o); used.set(key, { text, out }); return out;
   });
+  displays = used;
+  return shown;
+}
+function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): DirectDisplay[] {
+  try {
+    const g = geometryOf(d, o);
+    if (g.kind === 'curve') {
+      const pts = sampleCurve(g, 128).map(s => s.point), seg: number[] = [], ctl: number[] = [];
+      for (let i = 0; i + 1 < pts.length; i++) seg.push(...pts[i], ...pts[i + 1]);
+      for (let i = 0; i + 1 < g.controlPoints.length; i++) ctl.push(...g.controlPoints[i], ...g.controlPoints[i + 1]);
+      return [{ id: o.id, name: o.name, kind: 'curve', positions: new Float32Array(seg), controls: new Float32Array(ctl) }];
+    }
+    const p = tessellateSurface(g, { countU: 32, countV: 32, revision: 0 }).packet, ctl: number[] = [], P = g.controlPoints;
+    for (let i = 0; i < P.length; i++) for (let j = 0; j < P[i].length; j++) {
+      if (i + 1 < P.length) ctl.push(...P[i][j], ...P[i + 1][j]);
+      if (j + 1 < P[i].length) ctl.push(...P[i][j], ...P[i][j + 1]);
+    }
+    // Isocurves: u = const and v = const at eight steps across each domain (ends included).
+    const dom = surfaceDomain(g), iso: number[] = [], N = 32;
+    for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
+      const c = a[0] + (a[1] - a[0]) * k / 7;
+      let prev: readonly number[] | null = null;
+      for (let i = 0; i <= N; i++) { const t = b[0] + (b[1] - b[0]) * i / N, q = fixU ? evaluateSurface(g, c, t) : evaluateSurface(g, t, c); if (prev) iso.push(...prev, ...q); prev = q; }
+    }
+    return [{ id: o.id, name: o.name, kind: 'surface', positions: Float32Array.from(p.positions), normals: Float32Array.from(p.normals), indices: Uint32Array.from(p.indices), controls: new Float32Array(ctl), isos: new Float32Array(iso) }];
+  } catch { return []; }
 }
 
 /** An object's parameter domain(s), for the tools' fields. */

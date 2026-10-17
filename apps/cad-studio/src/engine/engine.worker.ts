@@ -8,14 +8,15 @@ export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: StudioDoc; revision: number }
   | { type: 'part'; id: number; doc: StudioDoc; revision: number }
   | { type: 'preview'; id: number; doc: StudioDoc; revision: number }
+  | { type: 'section'; id: number; doc: StudioDoc; revision: number }
   | { type: 'stl'; id: number; doc: StudioDoc; key: string }
   | { type: 'step'; id: number; doc: StudioDoc; name: string }
   | { type: 'drawing'; id: number; doc: StudioDoc; options?: { tangentEdges?: boolean; section?: { y: number } } };
 
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const request = event.data;
-  if (request.type === 'evaluate' || request.type === 'part' || request.type === 'preview') {
-    const result = request.type === 'part' ? evaluatePart(request.doc, request.revision) : request.type === 'preview' ? evaluatePreview(request.doc, request.revision) : evaluateDoc(request.doc, request.revision);
+  if (request.type === 'evaluate' || request.type === 'part' || request.type === 'preview' || request.type === 'section') {
+    const result = request.type === 'part' ? evaluatePart(request.doc, request.revision) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
     const transfer: Transferable[] = [];
     if (result.ok) for (const body of result.bodies) {
       const m = body.mesh;

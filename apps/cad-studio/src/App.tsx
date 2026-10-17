@@ -287,6 +287,7 @@ export function App() {
 
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, marker]);
+  const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
     if (!section) { setSectionExact(null); return; }
@@ -298,7 +299,10 @@ export function App() {
       if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(`b${doc.nodes.length - 1}_${keep}`); }
       else if (keep === 'negative' ? max[k] <= section.at + 1e-6 : min[k] >= section.at - 1e-6) kept.push(b.key);
     }
-    engine.preview(doc, revision.current++).then(r => { if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)) }); });
+    // Latest wins: while one section is worked out, only the newest plane waits behind it.
+    const run = sectionRun.current;
+    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)) }); };
+    if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
     return () => { live = false; };
   }, [section, bodies, evaluated, engine]);
   // At once (while the plane is dragged, until the exact section arrives): the meshes clipped and capped.

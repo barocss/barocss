@@ -34,6 +34,15 @@ export class EngineClient {
     });
   }
 
+  /** The section view's split part (a cache of its own, so dragging the plane leaves a command's preview alone). */
+  section(doc: StudioDoc, revision: number): Promise<EvalResult> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.worker.postMessage({ type: 'section', id, doc, revision });
+    });
+  }
+
   /** Another part on its own (an instance): never dropped as stale. */
   part(doc: StudioDoc, revision: number): Promise<EvalResult> {
     const id = this.next++;

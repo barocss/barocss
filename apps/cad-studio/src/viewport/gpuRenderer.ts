@@ -111,33 +111,42 @@ export class GpuRenderer implements ViewRenderer {
       this.bodies.forEach((b, i) => { b.result = results[i]; });
       return;
     }
-    for (const b of this.bodies) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
+    // Otherwise each body whose mesh is unchanged keeps its GPU meshes (wherever it now stands in the
+    // list); only new ones are built, and gone ones released. (setState paints them: state '' is unpainted.)
+    const pool = new Map<string, Body[]>();
+    for (const b of this.bodies) pool.set(b.sig, [...(pool.get(b.sig) ?? []), b]);
+    const was = this.bodies;
     this.bodies = results.map((result, bi) => {
-      const m = result.mesh, I = m.indices, faces = new Uint32Array(I.length / 3);
-      for (let t = 0; t < faces.length; t++) faces[t] = m.faceOfVertex[I[3 * t]];
-      const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, uvs: boxUVs(m.positions, m.normals, m.bounds), indices: I, faces });
-      const surface = this.viewer.add(surfaceGeometry, { material: { color: '#ffffff', roughness: 0.62 } });
-      const geometries = [surfaceGeometry];
-      let edges: Mesh | null = null;
-      if (m.edgeLines.length) {
-        const ids = new Uint32Array(m.edgeLines.length / 6);
-        for (let s = 0; s < ids.length; s++) ids[s] = m.edgeOfSegment[2 * s];
-        const g = this.viewer.createGeometry({ positions: m.edgeLines, topology: 'lines', edges: ids });
-        geometries.push(g);
-        edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false });
-      }
-      const body: Body = { result, surface, edges, highlight: null, geometries, sig: sigs[bi], state: '' };
-      this.paint(body, new Map());
-      return body;
+      const old = pool.get(sigs[bi])?.shift();
+      if (old) { if (was[bi] !== old) old.state = ''; old.result = result; return old; }
+      return this.makeBody(result, sigs[bi]);
     });
+    for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
     this.ground?.remove(); this.ground?.geometry.dispose(); this.ground = null;
     const b = this.bounds();
     if (b) {
       const cx = (b.min[0] + b.max[0]) / 2, cy = (b.min[1] + b.max[1]) / 2, r = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * 1.5 + 20, z = b.min[2] - 0.02;
       this.ground = this.viewer.add({ positions: [cx - r, cy - r, z, cx + r, cy - r, z, cx + r, cy + r, z, cx - r, cy + r, z], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] },
-        { material: { shadowOnly: true, opacity: this.theme.shadow }, pickable: false, castShadow: false });
+        { material: { shadowOnly: true, opacity: this.settings ? 0.55 : this.theme.shadow }, pickable: false, castShadow: false, visible: this.settings ? this.settings.environment.ground : true });
     }
-    this.applyLook();
+    this.viewer.requestRender();
+  }
+
+  private makeBody(result: BodyResult, sig: string): Body {
+    const m = result.mesh, I = m.indices, faces = new Uint32Array(I.length / 3);
+    for (let t = 0; t < faces.length; t++) faces[t] = m.faceOfVertex[I[3 * t]];
+    const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, uvs: boxUVs(m.positions, m.normals, m.bounds), indices: I, faces });
+    const surface = this.viewer.add(surfaceGeometry, { material: { color: '#ffffff', roughness: 0.62 } });
+    const geometries = [surfaceGeometry];
+    let edges: Mesh | null = null;
+    if (m.edgeLines.length) {
+      const ids = new Uint32Array(m.edgeLines.length / 6);
+      for (let s = 0; s < ids.length; s++) ids[s] = m.edgeOfSegment[2 * s];
+      const g = this.viewer.createGeometry({ positions: m.edgeLines, topology: 'lines', edges: ids });
+      geometries.push(g);
+      edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, visible: this.settings ? this.settings.environment.edges : true });
+    }
+    return { result, surface, edges, highlight: null, geometries, sig, state: '' };
   }
 
   /**
