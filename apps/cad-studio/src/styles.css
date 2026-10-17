@@ -321,3 +321,5 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .ol.clash { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; }
 .ol.clash .ms { color: #f0ad4e; }
 .vp-overlay .sk-shape.construction { stroke-dasharray: 5 4; fill: none !important; opacity: 0.75; }
+button.chip.snap { border: 0; cursor: pointer; color: var(--text-2); font: inherit; font-size: 11px; }
+button.chip.snap:hover { background: #3a3c41; }

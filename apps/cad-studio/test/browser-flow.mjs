@@ -1467,6 +1467,20 @@ try {
     await page.waitForFunction(m => window.__studioDoc.bodies?.b1?.material && Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props')?.textContent ?? '') ?? [])[1]) > m * 2, before, { timeout: 5000 });
   });
 
+  await check('the snap step cycles and the sketch grid follows it', async () => {
+    await page.click('[aria-label="New part"]'); await page.click('[aria-label="Snap"]');
+    await page.waitForFunction(() => /Snap 0.5 mm/.test(document.querySelector('[aria-label="Snap"]')?.textContent ?? ''));
+    await press('s'); await press('r'); const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 67, cy - 31); await clickAt(cx + 53, cy + 29);
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 10000 });
+    const s = (await doc()).nodes[0];
+    assert.ok([...s.min, ...s.max].every(v => Math.abs(v * 2 - Math.round(v * 2)) < 1e-9), JSON.stringify(s));
+    // Back to 1 mm for the rest (0.1, 5, 10, off, 1).
+    for (let k = 0; k < 5; k++) await page.click('[aria-label="Snap"]');
+    await page.waitForFunction(() => /Snap 1 mm/.test(document.querySelector('[aria-label="Snap"]')?.textContent ?? ''));
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

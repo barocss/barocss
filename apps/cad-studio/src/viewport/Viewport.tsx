@@ -77,6 +77,8 @@ interface Props {
   bodyColors?: Map<number, [number, number, number]>;
   hiddenBodies?: Set<number>;
   hoverBody?: number | null;
+  /** Grid step in mm for sketch points, placing and gizmo moves (0: off). */
+  snapStep?: number;
   sketch: SketchState | null;
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
@@ -126,7 +128,6 @@ interface Props {
   instancePreview?: { id: string; matrix: Float64Array } | null;
 }
 
-const snap = (v: number) => Math.round(v);
 
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(props, ref) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -159,6 +160,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
+  const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
   // the latest emitted shape; a new shape from the app (panel edit, solver settle) replaces it.
   const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
@@ -298,7 +301,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current; if (!r) return null;
     const p = propsRef.current, face = r.pickFace(x, y, camera.current, viewState());
     const body = face ? p.bodies[face.body] : undefined, f = body?.mesh.faces[face!.face];
-    const mm = (v: number) => Math.round(v);
+    const mm = snap;
     let spot: Spot | null = null;
     if (f && body && !p.placeSkip?.has(body.key)) {
       // A flat face facing along X, Y or Z: the point on it (to 1 mm across it), and its normal.
@@ -369,7 +372,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     }
     if (!g) return;
     if (hit.kind === 'move' || hit.kind === 'plane') {
-      const delta: Vec3 = [0, 0, 0], step = shift ? 0.1 : 1;
+      const grid = propsRef.current.snapStep ?? 1, delta: Vec3 = [0, 0, 0], step = shift ? Math.max(0.001, (grid || 1) / 10) : grid || 0.001;
       // (Measured from the gizmo where the drag began: it moves with the selection meanwhile.)
       const o = d.origin ?? g.origin;
       if (hit.kind === 'plane') { const [u, v] = dragPlane(d.from!, [x, y], o, hit.axes, P); delta[hit.axes[0]] = snapTo(u, step); delta[hit.axes[1]] = snapTo(v, step); }
