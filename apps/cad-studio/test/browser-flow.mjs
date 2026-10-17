@@ -726,7 +726,7 @@ try {
       // The front view's lower right corner: its bottom and right edges, the angle placed inside.
       await press('a'); await clickView('front', 40, 0); await clickView('front', 64, 5); await clickView('front', 58, 3);
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 3, null, { timeout: 5000 });
-      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8', '90°']);
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text), ['64', 'Ø8 THRU', '90°'], 'the hole\'s diameter reads as its callout');
       assert.equal(await page.locator('.dw svg [data-dim]').count(), 3);
       // A dimension in the isometric view is refused with the reason.
       await press('d'); await clickView('iso', 0, 0);
@@ -740,7 +740,7 @@ try {
       await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
       await page.waitForFunction(() => /Hole Ø12/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
       await page.click('.mode button:text-is("Drawing")');
-      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12,90°', null, { timeout: 20000 });
+      await page.waitForFunction(() => window.__studioDrawing?.()?.dimensions?.map(d => d.text).join() === '64,Ø12 THRU,90°', null, { timeout: 20000 });
       // A ± tolerance on the width (picked from the list), and a note typed on the paper.
       await page.locator('.dw-dim', { hasText: 'horizontal' }).click();
       await page.selectOption('[aria-label="Tolerance"]', 'symmetric');
@@ -757,7 +757,7 @@ try {
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.match(svgFile.suggestedFilename(), /\.svg$/);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);
-      assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12<\/text>/); assert.match(svg, />1:1<\/text>/);
+      assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12 THRU<\/text>/); assert.match(svg, />1:1<\/text>/);
       assert.match(svg, /stroke-dasharray="8 1.5 1.5 1.5"/, 'centre lines on the hole');
       assert.ok(svg.includes('>SECTION A–A</text>'), 'the section on the sheet');
       assert.ok(svg.includes('>64 ±0.1</text>') && svg.includes('>ALL EDGES BROKEN 0.5</text>'), 'the tolerance and the note');

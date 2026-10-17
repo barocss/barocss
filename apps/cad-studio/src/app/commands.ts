@@ -363,7 +363,7 @@ const allCommands: Command[] = [
       if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw new Error('Put the first hole away from the circle’s centre: the copies turn round it.');
       if (pattern && v.type === 'countersink') throw new Error('Countersunk holes are not patterned yet: pattern a through hole.');
       const pat = pattern ? { pattern } : {};
-      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...pat });
+      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { csk: Number(v.csd) } : {}), ...pat });
       if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });
       if (v.type !== 'countersink') return doc;
       // A countersink: a 90° cone from Ø csd at the face down to the hole, turned on a plane through the

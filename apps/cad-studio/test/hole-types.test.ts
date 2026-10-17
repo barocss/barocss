@@ -50,3 +50,16 @@ test('hole patterns: a row and a bolt circle, one history step each; the count e
   assert.equal(bodiesOf(fewer)[0].mesh.faces.filter(x => x.kind === 'curved').length, 3);
   assert.throws(() => hole.build!(ctx, { ...base, pat: 'row', pn: 3, pa: 2, pb: 0 }), /longer than the hole/);
 });
+
+test('hole callouts: count, size or thread, through or deep, counterbore and countersink', async () => {
+  const { holeCallout } = await import('../src/drawing/callout');
+  const ctx = faceCtx('n1.top'), base = { ...hole.defaults!(ctx), x: 8, y: 8 }, last = (v: Record<string, unknown>) => hole.build!(ctx, { ...base, ...v } as never).nodes;
+  const k = plate.nodes.length; // the hole's node
+  assert.equal(holeCallout(last({ d: 6.6 }), `n${k}.side0|n1.top`), 'Ø6.6 THRU');
+  assert.equal(holeCallout(last({ d: 6.6, pat: 'row', pn: 4, pa: 8, pb: 0 }), `n${k}.side0`), '4× Ø6.6 THRU');
+  assert.equal(holeCallout(last({ type: 'tapped', thread: 'M6', d: 5, tend: 'blind', depth: 10 }), `n${k}.side0`), 'M6×1 × 10 DEEP');
+  const cb = last({ type: 'counterbore', d: 6.6, cd: 11, ch: 6.5 });
+  assert.equal(holeCallout(cb, `n${k + 1}.side0|n1.top`), 'Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP', 'the counterbore\'s circle gives the hole\'s callout');
+  assert.equal(holeCallout(last({ type: 'countersink', d: 6.6, csd: 13 }), `n${k}.side0`), 'Ø6.6 THRU  CSK Ø13 × 90°');
+  assert.equal(holeCallout(plate.nodes, 'n1.side0|n1.top'), null);
+});

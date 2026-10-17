@@ -11,6 +11,7 @@ import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
+import { holeCallout } from '../drawing/callout';
 import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
 import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
@@ -87,7 +88,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const title = settings.title ?? fileName;
   const cut = settings.section && section?.ok ? section : undefined;
   const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today() }, cut), [views, layout, settings, title, cut]);
+  // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
+  const callout = useCallback((edge: string) => holeCallout(doc.nodes, edge), [doc.nodes]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout }, cut), [views, layout, settings, title, cut, callout]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
@@ -328,9 +331,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today() }, cut), selected);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout }, cut), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today() }, cut), selected);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout }, cut), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);

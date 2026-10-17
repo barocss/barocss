@@ -28,7 +28,8 @@ export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 
 /** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+/** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -44,7 +45,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
     groups.push({ role: 'view', view: id, marks });
   }
-  const dimensions = settings.dimensions.map(d => resolveDimension(views, d));
+  const dimensions = settings.dimensions.map(d => resolveDimension(views, d)).map(r => r.ok && r.kind === 'diameter' && meta.callout ? { ...r, text: meta.callout(r.dim.edge) ?? r.text } : r);
   for (const r of dimensions) if (r.ok) groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views[r.dim.view], r) });
   for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
   // Each view's name under it, below any dimension placed under the view.

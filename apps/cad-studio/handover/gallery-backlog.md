@@ -36,7 +36,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B6 Exploded assembly view (#2038)
 - [x] B7 Section view across part instances (#2055)
 - [x] B8 Section outline to a sketch (#2038)
-- [ ] B9 Drawing hole callouts tied to the feature (#2057)
+- [x] B9 Drawing hole callouts tied to the feature (#2057)
 - [ ] B10 Document version check and migration report; templates (#2058, #2059)
 - [ ] B11 Per-face colour (#2070, #2085)
 - [ ] B12 Vertex picking (#2036)
