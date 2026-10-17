@@ -128,7 +128,18 @@ round hole's axis and rim, editing size/length in place (a multi-step shape reme
 entry per part. Stages 2–4 of #2094 (verified size/length tables with versions, explicit assembly placement,
 real threads) are not started; nothing was posted to the issue.
 
-Verified at the last commit of the pass: unit 167/167, type-check and lint clean, browser flow 64/64 (WebGPU),
+Next round (2026-10-17, `968ac90d..`): double-click an edge picks its tangent chain; gizmo moves (bodies and
+placed parts) line up with other bodies' sides and middles; Undo/Redo name the step; shapes placed on side or
+lower faces stand out of them (`up`, a rotate step; arrows and puck turn with it); bolts go into side holes;
+per-body materials (mass follows; fasteners steel); a shape edited into one with a different step count is
+rebuilt in place (`replaceRange` renumbers what follows); a settable grid snap (1/0.5/0.1/5/10 mm/off); a body's
+features listed under it in the browser; Measure from here; the rail fits short windows; Shift-Enter applies and
+starts the command again, and picks survive a body becoming another; sketch Offset (lines, arcs at tangent
+joints), Round corner, and Use the face's outline (or as references).
+
+Verified at `0d4d0e6f`: unit 175/175, type-check and lint clean, browser flow 73/73 (WebGPU).
+
+Verified at the end of the first pass: unit 167/167, type-check and lint clean, browser flow 64/64 (WebGPU),
 QA probe 70/73 before its helper fix (the three remaining were the helper; U4x/U5x pass after it).
 The flow takes `FLOW_ONLY=<regex>` to run the first step and the matching ones. The QA probe
 (`test/qa/ui-probe.mjs`) was brought to the new flows (shape labels, Finish then E, Mirror's default plane);
