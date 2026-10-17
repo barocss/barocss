@@ -12,7 +12,7 @@ Every stage is classified as one of:
 |---|---|
 | OK | — |
 | REFUSED | A typed kernel error; acceptable, except where outputs were expected (then WRONG). |
-| INVALID | Fails L0: `checkBrep` or open tessellation edges. |
+| INVALID | Fails L0: strict `checkBrep` (an output's `validate()`), or open tessellation edges. |
 | WRONG | Valid, but off an expectation. |
 | CRASH | An untyped exception, a non-finite number, or a worker that died. |
 | TIMEOUT | Killed after `--timeout` seconds; the row names the stage that ran. |

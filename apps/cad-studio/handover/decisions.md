@@ -132,3 +132,26 @@ Why: one honest pass-rate table per commit, comparable over time, before the lar
 The first run found a STEP round-trip bug (duplicate face names and open edges after re-importing a
 countersunk plate; TODO). By exact position, the helical builder's direct output has 342 open tessellation
 edges (for RB2).
+
+## D18 — Strict L0 validation is opt-in; outputs report it, imports are reported rather than refused (2026-10-18, RB2)
+Decided: `checkBrep(brep, { strict: true })` adds four checks (`brep-check-geometry.ts`):
+- every edge lies on the surfaces of its faces (9 samples per curve, 3 per line), within 10× its tolerance or
+  1e-6 of the model's size, whichever is larger;
+- no loop crosses or touches itself or another loop of its face, in the face's parameters (faces with a seam
+  or pole are skipped: their parameter map is ambiguous there);
+- no planar sliver, i.e. a face whose width 2A/P is under its edges' tolerance;
+- no tolerance past 1e-3 of the model's size.
+
+The builders' own `assertValidBrep` stays as it was (no extra cost, no new refusals). Every part output gets
+`validate()` (strict, cached), so an imported STEP body carries a report instead of being refused. RB and the
+conformance runner validate strictly.
+Why: today's checks miss geometry that topology cannot see. On the first strict run, the corner patches of a
+box filleted on every edge share edges 0.18–0.36 mm off their surfaces (radius 2), in the part and through
+STEP. These are recorded as TODO for R10's vertex blends.
+
+## D19 — Tessellation corners are the B-rep vertices' points (2026-10-18, RB2, `0d6da686d`)
+Decided: an edge's first and last tessellation samples are its vertices' points, not its curve evaluated at
+its ends.
+Why: two curves meeting at a vertex evaluate their ends a few ulps apart, so the faces' rings disagreed at
+corners. The helical bolt had 342 open mesh edges by exact position, in its display mesh and its STL.
+Now there are none, and the volume is unchanged.

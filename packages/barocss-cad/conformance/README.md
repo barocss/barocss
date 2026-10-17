@@ -25,7 +25,8 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "bodies": 1,                                  // separate solid bodies in this output
       "topology": [{ "shells": 1, "genus": 0 }],    // per body: closed shells and genus (Euler–Poincaré)
       "faceNames": ["s.surface0", "..."],           // optional: distinct face names, "#k" numbering removed, sorted
-      "faceNamePattern": "^m\\.facet\\d+$"          // optional instead: every face name matches
+      "faceNamePattern": "^m\\.facet\\d+$",         // optional instead: every face name matches
+      "tessellation": { "segmentsPerQuarter": 8, "watertight": true }  // optional: every edge in exactly two triangles, by exact position
     }],
     "error": { "code": "GEOMETRY", "messageIncludes": "not closed" }
   },
@@ -36,6 +37,8 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
 Rules:
 - Tolerances are part of the spec. A relative volume tolerance applies to |actual − expected| / |expected|;
   absTol values are in mm.
+- Every output must pass the strict L0 validation (topology; edges on their surfaces; loops that do not
+  cross or touch; no slivers; tolerances under 1e-3 of the model's size).
 - Face and edge counts are not compared: kernels may split faces differently. Names, volumes, centroids,
   body and shell counts and the genus are compared.
 - Values from this kernel alone are marked so in `oracle`. Where an exact or independent value exists, it

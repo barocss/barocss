@@ -351,15 +351,22 @@ R2 / B0 results (2026-10-18, `014e2f821`…`38e06b110`; decisions D9–D16; conf
 - Sewing 1536 patches: 2.4 → 1.1 s.
 - D16 (approved, done after R2): the helical thread is the default for new nodes; nodes without `form` stay
   faceted.
-- Known: the helical builder's direct output tessellates with 342 edges not used exactly twice by exact
-  position (its STEP round trip comes out watertight). RB2 should catch it. Faceted bolt split still fails (touching facets).
+- Known (fixed in RB2, D19): the helical builder's direct output tessellated with 342 open edges by exact position. Faceted bolt split still fails (touching facets).
 
 RB1 results (2026-10-18): `pnpm rb` in `packages/barocss-cad` ([robustness/README.md](../../../packages/barocss-cad/robustness/README.md)).
 - First run over 9 conformance cases and 27 seed cases: all stages pass, except the re-imported countersunk
   plate STEP (duplicate face names, 18 open edges), which is a TODO.
 - The broken meshes are refused with GEOMETRY, as their rb1 conformance cases require.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → **RB2–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+RB2 results (2026-10-18; D18, D19; conformance `rb2`):
+- Tessellation corners are shared to the bit: the helical bolt goes from 342 open mesh edges to 0, with STL
+  watertight (studio and kernel tests). On the pre-fix build, `pnpm rb` catches it as NEW.
+- `checkBrep({ strict: true })` is the L0 validator. It runs in RB and conformance, and parts expose it as
+  `output.validate()`.
+- It found the all-edges fillet's corner patches 0.18–0.36 mm off their edges: TODO for R10.
+- The countersunk STEP round trip (duplicate names, 18 open edges) stays TODO for RB3.
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → **RB3–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

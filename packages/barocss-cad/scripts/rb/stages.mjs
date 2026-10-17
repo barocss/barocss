@@ -81,7 +81,8 @@ export function runCase(cad, file, started) {
   bodies.forEach((b, k) => {
     const brep = b.brep ?? b, suffix = bodies.length > 1 ? `#${k}` : '';
     const report = stage(`validate${suffix}`, () => {
-      const r = cad.checkBrep(brep), cap = gapCap(sizeOf(brep));
+      // (The strict L0 checks: an output's own validate(), or checkBrep strict for an imported body.)
+      const r = b.validate ? b.validate() : cad.checkBrep(brep, { strict: true }), cap = gapCap(sizeOf(brep));
       if (!r.valid) return { status: 'INVALID', detail: r.issues.slice(0, 3).join('; ') };
       if (r.maximumVertexGapMM > cap || r.maximumPcurveGapMM > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGapMM}, pcurve gap ${r.maximumPcurveGapMM}, cap ${cap}` };
       return { value: r };

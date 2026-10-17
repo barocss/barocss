@@ -88,4 +88,19 @@ writeRb1({ id: 'rb1-thread-legacy-faceted', step: 'RB1', decisions: ['D16'], abo
   input: { partDocument: threadDoc() }, expect: measured(threadDoc(), 1e-9, 1e-6, '^b\\.facet\\d+$'), oracle: 'this kernel (faceted helix, flat facets)' });
 writeRb1({ id: 'rb1-thread-helical', step: 'RB1', decisions: ['D16'], about: 'A helical M8 × 20 hex bolt: B-spline thread faces and named head, seat, end and hex faces.',
   input: { partDocument: threadDoc('helical') }, expect: measured(threadDoc('helical'), 1e-9, 1e-6, 'list'), oracle: 'this kernel (half-turn B-spline faces; within 3e-4 of the ISO-profile volume)' });
-console.log('written to', out, 'and', rb1);
+// RB2: strict L0 validity and watertight tessellations (a helical rod, a nut, a fillet along the top edges).
+const rb2 = resolve(import.meta.dirname, '../conformance/rb2');
+mkdirSync(rb2, { recursive: true });
+const writeRb2 = c => writeFileSync(join(rb2, `${c.id.replace(/^rb2-/, '')}.json`), compact(JSON.stringify(c, null, 2)) + '\n');
+const watertight = (doc, relTol, absTol, names) => { const e = measured(doc, relTol, absTol, names); e.outputs.forEach(o => { o.tessellation = { segmentsPerQuarter: 8, watertight: true }; }); return e; };
+const rod = D([{ id: 'r', kind: 'thread', diameter: 10, pitch: 1.5, length: 25, form: 'helical' }]);
+writeRb2({ id: 'rb2-helical-rod-watertight', step: 'RB2', decisions: ['D18', 'D19'], about: 'A helical M10 rod: strictly valid, and its tessellation watertight to the bit at every corner.',
+  input: { partDocument: rod }, expect: watertight(rod, 1e-9, 1e-6, 'list'), oracle: 'this kernel; watertightness is exact (shared corner points)' });
+const nut = D([{ id: 'n', kind: 'thread', diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true }, form: 'helical' }]);
+writeRb2({ id: 'rb2-helical-nut-watertight', step: 'RB2', decisions: ['D18', 'D19'], about: 'A helical M8 nut: strictly valid, its tessellation watertight.',
+  input: { partDocument: nut }, expect: watertight(nut, 1e-9, 1e-6, 'list'), oracle: 'this kernel' });
+const filletTop = D([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }]);
+const topEdges = evaluateCadPart(filletTop).outputs[0].brep.edges.map(e => e.name).filter(n => /top/.test(n)), filleted = D([...filletTop.features, { id: 'f', kind: 'fillet', target: 'e', edges: topEdges, radius: 4 }]);
+writeRb2({ id: 'rb2-fillet-top-edges', step: 'RB2', decisions: ['D18'], about: 'A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight.',
+  input: { partDocument: filleted }, expect: watertight(filleted, 1e-9, 1e-6, 'list'), oracle: 'this kernel' });
+console.log('written to', out, 'and', rb1, 'and', rb2);

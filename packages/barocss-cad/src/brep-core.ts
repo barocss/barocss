@@ -10,6 +10,7 @@ import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCur
 import { CadNumericPolicy } from './numeric-policy.js';
 import type { Curve, Point, Surface } from './types.js';
 import { cross, dot, sub } from './vec3.js';
+import { strictGeometry } from './brep-check-geometry.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -46,6 +47,8 @@ export interface BrepCheckReport {
   /** Euler–Poincaré per body: V − E + F − (L − F) = 2(S − G), solved for the genus G. */
   readonly topology: readonly BrepBodyTopology[];
   readonly maximumVertexGapMM: number; readonly maximumPcurveGapMM: number;
+  /** With `strict`: the largest distance of an edge's sample from a surface of a face using it (else 0). */
+  readonly maximumEdgeSurfaceGapMM: number;
 }
 
 export class BrepError extends Error {
@@ -82,8 +85,10 @@ export function coedgeVertices(brep: Brep, coedge: BrepCoedge, edges = new Map(b
 /**
  * Checks topology (references, loop cycles, twins, manifold edges and vertex links, Euler–Poincaré)
  * and geometry (edge ends on their vertices, pcurves on their surfaces) within entity tolerances.
+ * `strict` adds the L0 geometric checks (brep-check-geometry.ts): edges on their faces' surfaces, loops
+ * not crossing in a face's parameters, no sliver faces, tolerances under a cap of the model's size.
  */
-export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number } = {}): BrepCheckReport {
+export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number; readonly strict?: boolean } = {}): BrepCheckReport {
   const issues: string[] = [], add = (kind: string, detail: string) => { if (issues.length < 32) issues.push(`${kind}: ${detail}`); };
   const bodies = index(brep.bodies, 'body', issues), shells = index(brep.shells, 'shell', issues), faces = index(brep.faces, 'face', issues);
   const loops = index(brep.loops, 'loop', issues), coedges = index(brep.coedges, 'coedge', issues), edges = index(brep.edges, 'edge', issues), vertices = index(brep.vertices, 'vertex', issues);
@@ -211,10 +216,16 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     return { body: b.id, vertices: V, edges: E, faces: F, loops: L, shells: S, genus };
   });
 
+  let maximumEdgeSurfaceGapMM = 0;
+  if (options.strict) {
+    let size = 1; for (const v of brep.vertices) for (const x of v.point) size = Math.max(size, Math.abs(x));
+    maximumEdgeSurfaceGapMM = strictGeometry(brep, { loops, coedges, edges }, size, add).maximumEdgeSurfaceGapMM;
+  }
+
   return {
     valid: issues.length === 0, issues,
     counts: { bodies: brep.bodies.length, shells: brep.shells.length, faces: brep.faces.length, loops: brep.loops.length, coedges: brep.coedges.length, edges: brep.edges.length, vertices: brep.vertices.length },
-    topology, maximumVertexGapMM, maximumPcurveGapMM,
+    topology, maximumVertexGapMM, maximumPcurveGapMM, maximumEdgeSurfaceGapMM,
   };
 }
 

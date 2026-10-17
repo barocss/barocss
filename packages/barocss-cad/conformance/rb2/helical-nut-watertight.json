@@ -1,0 +1,68 @@
+{
+  "id": "rb2-helical-nut-watertight",
+  "step": "RB2",
+  "decisions": [
+    "D18",
+    "D19"
+  ],
+  "about": "A helical M8 nut: strictly valid, its tessellation watertight.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n",
+          "kind": "thread",
+          "diameter": 8,
+          "pitch": 1.25,
+          "hex": {
+            "across": 13,
+            "height": 6.8,
+            "internal": true
+          },
+          "form": "helical"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 707.690575176,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [-0.001577563, -0.008272178, 3.400001224],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "n.bottom",
+          "n.hex0",
+          "n.hex1",
+          "n.hex2",
+          "n.hex3",
+          "n.hex4",
+          "n.hex5",
+          "n.thread",
+          "n.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ]
+  },
+  "oracle": "this kernel"
+}

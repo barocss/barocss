@@ -15,7 +15,7 @@
 //                    by its two faces. Chamfers and fillets select edges by these names, so a selection
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
-import { BrepError, buildBrep, lineCurve, mergeBreps, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, checkBrep, lineCurve, mergeBreps, type Brep, type BrepCheckReport } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
@@ -174,6 +174,12 @@ export interface CadPartOutput {
   exportStl(options?: { readonly segmentsPerQuarter?: number }): Uint8Array;
   /** STEP AP214 (exact B-rep: planes, B-spline surfaces and curves) of this output. */
   exportStep(options?: { readonly name?: string }): string;
+  /**
+   * The L0 validation of this output (checkBrep with `strict`): topology, and edges on their surfaces, loops
+   * that do not cross, no slivers, tolerances under the cap. Worked out on first call; an imported STEP body
+   * is reported here rather than refused.
+   */
+  validate(): BrepCheckReport;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -1317,11 +1323,13 @@ function buildBrepLocal(pts: Point[], edges: { id: string; v: [number, number] }
 // ---- outputs --------------------------------------------------------------------------------------------
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
+  let validated: BrepCheckReport | undefined;
   return Object.freeze({
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
     massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
     exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
+    validate() { return validated ??= checkBrep(brep, { strict: true }); },
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {

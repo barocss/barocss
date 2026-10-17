@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { openEdges } from '../scripts/rb/stages.mjs';
 
 // Every conformance case (conformance/<step>/*.json) against this kernel: see conformance/README.md.
 const root = resolve(import.meta.dirname, '../conformance');
@@ -20,7 +21,7 @@ for (const file of cases) {
     const outputs = evaluateCadPart(c.input.partDocument).outputs;
     assert.equal(outputs.length, c.expect.outputs.length, 'outputs');
     c.expect.outputs.forEach((want, k) => {
-      const o = outputs[k], m = o.massProperties(1), report = checkBrep(o.brep);
+      const o = outputs[k], m = o.massProperties(1), report = o.validate();
       assert.equal(report.valid, true, report.issues[0]);
       assert.ok(Math.abs(m.volumeMM3 - want.volumeMM3.value) <= want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), `output ${k} volume ${m.volumeMM3} vs ${want.volumeMM3.value}`);
       m.centroidMM.forEach((x, i) => assert.ok(Math.abs(x - want.centroidMM.value[i]) <= want.centroidMM.absTol, `output ${k} centroid ${m.centroidMM} vs ${want.centroidMM.value}`));
@@ -29,6 +30,7 @@ for (const file of cases) {
       const names = o.brep.faces.map(f => base(f.name ?? f.id));
       if (want.faceNames) assert.deepEqual([...new Set(names)].sort(), want.faceNames, `output ${k} face names`);
       if (want.faceNamePattern) assert.ok(names.every(n => new RegExp(want.faceNamePattern).test(n)), `output ${k} face names match ${want.faceNamePattern}`);
+      if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
   });
 }
