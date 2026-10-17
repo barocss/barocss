@@ -32,6 +32,9 @@ part('plate-split-mitre', [rect('s', 0, 0, 60, 20), extrude('p', 's', 10), { id:
 part('holed-plate-split', [...[rect('s', 0, 0, 40, 30), extrude('p', 's', 6)], { id: 'h', kind: 'hole', target: 'p', center: [20, 15], radius: 5 }, { id: 'x', kind: 'split', target: 'p', axis: 'x', at: 20 }]);
 part('thread-bolt-m6', [{ id: 'b', kind: 'thread', diameter: 6, pitch: 1, length: 16, hex: { across: 10, height: 4 } }]);
 part('thread-nut-m6', [{ id: 'n', kind: 'thread', diameter: 6, pitch: 1, hex: { across: 10, height: 5, internal: true } }]);
+part('thread-bolt-m6-helical', [{ id: 'b', kind: 'thread', diameter: 6, pitch: 1, length: 16, hex: { across: 10, height: 4 }, form: 'helical' }]);
+part('thread-nut-m6-helical', [{ id: 'n', kind: 'thread', diameter: 6, pitch: 1, hex: { across: 10, height: 5, internal: true }, form: 'helical' }]);
+part('thread-rod-m10-helical', [{ id: 'r', kind: 'thread', diameter: 10, pitch: 1.5, length: 25, form: 'helical' }]);
 
 // Meshes: a lumpy ring and its broken variants (open, flipped patch, non-manifold fin, degenerate triangles, two shells).
 function ring(n, m) {
@@ -57,7 +60,7 @@ const shift = R.positions.length / 3;
 mesh('two-shells', { positions: [...R.positions, ...R.positions.map((x, i) => i % 3 === 2 ? x + 40 : x)], indices: [...R.indices, ...R.indices.map(i => i + shift)] });
 
 // STEP files of this kernel's own models.
-const step = (name, breps) => put('step', `${name}.step`, exportStep(breps, { name }));
+const step = (name, breps) => put('step', `${name}.step`, exportStep(breps, { name, timestamp: '2026-10-18T00:00:00' }));
 step('helical-bolt-m8x30', [threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 30, center: [0, 0], seat: 0, hex: { across: 13, height: 5.3 }, form: 'helical' })]);
 step('helical-nut-m8', [threadSolid({ id: 'n', diameter: 8, pitch: 1.25, center: [0, 0], seat: 0, hex: { across: 13, height: 6.8, internal: true }, form: 'helical' })]);
 for (const name of ['cylinder-block-union', 'cylinder-through-block', 'box-fillet-all', 'plate-countersinks']) {

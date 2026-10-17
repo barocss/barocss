@@ -324,7 +324,15 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       params.set(id, Array.from({ length: n + 1 }, (_, j) => j === n ? t1 : t0 + (t1 - t0) * j / n));
     });
   }
-  const samples = new Map(brep.edges.map(e => [e.id, params.get(e.id)!.map(t => evaluateCurve(e.curve, t))]));
+  // An edge's end samples are its vertices' points: every face meeting at a corner then has the very same
+  // position there (two curves evaluated at their ends differ in the last bits, which cracks the mesh).
+  const vertexPoint = new Map(brep.vertices.map(v => [v.id, v.point as Point]));
+  const samples = new Map(brep.edges.map(e => {
+    const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
+    if (a && s.length) s[0] = [a[0], a[1], a[2]];
+    if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
+    return [e.id, s];
+  }));
   const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
   /** A loop as one ring of points (each coedge without its last point). */
   const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));

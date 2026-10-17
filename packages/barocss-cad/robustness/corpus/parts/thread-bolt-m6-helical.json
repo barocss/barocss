@@ -1,0 +1,20 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "b",
+      "kind": "thread",
+      "diameter": 6,
+      "pitch": 1,
+      "length": 16,
+      "hex": {
+        "across": 10,
+        "height": 4
+      },
+      "form": "helical"
+    }
+  ]
+}

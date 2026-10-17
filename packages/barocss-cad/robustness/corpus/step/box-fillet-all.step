@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('BaroCSS CAD part'),'2;1');
-FILE_NAME('box-fillet-all.step','2026-10-17T16:32:12',(''),(''),'BaroCSS CAD','BaroCSS CAD','');
+FILE_NAME('box-fillet-all.step','2026-10-18T00:00:00',(''),(''),'BaroCSS CAD','BaroCSS CAD','');
 FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));
 ENDSEC;
 DATA;

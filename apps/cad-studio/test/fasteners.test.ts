@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
+import { evaluateDoc, stlFor, type BodyResult } from '../src/engine/evaluate';
+import { readStl } from '@barocss/cad';
 import { emptyDoc, featureLabel, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { editCommand } from '../src/app/editCommand';
@@ -148,6 +149,10 @@ test('a modelled thread: the bolt and its nut as helical B-spline faces, one sol
   assert.ok(doc.nodes.filter(n => n.kind === 'thread').every(n => (n as { form?: string }).form === 'helical'));
   const names = new Set(bolt.mesh.faces.map(face => face.name.replace(/^.*\./, '').replace(/#\d+$/, '')));
   for (const n of ['head', 'seat', 'end', 'thread', 'hex0']) assert.ok(names.has(n), `${n} in ${[...names].join(', ')}`);
+  // Its STL (as Export STL writes it) is watertight by exact position: every edge in exactly two triangles.
+  const soup = readStl(stlFor(doc, bolt.key)!), uses = new Map<string, number>(), at = (i: number) => `${soup[3 * i]},${soup[3 * i + 1]},${soup[3 * i + 2]}`;
+  for (let t = 0; t < soup.length / 3; t += 3) for (let k = 0; k < 3; k++) { const a = at(t + k), b = at(t + (k + 1) % 3), e = a < b ? `${a}|${b}` : `${b}|${a}`; uses.set(e, (uses.get(e) ?? 0) + 1); }
+  assert.equal([...uses.values()].filter(u => u !== 2).length, 0, 'STL edges not used exactly twice');
   // A thread node saved before helical became the default (no form) still builds faceted: its .facetK names resolve.
   const old = { ...doc, nodes: doc.nodes.map(n => { if (n.kind !== 'thread') return n; const { form: _form, ...rest } = n as typeof n & { form?: string }; void _form; return rest; }) };
   const oldBolt = bodiesOf(old).find(b => b.key === `b${doc.nodes.length - 1}`)!;

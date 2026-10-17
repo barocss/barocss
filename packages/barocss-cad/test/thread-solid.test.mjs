@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep, threadSolid, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep, threadSolid, brepMassProperties, readStl, tessellateBrep } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 /** π · length · the mean of r² over a pitch: the volume of the exact (unfaceted) threaded rod. */
@@ -70,4 +70,15 @@ test('thread form: documents without one stay faceted (their .facetK names resol
   assert.deepEqual([...names].sort(), ['b.end', 'b.head', 'b.hex0', 'b.hex1', 'b.hex2', 'b.hex3', 'b.hex4', 'b.hex5', 'b.seat', 'b.thread']);
   assert.deepEqual(threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 16, hex: { across: 13, height: 5.3 } }).faces.map(f => f.name), helical.faces.map(f => f.name));
   assert.throws(() => evaluateCadPart(doc('smooth')), e => e instanceof CadPartError && /form must be/.test(e.message));
+});
+
+test('helical threads tessellate watertight by exact position, and their STL too (corners shared bit for bit)', () => {
+  // (Each pair of triangle corners as a key: every edge must be used exactly twice.)
+  const open = (P, I) => { const key = i => `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, uses = new Map(); for (let t = 0; t < I.length; t += 3) for (let k = 0; k < 3; k++) { const a = key(I[t + k]), b = key(I[t + (k + 1) % 3]), e = a < b ? a + '|' + b : b + '|' + a; uses.set(e, (uses.get(e) ?? 0) + 1); } let n = 0; for (const u of uses.values()) if (u !== 2) n++; return n; };
+  for (const req of [{ diameter: 8, pitch: 1.25, length: 30, hex: { across: 13, height: 5.3 } }, { diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true } }, { diameter: 6, pitch: 1, length: 12 }]) {
+    const b = threadSolid({ id: 't', ...req }), m = tessellateBrep(b, { segmentsPerQuarter: 8 });
+    assert.equal(open(m.positionsMM, m.indices), 0, JSON.stringify(req));
+    const out = evaluateCadPart(D([{ id: 't', kind: 'thread', ...req, form: 'helical' }])).outputs[0], soup = readStl(out.exportStl());
+    assert.equal(open(soup, Array.from({ length: soup.length / 3 }, (_, k) => k)), 0, `STL ${JSON.stringify(req)}`);
+  }
 });
