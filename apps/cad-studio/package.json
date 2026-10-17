@@ -13,6 +13,7 @@
     "bench:browser": "node test/bench-browser.mjs",
     "bench:memory": "node test/memory-session.mjs",
     "bench:assembly": "node test/bench-assembly.mjs",
+    "bench:mesh": "node scripts/bench-mesh.mjs",
     "chat": "node scripts/chat-server.mjs"
   },
   "dependencies": {
