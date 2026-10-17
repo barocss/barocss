@@ -39,7 +39,7 @@ export function bodyName(doc: StudioDoc, body: BodyResult): string {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key); if (!m) return body.key;
   // A part made in several steps (a bolt) is named by what it is.
   const top = doc.nodes[Number(m[1])];
-  if (top && 'made' in top && top.made && (top.kind === 'union' || top.kind === 'rotate')) return top.made.command === 'fastener' ? featureLabel(top, Number(m[1]), doc.nodes) : commands.find(c => c.id === top.made!.command)?.label ?? top.made.command;
+  if (top && 'made' in top && top.made && (top.kind === 'union' || top.kind === 'rotate' || top.kind === 'thread')) return top.made.command === 'fastener' ? featureLabel(top, Number(m[1]), doc.nodes) : commands.find(c => c.id === top.made!.command)?.label ?? top.made.command;
   const root = rootOf(doc.nodes, Number(m[1])), node = doc.nodes[root];
   const made = node && (node.kind === 'extrude' || node.kind === 'revolve') ? node.made : undefined;
   // (A shape by its name alone — its sizes are in its feature's label.)

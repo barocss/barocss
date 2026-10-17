@@ -119,7 +119,7 @@ const circle = (x: number, y: number, r: number) => [{ kind: 'arc' as const, sta
 export function fastenerNodes(doc: StudioDoc, v: Values): StudioDoc {
   // (Steel, unless the body already has a material of its own: kept by its first solid, see app/bodies.ts;
   // a joint's washer and nut are named for what they are.)
-  const { doc: out, extra } = buildFastener(doc, v), first = out.nodes.findIndex((n, i) => i >= doc.nodes.length && n.kind === 'extrude'), key = `b${first}`;
+  const { doc: out, extra } = buildFastener(doc, v), first = out.nodes.findIndex((n, i) => i >= doc.nodes.length && (n.kind === 'extrude' || n.kind === 'thread')), key = `b${first}`;
   let bodies = { ...out.bodies };
   if (first >= 0 && !bodies[key]?.material) bodies = { ...bodies, [key]: { ...bodies[key], material: 'steel' } };
   for (const e of extra) bodies = { ...bodies, [`b${e.node}`]: { ...bodies[`b${e.node}`], name: e.name, material: bodies[`b${e.node}`]?.material ?? 'steel' } };
@@ -139,19 +139,19 @@ function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { no
   }
   let d = doc;
   const add = (n: Parameters<typeof withNode>[1]) => { d = withNode(d, n); return d.nodes.length - 1; }, extra: { node: number; name: string }[] = [];
+  // Modelled: a hex bolt's and a nut's thread as a faceted helix (one solid each), else a plain cylinder.
+  const modelled = v.model === 'modelled' && (kind === 'hex-bolt' || kind === 'hex-nut');
+  const nutAt = (seat: number) => modelled ? add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat, hex: { across: size.s, height: size.m, internal: true } })
+    : add({ kind: 'extrude', sketch: add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s), holes: [circle(x, y, size.d / 2)] }), height: size.m, ...at(seat) });
   // Through, with a washer and nut under the far face (separate bodies, made before the bolt's last step).
   const joint = () => {
     if (!nut) return;
     const ws = add({ kind: 'sketch', profile: 'circle', center: [x, y], radius: size.wd2 / 2, holes: [circle(x, y, size.wd1 / 2)] });
     extra.push({ node: add({ kind: 'extrude', sketch: ws, height: size.wh, from: z - grip - size.wh }), name: `Washer ISO 7089 ${size.d}` });
-    const ns = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s), holes: [circle(x, y, size.d / 2)] });
-    extra.push({ node: add({ kind: 'extrude', sketch: ns, height: size.m, from: z - grip - size.wh - size.m }), name: `Nut ISO 4032 M${size.d}` });
+    extra.push({ node: nutAt(z - grip - size.wh - size.m), name: `Nut ISO 4032 M${size.d}` });
   };
   switch (kind) {
-    case 'hex-nut': {
-      const sk = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s), holes: [circle(x, y, size.d / 2)] });
-      add({ kind: 'extrude', sketch: sk, height: size.m, ...at(z) }); break;
-    }
+    case 'hex-nut': nutAt(z); break;
     case 'washer': {
       const sk = add({ kind: 'sketch', profile: 'circle', center: [x, y], radius: size.wd2 / 2, holes: [circle(x, y, size.wd1 / 2)] });
       add({ kind: 'extrude', sketch: sk, height: size.wh, ...at(z) }); break;
@@ -184,6 +184,7 @@ function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { no
       add({ kind: 'union', left: { node: head, side: 'solid' }, right: { node: shank, side: 'solid' } }); break;
     }
     default: {
+      if (modelled) { joint(); add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat: z, length: len, hex: { across: size.s, height: size.k } }); break; }
       const hs = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s) });
       const head = add({ kind: 'extrude', sketch: hs, height: size.k, ...at(z) });
       const ss = add({ kind: 'sketch', profile: 'circle', center: [x, y], radius: size.d / 2 });
@@ -230,11 +231,12 @@ export const fastenerCommand: Command = {
     { key: 'size', label: 'Size', kind: 'choice', options: Object.keys(FASTENER_SIZES).map(m => ({ value: m, label: `${m} × ${FASTENER_SIZES[m].pitch}` })) },
     { key: 'length', label: 'Length', kind: 'choice', options: lengthsOf(String(v?.kind), FASTENER_SIZES[String(v?.size)] ?? FASTENER_SIZES.M6).map(l => ({ value: String(l), label: `${l} mm` })), when: x => threaded(String(x.kind)) },
     { key: 'joint', label: 'Joint', kind: 'choice', options: JOINTS, when: x => threaded(String(x.kind)) },
+    { key: 'model', label: 'Thread', kind: 'choice', options: [{ value: 'cosmetic', label: 'Cosmetic (drawn)' }, { value: 'modelled', label: 'Modelled (helix)' }], when: x => x.kind === 'hex-bolt' || x.kind === 'hex-nut' },
     { key: 'grip', label: 'Grip', kind: 'mm', min: 0.5, when: x => threaded(String(x.kind)) && x.joint === 'nut' },
     { key: 'x', label: 'Axis at X', kind: 'mm' }, { key: 'y', label: 'Axis at Y', kind: 'mm' }, { key: 'z', label: 'Seat at Z', kind: 'mm' },
     { key: 'insert', label: 'Insert', kind: 'choice', options: [{ value: 'part', label: 'Into this part' }, { value: 'instance', label: 'As a part of its own (assembly)' }] },
   ],
-  defaults: (ctx: Ctx) => { const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity); return { kind: 'hex-bolt', size: 'M6', length: '20', joint: 'free', grip: 10, holeD: 0, holeDepth: 0, through: '0', insert: 'part', x: Number.isFinite(right) ? Math.round(right + 14) : 0, y: 16, z: 0 }; },
+  defaults: (ctx: Ctx) => { const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity); return { kind: 'hex-bolt', size: 'M6', length: '20', joint: 'free', grip: 10, holeD: 0, holeDepth: 0, through: '0', insert: 'part', model: 'cosmetic', x: Number.isFinite(right) ? Math.round(right + 14) : 0, y: 16, z: 0 }; },
   // A new size keeps the length when that size comes in it, else the nearest it does; a joint takes the
   // shortest length that does for it.
   derive: (_ctx, v, changed) => {
@@ -258,7 +260,7 @@ export const fastenerCommand: Command = {
   steps: (_ctx, v) => {
     const t = fastenerThread(v), size = FASTENER_SIZES[String(v.size)];
     const data = size && v.kind === 'hex-bolt' && !size.checked4017 ? [{ label: 'Data', text: `ISO 4017 ${String(v.size)} lengths not yet cross-checked (catalogue ${CATALOGUE.version})`, done: false }] : [];
-    return [{ label: 'Part', text: fastenerName(v), done: true }, ...(t ? [{ label: 'Thread', text: `M${t.d}×${t.pitch} ${t.hand}-hand, ${t.internal ? 'internal' : 'external'}, cosmetic (no helical geometry)`, done: true }] : []), ...fastenerFit(v), ...data];
+    return [{ label: 'Part', text: fastenerName(v), done: true }, ...(t ? [{ label: 'Thread', text: `M${t.d}×${t.pitch} ${t.hand}-hand, ${t.internal ? 'internal' : 'external'}, ${v.model === 'modelled' && (v.kind === 'hex-bolt' || v.kind === 'hex-nut') ? 'modelled: ISO 68-1 basic profile as a faceted helix (a nut 0.04 mm clear)' : 'cosmetic (no helical geometry)'}`, done: true }] : []), ...fastenerFit(v), ...data];
   },
   build: (ctx, v) => v.insert === 'instance' ? withFastenerInstance(ctx.doc, v) : fastenerNodes(ctx.doc, { ...v, length: Number(v.length) }),
 };
@@ -274,7 +276,7 @@ export function withFastenerInstance(doc: StudioDoc, v: Values): StudioDoc {
   const at = { ...v, x: 0, y: 0, z: 0, up: '+z', insert: 'part', length: Number(v.length) };
   const local = fastenerNodes(emptyDoc(), at), last = local.nodes.length - 1, top = local.nodes[last];
   const made = { command: 'fastener', values: { ...at, length: String(v.length) }, ...(local.nodes.length !== 2 ? { nodes: local.nodes.length } : {}) };
-  const part: StudioDoc = top && (top.kind === 'union' || top.kind === 'extrude') ? { ...local, nodes: [...local.nodes.slice(0, -1), { ...top, made }] } : local;
+  const part: StudioDoc = top && (top.kind === 'union' || top.kind === 'extrude' || top.kind === 'thread') ? { ...local, nodes: [...local.nodes.slice(0, -1), { ...top, made }] } : local;
   const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
   let n = 1; while (used.has(`inst${n}`)) n++;
   const inst: PartInstance = { id: `inst${n}`, name: fastenerName(v), doc: part, position: [Number(v.x), Number(v.y), Number(v.z)], rotation: [...(UP_ROTATION[String(v.up ?? '+z')] ?? UP_ROTATION['+z'])] };

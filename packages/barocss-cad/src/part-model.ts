@@ -25,6 +25,7 @@ import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
+import { threadSolid } from './thread-solid.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -106,9 +107,15 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
   /**
    * A closed triangle mesh (an STL or OBJ file's, in mm) as a planar solid: `positions` x, y, z per vertex,
-   * `indices` three a triangle; triangles flat against each other one face, named `${id}.f${k}`.
+   * `indices` three a triangle; triangles flat against each other one face, named `${id}.facet${k}`.
    */
   | { readonly kind: 'mesh'; readonly positions: readonly number[]; readonly indices: readonly number[] }
+  /**
+   * A modelled ISO metric thread (faceted helix, one solid with no Boolean): a rod of `length` below
+   * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
+   * `hex.internal` a hex nut above the seat threaded through.
+   */
+  | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
    * order of its B-rep's bodies; refused for a body in one piece.
@@ -547,6 +554,17 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
         if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
         return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
+      };
+    }
+    case 'thread': {
+      const d = dim(f.diameter as CadPartDim, 'diameter', true), p = dim(f.pitch as CadPartDim, 'pitch', true), c = f.center === undefined ? [0, 0] as XY : xy(f.center as CadPartPoint2, 'center');
+      const seat = f.seat === undefined ? 0 : dim(f.seat as CadPartDim, 'seat'), length = f.length === undefined ? undefined : dim(f.length as CadPartDim, 'length', true);
+      const h = f.hex as Record<string, unknown> | undefined;
+      if (h !== undefined && !isRecord(h)) fail('INPUT', 'hex must be { across, height, internal? }');
+      const hex = h ? { across: dim(h.across as CadPartDim, 'hex.across', true), height: dim(h.height as CadPartDim, 'hex.height', true), internal: h.internal === true } : undefined;
+      return () => {
+        try { return one({ kind: 'brep', brep: threadSolid({ id: at, diameter: d, pitch: p, center: c, seat, ...(length === undefined ? {} : { length }), ...(hex ? { hex } : {}) }) }); }
+        catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('PARAMETER', cause.message); throw cause; }
       };
     }
     case 'mesh': {

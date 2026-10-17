@@ -267,9 +267,10 @@ export function buildBrep(input: BrepBuildInput): Brep {
   }
   // Twins: the two uses of each edge (only when there are exactly two).
   const byEdge = new Map<string, typeof mutable>();
-  for (const c of mutable) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), c]);
+  for (const c of mutable) { const list = byEdge.get(c.edge); if (list) list.push(c); else byEdge.set(c.edge, [c]); }
   for (const uses of byEdge.values()) if (uses.length === 2 && uses[0].sense !== uses[1].sense) { uses[0].twin = uses[1].id; uses[1].twin = uses[0].id; }
-  coedges.push(...mutable);
+  // (One at a time: a spread of a large solid's coedges overflows a worker's call stack.)
+  for (const c of mutable) coedges.push(c);
   return {
     format: 'barocss-brep', version: 0, lengthUnit: 'mm', source: input.source, bodies, shells, faces, loops, coedges,
     edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: tol, ...(e.name === undefined ? {} : { name: e.name }) })),

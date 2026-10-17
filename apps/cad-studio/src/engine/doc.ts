@@ -68,6 +68,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'import'; name: string; step: string; solids?: number }
   /** A closed triangle mesh (an STL or OBJ file's, scaled to mm from `unit`): welded vertices, three indices a triangle. */
   | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[] }
+  /** A modelled ISO metric thread (faceted helix): a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`). */
+  | { kind: 'thread'; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number; hex?: { across: number; height: number; internal?: true }; made?: Made }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
@@ -176,7 +178,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
-    case 'import': case 'mesh': return [];
+    case 'import': case 'mesh': case 'thread': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -189,7 +191,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'thread') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -308,6 +310,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
     case 'mesh': return `Mesh ${node.name}`;
+    case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
   }

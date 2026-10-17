@@ -5,6 +5,7 @@
 // faces in. Nothing is repaired or smoothed — a curved surface stays as its facets.
 import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Point, Surface } from './types.js';
+import { binary64Dyadic } from './dyadic.js';
 
 export class MeshBrepError extends Error {
   constructor(message: string) { super(message); this.name = 'MeshBrepError'; }
@@ -64,6 +65,8 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
       for (const [p, q] of [[a, b], [b, c], [c, a]]) {
         const t = directed.get(ek(q, p))!;
         if (face[t] >= 0 || 1 - dot(normals[t], nrm) > flat || !tris[t].every(v => Math.abs(dot(nrm, points[v]) - d0) <= onPlane)) continue;
+        // (Merged only when exactly in the seed's plane: an exact Boolean checks a face's corners exactly.)
+        if (!tris[t].every(v => coplanar(points[tris[s][0]], points[tris[s][1]], points[tris[s][2]], points[v]))) continue;
         face[t] = g; members.push(t);
       }
     }
@@ -93,7 +96,7 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
       if (!e) { e = `${id}_e${edges.length}`; edgeId.set(key, e); edges.push({ id: e, curve: lineCurve(e, points[lo], points[hi]), vertices: [vid(lo), vid(hi)] }); }
       return { edge: e, sense: (p === lo ? 'forward' : 'reversed') as 'forward' | 'reversed' };
     };
-    return { id: `${id}_f${g}`, name: `${id}.f${g}`, surface: planeSurface(`${id}_p${g}`, nrm, loops.flat().map(v => points[v])), sense: 'forward',
+    return { id: `${id}_f${g}`, name: `${id}.facet${g}`, surface: planeSurface(`${id}_p${g}`, nrm, loops.flat().map(v => points[v])), sense: 'forward',
       loops: loops.map((l, k) => ({ kind: k === 0 ? 'outer' as const : 'inner' as const, uses: l.map((v, i) => use(v, l[(i + 1) % l.length])) })) };
   });
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...used].sort((a, b) => a - b).map(v => ({ id: vid(v), point: points[v] })), edges,
@@ -102,6 +105,13 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
   return brep;
 }
 
+/** Whether four points lie exactly in one plane (the determinant worked out exactly from their binary values). */
+function coplanar(a: Point, b: Point, c: Point, d: Point): boolean {
+  const q = [a, b, c, d].map(p => p.map(binary64Dyadic)), k = Math.max(...q.flat().map(x => x.k));
+  const [A, B, C, D] = q.map(p => p.map(x => x.m << BigInt(k - x.k)));
+  const u = [0, 1, 2].map(i => B[i] - A[i]), v = [0, 1, 2].map(i => C[i] - A[i]), w = [0, 1, 2].map(i => D[i] - A[i]);
+  return u[0] * (v[1] * w[2] - v[2] * w[1]) - u[1] * (v[0] * w[2] - v[2] * w[0]) + u[2] * (v[0] * w[1] - v[1] * w[0]) === 0n;
+}
 const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];

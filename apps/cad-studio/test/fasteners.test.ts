@@ -129,3 +129,19 @@ test('a fastener inserted as a part of its own: an instance at the seat, turned 
   // A second one takes the next id.
   assert.equal(withFastenerInstance(doc, v).instances![1].id, 'inst2');
 });
+
+test('a modelled thread: the bolt and its nut as faceted helices, one solid each; the made values edit it again', () => {
+  const v = { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', joint: 'nut', grip: 10, model: 'modelled', x: 0, y: 0, z: 0 };
+  const doc = f.build!(ctx, v), t0 = performance.now(), bodies = bodiesOf(doc), ms = performance.now() - t0;
+  const kinds = doc.nodes.map(n => n.kind);
+  assert.deepEqual(kinds.filter(k => k === 'thread').length, 2, 'the bolt and the nut');
+  assert.equal(kinds.at(-1), 'thread'); assert.equal((doc.nodes.at(-1) as { made?: { command: string } }).made?.command, 'fastener');
+  assert.equal(bodies.length, 3, 'bolt, washer, nut');
+  const bolt = bodies.find(b => b.key === `b${doc.nodes.length - 1}`)!, size = FASTENER_SIZES.M8;
+  // Its volume between the root's and the major diameter's cylinders, plus the head.
+  const hex = Math.sqrt(3) / 2 * size.s ** 2 * size.k, rMin = 4 - 5 / 8 * Math.sqrt(3) / 2 * 1.25;
+  assert.ok(bolt.volumeMM3! > hex + Math.PI * rMin ** 2 * 30 && bolt.volumeMM3! < hex + Math.PI * 16 * 30, String(bolt.volumeMM3));
+  assert.ok(bolt.mesh.edges.length < 6000, `${bolt.mesh.edges.length} edges shown (the facets' smooth joints hidden)`);
+  assert.ok(ms < 8000, `${Math.round(ms)} ms`);
+  assert.match(f.steps!(ctx, v).find(s => s.label === 'Thread')!.text, /modelled: ISO 68-1/);
+});

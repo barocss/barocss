@@ -62,6 +62,6 @@ test('a mesh feature in a part: a solid with faces named after it, a hole drille
   const part = evaluateCadPart(D([{ id: 'm', kind: 'mesh', positions, indices }, { id: 'h', kind: 'hole', target: 'm', center: [10, 5], radius: 2 }]));
   const out = part.output('h');
   assert.ok(Math.abs(out.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
-  assert.ok(out.brep.faces.some(f => /^m\.f\d+$/.test(f.name ?? '')));
+  assert.ok(out.brep.faces.some(f => /^m\.facet\d+$/.test(f.name ?? '')));
   assert.throws(() => evaluateCadPart(D([{ id: 'm', kind: 'mesh', positions, indices: indices.slice(0, -3) }])), /not closed/);
 });

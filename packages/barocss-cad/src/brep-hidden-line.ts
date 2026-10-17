@@ -47,6 +47,8 @@ export interface BrepProjection {
 }
 /** `prefixes`: put before the names of each B-rep's curves (parallel to the B-reps), to tell copies of one part apart. */
 /** `tangentEdges`: also the smooth joints between different surfaces (a fillet's boundaries), marked `tangent`. */
+/** A mesh solid's facet (brepFromTriangles names them `<id>.facet<k>`). */
+const FACET = /\.facet\d+$/;
 export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[]; readonly tangentEdges?: boolean }
 
 type XY = [number, number];
@@ -157,8 +159,16 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         // the viewer along it (a silhouette on the joint).
         const exact = (g: ReturnType<typeof faceGeometry>) => g.kind === 'plane' || g.kind === 'cylinder';
         const na = normalOn(ga, fs[0], mid), nb = normalOn(gb, fs[1], mid);
+        // Facets of a mesh solid (a modelled thread, an STL) join smoothly within 20°: drawn only where
+        // the solid's outline runs along them (one facet towards the viewer, the other away).
+        const facets = FACET.test(faceById.get(fs[0])!.name ?? '') && FACET.test(faceById.get(fs[1])!.name ?? '');
+        if (facets && na && nb && dot(unit(na), unit(nb)) > Math.cos(Math.PI / 9)) {
+          if (Math.sign(dot(na, toward)) !== Math.sign(dot(nb, toward))) kind = 'silhouette';
+          else if (options.tangentEdges) kind = 'tangent';
+          else continue;
+        }
         const within = exact(ga) && exact(gb) ? Math.PI / 180 : 1.5 * Math.PI / 2 / perQuarter;
-        if (na && nb && Math.abs(dot(unit(na), unit(nb))) > Math.cos(within)) {
+        if (kind === 'edge' && na && nb && Math.abs(dot(unit(na), unit(nb))) > Math.cos(within)) {
           // (Between other surfaces, the silhouettes found on the faces run on across the joint.)
           if (exact(ga) && exact(gb) && Math.abs(dot(unit(na), toward)) < 1e-6) kind = 'silhouette';
           else if (options.tangentEdges && !sameSurface(ga, gb, faceById.get(fs[0])!.name ?? fs[0], faceById.get(fs[1])!.name ?? fs[1])) kind = 'tangent';

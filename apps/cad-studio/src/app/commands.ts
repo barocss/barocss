@@ -240,7 +240,7 @@ function remembered(cmd: Command): Command {
   const build = cmd.build!;
   return { ...cmd, build: (ctx, v) => {
     const d = build(ctx, v), last = d.nodes[d.nodes.length - 1], added = d.nodes.length - ctx.doc.nodes.length;
-    return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union' || last.kind === 'rotate') && added > 0
+    return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union' || last.kind === 'rotate' || last.kind === 'thread') && added > 0
       ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v }, ...(added !== 2 ? { nodes: added } : {}) } }] } : d;
   } };
 }
