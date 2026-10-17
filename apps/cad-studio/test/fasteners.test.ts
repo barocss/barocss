@@ -115,3 +115,17 @@ test('a countersunk socket screw (ISO 10642): its head sunk below the seat, flus
   assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Csk screw M6×20');
   assert.ok(fastenerFit({ ...v, joint: 'free' }).some(s => s.label === 'Head' && /countersink Ø13.44/.test(s.text)));
 });
+
+test('a fastener inserted as a part of its own: an instance at the seat, turned out of its face, its thread remembered', async () => {
+  const { withFastenerInstance } = await import('../src/app/fasteners');
+  const v = { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 5, y: 6, z: 7, insert: 'instance', up: '+x' };
+  const doc = f.build!(ctx, v);
+  assert.equal(doc.nodes.length, 0, 'nothing joins the part');
+  const [inst] = doc.instances!;
+  assert.deepEqual([inst.id, inst.name, inst.position, inst.rotation], ['inst1', 'Hex head bolt ISO 4017 M8×1.25 × 30', [5, 6, 7], [0, 90, 0]]);
+  const top = inst.doc.nodes.at(-1)!;
+  assert.ok('made' in top && top.made?.command === 'fastener' && top.made.values.size === 'M8' && top.made.values.x === 0);
+  const [b] = bodiesOf(inst.doc); near(b.mesh.bounds.max[2], FASTENER_SIZES.M8.k, 1e-6); near(b.mesh.bounds.min[2], -30, 1e-6);
+  // A second one takes the next id.
+  assert.equal(withFastenerInstance(doc, v).instances![1].id, 'inst2');
+});

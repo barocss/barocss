@@ -1561,6 +1561,19 @@ try {
     assert.match(await page.locator('.outliner').innerText(), /Nut ISO 4032 M6/);
   });
 
+  await check('a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged', async () => {
+    const before = await page.evaluate(() => window.__studioDoc.nodes.length);
+    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await field('Part').selectOption('csk-screw'); await field('Size').selectOption('M5'); await field('Length').selectOption('16');
+    await field('Axis at X').fill('10'); await field('Axis at Y').fill('10'); await field('Seat at Z').fill('8'); await field('Insert').selectOption('instance');
+    await hudReady(); await page.waitForTimeout(400); await snap('fastener-instance-preview'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    const inst = await page.evaluate(() => { const i = window.__studioDoc.instances[0]; return { name: i.name, position: i.position, rotation: i.rotation }; });
+    assert.deepEqual(inst, { name: 'Countersunk socket screw ISO 10642 M5×0.8 × 16', position: [10, 10, 8], rotation: [0, 0, 0] });
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), before, 'no features joined the part');
+    await idle(); await page.waitForTimeout(800); await snap('fastener-instance');
+  });
+
   await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

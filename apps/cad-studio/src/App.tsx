@@ -43,6 +43,7 @@ import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf,
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
+import { flattenAssembly } from './assembly/flatten';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from './engine/direct';
@@ -478,6 +479,9 @@ export function App() {
       let candidate: StudioDoc;
       try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
       let shown = candidate, rolled = false;
+      // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
+      const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
+      if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
       if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
         let k = -1; candidate.nodes.forEach((n, i) => { if (JSON.stringify(n) !== JSON.stringify(ctx.doc.nodes[i])) k = i; });
         if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
@@ -519,8 +523,10 @@ export function App() {
     if (active.preview !== 'ok') return;
     // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
     // while the committed document evaluates).
-    if (previewBodies) setBodies(previewBodies);
-    commit(active.cmd.build(active.ctx, active.values)); setActive(null); setPreviewBodies(null); setSketch(null);
+    const next = active.cmd.build(active.ctx, active.values);
+    // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
+    if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) setBodies(previewBodies);
+    commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
   }, [active, commit, previewBodies]);
   // (Only for the command it was asked for: cancelled or replaced, it is forgotten.)
   useEffect(() => {

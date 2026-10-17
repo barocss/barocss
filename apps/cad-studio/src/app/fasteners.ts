@@ -6,7 +6,7 @@
 // diameter — no helical geometry. The checks are of size and length only, never of strength, preload or
 // manufacturability. The data is the standards' nominal values as cross-checked (CATALOGUE.sources): check
 // them against the standard (and the supplier) before using a drawing for manufacture.
-import { withNode, type StudioDoc } from '../engine/doc';
+import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, PlacedHole, Values } from './commands';
 
 export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
@@ -232,8 +232,9 @@ export const fastenerCommand: Command = {
     { key: 'joint', label: 'Joint', kind: 'choice', options: JOINTS, when: x => threaded(String(x.kind)) },
     { key: 'grip', label: 'Grip', kind: 'mm', min: 0.5, when: x => threaded(String(x.kind)) && x.joint === 'nut' },
     { key: 'x', label: 'Axis at X', kind: 'mm' }, { key: 'y', label: 'Axis at Y', kind: 'mm' }, { key: 'z', label: 'Seat at Z', kind: 'mm' },
+    { key: 'insert', label: 'Insert', kind: 'choice', options: [{ value: 'part', label: 'Into this part' }, { value: 'instance', label: 'As a part of its own (assembly)' }] },
   ],
-  defaults: (ctx: Ctx) => { const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity); return { kind: 'hex-bolt', size: 'M6', length: '20', joint: 'free', grip: 10, holeD: 0, holeDepth: 0, through: '0', x: Number.isFinite(right) ? Math.round(right + 14) : 0, y: 16, z: 0 }; },
+  defaults: (ctx: Ctx) => { const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity); return { kind: 'hex-bolt', size: 'M6', length: '20', joint: 'free', grip: 10, holeD: 0, holeDepth: 0, through: '0', insert: 'part', x: Number.isFinite(right) ? Math.round(right + 14) : 0, y: 16, z: 0 }; },
   // A new size keeps the length when that size comes in it, else the nearest it does; a joint takes the
   // shortest length that does for it.
   derive: (_ctx, v, changed) => {
@@ -259,5 +260,23 @@ export const fastenerCommand: Command = {
     const data = size && v.kind === 'hex-bolt' && !size.checked4017 ? [{ label: 'Data', text: `ISO 4017 ${String(v.size)} lengths not yet cross-checked (catalogue ${CATALOGUE.version})`, done: false }] : [];
     return [{ label: 'Part', text: fastenerName(v), done: true }, ...(t ? [{ label: 'Thread', text: `M${t.d}×${t.pitch} ${t.hand}-hand, ${t.internal ? 'internal' : 'external'}, cosmetic (no helical geometry)`, done: true }] : []), ...fastenerFit(v), ...data];
   },
-  build: (ctx, v) => fastenerNodes(ctx.doc, { ...v, length: Number(v.length) }),
+  build: (ctx, v) => v.insert === 'instance' ? withFastenerInstance(ctx.doc, v) : fastenerNodes(ctx.doc, { ...v, length: Number(v.length) }),
 };
+
+/** The turn of an instance whose +Z stands out of a face facing `up` (as `oriented` turns a shape's bodies). */
+const UP_ROTATION: Record<string, [number, number, number]> = { '+z': [0, 0, 0], '-z': [180, 0, 0], '+x': [0, 90, 0], '-x': [0, -90, 0], '+y': [-90, 0, 0], '-y': [90, 0, 0] };
+/**
+ * The fastener as a part of its own, placed in the assembly (an instance, counted in the bill of
+ * materials and mated like any part): built about its own origin, remembered as a fastener (so it shows
+ * its thread), then moved to the seat and turned out of the face it was placed on.
+ */
+export function withFastenerInstance(doc: StudioDoc, v: Values): StudioDoc {
+  const at = { ...v, x: 0, y: 0, z: 0, up: '+z', insert: 'part', length: Number(v.length) };
+  const local = fastenerNodes(emptyDoc(), at), last = local.nodes.length - 1, top = local.nodes[last];
+  const made = { command: 'fastener', values: { ...at, length: String(v.length) }, ...(local.nodes.length !== 2 ? { nodes: local.nodes.length } : {}) };
+  const part: StudioDoc = top && (top.kind === 'union' || top.kind === 'extrude') ? { ...local, nodes: [...local.nodes.slice(0, -1), { ...top, made }] } : local;
+  const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
+  let n = 1; while (used.has(`inst${n}`)) n++;
+  const inst: PartInstance = { id: `inst${n}`, name: fastenerName(v), doc: part, position: [Number(v.x), Number(v.y), Number(v.z)], rotation: [...(UP_ROTATION[String(v.up ?? '+z')] ?? UP_ROTATION['+z'])] };
+  return { ...doc, instances: [...list, inst] };
+}
