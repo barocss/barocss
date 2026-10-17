@@ -11,6 +11,7 @@
     "test:browser": "node test/browser-flow.mjs",
     "bench": "node scripts/bench.mjs",
     "bench:browser": "node test/bench-browser.mjs",
+    "bench:memory": "node test/memory-session.mjs",
     "chat": "node scripts/chat-server.mjs"
   },
   "dependencies": {
