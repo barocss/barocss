@@ -60,3 +60,14 @@ test('helical threads (internal form): a bolt and a nut of B-spline faces, water
   }
   assert.deepEqual(bolt.faces.filter(f => !/\.thread#/.test(f.name)).map(f => f.name).sort(), ['b.end', 'b.head', 'b.hex0', 'b.hex1', 'b.hex2', 'b.hex3', 'b.hex4', 'b.hex5', 'b.seat']);
 });
+
+test('thread form: documents without one stay faceted (their .facetK names resolve); helical is chosen by name, and threadSolid defaults to it', () => {
+  const doc = form => D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 16, hex: { across: 13, height: 5.3 }, ...(form ? { form } : {}) }]);
+  const old = evaluateCadPart(doc()).outputs[0].brep, helical = evaluateCadPart(doc('helical')).outputs[0].brep;
+  assert.ok(old.faces.every(f => /^b\.facet\d+$/.test(f.name)), 'left out: faceted names');
+  assert.deepEqual(evaluateCadPart(doc('faceted')).outputs[0].brep.faces.map(f => f.name), old.faces.map(f => f.name));
+  const names = new Set(helical.faces.map(f => f.name.replace(/#\d+$/, '')));
+  assert.deepEqual([...names].sort(), ['b.end', 'b.head', 'b.hex0', 'b.hex1', 'b.hex2', 'b.hex3', 'b.hex4', 'b.hex5', 'b.seat', 'b.thread']);
+  assert.deepEqual(threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 16, hex: { across: 13, height: 5.3 } }).faces.map(f => f.name), helical.faces.map(f => f.name));
+  assert.throws(() => evaluateCadPart(doc('smooth')), e => e instanceof CadPartError && /form must be/.test(e.message));
+});

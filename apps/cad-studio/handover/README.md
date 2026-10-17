@@ -349,8 +349,8 @@ R2 / B0 results (2026-10-18, `014e2f821`…`38e06b110`; decisions D9–D16; conf
 - Helical M8×30 bolt: mass 5.9 → 0.47 s; half-space cut 5.7 → 1.4 s; studio split 18 → 3.7 s; display 51k
   → 9.3k triangles.
 - Sewing 1536 patches: 2.4 → 1.1 s.
-- Proposal D16: the helical thread as default. The owner decides; it needs a document version for the face
-  names.
+- D16 (approved, done after R2): the helical thread is the default for new nodes; nodes without `form` stay
+  faceted.
 - Known: the helical builder's direct output tessellates with 342 edges not used exactly twice by exact
   position (its STEP round trip comes out watertight). RB2 should catch it. Faceted bolt split still fails (touching facets).
 

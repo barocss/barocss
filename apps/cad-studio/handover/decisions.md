@@ -96,7 +96,7 @@ compared. `test/conformance.test.mjs` checks every case, and `scripts/conformanc
 kernel-measured values; a changed value is a changed contract.
 Why: a spec plus conformance suite for a later reimplementation, and goldens for RB.
 
-## D16 — Proposed: the helical thread as the default (2026-10-18, R2; decision is the owner's)
+## D16 — The helical thread is the default; thread nodes say their form (2026-10-18, owner approved)
 Proposal: switch `thread` to the helical B-spline form. On the R2 code (M8×30):
 - split works in 3.7 s (faceted fails as non-manifold after 13 s);
 - interference 2.6 s against 9.0 s;
@@ -107,8 +107,15 @@ Proposal: switch `thread` to the helical B-spline form. On the R2 code (M8×30):
 
 Its mass takes 0.47 s against 0.26 s.
 
-Open: switching renames thread faces (`.thread#k` instead of `.facetK`) for documents saved before, so the
-switch needs a document version or a per-node form.
+Owner: "D16 승인: 나사산 기본값을 helical로 바꾸고, thread 노드에 버전을 붙여 예전 문서의 .facetK 이름이 계속 풀리게 해줘."
+Decided:
+- `threadSolid` defaults to helical.
+- The part document's `thread` feature takes `form: 'helical' | 'faceted'`; left out, it builds faceted. So
+  documents written before keep their `.facetK` names and mates without being renamed.
+- The studio writes `form: 'helical'` on every new thread node (fastener inserts). Its faces are named
+  `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`.
+
+Conformance `rb1/thread-legacy-faceted` and `rb1/thread-helical`.
 
 ## D17 — Robustness runs: a fixed taxonomy, known failures as TODO, trend rows per commit (2026-10-18, RB1)
 Decided: `pnpm rb` (`packages/barocss-cad/scripts/rb/`) runs each case in a worker process with a SIGKILL

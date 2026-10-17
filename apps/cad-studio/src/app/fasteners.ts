@@ -139,9 +139,9 @@ function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { no
   }
   let d = doc;
   const add = (n: Parameters<typeof withNode>[1]) => { d = withNode(d, n); return d.nodes.length - 1; }, extra: { node: number; name: string }[] = [];
-  // Modelled: a hex bolt's and a nut's thread as a faceted helix (one solid each), else a plain cylinder.
+  // Modelled: a hex bolt's and a nut's thread as helical B-spline faces (one solid each), else a plain cylinder.
   const modelled = v.model === 'modelled' && (kind === 'hex-bolt' || kind === 'hex-nut');
-  const nutAt = (seat: number) => modelled ? add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat, hex: { across: size.s, height: size.m, internal: true } })
+  const nutAt = (seat: number) => modelled ? add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat, hex: { across: size.s, height: size.m, internal: true }, form: 'helical' })
     : add({ kind: 'extrude', sketch: add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s), holes: [circle(x, y, size.d / 2)] }), height: size.m, ...at(seat) });
   // Through, with a washer and nut under the far face (separate bodies, made before the bolt's last step).
   const joint = () => {
@@ -184,7 +184,7 @@ function buildFastener(doc: StudioDoc, v: Values): { doc: StudioDoc; extra: { no
       add({ kind: 'union', left: { node: head, side: 'solid' }, right: { node: shank, side: 'solid' } }); break;
     }
     default: {
-      if (modelled) { joint(); add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat: z, length: len, hex: { across: size.s, height: size.k } }); break; }
+      if (modelled) { joint(); add({ kind: 'thread', diameter: size.d, pitch: size.pitch, center: [x, y], seat: z, length: len, hex: { across: size.s, height: size.k }, form: 'helical' }); break; }
       const hs = add({ kind: 'sketch', profile: 'polygon', points: hexagon(x, y, size.s) });
       const head = add({ kind: 'extrude', sketch: hs, height: size.k, ...at(z) });
       const ss = add({ kind: 'sketch', profile: 'circle', center: [x, y], radius: size.d / 2 });
@@ -260,7 +260,7 @@ export const fastenerCommand: Command = {
   steps: (_ctx, v) => {
     const t = fastenerThread(v), size = FASTENER_SIZES[String(v.size)];
     const data = size && v.kind === 'hex-bolt' && !size.checked4017 ? [{ label: 'Data', text: `ISO 4017 ${String(v.size)} lengths not yet cross-checked (catalogue ${CATALOGUE.version})`, done: false }] : [];
-    return [{ label: 'Part', text: fastenerName(v), done: true }, ...(t ? [{ label: 'Thread', text: `M${t.d}×${t.pitch} ${t.hand}-hand, ${t.internal ? 'internal' : 'external'}, ${v.model === 'modelled' && (v.kind === 'hex-bolt' || v.kind === 'hex-nut') ? 'modelled: ISO 68-1 basic profile as a faceted helix (a nut 0.04 mm clear)' : 'cosmetic (no helical geometry)'}`, done: true }] : []), ...fastenerFit(v), ...data];
+    return [{ label: 'Part', text: fastenerName(v), done: true }, ...(t ? [{ label: 'Thread', text: `M${t.d}×${t.pitch} ${t.hand}-hand, ${t.internal ? 'internal' : 'external'}, ${v.model === 'modelled' && (v.kind === 'hex-bolt' || v.kind === 'hex-nut') ? 'modelled: ISO 68-1 basic profile as helical B-spline faces (a nut 0.04 mm clear)' : 'cosmetic (no helical geometry)'}`, done: true }] : []), ...fastenerFit(v), ...data];
   },
   build: (ctx, v) => v.insert === 'instance' ? withFastenerInstance(ctx.doc, v) : fastenerNodes(ctx.doc, { ...v, length: Number(v.length) }),
 };

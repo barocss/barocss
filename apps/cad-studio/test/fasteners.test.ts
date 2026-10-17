@@ -130,7 +130,7 @@ test('a fastener inserted as a part of its own: an instance at the seat, turned 
   assert.equal(withFastenerInstance(doc, v).instances![1].id, 'inst2');
 });
 
-test('a modelled thread: the bolt and its nut as faceted helices, one solid each; the made values edit it again', () => {
+test('a modelled thread: the bolt and its nut as helical B-spline faces, one solid each; the made values edit it again', () => {
   const v = { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', joint: 'nut', grip: 10, model: 'modelled', x: 0, y: 0, z: 0 };
   const doc = f.build!(ctx, v), t0 = performance.now(), bodies = bodiesOf(doc), ms = performance.now() - t0;
   const kinds = doc.nodes.map(n => n.kind);
@@ -144,6 +144,14 @@ test('a modelled thread: the bolt and its nut as faceted helices, one solid each
   assert.ok(bolt.mesh.edges.length < 6000, `${bolt.mesh.edges.length} edges shown (the facets' smooth joints hidden)`);
   assert.ok(ms < 8000, `${Math.round(ms)} ms`);
   assert.match(f.steps!(ctx, v).find(s => s.label === 'Thread')!.text, /modelled: ISO 68-1/);
+  // New nodes say their form, and the bolt's faces carry the helical names (mates pick the head and seat).
+  assert.ok(doc.nodes.filter(n => n.kind === 'thread').every(n => (n as { form?: string }).form === 'helical'));
+  const names = new Set(bolt.mesh.faces.map(face => face.name.replace(/^.*\./, '').replace(/#\d+$/, '')));
+  for (const n of ['head', 'seat', 'end', 'thread', 'hex0']) assert.ok(names.has(n), `${n} in ${[...names].join(', ')}`);
+  // A thread node saved before helical became the default (no form) still builds faceted: its .facetK names resolve.
+  const old = { ...doc, nodes: doc.nodes.map(n => { if (n.kind !== 'thread') return n; const { form: _form, ...rest } = n as typeof n & { form?: string }; void _form; return rest; }) };
+  const oldBolt = bodiesOf(old).find(b => b.key === `b${doc.nodes.length - 1}`)!;
+  assert.ok(oldBolt.mesh.faces.every(face => /\.facet\d+$/.test(face.name)), oldBolt.mesh.faces.slice(0, 3).map(face => face.name).join(', '));
 });
 
 test('ISO 4017 lengths follow the cross-checked table for every size', () => {

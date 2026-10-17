@@ -70,8 +70,12 @@ type ModelNodeBase = SketchNode
   | { kind: 'import'; name: string; step: string; solids?: number }
   /** A closed triangle mesh (an STL or OBJ file's, scaled to mm from `unit`): welded vertices, three indices a triangle. */
   | { kind: 'mesh'; name: string; unit: string; positions: number[]; indices: number[] }
-  /** A modelled ISO metric thread (faceted helix): a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`). */
-  | { kind: 'thread'; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number; hex?: { across: number; height: number; internal?: true }; made?: Made }
+  /**
+   * A modelled ISO metric thread: a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`).
+   * `form`: helical B-spline faces (`.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`), written on every new node;
+   * left out (nodes saved before 2026-10-18), a faceted helix whose `.facetK` names keep resolving.
+   */
+  | { kind: 'thread'; diameter: number; pitch: number; center: [number, number]; seat: number; length?: number; hex?: { across: number; height: number; internal?: true }; form?: 'helical' | 'faceted'; made?: Made }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */

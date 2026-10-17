@@ -1712,7 +1712,7 @@ try {
     await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.values?.x === 90, null, { timeout: 15000 }); await idle();
     await press('Escape'); await press('f'); await page.waitForTimeout(800); await snap('fastener-threads');
-    // Modelled: the thread as a faceted helix (one solid), heavier than the plain cylinder.
+    // Modelled: the thread as helical B-spline faces (one solid), its head and seat named for mates.
     await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
     await field('Part').selectOption('hex-bolt'); await field('Size').selectOption('M8'); await field('Length').selectOption('30');
     await field('Axis at X').fill('120'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('30'); await field('Thread').selectOption('modelled');
@@ -1721,6 +1721,10 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thread', null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol', { hasText: 'Bolt M8×30' }).last().click();
     await page.waitForFunction(() => /modelled|M8×1\.25/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes.at(-1).form), 'helical');
+    await press('Escape');
+    assert.ok(await page.evaluate(() => window.__studioSelectFace(`n${window.__studioDoc.nodes.length - 1}.head`)), 'the bolt head picked by name');
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Escape'); await press('f'); await page.waitForTimeout(1000); await snap('fastener-modelled-thread');
   });
 

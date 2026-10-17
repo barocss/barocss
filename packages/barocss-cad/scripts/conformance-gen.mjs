@@ -82,4 +82,10 @@ for (const [name, about, m] of [
   const doc = D([{ id: 'm', kind: 'mesh', ...m }]);
   writeRb1({ id: `rb1-${name}`, step: 'RB1', decisions: ['D17'], about, input: { partDocument: doc }, expect: refused(doc), oracle: 'contract: broken meshes are refused with GEOMETRY, never repaired silently' });
 }
+// D16: the thread form. A document without one (written before helical became the default) stays faceted.
+const threadDoc = form => D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 20, hex: { across: 13, height: 5.3 }, ...(form ? { form } : {}) }]);
+writeRb1({ id: 'rb1-thread-legacy-faceted', step: 'RB1', decisions: ['D16'], about: 'A thread written before the helical default (no form) builds faceted: its faces stay .facetK.',
+  input: { partDocument: threadDoc() }, expect: measured(threadDoc(), 1e-9, 1e-6, '^b\\.facet\\d+$'), oracle: 'this kernel (faceted helix, flat facets)' });
+writeRb1({ id: 'rb1-thread-helical', step: 'RB1', decisions: ['D16'], about: 'A helical M8 × 20 hex bolt: B-spline thread faces and named head, seat, end and hex faces.',
+  input: { partDocument: threadDoc('helical') }, expect: measured(threadDoc('helical'), 1e-9, 1e-6, 'list'), oracle: 'this kernel (half-turn B-spline faces; within 3e-4 of the ISO-profile volume)' });
 console.log('written to', out, 'and', rb1);

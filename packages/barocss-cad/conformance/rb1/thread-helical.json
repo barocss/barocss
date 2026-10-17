@@ -1,0 +1,64 @@
+{
+  "id": "rb1-thread-helical",
+  "step": "RB1",
+  "decisions": [
+    "D16"
+  ],
+  "about": "A helical M8 × 20 hex bolt: B-spline thread faces and named head, seat, end and hex faces.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "b",
+          "kind": "thread",
+          "diameter": 8,
+          "pitch": 1.25,
+          "length": 20,
+          "hex": {
+            "across": 13,
+            "height": 5.3
+          },
+          "form": "helical"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1603.12372185,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [0, 0, -3.879080159],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.end",
+          "b.head",
+          "b.hex0",
+          "b.hex1",
+          "b.hex2",
+          "b.hex3",
+          "b.hex4",
+          "b.hex5",
+          "b.seat",
+          "b.thread"
+        ]
+      }
+    ]
+  },
+  "oracle": "this kernel (half-turn B-spline faces; within 3e-4 of the ISO-profile volume)"
+}

@@ -137,7 +137,9 @@ export type CadPartFeature = Base & (
    * two of them within `tolerance` mm); the faces keep their exact surfaces.
    */
   | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
-  | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
+  | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
+    /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
+    readonly form?: 'faceted' | 'helical' }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
    * order of its B-rep's bodies; refused for a body in one piece.
@@ -707,8 +709,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const h = f.hex as Record<string, unknown> | undefined;
       if (h !== undefined && !isRecord(h)) fail('INPUT', 'hex must be { across, height, internal? }');
       const hex = h ? { across: dim(h.across as CadPartDim, 'hex.across', true), height: dim(h.height as CadPartDim, 'hex.height', true), internal: h.internal === true } : undefined;
+      if (f.form !== undefined && f.form !== 'faceted' && f.form !== 'helical') fail('INPUT', "form must be 'helical' or 'faceted'");
+      // (Left out: the faceted form, as such documents were built before helical became the default.)
+      const form = (f.form as 'faceted' | 'helical' | undefined) ?? 'faceted';
       return () => {
-        try { return one({ kind: 'brep', brep: threadSolid({ id: at, diameter: d, pitch: p, center: c, seat, ...(length === undefined ? {} : { length }), ...(hex ? { hex } : {}) }) }); }
+        try { return one({ kind: 'brep', brep: threadSolid({ id: at, diameter: d, pitch: p, center: c, seat, form, ...(length === undefined ? {} : { length }), ...(hex ? { hex } : {}) }) }); }
         catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('PARAMETER', cause.message); throw cause; }
       };
     }

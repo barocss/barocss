@@ -1,5 +1,6 @@
 // Modelled ISO metric threads (ISO 68-1 basic profile: crest P/8 wide at the major diameter, 60° flanks,
-// root P/4 wide at d − 5H/4, H = √3/2 · P) as faceted solids, built as one closed mesh so that no
+// root P/4 wide at d − 5H/4, H = √3/2 · P). By default as helical B-spline faces (thread-helical.ts); the
+// faceted form below (the one documents written before 2026-10-18 keep) as one closed mesh so that no
 // Boolean is needed: a threaded rod, a hex head bolt (the head and its threaded shank), or a hex nut
 // with a threaded bore. The helix is sampled every 7.5° round and every P/12 along; each facet is flat,
 // so the solid is exact as a polyhedron and its mass, drawing and export follow from it.
@@ -19,7 +20,11 @@ export interface ThreadSolidRequest {
   readonly hex?: { readonly across: number; readonly height: number; readonly internal?: boolean };
   /** Steps round a turn (a multiple of 12, default 48) and along a pitch (default 12). */
   readonly around?: number; readonly along?: number;
-  /** @internal How the thread is built: faceted (the default, flat facets) or helical (B-spline faces; being measured). */
+  /**
+   * How the thread is built: `helical` (the default) as half-turn B-spline faces between helices, named
+   * `${id}.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`, `.top`, `.bottom`; or `faceted`, one closed mesh of
+   * flat facets named `${id}.facet${k}` (the form documents written before 2026-10-18 keep).
+   */
   readonly form?: 'faceted' | 'helical';
 }
 
@@ -32,7 +37,7 @@ export function isoThreadRadius(d: number, pitch: number, phase: number): number
 }
 
 export function threadSolid(req: ThreadSolidRequest): Brep {
-  if (req.form === 'helical') return helicalThreadSolid(req);
+  if ((req.form ?? 'helical') === 'helical') return helicalThreadSolid(req);
   const d = req.diameter, P = req.pitch, [cx, cy] = req.center ?? [0, 0], seat = req.seat ?? 0, N = req.around ?? 48, K = req.along ?? 12;
   if (!(d > 0 && P > 0 && P < d / 2)) throw new RangeError('a thread needs a diameter and a pitch below half of it');
   if (!(N >= 12 && N % 12 === 0)) throw new RangeError('steps round a turn must be a multiple of 12');

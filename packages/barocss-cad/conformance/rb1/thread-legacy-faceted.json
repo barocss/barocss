@@ -1,0 +1,52 @@
+{
+  "id": "rb1-thread-legacy-faceted",
+  "step": "RB1",
+  "decisions": [
+    "D16"
+  ],
+  "about": "A thread written before the helical default (no form) builds faceted: its faces stay .facetK.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "b",
+          "kind": "thread",
+          "diameter": 8,
+          "pitch": 1.25,
+          "length": 20,
+          "hex": {
+            "across": 13,
+            "height": 5.3
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1600.40613693,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [0, 0, -3.868686489],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^b\\.facet\\d+$"
+      }
+    ]
+  },
+  "oracle": "this kernel (faceted helix, flat facets)"
+}
