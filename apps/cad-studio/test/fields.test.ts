@@ -30,6 +30,9 @@ function full(): StudioDoc {
     drawing: defaultDrawing(), bodies: { b2: { color: '#ff0000', faceSigs: {}, facesWas: {} } },
     mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top', sig: { k: 'plane', p: [0, 0, 8], d: [0, 0, 1], s: 0 } }, b: { part: 'i1', face: 'n1.bottom' } }],
     requirements: [{ id: 'R1', source: '40 long', hard: true, basis: 'assumed', confirmed: { by: 'user', at: '2026-10-18T00:00:00Z' }, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } }],
+    proposals: [{ id: 'P1', title: 'thicker', status: 'rejected', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', base: '00000000', ops: [], summary: 'no change',
+      risk: { level: 'low', features_touched: 0, references_broken: 0, hard_requirements_changed: [], approval: [] } }],
+    history: [{ id: 'h1', at: '2026-10-18T00:00:00Z', kind: 'prompt', by: { agent: 'chat' }, prompt: 'a plate' }],
   };
   return values as StudioDoc;
 }
@@ -67,4 +70,15 @@ test('fields: an instance\'s node extras survive flattening, their names moved w
   const shifted = (fillet as { edges: string[] }).edges[0];
   assert.ok(fillet.sigs![shifted], `the signature is under the shifted name ${shifted}: ${Object.keys(fillet.sigs!)}`);
   assert.ok(fillet.rematched![shifted], 'the mark too');
+});
+
+test('fields: a change built on the document itself keeps what it cleared (not carried back from the document)', () => {
+  const doc = full(), was: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes.slice(), outputs: doc.outputs, nextId: doc.nextId };
+  // Every look cleared (show all bodies), the model untouched.
+  const cleared: StudioDoc = { ...doc }; delete cleared.bodies;
+  assert.equal(carryOver(cleared, was, doc).bodies, undefined);
+  // A feature added to the document and its requirements removed: the model changed, the rest the document's.
+  const added: StudioDoc = { ...withNode(doc, { kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [1, 0, 0] }) }; delete added.requirements;
+  assert.equal(carryOver(added, was, doc).requirements, undefined);
+  assert.equal(carryOver(added, was, doc).history, doc.history);
 });

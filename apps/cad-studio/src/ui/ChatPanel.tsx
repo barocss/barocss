@@ -7,6 +7,9 @@ import type { BodyResult } from '../engine/evaluate';
 import type { NameSelection } from '../chat/tools';
 import { chatStatus, runServerTurn, type ChatStatus } from '../chat/client';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
+import { diffLine, withHistory } from '../chat/proposals';
+import { treeDiff } from '../chat/transactions';
+import { modelHash } from '../chat/spec';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -74,8 +77,9 @@ export function ChatPanel(props: ChatPanelProps) {
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null, previewing = 0;
+    const base = props.base();
     const done = await runServerTurn({
-      text: message, images: attached, traces: traces.current, doc: props.base(), session: session.current, signal: controller.signal,
+      text: message, images: attached, traces: traces.current, doc: base, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -90,7 +94,12 @@ export function ChatPanel(props: ChatPanelProps) {
     if (done.session) session.current = done.session;
     abort.current = null; setRunning(false);
     // An aborted turn keeps what it had built when it stopped.
-    const doc = done.doc ?? (done.end === 'aborted' ? built : null);
+    let doc = done.doc ?? (done.end === 'aborted' ? built : null);
+    // (The turn in the design history, saved with the part: the message capped, the model, what it changed.)
+    if (doc) {
+      const hash = modelHash(doc), line = diffLine(treeDiff(base, doc));
+      doc = withHistory(doc, { kind: 'prompt', by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, prompt: message, ...(line ? { summary: line } : {}), ...(hash !== modelHash(base) ? { model_hash: hash } : {}) });
+    }
     if (done.end === 'error') setItems(list => [...list, { kind: 'notice', text: done.error ?? 'The chat request failed.' }]);
     if (done.end === 'aborted') setItems(list => [...list, { kind: 'notice', text: doc ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.' }]);
     latest.current.onPreview(null);
@@ -114,7 +123,7 @@ export function ChatPanel(props: ChatPanelProps) {
           <code>pnpm --filter @barocss/cad-studio-app chat</code>
           It runs the claude CLI with its own sign-in; the browser only talks to the local server.
         </div>}
-        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.</div>}
+        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
         {items.map((it, i) => it.kind === 'tool'
           ? <details key={i} className={'chat-tool' + (it.isError ? ' err' : '')}>
               <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{it.name}</span> <span className="chat-sum">{it.summary}</span></summary>

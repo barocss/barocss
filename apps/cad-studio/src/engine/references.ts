@@ -18,7 +18,7 @@
 //   stored signature. Its clear best being the name stored, the reference stands; another name, it is
 //   substituted and marked re-matched (until confirmed). Unclear or gone, it is a problem: the document opens,
 //   the feature holding it is held (suppressed, with the reason) so the rest builds, and the user picks.
-import { BASE, type FaceTable, type MateFace } from '../assembly/mates';
+import type { FaceTable, MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { bodyKeyFor } from './ids';
 import { prefixDoc, type StudioDoc } from './doc';
@@ -220,7 +220,7 @@ export async function confirmReference(doc: StudioDoc, index: number, finals: re
   if (!ref) return doc;
   if (to !== undefined && to !== ref.name) { ref.rename(to, false); ref.name = to; }
   ref.clear();
-  if (ref.node !== null && out.nodes[ref.node].held) { const { held: _, suppressed: __, ...n } = out.nodes[ref.node]; out.nodes[ref.node] = n; }
+  if (ref.node !== null && out.nodes[ref.node].held) { const n = { ...out.nodes[ref.node] }; delete n.held; delete n.suppressed; out.nodes[ref.node] = n; }
   const parents = await parentBodies(out, [ref], evaluate), sig = candidatesOf(ref, finals, parents, tables)?.get(ref.name);
   if (sig) ref.setSig(toSig(sig));
   return prefixDoc(out, out.nodes.length);

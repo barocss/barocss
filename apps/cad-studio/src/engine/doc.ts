@@ -54,7 +54,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  * rebuilds nodes, so a new field is either carried or fails it (test/fields.test.ts).
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held'] as const satisfies readonly (keyof NodeExtras)[];
-const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
+export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
@@ -134,6 +134,7 @@ import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from '../chat/spec';
+import type { HistoryEntry, Proposal } from '../chat/proposals';
 
 export interface StudioDoc {
   format: 'barocss-cad-model';
@@ -170,6 +171,10 @@ export interface StudioDoc {
   mates?: Mate[];
   /** The brief as requirements with executable checks (chat/spec.ts). */
   requirements?: Requirement[];
+  /** Changes agents proposed without making them, accepted or rejected ones kept (chat/proposals.ts). */
+  proposals?: Proposal[];
+  /** The design history: prompts, changes, proposals and decisions, compact and under a budget (chat/proposals.ts). */
+  history?: HistoryEntry[];
 }
 
 /** A copy of another part placed by a rotation (degrees about X, then Y, then Z, through the origin) and a move. */
@@ -242,8 +247,8 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements'] as const satisfies readonly (keyof StudioDoc)[];
-const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements', 'proposals', 'history'] as const satisfies readonly (keyof StudioDoc)[];
+export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
 /**
@@ -252,6 +257,9 @@ const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
  * holds is dropped because a command rebuilt it from a copy.
  */
 export function carryOver(next: StudioDoc, was: StudioDoc, doc: StudioDoc): StudioDoc {
+  // A change built on the document itself is its own newest: what it cleared stays cleared. (Told by its model
+  // being the document's very nodes, or by a field it holds that only the document has.)
+  if (next.nodes === doc.nodes || STUDIO_DOC_FIELDS.some(k => !MODEL_FIELDS.has(k) && doc[k] !== undefined && doc[k] !== was[k] && next[k] === doc[k])) return next;
   const out: Record<string, unknown> = { ...next };
   for (const k of STUDIO_DOC_FIELDS) if (!MODEL_FIELDS.has(k) && next[k] === was[k] && doc[k] !== was[k]) { if (doc[k] === undefined) delete out[k]; else out[k] = doc[k]; }
   return out as unknown as StudioDoc;

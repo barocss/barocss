@@ -12,7 +12,6 @@ import { captureSignatures, refreshSignatures, verifyReferences } from '../src/e
 // edit, verified on open by the one matcher.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function bodiesOf(doc: StudioDoc) { const r = await evaluate(doc); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; }
-const parse = (content: string) => JSON.parse(content) as Record<string, any>;
 
 test('signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed', async () => {
   const box = rectanglePart(10, 10, 5), bodies = await bodiesOf(box);

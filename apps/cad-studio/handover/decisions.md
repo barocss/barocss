@@ -800,3 +800,89 @@ Evidence: studio 276/276.
 
 Next: A4.2, proposals on a branch with a ghost preview and a risk badge, and the history kept in the document.
 
+
+## D40 — Proposals with a ghost preview and a risk badge; the design history in the document, under a budget (2026-10-18, A4.2)
+Decided:
+- **`propose`.** An agent proposes a change instead of making it: `{title, ops, plan?, requirements?}`, the ops as
+  `apply_ops` takes them. They run on a copy; the part is unchanged (its model hash the same).
+  - The result: the feature-tree diff, the facts' change, references that would break, the checks before and
+    after (`checkSpec` both sides: counts, newly failing, newly passing) and a risk badge.
+  - A proposal keeps its ops and the model hash it was made on (`base`), not a copy of the part: its result is
+    the ops replayed. Recorded with it: agent and model (`CAD_MODEL`), the user's message (`CAD_PROMPT`, capped
+    at 2,000 characters), the plan (500), requirement ids, a one-line summary.
+  - The regression guard (D37) does not refuse a proposal: what it does to hard requirements is the badge.
+  - `list_proposals` gives the open ones (all: decided too), stale when the part changed since.
+- **Risk badge.** `features_touched` (added, changed, deleted, moved), `references_broken`,
+  `hard_requirements_changed` (outcome flipped or definition changed), a level, and `approval`.
+  - Level: high when a hard requirement changes, a reference breaks or a feature is deleted; medium when more than
+    three features change, one moves or a parameter changes; else low.
+  - `approval` lists why it always needs a person: an assembly, mates, a drawing, a part from a file. **Pending
+    decision (reversible default):** the document has no "locked" flag yet; a placed part with a `source` file
+    counts as locked. In A4.2 every proposal needs a person anyway; A4.3's autonomy levels read this list.
+- **Accept and reject (studio).** The Proposals list in the Browser:
+  - **Preview** shows the ghost: the bodies the proposal leaves, the changed ones tinted. **Before/After**
+    switches between it and the part as it is. The volume change shows in mm³ and per cent.
+  - **Accept** replays the ops on the part as it is now, one undoable commit. On a part changed since, it is
+    replayed and that is recorded ("replayed on a part changed since it was proposed"). If an op no longer
+    applies, nothing changes, the reason is shown and the proposal stays open. Accepting while rolled back is
+    refused with a hint.
+  - **Reject** keeps the proposal, marked rejected with who and when (and a note, from the API).
+  - Decided ones are hidden behind a filter, never deleted.
+  - The volume overlay is numeric plus tinted changed bodies. A region overlay (material added and removed, in
+    two colours) needs a Boolean per body each way; deferred, recorded here.
+- **Design history (`StudioDoc.history`).** A compact record per entry: id, time, kind (prompt, change,
+  proposal, accept, reject, compacted), agent and model, prompt (2,000 characters), plan (500), summary (240),
+  requirement ids, the model hash produced, the proposal id and its risk.
+  - A chat turn that changes the document adds one `prompt` entry when it ends: the message (attachment names
+    only), the diff in a few words, the model hash when the model changed. A turn that changes nothing adds
+    none (it makes no commit).
+  - No transcripts, tool outputs or images are stored. Full diffs are recomputed from ops and checkpoints.
+  - A person's own edits are not entries: undo covers them, and the history is about agents and decisions.
+  - **Budget:** the history's JSON is at most a tenth of the 4 MiB file limit (419,430 bytes). Over it, the oldest
+    half is folded into one `compacted` entry: how many entries, by kind, and their time span. Folds fold
+    again; ids keep counting.
+- **Privacy.** The history and the proposals' prompts are saved with the part.
+  - The Browser says so under Design history, with **Save a copy without it**: `<name>-shared.bcad`, the
+    history removed and the proposals kept without prompts and plans (`stripHistory`).
+  - The chat's empty state says messages are kept in the part's design history.
+- **Chat base.** The chat now starts from the current document's own fields (requirements, proposals, history),
+  not those of the evaluated copy, which follows model edits only. Before, an agent could see stale requirements.
+- Both new fields are in `STUDIO_DOC_FIELDS`; the fields test sets them and they survive every path.
+- **Fix: D39's carry-over, found by the full browser flow.** It was too wide in two ways.
+  - A new or opened document (`replaceDoc`: New part, Open, templates, mesh and STEP import) went through
+    `carryOver`. The previous document's own fields leaked into it: body names and looks, requirements, and now
+    the history. That is a privacy leak once prompts are stored. `commit(next, capture, whole)` now skips the
+    carry-over for a whole document.
+  - A change built on the document itself, not on the evaluated copy, had what it cleared carried back. "Show
+    all bodies" removes the hidden looks, and they returned. `carryOver` now leaves such a change as it is. It
+    recognises one when the change's nodes are the document's own, or when it holds a field that only the
+    document has.
+  - Guarded by a new fields test, and by the browser step, which checks that a new part has no history,
+    proposals, looks or requirements.
+
+Why: a proposal lets the user see what an agent would do before it happens, and the history keeps who asked for
+what in the file it changed. The budget keeps a long-lived part's file from being taken over by its history.
+
+Evidence: studio 282/282; browser flow 106/106; bench within budget (16-hole plate 1.27 s of 3 s); lint clean.
+- `test/proposals.test.ts`:
+  - propose: model unchanged; diff n2; checks 1/1/0 → 1/1/0; risk low; refusals keep nothing; a bigger hole
+    makes R2 newly passing (risk high); listed, then stale after an edit.
+  - Accept replays the ops. A proposal made before another accepted one is replayed on the changed part, and
+    that is noted. Each proposal is decided once.
+  - Reject keeps the proposal. History kinds come in order. A proposal whose face is gone is refused on accept.
+    Save and open round-trips.
+  - History: a prompt capped at 2,000 characters; 200 × 2 kB entries under a 40 kB budget are folded with every
+    entry accounted for; ids stay unique and keep counting; stripping leaves no prompt or plan.
+  - Approval for an assembly and a part from a file.
+- Conformance `a4/propose-plate`: R2 (≤ 6200 mm³) fails at 6400 and passes at 6173.81 after the proposed Ø6
+  hole. Risk high (R2); accepted gives 3 features and history proposal → accept.
+- Browser flow, new step:
+  - a document with two proposals opens;
+  - the P1 ghost shows −226.19 mm³ (−3.53%), and Before/After switches;
+  - Accept makes the hole (3 features, history prompt → accept); P2 is rejected and kept;
+  - the history lists 3 entries;
+  - the shared copy has no history, prompt or plan, and keeps the proposals.
+
+Next: A4.3. Accept a proposal per feature, dependency-aware: unticking a parent unticks its children, with a
+rebuild preview. Then autonomy levels L1–L4 reading `risk.approval`, and viewport selections sent to chat as
+context chips.

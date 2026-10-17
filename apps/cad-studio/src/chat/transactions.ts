@@ -5,7 +5,7 @@ import { featureLabel, type ModelNode, type StudioDoc } from '../engine/doc';
 import { featureId } from '../engine/ids';
 
 /** A node without what the studio keeps about its references (signatures, marks): what the feature is. */
-const essence = (n: ModelNode) => { const { sigs: _, rematched: __, held: ___, ...rest } = n; return JSON.stringify(rest); };
+const essence = (n: ModelNode) => { const rest: Partial<ModelNode> = { ...n }; delete rest.sigs; delete rest.rematched; delete rest.held; return JSON.stringify(rest); };
 
 export interface TreeDiff {
   added: { id: string; label: string }[];

@@ -17,7 +17,8 @@ import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
-import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions } from './transactions';
+import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions, type TreeDiff } from './transactions';
+import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, riskOf, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 export { resolveNames, type NameSelection };
@@ -291,6 +292,76 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
 
+/** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
+interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
+async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun> {
+  const ops = Array.isArray(input) ? input : null;
+  if (!ops?.length) return { fail: fail(state, 'Pass "ops": a list of {tool, args, opId?}.') };
+  const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [];
+  let cur: ChatState = state;
+  for (let k = 0; k < ops.length; k++) {
+    const op = ops[k] as Record<string, unknown>;
+    if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return { fail: fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' }) };
+    const opId = typeof op.opId === 'string' ? op.opId : undefined, opArgs = isObj(op.args) ? op.args : {};
+    if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
+    const r = await runPartTool(cur, op.tool, opArgs, evaluate);
+    if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return { fail: fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }) }; }
+    cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
+    results.push({ op: k, ...(opId ? { opId } : {}), did }); kept.push({ tool: op.tool, args: opArgs, ...(opId ? { opId } : {}) });
+  }
+  const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
+  const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
+  return { cur, results, ops: kept, diff, change, broken };
+}
+/**
+ * A proposal's change worked out on a copy (A4.2): the ops run as a person would apply them (no regression
+ * guard: the checks' delta and the risk say what it does), the requirements checked before and after.
+ */
+export async function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun & { checks?: ChecksDelta; risk: Risk; summary: string }> {
+  const run = await runOps({ ...state, policy: undefined }, ops, evaluate);
+  if ('fail' in run) return run;
+  const { cur, diff, broken } = run;
+  let checks: ChecksDelta | undefined;
+  const hardChanged = new Set<string>();
+  if (state.doc.requirements?.length || cur.doc.requirements?.length) {
+    const a = await checkSpec(state.doc, state.bodies, evaluate), b = await checkSpec(cur.doc, cur.bodies, evaluate);
+    const flipped = [...b.outcomes].filter(([id, o]) => (a.outcomes.get(id)?.status ?? 'unknown') !== o.status);
+    checks = { before: countsOf(a.summary), after: countsOf(b.summary), newly_failing: flipped.filter(([, o]) => o.status === 'fail').map(([id]) => id), newly_passing: flipped.filter(([, o]) => o.status === 'pass').map(([id]) => id) };
+    const hard = new Set([...(state.doc.requirements ?? []), ...(cur.doc.requirements ?? [])].filter(r => r.hard).map(r => r.id));
+    for (const [id] of flipped) if (hard.has(id)) hardChanged.add(id);
+    for (const id of [...(diff.requirements?.added ?? []), ...(diff.requirements?.changed ?? []), ...(diff.requirements?.deleted ?? [])]) if (hard.has(id)) hardChanged.add(id);
+  }
+  const risk = riskOf(state.doc, cur.doc, diff, broken.length, [...hardChanged]);
+  const summary = [diffLine(diff), ...(checks ? [`checks ${checks.before.pass}/${checks.before.fail}/${checks.before.unknown} → ${checks.after.pass}/${checks.after.fail}/${checks.after.unknown}`] : [])].filter(Boolean).join(', ') || 'no change';
+  return { ...run, checks, risk, summary };
+}
+const countsOf = (s: { pass: number; fail: number; unknown: number }) => ({ pass: s.pass, fail: s.fail, unknown: s.unknown });
+
+/**
+ * A proposal accepted by a person (A4.2): its ops replayed on the part as it is now (on a part changed since it
+ * was made, said in the decision), the proposal marked, and the decision in the history with the model it made.
+ * The replay's refusal, if any, is returned and nothing changes.
+ */
+export async function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, by = 'user'): Promise<{ state: ChatState } | { error: string }> {
+  const p = state.doc.proposals?.find(q => q.id === id);
+  if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
+  const run = await runOps({ ...state, policy: undefined }, p.ops, evaluate);
+  if ('fail' in run) { let why = run.fail.content; try { why = JSON.parse(why).error; } catch { /* plain text */ } return { error: why }; }
+  const at = new Date().toISOString(), hash = modelHash(run.cur.doc), rebased = p.base !== modelHash(state.doc);
+  const decided = { by, at, model_hash: hash, ...(rebased ? { note: 'replayed on a part changed since it was proposed' } : {}) };
+  let doc: StudioDoc = { ...run.cur.doc, proposals: (state.doc.proposals ?? []).map(q => q.id === id ? { ...q, status: 'accepted' as const, decided } : q) };
+  doc = withHistory(doc, { kind: 'accept', by: { agent: by }, proposal: id, model_hash: hash, summary: `${id} ${p.title}${rebased ? ' (replayed on a changed part)' : ''}`, ...(p.requirements ? { requirements: p.requirements } : {}), risk: p.risk });
+  return { state: { ...run.cur, doc } };
+}
+/** The bodies a proposal would leave (its ghost preview), or its refusal. */
+export async function previewProposal(state: ChatState, id: string, evaluate: Evaluate): Promise<{ doc: StudioDoc; bodies: BodyResult[] } | { error: string }> {
+  const p = state.doc.proposals?.find(q => q.id === id);
+  if (!p) return { error: `No proposal ${id}.` };
+  const run = await runOps({ ...state, policy: undefined }, p.ops, evaluate);
+  if ('fail' in run) { let why = run.fail.content; try { why = JSON.parse(why).error; } catch { /* plain text */ } return { error: why }; }
+  return { doc: run.cur.doc, bodies: run.cur.bodies };
+}
+
 /**
  * How much a result lists (A2.4): 'concise' facts and what changed without the bodies' faces and edges,
  * 'detailed' them all (paged), else ('auto') them when the part is small. Set per call from `response_format`.
@@ -524,26 +595,33 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     }
     case 'apply_ops': {
       // All or nothing: each op runs on what the one before left; one refusal and nothing is applied.
-      const ops = Array.isArray(args.ops) ? args.ops : null;
-      if (!ops?.length) return fail(state, 'Pass "ops": a list of {tool, args, opId?}.');
-      const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, results: Record<string, unknown>[] = [];
-      let cur: ChatState = state;
-      for (let k = 0; k < ops.length; k++) {
-        const op = ops[k] as Record<string, unknown>;
-        if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' });
-        const opId = typeof op.opId === 'string' ? op.opId : undefined;
-        if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
-        const r = await runPartTool(cur, op.tool, isObj(op.args) ? op.args : {}, evaluate);
-        if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }); }
-        cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
-        results.push({ op: k, ...(opId ? { opId } : {}), did });
-      }
-      const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
-      const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
+      const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, run = await runOps(state, args.ops, evaluate);
+      if ('fail' in run) return run.fail;
+      const { cur, results, diff, change, broken } = run;
       const body = { ...(dry ? { dryRun: true, would_apply: results } : { ok: true, applied: results }), diff, change, ...(broken.length ? { broken_references: broken } : {}) };
       if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: ${results.length} ops` };
       const applied = [...tx.applied, ...results.flatMap(r => typeof r.opId === 'string' && !r.skipped ? [r.opId] : [])].slice(-OP_IDS);
       return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `${results.length} ops applied` };
+    }
+    case 'propose': {
+      // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
+      const title = typeof args.title === 'string' ? args.title.trim() : '';
+      if (!title) return fail(state, 'A proposal takes a title.');
+      const reqs = strings(args.requirements), known = new Set((state.doc.requirements ?? []).map(r => r.id)), unknown = reqs.filter(r => !known.has(r));
+      if (unknown.length) return fail(state, `No requirement ${unknown.join(', ')}; requirements: ${[...known].join(', ') || 'none'}.`);
+      const made = await proposalOf(state, args.ops, evaluate);
+      if ('fail' in made) return made.fail;
+      const env = typeof process !== 'undefined' ? process.env : undefined;
+      const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
+      const plan = typeof args.plan === 'string' ? args.plan : undefined;
+      const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
+        ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), ops: made.ops, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
+      const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
+      return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
+    }
+    case 'list_proposals': {
+      const list = (state.doc.proposals ?? []).filter(p => args.all === true || p.status === 'open');
+      return { state, content: json({ proposals: list.map(({ ops, ...p }) => ({ ...p, ops: ops.length, stale: p.status === 'open' && p.base !== modelHash(state.doc) })) }), isError: false, changed: false, summary: `${list.length} proposal${list.length === 1 ? '' : 's'}` };
     }
     case 'checkpoint': {
       const label = String(args.name ?? ''); if (!label) return fail(state, 'A checkpoint takes a name.');
@@ -749,6 +827,16 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, additionalProperties: false },
   },
   {
+    name: 'propose',
+    description: 'Proposes a change without making it: title, ops (as apply_ops takes them), plan (a few lines: what and why), requirements (the ids it serves). The ops are tried on a copy; the result is the feature-tree diff, the facts\' change, references it would break, the checks before and after, and a risk badge. The part stays as it is: the user accepts or rejects the proposal in the studio, and rejected ones are kept. Propose instead of changing when the user asks for options or a review, or when the change is risky (deletes features, breaks references or hard requirements).',
+    input_schema: { type: 'object', properties: { title: { type: 'string' }, ops: { type: 'array', items: { type: 'object', properties: { tool: { type: 'string' }, args: { type: 'object' }, opId: { type: 'string' } }, required: ['tool'] } }, plan: { type: 'string' }, requirements: { type: 'array', items: { type: 'string' } } }, required: ['title', 'ops'], additionalProperties: false },
+  },
+  {
+    name: 'list_proposals',
+    description: 'The open proposals (all: true for accepted and rejected ones too, with who decided, when and why): id, title, summary, risk, and stale when the part changed since.',
+    input_schema: { type: 'object', properties: { all: { type: 'boolean' } }, additionalProperties: false },
+  },
+  {
     name: 'restore_best',
     description: 'Puts the part back to the best snapshot check_spec has seen this session (most requirements passing, then the smallest misses): the restart point when repairs stop making progress.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
@@ -786,7 +874,7 @@ export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD 
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
-Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 

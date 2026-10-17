@@ -373,3 +373,17 @@ button.chip.snap:hover { background: #3a3c41; }
 .texture-thumb { width: 28px; height: 28px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line, #3a3f4a); }
 .file-button { cursor: pointer; }
 .pending-rev { margin: 6px 0; padding: 6px 8px; border: 1px solid var(--accent, #e8c25a); border-radius: 6px; font-size: 12px; }
+/* Proposals and the design history (A4.2). */
+.proposal { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; border-radius: 5px; border-left: 3px solid var(--border, #444); font-size: 12px; line-height: 1.4; }
+.proposal.risk-low { border-left-color: #4caf7d; } .proposal.risk-medium { border-left-color: #c9a227; } .proposal.risk-high { border-left-color: #e05a4f; }
+.proposal.rejected, .proposal.accepted { opacity: 0.7; }
+.proposal-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.risk-badge { margin-left: auto; padding: 0 5px; border-radius: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; background: rgba(255, 255, 255, 0.08); }
+.risk-badge.low { color: #4caf7d; } .risk-badge.medium { color: #c9a227; } .risk-badge.high { color: #e05a4f; }
+.proposal-plan { white-space: pre-wrap; color: var(--text); opacity: 0.85; }
+.proposal-actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.proposal-dv { font-size: 11px; }
+.history-note { font-size: 11px; }
+.hist { font-size: 11px; line-height: 1.4; padding: 1px 4px; }
+.history-note .link { border: 0; background: transparent; color: var(--accent); font: inherit; padding: 0; cursor: pointer; text-decoration: underline; }
+.proposal-actions button { padding: 2px 8px; font-size: 11px; min-height: 0; }

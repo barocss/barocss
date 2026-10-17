@@ -4,7 +4,7 @@
 // studio does, so mated parts follow edits of the parts they are mated to.
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { faceKey, faceTableOf, tableOf, tablesFor } from '../assembly/faces';
+import { tableOf, tablesFor } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import type { ToolDefinition } from './api';
 

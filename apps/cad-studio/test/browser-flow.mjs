@@ -1992,6 +1992,50 @@ try {
     assert.equal((await doc()).nodes.length, before + 1, 'the move is kept');
   });
 
+  await check('proposals: a ghost preview with before/after and the volume change; accepted (ops replayed) or rejected (kept); the history saved with the part, stripped from a shared copy', async () => {
+    const fs = await import('node:fs');
+    const nodes = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }];
+    const risk = { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] };
+    const hole = d => ({ tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d, x: 10, y: 10 } } });
+    const proposals = [
+      { id: 'P1', title: 'A Ø6 hole', status: 'open', by: { agent: 'chat', model: 'test' }, at: '2026-10-18T00:00:00Z', plan: 'Lighter by a through hole.', base: '0', ops: [hole(6)], risk, summary: '1 added' },
+      { id: 'P2', title: 'A Ø12 hole', status: 'open', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', prompt: 'private words', base: '0', ops: [hole(12)], risk: { ...risk, level: 'high' }, summary: '1 added' },
+    ];
+    const history = [{ id: 'h1', at: '2026-10-18T00:00:00Z', kind: 'prompt', by: { agent: 'chat', model: 'test' }, prompt: 'make it lighter' }];
+    const file = join(out, 'proposals.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes, proposals, history }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 }); await idle();
+    assert.match(await page.textContent('.history-note'), /Saved with the part/);
+    // The ghost: the part with the hole, 226 mm³ (3.53 %) off; before shows the part as it is.
+    await page.locator('[aria-label="Proposal P1"] button', { hasText: 'Preview' }).click();
+    await page.waitForSelector('[aria-label="Proposal P1"] [aria-label="Volume change"]', { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Proposal P1"] [aria-label="Volume change"]'), /^−226(\.\d+)? mm³ \(−3\.53%\)$/);
+    await snap('proposal-ghost');
+    await page.click('[aria-label="Proposal P1"] [aria-label="Before or after"]');
+    assert.equal(await page.textContent('[aria-label="Proposal P1"] [aria-label="Before or after"]'), 'Before');
+    // Accepted: the hole made, the proposal kept as accepted, the decision in the history.
+    await page.locator('[aria-label="Proposal P1"] button', { hasText: 'Accept' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioDoc.proposals[0].status === 'accepted', null, { timeout: 15000 });
+    assert.deepEqual((await doc()).history.map(h => h.kind), ['prompt', 'accept']);
+    // Rejected: kept, nothing built.
+    await page.locator('[aria-label="Proposal P2"] button', { hasText: 'Reject' }).click();
+    await page.waitForFunction(() => window.__studioDoc.proposals[1].status === 'rejected', null, { timeout: 5000 });
+    assert.equal((await doc()).nodes.length, 3);
+    await page.click('[aria-label="Show design history"]');
+    assert.equal(await page.locator('.hist').count(), 3);
+    // A copy to share: no history, no prompts or plans.
+    const [shared] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('.history-note .link')]);
+    const text = fs.readFileSync(await shared.path(), 'utf8');
+    assert.match(shared.suggestedFilename(), /-shared\.bcad$/);
+    assert.ok(!/"history"|private words|Lighter by/.test(text) && /"proposals"/.test(text));
+    // A new part starts clean: nothing of this one (history, proposals, looks) carried into it.
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 5000 });
+    const fresh = await doc();
+    assert.deepEqual([fresh.history, fresh.proposals, fresh.bodies, fresh.requirements], [undefined, undefined, undefined, undefined]);
+  });
+
   await check('face colour: the top of a box coloured on its own, kept by the face name; cleared again', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

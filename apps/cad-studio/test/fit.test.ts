@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, type Curve, type Surface } from '@barocss/cad';
-import { approximateCurve, chordParameters, interpolateCurve, interpolateSurface } from '../src/engine/fit';
+import { approximateCurve, chordParameters, interpolateCurve } from '../src/engine/fit';
 import { directOps, emptyDirect, geometryOf, importSource } from '../src/engine/direct';
 
 const asCurve = (f: ReturnType<typeof interpolateCurve>): Curve => ({ kind: 'curve', id: 'c', degree: f.degree, knots: f.knots, controlPoints: f.points, weights: f.weights });

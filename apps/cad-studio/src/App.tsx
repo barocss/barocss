@@ -5,6 +5,7 @@ import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefi
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
 import { checkSpec, expectedOf, type Outcome } from './chat/spec';
+import { rejectProposal, stripHistory, type Proposal } from './chat/proposals';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from './engine/references';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
@@ -365,15 +366,16 @@ export function App() {
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
   const pushUndo = () => { setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]); };
-  // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.)
-  const commit = useCallback((next: StudioDoc, capture = true) => {
+  // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
+  // `whole`: a new or opened document, nothing of the one before carried into it.)
+  const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const dropped = marker !== null ? doc.nodes.slice(marker).filter(n => n.kind !== 'sketch').length : 0;
     pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
-    next = carryOver(next, was, doc);
+    if (!whole) next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
@@ -940,8 +942,10 @@ export function App() {
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
-  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false); };
+  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
+  /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
+  const saveShared = () => downloadBytes(new TextEncoder().encode(JSON.stringify(stripHistory(doc), null, 2)), `${fileName}-shared.bcad`, 'application/json');
   // A mesh file waiting for its unit, and opening it as a part in that unit.
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
@@ -1028,6 +1032,33 @@ export function App() {
     }, 350);
     return () => { live = false; clearTimeout(t); };
   }, [doc.requirements, bodies, evaluated, busy, active, sketch, previewBodies]);
+  // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
+  // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
+  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean } | null>(null);
+  const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
+  const partEval = (d: StudioDoc) => engine.part(d, revision.current++);
+  useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
+  const showProposal = async (p: Proposal) => {
+    if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); return; }
+    if (active || sketch || marker !== null) return;
+    setProposalBusy(true);
+    const r = await (await import('./chat/tools')).previewProposal({ doc, bodies }, p.id, partEval);
+    setProposalBusy(false);
+    if ('error' in r) { setToast({ title: `${p.id} does not apply to the part as it is`, hint: r.error, detail: '' }); return; }
+    setGhost({ id: p.id, bodies: r.bodies, after: true }); setPreviewBodies(r.bodies);
+  };
+  const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
+  const acceptIt = async (p: Proposal) => {
+    if (active || sketch) return;
+    if (marker !== null) { setToast({ title: 'Roll forward to accept', hint: 'A proposal applies to the whole part: drag the rollback bar to the end first.', detail: '' }); return; }
+    setProposalBusy(true);
+    const r = await (await import('./chat/tools')).acceptProposal({ doc, bodies }, p.id, partEval);
+    setProposalBusy(false);
+    if ('error' in r) { setToast({ title: `${p.id} could not be applied`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
+    setGhost(null); setPreviewBodies(null); commit(r.state.doc, false);
+  };
+  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } commit(next, false); };
+  const volumeOf = (list: readonly BodyResult[]) => list.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);
   /** An assumed (or ambiguous) requirement's value set by the user, and confirmed: stated from now on, with who and when. */
   const setRequirement = (id: string, value: number) => {
     if (!Number.isFinite(value)) return;
@@ -1142,9 +1173,11 @@ export function App() {
   // the part has — tinted, so what is new reads at a glance.)
   const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
   const bodyColors = useMemo(() => {
-    const fresh = (b: BodyResult) => { const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
+    // (A proposal's ghost: the bodies it adds or changes.)
+    const had = ghost ? new Set(bodies.map(b => `${b.key}:${Math.round(b.volumeMM3 ?? 0)}`)) : null;
+    const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${Math.round(b.volumeMM3 ?? 0)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
     return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
-  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length]);
+  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // Faces coloured on their own, by body index and face index (their names kept with the body's look).
   const faceColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => {
@@ -1162,7 +1195,7 @@ export function App() {
     : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
-  const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
+  const sketchGhost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
   // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
   // of the evaluated body); let go, the kernel preview of the values runs.
   const dragFrom = useRef<Values | null>(null);
@@ -1341,7 +1374,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} analysis={rendering ? null : analysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} analysis={rendering ? null : analysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -1494,6 +1527,31 @@ export function App() {
               <button className="ghost small" aria-label={`Confirm ${q.id}`} onClick={e => { const v = (e.currentTarget.previousSibling as HTMLInputElement).value; setRequirement(q.id, Number(v)); }}>Confirm</button></span>}
           </div>;
         })}</>}
+        {!!doc.proposals?.length && <><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
+          <button className={'tool tiny' + (decidedShown ? ' on' : '')} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></button></div>
+        {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
+          const shown = ghost?.id === p.id, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
+          return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
+            <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
+            <div className="muted">{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
+            {p.plan && <div className="proposal-plan">{p.plan}</div>}
+            {shown && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
+            {p.status === 'open' ? <div className="proposal-actions">
+              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
+              {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
+              <span className="grow" />
+              <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
+              <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>Accept</button>
+            </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
+          </div>;
+        })}</>}
+        {!!doc.history?.length && <><div className="ol-head req-head">Design history <span className="muted">{doc.history.length}</span>
+          <button className={'tool tiny' + (historyOpen ? ' on' : '')} aria-label="Show design history" data-tip={historyOpen ? 'Hide' : 'Show'} onClick={() => setHistoryOpen(f => !f)}><Icon name={historyOpen ? 'expand_less' : 'expand_more'} small /></button></div>
+        <div className="empty history-note">Saved with the part, chat messages included. <button className="link" onClick={saveShared}>Save a copy without it</button> to share.</div>
+        {historyOpen && doc.history.slice(-40).reverse().map(h => <div key={h.id} className={'hist ' + h.kind} title={h.prompt ?? h.plan ?? h.summary}>
+          <span className="mono muted">{h.kind}</span> {h.kind === 'prompt' ? `“${(h.prompt ?? '').slice(0, 80)}${(h.prompt?.length ?? 0) > 80 ? '…' : ''}”` : h.summary}
+          {h.kind === 'prompt' && h.summary && <span className="muted"> → {h.summary}</span>}
+          <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {h.at.slice(0, 16).replace('T', ' ')}</span></div>)}</>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside>
@@ -1730,7 +1788,7 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
-      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => evaluated} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
+      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} /></Suspense>}

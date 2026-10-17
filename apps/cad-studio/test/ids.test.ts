@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { emptyDoc, rectanglePart, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
 import { flattenAssembly } from '../src/assembly/flatten';
