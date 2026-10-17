@@ -37,3 +37,12 @@ test('strict L0: an edge off its face\'s surface, a crossing loop, a sliver and 
   assert.ok(loose.issues.some(i => /^tolerance: edge e0 tolerance 1 mm is past the cap/.test(i)), loose.issues.join('; '));
   for (const r of [off, bow, sliver, loose]) assert.equal(r.valid, false);
 });
+
+test('strict L0 at a pole: an edge along a sphere patch\'s meridian from its pole is on it (no false gap)', () => {
+  // Every edge of a box filleted all round: the corner balls' patches have poles; their edges lie on them exactly.
+  const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
+  const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+  const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
+  const r = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].validate();
+  assert.equal(r.valid, true, r.issues[0]); assert.ok(r.maximumEdgeSurfaceGapMM < 1e-8, `${r.maximumEdgeSurfaceGapMM}`);
+});

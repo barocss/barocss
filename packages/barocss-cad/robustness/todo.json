@@ -1,14 +1,1 @@
-[
-  {
-    "case": "corpus/parts/box-fillet-all.json",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "filleting every box edge: the corner patches' shared edges lie up to 0.36 mm off them (radius 2); vertex blends for R10"
-  },
-  {
-    "case": "corpus/step/box-fillet-all.step",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "the same corner defect, through STEP; R10"
-  }
-]
+[]

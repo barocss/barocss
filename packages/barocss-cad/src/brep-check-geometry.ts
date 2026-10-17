@@ -16,7 +16,7 @@ const SAMPLES_LINE = 3, SAMPLES_CURVE = 9;
 export const TOLERANCE_CAP = 1e-3;
 
 /** A face's way of mapping a point to its parameters and measuring how far off its surface the point is. */
-interface Mapper { uv(p: Point): XY; gap(p: Point, q: XY): number; closed: boolean; planar: boolean; ku: number; kv: number }
+interface Mapper { uv(p: Point, hint: XY | null): XY; gap(p: Point, q: XY): number; closed: boolean; planar: boolean; ku: number; kv: number }
 
 /** A flat bilinear patch: parameters by projection, the gap as the distance from its plane. */
 function planeMapper(face: BrepFace): Mapper | null {
@@ -40,26 +40,55 @@ function surfaceMapper(face: BrepFace): Mapper {
   for (let k = 0; k < N && !collapsed; k++) collapsed = dist(grid[k].p, grid[k + 1].p) < 1e-9 * size || dist(grid[N * (N + 1) + k].p, grid[N * (N + 1) + k + 1].p) < 1e-9 * size
     || dist(grid[k * (N + 1)].p, grid[(k + 1) * (N + 1)].p) < 1e-9 * size || dist(grid[k * (N + 1) + N].p, grid[(k + 1) * (N + 1) + N].p) < 1e-9 * size;
   const closed = seamU < 1e-7 * size || seamV < 1e-7 * size || collapsed;
-  return { uv: p => nearestUV(at, U, V, grid, p), gap: (p, q) => dist(at(q[0], q[1]), p), closed, planar: false, ku: 1 / Math.max(1e-300, U[1] - U[0]), kv: 1 / Math.max(1e-300, V[1] - V[0]) };
+  // (Seeds off collapsed sides: at a pole one parameter is arbitrary and Newton cannot move along it.)
+  const row = (i: number) => grid.slice(i * (N + 1), i * (N + 1) + N + 1), column = (j: number) => grid.filter((_, k) => k % (N + 1) === j);
+  const pole = (line: { p: Point }[]) => line.every(g => dist(g.p, line[0].p) < 1e-9 * size);
+  const polar = new Set([row(0), row(N), column(0), column(N)].filter(pole).flat());
+  const seeds = grid.filter(g => !polar.has(g));
+  return { uv: (p, hint) => nearestUV(at, U, V, seeds.length ? seeds : grid, p, hint), gap: (p, q) => dist(at(q[0], q[1]), p), closed, planar: false, ku: 1 / Math.max(1e-300, U[1] - U[0]), kv: 1 / Math.max(1e-300, V[1] - V[0]) };
 }
-/** The parameters of the surface point nearest p: Newton (finite differences) from the two nearest grid points. */
-function nearestUV(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], grid: readonly { a: number; b: number; p: Point }[], p: Point): XY {
-  let i0 = 0, d0 = Infinity, i1 = 0, d1 = Infinity;
-  for (let i = 0; i < grid.length; i++) { const d = dist2(grid[i].p, p); if (d < d0) { i1 = i0; d1 = d0; i0 = i; d0 = d; } else if (d < d1) { i1 = i; d1 = d; } }
-  let best: XY = [grid[i0].a, grid[i0].b], bd = Infinity;
-  for (const g of [grid[i0], grid[i1]]) { const q = newton(at, U, V, g.a, g.b, p), d = dist(at(q[0], q[1]), p); if (d < bd) { bd = d; best = q; } }
+/**
+ * The parameters of the surface point nearest p: damped Newton (Levenberg–Marquardt, finite differences) from
+ * the four nearest grid points and from `hint` (the previous sample's parameters along an edge), keeping the
+ * best; a step is taken only when it brings the point nearer, so a pole (where the derivatives vanish) cannot
+ * throw it off.
+ */
+function nearestUV(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], grid: readonly { a: number; b: number; p: Point }[], p: Point, hint: XY | null): XY {
+  const near: number[] = [], nd: number[] = [];
+  for (let i = 0; i < grid.length; i++) {
+    const d = dist2(grid[i].p, p);
+    if (near.length === 4 && d >= nd[3]) continue;
+    let k = near.length < 4 ? near.length : 3;
+    while (k > 0 && nd[k - 1] > d) k--;
+    near.splice(k, 0, i); nd.splice(k, 0, d); if (near.length > 4) { near.pop(); nd.pop(); }
+  }
+  let best: XY = [grid[near[0]].a, grid[near[0]].b], bd = Math.sqrt(nd[0]);
+  const starts: XY[] = near.map(i => [grid[i].a, grid[i].b] as XY); if (hint) starts.unshift(hint);
+  for (const s of starts) { const q = descend(at, U, V, s[0], s[1], p), d = dist(at(q[0], q[1]), p); if (d < bd) { bd = d; best = q; } if (bd === 0) break; }
   return best;
 }
-function newton(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], a: number, b: number, p: Point): XY {
-  for (let it = 0; it < 40; it++) {
+/** Levenberg–Marquardt on |S(a, b) − p|² from (a, b), within the domain. */
+function descend(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], a: number, b: number, p: Point): XY {
+  let q = at(a, b), f = dist2(q, p), lambda = 1e-6;
+  for (let it = 0; it < 60 && f > 0; it++) {
     const ha = 1e-7 * (U[1] - U[0]), hb = 1e-7 * (V[1] - V[0]), ia = a + ha <= U[1] ? ha : -ha, ib = b + hb <= V[1] ? hb : -hb;
-    const q = at(a, b), qa = at(a + ia, b), qb = at(a, b + ib);
+    const qa = at(a + ia, b), qb = at(a, b + ib);
     const Su: Point = [(qa[0] - q[0]) / ia, (qa[1] - q[1]) / ia, (qa[2] - q[2]) / ia], Sv: Point = [(qb[0] - q[0]) / ib, (qb[1] - q[1]) / ib, (qb[2] - q[2]) / ib], r = sub(p, q);
-    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12;
-    if (!(Math.abs(det) > 1e-300)) break;
-    const da = (dot(r, Su) * g22 - dot(r, Sv) * g12) / det, db = (g11 * dot(r, Sv) - g12 * dot(r, Su)) / det;
-    a = Math.min(U[1], Math.max(U[0], a + da)); b = Math.min(V[1], Math.max(V[0], b + db));
-    if (Math.abs(da) < 1e-14 * (U[1] - U[0]) && Math.abs(db) < 1e-14 * (V[1] - V[0])) break;
+    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), scale = g11 + g22 || 1;
+    let moved = false;
+    for (let tries = 0; tries < 12 && !moved; tries++) {
+      const d11 = g11 + lambda * scale, d22 = g22 + lambda * scale, det = d11 * d22 - g12 * g12;
+      if (!(Math.abs(det) > 1e-300)) { lambda *= 10; continue; }
+      const na = Math.min(U[1], Math.max(U[0], a + (r1 * d22 - r2 * g12) / det)), nb = Math.min(V[1], Math.max(V[0], b + (d11 * r2 - g12 * r1) / det));
+      const nq = at(na, nb), nf = dist2(nq, p);
+      if (nf < f) {
+        const step = Math.max(Math.abs(na - a) / (U[1] - U[0]), Math.abs(nb - b) / (V[1] - V[0]));
+        a = na; b = nb; q = nq; f = nf; lambda = Math.max(1e-12, lambda / 10);
+        if (step < 1e-15) return [a, b];
+        moved = true;
+      } else lambda *= 10;
+    }
+    if (!moved) break;
   }
   return [a, b];
 }
@@ -86,9 +115,10 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
         // Edges stay within their own tolerance of the surface, or 1e-6 of the model where that is larger
         // (traced intersections are fitted to that).
         const limit = Math.max(10 * e.toleranceMM, 1e-6 * Math.max(1, size));
-        let last: Point | null = null;
+        let last: Point | null = null, hint: XY | null = null;
         for (let k = 0; k < n; k++) {
-          const f = k / (n - 1), t = c.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f, p = at(t), q = mapper.uv(p), gap = mapper.gap(p, q);
+          const f = k / (n - 1), t = c.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f, p = at(t), q = mapper.uv(p, hint), gap = mapper.gap(p, q);
+          hint = q;
           if (gap > maximumEdgeSurfaceGapMM) maximumEdgeSurfaceGapMM = gap;
           if (gap > limit) { add('geometry', `edge ${e.id} is ${gap.toExponential(2)} mm off the surface of face ${face.id}`); break; }
           if (last) perimeter += dist(last, p);
