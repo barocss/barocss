@@ -9,6 +9,8 @@ import {
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
   tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
+import { interpolateSurface } from './fit';
+import { surfacesSource } from './curveSource';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
 export interface DirectGeometry {
@@ -163,6 +165,55 @@ export const directOps = {
       } catch (e) { last = e; if (!/explicit output IDs|retain their original IDs/.test(String((e as Error)?.message))) throw e; }
     }
     throw last;
+  },
+  /**
+   * A surface filling a loop of four curves (a Coons patch: each pair of opposite sides blended, less the
+   * corners' bilinear part), sampled and interpolated as a bicubic B-spline. The curves must meet end to
+   * end, in any order and either way round.
+   */
+  fill(d: DirectGeometry, ids: string[]) {
+    if (ids.length !== 4) throw new Error('Pick four curves that meet end to end in a loop.');
+    const cs = ids.map(id => curveOf(d, id)), at = (c: Curve, s: number) => { const [a, b] = curveDomain(c); return evaluateCurve(c, a + (b - a) * s); };
+    const end = (c: Curve, k: 0 | 1) => at(c, k), gap = (p: readonly number[], q: readonly number[]) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+    const size = Math.max(...cs.flatMap(c => [0, 0.5, 1].map(s => gap(at(c, s), end(cs[0], 0))))), tol = 1e-4 * Math.max(1, size);
+    // Chain them: each next curve starts (or, reversed, ends) where the last one ended.
+    const loop: { c: Curve; flip: boolean }[] = [{ c: cs[0], flip: false }], left = cs.slice(1);
+    while (left.length) {
+      const last = loop[loop.length - 1], tip = end(last.c, last.flip ? 0 : 1);
+      const k = left.findIndex(c => gap(end(c, 0), tip) < tol || gap(end(c, 1), tip) < tol);
+      if (k < 0) throw new Error('The four curves do not meet end to end: each must start where another ends.');
+      const c = left.splice(k, 1)[0]; loop.push({ c, flip: gap(end(c, 0), tip) >= tol });
+    }
+    if (gap(end(loop[3].c, loop[3].flip ? 0 : 1), end(loop[0].c, 0)) >= tol) throw new Error('The curves do not close into a loop.');
+    const side = (k: number) => (s: number) => at(loop[k].c, loop[k].flip ? 1 - s : s);
+    // Bottom C0(u) = side 0, right D1(v) = side 1, top C2(u) = side 2 backwards, left D0(v) = side 3 backwards.
+    const C0 = side(0), D1 = side(1), C2 = (u: number) => side(2)(1 - u), D0 = (v: number) => side(3)(1 - v);
+    // (16 × 16 samples: the most poles a surface of the source language takes each way.)
+    const P00 = C0(0), P10 = C0(1), P01 = C2(0), P11 = C2(1), n = 15;
+    const grid = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => {
+      const u = i / n, v = j / n, a = C0(u), b = C2(u), c = D0(v), e = D1(v);
+      return [0, 1, 2].map(k => (1 - v) * a[k] + v * b[k] + (1 - u) * c[k] + u * e[k] - ((1 - u) * (1 - v) * P00[k] + u * (1 - v) * P10[k] + (1 - u) * v * P01[k] + u * v * P11[k])) as [number, number, number];
+    }));
+    const fit = interpolateSurface(grid);
+    return add(d, [], surfacesSource('fill', [fit]), [{ geometry: 's1', name: 'Filled surface' }]);
+  },
+  /** The surface run on past one of its edges along its tangent there by `distance` mm (re-fitted as a bicubic B-spline). */
+  extendSurface(d: DirectGeometry, id: string, edge: 'u-min' | 'u-max' | 'v-min' | 'v-max', distance: number) {
+    if (!(distance > 0)) throw new Error('Extend by a positive distance.');
+    // (12 rows of the surface and 4 beyond it, 16 across: the most poles a surface takes each way.)
+    const s = surfaceOf(d, id), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
+    const [a0, a1] = alongU ? dom.u : dom.v, [b0, b1] = alongU ? dom.v : dom.u;
+    const S = (a: number, b: number) => alongU ? evaluateSurface(s, a, b) : evaluateSurface(s, b, a);
+    // Rows across the extended direction: the surface's own, then straight on along the unit tangent at the edge.
+    const rows: [number, number, number][][] = [];
+    for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; rows.push(Array.from({ length: across + 1 }, (_, j) => S(a, b0 + (b1 - b0) * j / across) as [number, number, number])); }
+    const eA = atMax ? a1 : a0, h = (a1 - a0) * 1e-3, tangent = (b: number) => { const p = S(eA, b), q = S(atMax ? eA - h : eA + h, b), t = [0, 1, 2].map(k => (p[k] - q[k])), l = Math.hypot(...t) || 1; return t.map(x => x / l); };
+    const edgeRow = atMax ? rows[n] : rows[0], tans = Array.from({ length: across + 1 }, (_, j) => tangent(b0 + (b1 - b0) * j / across));
+    const more = Array.from({ length: extra }, (_, k) => edgeRow.map((p, j) => p.map((x, c) => x + tans[j][c] * distance * (k + 1) / extra) as [number, number, number]));
+    const all = atMax ? [...rows, ...more] : [...more.reverse(), ...rows];
+    // (Back to u along the first index when the run was across v.)
+    const grid = alongU ? all : all[0].map((_, j) => all.map(r => r[j]));
+    return add(d, [id], surfacesSource('extended', [interpolateSurface(grid)]), [{ geometry: 's1', name: `${nameOf(d, id)} · extended` }]);
   },
   /** Move, turn or scale objects in place: each to a new source with its transformed geometry. */
   transform(d: DirectGeometry, ids: string[], matrixOf: (centre: [number, number, number]) => CadAffineMatrix3x4) {

@@ -38,7 +38,10 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
       {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} onThicken={onThicken} />}
       {objs.length >= 3 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
-        <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+        <div className="row-actions">
+          <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+          {objs.length === 4 && <button className="ghost" aria-label="Fill the loop" title="A surface filling the loop the four curves make (a Coons patch)" onClick={() => run(() => directOps.fill(direct, selected), added)}>Fill</button>}
+        </div>
       </div>}
       {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>
@@ -114,6 +117,7 @@ function Crossings({ id, direct }: { id: string; direct: DirectGeometry }) {
 
 function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[]; onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void }) {
   const [wall, setWall] = useState(2), [wallSide, setWallSide] = useState<'normal' | 'reverse' | 'both'>('normal');
+  const [edge, setEdge] = useState<'u-min' | 'u-max' | 'v-min' | 'v-max'>('u-max'), [reach, setReach] = useState(5);
   const dom = domainsOf(direct, id), u = dom.kind === 'surface' ? dom.u : [0, 1] as [number, number], v = dom.kind === 'surface' ? dom.v : [0, 1] as [number, number];
   const [axis, setAxis] = useState<'u' | 'v'>('u');
   const range = axis === 'u' ? u : v, mid = (range[0] + range[1]) / 2;
@@ -135,6 +139,11 @@ function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direc
       <button className="ghost" onClick={() => run(() => directOps.reverseSurface(direct, id, axis), added)}>Reverse</button>
     </div>
     <SurfacePoint id={id} direct={direct} u={u} v={v} />
+    <div className="card-title" style={{ marginTop: 8 }}>EXTEND</div>
+    <label className="field"><span>Edge</span><select aria-label="Extend edge" value={edge} onChange={e => setEdge(e.target.value as typeof edge)}>
+      <option value="u-max">u end</option><option value="u-min">u start</option><option value="v-max">v end</option><option value="v-min">v start</option></select></label>
+    <NumberField label="Extend by" value={reach} onChange={setReach} />
+    <button className="ghost" aria-label="Extend the surface" title="Run the surface on past the edge, straight along its tangent there" onClick={() => run(() => directOps.extendSurface(direct, id, edge, reach), added)}>Extend</button>
     {onThicken && <>
       <div className="card-title" style={{ marginTop: 8 }}>THICKEN</div>
       <NumberField label="Thickness" value={wall} onChange={setWall} />

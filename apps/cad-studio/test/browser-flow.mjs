@@ -981,6 +981,17 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'thicken', null, { timeout: 5000 });
   });
 
+  await check('extend a surface past an edge: the panel run on 5 mm along u', async () => {
+    const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
+    await page.click('.ol.direct[title="study · panel"]');
+    await page.selectOption('.direct-panel [aria-label="Extend edge"]', 'u-max');
+    await page.click('.direct-panel [aria-label="Extend the surface"]');
+    await page.waitForFunction(n => window.__studioDoc.direct.objects.length === n + 1, before, { timeout: 10000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.at(-1).name), 'study · panel · extended');
+    await snap('surface-extend'); await press('Meta+z');
+    await page.waitForFunction(n => window.__studioDoc.direct.objects.length === n, before, { timeout: 5000 });
+  });
+
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);

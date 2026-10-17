@@ -87,3 +87,11 @@ export function curvesSource(name: string, curves: NurbsCurve[]): string {
   const body = curves.map((c, k) => `  @curve #c${k + 1} { type: nurbs; degree: ${c.degree}; knots: [${c.knots.map(num).join(',')}]; control-points: [${c.points.map(p => `[${p.map(num).join(',')}]`).join(',')}]; weights: [${c.weights.map(num).join(',')}]; }`).join('\n');
   return `@model ${id} {\n  version: 0;\n  length-unit: mm;\n${body}\n}`;
 }
+
+export interface NurbsSurface { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; points: Vec3[][]; weights: number[][] }
+/** Surfaces as one CAD source model `name` (surface ids s1, s2 …). */
+export function surfacesSource(name: string, surfaces: NurbsSurface[]): string {
+  const id = name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_') || 'surfaces';
+  const body = surfaces.map((s, k) => `  @surface #s${k + 1} { type: nurbs; degree-u: ${s.degreeU}; degree-v: ${s.degreeV}; knots-u: [${s.knotsU.map(num).join(',')}]; knots-v: [${s.knotsV.map(num).join(',')}]; control-points: [${s.points.map(r => `[${r.map(p => `[${p.map(num).join(',')}]`).join(',')}]`).join(',')}]; weights: [${s.weights.map(r => `[${r.map(num).join(',')}]`).join(',')}]; }`).join('\n');
+  return `@model ${id} {\n  version: 0;\n  length-unit: mm;\n${body}\n}`;
+}
