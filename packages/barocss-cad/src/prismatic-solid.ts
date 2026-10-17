@@ -38,13 +38,13 @@ export class PrismaticSolidError extends Error { constructor(detail: string) { s
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));
 
-function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = []): PrismaticSolid {
+function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = [], merged = false): PrismaticSolid {
   const sorted = slabs.filter(s => s.regions.length).sort((a, b) => a.z0 - b.z0), out: PrismaticSlab[] = [];
   for (const s of sorted) {
     if (!(Number.isFinite(s.z0) && Number.isFinite(s.z1) && s.z1 > s.z0)) throw new PrismaticSolidError('every slab needs finite z0 < z1');
     const prev = out[out.length - 1];
     if (prev && s.z0 < prev.z1) throw new PrismaticSolidError('slabs overlap in Z');
-    if (prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
+    if (!merged && prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
     out.push(s);
   }
   const levels = new Set(out.flatMap(x => [x.z0, x.z1])), kept = caps.filter(c => levels.has(c.z));
@@ -104,7 +104,8 @@ export function transformPrismatic(solid: PrismaticSolid, transform: { readonly 
   const z = (v: number) => zs * v + zo;
   const slabs = solid.slabs.map(s => ({ z0: Math.min(z(s.z0), z(s.z1)), z1: Math.max(z(s.z0), z(s.z1)), regions: s.regions.map(region) }));
   const caps = (solid.caps ?? []).map(cp => ({ z: z(cp.z), regions: cp.regions.map(region), tag: transform.retag ? transform.retag(cp.tag) : cp.tag }));
-  return normalize(slabs, curveTolerance(allRings(slabs)), caps);
+  // (A similarity keeps distinct neighbouring sections distinct: they need no merging check.)
+  return normalize(slabs, 0, caps, true);
 }
 
 /** Slab-wise Boolean: split at every level of either solid, 2D Boolean of each pair of sections. */

@@ -538,9 +538,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
       if (spacing === 0) fail('PARAMETER', 'spacing must not be zero');
       return () => many(target.map(p => {
-        let acc = p.solid;
-        for (let k = 1; k < count; k++) { const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; acc = boolean(acc, affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`), 'union', at); }
-        return acc;
+        const copies = Array.from({ length: count }, (_, k) => { if (!k) return p.solid; const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; return affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`); });
+        return unionAll(copies, at);
       }));
     }
     case 'circular-pattern': {
@@ -549,9 +548,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (typeof deg !== 'number' || !Number.isFinite(deg) || deg === 0 || Math.abs(deg) > 360) fail('INPUT', 'angleDegrees must be a nonzero step of at most 360°');
       if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'patterns about X or Y must step by multiples of 90°');
       return () => many(target.map(p => {
-        let acc = p.solid;
-        for (let k = 1; k < count; k++) acc = boolean(acc, rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`), 'union', at);
-        return acc;
+        return unionAll(Array.from({ length: count }, (_, k) => k ? rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`) : p.solid), at);
       }));
     }
     case 'sweep': {
@@ -783,12 +780,12 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 }
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
-function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
+function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, check = true): Solid {
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
   if (a.kind === 'upright' && b.kind === 'upright') {
     const solid = booleanPrismatic(a.solid, b.solid, op);
-    if (touchingLumps(solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
+    if (check) checkLumps({ kind: 'upright', solid }, at);
     return { kind: 'upright', solid };
   }
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
@@ -801,6 +798,20 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
     if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: analytic Boolean: /, ''));
     throw cause;
   }
+}
+/**
+ * Copies united in a balanced tree (neighbours first, so each Boolean joins two bodies of like size, not
+ * one growing body and a copy); upright ones checked for lumps that only touch once, at the end.
+ */
+function unionAll(list: Solid[], at: string): Solid {
+  let level = list;
+  while (level.length > 1) { const next: Solid[] = []; for (let i = 0; i < level.length; i += 2) next.push(i + 1 < level.length ? boolean(level[i], level[i + 1], 'union', at, false) : level[i]); level = next; }
+  return checkLumps(level[0], at);
+}
+/** Refuses an upright result whose lumps meet only along an edge or at a point. */
+function checkLumps(s: Solid, at: string): Solid {
+  if (s.kind === 'upright' && touchingLumps(s.solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
+  return s;
 }
 /**
  * Whether separate lumps of an upright solid meet only along an edge or at a point (the analytic and
@@ -822,8 +833,12 @@ function touchingLumps(solid: PrismaticSolid): boolean {
     const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / Math.max(dot(ab, ab), 1e-300)));
     return len(sub(p, add(a, scale(ab, t)))) <= tol;
   };
+  // (Each lump's box: a vertex outside another lump's box meets none of its edges.)
+  const boxes = new Map<string, { lo: Point; hi: Point }>();
+  for (const v of brep.vertices) { const b = vertexBody.get(v.id)!, x = boxes.get(b) ?? { lo: [Infinity, Infinity, Infinity] as Point, hi: [-Infinity, -Infinity, -Infinity] as Point }; for (let k = 0; k < 3; k++) { x.lo[k] = Math.min(x.lo[k], v.point[k]); x.hi[k] = Math.max(x.hi[k], v.point[k]); } boxes.set(b, x); }
+  const near = (p: Point, b: string) => { const x = boxes.get(b); return !!x && [0, 1, 2].every(k => p[k] >= x.lo[k] - tol && p[k] <= x.hi[k] + tol); };
   for (const v of brep.vertices) for (const e of brep.edges) {
-    if (edgeBody.get(e.id) === vertexBody.get(v.id)) continue;
+    if (edgeBody.get(e.id) === vertexBody.get(v.id) || !near(v.point, edgeBody.get(e.id)!)) continue;
     const q = e.curve.controlPoints;
     if (e.curve.degree === 1 && q.length === 2 ? onSegment(v.point, q[0], q[1]) : e.vertices.some(w => len(sub(point.get(w)!, v.point)) <= tol)) return true;
   }
