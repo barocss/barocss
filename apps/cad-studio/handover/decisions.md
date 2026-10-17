@@ -442,3 +442,42 @@ Evidence:
   - a dimension change keeps names;
   - a cut-off corner is refused naming both edges.
 
+## D29 — Stored references keep a signature; verified on open by the same matcher (2026-10-18, A1.3b)
+Decided:
+- **Where.** Every stored face or edge reference keeps a compact signature of what it named (engine/references.ts):
+  - fillet and chamfer edges, shell open faces and draft faces (`node.sigs`, by name);
+  - mate faces on the base part (`sig`);
+  - drawing dimensions' edges (`sig`);
+  - per-face colours (`look.faceSigs`).
+- **What.** A signature records kind, normal or direction, centroid or midpoint (to 1e-6 mm), size, and radius.
+- **Written.** With the reference, from the bodies it was picked on: an agent tool's `accept`, or the studio's
+  `commit`. A document replaced whole, as on open, is not captured from the old part's bodies.
+- **Refreshed.** Only after an accepted `edit_feature`, which has first gone through the prior-document match
+  (D28), and never for a reference still marked re-matched. Never on open, a plain re-evaluation or a kernel
+  change. Otherwise a renumbering that still resolves, to the wrong face, would overwrite the good signature with
+  the wrong face's geometry.
+- **Verified on open.** No prior document is needed (`verifyReferences`). The one matcher
+  (`rematch.matchSignature`) runs against each stored signature:
+  - its clear best is the stored name: the reference stands;
+  - its clear best is another name: substituted and marked (`was`, `rematched`, `facesWas`), with a toast;
+  - several as near: refused, naming them;
+  - none alike: refused as gone.
+- **Tolerances.** No equality tolerance is used. Kind, direction (1°) and radius (relative 1e-6) gate what is
+  alike, and the clearly-nearest rule (the next at least twice as far) decides. A kernel moving centroids by 1e-9
+  changes nothing.
+- **Cost.** `captureSignatures` copies the document only when some reference lacks a signature.
+
+Why: a file reopened on a kernel that numbers faces otherwise has no prior document (D16's thread names, D22's
+corner numbers); its references must carry their own evidence.
+
+Evidence:
+- Studio 259/259.
+- A signature-writing test: a mate on the base part, a fillet by an agent, and a marked reference not refreshed.
+- 4 conformance cases (`conformance/a1/refs-*`):
+  - a mate whose stored name now names another face is matched back on open;
+  - 1e-9 jitter: no re-match;
+  - a dimension edit, then reopen: no re-match;
+  - two tops as near: refused.
+- Full browser flow 103/103.
+- Bench unchanged.
+
