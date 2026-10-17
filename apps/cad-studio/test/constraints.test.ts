@@ -471,3 +471,17 @@ test('concentric circles of an outline (radii kept, listed, removable); loose ci
   assert.equal(constraintEntries(removeConstraint(s, id)).some(e => e.label === 'Concentric'), false);
   assert.match(constraintOptions(s, [{ kind: 'circle', i: 0, done: true } as SketchPick, C(1)]).coincident!, /on their own/);
 });
+
+test('tangent: an outline edge and one of its circles come to touch, the radius kept', () => {
+  const C = (i: number): SketchPick => ({ kind: 'circle', i });
+  // A 60 × 30 plate, a Ø10 circle 3 mm below the top edge (edge 2 runs from (60, 30) to (0, 30)).
+  let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [20, 22], r: 5 }] };
+  assert.equal(constraintOptions(s, [E(2), C(0)]).tangent, null);
+  s = ok(applyConstraint(s, [E(2), C(0)], 'tangent'));
+  const c = s.circles![0].c, a = s.points[2], b = s.points[3];
+  const dist = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) / Math.hypot(b[0] - a[0], b[1] - a[1]);
+  assert.ok(Math.abs(dist - 5) < 1e-6, `the top edge is one radius from the centre: ${dist}`);
+  assert.equal(constraintOptions(s, [E(2), C(0)]).tangent, 'Already tangent');
+  assert.ok(constraintEntries(s).some(e => e.label === 'Tangent'));
+  assert.match(constraintOptions(s, [Pt(1), C(0)]).tangent!, /straight edge and a circle/);
+});

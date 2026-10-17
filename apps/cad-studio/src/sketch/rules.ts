@@ -13,7 +13,7 @@ export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
  * circles (`circles`), or with `done` a finished circle shape of the sketch (`done` index) not yet attached.
  */
 export interface SketchPick { kind: 'point' | 'edge' | 'circle'; i: number; done?: true }
-export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendicular' | 'equal' | 'fix' | 'coincident';
+export type ConstraintKind = 'horizontal' | 'vertical' | 'parallel' | 'perpendicular' | 'equal' | 'fix' | 'coincident' | 'tangent';
 
 export const isSettled = (s: SketchShape | null | undefined): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;
 export const samePick = (a: SketchPick, b: SketchPick) => a.kind === b.kind && a.i === b.i && !a.done === !b.done;
@@ -28,7 +28,7 @@ export const hvOf = (s: Polygon) => s.hv ?? inferredHV(s.points as P2[], s.bulge
 
 export const constraintsOf = (s: Polygon): OutlineConstraints => ({
   lengths: s.lengths, radii: s.radii, tangents: s.tangents, equalRadii: s.equalRadii, concentric: s.concentric, hv: hvOf(s), rules: s.rules,
-  circles: s.circles?.map(c => c.c),
+  circles: s.circles?.map(c => c.c), circleRadii: s.circles?.map(c => c.r),
 });
 
 const solved = new WeakMap<Polygon, SolveResult>();
@@ -80,7 +80,10 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     const coincident = loose ? 'Circles drawn on their own move freely: attach them to the outline (draw them inside it) to constrain them'
       : circles.length === 2 && !points.length && !edges.length ? (hasRule(s, r => r.kind === 'cconc' && ((r.a === circles[0] && r.b === circles[1]) || (r.a === circles[1] && r.b === circles[0]))) ? 'Already concentric' : null)
         : 'Select two circles (same centre)';
-    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident };
+    const tangent = loose ? 'Circles drawn on their own move freely: attach them to the outline to constrain them'
+      : circles.length === 1 && edges.length === 1 && !points.length && !isArc(s, edges[0]) ? (hasRule(s, r => r.kind === 'ctan' && r.edge === edges[0] && r.circle === circles[0]) ? 'Already tangent' : null)
+        : 'Select a straight edge and a circle (the edge touching it)';
+    return { horizontal: why, vertical: why, parallel: why, perpendicular: why, equal: why, fix: why, coincident, tangent };
   }
   const { points, edges, lines, arcs } = split(s, picks), hv = hvOf(s);
   const onlyLines = (min: number, max = Infinity) => points.length === 0 && arcs.length === 0 && lines.length >= min && lines.length <= max;
@@ -97,7 +100,7 @@ export function constraintOptions(s: Polygon, picks: readonly SketchPick[]): Rec
     parallel: pair('parallel'), perpendicular: pair('perpendicular'),
     equal: points.length || edges.length < 2 || (lines.length && arcs.length) ? 'Select two or more lines (same length) or arcs (same radius)' : null,
     fix: !points.length || edges.length ? 'Select one or more points' : !fixable.length ? (points.includes(0) && points.length === 1 ? 'Point 1 is the sketch anchor: it is already fixed' : 'Already fixed') : null,
-    coincident,
+    coincident, tangent: 'Select a straight edge and a circle (the edge touching it)',
   };
 }
 const pairOf = (a: number, b: number): ArcPair => a < b ? [a, b] : [b, a];
@@ -140,6 +143,7 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
   const why = constraintOptions(s, picks)[kind]; if (why) return { ok: false, reason: why };
   const { points, lines, arcs, circles } = split(s, picks), hv = hvOf(s), rules = s.rules ?? [];
   if (circles.length) {
+    if (kind === 'tangent') return checkEdit({ ...s, hv, rules: [...rules, { kind: 'ctan', edge: lines[0], circle: circles[0] }] }, s, `Edge ${lines[0] + 1} tangent to circle ${circles[0] + 1}`);
     // (Only coincident is open to circles: two of them about one centre.)
     return checkEdit({ ...s, hv, rules: [...rules, { kind: 'cconc', a: Math.min(circles[0], circles[1]), b: Math.max(circles[0], circles[1]) }] }, s, `Concentric circle ${circles[0] + 1} and circle ${circles[1] + 1}`);
   }
@@ -170,6 +174,7 @@ export function applyConstraint(s: Polygon, picks: readonly SketchPick[], kind: 
       return checkEdit({ ...s, hv, rules: [...rules, ...add.map((i): SketchRule => ({ kind: 'fix', point: i, at: [...s.points[i]] as P2 }))] }, s,
         `Fix ${list(add.map(i => `point ${i + 1}`))}`);
     }
+    case 'tangent': return { ok: false, reason: 'Select a straight edge and a circle (the edge touching it)' };
     case 'coincident':
       if (arcs.length === 2) return checkEdit({ ...s, hv, concentric: [...(s.concentric ?? []), pairOf(arcs[0], arcs[1])] }, s, `Concentric ${edgeName(s, arcs[0])} and ${edgeName(s, arcs[1])}`);
       return checkEdit({ ...s, hv, rules: [...rules, { kind: 'coincident', point: points[0], arc: arcs[0] }] }, s, `Point ${points[0] + 1} on the centre of arc ${arcs[0] + 1}`);
@@ -317,6 +322,7 @@ export function constraintEntries(s: Polygon): ConstraintEntry[] {
     else if (r.kind === 'cedge') add(id, 'Distance', `edge ${r.edge + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [E(r.edge), C(r.circle)]);
     else if (r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') add(id, pairName[r.kind], `circle ${r.a + 1} – circle ${r.b + 1} = ${round(r.value)}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'cdist' || r.kind === 'cdx' || r.kind === 'cdy') add(id, circleDimName[r.kind], `point ${r.a + 1} – circle ${r.circle + 1} = ${round(r.value)}`, [P(r.a), C(r.circle)]);
+    else if (r.kind === 'ctan') add(id, 'Tangent', `edge ${r.edge + 1} · circle ${r.circle + 1}`, [E(r.edge), C(r.circle)]);
     else if (r.kind === 'cconc') add(id, 'Concentric', `circle ${r.a + 1} · circle ${r.b + 1}`, [C(r.a), C(r.b)]);
     else if (r.kind === 'angle') add(id, 'Angle', `edge ${r.a + 1} ∠ edge ${r.b + 1} = ${round(r.value)}°`, [E(r.a), E(r.b)]);
     else if (r.kind === 'distance' || r.kind === 'dx' || r.kind === 'dy') add(id, pointDimName[r.kind === 'distance' ? 'dist' : r.kind], `point ${r.a + 1} – point ${r.b + 1} = ${round(r.value)}`, [P(r.a), P(r.b)]);

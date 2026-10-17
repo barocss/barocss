@@ -95,8 +95,8 @@ export interface OutlineConstraints {
   equalRadii?: ArcPair[]; concentric?: ArcPair[];
   /** Horizontal / vertical straight edges (default: as drawn, see inferredHV); explicit rules (see terms.ts). */
   hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
-  /** Centres of circles positioned by the rules (cdist / cdx / cdy). */
-  circles?: P2[];
+  /** Centres of circles positioned by the rules (cdist / cdx / cdy), and their radii (for tangents). */
+  circles?: P2[]; circleRadii?: number[];
 }
 /** `rows`: scalar equations; more rows than `rank` means some constraints are redundant (over-defined). */
 export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[]; circles: P2[] }
@@ -163,7 +163,7 @@ export const canBeTangent = (points: P2[], bulges: number[] | undefined, j: numb
 export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?: number[]): SolveResult {
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
-  const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? []);
+  const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? [], c.circleRadii ?? []);
   // (The kernel's -v1 sketch profile: 64 points, 64 segments, 128 constraints.)
   if (n + arcs.length + extra.points.length > 64 || n + arcs.length + extra.segments.length > 64) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (64 points / 64 segments)' };
   const centres = new Map(arcs.map(i => [i, arcOf(points[i], points[(i + 1) % n], bulges[i]).center]));

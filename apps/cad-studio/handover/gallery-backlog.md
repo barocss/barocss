@@ -40,7 +40,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 - [x] B10 Document version check and migration report; templates (#2058, #2059)
 - [x] B11 Per-face colour (#2070, #2085)
 - [x] B12 Vertex picking (#2036)
-- [ ] B13 Line tangent to a circle in a sketch (kernel `line-circle-tangent`) (#2068, #2039)
+- [x] B13 Line tangent to a circle in a sketch (kernel `line-circle-tangent`) (#2068, #2039)
 - [ ] B14 Curves and surfaces made in the app: draw a curve, take a sketch or model edge as a curve (unlocks #2080, #2081, #2083, #2086, #2087, #2090)
 - [ ] B15 Direct tools: surface × surface curve, curve × plane points, band between two cuts, point in / out (#2052, #2074, #2083, #2082, #2073)
 - [ ] B16 Drag control points in the viewport (#2029, #2090)

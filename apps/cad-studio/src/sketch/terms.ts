@@ -29,7 +29,9 @@ export type SketchRule =
   /** A driving distance (straight, along X, along Y) between the centres of two of the outline's circles. */
   | { kind: 'ccdist' | 'ccdx' | 'ccdy'; a: number; b: number; value: number }
   /** Two of the outline's circles about one centre (their radii free). */
-  | { kind: 'cconc'; a: number; b: number };
+  | { kind: 'cconc'; a: number; b: number }
+  /** A straight edge tangent to one of the outline's circles (touching it on the side it was drawn). */
+  | { kind: 'ctan'; edge: number; circle: number };
 
 const angle = (v: P2) => Math.atan2(v[1], v[0]);
 const wrap = (a: number) => { const w = Math.atan2(Math.sin(a), Math.cos(a)); return w === -Math.PI ? Math.PI : w; };
@@ -62,7 +64,7 @@ export function edgeAngle(points: readonly P2[], a: number, b: number): { degree
  * segment between them, so it never collapses when the points line up. Rules that no longer fit the
  * outline (an edge that became an arc, a point that is gone) are skipped.
  */
-export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], bulges: readonly number[], circles: readonly P2[] = []): { points: KernelPoint[]; segments: KernelSegment[]; constraints: KernelConstraint[] } {
+export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], bulges: readonly number[], circles: readonly P2[] = [], radii: readonly number[] = []): { points: KernelPoint[]; segments: KernelSegment[]; constraints: KernelConstraint[] } {
   const n = points.length, line = (i: number) => i >= 0 && i < n && !bulges[i], arc = (i: number) => i >= 0 && i < n && !!bulges[i], point = (i: number) => i >= 0 && i < n;
   const helpers: KernelPoint[] = [], segments: KernelSegment[] = [], constraints: KernelConstraint[] = [];
   /** A circle centre as a solver point `k<j>` (added once). */
@@ -101,6 +103,19 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
       distance(k, 'p' + r.edge, points[r.edge], centre(r.circle), circles[r.circle], r.axis, r.value);
     else if ((r.kind === 'ccdist' || r.kind === 'ccdx' || r.kind === 'ccdy') && r.a !== r.b && r.a >= 0 && r.b >= 0 && r.a < circles.length && r.b < circles.length)
       distance(k, centre(r.a), circles[r.a], centre(r.b), circles[r.b], r.kind === 'ccdist' ? null : r.kind === 'ccdx' ? 0 : 1, r.value);
+    else if (r.kind === 'ctan' && line(r.edge) && r.circle >= 0 && r.circle < circles.length && radii[r.circle] > 0) {
+      // The touching point F: on the edge's line (in line with its farther end), the circle's radius from
+      // its centre, square to the edge.
+      const a = points[r.edge], b = points[(r.edge + 1) % n], c = circles[r.circle], d: P2 = [b[0] - a[0], b[1] - a[1]], l2 = d[0] * d[0] + d[1] * d[1] || 1;
+      const t = ((c[0] - a[0]) * d[0] + (c[1] - a[1]) * d[1]) / l2, F: P2 = [a[0] + d[0] * t, a[1] + d[1] * t], far = t < 0.5 ? (r.edge + 1) % n : r.edge;
+      const off = Math.hypot(F[0] - c[0], F[1] - c[1]), cross = d[0] * (F[1] - c[1]) - d[1] * (F[0] - c[0]);
+      // (Drawn through the centre: the side the edge runs to its left.)
+      const side = off > 1e-9 ? Math.sign(cross) || 1 : 1, foot: P2 = off > 1e-9 ? F : [c[0] - d[1] / Math.sqrt(l2) * radii[r.circle], c[1] + d[0] / Math.sqrt(l2) * radii[r.circle]];
+      helpers.push({ id: 'tf' + k, position: foot });
+      segments.push({ id: 'tl' + k, startPointId: 'p' + far, endPointId: 'tf' + k }, { id: 'tr' + k, startPointId: centre(r.circle), endPointId: 'tf' + k });
+      constraints.push({ id: id + 'l', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tl' + k, angleRad: far === r.edge ? 0 : Math.PI },
+        { id: id + 'p', kind: 'signed-angle', segmentA: 's' + r.edge, segmentB: 'tr' + k, angleRad: side * Math.PI / 2 }, { id, kind: 'length', segmentId: 'tr' + k, lengthMM: radii[r.circle] });
+    }
     else if (r.kind === 'cconc' && r.a !== r.b && r.a >= 0 && r.b >= 0 && r.a < circles.length && r.b < circles.length)
       constraints.push({ id, kind: 'coincident', pointA: centre(r.a), pointB: centre(r.b) });
     else if (r.kind === 'angle' && line(r.a) && line(r.b)) {

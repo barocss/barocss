@@ -48,6 +48,7 @@ export function roundCorner(s: Polygon, i: number, r: number): { shape: Polygon 
       case 'cdist': case 'cdx': case 'cdy': return pt(rule.a) < 0 ? [] : [{ ...rule, a: pt(rule.a) }];
       case 'cedge': return [{ ...rule, edge: seg(rule.edge) }];
       case 'ccdist': case 'ccdx': case 'ccdy': case 'cconc': return [rule];
+      case 'ctan': return [prev, i].includes(rule.edge) ? [] : [{ ...rule, edge: seg(rule.edge) }];
       default: return [{ ...rule, a: seg(rule.a), b: seg(rule.b) }];
     }
   });
