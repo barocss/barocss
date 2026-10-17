@@ -1,6 +1,7 @@
 // The sketch panel's constraint section for a closed outline: what is picked, the constraints that can
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
+import { roundCorner } from '../sketch/corner';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
@@ -20,6 +21,7 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
   onShape(shape: Polygon): void; onPicked(picks: SketchPick[]): void; onEditDim(key: string): void;
 }) {
   const [refused, setRefused] = useState<string | null>(null);
+  const [roundR, setRoundR] = useState(2);
   useEffect(() => setRefused(null), [s, picked]);
   const options = constraintOptions(s, picked), dim = dimensionKey(s, picked);
   const point = picked.find(p => p.kind === 'point'), circle = picked.find(p => p.kind === 'circle');
@@ -47,6 +49,12 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
       <button type="button" aria-label="Distance between the points" title="Straight distance" onClick={() => onEditDim(circle ? twoPoints.dist : dim ?? twoPoints.dist)}><b>⤢</b><span>Distance</span></button>
       <button type="button" aria-label="Horizontal distance" title="Distance along the sketch X axis" onClick={() => onEditDim(twoPoints.dx)}><b>↔</b><span>Horizontal</span></button>
       <button type="button" aria-label="Vertical distance" title="Distance along the sketch Y axis" onClick={() => onEditDim(twoPoints.dy)}><b>↕</b><span>Vertical</span></button>
+    </div>}
+    {/* One corner picked: round it (a tangent arc of this radius). */}
+    {picked.length === 1 && point && <div className="sk-offset" role="group" aria-label="Round the corner">
+      <span className="muted">Round corner</span>
+      <span className="num"><input aria-label="Corner radius" type="number" step="any" min={0.1} value={roundR} onChange={e => setRoundR(Number(e.target.value))} /><em>mm</em></span>
+      <button className="ghost" aria-label="Round the corner" onClick={() => { const r = roundCorner(s, point.i, roundR); if ('error' in r) { setRefused(r.error); return; } onShape(r.shape); onPicked([]); }}>Round</button>
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
     <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length}</div>
