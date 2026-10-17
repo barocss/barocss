@@ -167,3 +167,26 @@ test('direct: a loft through curves of different degrees and knots makes them al
   }
   assert.equal(d.objects.length + 1, out.objects.length, 'the sections themselves are left as they were');
 });
+
+test('curves made in the studio: a sketch outline, a circle and model edges as exact curves', async () => {
+  const { outlineCurve, circleCurve, edgeCurve, curvesSource } = await import('../src/engine/curveSource');
+  const { xyPlane } = await import('../src/sketch/plane');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { rectanglePart, withNode } = await import('../src/engine/doc');
+  const t = Math.tan(Math.PI / 8), plane = xyPlane(5);
+  // 20 × 10 with one R2 corner (a quarter arc), closed; and a Ø8 circle.
+  const outline = outlineCurve(plane, [[0, 0], [18, 0], [20, 2], [20, 10], [0, 10]], [0, t, 0, 0, 0], true);
+  const d = importSource(emptyDirect(), curvesSource('made', [outline, circleCurve(plane, [10, 5], 4)]), 'made');
+  const [o, c] = d.objects.map(x => x.id);
+  assert.ok(Math.abs(curveLength(d, o) - (18 + Math.PI + 8 + 20 + 10)) < 1e-3, String(curveLength(d, o)));
+  assert.ok(Math.abs(curveLength(d, c) - 8 * Math.PI) < 1e-3);
+  assert.ok(Math.abs(analyzeCurve(d, c, 0).point[2] - 5) < 1e-12, 'on the plane');
+  // A box edge and a hole's rim.
+  let doc = rectanglePart(32, 32, 8); doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [16, 16], radius: 4 });
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok);
+  const m = r.bodies[0].mesh, straight = m.edges.find(e => e.straight)!.index, rim = m.edges.find(e => !e.straight)!.index;
+  const e = importSource(emptyDirect(), curvesSource('edges', [edgeCurve(m, straight)!, edgeCurve(m, rim)!]), 'edges');
+  assert.equal(curveLength(e, e.objects[0].id), 32);
+  // (The rim is two half circles, each an edge.)
+  assert.ok(Math.abs(curveLength(e, e.objects[1].id) - 4 * Math.PI) < 1e-4, `half the rim, as an arc: ${curveLength(e, e.objects[1].id)}`);
+});

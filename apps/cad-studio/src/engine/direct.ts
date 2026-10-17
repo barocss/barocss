@@ -213,7 +213,8 @@ export const directOps = {
   /** A surface through 2–15 curves of the same degree and knots, in selection order (cubic across them when there are enough). */
   loft(d: DirectGeometry, ids: string[]) {
     if (ids.length < 2 || ids.length > 15) throw new Error('Loft through 2 to 15 curves.');
-    const sections = compatible(d, ids), n = sections.length;
+    // (Each section its own id: curves from different sources may share one.)
+    const used = usedIds(d), sections = compatible(d, ids).map(g => ({ ...g, id: fresh(used, 'section') })), n = sections.length;
     const r = buildMultiSectionLoftSurface(sections, sections.map((_, i) => i / (n - 1)), {
       surfaceId: fresh(usedIds(d), 'loft'), degreeV: Math.min(3, n - 1), maximumBasisEvaluations: 3600, maximumEliminationSteps: 1680, maximumObservations: 465 });
     return add(d, [], r.source, [{ geometry: r.surface.id, name: 'Lofted surface' }]);

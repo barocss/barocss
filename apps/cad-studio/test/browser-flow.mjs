@@ -1731,6 +1731,27 @@ try {
     await snap('corners'); await press('Escape');
   });
 
+  await check('curves made in the studio: two sketched circles as curves, lofted into a surface; an edge as a curve', async () => {
+    await page.click('[aria-label="New part"]'); const [cx, cy] = await canvasCenter();
+    for (const [z, r] of [[0, 60], [20, 30]]) {
+      await press('s'); if (z) await page.fill('[aria-label="Plane offset"]', String(z));
+      await press('c'); await clickAt(cx, cy); await clickAt(cx + r, cy);
+      await page.click('[aria-label="Make curves"]');
+      await page.waitForFunction(n => (window.__studioDoc.direct?.objects.length ?? 0) === n, z ? 2 : 1, { timeout: 10000 });
+    }
+    await page.locator('.ol.direct').nth(0).click(); await page.locator('.ol.direct').nth(1).click({ modifiers: ['Shift'] });
+    await page.click('.direct-panel button:text-is("Loft")');
+    await page.waitForFunction(() => window.__studioDoc.direct.objects.some(o => /Lofted/.test(o.name)), null, { timeout: 10000 });
+    await snap('curves-loft');
+    // A box's edge as a curve.
+    await press('Escape'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1 || /body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    const ext = (await doc()).nodes.length - 1;
+    assert.ok(await page.evaluate(n => window.__studioPickEdge(`n${n}.side0|n${n}.top`), ext));
+    await page.click('[aria-label="Edge as a curve"]');
+    await page.waitForFunction(() => window.__studioDoc.direct.objects.some(o => /Edge curve/.test(o.name)), null, { timeout: 10000 });
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

@@ -14,13 +14,15 @@ const NONE: SketchPick[] = [];
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
   onOffset?(d: number): void;
   /** Adds the face's own outline and holes (as references when `asRefs`); absent when not sketching on a face as it is. */
-  onUseOutline?(asRefs: boolean): void }) {
+  onUseOutline?(asRefs: boolean): void;
+  /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
+  onToCurves?(): void }) {
   const [offsetBy, setOffsetBy] = useState(2);
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
@@ -166,6 +168,10 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, o
           <button className="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</button>
           <button className="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</button>
         </div>
+      </>}
+      {onToCurves && <>
+        <div className="card-title" style={{ marginTop: 10 }}>CURVES</div>
+        <button className="ghost" aria-label="Make curves" data-tip="Make curves" data-tip-desc="Each shape of the sketch as a curve in space (for lofts, sweeps and ruled surfaces); the sketch is left" onClick={onToCurves}>Make curves of the sketch</button>
       </>}
     </aside>
   );
