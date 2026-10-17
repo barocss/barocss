@@ -11,6 +11,8 @@ export interface Appearance {
   twoSided?: boolean;
   /** A colour map (an image, as a data URL) multiplied into the colour, box-projected: one repeat every `scale` mm. */
   texture?: { image: string; scale: number };
+  /** Alpha cutout: where the texture's alpha is below this (0 – 1) nothing is drawn (holes, leaves, grilles). */
+  cutout?: number;
 }
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
@@ -119,6 +121,7 @@ export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   const o = obj(v);
   return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
     ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}), ...(o.twoSided === true ? { twoSided: true } : {}),
+    ...(typeof o.cutout === 'number' && o.cutout > 0 ? { cutout: num(o.cutout, 0, 1, 0) } : {}),
     ...(typeof obj(o.texture).image === 'string' && /^data:image\//.test(obj(o.texture).image as string) ? { texture: { image: obj(o.texture).image as string, scale: num(obj(o.texture).scale, 0.1, 10000, 20) } } : {}) };
 }
 

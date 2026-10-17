@@ -36,6 +36,8 @@ export interface Material {
   shadowOnly?: boolean;
   /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
   map?: ImageTexture | null;
+  /** Alpha cutout: pixels whose alpha (colour × map) is below this (0 – 1) are not drawn — leaves, grilles, decals with holes; 0: off. */
+  alphaCutoff?: number;
   /**
    * A shader material: WGSL that computes the base colour per pixel (then lit, unless unlit). The
    * expression is a vec3<f32> of linear colour with uv, world, normal and materialParams (an
@@ -214,14 +216,14 @@ export class Mesh {
     f.set([...linear(m.color), m.opacity], o + 32);
     if (this.geometry.topology === 'lines') f.set([m.lineWidth * pixelRatio, 0, 0, 1], o + 36);
     else f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
-    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, this._receiveShadow ? 1 : 0, 0], o + 40);
+    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, this._receiveShadow ? 1 : 0, Math.round(m.alphaCutoff * 1000)], o + 40);
   }
 }
 
 function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null } {
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null,
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
   };
 }
 

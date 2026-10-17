@@ -20,6 +20,7 @@ import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
 import { splineOutline } from '../sketch/spline';
+import type { Analysis } from './analysis';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
@@ -133,6 +134,8 @@ interface Props {
   directSelection?: string[];
   /** Cosmetic thread rings (line segments). */
   threads?: Float32Array;
+  /** A surface analysis look on the bodies (zebra stripes, curvature map), or none. */
+  analysis?: Analysis | null;
   /** See-through regions of the tool being placed or edited (a hole's whole cylinder). */
   regions?: ToolRegion[];
   /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
@@ -276,6 +279,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const overlayKey = shapeOf([props.gizmo, props.handles]);
   useEffect(() => { request(); }, [props.sketch, overlayKey]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
+  useEffect(() => { renderer.current?.setAnalysis?.(props.analysis ?? null); request(); }, [props.analysis, backend]);
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);

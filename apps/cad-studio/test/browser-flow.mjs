@@ -915,6 +915,12 @@ try {
     await page.fill('.render-panel [aria-label="Texture repeat"]', '16');
     await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].texture?.scale === 16);
     await page.waitForTimeout(600); await snap('render-texture');
+    // A texture with holes cut out where its alpha is low.
+    await page.setInputFiles('.render-panel [aria-label="Texture image"]', join(root, 'test/fixtures/holes.png'));
+    await page.waitForFunction(() => /^data:image\/png/.test(Object.values(window.__studioDoc.render.appearances)[0].texture?.image ?? '') && Object.values(window.__studioDoc.render.appearances)[0].texture.image.length < 3000, null, { timeout: 5000 });
+    await page.locator('.render-panel [aria-label="Cut out below"]').fill('0.5');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].cutout === 0.5);
+    await page.waitForTimeout(600); await snap('render-cutout');
     // Undo takes the saved view back; Model returns to the modelling look.
     await page.evaluate(() => document.activeElement?.blur());
     for (let k = 0; k < 20 && await page.evaluate(() => !!window.__studioDoc.render?.camera); k++) await press('Meta+z');
@@ -1919,6 +1925,20 @@ try {
     await page.locator('.outliner .ol').first().click();
     await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 10000 });
     await iso(); await snap('draft-offset');
+  });
+
+  await check('surface analysis: zebra stripes, then the curvature map, on a filleted box; no shader errors', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side0|n1.top')));
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle(); await press('Escape');
+    const errors = []; const listen = m => { if (m.type() === 'error' || /WGSL|shader/i.test(m.text())) errors.push(m.text()); }; page.on('console', listen);
+    await page.click('[aria-label="Surface analysis"]'); await page.waitForTimeout(800); await iso(); await snap('analysis-zebra');
+    await page.click('[aria-label="Surface analysis"]'); await page.waitForTimeout(800); await snap('analysis-curvature');
+    await page.click('[aria-label="Surface analysis"]'); page.off('console', listen);
+    assert.match(await page.locator('[aria-label="Surface analysis"]').innerText(), /Analyse/);
+    assert.deepEqual(errors, []);
   });
 
   await check('corners: a click at a box corner picks the point; Shift adds another and their distance shows', async () => {

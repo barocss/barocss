@@ -34,6 +34,7 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/pro
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from './app/holeRegion';
 import { threadLines, threadsOf } from './app/threads';
+import type { Analysis } from './viewport/analysis';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from './sketch/trim';
@@ -198,6 +199,8 @@ export function App() {
   }, [dirty]);
   const [ortho, setOrtho] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
+  /** A surface analysis look on the bodies (modelling view only). */
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
   /** The body whose name is being typed in the browser (its key). */
@@ -1256,7 +1259,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} analysis={rendering ? null : analysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -1592,6 +1595,9 @@ export function App() {
 
           <button onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</button>
           <button onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</button>
+          {!rendering && <button aria-label="Surface analysis" className={analysis ? 'on' : ''} data-tip={analysis === 'zebra' ? 'Zebra stripes' : analysis === 'curvature' ? 'Curvature map' : 'Surface analysis'}
+            data-tip-desc="Click: zebra stripes (a bend or break in a stripe is a joint that is not smooth), then the curvature map (flat blue, tight red), then off"
+            onClick={() => setAnalysis(a => a === null ? 'zebra' : a === 'zebra' ? 'curvature' : null)}>{analysis === 'zebra' ? 'Zebra' : analysis === 'curvature' ? 'Curv' : 'Analyse'}</button>}
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
         {(doc.instances?.length ?? 0) > 0 && <button className={'chip snap' + (explode ? ' on' : '')} aria-label="Explode" data-tip="Exploded view" data-tip-desc="Spread the parts out from the middle to see how they go together (display only): click for more, then off"

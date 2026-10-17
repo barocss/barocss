@@ -128,6 +128,8 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 @fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let alpha = in.color.a * texel.a;
+  // Alpha cutout (pick.w: the cutoff × 1000; 0 off).
+  if (object.pick.w > 0u && alpha < f32(object.pick.w) / 1000.0) { discard; }
   var n = normalize(in.normal);
   if (!front) { n = -n; }
   // Perspective: toward the eye; orthographic: against the view direction.
@@ -178,6 +180,7 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let a = in.color.a * texel.a;
+  if (object.pick.w > 0u && a < f32(object.pick.w) / 1000.0) { discard; }
   return vec4f(in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, normalize(in.normal)) * a, a);
 }
 // A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.

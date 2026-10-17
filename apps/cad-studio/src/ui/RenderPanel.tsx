@@ -77,6 +77,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
               }} /></label>
             {current.texture && <button className="tool tiny" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></button>}
           </span></div>
+        {current.texture && slider('Cut out below', current.cutout ?? 0, v => setLook({ cutout: v > 0 ? v : undefined }))}
         {current.texture && <label className="field"><span>Repeat every</span><span className="num"><input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
           onChange={e => { const v = Number(e.target.value); if (v > 0) setLook({ texture: { ...current.texture!, scale: v } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>}
         <label className="field"><span>Shader</span>

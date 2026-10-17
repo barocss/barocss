@@ -41,6 +41,8 @@ export interface ViewRenderer {
   setRender?(settings: import('../engine/render').RenderSettings | null): void;
   /** The frame as a PNG (WebGPU only). */
   capture?(): Promise<Blob>;
+  /** Zebra stripes or the curvature map on the bodies (WebGPU only; null: off). */
+  setAnalysis?(mode: import('./analysis').Analysis | null): void;
   /** Cosmetic thread rings (line segments, WebGPU only). */
   setThreads?(lines: Float32Array): void;
   /** See-through tool regions (a hole's whole cylinder) as a mesh and its rims (WebGPU only). */
