@@ -498,7 +498,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const tool: Solid = axis === 'z' ? { kind: 'upright', solid: cylinder }
           : { kind: 'brep', brep: transformBrep(brepFromPrismatic(cylinder, { id: at + '_tool' }), { matrix: axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0] }) };
         const out = boolean(p.solid, tool, 'difference', at);
-        if (volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid)) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
+        // A miss: no volume taken (upright: exact); a B-rep result has none of the tool's faces (measuring
+        // its volume would tessellate the whole body twice per hole).
+        const missed = out.kind === 'upright' && p.solid.kind === 'upright' ? volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid)
+          : out.kind === 'brep' ? !out.brep.faces.some(x => x.name?.startsWith(`${at}.`)) : volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid);
+        if (missed) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
         if (csk === null) return out;
         // The countersink: a 90° cone from Ø csk at the face down to the hole, its rim a little above the
         // face (so no face of it lies on the face). Revolved about its profile's Y (depth into the
