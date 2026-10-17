@@ -111,6 +111,8 @@ interface Props {
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** A box drawn dashed round what is picked (or the part), with its size. */
+  boundsBox?: { min: Vec3; max: Vec3; label: string } | null;
   /** Render settings (the Render workspace), or null for the modelling look. */
   render?: RenderSettings | null;
   /** Bodies moved by an offset (the Render workspace's animation), by body index. */
@@ -756,6 +758,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
           : sn.kind === 'centre' ? <circle cx={p[0]} cy={p[1]} r={r} /> : <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1]} ${p[0]},${p[1] + r + 1} ${p[0] - r - 1},${p[1]}`} />;
         items.push(<g key="osnap" className="sk-osnap">{mark}<text x={p[0] + 11} y={p[1] - 9}>{({ end: 'End', mid: 'Middle', centre: 'Centre', quadrant: 'Quadrant', origin: 'Origin' } as const)[sn.kind]}</text></g>);
       }
+    }
+    const bb = props.boundsBox;
+    if (bb && !sk) {
+      const c = (i: number): Vec3 => [i & 1 ? bb.max[0] : bb.min[0], i & 2 ? bb.max[1] : bb.min[1], i & 4 ? bb.max[2] : bb.min[2]], q = Array.from({ length: 8 }, (_, i) => cam.project(c(i), w, h));
+      const edges = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+      const top = q.reduce((b, p) => p[1] < b[1] ? p : b, q[0]), tw = Math.max(60, bb.label.length * 7 + 14);
+      items.push(<g key="bbox">{edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
+        <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
     }
     const ml = props.measureLine;
     if (ml) {

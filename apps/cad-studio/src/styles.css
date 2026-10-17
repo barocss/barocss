@@ -33,6 +33,9 @@ button { font: inherit; color: inherit; }
 .sk-shape { fill: rgba(232, 194, 90, 0.08); stroke: #f1f2f4; stroke-width: 2; }
 .sk-shape.open { fill: none; }
 .vp-overlay .sk-trim { fill: none; stroke: #ef6f6c; stroke-width: 4; stroke-linecap: round; opacity: 0.9; pointer-events: none; }
+.vp-overlay .bbox-line { stroke: #7fb2f0; stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.85; }
+.kv-check { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted, #8a93a0); }
+.part-summary { margin-bottom: 10px; }
 .vp-overlay .sk-extend { fill: none; stroke: #5fd08a; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
 .vp-overlay .sk-split { fill: none; stroke: #5fd08a; stroke-width: 2.5; pointer-events: none; }
 .vp-overlay .sk-end { fill: #ef6f6c; stroke: none; pointer-events: none; }

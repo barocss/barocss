@@ -1545,6 +1545,20 @@ try {
     await snap('hole-types');
   });
 
+  await check('mass: a box body shows its inertia (about its centre or the origin) and its bounding box; the part sums up', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await press('Escape'); await page.waitForTimeout(200);
+    assert.match(await page.locator('.props').innerText(), /PART · 1 body[\s\S]*Mass/);
+    await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
+    await page.waitForSelector('[aria-label="Moments of inertia"]', { timeout: 5000 });
+    const centre = await page.locator('[aria-label="Moments of inertia"]').innerText();
+    await page.selectOption('[aria-label="Inertia about"]', 'origin');
+    assert.notEqual(await page.locator('[aria-label="Moments of inertia"]').innerText(), centre);
+    await page.locator('[aria-label="Show the bounding box"]').first().check();
+    await page.waitForSelector('.vp-overlay .bbox-line', { state: 'attached', timeout: 5000 }); await snap('mass-box');
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

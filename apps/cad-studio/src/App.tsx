@@ -43,6 +43,7 @@ import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, typ
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importIGESFile, importSource, type DirectGeometry } from './engine/direct';
 import { stepLengthUnit } from './engine/stepUnits';
+import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from './app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
@@ -192,6 +193,9 @@ export function App() {
    * The section view: every body cut by a plane across `axis` at `at`, the `keep` side shown with its cut
    * faces lit (the kernel's split, display only — the model is not changed).
    */
+  /** The Body panel: inertia about the centre of mass or the origin; the bounding box drawn. */
+  const [inertiaAt, setInertiaAt] = useState<'centre' | 'origin'>('centre');
+  const [showBox, setShowBox] = useState(false);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
   const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[] } | null>(null);
   const sectionRef = useRef(section); sectionRef.current = section;
@@ -1026,6 +1030,7 @@ export function App() {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
         }); }}
+        boundsBox={showBox ? (() => { const box = boxOf(selBodies.length ? selBodies : bodies); return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
         onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
@@ -1219,7 +1224,7 @@ export function App() {
                 <input type="color" aria-label="Any colour" value={look.color ?? '#bcc0c7'} onChange={e => commit(withLook(doc, b, { color: e.target.value }))} /></label>
             </span></div>
             <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
-            <div className="kv">Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></div>
+            <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
             {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === look.material) ?? density; return <>
               {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div>}
@@ -1230,10 +1235,24 @@ export function App() {
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, t = made?.command === 'fastener' ? fastenerThread(made.values) : null;
               return t ? <><div className="kv">Part <b>{fastenerName(made!.values)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal ISO sizes — check the standard before manufacture.</div></> : null; })()}
             {b.centroid && <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
+            {(() => { const own = MATERIALS.find(m => m.id === look.material) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
+              const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.massG, mp.centroid, [0, 0, 0]) : mp.inertia;
+              return <>
+                <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
+                <div className="kv inertia" aria-label="Moments of inertia">Ixx Iyy Izz <b>{[0, 1, 2].map(k => sig3(I[k][k])).join(' · ')} kg·mm²</b></div>
+                <div className="kv inertia muted">Ixy Iyz Ixz <b>{[[0, 1], [1, 2], [0, 2]].map(([i, j]) => sig3(I[i][j])).join(' · ')}</b></div>
+              </>; })()}
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
           </div>; })}
+          {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
+            return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+              <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
         </>}
+        {!sel1 && !selBodies.length && bodies.length > 0 && !sketch && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
+          return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
+            <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+            <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge; Shift-click adds more of the same (edges to round, faces to open). For a Boolean, Shift-click a second body in the Outliner.</div>}
         {editNode !== null && <NodeEditor nodes={doc.nodes} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
