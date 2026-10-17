@@ -64,6 +64,18 @@ mesh('degenerate-extra', { positions: R.positions, indices: [...R.indices, R.ind
 const shift = R.positions.length / 3;
 mesh('two-shells', { positions: [...R.positions, ...R.positions.map((x, i) => i % 3 === 2 ? x + 40 : x)], indices: [...R.indices, ...R.indices.map(i => i + shift)] });
 
+// Exact oracles (conformance-format cases the kernel is checked against in the `expect` stage): a cylinder and
+// a box turned 80.79° about X, |A ∩ B| = 5.652209677 by scripts/rb/oracle-cylinder-box.mjs and |A − B| = |A| − that.
+const cylinder = [{ id: 'As', kind: 'sketch', profile: 'circle', center: [2.987, 2.504], radius: 4.055 }, { id: 'A', kind: 'extrude', sketch: 'As', height: 4.56, from: -1.544 }];
+const turned = [{ id: 'Bs', kind: 'sketch', profile: 'rectangle', min: [-3.371, -3.944], max: [1.79, 2.502] }, { id: 'B0', kind: 'extrude', sketch: 'Bs', height: 4.469, from: 0.247 }, { id: 'B', kind: 'rotate', target: 'B0', axis: 'x', angleDegrees: 80.79, pivot: [0, 0, 0] }];
+const meet = 5.652209677, whole = Math.PI * 4.055 ** 2 * 4.56;
+for (const [name, op, volume] of [['cylinder-turned-box-intersect', 'intersect', meet], ['cylinder-turned-box-difference', 'difference', whole - meet]]) {
+  mkdirSync(join(root, 'oracle'), { recursive: true });
+  writeFileSync(join(root, 'oracle', `${name}.json`), JSON.stringify({ id: name, about: `RB4's counterexample: an upright cylinder ${op === 'intersect' ? '∩' : '−'} a box turned 80.79° about X, against an independent exact integration.`,
+    input: { partDocument: D([...cylinder, ...turned, { id: 'X', kind: op, target: 'A', tool: 'B' }]) }, expect: { outputs: [{ volumeMM3: { value: +volume.toFixed(9), relTol: 1e-6 }, centroidMM: { value: [0, 0, 0], absTol: 1e9 }, bodies: 1, topology: [{ shells: 1, genus: 0 }] }] },
+    oracle: 'scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer; converged to 1e-9)' }, null, 2) + '\n');
+}
+
 // STEP files of this kernel's own models.
 const step = (name, breps) => put('step', `${name}.step`, exportStep(breps, { name, timestamp: '2026-10-18T00:00:00' }));
 step('helical-bolt-m8x30', [threadSolid({ id: 'b', diameter: 8, pitch: 1.25, length: 30, center: [0, 0], seat: 0, hex: { across: 13, height: 5.3 }, form: 'helical' })]);

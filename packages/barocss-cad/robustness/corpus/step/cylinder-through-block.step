@@ -207,7 +207,7 @@ DATA;
 #200=REPRESENTATION('surface area',(#199),#14);
 #201=PROPERTY_DEFINITION('geometric validation property','surface area of cylinder-through-block',#9);
 #202=PROPERTY_DEFINITION_REPRESENTATION(#201,#200);
-#203=CARTESIAN_POINT('centre point',(-0.4311740471943029,-2.296874221564928E-17,5.000000000000261));
+#203=CARTESIAN_POINT('centre point',(-0.4311740471943029,-2.296874221564928E-17,5.));
 #204=REPRESENTATION('centroid',(#203),#14);
 #205=PROPERTY_DEFINITION('geometric validation property','centroid of cylinder-through-block',#9);
 #206=PROPERTY_DEFINITION_REPRESENTATION(#205,#204);

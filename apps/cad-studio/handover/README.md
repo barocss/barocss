@@ -373,7 +373,15 @@ RB3 results (2026-10-18; D20, D21; conformance `rb3`):
 - A STEP file's repeated names are numbered on import. The countersunk TODO is fixed: its plate had branched
   into two bodies in the seed.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → **RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+RB4 results (2026-10-18; D23, D24): `pnpm rb:props` runs 8 properties × 200 cases (seed 20261018).
+- Passing: inclusion–exclusion, commutativity, scale, knot insertion and degree elevation, fillet monotone and
+  Lipschitz, quadrature against tessellation.
+- Known (TODO): difference and rigid motion. Found along the way and fixed (D23): mass depended on where a body
+  sits, and trims were left out of the quadrature.
+- Open, with exact oracles in the corpus: an upright cylinder minus a turned box encloses 6.8e-5 too little
+  (the Boolean); its intersection integrates 8.7e-4 high; that body's centroid moves 9e-6 mm through STEP.
+
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

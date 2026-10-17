@@ -31,3 +31,11 @@ exits 1. `--record` appends one summary row to `trend.jsonl`, keyed by the commi
 - STEP exports of this kernel's own models, including the helical thread.
 
 External corpora (RB6) and the ABC sweep (RB8) are fetched at run time and never committed.
+
+## Properties (RB4)
+
+`node scripts/rb/props.mjs` (`pnpm rb:props`) runs the metamorphic properties of `scripts/rb/property.mjs` with a
+fixed seed (20261018; `RB_PROPERTY_SEED=random` for nightly runs), `RB_PROPERTY_RUNS` cases each (default 200).
+A failure is shrunk to its smallest counterexample. Known failures in `properties-todo.json` show as TODO; any
+other failure exits 1. `--record` appends a row to `properties.jsonl`. `corpus/oracle/` holds cases checked
+against independent exact integrations (`scripts/rb/oracle-*.mjs`).

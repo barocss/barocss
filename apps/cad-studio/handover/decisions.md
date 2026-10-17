@@ -193,3 +193,40 @@ Stated accuracy: rounded 40 × 30 × 10 box against its closed form, volume and 
 r = 0.25–4.99.
 Future: pole-aware quadrature for trimmed patches (re-parametrize near a pole) would give the accuracy without
 moving any geometry or name.
+
+## D23 — Mass quadrature about the body's centre, with trims' curved strips integrated (2026-10-18, RB4)
+Decided:
+- The divergence-theorem integrals are taken about the centre of the box of the faces' control points, then
+  moved to the world origin (parallel-axis relations), so a body's mass no longer depends on where it sits.
+- On meshed (Boolean-trimmed) faces, the parabolic strip between each boundary chord and its edge, in the face's
+  parameters, is integrated; the remaining error is extrapolated as h³ (h² beside a surface's pole, where no strip
+  is added).
+Why: RB4's rigid-motion property found 8e-5 between a body and the same body moved. Closed forms:
+- top-edge fillet box 4.8e-6 → 8.6e-9;
+- oblique holed-plate split 8.9e-6 → 5e-7 a half;
+- countersinks 1e-9.
+The vertices' box was tried as the centre and rejected: it put a torus cut by a box off-centre (`087f5d9db`).
+
+## D24 — Property tests: our own harness, tolerances by mass method, known failures as TODO (2026-10-18, RB4)
+Decided: `scripts/rb/property.mjs` holds the harness (seeded mulberry32, shrinking to the smallest failing value,
+crashes as failures) and eight properties:
+- inclusion–exclusion;
+- difference;
+- commutativity;
+- exact rigid motions;
+- uniform scale;
+- knot insertion and degree elevation;
+- fillet monotone and Lipschitz;
+- quadrature against tessellation.
+
+Generators tilt half the primitives, so the general Booleans run, not just the upright family. Volumes
+compare within the accuracy their mass method claims: 1e-9 closed form or planar, 2e-5 quadrature,
+2e-3 tessellated. `pnpm rb:props` runs about 200 cases a property with seed 20261018 (RB_PROPERTY_SEED=random
+nightly), `--record` appends to `robustness/properties.jsonl`, and `pnpm test` runs a 5-case slice. Known
+failures live in `robustness/properties-todo.json`: their failures show as TODO, and passing again shows as
+IMPROVEMENT.
+Why: metamorphic checks find what fixed tests miss. Findings (TODO, with an exact oracle in
+`robustness/corpus/oracle`, `scripts/rb/oracle-cylinder-box.mjs`):
+- an upright cylinder minus a box turned 80.79° about X encloses 6.8e-5 too little (the Boolean result);
+- its intersection integrates 8.7e-4 high at default quadrature;
+- the rigid-motion property still misses by 2.2e-5 on two tilted cylinders.
