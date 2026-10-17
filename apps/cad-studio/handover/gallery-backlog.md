@@ -52,7 +52,7 @@ Status of each line: [ ] open · [x] done (with the commit).
 
 ## C. Kernel or GPU, large
 
-- [ ] C1 Real helical threads: helix + profile sweep (#2092, #2094 stage 4)
+- [x] C1 Real helical threads: helix + profile sweep (#2092, #2094 stage 4) — f88fa19a2 (hex bolts and nuts; faceted, one mesh solid each: socket and countersunk heads stay cosmetic)
 - [ ] C2 Sweep along a sketched / 3D path (#2030)
 - [ ] C3 Draft on chosen faces; offset face (#2037)
 - [ ] C4 Thicken an open surface (#2089)
