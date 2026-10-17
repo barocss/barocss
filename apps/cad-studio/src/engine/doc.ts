@@ -23,7 +23,8 @@ export interface SketchOutline {
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
 /** A body's own look in the modelling view (see StudioDoc.bodies). */
-export interface BodyLook { name?: string; color?: string; hidden?: boolean }
+/** `material`: a material id (the studio's list); without one, the studio's default material. */
+export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }

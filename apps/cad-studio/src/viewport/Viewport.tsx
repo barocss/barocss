@@ -305,7 +305,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const k = f.kind === 'plane' ? [0, 1, 2].find(i => Math.abs(Math.abs(f.normal[i]) - 1) < 1e-6) : undefined;
       if (k !== undefined) { const q = surfacePoint(x, y, w, h, face); if (q) { const n: Vec3 = [0, 0, 0]; n[k] = Math.sign(f.normal[k]); spot = { point: q.map((v, i) => i === k ? Math.round(v * 1000) / 1000 : mm(v)) as Vec3, normal: n }; } }
       // Over an upright round hole (or boss): its axis, at its upper rim — a bolt goes straight in.
-      else if (f.kind === 'curved' && f.radius !== undefined) { const c = roundAxis(body.mesh, face!.face, f.radius); if (c) spot = { point: c, normal: [0, 0, 1] }; }
+      // Over a round hole (or boss) along X, Y or Z: its axis, at the rim nearer the eye, facing out — a bolt goes straight in.
+      else if (f.kind === 'curved' && f.radius !== undefined) {
+        const c = roundAxis(body.mesh, face!.face, f.radius);
+        if (c) {
+          const eye = camera.current.eye(), mid = [0, 1, 2].map(i => (c.lo[i] + c.hi[i]) / 2) as Vec3, up = eye[c.k] >= mid[c.k] ? 1 : -1;
+          const point = [...mid] as Vec3; point[c.k] = up > 0 ? c.hi[c.k] : c.lo[c.k];
+          const n: Vec3 = [0, 0, 0]; n[c.k] = up; spot = { point, normal: n };
+        }
+      }
     } else if (f && lastSpot.current) {
       // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
       const ls = lastSpot.current, k = ls.normal.findIndex(v => v !== 0), { origin, dir } = camera.current.ray((x / w) * 2 - 1, 1 - (y / h) * 2);
@@ -315,16 +323,20 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     lastSpot.current = spot;
     return spot;
   };
-  /** An upright cylindrical face's axis (x, y) and its top (z), when its vertices span a full circle of `r`. */
-  const roundAxes = useRef(new WeakMap<object, Map<number, Vec3 | null>>());
-  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): Vec3 | null => {
+  /**
+   * A round hole's (or boss's) axis along X, Y or Z, when its vertices span a full circle of `r` across it:
+   * its middle, both ends along the axis, and which axis.
+   */
+  const roundAxes = useRef(new WeakMap<object, Map<number, { lo: Vec3; hi: Vec3; k: number } | null>>());
+  const roundAxis = (mesh: BodyResult['mesh'], face: number, r: number): { lo: Vec3; hi: Vec3; k: number } | null => {
     let byFace = roundAxes.current.get(mesh); if (!byFace) roundAxes.current.set(mesh, byFace = new Map());
     if (byFace.has(face)) return byFace.get(face)!;
     const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === face) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], mesh.positions[v * 3 + k]); hi[k] = Math.max(hi[k], mesh.positions[v * 3 + k]); }
-    const full = Math.abs(hi[0] - lo[0] - 2 * r) < 0.02 * r + 1e-3 && Math.abs(hi[1] - lo[1] - 2 * r) < 0.02 * r + 1e-3;
-    const at: Vec3 | null = full ? [Math.round((lo[0] + hi[0]) / 2 * 1000) / 1000, Math.round((lo[1] + hi[1]) / 2 * 1000) / 1000, Math.round(hi[2] * 1000) / 1000] : null;
-    byFace.set(face, at); return at;
+    const across = (k: number) => Math.abs(hi[k] - lo[k] - 2 * r) < 0.02 * r + 1e-3;
+    const k = [2, 0, 1].find(a => [0, 1, 2].filter(i => i !== a).every(across)), round = (v: number) => Math.round(v * 1000) / 1000;
+    const out = k === undefined ? null : { lo: lo.map(round) as Vec3, hi: hi.map(round) as Vec3, k };
+    byFace.set(face, out); return out;
   };
   /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
   const profileAt = (x: number, y: number, w: number, h: number): number | null => {

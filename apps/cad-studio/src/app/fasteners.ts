@@ -62,6 +62,11 @@ const circle = (x: number, y: number, r: number) => [{ kind: 'arc' as const, sta
 
 /** The nodes of a fastener standing on (x, y, z): heads and nuts and washers above z, a bolt's shank below it. */
 export function fastenerNodes(doc: StudioDoc, v: Values): StudioDoc {
+  // (Steel, unless the body already has a material of its own: kept by its first solid, see app/bodies.ts.)
+  const out = buildFastener(doc, v), first = out.nodes.findIndex((n, i) => i >= doc.nodes.length && n.kind === 'extrude'), key = `b${first}`;
+  return first < 0 || out.bodies?.[key]?.material ? out : { ...out, bodies: { ...out.bodies, [key]: { ...out.bodies?.[key], material: 'steel' } } };
+}
+function buildFastener(doc: StudioDoc, v: Values): StudioDoc {
   const size = FASTENER_SIZES[String(v.size)]; if (!size) throw new Error(`No size ${String(v.size)} in the catalogue (M3–M12).`);
   const x = Number(v.x), y = Number(v.y), z = Number(v.z), len = Number(v.length), at = (h: number) => (h ? { from: h } : {});
   if (threaded(String(v.kind)) && !size.lengths.includes(len)) throw new Error(`${String(v.size)} ${String(v.kind) === 'hex-bolt' ? 'bolts' : 'screws'} come ${size.lengths[0]}–${size.lengths[size.lengths.length - 1]} mm long (${size.lengths.join(', ')}).`);
