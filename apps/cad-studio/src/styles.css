@@ -323,3 +323,6 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .vp-overlay .sk-shape.construction { stroke-dasharray: 5 4; fill: none !important; opacity: 0.75; }
 button.chip.snap { border: 0; cursor: pointer; color: var(--text-2); font: inherit; font-size: 11px; }
 button.chip.snap:hover { background: #3a3c41; }
+.ol-caret { width: 16px; height: 22px; flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.ol-caret:disabled { visibility: hidden; }
+.ol.ol-step { display: flex; align-items: center; gap: 6px; width: calc(100% - 22px); margin-left: 22px; font-size: 11px; color: var(--text-2); }

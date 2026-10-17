@@ -68,3 +68,17 @@ export function describeChange(before: StudioDoc, after: StudioDoc): string {
   if (JSON.stringify(before.bodies ?? {}) !== JSON.stringify(after.bodies ?? {})) return 'body look';
   return 'change';
 }
+
+/** The features a body was built up by, first to last (its main line: each feature's first solid input; sketches left out). */
+export function bodySteps(nodes: readonly ModelNode[], top: number): number[] {
+  const out: number[] = [];
+  for (let i = top, guard = 0; nodes[i] && guard < 4096; guard++) {
+    // (A shape of several steps shows as itself: skip over its inner steps.)
+    out.push(i);
+    const n = nodes[i], inner = 'made' in n && n.made?.nodes ? n.made.nodes - 1 : 0;
+    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch' && !(inner && p >= i - inner));
+    if (!solids.length) break;
+    i = solids[0];
+  }
+  return out.reverse();
+}

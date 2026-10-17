@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedDoc, type PartInstance } from './engine/doc';
 import { dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
@@ -31,7 +31,7 @@ import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { edgeChain } from './app/edgeChain';
-import { BODY_COLOURS, bodyName, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
+import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
@@ -166,6 +166,8 @@ export function App() {
   const [editNode, setEditNode] = useState<number | null>(null);
   /** The body whose name is being typed in the browser (its key). */
   const [renaming, setRenaming] = useState<string | null>(null);
+  /** Bodies whose features the browser lists under them (by key). */
+  const [expanded, setExpanded] = useState<string[]>([]);
   const [help, setHelp] = useState(false);
   /** The grid step (mm): sketch points, placing, gizmo moves and dimension arrows (0: off). */
   const [snapStep, setSnapStep] = useState(() => { try { const v = Number(localStorage.getItem('studio.snap') ?? '1'); return [1, 0.5, 0.1, 5, 10, 0].includes(v) ? v : 1; } catch { return 1; } });
@@ -1036,7 +1038,9 @@ export function App() {
           const pick = (e: React.MouseEvent) => { setDirectSel([]); setInstanceSel([]); setSelection(prev => {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
           }); };
-          return <div key={b.key} className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
+          const steps = bodySteps(evaluated.nodes, refOf(b).node), open = expanded.includes(b.key);
+          return <Fragment key={b.key}><div className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
+            <button className="ol-caret" aria-label={open ? 'Hide its features' : 'Show its features'} disabled={steps.length < 2} onClick={() => setExpanded(x => open ? x.filter(k => k !== b.key) : [...x, b.key])}><Icon name={open ? 'expand_more' : 'chevron_right'} small /></button>
             <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
               onClick={() => { commit(withLook(doc, b, { hidden: !look.hidden })); if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
             <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
@@ -1046,7 +1050,10 @@ export function App() {
                 onBlur={e => { if (e.currentTarget.value.trim() !== bodyName(doc, b)) commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); }} />
               : <button className={'ol' + (sel ? ' sel' : '')} onClick={pick} onDoubleClick={() => setRenaming(b.key)} title="Double-click to rename">
                 {bodyName(doc, b)}{(() => { const last = lastFeature(doc, b); return last ? <span className="muted"> · {last}</span> : null; })()}</button>}
-          </div>;
+          </div>
+          {open && steps.map(k => <button key={k} className={'ol ol-step' + (editNode === k ? ' sel' : '')} onClick={() => { setEditNode(k); setSelection({ faces: [], edges: [], bodies: [i] }); }}>
+            <Icon name={iconFor(evaluated.nodes[k])} small />{featureLabel(evaluated.nodes[k], k, evaluated.nodes)}</button>)}
+          </Fragment>;
         })}
         {freeSketches.length > 0 && <div className="ol-head">Sketches</div>}
         {freeSketches.map(k => <div key={'s' + k} className={'ol-row' + (selection.sketches?.includes(k) ? ' sel' : '')}>
@@ -1149,7 +1156,7 @@ export function App() {
             {(() => { const own = MATERIALS.find(m => m.id === look.material) ?? density; return <>
               {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div>}
               {/* The body's own material (the default for new bodies stays the studio's). */}
-              <label className="kv">Material <select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === material ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}{m.id === material ? ' (default)' : ''}</option>)}</select></label>
+              <label className="kv"><span>Material{!look.material && <span className="muted"> · default</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === material ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             </>; })()}
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, t = made?.command === 'fastener' ? fastenerThread(made.values) : null;
@@ -1250,7 +1257,9 @@ export function App() {
             // On a body: hide it, show it alone, delete it; with something hidden: show everything again.
             const picked = selectedBodies(menu.selection).filter(i => bodies[i]), anyHidden = bodies.some(b => lookOf(doc, b).hidden);
             const hideAll = (keep: (i: number) => boolean) => commit(bodies.reduce((d, b, i) => withLook(d, b, { hidden: !keep(i) }), doc));
+            const at = menu.selection.faces[0] ? { body: menu.selection.faces[0].body, face: menu.selection.faces[0].face } : menu.selection.edges[0] ? { body: menu.selection.edges[0].body, edge: menu.selection.edges[0].edge } : null;
             return [
+              ...(at ? [{ label: 'Measure from here', icon: 'cad-measure', shortcut: '⇧M', run: () => { setMeasure([at]); setSelection(emptySel); setEditNode(null); } }] : []),
               ...(picked.length ? [{ label: picked.length > 1 ? 'Hide bodies' : 'Hide body', icon: 'visibility_off', run: () => { hideAll(i => !picked.includes(i) && !lookOf(doc, bodies[i]).hidden); setSelection(emptySel); } },
                 { label: 'Show only this', icon: 'filter_center_focus', run: () => hideAll(i => picked.includes(i)) },
                 { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteSelection() }] : []),
