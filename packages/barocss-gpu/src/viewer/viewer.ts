@@ -115,7 +115,7 @@ export class Geometry {
     this.owner.requestRender();
   }
   /** Release the GPU buffers (meshes using it stop drawing). */
-  dispose(): void { this.disposed = true; this.release(); this.owner.requestRender(); }
+  dispose(): void { this.disposed = true; this.release(); this.owner.forget(this); this.owner.requestRender(); }
   /** @internal */ release(): void {
     if (!this.gpu) return;
     this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.uvs?.destroy(); this.gpu.indices?.destroy();
@@ -562,8 +562,14 @@ export class Viewer {
     this.meshes.splice(i, 1);
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
+    // Its own GPU buffers go with it (made again should it be drawn again).
+    if (mesh.instances?.buffer) { mesh.instances.buffer.destroy(); mesh.instances.buffer = null; mesh.instances.device = null; }
+    mesh.materialState?.params.destroy(); mesh.materialState = null;
     this.requestRender();
   }
+
+  /** @internal A disposed geometry: no longer kept (nor restored after a lost device). */
+  forget(g: Geometry): void { this.geometries.delete(g); }
 
   /** Remove every mesh and release every geometry. */
   clear(): void {
@@ -690,13 +696,16 @@ export class Viewer {
 
   /** Match the canvas backing store to its CSS size times the pixel ratio. */
   resize(pixelRatio = this.pixelRatio): void {
-    if (pixelRatio !== this.pixelRatio) for (const m of this.meshes) m.dirty = true;
+    const ratio = pixelRatio !== this.pixelRatio;
+    if (ratio) for (const m of this.meshes) m.dirty = true;
     this.pixelRatio = pixelRatio;
     const max = this.device?.limits.maxTextureDimension2D ?? 8192;
     const w = Math.max(1, Math.min(max, Math.round((this.canvas.clientWidth || this.canvas.width) * pixelRatio)));
     const h = Math.max(1, Math.min(max, Math.round((this.canvas.clientHeight || this.canvas.height) * pixelRatio)));
-    if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
-    this.requestRender();
+    const sized = this.canvas.width !== w || this.canvas.height !== h;
+    if (sized) { this.canvas.width = w; this.canvas.height = h; }
+    // (Unchanged, nothing to draw again: a caller that resizes before each render() draws once.)
+    if (sized || ratio) this.requestRender();
   }
 
   /** Set the canvas backing size in device pixels (with autoResize false; capped at the device's texture size). */
@@ -719,14 +728,22 @@ export class Viewer {
     this.scheduled = raf ? raf(run) : (setTimeout(run, 0) as unknown as number);
   }
 
+  private cancelScheduled(): void {
+    if (!this.scheduled) return;
+    const cancel = (globalThis as { cancelAnimationFrame?: (h: number) => void }).cancelAnimationFrame;
+    if ((globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame && cancel) cancel(this.scheduled); else clearTimeout(this.scheduled);
+    this.scheduled = 0;
+  }
+
   /** Resolves once the next frame has been drawn and the GPU has finished it. */
   frame(): Promise<void> {
     return new Promise(resolve => { this.waiters.push(resolve); this.requestRender(); });
   }
 
-  /** Draw now. */
+  /** Draw now (a frame already asked for is drawn by this one). */
   render(): void {
     if (this.disposed || this.recovering) return;
+    this.cancelScheduled();
     const t0 = performance.now();
     this.draw(null);
     this.stats.cpuMs = performance.now() - t0;
@@ -1169,8 +1186,7 @@ export class Viewer {
     this.disposed = true;
     this.controls?.dispose();
     this.resizeObserver?.disconnect();
-    const cancel = (globalThis as { cancelAnimationFrame?: (h: number) => void }).cancelAnimationFrame;
-    if (this.scheduled) cancel?.(this.scheduled);
+    this.cancelScheduled();
     for (const g of this.geometries) g.release();
     for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); }
     this.geometries.clear(); this.meshes = [];
