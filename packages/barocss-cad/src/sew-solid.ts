@@ -5,7 +5,7 @@
 // edge's curve is the first of its two faces' boundary curves (the other lies on it within the
 // tolerance). Surfaces trimmed inside their domain, and gaps wider than the tolerance, do not sew.
 import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
-import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from './math.js';
+import { evaluateCurve, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import { extractSurfaceIsoCurve } from './surface-isocurve.js';
 import type { Curve, Point, Surface } from './types.js';
 
@@ -24,16 +24,26 @@ export interface SewSolidRequest {
 const dist = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
 /** One boundary side of a face, as its loop runs (reversed: against its curve): from corner `from` to corner `to`. */
-interface Side { face: number; curve: Curve; reversed: boolean; t0: number; t1: number; from: number; to: number }
+interface Side { face: number; curve: Curve; at: (t: number) => Point; reversed: boolean; t0: number; t1: number; from: number; to: number }
 
 /** The side's point a share f (0 … 1) of the way as it runs. */
 function sideAt(b: Side, f: number): Point {
-  return evaluateCurve(b.curve, b.reversed ? b.t1 - (b.t1 - b.t0) * f : b.t0 + (b.t1 - b.t0) * f);
+  return b.at(b.reversed ? b.t1 - (b.t1 - b.t0) * f : b.t0 + (b.t1 - b.t0) * f);
 }
-/** The welded corner within tol of p (added when there is none). */
-function weld(corners: Point[], p: Point, tol: number): number {
-  for (let k = 0; k < corners.length; k++) if (dist(p, corners[k]) <= tol) return k;
-  corners.push(p); return corners.length - 1;
+/** Welded corners and a hash of them by cells of the tolerance's size. */
+interface Corners { points: Point[]; cells: Map<string, number[]>; tol: number }
+/** The welded corner within tol of p, the first added when several are (added when there is none). */
+function weld(corners: Corners, p: Point): number {
+  const { points, cells, tol } = corners, cx = Math.floor(p[0] / tol), cy = Math.floor(p[1] / tol), cz = Math.floor(p[2] / tol);
+  let found = -1;
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) {
+    const list = cells.get(`${cx + i},${cy + j},${cz + k}`); if (!list) continue;
+    for (const c of list) if ((found < 0 || c < found) && dist(p, points[c]) <= tol) found = c;
+  }
+  if (found >= 0) return found;
+  const key = `${cx},${cy},${cz}`, list = cells.get(key);
+  if (list) list.push(points.length); else cells.set(key, [points.length]);
+  points.push(p); return points.length - 1;
 }
 /** Where along side b (0 … 1, as it runs) its nearest point to p lies, and how far. */
 function nearest(b: Side, p: Point): [number, number] {
@@ -53,8 +63,8 @@ function along(a: Side, b: Side): [number, number][] {
 const farther = (fit: readonly [number, number][], tol: number) => { for (const [, g] of fit) if (g > tol) return true; return false; };
 /** The enclosed volume of a surface's 12 × 12 sample triangles (divergence theorem, ∂u × ∂v outward). */
 function sampledVolume(s: Surface): number {
-  const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), n = 12, P: Point[][] = [];
-  for (let i = 0; i <= n; i++) { const row: Point[] = []; for (let j = 0; j <= n; j++) row.push(evaluateSurface(s, u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n)); P.push(row); }
+  const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), n = 12, P: Point[][] = [], at = surfaceEvaluator(s);
+  for (let i = 0; i <= n; i++) { const row: Point[] = []; for (let j = 0; j <= n; j++) row.push(at(u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n)); P.push(row); }
   let v = 0;
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) v += tetra(P[i][j], P[i + 1][j], P[i + 1][j + 1]) + tetra(P[i][j], P[i + 1][j + 1], P[i][j + 1]);
   return v;
@@ -78,7 +88,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
   if (!(tol > 0)) throw new SewError('the tolerance must be positive');
   // Corners welded within the tolerance; each face's loop a → b → c → d over (u0, v0) (u1, v0) (u1, v1)
   // (u0, v1): counter-clockwise about ∂u × ∂v.
-  const corners: Point[] = [], sides: Side[] = [], loops: number[][] = [];
+  const corners: Corners = { points: [], cells: new Map(), tol }, sides: Side[] = [], loops: number[][] = [];
   for (let k = 0; k < surfaces.length; k++) {
     const s: Surface = { ...surfaces[k], id: `${id}_s${k}` }, { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s);
     const around: [Curve, boolean][] = [[isoCurve(s, 'v', v0, `${id}_c${k}_0`), false], [isoCurve(s, 'u', u1, `${id}_c${k}_1`), false], [isoCurve(s, 'v', v1, `${id}_c${k}_2`), true], [isoCurve(s, 'u', u0, `${id}_c${k}_3`), true]];
@@ -86,20 +96,25 @@ export function sewSolid(req: SewSolidRequest): Brep {
     for (const [curve, reversed] of around) {
       // (A side that shrinks to a point — a surface's pole — is no edge.)
       if (collapsed(curve.controlPoints, tol)) continue;
-      const [t0, t1] = curveDomain(curve), side: Side = { face: k, curve, reversed, t0, t1, from: 0, to: 0 };
-      side.from = weld(corners, sideAt(side, 0), tol); side.to = weld(corners, sideAt(side, 1), tol);
+      const [t0, t1] = curveDomain(curve), side: Side = { face: k, curve, at: curveEvaluator(curve), reversed, t0, t1, from: 0, to: 0 };
+      side.from = weld(corners, sideAt(side, 0)); side.to = weld(corners, sideAt(side, 1));
       sides.push(side); loop.push(sides.length - 1);
     }
     if (loop.length < 2) throw new SewError(`surface ${k + 1} has no area`);
     loops.push(loop);
   }
-  // Sides matched in pairs: the same two corners, and each lying along the other.
-  const mate = new Int32Array(sides.length).fill(-1), same = new Uint8Array(sides.length);
+  // Sides matched in pairs: the same two corners, and each lying along the other (candidates by their corners).
+  const mate = new Int32Array(sides.length).fill(-1), same = new Uint8Array(sides.length), byCorners = new Map<string, number[]>();
+  for (let i = 0; i < sides.length; i++) {
+    const key = `${Math.min(sides[i].from, sides[i].to)}-${Math.max(sides[i].from, sides[i].to)}`, list = byCorners.get(key);
+    if (list) list.push(i); else byCorners.set(key, [i]);
+  }
   for (let i = 0; i < sides.length; i++) {
     if (mate[i] >= 0) continue;
-    const a = sides[i], alo = Math.min(a.from, a.to), ahi = Math.max(a.from, a.to);
-    for (let j = i + 1; j < sides.length; j++) {
-      const b = sides[j]; if (Math.min(b.from, b.to) !== alo || Math.max(b.from, b.to) !== ahi) continue;
+    const a = sides[i];
+    for (const j of byCorners.get(`${Math.min(a.from, a.to)}-${Math.max(a.from, a.to)}`)!) {
+      if (j <= i) continue;
+      const b = sides[j];
       const fit = along(a, b); if (farther(fit, tol) || farther(along(b, a), tol)) continue;
       if (mate[j] >= 0) throw new SewError(`more than two surfaces meet along one edge (surfaces ${sides[mate[j]].face + 1}, ${b.face + 1} and ${a.face + 1})`);
       mate[i] = j; mate[j] = i; same[i] = same[j] = fit[0][0] < fit[3][0] ? 1 : 0;
@@ -129,7 +144,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
   for (let i = 0; i < sides.length; i++) {
     if (i > mate[i]) continue;
     const e = edges.length, curve: Curve = { ...sides[i].curve, id: `${id}_e${e}` }, [t0, t1] = curveDomain(curve);
-    edges.push({ id: curve.id, curve, vertices: [`${id}_v${weld(corners, evaluateCurve(curve, t0), tol)}`, `${id}_v${weld(corners, evaluateCurve(curve, t1), tol)}`] });
+    edges.push({ id: curve.id, curve, vertices: [`${id}_v${weld(corners, evaluateCurve(curve, t0))}`, `${id}_v${weld(corners, evaluateCurve(curve, t1))}`] });
     edgeOf[i] = edgeOf[mate[i]] = e;
   }
   const faces: BrepFaceInput[] = [];
@@ -140,7 +155,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
   }
   const used = new Set<string>(); for (const e of edges) { used.add(e.vertices[0]); used.add(e.vertices[1]); }
   const vertices: { id: string; point: Point }[] = [];
-  for (let c = 0; c < corners.length; c++) if (used.has(`${id}_v${c}`)) vertices.push({ id: `${id}_v${c}`, point: corners[c] });
+  for (let c = 0; c < corners.points.length; c++) if (used.has(`${id}_v${c}`)) vertices.push({ id: `${id}_v${c}`, point: corners.points[c] });
   const brep = buildBrep({ source: { family: 'sew', id }, toleranceMM: tol, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   assertValidBrep(brep);
   return brep;
