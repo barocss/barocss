@@ -41,6 +41,8 @@ export interface ViewRenderer {
   setRender?(settings: import('../engine/render').RenderSettings | null): void;
   /** The frame as a PNG (WebGPU only). */
   capture?(): Promise<Blob>;
+  /** Cosmetic thread rings (line segments, WebGPU only). */
+  setThreads?(lines: Float32Array): void;
   /** See-through tool regions (a hole's whole cylinder) as a mesh and its rims (WebGPU only). */
   setRegions?(mesh: ReturnType<typeof import('../app/holeRegion').regionMesh> | null): void;
   /** Direct curves and surfaces (WebGPU only), and the one under a point. */

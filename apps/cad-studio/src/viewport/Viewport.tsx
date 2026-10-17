@@ -130,6 +130,8 @@ interface Props {
   /** Direct curves and surfaces, and the selected ones. */
   direct?: DirectDisplay[];
   directSelection?: string[];
+  /** Cosmetic thread rings (line segments). */
+  threads?: Float32Array;
   /** See-through regions of the tool being placed or edited (a hole's whole cylinder). */
   regions?: ToolRegion[];
   /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
@@ -270,6 +272,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo, props.handles]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
+  useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);

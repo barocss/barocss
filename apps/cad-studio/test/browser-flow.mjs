@@ -1572,6 +1572,13 @@ try {
     assert.deepEqual(inst, { name: 'Countersunk socket screw ISO 10642 M5×0.8 × 16', position: [10, 10, 8], rotation: [0, 0, 0] });
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), before, 'no features joined the part');
     await idle(); await page.waitForTimeout(800); await snap('fastener-instance');
+    // A bolt standing clear of the plate shows its cosmetic thread: rings along its shank.
+    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await field('Part').selectOption('hex-bolt'); await field('Size').selectOption('M8'); await field('Length').selectOption('30');
+    await field('Axis at X').fill('90'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('30');
+    await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.values?.x === 90, null, { timeout: 15000 }); await idle();
+    await press('Escape'); await press('f'); await page.waitForTimeout(800); await snap('fastener-threads');
   });
 
   await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {

@@ -50,6 +50,7 @@ export class GpuRenderer implements ViewRenderer {
   private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
   private controls: Mesh[] = [];
   private regions: Mesh[] = [];
+  private threads: Mesh | null = null;
   /** Placed instances of other parts: their bodies' surfaces and edges. */
   private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
   private instanceSelection: readonly string[] = [];
@@ -283,6 +284,13 @@ export class GpuRenderer implements ViewRenderer {
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(b); }
     for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(b); }
     return { min, max };
+  }
+
+  /** Cosmetic threads: thin rings in the edge colour, a little faded. */
+  setThreads(lines: Float32Array): void {
+    if (this.threads) { this.threads.remove(); this.threads.geometry.dispose(); this.threads = null; }
+    if (lines.length) this.threads = this.viewer.add({ positions: lines, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false });
+    this.viewer.requestRender();
   }
 
   /** Tool regions: a see-through blue surface and its rims. */

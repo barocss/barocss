@@ -33,6 +33,7 @@ import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from './app/holeRegion';
+import { threadLines, threadsOf } from './app/threads';
 import { edgeChain } from './app/edgeChain';
 import { offsetShape } from './sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from './sketch/trim';
@@ -1163,6 +1164,20 @@ export function App() {
   }, [instDrag, instanceBodies]);
   const instancePreview = useMemo(() => instDrag ? { id: instDrag.id, matrix: previewMatrix(instDrag.drag) } : null, [instDrag]);
 
+  // Cosmetic threads (tapped holes, bolts, nuts): rings on the part's bodies and the placed parts'
+  // (not on a preview, a section or a render).
+  const threads = useMemo(() => {
+    if (rendering || section || previewBodies) return new Float32Array();
+    const out: number[] = [], own = threadsOf(evaluated.nodes);
+    for (const b of bodies) out.push(...threadLines(own, b.mesh));
+    for (const it of instancesShown) {
+      const inst = doc.instances?.find(i => i.id === it.id); if (!inst || inst.hidden) continue;
+      const t = threadsOf(flattenAssembly(inst.doc).nodes);
+      for (const b of it.bodies) out.push(...threadLines(t, b.mesh));
+    }
+    return new Float32Array(out);
+  }, [bodies, evaluated.nodes, instancesShown, doc.instances, rendering, section, previewBodies]);
+
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
   // only a notch shows of it otherwise.
   const regions = useMemo((): ToolRegion[] => {
@@ -1198,7 +1213,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
