@@ -23,7 +23,8 @@ export type XYNumericalSketchBranchGuard =
   | { id: string; kind: 'positive-projection'; segmentId: string; direction: XYPoint }
   | { id: string; kind: 'oriented-triplet'; pointA: string; pointB: string; pointC: string; orientation: 'ccw' | 'cw' };
 export interface XYNumericalSketchDocumentV0 {
-  format: 'barocss-xy-numerical-sketch'; version: 0; profile: 'bounded-length-angle-v0'; id: string; lengthUnit: 'mm'; angleUnit: 'rad';
+  /** `bounded-length-angle-v1`: the same, over larger sketches (64 points, 64 segments, 128 constraints, 256 residuals). */
+  format: 'barocss-xy-numerical-sketch'; version: 0; profile: 'bounded-length-angle-v0' | 'bounded-length-angle-v1'; id: string; lengthUnit: 'mm'; angleUnit: 'rad';
   points: XYNumericalSketchPoint[]; segments: XYNumericalSketchSegment[]; constraints: XYNumericalSketchConstraint[];
   /** Required array; empty means no authored branch guards. */
   branchGuards: XYNumericalSketchBranchGuard[];
@@ -61,6 +62,17 @@ export function buildXYNumericalSketch(input: XYNumericalSketchDocumentV0): XYNu
 export function solveXYNumericalSketch(document: XYNumericalSketchDocumentV0): XYNumericalSketchResult {
   try { return buildXYNumericalSketch(document); }
   catch (cause) { const e = isNumericalError(cause) ? cause : new XYNumericalSketchError('INVALID_DOCUMENT', 'Sketch refused'); return { ok: false, diagnostics: [{ code: e.code, message: e.message, path: e.path }] }; }
+}
+/**
+ * The solved points and the solver's report only — no native curve model (whose source is bounded to 16
+ * geometry declarations) — for sketchers that need positions, including -v1 sketches of up to 64 points.
+ */
+export interface XYNumericalSketchPointsSuccess { ok: true; document: XYNumericalSketchDocumentV0; solution: { points: XYNumericalSketchPoint[] }; report: XYNumericalSketchReport }
+export function solveXYNumericalSketchPoints(document: XYNumericalSketchDocumentV0): XYNumericalSketchPointsSuccess | { ok: false; diagnostics: XYNumericalSketchDiagnostic[] } {
+  try {
+    const admitted = admit(document), { points, report } = solve(admitted);
+    return copyCadData({ ok: true as const, document: admitted, solution: { points }, report });
+  } catch (cause) { const e = isNumericalError(cause) ? cause : new XYNumericalSketchError('INVALID_DOCUMENT', 'Sketch refused'); return { ok: false, diagnostics: [{ code: e.code, message: e.message, path: e.path }] }; }
 }
 /** Complete deterministic reconstruction proves self-consistency only, never provenance/authenticity. */
 export function validateXYNumericalSketch(input: XYNumericalSketchSuccess): XYNumericalSketchReport {

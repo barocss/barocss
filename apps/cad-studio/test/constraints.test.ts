@@ -446,3 +446,13 @@ test('a dimension may not push an attached circle across the outline or off it; 
   const d = profileOf([{ kind: 'rectangle', a: [0, 0], b: [60, 25] }, { kind: 'circle', c: [58, 12], r: 4 }]);
   assert.ok('error' in d, JSON.stringify(d));
 });
+
+test('a plate with six fully placed holes solves (the kernel’s larger sketch profile)', async () => {
+  const { solveOutline } = await import('../src/sketch/profile');
+  const pts: [number, number][] = [[0, 0], [80, 0], [80, 40], [0, 40]];
+  const circles: [number, number][] = [[10, 10], [40, 10], [70, 10], [10, 30], [40, 30], [70, 30]];
+  const rules = circles.flatMap((c, k) => [{ kind: 'cdx' as const, a: 0, circle: k, value: c[0] }, { kind: 'cdy' as const, a: 0, circle: k, value: c[1] }]);
+  const r = solveOutline(pts, { lengths: { 0: 80, 1: 40 }, rules, circles: circles.map(c => [c[0] + 0.4, c[1] - 0.3] as [number, number]) });
+  assert.ok(r.ok, r.ok ? '' : r.reason);
+  assert.deepEqual(r.ok && r.circles?.map(c => c.map(v => Math.round(v * 1e6) / 1e6)), circles);
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { solveXYNumericalSketch } from '../dist/index.js';
+import { solveXYNumericalSketch, solveXYNumericalSketchPoints } from '../dist/index.js';
 
 const doc = (points, segments, constraints, branchGuards = []) => ({
   format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v0', id: 'sk', lengthUnit: 'mm', angleUnit: 'rad',
@@ -61,4 +61,18 @@ test('equal-length analytic Jacobian matches central finite differences', async 
     const fd = (evaluate(d, plus).residuals[0].residual - evaluate(d, minus).residuals[0].residual) / (2 * h);
     assert.ok(Math.abs(fd - e.jacobian[0][j]) < 1e-8, `column ${j}: ${fd} vs ${e.jacobian[0][j]}`);
   }
+});
+
+test('the -v1 profile admits larger sketches with the same solver; v0 keeps its limits', () => {
+  const N = 40, pts = Object.fromEntries(Array.from({ length: N }, (_, i) => ['p' + i, [Math.cos(i / N * 2 * Math.PI) * 30, Math.sin(i / N * 2 * Math.PI) * 30]]));
+  const ring = Array.from({ length: N }, (_, i) => ['s' + i, 'p' + i, 'p' + ((i + 1) % N)]);
+  const eq = Array.from({ length: N - 1 }, (_, i) => ({ id: 'e' + i, kind: 'equal-length', segmentA: 's0', segmentB: 's' + (i + 1) }));
+  const big = { ...doc(pts, ring, eq), profile: 'bounded-length-angle-v1' };
+  const r = solveXYNumericalSketchPoints(big);
+  assert.equal(r.ok, true, JSON.stringify(r.diagnostics));
+  assert.equal(r.report.limits.points, 64);
+  assert.ok(r.solution.points.length === N && !('model' in r.solution), 'points only, no native model');
+  // The native model construction keeps its own bound (16 geometry declarations).
+  assert.equal(solveXYNumericalSketch(big).diagnostics[0].code, 'COMPILATION');
+  assert.equal(solveXYNumericalSketchPoints({ ...big, profile: 'bounded-length-angle-v0' }).diagnostics[0].code, 'LIMIT');
 });

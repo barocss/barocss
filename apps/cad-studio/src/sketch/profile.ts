@@ -1,7 +1,7 @@
 // Sketch geometry shared by the viewport, the sketch panel and Finish sketch.
 // An outline is a closed chain of points; segment i runs from point i to point i+1 and is a line
 // (bulge 0) or a circular arc. Bulge is the DXF convention: tan(sweep / 4), positive = counter-clockwise.
-import { solveXYNumericalSketch } from '@barocss/cad';
+import { solveXYNumericalSketchPoints } from '@barocss/cad';
 import { ruleTerms, type SketchRule } from './terms';
 
 export type P2 = [number, number];
@@ -164,7 +164,8 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   const n = points.length, bulges = points.map((_, i) => bulgesIn?.[i] ?? 0), arcs = bulges.flatMap((b, i) => b ? [i] : []);
   // Points = outline + one centre per arc; segments = lines + two radii per arc. Both are n + arcs.
   const extra = ruleTerms(c.rules ?? [], points, bulges, c.circles ?? []);
-  if (n + arcs.length + extra.points.length > 16 || n + arcs.length + extra.segments.length > 16) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (16 points / 16 segments)' };
+  // (The kernel's -v1 sketch profile: 64 points, 64 segments, 128 constraints.)
+  if (n + arcs.length + extra.points.length > 64 || n + arcs.length + extra.segments.length > 64) return { ok: false, reason: 'Too many points, arcs and point dimensions for the sketch solver (64 points / 64 segments)' };
   const centres = new Map(arcs.map(i => [i, arcOf(points[i], points[(i + 1) % n], bulges[i]).center]));
   const straight = (i: number) => i >= 0 && i < n && !bulges[i];
   const hv = c.hv ? { h: c.hv.h.filter(straight), v: c.hv.v.filter(straight) } : inferredHV(points, bulges);
@@ -173,7 +174,7 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     ...arcs.flatMap(i => [{ id: 'ra' + i, startPointId: 'c' + i, endPointId: 'p' + i }, { id: 'rb' + i, startPointId: 'c' + i, endPointId: 'p' + ((i + 1) % n) }]),
     ...extra.segments,
   ];
-  type Constraint = Parameters<typeof solveXYNumericalSketch>[0]['constraints'][number];
+  type Constraint = Parameters<typeof solveXYNumericalSketchPoints>[0]['constraints'][number];
   const constraints: Constraint[] = [
     { id: 'anchor', kind: 'fixed', pointId: 'p0', target: points[0] },
     ...hv.h.map((i): Constraint => ({ id: 'h' + i, kind: 'horizontal', segmentId: 's' + i })),
@@ -188,15 +189,15 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     }),
     ...extra.constraints,
   ];
-  const result = solveXYNumericalSketch({
-    format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v0', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
+  const result = solveXYNumericalSketchPoints({
+    format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v1', id: 'studio_sketch', lengthUnit: 'mm', angleUnit: 'rad',
     points: [...points.map((position, i) => ({ id: 'p' + i, position })), ...arcs.map(i => ({ id: 'c' + i, position: centres.get(i)! })), ...extra.points],
     segments, constraints, branchGuards: [],
   });
   if (!result.ok) {
     const code = result.diagnostics[0]?.code;
     return { ok: false, reason: code === 'NONCONVERGENCE' ? 'These constraints conflict with each other or with the H/V edges'
-      : code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 32 constraints)'
+      : code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
       : code === 'DEGENERATE_GEOMETRY' ? 'These constraints would collapse an edge to a point' : result.diagnostics[0]?.message ?? 'The solver refused this sketch' };
   }
   const byId = new Map(result.solution.points.map(p => [p.id, p.position]));

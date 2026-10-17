@@ -519,8 +519,8 @@ export type { XYAffineSketchPoint, XYAffineSketchSegment, XYAffineSketchReferenc
 export { buildOrthogonalSolidBoolean, validateOrthogonalSolidBoolean, OrthogonalSolidBooleanError, OrthogonalSolidBooleanDiagnosticCode } from './orthogonal-solid-boolean.js';
 export type { OrthogonalSolidBooleanOperand, OrthogonalSolidBooleanOptions, OrthogonalSolidBooleanResult, OrthogonalSolidBooleanReport } from './orthogonal-solid-boolean.js';
 
-export { buildXYNumericalSketch, solveXYNumericalSketch, validateXYNumericalSketch, XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch.js';
-export type { XYNumericalSketchPoint, XYNumericalSketchSegment, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard, XYNumericalSketchDocumentV0, XYNumericalSketchResidual, XYNumericalSketchReport, XYNumericalSketchSuccess, XYNumericalSketchDiagnostic, XYNumericalSketchResult } from './xy-numerical-sketch.js';
+export { buildXYNumericalSketch, solveXYNumericalSketch, solveXYNumericalSketchPoints, validateXYNumericalSketch, XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch.js';
+export type { XYNumericalSketchPoint, XYNumericalSketchSegment, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard, XYNumericalSketchDocumentV0, XYNumericalSketchResidual, XYNumericalSketchReport, XYNumericalSketchSuccess, XYNumericalSketchDiagnostic, XYNumericalSketchResult, XYNumericalSketchPointsSuccess } from './xy-numerical-sketch.js';
 export { qualifyConvexPlanarSolid, validateConvexPlanarSolid, classifyConvexPlanarSolidPoints, ConvexPlanarSolidError, ConvexPlanarSolidDiagnosticCode } from './convex-planar-solid.js';
 export type { ConvexPlanarSolidAsset, ConvexPlanarSolidUseReference, ConvexPlanarSolidEdgePair, ConvexPlanarSolidOptions, ConvexPlanarSolidQueryOptions, ConvexPlanarSolidVertexReference, ConvexPlanarSolidGraph, ConvexPlanarSolidSupport, ConvexPlanarSolidCertificate, ConvexPlanarSolidReport, ConvexPlanarSolidResult, ConvexPlanarSolidPointClassification, ConvexPlanarSolidPointBatch } from './convex-planar-solid.js';
 
