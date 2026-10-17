@@ -42,8 +42,40 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
   return centres.map((center, j) => ({ ...base, id: j === centres.length - 1 ? id(index) : `${id(index)}_p${j}`, center, target: j === 0 ? base.target : `${id(index)}_p${j - 1}` }));
 }
 
-export const toPartDocument = (doc: StudioDoc): CadPartDocument =>
-  ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features: doc.nodes.flatMap(featuresOf) });
+/**
+ * The kernel's features, suppressed ones left out: a suppressed feature that changes a body passes it on
+ * unchanged (an identity move under its id, so what follows still finds it); one that makes a body takes
+ * that body away, and with it what is built on it alone (a Boolean with one side gone keeps the other;
+ * an intersection or a subtraction from nothing is gone too).
+ */
+export function toPartDocument(doc: StudioDoc): CadPartDocument {
+  const gone = new Set<number>(), features: CadPartFeature[] = [];
+  const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
+  doc.nodes.forEach((node, i) => {
+    if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import';
+    const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
+    if (two) {
+      const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
+      // (Suppressed, a Boolean keeps its first body as it was.)
+      if (node.suppressed) { if (ga) gone.add(i); else pass(i, a); return; }
+      if (ga && gb) { gone.add(i); return; }
+      if (node.kind === 'difference') { if (ga) { gone.add(i); return; } if (gb) { pass(i, a); return; } }
+      else if (node.kind === 'intersect') { if (ga || gb) { gone.add(i); return; } }
+      else if (ga || gb) { pass(i, ga ? b : a); return; }
+      features.push(...featuresOf(node, i)); return;
+    }
+    if (makes) {
+      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p)))) { gone.add(i); return; }
+      features.push(...featuresOf(node, i)); return;
+    }
+    const parent = (node as { parent: BodyRef }).parent;
+    if (gone.has(parent.node)) { gone.add(i); return; }
+    if (node.suppressed) { pass(i, parent); return; }
+    features.push(...featuresOf(node, i));
+  });
+  return { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features };
+}
 
 /** Studio body key of a kernel output id (`nodes`: to tell an imported file's solids from a split's halves). */
 export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {

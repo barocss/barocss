@@ -35,7 +35,7 @@ async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
   try { await fn(); results.push({ step, name, ok: true }); }
-  catch (e) { results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] }); }
+  catch (e) { results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500)); }
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
@@ -769,10 +769,12 @@ try {
 
   await check('delete a feature from its editor; undo brings it back', async () => {
     const nodes = (await doc()).nodes.length;
-    // A feature a later one uses (the plate, under the hole) is refused with the reason.
+    // A feature a later one uses (the plate, under the hole) asks first, naming what goes with it; cancelled, nothing goes.
     await page.locator('.history .hs', { hasText: 'Box' }).first().click();
     await page.locator('.node-editor button[aria-label="Delete feature"]').click();
-    await page.waitForFunction(() => /Cannot delete .*used by feature/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForSelector('[aria-label="Delete with dependents"]', { timeout: 5000 });
+    assert.match(await page.locator('[aria-label="Delete with dependents"]').innerText(), /Hole Ø12/);
+    await page.locator('[aria-label="Delete with dependents"] button', { hasText: 'Cancel' }).click();
     assert.equal((await doc()).nodes.length, nodes);
     // The hole the drawing measured: the hole and its Ø dimension go, the plate and the other dimensions stay.
     await page.locator('.history .hs', { hasText: 'Hole Ø12' }).click();
@@ -1431,6 +1433,13 @@ try {
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Roll to the end' }).click();
     await page.waitForFunction(() => !/rolled back/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 5000 });
+    // Suppressed, the hole is left out (struck through in the history); unsuppressed, it is back.
+    await page.locator('.history .hs', { hasText: 'Hole' }).click({ button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Suppress' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.suppressed === true && !!document.querySelector('.history .hs.suppressed'), null, { timeout: 10000 }); await idle();
+    await page.locator('.history .hs', { hasText: 'Hole' }).click({ button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Unsuppress' }).click();
+    await page.waitForFunction(() => !window.__studioDoc.nodes.at(-1)?.suppressed, null, { timeout: 10000 }); await idle();
     // The box has the hole built on it: deleting it asks first, listing the hole, then takes both.
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Delete' }).click();
@@ -1621,7 +1630,8 @@ try {
     await page.fill('[aria-label="New parameter name"]', 'C'); await page.fill('[aria-label="New parameter value"]', '3'); await page.click('[aria-label="Add parameter"]');
     await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
     await page.click('[aria-label="Close parameters"]');
-    await page.click('.outliner [aria-label="Show its features"]');
+    // (The features list may be open already from before.)
+    if (await page.locator('.outliner [aria-label="Show its features"]').count()) await page.click('.outliner [aria-label="Show its features"]');
     await page.locator('.outliner .ol-step', { hasText: 'Chamfer' }).click();
     await page.waitForSelector('[aria-label="Distance parameter"]', { timeout: 5000 });
     await page.selectOption('[aria-label="Distance parameter"]', 'C');
@@ -1634,7 +1644,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'chamfer', null, { timeout: 5000 });
     await page.click('[aria-label="Apply small"]');
     await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
-    assert.match(await page.locator('[aria-label="Parameters"].props, aside[aria-label="Parameters"]').innerText(), /small · now/);
+    assert.match(await page.locator('aside[aria-label="Parameters panel"]').innerText(), /small · now/);
     await snap('parameters'); await page.click('[aria-label="Close parameters"]');
   });
 

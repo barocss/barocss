@@ -36,7 +36,9 @@ export type SketchNode =
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane);
 
-export type ModelNode = SketchNode
+/** A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history. */
+export type ModelNode = ModelNodeBase & { suppressed?: true };
+type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */

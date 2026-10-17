@@ -698,6 +698,17 @@ export function App() {
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
+  /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
+  const toggleSuppress = (i: number) => {
+    const n = doc.nodes[i]; if (!n) return;
+    const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : x.suppressed ? (({ suppressed: _s, ...rest }) => rest as ModelNode)(x) : { ...x, suppressed: true as const }) };
+    const label = featureLabel(n, i, doc.nodes);
+    engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot ${n.suppressed ? 'unsuppress' : 'suppress'} ${label}: ${e.error.title}` }); return; }
+      commit(next);
+    });
+  };
   /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
   const [cascade, setCascade] = useState<{ index: number; label: string; deps: string[]; all: number[] } | null>(null);
   const deleteCascade = () => {
@@ -1324,7 +1335,7 @@ export function App() {
             onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name="cad-sketch" small />{featureLabel(n, i, doc.nodes)}</button>) : null) : (
-          <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to edit · double-click to roll back here`}
+          <button key={i} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.suppressed ? ' (suppressed)' : ''} · click to edit · double-click to roll back here`}
             onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
@@ -1372,6 +1383,8 @@ export function App() {
           actions={[
             { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }] : []),
+            // (A split's halves are separate bodies the model refers to: it stays.)
+            ...(n.kind !== 'sketch' && n.kind !== 'split' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },
             ...(marker !== null ? [{ label: 'Roll to the end', icon: 'redo', run: () => setMarker(null) }] : []),
             { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteNode(i) },
@@ -1417,7 +1430,7 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && <div className="toast card" role="alert">
+      {toast && !cascade && !recovery && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}</div>

@@ -46,7 +46,7 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
   };
   // The configuration the values match now, if any.
   const current = Object.entries(configs).find(([, vs]) => Object.keys(params).every(k => vs[k] === params[k]) && Object.keys(vs).every(k => k in params))?.[0];
-  return <aside className="card props" aria-label="Parameters">
+  return <aside className="card props" aria-label="Parameters panel">
     <div className="card-title">PARAMETERS <button className="tool tiny" aria-label="Close parameters" onClick={onClose}><Icon name="close" small /></button></div>
     {!Object.keys(params).length && <div className="empty">Name the sizes the part depends on (H1, Width …): bind a feature’s value to one in its editor (ƒ), then change it here.</div>}
     {Object.entries(params).map(([name, value]) => <div key={name} className="param-row">
