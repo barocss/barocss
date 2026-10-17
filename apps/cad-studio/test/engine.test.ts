@@ -532,3 +532,15 @@ test('sewn surfaces become one closed body; a missing side is refused with the o
   const open = evaluateDoc(withNode(emptyDoc(), { kind: 'sew', names: [], surfaces: cube.slice(1) }), 1);
   assert.ok(!open.ok && /do not close/.test(JSON.stringify(open.error)));
 });
+
+test('a cross hole whose side touches a vertical hole’s wall is refused in plain words, not built short', () => {
+  // A Ø4 hole along Y at x = 42 and a Ø6 hole down at x = 43 touch at (40, 30, 6).
+  let doc = withNode(rectanglePart(100, 40, 12), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [42, 6], radius: 2, axis: 'y' });
+  doc = withNode(doc, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [43, 30], radius: 3 });
+  const r = evaluateDoc(doc, 1);
+  assert.equal(r.ok, false);
+  if (!r.ok) { assert.match(r.error.title, /only graze each other/); assert.match(r.error.detail, /tangent at 40, 30, 6/); }
+  // Half a millimetre over they cross, and the plate keeps both holes.
+  const moved = evaluateDoc({ ...doc, nodes: doc.nodes.map((n, i) => i === 2 && n.kind === 'hole' ? { ...n, center: [42.5, 6] as [number, number] } : n) }, 1);
+  assert.ok(moved.ok, JSON.stringify(!moved.ok && moved.error));
+});

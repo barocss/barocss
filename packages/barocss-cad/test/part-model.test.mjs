@@ -661,3 +661,24 @@ test('hole: a 90° countersink is cut with the hole, along any axis and from eit
   }
   assert.throws(() => evaluateCadPart(D([...cube, { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: 3, countersink: 6 }])), e => e instanceof CadPartError && e.code === 'INPUT');
 });
+
+test('holes whose cylinder walls touch at a point are refused with the reason, in either order', () => {
+  // The studio's plate: a Ø4 cross hole along y at x = 42 and a Ø6 hole down at x = 43 touch at (40, 30, 6)
+  // (the cross hole's side meets the vertical hole's wall from inside). Before, one order failed to stitch
+  // and the other gave a valid-looking body ~21 mm³ short of the true volume.
+  const plate = [rect('s', 0, 0, 100, 40), { id: 'e', kind: 'extrude', sketch: 's', height: 12 }];
+  const cross = { kind: 'hole', center: [42, 6], radius: 2, axis: 'y' }, down = { kind: 'hole', center: [43, 30], radius: 3 };
+  const cube = [rect('s', 0, 0, 20, 20), { id: 'e', kind: 'extrude', sketch: 's', height: 20 }];
+  const small = { kind: 'hole', center: [8, 10], radius: 1, axis: 'y' }, big = { kind: 'hole', center: [10, 10], radius: 3 };
+  for (const [base, a, b, at] of [[plate, cross, down, '40, 30, 6'], [cube, small, big, '7, 10, 10']]) for (const [x, y] of [[a, b], [b, a]]) {
+    const doc = D([...base, { ...x, id: 'h1', target: 'e' }, { ...y, id: 'h2', target: 'h1' }]);
+    refused(doc, 'CAPABILITY', new RegExp(`walls touch at a point \\(tangent at ${at}\\)`));
+  }
+  // Half a millimetre over, they cross: the body is valid and its volume is the sampled one.
+  const ok = evaluateCadPart(D([...plate, { ...cross, id: 'h1', target: 'e', center: [42.5, 6] }, { ...down, id: 'h2', target: 'h1' }])).outputs[0];
+  assert.equal(checkBrep(ok.brep).issues.length, 0);
+  // Equal radii with meeting axes (the mitre the fillets make) still join.
+  assert.ok(evaluateCadPart(D([...cube, { ...big, id: 'h1', target: 'e', axis: 'y' }, { ...big, id: 'h2', target: 'h1' }])).outputs[0]);
+  // Touching from outside (two cavities meeting at a point) is not a manifold solid either.
+  refused(D([...cube, { ...small, id: 'h1', target: 'e', center: [5, 10], radius: 2 }, { ...big, id: 'h2', target: 'h1' }]), 'GEOMETRY', /touch along an edge or at a vertex/);
+});
