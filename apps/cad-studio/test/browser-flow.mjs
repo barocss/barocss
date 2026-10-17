@@ -1822,7 +1822,7 @@ try {
     await snap('hole-types');
   });
 
-  await check('a cross hole touching a vertical hole’s wall is refused in plain words; half a millimetre over it goes in', async () => {
+  await check('a cross hole whose side touches a vertical hole’s wall from inside goes in', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // Ø6 down through the top at (13, 16): its wall reaches x = 10.
@@ -1832,13 +1832,13 @@ try {
     // Ø4 across from the front at x = 12, z = 8: its side at x = 10 touches that wall at (10, 16, 8).
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
     await press('h'); await hudReady(); await field('Diameter').fill('4'); await field('Centre X').fill('12'); await field('Centre Z').fill('8'); await hudReady();
-    await page.waitForFunction(() => /only graze each other/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 15000 });
-    await snap('tangent-holes-refused');
-    await field('Centre X').fill('12.5'); await hudReady();
     await page.waitForFunction(() => /preview/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 });
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
-    await snap('tangent-holes-moved');
+    // 32 × 32 × 16 less Ø6 × 16 and Ø4 × 32 plus their overlap (integrated): 15594.74 mm³.
+    await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
+    await page.waitForFunction(() => /Volume\s*1559[45]/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('tangent-holes');
   });
 
   await check('mass: a box body shows its inertia (about its centre or the origin) and its bounding box; the part sums up', async () => {

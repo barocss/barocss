@@ -533,14 +533,16 @@ test('sewn surfaces become one closed body; a missing side is refused with the o
   assert.ok(!open.ok && /do not close/.test(JSON.stringify(open.error)));
 });
 
-test('a cross hole whose side touches a vertical hole’s wall is refused in plain words, not built short', () => {
-  // A Ø4 hole along Y at x = 42 and a Ø6 hole down at x = 43 touch at (40, 30, 6).
-  let doc = withNode(rectanglePart(100, 40, 12), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [42, 6], radius: 2, axis: 'y' });
-  doc = withNode(doc, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [43, 30], radius: 3 });
-  const r = evaluateDoc(doc, 1);
-  assert.equal(r.ok, false);
-  if (!r.ok) { assert.match(r.error.title, /only graze each other/); assert.match(r.error.detail, /tangent at 40, 30, 6/); }
-  // Half a millimetre over they cross, and the plate keeps both holes.
-  const moved = evaluateDoc({ ...doc, nodes: doc.nodes.map((n, i) => i === 2 && n.kind === 'hole' ? { ...n, center: [42.5, 6] as [number, number] } : n) }, 1);
-  assert.ok(moved.ok, JSON.stringify(!moved.ok && moved.error));
+test('a cross hole whose side touches a vertical hole’s wall from inside is built, either way round', () => {
+  // A Ø4 hole along Y at x = 42 and a Ø6 hole down at x = 43 touch at (40, 30, 6): box less both holes plus
+  // their overlap (integrated across the Ø4 disc) is 47223.31 mm³.
+  let ov = 0; for (let i = 0; i < 20000; i++) { const x = 40 + 4 * (i + 0.5) / 20000; ov += 4 * Math.sqrt(Math.max(0, 4 - (x - 42) ** 2)) * Math.sqrt(Math.max(0, 9 - (x - 43) ** 2)) * 4 / 20000; }
+  const exact = 100 * 40 * 12 - Math.PI * 9 * 12 - Math.PI * 4 * 40 + ov;
+  const across = { kind: 'hole' as const, center: [42, 6] as [number, number], radius: 2, axis: 'y' as const }, down = { kind: 'hole' as const, center: [43, 30] as [number, number], radius: 3 };
+  for (const [a, b] of [[across, down], [down, across]]) {
+    const doc = withNode(withNode(rectanglePart(100, 40, 12), { ...a, parent: { node: 1, side: 'solid' } }), { ...b, parent: { node: 2, side: 'solid' } });
+    const r = evaluateDoc(doc, 1);
+    assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+    assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-5 * exact, `${r.bodies[0].volumeMM3} vs ${exact}`);
+  }
 });

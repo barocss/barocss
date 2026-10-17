@@ -662,23 +662,37 @@ test('hole: a 90° countersink is cut with the hole, along any axis and from eit
   assert.throws(() => evaluateCadPart(D([...cube, { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: 3, countersink: 6 }])), e => e instanceof CadPartError && e.code === 'INPUT');
 });
 
-test('holes whose cylinder walls touch at a point are refused with the reason, in either order', () => {
-  // The studio's plate: a Ø4 cross hole along y at x = 42 and a Ø6 hole down at x = 43 touch at (40, 30, 6)
-  // (the cross hole's side meets the vertical hole's wall from inside). Before, one order failed to stitch
-  // and the other gave a valid-looking body ~21 mm³ short of the true volume.
+test('cylinder walls touching at a point from inside: built in either order, the volume the exact one', () => {
+  // A smaller cylinder touching a larger one's wall from inside: the intersection's two loops meet at the
+  // touch, the crossing quadratic's discriminant has a double zero there. The exact volume: the box less
+  // both holes plus their overlap, integrated across the smaller hole's disc.
+  const overlap = (xs, rs, xl, rl) => { let v = 0; const n = 20000; for (let i = 0; i < n; i++) { const x = xs - rs + 2 * rs * (i + 0.5) / n; v += 4 * Math.sqrt(Math.max(0, rs * rs - (x - xs) ** 2)) * Math.sqrt(Math.max(0, rl * rl - (x - xl) ** 2)) * 2 * rs / n; } return v; };
   const plate = [rect('s', 0, 0, 100, 40), { id: 'e', kind: 'extrude', sketch: 's', height: 12 }];
-  const cross = { kind: 'hole', center: [42, 6], radius: 2, axis: 'y' }, down = { kind: 'hole', center: [43, 30], radius: 3 };
   const cube = [rect('s', 0, 0, 20, 20), { id: 'e', kind: 'extrude', sketch: 's', height: 20 }];
-  const small = { kind: 'hole', center: [8, 10], radius: 1, axis: 'y' }, big = { kind: 'hole', center: [10, 10], radius: 3 };
-  for (const [base, a, b, at] of [[plate, cross, down, '40, 30, 6'], [cube, small, big, '7, 10, 10']]) for (const [x, y] of [[a, b], [b, a]]) {
-    const doc = D([...base, { ...x, id: 'h1', target: 'e' }, { ...y, id: 'h2', target: 'h1' }]);
-    refused(doc, 'CAPABILITY', new RegExp(`walls touch at a point \\(tangent at ${at}\\)`));
+  // The studio's plate (Ø4 across at x = 42, Ø6 down at x = 43: touching at 40, 30, 6) and a 20 mm cube
+  // (Ø2 across at x = 8, Ø6 down at x = 10: touching at 7, 10, 10).
+  const cases = [
+    { base: plate, box: 48000, across: { kind: 'hole', center: [42, 6], radius: 2, axis: 'y' }, down: { kind: 'hole', center: [43, 30], radius: 3 }, exact: 48000 - Math.PI * 9 * 12 - Math.PI * 4 * 40 + overlap(42, 2, 43, 3) },
+    { base: cube, box: 8000, across: { kind: 'hole', center: [8, 10], radius: 1, axis: 'y' }, down: { kind: 'hole', center: [10, 10], radius: 3 }, exact: 8000 - Math.PI * 9 * 20 - Math.PI * 20 + overlap(8, 1, 10, 3) },
+  ];
+  for (const c of cases) for (const [a, b] of [[c.across, c.down], [c.down, c.across]]) {
+    const out = evaluateCadPart(D([...c.base, { ...a, id: 'h1', target: 'e' }, { ...b, id: 'h2', target: 'h1' }])).outputs[0];
+    assert.equal(checkBrep(out.brep).issues.length, 0);
+    const v = out.massProperties(1).volumeMM3;
+    assert.ok(Math.abs(v - c.exact) <= 1e-5 * c.exact, `${v} vs ${c.exact}`);
   }
-  // Half a millimetre over, they cross: the body is valid and its volume is the sampled one.
-  const ok = evaluateCadPart(D([...plate, { ...cross, id: 'h1', target: 'e', center: [42.5, 6] }, { ...down, id: 'h2', target: 'h1' }])).outputs[0];
-  assert.equal(checkBrep(ok.brep).issues.length, 0);
+  // The larger cylinder turned about its own axis (its seams moved off the touch) and subtracted as a body.
+  const tube = deg => [{ id: 'c', kind: 'sketch', profile: 'circle', center: [10, 10], radius: 3 }, { id: 'v0', kind: 'extrude', sketch: 'c', height: 22, from: -1 }, { id: 'v', kind: 'rotate', target: 'v0', axis: 'z', angleDegrees: deg, pivot: [10, 10, 0] }];
+  for (const deg of [30, 90]) for (const across of [cases[1].across, { kind: 'hole', center: [12, 10], radius: 1, axis: 'x' }]) for (const first of ['hole', 'tube']) {
+    const f = first === 'hole' ? [...cube, ...tube(deg), { ...across, id: 'h', target: 'e' }, { id: 'd', kind: 'difference', target: 'h', tool: 'v' }]
+      : [...cube, ...tube(deg), { id: 'd', kind: 'difference', target: 'e', tool: 'v' }, { ...across, id: 'h', target: 'd' }];
+    const out = evaluateCadPart(D(f)).outputs.at(-1);
+    assert.equal(checkBrep(out.brep).issues.length, 0);
+    assert.ok(Math.abs(out.massProperties(1).volumeMM3 - cases[1].exact) <= 1e-5 * cases[1].exact, `${deg}° ${first} first: ${out.massProperties(1).volumeMM3}`);
+  }
   // Equal radii with meeting axes (the mitre the fillets make) still join.
+  const big = cases[1].down;
   assert.ok(evaluateCadPart(D([...cube, { ...big, id: 'h1', target: 'e', axis: 'y' }, { ...big, id: 'h2', target: 'h1' }])).outputs[0]);
-  // Touching from outside (two cavities meeting at a point) is not a manifold solid either.
-  refused(D([...cube, { ...small, id: 'h1', target: 'e', center: [5, 10], radius: 2 }, { ...big, id: 'h2', target: 'h1' }]), 'GEOMETRY', /touch along an edge or at a vertex/);
+  // Touching from outside (two cavities meeting at a point) is not a manifold solid.
+  refused(D([...cube, { kind: 'hole', center: [5, 10], radius: 2, axis: 'y', id: 'h1', target: 'e' }, { ...big, id: 'h2', target: 'h1' }]), 'GEOMETRY', /touch along an edge or at a vertex/);
 });

@@ -50,7 +50,7 @@ const rules: { test: RegExp; title: string; hint: string }[] = [
   { test: /between two planes only|where a plane meets a cylinder only|between planes and cylinders|stand square on the plane|corners between two straight walls/i,
     title: 'This edge can’t be finished yet',
     hint: 'Fillets and chamfers work on straight edges between flat faces and on circles where a flat face meets a round wall (hole rims, boss tops and feet).' },
-  { test: /branch points|touch tangentially|walls touch at a point/i,
+  { test: /branch points|touch tangentially/i,
     title: 'These round features only graze each other',
     hint: 'Two crossing cylinders that touch tangentially meet in curves the kernel can’t represent yet. Move one so it passes clearly through the other, or keep them apart.' },
   { test: /need(s)? an upright/i,

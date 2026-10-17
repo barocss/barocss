@@ -342,6 +342,9 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
   });
 }
 
+/** One root of a crossing-cylinder quadratic as a curve in the smaller cylinder's angle. */
+const branchOf = (point: (th: number, sign: number) => P3, sign: number) => (th: number) => point(th, sign);
+
 // ---- intersections ---------------------------------------------------------------------------------
 /** Parameter intervals of a curve (line: t along d from p; circle: φ from the frame's e1) inside a face. */
 type Probe = { kind: 'line'; p: P3; d: P3; lo: number; hi: number } | { kind: 'circle'; c: P3; n: P3; e1: P3; r: number; lo: number } | { kind: 'param'; at: (t: number) => P3; lo: number; hi: number };
@@ -666,14 +669,24 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
           if (!doubles.some(z => Math.abs(z - th) < 1e-6)) doubles.push(th);
         }
         // Unequal radii (equal ones meeting in a mitre are taken above): the smaller cylinder touches the
-        // larger one's wall from inside at a double zero, the curve's two loops meeting there where the
-        // walls are tangent. Where that touch lies inside a face (not on edges of both — a fillet's tool
-        // along its tangent edges, which the march handles), neither the branches nor the march clip
-        // reliably at it yet: refused, rather than a broken shell or a body short of its volume.
-        if (Math.abs(A.r - B.r) > tol) for (const th of doubles) {
-          const x = point(th, 1), wa = locateInRegion(to2(fa, x), fa.region, 10 * tol), wb = locateInRegion(to2(fb, x), fb.region, 10 * tol);
-          if (wa !== 'out' && wb !== 'out' && (wa === 'in' || wb === 'in'))
-            throw new BrepError('GEOMETRY', `analytic Boolean: cylinders whose walls touch at a point (tangent at ${x.map(v => +v.toFixed(4)).join(', ')}) are not supported yet; move or resize one a little so they cross or clear`);
+        // larger one's wall from inside at each double zero, the curve's two loops meeting there where the
+        // walls are tangent. Each root t±(θ) is continuous but turns a corner at the touch, so each is cut
+        // into pieces between consecutive double zeros: every piece then ends exactly at a touch point, and
+        // the faces' arrangements and the stitch meet the four pieces there, not a curve passing through.
+        // (A fillet's tool touching along its tangent edges — on edges of both faces — comes out as the
+        // march made it; a touch outside either face is left to the march.)
+        if (Math.abs(A.r - B.r) > tol) {
+          let inside = false;
+          for (const th of doubles) {
+            const x = point(th, 1), wa = locateInRegion(to2(fa, x), fa.region, 10 * tol), wb = locateInRegion(to2(fb, x), fb.region, 10 * tol);
+            if (wa !== 'out' && wb !== 'out') inside = true;
+          }
+          if (inside) {
+            doubles.sort((a, b) => a - b);
+            for (const sign of [-1, 1]) for (let k = 0; k < doubles.length; k++)
+              paramCuts(branchOf(point, sign), doubles[k], k + 1 < doubles.length ? doubles[k + 1] : doubles[0] + TWO_PI);
+            return;
+          }
         }
         if (!doubles.length || doubles.length % 2) { march(); return; }
         doubles.sort((a, b) => a - b);
