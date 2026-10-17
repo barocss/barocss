@@ -68,7 +68,8 @@ export type ModelNode = SketchNode
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
-  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
+  /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
+  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string };
 
 import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
@@ -250,7 +251,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
     case 'revolve': return `Revolve ${node.angleDegrees}°`;
-    case 'hole': return `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;
+    case 'hole': return node.thread ? `Tapped ${node.thread}` : `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'fillet': return `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';

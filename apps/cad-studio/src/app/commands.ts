@@ -3,7 +3,7 @@
 import { profileCommands } from './profileCommands';
 import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
-import { fastenerCommand } from './fasteners';
+import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
@@ -297,7 +297,7 @@ const allCommands: Command[] = [
   ...primitives,
   fastenerCommand,
   {
-    id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, or counterbored', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind',
+    id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, counterbored, countersunk or tapped', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind countersink countersunk csk tapped thread tap',
     available: ctx => {
       if (ctx.selection.faces.length !== 1) return no('Select the flat face where the hole goes in.');
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face];
@@ -306,16 +306,24 @@ const allCommands: Command[] = [
     },
     fields: ctx => {
       const f = ctx.selection.faces[0], { axis } = holeAxis(ctx.bodies[f.body].mesh.faces[f.face].normal)!, [a, b] = HOLE_PLANE[axis];
-      return [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }, { value: 'counterbore', label: 'Counterbored' }] },
-        { key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 }, { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' },
+      return [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }, { value: 'counterbore', label: 'Counterbored' }, { value: 'countersink', label: 'Countersunk' }, { value: 'tapped', label: 'Tapped' }] },
+        { key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 },
+        { key: 'thread', label: 'Thread', kind: 'choice', options: Object.entries(FASTENER_SIZES).map(([m, s]) => ({ value: m, label: `${m} × ${s.pitch} (drill Ø${s.tap})` })), when: v => v.type === 'tapped' },
+        { key: 'tend', label: 'Ends', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }], when: v => v.type === 'tapped' },
+        { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind') },
+        { key: 'csd', label: 'Countersink Ø', kind: 'mm', min: 1, when: v => v.type === 'countersink' },
         { key: 'cd', label: 'Counterbore Ø', kind: 'mm', min: 1, when: v => v.type === 'counterbore' }, { key: 'ch', label: 'Counterbore depth', kind: 'mm', min: 0.5, when: v => v.type === 'counterbore' },
         { key: 'x', label: 'Centre ' + a.toUpperCase(), kind: 'mm' }, { key: 'y', label: 'Centre ' + b.toUpperCase(), kind: 'mm' }];
     },
     defaults: ctx => {
       const f = ctx.selection.faces[0]; const face = ctx.bodies[f.body].mesh.faces[f.face];
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
-      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, x: r1(p[a]), y: r1(p[b]) };
+      return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]) };
     },
+    // Tapped: the diameter is the thread's tap drill.
+    derive: (_ctx, v, changed) => v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && FASTENER_SIZES[String(v.thread)] ? { ...v, d: FASTENER_SIZES[String(v.thread)].tap } : v,
+    steps: (_ctx, v) => v.type === 'tapped' && FASTENER_SIZES[String(v.thread)] ? [{ label: 'Thread', text: `${v.thread}×${FASTENER_SIZES[String(v.thread)].pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== FASTENER_SIZES[String(v.thread)].tap ? ` (the tap drill is Ø${FASTENER_SIZES[String(v.thread)].tap})` : ''}`, done: Number(v.d) === FASTENER_SIZES[String(v.thread)].tap }]
+      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : [],
     // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
@@ -326,7 +334,8 @@ const allCommands: Command[] = [
       // Depths: arrows down the bore from the face (deeper is further in); the counterbore's size on its rim, the other way.
       const k = 'xyz'.indexOf(h.axis), down: [number, number, number] = [0, 0, 0]; down[k] = h.side === 'max' ? -1 : 1;
       const deep = (key: string, by: number, off: number): HandleSpec => { const p: [number, number, number] = [...centre]; p[k] += down[k] * by; p[a] += off; return { key, at: p, dir: [...down], min: 0.5, step: 0.5 }; };
-      if (v.type === 'blind') out.push(deep('depth', Number(v.depth), 0));
+      if (v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind')) out.push(deep('depth', Number(v.depth), 0));
+      if (v.type === 'countersink') { const rim: [number, number, number] = [...centre]; rim[a] -= Number(v.csd) / 2; out.push({ key: 'csd', at: rim, dir: [-dir[0], -dir[1], -dir[2]], scale: 2, min: 1, step: 0.5 }); }
       if (v.type === 'counterbore') {
         const rim: [number, number, number] = [...centre]; rim[a] -= Number(v.cd) / 2;
         out.push({ key: 'cd', at: rim, dir: [-dir[0], -dir[1], -dir[2]], scale: 2, min: 1, step: 0.5 }, deep('ch', Number(v.ch), -(Number(v.cd) + Number(v.d)) / 4));
@@ -339,8 +348,22 @@ const allCommands: Command[] = [
       // counterbore is a second, wider hole to its depth on the same centre.
       const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}) };
       if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
-      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(v.type === 'blind' ? { depth: Number(v.depth) } : {}) });
-      return v.type === 'counterbore' ? withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at }) : doc;
+      if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
+      const tapped = v.type === 'tapped' && FASTENER_SIZES[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
+      const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}) });
+      if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at });
+      if (v.type !== 'countersink') return doc;
+      // A countersink: a 90° cone from Ø csd at the face down to the hole, turned on a plane through the
+      // axis (its Y into the material), a little above the face so no face lies on the face, then cut.
+      const k = 'xyz'.indexOf(axis), [ia, ib] = HOLE_PLANE[axis].map(q => 'xyz'.indexOf(q)), face = body.mesh.faces[f.face];
+      const origin: [number, number, number] = [0, 0, 0]; origin[k] = face.centroid[k]; origin[ia] = Number(v.x); origin[ib] = Number(v.y);
+      const down: [number, number, number] = [0, 0, 0]; down[k] = side === 'max' ? -1 : 1;
+      const xAxis: [number, number, number] = [0, 0, 0]; xAxis[ia] = 1;
+      const normal: [number, number, number] = [xAxis[1] * down[2] - xAxis[2] * down[1], xAxis[2] * down[0] - xAxis[0] * down[2], xAxis[0] * down[1] - xAxis[1] * down[0]];
+      const R = Number(v.csd) / 2, r = Number(v.d) / 2, t = R - r, e = 0.5;
+      let d2 = withNode(doc, { kind: 'sketch', profile: 'polygon', points: [[0, -e], [R + e, -e], [r, t], [0, t]], plane: { origin, normal, xAxis } });
+      d2 = withNode(d2, { kind: 'revolve', sketch: d2.nodes.length - 1, axis: 'y', angleDegrees: 360 });
+      return withNode(d2, { kind: 'difference', parent: { node: doc.nodes.length - 1, side: 'solid' }, tool: { node: d2.nodes.length - 1, side: 'solid' } });
     },
   },
   {
