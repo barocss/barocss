@@ -223,3 +223,21 @@ test('direct geometry: poles listed by key and moved one at a time', () => {
   d = movePole(d, panel, '1,1', [20, 20, 3]);
   assert.deepEqual(polesOf(d, panel).map(p => p.at[2]), [-5, -5, -5, 3]);
 });
+
+test('Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path', async () => {
+  const { commands } = await import('../src/app/commands');
+  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { emptyDoc, withNode, featureLabel } = await import('../src/engine/doc');
+  const w = Math.SQRT1_2, direct = importSource(emptyDirect(), `@model bend { version: 0; length-unit: mm;
+  @curve #quarter { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[20,0,0],[20,0,20],[0,0,20]]; weights: [1,${w},1]; } }`, 'bend');
+  const doc = { ...withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), direct };
+  const sweep = commands.find(c => c.id === 'sweep-curve')!, ctx = { doc, bodies: [], selection: { faces: [], edges: [], bodies: [] }, direct: [] as string[] };
+  assert.match((sweep.available(ctx) as { reason: string }).reason, /Pick one curve/);
+  const picked = { ...ctx, direct: [direct.objects[0].id] };
+  assert.equal(sweep.available(picked).ok, true);
+  const next = sweep.build!(picked, sweep.defaults!(picked)), r = evaluateDoc(next, 1);
+  assert.ok(r.ok, r.ok ? '' : r.error.detail);
+  const want = Math.PI * 4 * Math.PI / 2 * 20;
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - want) / want < 0.01, String(r.bodies[0].volumeMM3));
+  assert.equal(featureLabel(next.nodes[1], 1, next.nodes), 'Sweep along bend · quarter');
+});

@@ -6,6 +6,7 @@ import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc
 import { toLocal, toWorld } from '../sketch/plane';
 import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { faceProfile } from './faceProfile';
+import { geometryOf } from '../engine/direct';
 import type { Command, Ctx, Field, Values } from './commands';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
@@ -165,4 +166,27 @@ export const loftCommand: Command = {
   },
 };
 
-export const profileCommands = [extrudeCommand, revolveCommand, pipeCommand, loftCommand];
+/** The one direct curve picked, as a path (its NURBS data), or why there is none. */
+function pickedPath(ctx: Ctx): { name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } } | string {
+  const ids = ctx.direct ?? [], d = ctx.doc.direct;
+  if (ids.length !== 1 || !d) return 'Pick one curve as the path (in the Browser, under Curves and surfaces): draw it in a sketch and Make curves, or take a model edge as a curve.';
+  const o = d.objects.find(x => x.id === ids[0]); if (!o) return 'The picked curve is gone.';
+  const g = geometryOf(d, o); if (g.kind !== 'curve') return 'The path must be a curve, not a surface.';
+  return { name: o.name, path: { degree: g.degree, knots: [...g.knots], controlPoints: g.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...g.weights] } };
+}
+
+export const sweepCurveCommand: Command = {
+  id: 'sweep-curve', label: 'Sweep', icon: 'cad-sweep', group: 'create', keywords: 'sweep path rail curve along tube wire spring pipe route',
+  hint: 'Carry a finished sketch along a curve: its middle starts at the curve’s start, square to it, and follows it without twisting',
+  available: ctx => { if (!oneProfile(ctx)) return needProfile(ctx); const p = pickedPath(ctx); return typeof p === 'string' ? no(p) : ok; },
+  fields: ctx => { const p = oneProfile(ctx); return [...opFields(!!(p && baseOf(ctx, p.node)))]; },
+  defaults: (ctx): Values => { const p = oneProfile(ctx); return p && baseOf(ctx, p.node) ? { op: 'new' } : {}; },
+  steps: ctx => { const p = pickedPath(ctx); return typeof p === 'string' ? [] : [{ label: 'Path', text: `along ${p.name} (faceted; a path tighter than the profile folds it)`, done: true }]; },
+  build: (ctx, v) => {
+    const p = oneProfile(ctx)!, path = pickedPath(ctx);
+    if (typeof path === 'string') throw new Error(path);
+    return combine(withNode(ctx.doc, { kind: 'sweep-curve', sketch: p.index, name: path.name, path: path.path }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+  },
+};
+
+export const profileCommands = [extrudeCommand, revolveCommand, pipeCommand, sweepCurveCommand, loftCommand];

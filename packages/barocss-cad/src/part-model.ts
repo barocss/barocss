@@ -26,6 +26,8 @@ import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { threadSolid } from './thread-solid.js';
+import { sweepSolid } from './sweep-solid.js';
+import { validateCurve } from './math.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -115,6 +117,11 @@ export type CadPartFeature = Base & (
    * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
    * `hex.internal` a hex nut above the seat threaded through.
    */
+  /**
+   * The sketch's profile swept along a curve (any NURBS path in mm): its middle starts on the path's
+   * start, square to it, carried along without twisting; the ends capped; holes run through. Faceted.
+   */
+  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean } }
   /**
    * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
@@ -374,6 +381,21 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
 const placed = (frame: Frame | undefined, compute: () => Result): (() => Result) =>
   !frame ? compute : () => { const r = compute(); return r.kind === 'solid' ? moveAll(r.parts, frame.m, frame.o) : r; };
 
+/** A profile loop's points: its lines' starts and its arcs sampled (eight steps a quarter turn). */
+function loopPoints(loop: readonly ProfileSegmentInput[]): [number, number][] {
+  const out: [number, number][] = [];
+  loop.forEach((s, i) => {
+    out.push([s.start[0], s.start[1]]);
+    if (s.kind !== 'arc') return;
+    const end = loop[(i + 1) % loop.length].start, c = s.center, r = Math.hypot(s.start[0] - c[0], s.start[1] - c[1]);
+    const a0 = Math.atan2(s.start[1] - c[1], s.start[0] - c[0]), a1 = Math.atan2(end[1] - c[1], end[0] - c[0]);
+    let sweep = s.direction === 'ccw' ? a1 - a0 : a0 - a1; if (sweep <= 1e-12) sweep += 2 * Math.PI;
+    const n = Math.max(2, Math.ceil(sweep / (Math.PI / 16)));
+    for (let k = 1; k < n; k++) { const a = a0 + (s.direction === 'ccw' ? 1 : -1) * sweep * k / n; out.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); }
+  });
+  return out;
+}
+
 function sketchOuter(f: Record<string, unknown>, xy: Tools['xy'], dim: Tools['dim'], fail: Tools['fail']): ProfileSegmentInput[] {
   if (f.profile === 'rectangle') {
     const a = xy(f.min as CadPartPoint2, 'min'), b = xy(f.max as CadPartPoint2, 'max');
@@ -554,6 +576,21 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
         if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
         return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
+      };
+    }
+    case 'sweep-curve': {
+      const sketch = ref(f.sketch, 'sketch').result;
+      if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      const sk = sketch as Extract<Result, { kind: 'sketch' }>, path = f.path as Record<string, unknown>;
+      if (!isRecord(path)) fail('INPUT', 'path must be a NURBS curve { degree, knots, controlPoints, weights }');
+      const curve = { kind: 'curve' as const, id: 'path', degree: path.degree as number, knots: path.knots as number[], controlPoints: path.controlPoints as Point[], weights: path.weights as number[] };
+      try { validateCurve(curve); } catch (cause) { fail('INPUT', `path: ${cause instanceof Error ? cause.message : String(cause)}`); }
+      if (sk.regions?.length) fail('CAPABILITY', 'a sweep takes one shape (holes allowed, no separate regions) yet');
+      const m = sk.frame?.m ?? [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        try {
+          return one({ kind: 'brep', brep: sweepSolid({ id: at, outer: loopPoints(sk.outer), holes: (sk.holes ?? []).map(loopPoints), xAxis: [m[0], m[3], m[6]], yAxis: [m[1], m[4], m[7]], path: curve }) });
+        } catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'thread': {

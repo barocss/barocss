@@ -60,6 +60,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
+  /** The sketch's profile swept along a curve (a NURBS path in mm, copied from a direct curve `name`): faceted. */
+  | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
   /** `from`: the sketches the sections were carried over from, when they lay on offset planes (used by the loft). */
   | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean; from?: number[] }
@@ -176,7 +178,7 @@ export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
-    case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
+    case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'import': case 'mesh': case 'thread': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -191,7 +193,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'thread') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'thread' || node.kind === 'sweep-curve') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -313,6 +315,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
+    case 'sweep-curve': return `Sweep along ${node.name}`;
   }
   return `Feature ${index + 1}`;
 }

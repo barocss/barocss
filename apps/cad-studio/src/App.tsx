@@ -335,7 +335,7 @@ export function App() {
   }, [engine, evaluated]);
 
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
-  const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
+  const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined, direct: directSel };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */

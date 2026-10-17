@@ -1837,6 +1837,23 @@ try {
     await page.waitForFunction(() => !Object.values(window.__studioDoc.bodies ?? {}).some(l => l.faces), null, { timeout: 5000 });
   });
 
+  await check('sweep a circle along a sketched path: an L of lines made a curve, the profile carried along it', async () => {
+    await page.click('[aria-label="New part"]'); const [cx, cy] = await canvasCenter();
+    await press('s'); await press('l'); await clickAt(cx - 160, cy + 60); await clickAt(cx + 40, cy + 60); await clickAt(cx + 40, cy - 100);
+    await page.click('[aria-label="Make curves"]');
+    await page.waitForFunction(() => (window.__studioDoc.direct?.objects.length ?? 0) === 1, null, { timeout: 10000 });
+    await press('s'); await press('c'); await clickAt(cx + 200, cy + 100); await clickAt(cx + 215, cy + 100); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 5000 });
+    await page.locator('.ol.direct').first().click();
+    await press(' '); await page.locator('.palette input').fill('sweep-curve'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sweep-curve', null, { timeout: 20000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.match(await page.locator('.history').innerText(), /Sweep along Sketch curve 1/);
+    await iso(); await press('f'); await page.waitForTimeout(600); await snap('sweep-along-curve');
+  });
+
   await check('corners: a click at a box corner picks the point; Shift adds another and their distance shows', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');
