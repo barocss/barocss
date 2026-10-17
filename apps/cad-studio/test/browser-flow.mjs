@@ -1576,6 +1576,22 @@ try {
     await page.waitForSelector('.vp-overlay .bbox-line', { state: 'attached', timeout: 5000 }); await snap('mass-box');
   });
 
+  await check('selection filter: Edges skips faces, Bodies picks the whole body, Pick all is back', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');
+    const [fx, fy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 16]));
+    const filter = page.locator('[aria-label="Selection filter"]'), props = () => page.locator('.props').innerText();
+    await filter.click(); await filter.click(); assert.match(await filter.innerText(), /Edges/);
+    await page.mouse.click(fx, fy); await page.waitForTimeout(300);
+    assert.doesNotMatch(await props(), /SELECTION · FACE/, 'a face is not picked with Edges');
+    await filter.click(); assert.match(await filter.innerText(), /Bodies/);
+    // (A body made by a shape command opens for editing when picked whole.)
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? '') || /BODY/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('Escape'); await page.waitForTimeout(200);
+    await filter.click(); assert.match(await filter.innerText(), /Pick all/);
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

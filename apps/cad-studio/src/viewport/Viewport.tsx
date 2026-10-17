@@ -111,6 +111,8 @@ interface Props {
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
+  pickFilter?: 'all' | 'face' | 'edge' | 'body';
   /** A box drawn dashed round what is picked (or the part), with its size. */
   boundsBox?: { min: Vec3; max: Vec3; label: string } | null;
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -279,9 +281,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
    * a plate's side stays pickable); elsewhere within 6 px.
    */
   const pickAt = (r: ViewRenderer, x: number, y: number): { face: FaceRef | null; edge: EdgeRef | null } => {
-    const under = r.pickFace(x, y, camera.current, viewState());
+    const under = r.pickFace(x, y, camera.current, viewState()), filter = propsRef.current.pickFilter ?? 'all';
+    // The selection filter: faces (or bodies) only, edges only, or whichever is under the pointer.
+    if (filter === 'face' || filter === 'body') return { face: under, edge: null };
     const edge = r.pickEdge(x, y, camera.current, viewState(), under ? 4 : 6);
-    return { face: edge ? null : under, edge };
+    return filter === 'edge' ? { face: null, edge } : { face: edge ? null : under, edge };
   };
   /** The sketch plane's coordinates under a pixel. */
   const sketchPoint = (x: number, y: number, w: number, h: number, plane: SketchPlane): [number, number] | null => {
