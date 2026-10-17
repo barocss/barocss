@@ -1143,7 +1143,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   const vertexAt = (p: number, e: number) => { const r = vfind(`${p}|${e}`); let v = vertexIds.get(r); if (!v) { v = `${id}_v${vertexList.length}`; vertexIds.set(r, v); vertexList.push({ id: v, point: P[p] }); } return v; };
   // Every edge is used once in each direction.
   const uses = new Map<number, { piece: number; sense: string }[]>();
-  loops.forEach((ls, pi) => ls.flat().forEach(u => uses.set(u.index, [...(uses.get(u.index) ?? []), { piece: pi, sense: u.sense }])));
+  loops.forEach((ls, pi) => ls.flat().forEach(u => { const list = uses.get(u.index), use = { piece: pi, sense: u.sense }; if (list) list.push(use); else uses.set(u.index, [use]); }));
   for (const [e, list] of uses) if (list.length !== 2 || list[0].sense === list[1].sense)
     throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (edge ${e} from ${P[edges[e].v[0]].map(x => +x.toFixed(4))} to ${P[edges[e].v[1]].map(x => +x.toFixed(4))} has ${list.length} uses; the inputs touch along an edge or at a vertex)`);
   // Shells by connectivity, signed volume by the divergence theorem (exact on these pieces).
@@ -1172,7 +1172,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     }
     return s.s * acc / 3;
   };
-  const shells = new Map<number, number[]>(); pieces.forEach((_, i) => shells.set(find(i), [...(shells.get(find(i)) ?? []), i]));
+  const shells = new Map<number, number[]>(); pieces.forEach((_, i) => { const r = find(i), list = shells.get(r); if (list) list.push(i); else shells.set(r, [i]); });
   const asFaces = (members: number[]): GFace[] => members.map(i => ({ ...pieces[i].face, region: pieces[i].region, out: pieces[i].out }));
   // With general surfaces the volume is approximate (domain-triangulated pieces): its sign comes from
   // whether a point just outside a face lies within the shell (a cavity's faces face its void).
@@ -1194,19 +1194,21 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   }
   // Names: the piece's face name (numbered by position when repeated); edges by their two faces.
   const faceNames: string[] = [], byName = new Map<string, number[]>();
-  pieces.forEach((p, i) => { const n = p.face.name ?? `${id}.face`; byName.set(n, [...(byName.get(n) ?? []), i]); });
+  pieces.forEach((p, i) => { const n = p.face.name ?? `${id}.face`, list = byName.get(n); if (list) list.push(i); else byName.set(n, [i]); });
   for (const [n, list] of byName) {
     if (list.length === 1) { faceNames[list[0]] = n; continue; }
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
-  const edgeList = edges.map(e => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], edges.indexOf(e)), vertexAt(e.v[1], edges.indexOf(e))] as [string, string],
-    name: [...new Set((uses.get(edges.indexOf(e)) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
+  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
+    name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
   const surface = (pi: number): { surface: Surface; sense: 'forward' | 'reversed' } => {
     const p = pieces[pi], s = p.face.surf, pts: XY[] = [];
-    for (const ring of loops[pi]) for (const u of ring) for (const x of edgeList[edges.findIndex(e => e.id === u.edge)].curve.controlPoints) pts.push(to2(p.face, x));
-    const u0 = Math.min(...pts.map(x => x[0])), u1 = Math.max(...pts.map(x => x[0])), v0 = Math.min(...pts.map(x => x[1])), v1 = Math.max(...pts.map(x => x[1]));
     if (s.kind === 'nurbs') return { surface: s.S, sense: s.sense * p.out > 0 ? 'forward' : 'reversed' };
+    // (A plane or cylinder piece is spanned over its edges' control points in its own coordinates.)
+    for (const ring of loops[pi]) for (const u of ring) for (const x of edgeList[u.index].curve.controlPoints) pts.push(to2(p.face, x));
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+    for (const x of pts) { if (x[0] < u0) u0 = x[0]; if (x[0] > u1) u1 = x[0]; if (x[1] < v0) v0 = x[1]; if (x[1] > v1) v1 = x[1]; }
     if (s.kind === 'plane') {
       const at = (u: number, v: number) => to3(p.face, [u, v]), pad = tol;
       // ∂S/∂u × ∂S/∂v = e1 × e2 = n.
