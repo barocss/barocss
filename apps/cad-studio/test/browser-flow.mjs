@@ -256,6 +256,18 @@ try {
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.equal(d.nodes[0].segments.filter(x => x.kind === 'arc').length, 1); await iso();
   });
 
+  await check('a closed spline through four points extrudes as one smooth body (tangent arcs)', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('p');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-140, 0], [0, -90], [140, 0], [0, 90], [-140, 0]]) await clickAt(cx + dx, cy + dy);
+    await snap('spline-sketch');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(), n0 = d.nodes[0];
+    assert.equal(n0.profile, 'loop'); assert.ok(n0.segments.filter(x => x.kind === 'arc').length >= 4, JSON.stringify(n0.segments.map(x => x.kind)));
+    await iso(); await snap('spline-extruded');
+  });
+
   await check('arc tangency is inferred, a radius lock holds it', async () => {
     await page.click('[aria-label="New part"]'); await press('s'); await press('l');
     const [cx, cy] = await canvasCenter();

@@ -19,9 +19,10 @@ import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX,
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
+import { splineOutline } from '../sketch/spline';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -522,6 +523,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
+      if (sk.tool !== 'spline') splineFit.current = null;
+      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false }); }
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (sk.tool === 'carc') {
         const d = carc.current;
@@ -571,6 +574,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const drafting = useRef(false);
   const slotStage = useRef(0);
   /** The centre arc being drawn: its centre, then its start and how far it has turned (signed, radians). */
+  /** The Spline tool's points so far (the curve through them is drawn as tangent arcs). */
+  const splineFit = useRef<[number, number][] | null>(null);
   const carc = useRef<{ c: [number, number]; a?: [number, number]; last?: number; sweep: number; cursor?: [number, number] } | null>(null);
   const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
     const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
@@ -594,6 +599,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
+      if (sk.tool === 'spline') {
+        // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
+        const fit = splineFit.current ?? [], fresh = !fit.length;
+        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true }); splineFit.current = null; request(); return; }
+        if (fit.length && c[0] === fit[fit.length - 1][0] && c[1] === fit[fit.length - 1][1]) return;
+        splineFit.current = [...fit, c];
+        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false }, fresh); request(); return;
+      }
       if (sk.tool === 'carc') {
         const d = carc.current;
         if (!d) carc.current = { c, sweep: 0, cursor: c };

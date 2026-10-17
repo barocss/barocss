@@ -71,6 +71,7 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'carc', key: 'Q', label: 'Centre arc', icon: 'cad-sk-carc', hint: 'Click the centre, then the start (the radius), then turn to the end and click · it joins lines that meet its ends' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
+  { tool: 'spline', key: 'P', label: 'Spline', icon: 'cad-sk-spline', hint: 'Click points the curve runs smoothly through · click the first point to close it · it is kept as tangent arcs' },
   { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
   { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
   { tool: 'split', key: 'K', label: 'Split', icon: 'cad-sk-split', hint: 'Click a line, arc or circle to split it in two there (a new point to constrain or trim to)' },
@@ -1027,7 +1028,7 @@ export function App() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
       if (sketch) {
         if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && { ...s, construct: !s.construct }); return; }
-        const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
+        const t = (TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase()) ?? TOOLS.find(x => x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
         if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
         return;
       }

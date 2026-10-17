@@ -140,7 +140,6 @@ const RESULT: Field = { key: 'result', label: 'Result', kind: 'choice', options:
 const MIRROR_AXIS: Record<string, 0 | 1 | 2> = { yz: 0, xz: 1, xy: 2 };
 /** A hole's centre coordinates per axis (the kernel's order). */
 const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
-const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
 /** The selected edges, when they all belong to one body. */
 const unit3 = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 /**
@@ -460,7 +459,6 @@ const allCommands: Command[] = [
       return withNode(ctx.doc, { kind: 'shell', parent: refOf(body), thickness: Number(v.t), open });
     },
   },
-  { id: 'draft', label: 'Draft', icon: 'cad-draft', hint: 'Lean faces away from a pull direction', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
   // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
   // Sketch the bottom section; finishing it lofts it to a top section above.
   // Sketch a section; finishing it sweeps it along a run, a bend and a run.

@@ -191,6 +191,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,
   // Centre arc: the centre and the two ends lit, the radii to them ghosted.
   'cad-sk-carc': <>{ghost('M7 17l10-0.01M7 17l8.5-8.5')}{line('M17 17A10 10 0 0 0 14.07 9.93')}{dots([[7, 17], [17, 17], [14.07, 9.93]])}</>,
+  // Spline: a smooth curve through its lit points.
+  'cad-sk-spline': <>{line('M4 17C7 5 11 5 12 12S17 19 20 7')}{dots([[4, 17], [12, 12], [20, 7]])}</>,
   'cad-sk-slot': <><path d="M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z" style={tone(0.12)} />{line('M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8z')}{ghost('M8 12h8')}{dots([[8, 12], [16, 12]])}</>,
   // Trim: a line across two others, the piece between them cut away (dashed), its new ends lit.
   'cad-sk-trim': <>{line('M7.5 4.5v15M16.5 4.5v15')}{line('M3 12h4.5M16.5 12h4.5')}<path d="M9.6 12h4.8" className="ac" strokeDasharray="1.4 1.7" />{dots([[7.5, 12], [16.5, 12]])}</>,
