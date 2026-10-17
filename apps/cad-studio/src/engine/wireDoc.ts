@@ -1,0 +1,61 @@
+// The document as the engine worker sees it: what evaluation reads (parameters, nodes, outputs and the
+// placed instances — not render, drawing, direct geometry, looks, mates or pending revisions), with its
+// nodes sent by id. Nodes are immutable (an edit makes a new object), so each node object crosses to
+// the worker once; later requests name it. Both sides keep the same table and forget, at the same
+// request, the nodes no request has named for a while (they process the requests in one order).
+import type { ModelNode, PartInstance, StudioDoc } from './doc';
+
+export interface WireDoc {
+  doc: Omit<StudioDoc, 'nodes'> & { nodes: [] };
+  /** The nodes, by id. */
+  ids: number[];
+  /** Nodes the worker does not have yet. */
+  added: [number, ModelNode][];
+}
+
+/** Requests between prunes, and how many requests a node may go unnamed before it is forgotten. */
+const PRUNE_EVERY = 64, KEEP_FOR = 256;
+
+/** What evaluation reads of a document (an instance's part likewise). */
+export function evaluatedPart(doc: StudioDoc): StudioDoc {
+  const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
+  if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
+  return out;
+}
+const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });
+
+/** The client's side: node objects to ids, and when each was last named. */
+export class WireSender {
+  private ids = new Map<ModelNode, number>();
+  private used = new Map<number, { node: ModelNode; at: number }>();
+  private next = 1;
+  private seq = 0;
+  pack(doc: StudioDoc): WireDoc {
+    const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
+    for (const node of doc.nodes) {
+      let id = this.ids.get(node);
+      if (id === undefined) { id = this.next++; this.ids.set(node, id); added.push([id, node]); }
+      this.used.set(id, { node, at: seq }); ids.push(id);
+    }
+    if (seq % PRUNE_EVERY === 0) for (const [id, u] of this.used) if (u.at < seq - KEEP_FOR) { this.used.delete(id); this.ids.delete(u.node); }
+    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added };
+  }
+}
+
+/** The worker's side: ids to nodes, forgotten by the same rule. */
+export class WireReceiver {
+  private nodes = new Map<number, { node: ModelNode; at: number }>();
+  private seq = 0;
+  unpack(w: WireDoc): StudioDoc {
+    const seq = ++this.seq;
+    for (const [id, node] of w.added) this.nodes.set(id, { node, at: seq });
+    const nodes: ModelNode[] = [];
+    for (const id of w.ids) {
+      const e = this.nodes.get(id);
+      if (!e) throw new Error(`engine worker: node ${id} was never sent`);
+      e.at = seq; nodes.push(e.node);
+    }
+    if (seq % PRUNE_EVERY === 0) for (const [id, e] of this.nodes) if (e.at < seq - KEEP_FOR) this.nodes.delete(id);
+    return { ...w.doc, nodes };
+  }
+}

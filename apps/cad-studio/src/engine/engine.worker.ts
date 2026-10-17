@@ -2,19 +2,20 @@
 import { brepsFor, evaluateDoc, evaluatePart, evaluatePreview, stepFor, stlFor } from './evaluate';
 import { projectViews } from '../drawing/project';
 import { sectionOf } from '../drawing/section';
-import type { StudioDoc } from './doc';
+import { WireReceiver, type WireDoc } from './wireDoc';
 
 export type WorkerRequest =
-  | { type: 'evaluate'; id: number; doc: StudioDoc; revision: number }
-  | { type: 'part'; id: number; doc: StudioDoc; revision: number }
-  | { type: 'preview'; id: number; doc: StudioDoc; revision: number }
-  | { type: 'section'; id: number; doc: StudioDoc; revision: number }
-  | { type: 'stl'; id: number; doc: StudioDoc; key: string }
-  | { type: 'step'; id: number; doc: StudioDoc; name: string }
-  | { type: 'drawing'; id: number; doc: StudioDoc; options?: { tangentEdges?: boolean; section?: { y: number } } };
+  | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
+  | { type: 'part'; id: number; doc: WireDoc; revision: number }
+  | { type: 'preview'; id: number; doc: WireDoc; revision: number }
+  | { type: 'section'; id: number; doc: WireDoc; revision: number }
+  | { type: 'stl'; id: number; doc: WireDoc; key: string }
+  | { type: 'step'; id: number; doc: WireDoc; name: string }
+  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; section?: { y: number } } };
 
+const wire = new WireReceiver();
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
-  const request = event.data;
+  const request = { ...event.data, doc: wire.unpack(event.data.doc) };
   if (request.type === 'evaluate' || request.type === 'part' || request.type === 'preview' || request.type === 'section') {
     const result = request.type === 'part' ? evaluatePart(request.doc, request.revision) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
     const transfer: Transferable[] = [];

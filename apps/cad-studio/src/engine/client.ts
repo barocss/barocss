@@ -1,6 +1,7 @@
 import type { EvalResult } from './evaluate';
 import type { StudioDoc } from './doc';
 import type { DrawingResult } from '../drawing/project';
+import { WireSender } from './wireDoc';
 
 /** One worker; the newest evaluation wins and stale replies are dropped. */
 export class EngineClient {
@@ -8,6 +9,8 @@ export class EngineClient {
   private next = 1;
   private pending = new Map<number, (data: unknown) => void>();
   private latestEval = 0;
+  /** Every request's document goes through this, in the order the worker receives them. */
+  private wire = new WireSender();
 
   constructor() {
     this.worker.onmessage = (event: MessageEvent<{ id: number }>) => {
@@ -21,7 +24,7 @@ export class EngineClient {
     const id = this.next++; this.latestEval = id;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve(id === this.latestEval ? (data as { result: EvalResult }).result : null));
-      this.worker.postMessage({ type: 'evaluate', id, doc, revision });
+      this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision });
     });
   }
 
@@ -30,7 +33,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
-      this.worker.postMessage({ type: 'preview', id, doc, revision });
+      this.worker.postMessage({ type: 'preview', id, doc: this.wire.pack(doc), revision });
     });
   }
 
@@ -39,7 +42,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
-      this.worker.postMessage({ type: 'section', id, doc, revision });
+      this.worker.postMessage({ type: 'section', id, doc: this.wire.pack(doc), revision });
     });
   }
 
@@ -48,7 +51,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
-      this.worker.postMessage({ type: 'part', id, doc, revision });
+      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision });
     });
   }
 
@@ -56,7 +59,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { step: { text: string } | { error: string } }).step));
-      this.worker.postMessage({ type: 'step', id, doc, name });
+      this.worker.postMessage({ type: 'step', id, doc: this.wire.pack(doc), name });
     });
   }
 
@@ -65,7 +68,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
-      this.worker.postMessage({ type: 'drawing', id, doc, options });
+      this.worker.postMessage({ type: 'drawing', id, doc: this.wire.pack(doc), options });
     });
   }
 
@@ -73,7 +76,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { bytes: Uint8Array | null }).bytes));
-      this.worker.postMessage({ type: 'stl', id, doc, key });
+      this.worker.postMessage({ type: 'stl', id, doc: this.wire.pack(doc), key });
     });
   }
 }
