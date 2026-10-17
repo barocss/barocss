@@ -79,8 +79,11 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angleDegrees about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
-  /** Parts /0 (below `at`) and /1 (above). */
-  | { readonly kind: 'split'; readonly target: string; readonly axis: CadPartAxis; readonly at: CadPartDim }
+  /**
+   * Parts /0 (below `at`) and /1 (above): across the plane `axis` = at, or with `normal` (any direction,
+   * not necessarily unit) across the plane normal·p = at — x + y = at for [1, 1, 0], a mitre.
+   */
+  | { readonly kind: 'split'; readonly target: string; readonly axis?: CadPartAxis; readonly normal?: CadPartPoint3; readonly at: CadPartDim }
   /**
    * The sketch's profile swept along a path through its centroid, from the sketch plane up +Z: straight
    * runs and bends of a radius (to the path) towards ±X or ±Y (as a pipe is bent), each from where the
@@ -548,13 +551,34 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'split': {
-      const target = solids(f.target, 'target'), axis = axisOf(f.axis), cut = dim(f.at as CadPartDim, 'at');
+      const target = solids(f.target, 'target'), level = dim(f.at as CadPartDim, 'at');
       if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
+      const normal = f.normal === undefined ? null : xyz(f.normal as CadPartPoint3, 'normal');
+      if (normal && !(len(normal) > 1e-12)) fail('INPUT', 'the split normal must not be zero');
+      const along = normal ? [0, 1, 2].filter(k => normal[k] !== 0) : [];
+      if (!normal || along.length === 1) {
+        // Across a coordinate plane (a normal along one axis is that axis, below and above as its sign says).
+        const a = normal ? along[0] : 'xyz'.indexOf(axisOf(f.axis)), axis = 'xyz'[a], cut = normal ? level / normal[a] : level, flip = !!normal && normal[a] < 0;
+        return () => {
+          const s = target[0].solid, box = bounds(s);
+          if (!(cut > box.min[a] && cut < box.max[a])) fail('SELECTION', `the split plane ${axis} = ${cut} does not cross the target (${box.min[a]} to ${box.max[a]})`);
+          const half = (lo: boolean) => { const min = box.min.map(v => v - 1) as Point, max = box.max.map(v => v + 1) as Point; if (lo) max[a] = cut; else min[a] = cut; return boxSolid(min, max, `${at}.cut`); };
+          const pieces = [boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)];
+          return many(flip ? pieces.reverse() : pieces);
+        };
+      }
       return () => {
-        const s = target[0].solid, box = bounds(s), a = 'xyz'.indexOf(axis);
-        if (!(cut > box.min[a] && cut < box.max[a])) fail('SELECTION', `the split plane ${axis} = ${cut} does not cross the target (${box.min[a]} to ${box.max[a]})`);
-        const half = (lo: boolean) => { const min = box.min.map(v => v - 1) as Point, max = box.max.map(v => v + 1) as Point; if (lo) max[a] = cut; else min[a] = cut; return boxSolid(min, max, `${at}.cut`); };
-        return many([boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)]);
+        // An oblique plane: each side a box standing on the plane (its frame turned to the normal) round the target.
+        const s = target[0].solid, box = bounds(s), n = unit(normal), d = level / len(normal);
+        const corners = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [i & 1 ? box.max[0] : box.min[0], i & 2 ? box.max[1] : box.min[1], i & 4 ? box.max[2] : box.min[2]] as Point).map(c => dot(n, c));
+        if (!(d > Math.min(...corners) && d < Math.max(...corners))) fail('SELECTION', 'the split plane does not cross the target');
+        const c = scale(add(box.min, box.max), 0.5), o = sub(c, scale(n, dot(n, c) - d)), R = len(sub(box.max, box.min)) + 2;
+        const x = unit(cross(n, Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), y = cross(n, x);
+        const m: BrepAffine['matrix'] = [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]];
+        const half = (lo: boolean) => affine(boxSolid([-R, -R, lo ? -R : 0], [R, R, lo ? 0 : R], `${at}.cut`), m, o);
+        const pieces = [boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)];
+        if (pieces.some(empty)) fail('SELECTION', 'the split plane does not cross the target');
+        return many(pieces);
       };
     }
     case 'chamfer': case 'fillet': {

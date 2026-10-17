@@ -165,7 +165,8 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v), ...((n as typeof node).axis === 'z' ? { angleDegrees: 360 / Math.max(1, Math.round(v)) } : {}) }));
       break;
     case 'split':
-      out.push({ kind: 'choice', key: 'axis', label: 'Normal', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
+      if (node.normal) (['x', 'y', 'z'] as const).forEach((a, k) => number('n' + a, `Normal ${a.toUpperCase()}`, undefined, n => (n as typeof node).normal?.[k] ?? 0, (n, v) => { const was = (n as typeof node).normal ?? [0, 0, 0], next = was.map((c, j) => j === k ? v : c) as [number, number, number]; return { ...(n as typeof node), normal: next }; }));
+      else out.push({ kind: 'choice', key: 'axis', label: 'Normal', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
       number('at', 'At', 'mm', n => num((n as typeof node).at), (n, v) => ({ ...(n as typeof node), at: v }));
       break;
   }

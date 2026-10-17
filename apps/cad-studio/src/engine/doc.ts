@@ -56,7 +56,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
-  | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
+  /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
+  | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
@@ -261,6 +262,12 @@ export function shapeLabel(made: Made): string {
     default: return made.command;
   }
 }
+/** A plane's left side as written: [1, 1, 0] → "X+Y", [1, 0, -0.5] → "X−0.5Z". */
+export function planeText(n: readonly number[]): string {
+  const out = n.map((c, k) => ({ c: Math.round(c * 1000) / 1000, a: 'XYZ'[k] })).filter(t => t.c !== 0)
+    .map((t, j) => `${t.c < 0 ? '−' : j ? '+' : ''}${Math.abs(t.c) === 1 ? '' : Math.abs(t.c)}${t.a}`).join('');
+  return out || '0';
+}
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
   if ('made' in node && node.made) return shapeLabel(node.made);
@@ -284,7 +291,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
-    case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
+    case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;

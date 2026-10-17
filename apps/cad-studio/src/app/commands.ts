@@ -5,7 +5,7 @@ import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
-import { leafBodies, withNode, type Axis, type HolePattern, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
+import { leafBodies, planeText, withNode, type Axis, type HolePattern, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 
@@ -19,7 +19,7 @@ export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selectio
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
-  | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio'; min?: number; max?: number; step?: number }
+  | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
   | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] }
 ) & { when?: (values: Values) => boolean };
 export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
@@ -245,6 +245,12 @@ function remembered(cmd: Command): Command {
     return last && (last.kind === 'extrude' || last.kind === 'revolve' || last.kind === 'union' || last.kind === 'rotate') && added > 0
       ? { ...d, nodes: [...d.nodes.slice(0, -1), { ...last, made: { command: cmd.id, values: { ...v }, ...(added !== 2 ? { nodes: added } : {}) } }] } : d;
   } };
+}
+
+/** A split's normal from its values, or null when it is zero (or not a number). */
+function splitNormal(v: Values): [number, number, number] | null {
+  const n = [Number(v.nx), Number(v.ny), Number(v.nz)] as [number, number, number];
+  return n.every(Number.isFinite) && Math.hypot(...n) > 1e-9 ? n : null;
 }
 
 const allCommands: Command[] = [
@@ -568,19 +574,36 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'split', label: 'Split', icon: 'cad-split', hint: 'Cut a body in two along a plane', group: 'modify', keywords: 'cut plane divide',
+    id: 'split', label: 'Split', icon: 'cad-split', hint: 'Cut a body in two along a plane: across X, Y or Z, or any plane (a mitre: normal 1, 1, 0)', group: 'modify', keywords: 'cut plane divide mitre miter oblique tilted angled diagonal',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to split.'),
-    fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] }, { key: 'at', label: 'At', kind: 'mm' }],
-    defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
-    // (A new normal starts the plane through the body's middle along it.)
-    derive: (ctx, v, changed) => { const b = oneBody(ctx); if (!b || !changed.includes('axis')) return v; const k = 'xyz'.indexOf(String(v.axis)); return { ...v, at: r1((b.mesh.bounds.min[k] + b.mesh.bounds.max[k]) / 2) }; },
+    fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }, { value: 'n', label: 'Any direction' }] },
+      { key: 'nx', label: 'Normal X', kind: 'number', when: v => v.axis === 'n' }, { key: 'ny', label: 'Normal Y', kind: 'number', when: v => v.axis === 'n' }, { key: 'nz', label: 'Normal Z', kind: 'number', when: v => v.axis === 'n' },
+      { key: 'at', label: 'At', kind: 'mm' }],
+    defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', nx: 1, ny: 1, nz: 0, at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
+    // (A new normal starts the plane through the body's middle: at = n·centre.)
+    derive: (ctx, v, changed) => {
+      const b = oneBody(ctx); if (!b || !changed.some(k => ['axis', 'nx', 'ny', 'nz'].includes(k))) return v;
+      if (v.axis === 'n') { const c = centreOf(b), n = splitNormal(v); return n ? { ...v, at: r1(n[0] * c[0] + n[1] * c[1] + n[2] * c[2]) } : v; }
+      const k = 'xyz'.indexOf(String(v.axis)); return { ...v, at: r1((b.mesh.bounds.min[k] + b.mesh.bounds.max[k]) / 2) };
+    },
     // The cutting plane: an arrow through the body's middle along the normal, held inside the body.
     handles: (ctx, v) => {
       const b = oneBody(ctx); if (!b) return [];
+      if (v.axis === 'n') {
+        const n = splitNormal(v); if (!n) return [];
+        const l = Math.hypot(...n), u = n.map(x => x / l) as [number, number, number], c = centreOf(b), off = Number(v.at) / l - (u[0] * c[0] + u[1] * c[1] + u[2] * c[2]);
+        const B = b.mesh.bounds, ends = [0, 1, 2, 3, 4, 5, 6, 7].map(i => n[0] * (i & 1 ? B.max[0] : B.min[0]) + n[1] * (i & 2 ? B.max[1] : B.min[1]) + n[2] * (i & 4 ? B.max[2] : B.min[2]));
+        return [{ key: 'at', at: c.map((x, k) => x + u[k] * off) as [number, number, number], dir: u, scale: l, min: Math.min(...ends) + 0.5 * l, max: Math.max(...ends) - 0.5 * l, step: 0.5 }];
+      }
       const k = 'xyz'.indexOf(String(v.axis)), at = centreOf(b), dir: [number, number, number] = [0, 0, 0]; dir[k] = 1; at[k] = Number(v.at);
       return [{ key: 'at', at, dir, min: Math.ceil((b.mesh.bounds.min[k] + 0.5) * 2) / 2, max: Math.floor((b.mesh.bounds.max[k] - 0.5) * 2) / 2, step: 0.5 }];
     },
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) }),
+    steps: (_ctx, v) => v.axis === 'n' ? [{ label: 'Plane', text: splitNormal(v) ? `${planeText(splitNormal(v)!)} = ${Number(v.at)}` : 'Give the plane a direction: its normal must not be zero.', done: !!splitNormal(v) }] : [],
+    build: (ctx, v) => {
+      if (v.axis !== 'n') return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) });
+      const n = splitNormal(v); if (!n) throw new Error('Give the plane a direction: its normal must not be zero.');
+      return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: 'x', normal: n, at: Number(v.at) });
+    },
   },
   ...(['union', 'difference', 'intersect'] as const).map((kind): Command => ({
     id: kind, label: kind === 'union' ? 'Union' : kind === 'difference' ? 'Subtract' : 'Intersect',

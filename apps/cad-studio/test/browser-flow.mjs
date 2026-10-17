@@ -1581,6 +1581,22 @@ try {
     await press('Escape'); await press('f'); await page.waitForTimeout(800); await snap('fastener-threads');
   });
 
+  await check('split a bar across a mitre plane (normal 1, 1, 0): two bodies, the history says the plane', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('40'); await field('Depth Y').fill('20'); await field('Height Z').fill('10'); await field('At X').fill('0'); await field('At Y').fill('0');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await press(' '); await page.locator('.palette input').fill('split'); await press('Enter'); await hudReady();
+    await field('Normal').selectOption('n'); await hudReady();
+    assert.equal(await field('At').inputValue(), '30', 'x + y through the middle');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await snap('split-mitre-preview'); await press('Enter');
+    await page.waitForFunction(() => /Split X\+Y = 30/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('split-mitre');
+  });
+
   await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

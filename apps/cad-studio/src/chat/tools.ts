@@ -50,7 +50,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy; keeps the original', at: 'where the plane crosses its axis (yz: X; 0: through the origin)' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original', result: 'one (joined) | separate (each its own body)' } },
   'circular-pattern': { selection: 'bodies: [one body]', values: { axis: 'z | x | y (quarter turns)', count: 'copies including the original', span: 'degrees the copies spread over about Z (360: an even full turn)', px: 'Z axis position X (default 0)', py: 'Z axis position Y (default 0)', result: 'one (joined) | separate (each its own body)' } },
-  split: { selection: 'bodies: [one body]', values: { axis: 'normal of the cutting plane: x | y | z', at: 'plane position' } },
+  split: { selection: 'bodies: [one body]', values: { axis: 'normal of the cutting plane: x | y | z | n (any direction: nx, ny, nz)', at: 'plane position (axis n: the value of nx·x + ny·y + nz·z on the plane — x + y = at for 1, 1, 0, a mitre)', nx: 'axis n: the normal\'s X', ny: 'its Y', nz: 'its Z' } },
   union: { selection: 'bodies: [two bodies]', values: {} },
   difference: { selection: 'bodies: [body to cut, tool body]', values: {} },
   intersect: { selection: 'bodies: [two bodies]', values: {} },

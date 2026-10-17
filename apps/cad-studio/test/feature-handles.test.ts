@@ -91,3 +91,20 @@ test('Hole types: to a depth, and counterbored (a wider hole to its depth on the
   assert.deepEqual(hole.handles!(ctx, { ...v, type: 'counterbore', cd: 12, ch: 3 }).map(h => h.key), ['x', 'd', 'cd', 'ch']);
   assert.throws(() => hole.build!(ctx, { ...v, type: 'counterbore', cd: 5, ch: 3 }), /wider/);
 });
+
+test('Split across any plane: a mitre x + y = at through the middle, its arrow along the normal, two bodies', async () => {
+  const { featureLabel, planeText } = await import('../src/engine/doc');
+  const ctx = picked(rectanglePart(40, 20, 10)), split = cmd('split');
+  const v = split.derive!(ctx, { ...split.defaults!(ctx), axis: 'n', nx: 1, ny: 1, nz: 0 }, ['axis']);
+  assert.equal(v.at, 30, 'x + y at the centre (20, 10)');
+  const [h] = split.handles!(ctx, v), r = Math.SQRT1_2;
+  assert.ok(Math.abs(h.dir[0] - r) < 1e-12 && Math.abs(h.dir[1] - r) < 1e-12 && h.scale === Math.SQRT2);
+  assert.deepEqual(h.at.map(x => Math.round(x * 1e9) / 1e9), [20, 10, 5]);
+  const doc = split.build!(ctx, v), node = doc.nodes.at(-1)!;
+  assert.equal(featureLabel(node, doc.nodes.length - 1, doc.nodes), 'Split X+Y = 30');
+  const bodies = bodiesOf(doc);
+  assert.equal(bodies.length, 2);
+  assert.ok(Math.abs(bodies[0].volumeMM3! + bodies[1].volumeMM3! - 8000) < 1e-6);
+  assert.equal(planeText([1, 0, -0.5]), 'X−0.5Z');
+  assert.throws(() => split.build!(ctx, { ...v, nx: 0, ny: 0 }), /must not be zero/);
+});

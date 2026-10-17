@@ -594,3 +594,24 @@ test('separate: a bar cut in two becomes two parts, each a body; a body in one p
   assert.deepEqual(h.outputs.map(o => o.id), ['p/0', 'h']);
   assert.throws(() => evaluateCadPart(D([rect('s', 0, 0, 30, 10), extrude('a', 's', 5), { id: 'p', kind: 'separate', target: 'a' }])), /one piece/);
 });
+
+test('split across an oblique plane: a mitre x + y = at, a tilted cut through a holed plate, a normal along one axis', () => {
+  // A 20 × 10 × 5 bar mitred across x + y = 15: a triangle-ended piece each side, the volumes summing.
+  const bar = [rect('s', 0, 0, 20, 10), extrude('a', 's', 5)];
+  const m = evaluateCadPart(D([...bar, { id: 'm', kind: 'split', target: 'a', normal: [1, 1, 0], at: 15 }]));
+  assert.deepEqual(m.outputs.map(o => o.id), ['m/0', 'm/1']);
+  const v0 = volume(m.output('m/0')), v1 = volume(m.output('m/1'));
+  assert.ok(close(v0 + v1, 1000, 1e-9), `${v0} + ${v1}`);
+  // Past the line from (5, 10) to (15, 0): the quadrilateral (15, 0) (20, 0) (20, 10) (5, 10), area 100.
+  assert.ok(close(v1, 100 * 5, 1e-9), String(v1));
+  for (const o of m.outputs) assert.deepEqual(checkBrep(o.brep).issues, []);
+  // Tilted about Y through a plate with a hole (cylinder and planes, analytic Boolean): still two exact halves.
+  const plate = [rect('s', 0, 0, 40, 20), extrude('a', 's', 10), { id: 'h', kind: 'hole', target: 'a', center: [20, 10], radius: 3 }];
+  const t = evaluateCadPart(D([...plate, { id: 't', kind: 'split', target: 'h', normal: [1, 0, 1], at: 25 }]));
+  assert.ok(close(volume(t.output('t/0')) + volume(t.output('t/1')), 8000 - 90 * pi, 1e-6));
+  // A normal along one axis is that axis: −2x = −8 is x = 4, and /0 (−2x below −8) is the side past it.
+  const x = evaluateCadPart(D([...bar, { id: 'x', kind: 'split', target: 'a', normal: [-2, 0, 0], at: -8 }]));
+  assert.ok(close(volume(x.output('x/0')), 800) && close(volume(x.output('x/1')), 200));
+  refused(D([...bar, { id: 'n', kind: 'split', target: 'a', normal: [1, 1, 0], at: 40 }]), 'SELECTION', /does not cross/);
+  refused(D([...bar, { id: 'z', kind: 'split', target: 'a', normal: [0, 0, 0], at: 1 }]), 'INPUT', /must not be zero/);
+});
