@@ -354,7 +354,7 @@ R2 / B0 results (2026-10-18, `014e2f821`…`38e06b110`; decisions D9–D16; conf
 - Known: the helical bolt's mesh has 316 edges not used exactly twice by position (pre-existing, at the trimmed
   ends); RB2 should catch it. Faceted bolt split still fails (touching facets).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → **RB1–RB4** → R3 … R14 → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → **RB1–RB4** → **A1–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),
@@ -415,6 +415,89 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
     Parameters are sampled per run; 5 trials per scenario on fresh documents; pass@k and pass^k;
     a Requirement Score; checks validated against mutants; no VLM in the score; the checker is hidden
     from the agent.
+
+**AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
+The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
+- Success depends on the execute → inspect → repair loop.
+- Kernel checks decide pass or fail: executable checks agreed with human labels at 0.938, a VLM judge at 0.474.
+  Renders are only a secondary check for gross shape.
+- Repair gains fade after 2–3 attempts; restarting fresh does better.
+- Multi-agent gains come from separating generation from an independent oracle. Splitting coupled sequential
+  geometry loses 39–70%, and LLM reviewers affirm 85–92% of outputs, wrong ones included.
+
+Chat baseline at `984872627`:
+- Claude CLI with an MCP server of about 17 tools, at most 24 turns;
+- text-only observation;
+- index names such as `n1.top`, renumbered on delete;
+- no dry run, one undo per turn, no viewport selection sent;
+- image input only, single agent, chat not persisted;
+- mass, interference and drawings are not exposed as tools.
+
+- **A1 stable references**:
+  - provenance IDs: `ext1.cap.end`, `ext1.side[sk1.l3]`, `fillet2.face[ext1.edge(…)]`, `hole1.wall`;
+  - semantic selectors (`{feature, role}`, `{on, normal, pick}`), each resolved and returning its ID;
+  - on rebuild, re-match by geometric signature; when ambiguous, fail with the candidates; never expose kernel
+    indices;
+  - migrate `n<i>.*` names with a version bump and a resolver for old documents (this also unblocks concurrent
+    agents).
+- **A2 observation tools**:
+  - after every op, compact JSON facts: validity, solids, volume, mass, centroid, bbox, f/e/v counts and their
+    change; detail on request (face type, area, normal or axis, radius, adjacency, the feature that made it);
+  - tools for measure, mass properties, interference and clearance, section, wall thickness and draft;
+  - `render_views`: 3–4 orthographic views plus isometric at 768–1000 px, with face-ID labels or colours
+    (Set-of-Mark), a section view and a view of failures highlighted; rendered only at milestones or on
+    failure, cached by model hash;
+  - `response_format` concise or detailed, with pagination.
+- **A3 requirements → executable checks**:
+  - a brief record in the document, SysML-v2-like: id, quoted source text, type, subject, assume, require,
+    value ± tolerance, hard or soft, assumed or ambiguous;
+  - `check_spec` predicates written before modeling, as kernel queries over named features;
+  - predicate suites validated against a trivial stub and mutated shapes, so always-passing tests are caught;
+  - a verification report `{model_hash, summary, failures[{req_id, check, measured, expected, delta, entities,
+    feature, hint}]}`, with passes as counts only;
+  - iteration policy: up to 3 retries on execution errors; 3–4 repair rounds, stopping when the failing set
+    stops shrinking; after 2 rounds without progress, restart fresh from the brief, the tests and the best
+    snapshot; never accept a regression;
+  - a requirement checklist panel per proposal; clicking a requirement highlights its geometry.
+- **A4 transactions and proposals**:
+  - `apply_ops` batches: all-or-nothing, `dryRun` returning the tree diff, mass delta and broken references,
+    client opIds for idempotent retries, plus checkpoint, restore and diff;
+  - proposals on a branch; a feature-tree diff (added, modified before → after, deleted, rebuild-broken);
+  - a ghost preview with a before/after toggle and a volume-delta overlay;
+  - per-feature, dependency-aware accept/reject plus "Revise…"; an approval becomes a named, revertible commit
+    carrying agent, prompt, plan and requirement IDs;
+  - autonomy L1 suggest, L2 propose (default), L3 auto-apply small edits within requirement bounds,
+    L4 autopilot on a branch; assemblies, mates and drawings always need approval;
+  - the viewport selection goes to chat as context chips; chat and design history persist in the document.
+- After R14:
+  - **A5 DSL and MCP**:
+    - `run_script`: a compact TS-style DSL compiled to feature-JSON ops, never raw B-rep;
+    - about 10–15 consolidated feature tools, with progressive schema disclosure (`describe_feature`);
+    - one tool layer for the in-app chat and an external MCP server, with annotations and outputSchema;
+    - an A/B test of JSON-only against the hybrid.
+  - **A6 inputs**:
+    - a brief template, with process and material required;
+    - clarifying policy: ask only about blocking unknowns, in 1–2 batches of at most 5 questions; everything
+      else becomes an editable assumption;
+    - STEP or mesh as a locked reference body with datums and keep-outs;
+    - images and drawings only produce drafts, and their dimensions are confirmed by the user;
+    - standards data authored with provenance. No ISO/ANSI text in prompts or RAG, no GPL tables; legal
+      review before release.
+  - **A7 multi-agent v1**:
+    - roles: Requirements; one Designer; a Verifier on a different or stronger model that sees only
+      artifacts and requirements; a deterministic Integrator;
+    - op patches submitted against a base revision hash, applied serially through gates: validity →
+      interference/clearance → interfaces → DFM → analysis;
+    - a full trace per patch;
+    - compared with a single agent on the same token budget, logging cost per accepted design.
+  - **A8 v2, then v3**:
+    - v2: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision;
+    - v3: an Architect owning an `interfaces` section (datums, hole patterns, envelopes and keep-outs,
+      budgets); Part agents in parallel against frozen contracts with leases; ECRs with impact analysis and
+      human approval for contract changes; an Assembly integrator and a BOM agent;
+    - per-role metrics such as Verifier precision and recall on seeded defects.
+
+  RB9 measures this track end to end.
 
 **Standing rule for every R and RB step (owner, 2026-10-18).** Each finished step leaves:
 1. a short decision record in [`decisions.md`](decisions.md) (ADR-style);
