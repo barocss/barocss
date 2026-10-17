@@ -71,10 +71,12 @@ export function surfaceNormalAtCentre(surface: Surface): Point {
   const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4;
   return cross(sub(evaluateSurface(surface, um + hu, vm), evaluateSurface(surface, um - hu, vm)), sub(evaluateSurface(surface, um, vm + hv), evaluateSurface(surface, um, vm - hv)));
 }
-/** Vector area (½∮ p × dp) of a loop of directed curve uses, sampled 16 times per use. */
+/** Vector area (½∮ p × dp) of a loop of directed curve uses: straight and polyline uses by their corners, others sampled 16 times. */
 export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[]): Point {
   const ring: Point[] = [];
   for (const u of uses) {
+    // (A straight or polyline edge: its own corners, exactly; a curve sampled 16 times.)
+    if (u.curve.degree === 1) { const p = u.curve.controlPoints, n = p.length; for (let k = 0; k + 1 < n; k++) ring.push(p[u.sense === 'forward' ? k : n - 1 - k] as Point); continue; }
     const [t0, t1] = curveDomain(u.curve);
     for (let k = 0; k < 16; k++) { const f = k / 16; ring.push(evaluateCurve(u.curve, u.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f)); }
   }

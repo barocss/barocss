@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, MeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
+import { classifyPointInFacets, facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, MeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
 
 // Facet faces (F0, R3): a closed mesh as regions of typed-array triangles, polyline edges between them.
 
@@ -122,14 +122,14 @@ test('part model: a mesh node with representation facets is faceted; old nodes s
   assert.ok(Math.abs(hole.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
   // Fillets on mesh faces are refused with CAPABILITY.
   assert.throws(() => evaluateCadPart(D([mesh('facets'), { id: 'f', kind: 'fillet', target: 'm', edges: ['x'], radius: 1 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /mesh faces arrives with F1\/F2/.test(e.message));
-  // A 6240-triangle mesh: a hole is made when committed (up to 20000), not previewed (over 5000).
+  // A 6240-triangle mesh: a hole is made when committed (up to 16000), not previewed (over 5000).
   const big = sphere(10, 80, 40), drilled = D([mesh('facets', big.positions, big.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }]);
   assert.ok(big.indices.length / 3 > FACET_PREVIEW_TRIANGLES && big.indices.length / 3 <= FACET_EXPLODE_TRIANGLES);
   assert.ok(evaluateCadPart(drilled).output('h').massProperties(1).volumeMM3 < meshVolume(big.positions, big.indices));
-  assert.throws(() => evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /not previewed \(this mesh has 6240\): apply to run it \(up to 20000\)/.test(e.message));
-  // Over 20000: refused, naming what is missing.
+  assert.throws(() => evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /not previewed \(this mesh has 6240\): apply to run it \(up to 16000\)/.test(e.message));
+  // Over 16000: refused, naming what is missing.
   const huge = sphere(10, 160, 80);
-  assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /Booleans on large meshes arrive with F1\/F2 \(this mesh has 25280 triangles; up to 20000/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /Booleans on large meshes arrive with F1\/F2 \(this mesh has 25280 triangles; up to 16000/.test(e.message));
 });
 
 test('STEP: a facet body goes out as its triangles (planar faces), and reads back with the same volume', () => {
@@ -164,4 +164,37 @@ test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.par
   assert.deepEqual(snap.withDocument(doc).recomputation.reused, ['m']);
   // One piece asked of a mesh in two: refused, saying how many.
   assert.throws(() => evaluateCadPart({ ...doc, features: [{ ...doc.features[0], each: false }] }), /more than one piece \(2 pieces\)/);
+});
+
+test('points against a facet body: inside, outside, on (faces, edges, vertices), through the BVH; a frame\'s hole is outside', () => {
+  const box = facetBrepFromTriangles(readObj(BOX_OBJ).positions, readObj(BOX_OBJ).indices, { id: 'b' });
+  assert.equal(classifyPointInFacets(box, [10, 5, 2.5]), 'inside');
+  assert.equal(classifyPointInFacets(box, [30, 5, 2.5]), 'outside');
+  assert.equal(classifyPointInFacets(box, [10, 5, 5]), 'on', 'on the top');
+  assert.equal(classifyPointInFacets(box, [20, 10, 5]), 'on', 'on a corner');
+  assert.equal(classifyPointInFacets(box, [20, 5, 5]), 'on', 'on an edge');
+  assert.equal(classifyPointInFacets(box, [10, 5, 5 + 1e-6]), 'outside', 'just above');
+  // Points level with the box's edges and corners (rays from them graze): still told.
+  assert.equal(classifyPointInFacets(box, [25, 10, 5]), 'outside');
+  assert.equal(classifyPointInFacets(box, [10, 10 - 1e-7, 2.5]), 'inside');
+  // A sphere: 2000 random points agree with the distance from the centre (away from the facets' chord band).
+  const s = sphere(10, 48, 24), b = facetBrepFromTriangles(s.positions, s.indices, { id: 's' });
+  let seed = 3; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 * 24 - 12; };
+  let checked = 0;
+  for (let k = 0; k < 2000; k++) {
+    const p = [rnd(), rnd(), rnd()], r = Math.hypot(...p);
+    if (Math.abs(r - 10) < 0.2) continue;
+    assert.equal(classifyPointInFacets(b, p), r < 10 ? 'inside' : 'outside', String(p)); checked++;
+  }
+  assert.ok(checked > 1500);
+  // The square frame (genus 1): its hole is outside, its wall inside.
+  const ring = (q, z) => [[-q, -q, z], [q, -q, z], [q, q, z], [-q, q, z]], P = [], I = [];
+  for (const p of [...ring(4, 0), ...ring(2, 0), ...ring(4, 2), ...ring(2, 2)]) P.push(...p);
+  const quad = (a, b, c, d) => I.push(a, b, c, a, c, d);
+  for (let k = 0; k < 4; k++) { const o = k, o1 = (k + 1) % 4; quad(o, o + 4, o1 + 4, o1); quad(8 + o, 8 + o1, 12 + o1, 12 + o); quad(o, o1, 8 + o1, 8 + o); quad(4 + o, 12 + o, 12 + o1, 4 + o1); }
+  const frame = facetBrepFromTriangles(P, I, { id: 'f' });
+  assert.equal(classifyPointInFacets(frame, [0, 0, 1]), 'outside');
+  assert.equal(classifyPointInFacets(frame, [3, 0, 1]), 'inside');
+  // Not a facet body: refused.
+  assert.throws(() => classifyPointInFacets(brepFromTriangles(readObj(BOX_OBJ).positions, readObj(BOX_OBJ).indices), [1, 1, 1]), /only bodies of facet faces/);
 });

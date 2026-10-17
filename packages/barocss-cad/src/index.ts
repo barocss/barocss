@@ -566,6 +566,7 @@ export { encodeBinaryStl } from './stl.js';
 export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOptions } from './mesh-brep.js';
 export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type FacetBrepOptions } from './facet-brep.js';
 export { facetArea, facetPlane, facetVectorArea } from './facet-patch.js';
+export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './facet-bvh.js';
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
 export { thickenSolid, type ThickenSolidRequest } from './thicken-solid.js';

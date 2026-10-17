@@ -1060,8 +1060,8 @@ Decided:
     - `facetBrepFromTriangles` (one piece expected) still refuses, saying how many pieces it found.
   - **Two limits instead of one.**
     - Previews: `FACET_PREVIEW_TRIANGLES = 5000`, about a second (R2: 0.94 s at 5k), so a preview stays live.
-    - Committed evaluations: `FACET_EXPLODE_TRIANGLES = 20000`, a few seconds (R2: 3.2 s at 20k against 409 s
-      before R2). That is what D3 meant by keeping Booleans on small meshes.
+    - Committed evaluations: `FACET_EXPLODE_TRIANGLES`, first 20000 (R2: 3.2 s at 20k against 409 s before R2;
+      that is what D3 meant by keeping Booleans on small meshes). D43 lowers it to 16000 after profiling.
     - The studio worker passes the preview limit (`evaluateCadPart(doc, cache, {facetExplodeTriangles})`).
       Between the two limits a preview is refused with "… not previewed (this mesh has N): apply to run it (up to
       20000)". Above 20000, every evaluation is refused with "Booleans on large meshes arrive with F1/F2".
@@ -1129,3 +1129,65 @@ Next:
 - R3.3: M1 binary mesh blob, then lift the 100k cap.
 - R3.4: M3 import repair.
 - R3.5: AP242 tessellated STEP.
+
+## D43 — Points against facet bodies through a BVH; the stitch and coplanar merge indexed; the committed mesh limit 16000 (2026-10-18, R3.2)
+Decided:
+- **`classifyPointInFacets(brep, point, tol?)`** returns inside, outside or on.
+  - It is the parity of a ray's crossings with the body's triangles. The rays go through a BVH over all facet faces
+    (median split on the longest centre extent, flat typed arrays), built once per B-rep (`facetBvh`, a WeakMap).
+  - A ray that grazes an edge, a vertex or a triangle seen edge-on says nothing, and the next of eight fixed
+    irrational directions is tried. Three clean rays vote: two agreeing settle it.
+  - A point within the tolerance of a triangle (by plane distance and barycentric slack; default 1e-9 of the
+    body's size) is "on".
+  - A body with non-facet faces is refused (typed GEOMETRY).
+  - The search allocates nothing per triangle or per ray; its stack grows only when needed.
+  - It is the containment F1's facet Booleans will use. The studio's Point test keeps its display-mesh answer.
+- **The 9.7 s hole (peer's request), profiled.**
+  - A hole's tool is a cylinder, so the exploded mesh went through the analytic Boolean, not the polyhedral path
+    R2 measured.
+  - Two quadratic steps dominated, and both are now indexed. Semantics are unchanged, as the identical RB rows
+    show.
+    - The stitch tested every vertex against every curve (about 9k × 54k). A uniform grid over the vertices
+      (about two to a cell) now gives each curve only the vertices in its box widened by the tolerance: a line's
+      ends, an arc's circle, a traced curve's sampled box. That is exactly the set `onCurve` could accept. A
+      curve spanning most of the body falls back to every vertex.
+    - `mergePieces` grouped coplanar pieces with a linear search. Planes are now bucketed by quantized facing
+      normal and offset; a piece checks its own and the neighbouring buckets (3⁴) and joins the earliest group it
+      matches, as before.
+    - `loopVectorArea` takes straight and polyline edges by their corners, which is exact, instead of 16 samples.
+  - The kernel time for the 18k hole fell from 10.8 s to 4.1 s. In the studio's whole evaluation (Boolean, mass
+    and display), as the worker runs it:
+
+    | Mesh | Time |
+    |---|---|
+    | 12k | 3.6 s |
+    | 15.9k | 4.8 s |
+    | 18k | 5.1–5.4 s |
+    | 20k | 6.1 s |
+
+  - **`FACET_EXPLODE_TRIANGLES` is now 16000:** about 5 s at the worst, a hole. A polyhedral union with a box is
+    faster.
+  - The 5000-triangle preview limit and the Cancel bar stay.
+  - Not contained: the analytic Boolean's cutting of a cylinder against thousands of planes (about 1.1 s) and the
+    checks (about 1 s). These go with F1/F2, which replace the explode path.
+
+Evidence:
+- Kernel facet tests 9/9. The new classification test:
+  - box: inside and outside; on a face, an edge and a corner; 1e-6 above the box is outside; points level with
+    edges are told apart;
+  - sphere: 2000 random points agree with the distance from the centre (outside a 0.2 mm band);
+  - frame: the hole is outside, the wall inside;
+  - a planar B-rep is refused.
+- Kernel suite 910/911; the one failure is the known environmental test.
+- RB rows are identical to before the change (the known graze TODOs only). All property tests are ok.
+- Bench, classification:
+
+  | Mesh | BVH build | 1000 points | Wrong |
+  |---|---|---|---|
+  | 199k triangles | 71 ms | 5.4 ms | 0 |
+  | 998k triangles | 249 ms | 6.9 ms | 0 |
+
+- Studio 289/289. The browser cancel step uses a 15.9k sphere, under the limit, and its Cancel still takes the open
+  back.
+
+Next: R3.3, M1 — a binary mesh blob in .bcad, then lift the 100k cap.

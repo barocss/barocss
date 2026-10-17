@@ -842,8 +842,8 @@ try {
     assert.equal((await doc()).nodes[0].pieces, 2);
     assert.match(await page.locator('.toast').innerText(), /2 closed pieces[\s\S]*1 of the pieces is tiny/);
     const before = await doc();
-    // A part file with a hole through an 18k-triangle sphere: the planar path takes seconds; stopped, the open is taken back.
-    const big = sphere(10, 120, 76, [0, 0, 0]), part = join(out, 'big-hole.bcad');
+    // A part file with a hole through a 15.9k-triangle sphere (under the 16k limit): seconds; stopped, the open is taken back.
+    const big = sphere(10, 112, 72, [0, 0, 0]), part = join(out, 'big-hole.bcad');
     fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {},
       nodes: [{ id: 'n0', kind: 'mesh', name: 'ball', unit: 'mm', positions: big.P, indices: big.I, representation: 'facets' }, { id: 'n1', kind: 'hole', parent: { node: 0, side: 'solid' }, center: [0, 0], radius: 2 }] }));
     await page.setInputFiles('input[aria-label="Model file"]', part);

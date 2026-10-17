@@ -978,6 +978,8 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
  * in a common domain (the first piece's; for a cylinder, centred so its seam falls in a gap between
  * the pieces). The joined face keeps the first piece's name. A full turn of pieces stays as it is.
  */
+/** A bucket key of four integers (collisions only cost a check). */
+const planeKey = (a: number, b: number, c: number, d: number) => (Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(c, 83492791) ^ Math.imul(d, 2654435761)) >>> 0;
 function mergePieces(pieces: Piece[], tol: number): Piece[] {
   const facing = (p: Piece): P3 => { const s = p.face.surf; return s.kind === 'plane' ? scale(s.n, p.out) : s.kind === 'cylinder' ? scale(s.a, s.s * p.out) : [0, 0, 0]; };
   const same = (a: Piece, b: Piece) => {
@@ -990,8 +992,30 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     }
     return false;
   };
-  const groups: Piece[][] = [];
-  for (const p of pieces) { const g = groups.find(x => same(x[0], p)); if (g) g.push(p); else groups.push([p]); }
+  // (Planes indexed by their facing normal and offset, quantized coarsely: a piece is checked against the groups in
+  // its bucket and the neighbouring ones only, and still joins the earliest group it matches — a mesh-sized body
+  // of thousands of planar pieces is not every piece against every group.)
+  const groups: Piece[][] = [], others: number[] = [], planes = new Map<number, number[]>();
+  let size = 1; for (const p of pieces) if (p.face.surf.kind === 'plane') size = Math.max(size, Math.abs(dot(p.face.surf.n, p.face.surf.o)));
+  const qn = 1e-4, qc = Math.max(1e-4 * size, 1000 * tol);
+  for (const p of pieces) {
+    const S = p.face.surf;
+    if (S.kind !== 'plane') {
+      let g = -1; for (const i of others) if (same(groups[i][0], p)) { g = i; break; }
+      if (g >= 0) groups[g].push(p); else { others.push(groups.length); groups.push([p]); }
+      continue;
+    }
+    const f = facing(p), c = dot(f, S.o), key = [Math.round(f[0] / qn), Math.round(f[1] / qn), Math.round(f[2] / qn), Math.round(c / qc)];
+    let g = -1;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let d = -1; d <= 1; d++) for (let e = -1; e <= 1; e++) {
+      const list = planes.get(planeKey(key[0] + a, key[1] + b, key[2] + d, key[3] + e)); if (!list) continue;
+      for (const i of list) if ((g < 0 || i < g) && same(groups[i][0], p)) g = i;
+    }
+    if (g >= 0) { groups[g].push(p); continue; }
+    const k = planeKey(key[0], key[1], key[2], key[3]), list = planes.get(k);
+    if (list) list.push(groups.length); else planes.set(k, [groups.length]);
+    groups.push([p]);
+  }
   return groups.flatMap(group => {
     if (group.length === 1) return group;
     const first = group[0], s0 = first.face.surf;
@@ -1042,14 +1066,49 @@ const pointOf = (k: Curve3, u: number): P3 => k.kind === 'line' ? add(k.p, scale
 const startOf = (k: Curve3): P3 => k.kind === 'line' ? k.p : k.kind === 'param' ? k.at(k.t0) : arcAt(k, 0);
 const endOf = (k: Curve3): P3 => k.kind === 'line' ? k.q : k.kind === 'param' ? k.at(k.t1) : arcAt(k, k.sweep);
 const midOf = (k: Curve3): P3 => k.kind === 'line' ? scale(add(k.p, k.q), 0.5) : k.kind === 'param' ? paramAt(k, 0.5) : arcAt(k, k.sweep / 2);
+/** Points in the cells of a uniform grid (about two a cell), for the vertices near a curve. */
+interface VertexGrid { readonly points: readonly P3[]; readonly lo: P3; readonly cell: number; readonly n: readonly [number, number, number]; readonly cells: Map<number, number[]> }
+function vertexGrid(points: readonly P3[]): VertexGrid {
+  const lo: P3 = [Infinity, Infinity, Infinity], hi: P3 = [-Infinity, -Infinity, -Infinity];
+  for (const p of points) for (let k = 0; k < 3; k++) { if (p[k] < lo[k]) lo[k] = p[k]; if (p[k] > hi[k]) hi[k] = p[k]; }
+  const span = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2], 1e-12), cell = span / Math.max(1, Math.cbrt(points.length / 2));
+  const n: [number, number, number] = [0, 1, 2].map(k => Math.max(1, Math.ceil((hi[k] - lo[k]) / cell) + 1)) as [number, number, number], cells = new Map<number, number[]>();
+  points.forEach((p, v) => {
+    const key = cellOf(p[0], lo[0], cell, n[0]) + n[0] * (cellOf(p[1], lo[1], cell, n[1]) + n[1] * cellOf(p[2], lo[2], cell, n[2]));
+    const list = cells.get(key); if (list) list.push(v); else cells.set(key, [v]);
+  });
+  return { points, lo, cell, n, cells };
+}
+const cellOf = (x: number, lo: number, cell: number, n: number) => Math.min(n - 1, Math.max(0, Math.floor((x - lo) / cell)));
+/** The box lo–hi grown to take p padded by pad. */
+function widen(lo: P3, hi: P3, p: P3, pad: number): void { for (let i = 0; i < 3; i++) { if (p[i] - pad < lo[i]) lo[i] = p[i] - pad; if (p[i] + pad > hi[i]) hi[i] = p[i] + pad; } }
+/** The vertices whose cells meet the curve's box widened by eps (a line's ends, an arc's circle, a traced curve's samples): every vertex onCurve could take. */
+function nearCurve(g: VertexGrid, k: Curve3, eps: number): number[] {
+  const lo: P3 = [Infinity, Infinity, Infinity], hi: P3 = [-Infinity, -Infinity, -Infinity];
+  if (k.kind === 'line') { widen(lo, hi, k.p, eps); widen(lo, hi, k.q, eps); }
+  else if (k.kind === 'arc') widen(lo, hi, k.c, k.r + eps);
+  else { const pre = sampledOf(k); widen(lo, hi, pre.min, eps); widen(lo, hi, pre.max, eps); }
+  const a = [0, 1, 2].map(i => cellOf(lo[i], g.lo[i], g.cell, g.n[i])), b = [0, 1, 2].map(i => cellOf(hi[i], g.lo[i], g.cell, g.n[i]));
+  // (A curve across most of the body: every vertex, as before.)
+  if ((b[0] - a[0] + 1) * (b[1] - a[1] + 1) * (b[2] - a[2] + 1) > g.cells.size) return g.points.map((_, v) => v);
+  const out: number[] = [];
+  for (let z = a[2]; z <= b[2]; z++) for (let y = a[1]; y <= b[1]; y++) for (let x = a[0]; x <= b[0]; x++) {
+    const list = g.cells.get(x + g.n[0] * (y + g.n[1] * z)); if (list) for (const v of list) out.push(v);
+  }
+  return out;
+}
 /** Parameter in [0, 1] of a point on the curve, or null when it is not on it (within eps). */
 const sampled = new WeakMap<Curve3, { ps: P3[]; min: P3; max: P3 }>();
+function sampledOf(k: Extract<Curve3, { kind: 'param' }>): { ps: P3[]; min: P3; max: P3 } {
+  let pre = sampled.get(k);
+  if (!pre) { const ps = Array.from({ length: 65 }, (_, i) => paramAt(k, i / 64)), pad = len(sub(ps[1], ps[0])) + len(sub(ps[64], ps[63]));
+    pre = { ps, min: [0, 1, 2].map(a => Math.min(...ps.map(p => p[a])) - pad) as P3, max: [0, 1, 2].map(a => Math.max(...ps.map(p => p[a])) + pad) as P3 }; sampled.set(k, pre); }
+  return pre;
+}
 function onCurve(k: Curve3, x: P3, eps: number): number | null {
   if (k.kind === 'param') {
     // Samples and their box, once per curve: most vertices are far from most curves.
-    let pre = sampled.get(k);
-    if (!pre) { const ps = Array.from({ length: 65 }, (_, i) => paramAt(k, i / 64)), pad = len(sub(ps[1], ps[0])) + len(sub(ps[64], ps[63]));
-      pre = { ps, min: [0, 1, 2].map(a => Math.min(...ps.map(p => p[a])) - pad) as P3, max: [0, 1, 2].map(a => Math.max(...ps.map(p => p[a])) + pad) as P3 }; sampled.set(k, pre); }
+    const pre = sampledOf(k);
     if (![0, 1, 2].every(a => x[a] >= pre!.min[a] - eps && x[a] <= pre!.max[a] + eps)) return null;
     const d2 = (u: number) => { const p = paramAt(k, u); return (p[0] - x[0]) ** 2 + (p[1] - x[1]) ** 2 + (p[2] - x[2]) ** 2; };
     let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const p = pre.ps[i], v = (p[0] - x[0]) ** 2 + (p[1] - x[1]) ** 2 + (p[2] - x[2]) ** 2; if (v < bd) { bd = v; best = i; } }
@@ -1160,9 +1219,12 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid }); list.push(e); between.set(key, list); }
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };
+  // (Only the vertices in a curve's box can lie on it: a grid over them, so a mesh-sized body is not every
+  // vertex against every curve.)
+  const grid = vertexGrid(P);
   const loops = rings.map(ps => ps.map(ring => ring.flatMap(k => {
     const a = vertexOf(startOf(k)), b = vertexOf(endOf(k)), stops = [{ t: 0, v: a }];
-    P.forEach((x, v) => { if (v === a || v === b || alias[v] !== v) return; const t = onCurve(k, x, tol); if (t !== null) stops.push({ t, v }); });
+    for (const v of nearCurve(grid, k, tol)) { if (v === a || v === b || alias[v] !== v) continue; const t = onCurve(k, P[v], tol); if (t !== null) stops.push({ t, v }); }
     stops.sort((x, y) => x.t - y.t); stops.push({ t: 1, v: b });
     const out: ReturnType<typeof edgeOf>[] = [];
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));

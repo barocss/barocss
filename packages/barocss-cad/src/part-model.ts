@@ -248,11 +248,12 @@ const representation = (s: Solid): CadPartOutput['representation'] => s.kind ===
 /**
  * F0 fallback (owner, 2026-10-18; D3, D42): a facet body (a mesh imported as facet faces) meets a Boolean,
  * split, hole or draft only through the planar path until F1/F2 give facets their own — exploded back to the
- * planar per-triangle B-rep when it has at most this many triangles (R2: a polyhedral union with a box takes
- * 0.94 s at 5k triangles, 3.2 s at 20k: interactive up to here), refused with CAPABILITY above it.
- * Removed in the step that lands F2.
+ * planar per-triangle B-rep when it has at most this many triangles, refused with CAPABILITY above it. Committed
+ * evaluations take up to this many: about 5 s at the worst, a hole (its cylinder takes the analytic path) through
+ * a 16k-triangle mesh in the studio's whole evaluation (4.8 s; 18k 5.1–5.4 s, 20k 6.1 s; a polyhedral union with a
+ * box is faster, 3.2 s at 20k in R2). Removed in the step that lands F2.
  */
-export const FACET_EXPLODE_TRIANGLES = 20000;
+export const FACET_EXPLODE_TRIANGLES = 16000;
 /** A preview's limit (CadPartEvaluationOptions.facetExplodeTriangles): about a second, so a preview stays live. */
 export const FACET_PREVIEW_TRIANGLES = 5000;
 /** The limit of the evaluation running now (evaluateCadPart is synchronous: set for its run, restored after). */
