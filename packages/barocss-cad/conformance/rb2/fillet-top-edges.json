@@ -2,9 +2,10 @@
   "id": "rb2-fillet-top-edges",
   "step": "RB2",
   "decisions": [
-    "D18"
+    "D18",
+    "D23"
   ],
-  "about": "A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight.",
+  "about": "A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight, its volume the closed form.",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -44,11 +45,11 @@
     "outputs": [
       {
         "volumeMM3": {
-          "value": 11543.7793483,
-          "relTol": 1e-9
+          "value": 11543.834693017458,
+          "relTol": 1e-7
         },
         "centroidMM": {
-          "value": [20, 15.000019768, 4.838497307],
+          "value": [20, 15, 4.8385142],
           "absTol": 0.000001
         },
         "bodies": 1,
@@ -74,5 +75,5 @@
       }
     ]
   },
-  "oracle": "this kernel"
+  "oracle": "closed form for the volume (straight runs and bicylinder corners); this kernel for the centroid"
 }

@@ -608,7 +608,8 @@ test('split across an oblique plane: a mitre x + y = at, a tilted cut through a 
   // Tilted about Y through a plate with a hole (cylinder and planes, analytic Boolean): still two exact halves.
   const plate = [rect('s', 0, 0, 40, 20), extrude('a', 's', 10), { id: 'h', kind: 'hole', target: 'a', center: [20, 10], radius: 3 }];
   const t = evaluateCadPart(D([...plate, { id: 't', kind: 'split', target: 'h', normal: [1, 0, 1], at: 25 }]));
-  assert.ok(close(volume(t.output('t/0')) + volume(t.output('t/1')), 8000 - 90 * pi, 1e-6));
+  // (Each half to the quadrature's accuracy over Boolean-trimmed faces; the halves are mirror images.)
+  for (const k of ['t/0', 't/1']) assert.ok(close(volume(t.output(k)), (8000 - 90 * pi) / 2, 1e-5), `${k}: ${volume(t.output(k))}`);
   // A normal along one axis is that axis: −2x = −8 is x = 4, and /0 (−2x below −8) is the side past it.
   const x = evaluateCadPart(D([...bar, { id: 'x', kind: 'split', target: 'a', normal: [-2, 0, 0], at: -8 }]));
   assert.ok(close(volume(x.output('x/0')), 800) && close(volume(x.output('x/1')), 200));

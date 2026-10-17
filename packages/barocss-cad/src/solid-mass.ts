@@ -50,7 +50,12 @@ function quadrature(brep: Brep, q: number): number[] | null {
   try {
     // (Integrated without the tessellation, the result does not depend on q: no second pass.)
     const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
-    return coarse && fine ? (coarse.meshed ? fine.integrals.map((x, k) => (4 * x - coarse.integrals[k]) / 3) : coarse.integrals) : null;
+    if (!coarse || !fine) return null;
+    if (!coarse.meshed) return coarse.integrals;
+    // Richardson per kind of meshed face: those with a pole err with the square of the step, the others (their
+    // trims' strips integrated) with its cube; the faces integrated exactly are the same on both.
+    const s0 = coarse.squared!, s1 = fine.squared!, c0 = coarse.cubed!, c1 = fine.cubed!;
+    return fine.integrals.map((x, k) => x - s1[k] - c1[k] + (4 * s1[k] - s0[k]) / 3 + (8 * c1[k] - c0[k]) / 7);
   } catch { return null; }
 }
 
@@ -74,8 +79,8 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
 
 /**
  * Curved B-reps by quadrature over their surfaces, on meshes of `quadratureSegments` a quarter (8 by
- * default; 0: none) and twice that, extrapolated (Richardson: the error left along trims that are not
- * straight in a face's parameters, and beside poles, falls with the square of the step; faces with none
+ * default; 0: none) and twice that, extrapolated (Richardson: with the curved strips along trims integrated,
+ * the error left falls with the cube of the step, beside a surface's pole with its square; faces with none
  * give the same value on both). Otherwise, or when that cannot integrate a face, tetrahedra from the
  * origin over the watertight tessellation (divergence theorem).
  */

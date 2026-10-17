@@ -8,7 +8,7 @@
 // triangles, and one that disagrees by more than its chord error could explain returns null (the caller
 // falls back to the tessellation). Planar faces are integrated by Green's theorem along their exact edge
 // curves (a disc's rim is a circle, not its chords).
-import { planar, tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
+import { planar, polesOf, segmentKey, tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
 import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
@@ -27,8 +27,14 @@ const RULE: readonly (readonly [number, number, number, number])[] = (() => {
 })();
 
 /** F·N for the ten integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] (one field F for every face). */
+/**
+ * The point the integrals are taken about (the body's box centre, set per call): the field is then small over
+ * the body, so a face's small integration error is not magnified by the body's distance from the world origin
+ * (the result is the same wherever the body is). `fromCentre` moves them back to the world origin.
+ */
+const centre: Point = [0, 0, 0];
 function accumulate(I: number[], p: Point, n: Point, w: number) {
-  const [x, y, z] = p, nx = n[0] * w, ny = n[1] * w, nz = n[2] * w;
+  const x = p[0] - centre[0], y = p[1] - centre[1], z = p[2] - centre[2], nx = n[0] * w, ny = n[1] * w, nz = n[2] * w;
   I[0] += x * nx; I[1] += x * x / 2 * nx; I[2] += y * y / 2 * ny; I[3] += z * z / 2 * nz;
   I[4] += x * x * x / 3 * nx; I[5] += y * y * y / 3 * ny; I[6] += z * z * z / 3 * nz;
   I[7] += x * x * y / 2 * nx; I[8] += x * x * z / 2 * nx; I[9] += y * y * z / 2 * ny;
@@ -113,20 +119,22 @@ type Maps = { loops: Map<string, Brep['loops'][number]>; coedges: Map<string, Br
 /**
  * The ten volume integrals over the exact surfaces, or null when a face cannot be integrated so;
  * `meshed`: whether any face was integrated over its tessellation (its result then depends on
- * `segmentsPerQuarter`, and the caller extrapolates).
+ * `segmentsPerQuarter`, and the caller extrapolates): `squared` holds the meshed faces' part whose error falls
+ * with the square of the step (surfaces with a pole), `cubed` the rest (within `integrals` too).
  */
-export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): { integrals: number[]; meshed: boolean } | null {
+export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): { integrals: number[]; meshed: boolean; squared?: number[]; cubed?: number[] } | null {
   const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
   const I = Array(11).fill(0) as number[], rest = new Set<string>();
+  setCentre(brep);
   for (const face of brep.faces) {
     const plane = planar(face.surface), sign = face.sense === 'forward' ? 1 : -1;
     if (plane) { planarIntegrals(brep, face, [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], plane.origin, maps).forEach((x, k) => { I[k] += x; }); continue; }
     if (wholePatch(face, maps)) { patchIntegrals(face, I); continue; }
     rest.add(face.id);
   }
-  if (!rest.size) return { integrals: I, meshed: false };
-  const { mesh, parameters } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
-  const surfaces = new Map(brep.faces.map(f => [f.id, f.surface]));
+  if (!rest.size) return { integrals: fromCentre(I), meshed: false };
+  const { mesh, parameters, midpoints } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
+  const surfaces = new Map(brep.faces.map(f => [f.id, f.surface])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
   for (const face of mesh.faces) {
     const flat = Array(10).fill(0) as number[], tris: [number, number, number][] = [];
@@ -177,16 +185,88 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
         curvedVec[0] += normal[0] * k; curvedVec[1] += normal[1] * k; curvedVec[2] += normal[2] * k; curvedArea += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
       }
     }
+    // The curved strips between the domain's boundary chords and the edges: each a parabolic segment (4/3 of
+    // the triangle through the edge's midpoint, in the face's parameters), its integrand at its centroid,
+    // added where it lies outside the chord's triangle and taken off where inside (the trims' O(h²) error).
+    // (Not beside a surface's pole: there the parameters crowd and a midpoint's inversion is not to be trusted;
+    // such a face keeps the square-of-the-step error, extrapolated as such.)
+    const pole = polesOf(surfaces.get(face.faceId)!).length > 0, users = new Map<string, number[]>();
+    if (!pole) for (let t = 0; t < domain.length; t++) for (let e = 0; e < 3; e++) { const a = domain[t][e], b = domain[t][(e + 1) % 3], key = a < b ? `${a}-${b}` : `${b}-${a}`, l = users.get(key); if (l) l.push(t); else users.set(key, [t]); }
+    for (const list of users.values()) {
+      if (list.length !== 1) continue;
+      const tri = domain[list[0]];
+      for (let e = 0; e < 3; e++) {
+        const a = tri[e], b = tri[(e + 1) % 3], c = tri[(e + 2) % 3];
+        const mid = midpoints.get(segmentKey(point(a), point(b)));
+        if (!mid) continue;
+        const qa = uv[a - off], qb = uv[b - off], qc = uv[c - off], m = nearUV(at, mid, [(qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2]);
+        if (!m) continue;
+        const ex = qb[0] - qa[0], ey = qb[1] - qa[1], chord = Math.hypot(ex, ey), sm = ex * (m[1] - qa[1]) - ey * (m[0] - qa[0]), sc = ex * (qc[1] - qa[1]) - ey * (qc[0] - qa[0]);
+        // (A midpoint that inverts far off its chord — a seam, a pole — is left alone.)
+        if (!(chord > 0) || Math.abs(sm) / chord > 0.5 * chord || sm === 0 || sc === 0) continue;
+        const triArea = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2, outside = Math.sign(sm) !== Math.sign(sc);
+        const k = (outside ? 1 : -1) * Math.sign(triArea) * sigma * (2 / 3) * Math.abs(sm), cu = (qa[0] + qb[0]) / 2 + 0.4 * (m[0] - (qa[0] + qb[0]) / 2), cv = (qa[1] + qb[1]) / 2 + 0.4 * (m[1] - (qa[1] + qb[1]) / 2);
+        // (Its centroid's differences may step off a domain whose edge the trim runs along: then no correction.)
+        let pu: Point, mu: Point, pv: Point, mv: Point, x: Point;
+        try { pu = at(cu + hu, cv); mu = at(cu - hu, cv); pv = at(cu, cv + hv); mv = at(cu, cv - hv); x = at(cu, cv); } catch { continue; }
+        const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
+        normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
+        accumulate(curved, x, normal, k);
+        curvedArea += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
+      }
+    }
     // The surface and its flat triangles share the boundary samples: their areas and vector areas (∫ n dA,
     // which only the boundary decides) differ by the chord error alone, a few % at most at 8 segments a
     // quarter. Coverage or orientation gone wrong shows as much more.
     if (!(Math.abs(curvedArea - areaSum) <= 5e-2 * areaSum && Math.hypot(...sub(curvedVec, flatVec)) <= 5e-2 * areaSum)) return null;
-    curved.forEach((x, k) => { I[k] += x; });
-    I[10] += curvedArea;
+    // (A face whose surface has a pole keeps an error falling with the square of the step beside it; the
+    // others, their trims' strips integrated, with its cube: their parts are extrapolated apart.)
+    const part = pole ? squared : cubed;
+    curved.forEach((x, k) => { part[k] += x; });
+    part[10] += curvedArea;
   }
-  return { integrals: I, meshed: true };
+  return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed) };
 }
 
+/**
+ * The parameters of the surface point nearest p, by Gauss–Newton (finite differences) from a nearby seed; null
+ * when it does not settle or steps off the surface's domain (its evaluator refuses: no correction there).
+ */
+function nearUV(at: (u: number, v: number) => Point, p: Point, seed: XY): XY | null {
+  try { return gaussNewton(at, p, seed); } catch { return null; }
+}
+function gaussNewton(at: (u: number, v: number) => Point, p: Point, seed: XY): XY | null {
+  let a = seed[0], b = seed[1];
+  for (let it = 0; it < 20; it++) {
+    const h = 1e-7 * (1 + Math.abs(a)), k = 1e-7 * (1 + Math.abs(b)), q = at(a, b), qa = at(a + h, b), qb = at(a, b + k);
+    const Su: Point = [(qa[0] - q[0]) / h, (qa[1] - q[1]) / h, (qa[2] - q[2]) / h], Sv: Point = [(qb[0] - q[0]) / k, (qb[1] - q[1]) / k, (qb[2] - q[2]) / k], r = sub(p, q);
+    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12;
+    if (!(Math.abs(det) > 1e-300)) return null;
+    const da = (dot(r, Su) * g22 - dot(r, Sv) * g12) / det, db = (g11 * dot(r, Sv) - g12 * dot(r, Su)) / det;
+    a += da; b += db;
+    if (Math.abs(da) < 1e-13 * (1 + Math.abs(a)) && Math.abs(db) < 1e-13 * (1 + Math.abs(b))) return [a, b];
+  }
+  return [a, b];
+}
+/**
+ * The centre of the box of a B-rep's surfaces' control points (or the origin when it has none) as the
+ * integrals' origin: the middle of the shape the faces lie on (a torus cut by a box: the torus's centre, not
+ * its cut's), so errors that cancel by symmetry still do.
+ */
+function setCentre(brep: Brep): void {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const f of brep.faces) for (const row of f.surface.controlPoints) for (const q of row) for (let k = 0; k < 3; k++) { if (q[k] < lo[k]) lo[k] = q[k]; if (q[k] > hi[k]) hi[k] = q[k]; }
+  for (let k = 0; k < 3; k++) centre[k] = lo[k] <= hi[k] ? (lo[k] + hi[k]) / 2 : 0;
+}
+/**
+ * The integrals about the centre c moved to the world origin: ∫x = ∫x' + c_x V, ∫x² = ∫x'² + 2c_x ∫x' + c_x² V,
+ * ∫xy = ∫x'y' + c_x ∫y' + c_y ∫x' + c_x c_y V (the area, the eleventh, is unchanged).
+ */
+function fromCentre(I: number[]): number[] {
+  const [V, X, Y, Z, XX, YY, ZZ, XY, XZ, YZ] = I, [cx, cy, cz] = centre;
+  return [V, X + cx * V, Y + cy * V, Z + cz * V, XX + 2 * cx * X + cx * cx * V, YY + 2 * cy * Y + cy * cy * V, ZZ + 2 * cz * Z + cz * cz * V,
+    XY + cx * Y + cy * X + cx * cy * V, XZ + cx * Z + cz * X + cx * cz * V, YZ + cy * Z + cz * Y + cy * cz * V, I[10]];
+}
 /**
  * Whether a curved face is its whole patch: one loop, every edge on the patch's domain boundary (sampled
  * at nine points, each within 1e-7 of the surface's size of one of the four boundary iso-curves), and the

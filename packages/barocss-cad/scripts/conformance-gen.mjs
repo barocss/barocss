@@ -101,8 +101,14 @@ writeRb2({ id: 'rb2-helical-nut-watertight', step: 'RB2', decisions: ['D18', 'D1
   input: { partDocument: nut }, expect: watertight(nut, 1e-9, 1e-6, 'list'), oracle: 'this kernel' });
 const filletTop = D([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }]);
 const topEdges = evaluateCadPart(filletTop).outputs[0].brep.edges.map(e => e.name).filter(n => /top/.test(n)), filleted = D([...filletTop.features, { id: 'f', kind: 'fillet', target: 'e', edges: topEdges, radius: 4 }]);
-writeRb2({ id: 'rb2-fillet-top-edges', step: 'RB2', decisions: ['D18'], about: 'A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight.',
-  input: { partDocument: filleted }, expect: watertight(filleted, 1e-9, 1e-6, 'list'), oracle: 'this kernel' });
+{
+  // Closed form: each straight run loses (1 − π/4) r² a unit length; each mitred top corner keeps an eighth
+  // of the bicylinder (2r³/3 of its r³ cube).
+  const r = 4, volume = 12000 - (1 - Math.PI / 4) * r * r * (2 * (40 - 2 * r) + 2 * (30 - 2 * r)) - 4 * r ** 3 / 3, e = watertight(filleted, 1e-9, 1e-6, 'list');
+  e.outputs[0].volumeMM3 = { value: volume, relTol: 1e-7 };
+  writeRb2({ id: 'rb2-fillet-top-edges', step: 'RB2', decisions: ['D18', 'D23'], about: 'A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight, its volume the closed form.',
+    input: { partDocument: filleted }, expect: e, oracle: 'closed form for the volume (straight runs and bicylinder corners); this kernel for the centroid' });
+}
 // RB3: surface area (closed forms where there are) and STEP round trips, two bodies with repeated names among them.
 const rb3 = resolve(import.meta.dirname, '../conformance/rb3');
 mkdirSync(rb3, { recursive: true });

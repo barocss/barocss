@@ -31,11 +31,11 @@
     "outputs": [
       {
         "volumeMM3": {
-          "value": 1603.12372185,
+          "value": 1603.12372182,
           "relTol": 1e-9
         },
         "centroidMM": {
-          "value": [0, 0, -3.879080159],
+          "value": [0, 0, -3.879080157],
           "absTol": 0.000001
         },
         "bodies": 1,
