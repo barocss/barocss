@@ -317,6 +317,13 @@ Then the **AI mechanical parts track** (owner, 2026-10-18: serial, one implement
 most real demand, and fillet is the most used feature after extrude (today only plane/plane and
 plane/cylinder edges, `edge-finish.ts`). Kernel breadth, robustness and automatic verification before UI.
 An S0-style feasibility checkpoint before each large step (R10, R11, R12).
+    **R10a — stable sketch-entity side names** (from A1.4, deferred in D31; before R10, whose fillets name sides):
+    - segment ids in polygon and loop profiles, kept through vertex insertion, with the sketcher's
+      constraints and dimensions keyed by them;
+    - an optional `sideTags` on the kernel profile, used by every side-naming generator (prismatic, drafted,
+      loft, revolve, part-model loops) for `side[tag]`;
+    - a studio sketch node version 2 that sends the tags, with old nodes keeping `sideK` (D16);
+    - conformance: a vertex inserted keeps every other side's name.
 10. **R10 — general fillet and chamfer** (on R2/B0): any edge incl. B-spline and cylinder/cylinder; constant
     radius, then variable; vertex blends and setbacks where three or more fillets meet; rolling-ball blends as
     exact NURBS approximations with a reported deviation; clear refusal codes (radius too large, degenerate).
@@ -399,7 +406,7 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
   - Two random 10 µm and 1 µm X-turned grazes refuse.
   - A 10 µm lens's mesh folds.
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools, A2.3 render_views, A2.4 response format) → **A3–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views, A2.4 response format) → **A3–A4** → R3 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

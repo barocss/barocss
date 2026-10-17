@@ -569,3 +569,30 @@ Evidence:
 - Studio 263/263: facts and change for a plate and a hole; inspect of a top, a bore and an edge.
 - Conformance case `conformance/a2/facts-hole`, checked against closed forms.
 
+## D33 — Analysis tools; a mass from an assumed material is said so (2026-10-18, A2.2)
+Decided: five agent tools analyse the part without changing it (chat/analysis.ts).
+- **`mass_properties`.** Per body: volume, surface area, and mass by its material. Also the centroid, the
+  inertia about it (the kernel's aluminium inertia scaled to the density) and the box.
+- **`interference`.** Every pair of bodies, or those given: an overlap by the kernel's intersection volume; the
+  others' smallest clearance and where.
+- **`section`.** Across x, y or z at a position, by the kernel's split: each body cut, with the cut's area,
+  regions and box.
+- **`wall_thickness`.** Inward rays from every triangle's centre: the thinnest wall, where and on which face, and
+  the faces thinner than `below`.
+- **`draft`.** Each flat wall's draft angle against a pull (default +Z; negative is an undercut), and those under
+  `min_deg`. Curved faces are said not to be judged.
+- **Stated accuracy.** Clearance, wall thickness and draft are on the display mesh, good to its chord error,
+  and say so. Overlap volume, section area and mass are the kernel's.
+- **Assumed material (owner's delegate).** A body without a material is taken as aluminium, and the facts and
+  mass properties say so: `materials: [{body, material, assumed}]`, `mass_assumed`. The system prompt tells the
+  agent to set the material, or state the assumption, before checking a mass against a requirement. A3 treats a
+  mass check on an assumed material as unknown, not as pass or fail.
+- **Roadmap.** The A1.4 plan is placed in the roadmap as R10a, before R10, whose fillets name sides.
+
+Evidence (studio 266/266), each against closed forms:
+- **Mass.** A plate: area 2560, mass 17.28 g assumed. As steel: 50.24 g, not assumed, with I_zz = m(a² + b²)/12.
+- **Interference.** An overlap of 250 mm³; clearances 15 and 20.
+- **Section.** A cut area of 160; refused off the part.
+- **Wall.** 8 mm.
+- **Draft.** Four walls at 0°, all under 1°.
+
