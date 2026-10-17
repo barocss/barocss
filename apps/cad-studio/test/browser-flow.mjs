@@ -1706,6 +1706,19 @@ try {
     await page.click('[aria-label="Dismiss"]');
   });
 
+  await check('face colour: the top of a box coloured on its own, kept by the face name; cleared again', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForSelector('[aria-label="Face colour"]', { timeout: 5000 });
+    await page.locator('[aria-label="Face colour"] .swatch').nth(1).click();
+    await page.waitForFunction(() => Object.values(window.__studioDoc.bodies ?? {}).some(l => l.faces?.['n1.top']), null, { timeout: 5000 });
+    await press('Escape'); await page.waitForTimeout(300); await snap('face-colour');
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.click('[aria-label="No face colour"]');
+    await page.waitForFunction(() => !Object.values(window.__studioDoc.bodies ?? {}).some(l => l.faces), null, { timeout: 5000 });
+  });
+
   await check('Shift-Enter applies a hole and starts another on the same face', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

@@ -977,6 +977,12 @@ export function App() {
     return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
   }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
+  // Faces coloured on their own, by body index and face index (their names kept with the body's look).
+  const faceColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => {
+    const own = lookOf(doc, b).faces; if (!own) return [];
+    const m = new Map(b.mesh.faces.flatMap(f => { const c = own[f.name]; return c ? [[f.index, rgbOf(c)] as [number, [number, number, number]]] : []; }));
+    return m.size ? [[i, m] as [number, Map<number, [number, number, number]>]] : [];
+  })), [shownBodies, doc]);
   // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
@@ -1127,7 +1133,7 @@ export function App() {
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
-        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -1322,6 +1328,12 @@ export function App() {
           {sel1.face.kind === 'plane' && <div className="kv">Normal <b>{sel1.face.normal.map(v => fmt(Math.round(v * 1000) / 1000)).join(', ')}</b></div>}
           <div className="kv">Area <b>{fmt(Math.round(sel1.face.areaMM2 * 100) / 100)} mm²</b></div>
           {sel1.face.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(sel1.face.radius * 1000) / 1000)} mm</b></div>}
+          {(() => { const b = bodies[selection.faces[0]?.body], name = sel1.face.name, faces = b ? lookOf(doc, b).faces ?? {} : {}, cur = faces[name];
+            const set = (c?: string) => { if (!b) return; const next = { ...faces }; if (c) next[name] = c; else delete next[name]; commit(withLook(doc, b, { faces: Object.keys(next).length ? next : undefined })); };
+            return b ? <div className="kv">Face colour <span className="swatches" role="group" aria-label="Face colour">
+              <button className={'swatch none' + (cur ? '' : ' on')} aria-label="No face colour" data-tip="The body's colour" onClick={() => set()} />
+              {BODY_COLOURS.map(c => <button key={c} className={'swatch' + (cur === c ? ' on' : '')} style={{ background: c }} aria-label={'Face colour ' + c} onClick={() => set(c)} />)}
+            </span></div> : null; })()}
         </>) : sel1?.kind === 'edge' && sel1.edge ? (<>
           <div className="card-title">SELECTION · EDGE</div>
           {(() => { const it = measureItem(sel1.body.mesh, { body: selection.edges[0].body, edge: selection.edges[0].edge }); return <>

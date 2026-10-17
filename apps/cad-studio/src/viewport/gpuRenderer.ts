@@ -160,13 +160,14 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   /** Face colours: the theme's base, mixed with the accent for hovered (1) and selected (2) faces. */
-  private paint(b: Body, faceState: Map<number, number>, own?: Vec3): void {
+  private paint(b: Body, faceState: Map<number, number>, own?: Vec3, faces?: Map<number, Vec3>): void {
     const m = b.result.mesh, n = m.positions.length / 3, colors = new Float32Array(n * 3);
-    // (Rendering: the appearance is the material colour, so faces are white unless picked; modelling:
-    // the body's own colour when it has one.)
+    // (Rendering: the appearance is the material colour, so faces are white unless picked — a face's
+    // own colour tints it; modelling: the body's own colour when it has one, a face's own over it.)
     const base: Vec3 = this.settings ? [1, 1, 1] : own ?? this.theme.base;
-    const shade = [base, mix(base, ACCENT, 0.2), mix(base, ACCENT, 0.42)];
-    for (let v = 0; v < n; v++) colors.set(shade[faceState.get(m.faceOfVertex[v]) ?? 0], v * 3);
+    const shade = [base, mix(base, ACCENT, 0.2), mix(base, ACCENT, 0.42)], shades = new Map<number, Vec3[]>();
+    for (const [f, c] of faces ?? []) shades.set(f, [c, mix(c, ACCENT, 0.2), mix(c, ACCENT, 0.42)]);
+    for (let v = 0; v < n; v++) { const f = m.faceOfVertex[v]; colors.set((shades.get(f) ?? shade)[faceState.get(f) ?? 0], v * 3); }
     b.surface.geometry.setColors(colors);
   }
 
@@ -176,7 +177,7 @@ export class GpuRenderer implements ViewRenderer {
       const faceState = new Map<number, number>();
       if (view.hoverFace?.body === bi) faceState.set(view.hoverFace.face, 1);
       for (const f of view.selectedFaces) if (f.body === bi) faceState.set(f.face, 2);
-      this.paint(b, faceState, view.bodyColors?.get(bi));
+      this.paint(b, faceState, view.bodyColors?.get(bi), view.faceColors?.get(bi));
       // Hovered and selected edges: their segments again, wider and in the accent colour.
       const edgeState = new Map<number, number>();
       if (view.hoverEdge?.body === bi) edgeState.set(view.hoverEdge.edge, 1);

@@ -24,7 +24,8 @@ export interface SketchOutline {
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
 /** A body's own look in the modelling view (see StudioDoc.bodies). */
 /** `material`: a material id (the studio's list); without one, the studio's default material. */
-export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string }
+/** `faces`: colours of single faces by their persistent names (`n1.top`), over the body's own. */
+export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string; faces?: Record<string, string> }
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }

@@ -18,6 +18,8 @@ export interface ViewState {
   ghostBodies: Set<number>;
   /** Bodies' own colours (0…1 RGB) in the modelling view, by index; the rest are the theme's grey. */
   bodyColors?: Map<number, [number, number, number]>;
+  /** Colours of single faces, by body and face index (WebGPU only). */
+  faceColors?: Map<number, Map<number, [number, number, number]>>;
   /** Bodies hidden in the browser: not drawn, not picked. */
   hiddenBodies?: Set<number>;
   /** A body pointed at elsewhere (its row in the browser): lit a little, as a hover. */
