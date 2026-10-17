@@ -17,15 +17,16 @@ import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
+import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions } from './transactions';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
-import { captureSignatures, refreshSignatures } from '../engine/references';
+import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
 /** The part as the chat turn has built it so far. */
 /** `images`: traces of the images attached in this conversation (image 1 first). */
 /** `policy`: what the tools remember across a session's checks (chat/spec.ts). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy }
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -97,7 +98,11 @@ function features(doc: StudioDoc) {
   return doc.nodes.map((n, i) => ({ index: i, label: featureLabel(n, i, doc.nodes), node: n }));
 }
 
-const MUTATORS = new Set(['set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
+/** The tools a batch may hold (those changing the base part, one at a time). */
+const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature']);
+/** At most this many checkpoints a session (the oldest dropped first). */
+const CHECKPOINTS = 20;
+const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -517,6 +522,46 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const { policy, out } = updatePolicy(state.policy ?? newPolicy(), state.doc, report, outcomes, turns);
       return { state: { ...state, policy }, content: json({ ...report, ...(validation ?? {}), policy: out }), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
     }
+    case 'apply_ops': {
+      // All or nothing: each op runs on what the one before left; one refusal and nothing is applied.
+      const ops = Array.isArray(args.ops) ? args.ops : null;
+      if (!ops?.length) return fail(state, 'Pass "ops": a list of {tool, args, opId?}.');
+      const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, results: Record<string, unknown>[] = [];
+      let cur: ChatState = state;
+      for (let k = 0; k < ops.length; k++) {
+        const op = ops[k] as Record<string, unknown>;
+        if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' });
+        const opId = typeof op.opId === 'string' ? op.opId : undefined;
+        if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
+        const r = await runPartTool(cur, op.tool, isObj(op.args) ? op.args : {}, evaluate);
+        if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }); }
+        cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
+        results.push({ op: k, ...(opId ? { opId } : {}), did });
+      }
+      const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
+      const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
+      const body = { ...(dry ? { dryRun: true, would_apply: results } : { ok: true, applied: results }), diff, change, ...(broken.length ? { broken_references: broken } : {}) };
+      if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: ${results.length} ops` };
+      const applied = [...tx.applied, ...results.flatMap(r => typeof r.opId === 'string' && !r.skipped ? [r.opId] : [])].slice(-OP_IDS);
+      return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `${results.length} ops applied` };
+    }
+    case 'checkpoint': {
+      const label = String(args.name ?? ''); if (!label) return fail(state, 'A checkpoint takes a name.');
+      const tx = state.tx ?? newTransactions(), names = Object.keys(tx.checkpoints).filter(n => n !== label);
+      const checkpoints = Object.fromEntries([...names.slice(-(CHECKPOINTS - 1)).map(n => [n, tx.checkpoints[n]] as const), [label, state.doc] as const]);
+      return { state: { ...state, tx: { ...tx, checkpoints } }, content: json({ ok: true, checkpoint: label, model_hash: modelHash(state.doc), checkpoints: Object.keys(checkpoints) }), isError: false, changed: false, summary: `checkpoint ${label}` };
+    }
+    case 'restore': {
+      const doc = state.tx?.checkpoints[String(args.name ?? '')];
+      if (!doc) return fail(state, `No checkpoint "${String(args.name)}"; checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}.`);
+      return accept(state, doc, evaluate, `restored checkpoint ${String(args.name)}`, { diff: treeDiff(state.doc, doc) });
+    }
+    case 'diff': {
+      const pick = (n: unknown) => n === undefined || n === 'current' ? state.doc : n === 'best' ? state.policy?.best?.doc : state.tx?.checkpoints[String(n)];
+      const a = pick(args.from), b = pick(args.to);
+      if (!a || !b) return fail(state, `from and to are checkpoint names, "best" or "current" (checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}).`);
+      return { state, content: json({ from: args.from ?? 'current', to: args.to ?? 'current', diff: treeDiff(a, b) }), isError: false, changed: false, summary: 'diff' };
+    }
     case 'restore_best': {
       const best = state.policy?.best;
       if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
@@ -682,6 +727,26 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'check_spec',
     description: 'validate: true also runs the checks on cheap mutants (bodies scaled, parameters ±15%, a subject\'s feature suppressed, a stub box) and lists those that cannot fail (vacuous), cannot be tried (unverified) or are declared invariant. Every report carries the policy: the best snapshot, rounds without progress, a restart hint after two. Runs every requirement\'s check against the part as it stands: {model_hash, summary {pass, fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}], unknowns [{req_id, why}]}; passes as counts only. A mass check on a body without a material is unknown.',
     input_schema: { type: 'object', properties: { validate: { type: 'boolean' } }, additionalProperties: false },
+  },
+  {
+    name: 'apply_ops',
+    description: 'Several tool calls as one change, all or nothing: ops [{tool, args, opId?}] run in order, each on what the one before left; one refused and none is applied. dryRun: true tries them and returns what would change (the feature-tree diff, the facts\' change, references that would break) without applying. An opId applied before is skipped, so a retried batch does not apply twice.',
+    input_schema: { type: 'object', properties: { ops: { type: 'array', items: { type: 'object', properties: { tool: { type: 'string' }, args: { type: 'object' }, opId: { type: 'string' } }, required: ['tool'] } }, dryRun: { type: 'boolean' } }, required: ['ops'], additionalProperties: false },
+  },
+  {
+    name: 'checkpoint',
+    description: 'Keeps the part as it is under a name, to restore or compare later (this session; the last 20).',
+    input_schema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'], additionalProperties: false },
+  },
+  {
+    name: 'restore',
+    description: 'Puts the part back as a checkpoint kept it.',
+    input_schema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'], additionalProperties: false },
+  },
+  {
+    name: 'diff',
+    description: 'What changed between two states of the part, feature by feature (by stable id: added, changed before → after, deleted, moved), and in parameters and requirements. from and to: a checkpoint name, "best" or "current" (default).',
+    input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, additionalProperties: false },
   },
   {
     name: 'restore_best',
