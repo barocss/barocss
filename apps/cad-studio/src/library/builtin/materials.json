@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.1.0",
+ "libraryVersion": "0.2.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -32,8 +32,10 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
-   }
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6
   },
   {
    "id": "steel",
@@ -54,8 +56,10 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
-   }
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6
   },
   {
    "id": "ss304",
@@ -76,8 +80,10 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
-   }
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6
   },
   {
    "id": "brass",
@@ -98,8 +104,10 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
-   }
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.5
   },
   {
    "id": "ti64",
@@ -120,8 +128,10 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
-   }
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.5
   },
   {
    "id": "abs",
@@ -143,7 +153,8 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -154,7 +165,8 @@
      0.8,
      4.0
     ]
-   }
+   },
+   "friction": 0.5
   },
   {
    "id": "pla",
@@ -175,14 +187,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "fdm": [
      0.8,
      4.0
     ]
-   }
+   },
+   "friction": 0.45
   },
   {
    "id": "pa12",
@@ -204,7 +218,8 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -215,7 +230,8 @@
      0.8,
      4.0
     ]
-   }
+   },
+   "friction": 0.35
   },
   {
    "id": "pc",
@@ -236,14 +252,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "injection": [
      1.0,
      3.8
     ]
-   }
+   },
+   "friction": 0.5
   },
   {
    "id": "pp",
@@ -264,14 +282,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "injection": [
      0.8,
      3.8
     ]
-   }
+   },
+   "friction": 0.35
   },
   {
    "id": "petg",
@@ -292,14 +312,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "fdm": [
      0.8,
      4.0
     ]
-   }
+   },
+   "friction": 0.45
   },
   {
    "id": "pom",
@@ -320,14 +342,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "injection": [
      0.8,
      3.0
     ]
-   }
+   },
+   "friction": 0.25
   },
   {
    "id": "resin",
@@ -348,14 +372,16 @@
     "yieldMPa": "S-TYP",
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
-    "wallMM": "S-TYP"
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
    },
    "wallMM": {
     "sla": [
      0.6,
      4.0
     ]
-   }
+   },
+   "friction": 0.45
   }
  ],
  "profiles": [
@@ -404,6 +430,12 @@
      "unit": "deg",
      "source": "P-INJ",
      "description": "draft on walls along the pull, recommended at least"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-INJ",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
     }
    }
   },
@@ -452,6 +484,12 @@
      "unit": "deg",
      "source": "P-FDM",
      "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 1,
+     "unit": "flag",
+     "source": "P-FDM",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
     }
    }
   },
@@ -500,6 +538,12 @@
      "unit": "deg",
      "source": "P-SLA",
      "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-SLA",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
     }
    }
   }

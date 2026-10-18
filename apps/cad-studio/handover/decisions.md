@@ -2702,3 +2702,66 @@ Evidence (`test/enclosure.test.ts` 7/7):
 
 Next: R6b.3, the cantilever snap-fit (ε = 1.5·t·y/L² against the material's allowable strain, through this
 library).
+
+## D68 — R6b.3: the cantilever snap hook — tapered-beam strain derived and checked by integration, push-on and pull-off forces, the ledge it latches under, FDM print plane (2026-10-18)
+
+Decision (with the peer's notes):
+- **Snap hook** ("Enclosure elements" 0.4.0), added to a wall by its root:
+  - a beam of length L, root thickness t, tip ratio r (1: uniform; down to 0.4) and width b;
+  - a hook with undercut y and head height hh;
+  - a retaining face at `ar` from the push-on direction (90: square), a lead face at α = atan(y/(hh − y/tan ar)).
+- **The tapered beam is derived here, not taken from a table** (provenance in the parameter's description).
+  - Euler–Bernoulli with a tip load, thickness falling linearly from t to r·t: y = 12 P L³ F(r)/(E b t³), where
+    F(r) = ∫₀¹ s²/(r + (1 − r)s)³ ds = (−ln r + 2r − r²/2 − 3/2)/(1 − r)³, and 1/3 at r = 1.
+  - Root strain ε = 6PL/(E b t²) = (1/(3F(r)))·1.5·t·y/L²: the uniform formula times the taper's factor.
+- **Rules:**
+  - feasible:
+    - ε ≤ σy/E (it would yield);
+    - μ tan α < 1 (a lead so steep it locks);
+    - hh > the retaining face's rise + 0.1 (shape);
+  - recommended:
+    - ε ≤ the material's allowable strain;
+    - FDM: the bend in the print plane — unknown until the orientation is known (AM2/AM4), warned when given out of
+      it, not asked for other processes.
+- **Reports** (a new library item: a quantity with its unit, unknown when its context is missing):
+  - deflection force P;
+  - push-on W = P(μ + tan α)/(1 − μ tan α);
+  - pull-off by the same form with the retaining angle, −1 when it locks.
+  - μ is the material library's (an estimate per material, `friction`, S-TYP) or given.
+- **Snap ledge**, the catch, added to the mating wall: as deep as the undercut, as wide as the hook plus its
+  clearance. It has a `ledge` interface; the hook's `hook` interface is its retaining face.
+- **Declared fits** `hook-on-ledge` (straight and tapered): the hook latched under the ledge, moved off its wall by
+  the clearance. The fit's own checks read both parts' values (`a_<p>`, `b_<p>`, a new fit item): the engagement
+  |e − y| ≤ c, and the width.
+- **Kernel library additions:**
+  - `ln`, `exp`, `atan`;
+  - `reports`;
+  - a check is unknown only when its evaluation reaches a missing context input — a short-circuit past it decides
+    (`isFdm == 0 || …`);
+  - instances carry every value, derived ones too;
+  - fit checks.
+- **Materials 0.2.0:** `friction` per material (estimates) and the profiles' `isFdm`. A `print.*` context is unknown
+  until AM2/AM4.
+
+Evidence:
+- **Kernel** `library.test.mjs` 6/6:
+  - ln/exp/atan;
+  - a report with its value, and unknown naming E;
+  - a check decided past missing context, and unknown when it reaches it;
+  - a fit check over both parts;
+  - refusals.
+- **Studio** `enclosure.test.ts` 11/11:
+  - **Integration, independent:** the tapered strain and deflection force agree with Simpson integration of the
+    beam's deflection (20 000 steps) to 1e-9 at r = 1, 0.8, 0.6 and 0.45;
+  - the volume equals the closed form;
+  - against the body's material: ABS met (0.625), PLA warned (1.0417), PLA with y 1.5 refused (yield 1.49), no
+    material unknown;
+  - forces equal the formula by hand: P = Ebt³y/4L³ = 6.445 N, push-on 8.594 N, square pull-off −1, 30° pull-off
+    finite;
+  - a locking lead and a short head are refused;
+  - FDM: unknown, said; out of plane: warned;
+  - no μ: forces unknown;
+  - fits: overlap 0, contact, engaged, for straight and tapered hooks; a ledge 0.25 short fails its engagement rule.
+- Studio 322/322; kernel 991/992 (the known environmental test); lint 0 errors.
+
+Next: R6b.4, enclosure lip and groove and the split between halves.

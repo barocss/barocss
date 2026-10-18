@@ -237,7 +237,7 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   const material = materialData(lookOf(doc, target).material), profile = processProfile(doc.process);
   for (const [k, c] of Object.entries(declared)) {
     if (context[k] !== undefined) continue;
-    const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.'));
+    const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.') || f.startsWith('print.'));
     if (!paths.length) continue;
     let why = '';
     for (const path of paths) { const r = materialContext(path, material, profile); if ('value' in r) { context[k] = r.value; break; } why = r.unknown; }

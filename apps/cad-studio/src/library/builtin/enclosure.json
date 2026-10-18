@@ -3,7 +3,7 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.3.0",
+ "libraryVersion": "0.4.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
@@ -954,6 +954,541 @@
     "enclosure",
     "standoff",
     "pcb"
+   ]
+  },
+  {
+   "id": "snap-hook",
+   "name": "Cantilever snap hook",
+   "category": "enclosure",
+   "description": "A cantilever, straight or tapered, with a hook at its tip, standing on a wall: its strain and forces on assembly checked against the body's material.",
+   "parameters": {
+    "L": {
+     "value": 12,
+     "unit": "mm",
+     "min": 2,
+     "max": 100,
+     "source": "free: the beam's length, root to the hook"
+    },
+    "t": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the beam's thickness at its root (in the bending direction)"
+    },
+    "r": {
+     "value": 1,
+     "unit": "ratio",
+     "min": 0.4,
+     "max": 1,
+     "source": "free: the tip's thickness over the root's (1: a uniform beam)"
+    },
+    "b": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the beam's width"
+    },
+    "y": {
+     "value": 1.0,
+     "unit": "mm",
+     "min": 0.1,
+     "max": 10,
+     "source": "free: the hook's undercut — the deflection on assembly"
+    },
+    "hh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a printed or moulded snap hook (written for this library); size it by its strain check",
+     "description": "the hook's height"
+    },
+    "ar": {
+     "value": 90,
+     "unit": "deg",
+     "min": 20,
+     "max": 90,
+     "source": "free: the retaining face's angle from the push-on direction (90: square, it does not let go)"
+    },
+    "tt": {
+     "value": {
+      "expr": "r * t"
+     },
+     "unit": "mm",
+     "description": "the beam's thickness at the hook"
+    },
+    "ry": {
+     "value": {
+      "expr": "y / tan(ar)"
+     },
+     "unit": "mm",
+     "description": "how far the retaining face rises across the undercut"
+    },
+    "alpha": {
+     "value": {
+      "expr": "atan(y / (hh - ry))"
+     },
+     "unit": "deg",
+     "description": "the lead (push-on) face's angle from the push-on direction"
+    },
+    "F": {
+     "value": {
+      "expr": "r >= 0.999 ? 1 / 3 : (0 - ln(r) + 2 * r - r ^ 2 / 2 - 1.5) / (1 - r) ^ 3"
+     },
+     "description": "BaroCSS derivation (written here, D68): a cantilever whose thickness falls linearly from t at the root to r·t at the tip, a load at the tip; by Euler–Bernoulli, y = 12 P L³ F(r) / (E b t³) with F(r) = ∫₀¹ s² / (r + (1 − r) s)³ ds = (−ln r + 2r − r²/2 − 3/2) / (1 − r)³ (1/3 when r = 1), and the root strain ε = 6 P L / (E b t²) = (1 / (3 F(r))) · 1.5 t y / L²"
+    },
+    "eps": {
+     "value": {
+      "expr": "1.5 * t * y / L ^ 2 / (3 * F)"
+     },
+     "unit": "ratio",
+     "description": "the root strain on assembly (tapered beams corrected, D68)"
+    }
+   },
+   "context": {
+    "epsAllow": {
+     "unit": "ratio",
+     "description": "the material's allowable strain",
+     "from": [
+      "material.allowableStrain"
+     ]
+    },
+    "E": {
+     "unit": "MPa",
+     "description": "the material's elastic modulus",
+     "from": [
+      "material.elasticModulusMPa"
+     ]
+    },
+    "ys": {
+     "unit": "MPa",
+     "description": "the material's yield strength",
+     "from": [
+      "material.yieldMPa"
+     ]
+    },
+    "mu": {
+     "unit": "ratio",
+     "description": "the coefficient of friction (the material's, an estimate, or given)",
+     "from": [
+      "material.friction",
+      "given"
+     ]
+    },
+    "isFdm": {
+     "unit": "flag",
+     "description": "whether the process lays it in layers (FDM)",
+     "from": [
+      "profile.isFdm"
+     ]
+    },
+    "bendInPlane": {
+     "unit": "flag",
+     "description": "1 when its bending lies in the print plane",
+     "from": [
+      "print.bendInPlane",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "shape",
+     "expr": "hh > ry + 0.1",
+     "value": "hh - ry",
+     "level": "feasible",
+     "message": "the hook is too short for its retaining face's rise"
+    },
+    {
+     "id": "strain",
+     "expr": "eps <= epsAllow",
+     "value": "eps / epsAllow",
+     "level": "recommended",
+     "message": "the beam is strained past the material's allowable strain on assembly"
+    },
+    {
+     "id": "yield",
+     "expr": "eps <= ys / E",
+     "value": "eps / (ys / E)",
+     "level": "feasible",
+     "message": "the beam would yield on assembly (ε past σy/E)"
+    },
+    {
+     "id": "lead-locks",
+     "expr": "1 - mu * tan(alpha) > 0",
+     "value": "mu * tan(alpha)",
+     "level": "feasible",
+     "message": "the lead face is so steep it locks: it cannot be pushed on"
+    },
+    {
+     "id": "print-plane",
+     "expr": "isFdm == 0 || bendInPlane == 1",
+     "level": "recommended",
+     "message": "printed in layers, the hook should bend in the print plane (bonds across layers are weak)"
+    }
+   ],
+   "reports": [
+    {
+     "id": "deflectionForce",
+     "value": "y * E * b * t ^ 3 / (12 * L ^ 3 * F)",
+     "unit": "N",
+     "message": "the force that bends the hook its undercut, P"
+    },
+    {
+     "id": "pushOn",
+     "value": "y * E * b * t ^ 3 / (12 * L ^ 3 * F) * (mu + tan(alpha)) / (1 - mu * tan(alpha))",
+     "unit": "N",
+     "message": "the push-on force, W = P (μ + tan α) / (1 − μ tan α), α the lead angle"
+    },
+    {
+     "id": "pullOff",
+     "value": "1 - mu * tan(ar) <= 0 ? -1 : y * E * b * t ^ 3 / (12 * L ^ 3 * F) * (mu + tan(ar)) / (1 - mu * tan(ar))",
+     "unit": "N",
+     "message": "the separation force by the same form with the retaining angle; −1: it locks (does not let go without releasing the hook)"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       {
+        "expr": "t"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "tt"
+       },
+       {
+        "expr": "L"
+       }
+      ],
+      [
+       {
+        "expr": "tt + y"
+       },
+       {
+        "expr": "L + ry"
+       }
+      ],
+      [
+       {
+        "expr": "tt"
+       },
+       {
+        "expr": "L + hh"
+       }
+      ],
+      [
+       0,
+       {
+        "expr": "L + hh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       0,
+       {
+        "expr": "b / 2"
+       },
+       0
+      ],
+      "normal": [
+       0,
+       -1,
+       0
+      ],
+      "xAxis": [
+       1,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "h",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "b"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "t / 2"
+       },
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "h.side0"
+     },
+     "description": "its root on the wall"
+    },
+    {
+     "id": "hook",
+     "role": "snap-hook",
+     "accepts": [
+      "snap-ledge"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "tt + y / 2"
+       },
+       0,
+       {
+        "expr": "L"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "h.side2"
+     },
+     "description": "its latch: the retaining face (square, ar 90), its undercut y across"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "snap-fit",
+    "cantilever"
+   ]
+  },
+  {
+   "id": "snap-ledge",
+   "name": "Snap ledge",
+   "category": "enclosure",
+   "description": "The catch a snap hook latches under: a ledge on the mating wall, as deep as the hook's undercut and wider by a clearance.",
+   "parameters": {
+    "e": {
+     "value": 1.0,
+     "unit": "mm",
+     "min": 0.1,
+     "max": 10,
+     "source": "free: how far the ledge stands off its wall — the hook's undercut"
+    },
+    "b": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the hook's width"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library: a ledge the hook latches under; clearance an estimate",
+     "description": "the clearance round the hook"
+    },
+    "hl": {
+     "value": 1.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library: a ledge the hook latches under; clearance an estimate",
+     "description": "the ledge's height"
+    },
+    "w": {
+     "value": {
+      "expr": "b + 2 * c"
+     },
+     "unit": "mm"
+    }
+   },
+   "recipe": [
+    {
+     "id": "q",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      {
+       "expr": "-w / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "e"
+      },
+      {
+       "expr": "w / 2"
+      }
+     ]
+    },
+    {
+     "id": "k",
+     "kind": "extrude",
+     "sketch": "q",
+     "height": {
+      "expr": "hl"
+     },
+     "from": {
+      "expr": "-hl"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "-hl / 2"
+       }
+      ],
+      "z": [
+       -1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "description": "its back on the mating wall"
+    },
+    {
+     "id": "ledge",
+     "role": "snap-ledge",
+     "accepts": [
+      "snap-hook"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "e / 2"
+       },
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "k.top"
+     },
+     "description": "the face the hook's latch bears on"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "snap-fit",
+    "catch"
+   ]
+  }
+ ],
+ "fits": [
+  {
+   "id": "hook-on-ledge",
+   "a": {
+    "part": "snap-ledge",
+    "interface": "ledge"
+   },
+   "b": {
+    "part": "snap-hook",
+    "interface": "hook"
+   },
+   "offset": [
+    0,
+    0.2,
+    0
+   ],
+   "checks": [
+    {
+     "id": "engagement",
+     "expr": "abs(a_e - b_y) <= a_c",
+     "value": "a_e - b_y",
+     "message": "the ledge stands off as far as the hook's undercut, within the clearance"
+    },
+    {
+     "id": "width",
+     "expr": "a_w >= b_b + 2 * a_c - 1e-9",
+     "value": "a_w - b_b",
+     "message": "the ledge is as wide as the hook and its clearance"
+    }
+   ]
+  },
+  {
+   "id": "tapered-hook-on-ledge",
+   "a": {
+    "part": "snap-ledge",
+    "interface": "ledge"
+   },
+   "b": {
+    "part": "snap-hook",
+    "params": {
+     "r": 0.6
+    },
+    "interface": "hook"
+   },
+   "offset": [
+    0,
+    0.2,
+    0
+   ],
+   "checks": [
+    {
+     "id": "engagement",
+     "expr": "abs(a_e - b_y) <= a_c",
+     "value": "a_e - b_y",
+     "message": "the ledge stands off as far as the hook's undercut, within the clearance"
+    }
    ]
   }
  ]

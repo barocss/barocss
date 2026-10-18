@@ -203,3 +203,27 @@ test('declared checks (R6b, D65): recommended ones warn, feasible ones refuse, w
   refused(bad({ checks: [{ id: 'c', expr: 'r > 0', level: 'maybe', message: 'm' }] }), 'FORMAT', /a check is/);
   refused(bad({ context: { r: {} } }), 'FORMAT', /not a parameter's/);
 });
+
+test('R6b.3 additions: ln, exp, atan (degrees); reports — a value, or unknown naming the context it needs; a check unknown only when its evaluation reaches missing context (a short-circuit past it decides); fit checks over both parts\' values', () => {
+  assert.ok(Math.abs(ev('ln(exp(2))') - 2) < 1e-15); assert.ok(Math.abs(ev('atan(1)') - 45) < 1e-12);
+  const LIB = {
+    format: 'barocss-cad-library', version: 1, id: 'test-rep', name: 'Reports', libraryVersion: '1.0.0', units: 'mm',
+    parts: [{ id: 'beam', name: 'Beam', parameters: { k: { value: 2, source: 'test' } },
+      context: { E: { unit: 'MPa' }, fdm: {}, inPlane: {} },
+      checks: [{ id: 'plane', expr: 'fdm == 0 || inPlane == 1', level: 'recommended', message: 'bend in the print plane' }],
+      reports: [{ id: 'force', value: 'k * E', unit: 'N', message: 'its force' }],
+      recipe: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'k' }, 1] }, { id: 'x', kind: 'extrude', sketch: 's', height: 1 }],
+      interfaces: [{ id: 'top', role: 'a', accepts: ['b'], frame: { origin: [0, 0, 1], z: [0, 0, 1], x: [1, 0, 0] } }, { id: 'bot', role: 'b', accepts: ['a'], frame: { origin: [0, 0, 0], z: [0, 0, -1], x: [1, 0, 0] } }] }],
+    fits: [{ id: 'stack', a: { part: 'beam', interface: 'top' }, b: { part: 'beam', params: { k: 1 }, interface: 'bot' }, checks: [{ id: 'narrower', expr: 'b_k < a_k', value: 'a_k - b_k', message: 'the top one narrower' }] }],
+  };
+  const lib = loadCadLibrary(LIB);
+  let i = instantiateLibraryPart(lib, 'beam', { context: { E: 100, fdm: 0 } });
+  assert.deepEqual(i.reports, [{ id: 'force', value: 200, unit: 'N', message: 'its force' }]);
+  assert.equal(i.checks[0].pass, true, 'fdm 0: decided without inPlane');
+  i = instantiateLibraryPart(lib, 'beam', { context: { fdm: 1 } });
+  assert.deepEqual([i.reports[0].value, i.reports[0].unknown], [null, 'needs E']); assert.equal(i.checks[0].pass, null);
+  const fit = checkLibraryFit(lib, 'stack');
+  assert.deepEqual(fit.checks, [{ id: 'narrower', pass: true, value: 1, message: 'the top one narrower' }]);
+  refused(() => loadCadLibrary({ ...LIB, fits: [{ ...LIB.fits[0], checks: [{ id: 'c', expr: 'c_k > 0', message: 'm' }] }] }), 'REFERENCE', /reads c_k/);
+  refused(() => loadCadLibrary({ ...LIB, parts: [{ ...LIB.parts[0], reports: [{ id: 'plane', value: 'k', message: 'm' }] }] }), 'FORMAT', /report id appears twice/);
+});

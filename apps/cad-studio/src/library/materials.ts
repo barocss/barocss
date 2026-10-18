@@ -8,6 +8,8 @@ import materialsJson from './builtin/materials.json';
 export interface MaterialData {
   readonly id: string; readonly label: string; readonly family: 'metal' | 'polymer';
   readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
+  /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
+  readonly friction: number;
   readonly wallMM?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
   readonly estimate: boolean; readonly sources: Readonly<Record<string, string>>;
 }
@@ -15,7 +17,7 @@ export interface ProcessThreshold { readonly value: number; readonly unit: strin
 export interface ProcessProfile { readonly id: string; readonly label: string; readonly thresholds: Readonly<Record<string, ProcessThreshold>> }
 export interface MaterialsData { readonly format: 'barocss-materials'; readonly version: 1; readonly libraryVersion: string; readonly license: string; readonly provenance: string; readonly sources: Readonly<Record<string, string>>; readonly materials: readonly MaterialData[]; readonly profiles: readonly ProcessProfile[] }
 
-const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink'] as const;
+const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink', 'friction'] as const;
 /** The data checked: every number finite and not negative (density, modulus and yield above 0), every source id known. */
 export function checkMaterials(d: MaterialsData): string[] {
   const problems: string[] = [];
@@ -23,7 +25,7 @@ export function checkMaterials(d: MaterialsData): string[] {
   const ids = new Set<string>();
   for (const m of d.materials) {
     if (ids.has(m.id)) problems.push(`${m.id} twice`); ids.add(m.id);
-    for (const k of NUMERIC) { const v = m[k]; if (!(Number.isFinite(v) && v >= 0) || (k !== 'shrink' && k !== 'allowableStrain' && !(v > 0))) problems.push(`${m.id}.${k}: ${v}`); }
+    for (const k of NUMERIC) { const v = m[k]; if (!(Number.isFinite(v) && v >= 0) || (k !== 'shrink' && k !== 'allowableStrain' && k !== 'friction' && !(v > 0))) problems.push(`${m.id}.${k}: ${v}`); }
     for (const [field, s] of Object.entries(m.sources)) if (!(s in d.sources)) problems.push(`${m.id}.${field}: unknown source ${s}`);
     for (const k of NUMERIC) if (!(k in m.sources)) problems.push(`${m.id}.${k}: no source`);
     for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
@@ -54,6 +56,8 @@ export function materialContext(path: string, material: MaterialData | undefined
     const v = (material as unknown as Record<string, unknown>)[field];
     return typeof v === 'number' ? { value: v, source: material.sources[field] ?? '?' } : { unknown: `materials have no ${field}` };
   }
+  // (How the part lies in the printer arrives with AM2/AM4: until then, unknown.)
+  if (scope === 'print') return { unknown: 'the print orientation is not known yet (it arrives with AM2/AM4)' };
   if (scope === 'profile') {
     if (!profile) return { unknown: 'no process is chosen' };
     const t = profile.thresholds[field];

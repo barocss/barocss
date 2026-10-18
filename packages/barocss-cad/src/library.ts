@@ -26,6 +26,10 @@ export interface CadLibraryParameter {
 }
 /** A rule over a part's values (R6b): met when `expr` holds; `value` the quantity it is about, for the report. */
 export interface CadLibraryCheck { readonly id: string; readonly expr: string; readonly level: 'recommended' | 'feasible'; readonly message: string; readonly value?: string }
+/** A quantity a part reports (R6b.3): a force, a ratio — an expression over its values and context, with its unit. */
+export interface CadLibraryReport { readonly id: string; readonly value: string; readonly unit?: string; readonly message: string }
+/** A reported quantity as evaluated: its value, or unknown (null) when its context was not given, why in `unknown`. */
+export interface CadLibraryReportResult { readonly id: string; readonly value: number | null; readonly unit?: string; readonly message: string; readonly unknown?: string }
 /** A rule as evaluated for an instance: met, not met, or unknown (`pass` null) when its context was not given — why in `unknown`. */
 export interface CadLibraryCheckResult { readonly id: string; readonly level: 'recommended' | 'feasible'; readonly pass: boolean | null; readonly message: string; readonly value?: number; readonly unknown?: string }
 /** A named row of the parameter table (a size: 20×20, 20×40). */
@@ -52,7 +56,11 @@ export interface CadLibraryFitEnd { readonly part: string; readonly variant?: st
  * A fit the library declares (LIB2): `b` placed by its interface onto `a`'s — frames facing, x along x — moved by
  * `offset` (in a's interface frame), and the overlap of the two at most `maxOverlapMM3` (default 1e-6: touching).
  */
-export interface CadLibraryFit { readonly id: string; readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly description?: string }
+export interface CadLibraryFit {
+  readonly id: string; readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly description?: string;
+  /** Rules over both parts' values (R6b.3), `a_<parameter>` and `b_<parameter>`: a snap hook's undercut against its catch's ledge. */
+  readonly checks?: readonly { readonly id: string; readonly expr: string; readonly value?: string; readonly message: string }[];
+}
 export interface CadLibraryPart {
   readonly id: string; readonly name: string; readonly category?: string; readonly description?: string;
   readonly parameters: Readonly<Record<string, CadLibraryParameter>>;
@@ -69,6 +77,8 @@ export interface CadLibraryPart {
    * optional expression, is the margin reported with it.
    */
   readonly checks?: readonly CadLibraryCheck[];
+  /** Quantities it reports (R6b.3: a snap hook's push-on force), over its values and context. */
+  readonly reports?: readonly CadLibraryReport[];
   /**
    * What its checks need from where it goes (R6b, D65): the nominal wall of the body it is added to, its material's
    * values… — given at insertion (`instantiateLibraryPart`'s `context`); checks only read them (the geometry does
@@ -108,6 +118,10 @@ export interface CadLibraryInstance {
   readonly interfaces: readonly CadLibraryInterface[];
   /** The part's rules as evaluated (R6b): all of them, met or not (a failed feasible one refuses the instance). */
   readonly checks: readonly CadLibraryCheckResult[];
+  /** Its reported quantities as evaluated. */
+  readonly reports: readonly CadLibraryReportResult[];
+  /** Every parameter's value, derived ones too (fits' checks read them). */
+  readonly values: Readonly<Record<string, number>>;
 }
 
 /** This kernel's version, recorded with a library's sharing check (kept equal to package.json's by a test). */
@@ -123,7 +137,8 @@ export const CadLibraryLimits = { parts: 500, parameters: 200, variants: 200, re
 
 // ---- the expression language ---------------------------------------------------------------------------------------
 // numbers, parameter names, + − * / % ^ (right-associative), unary −, comparisons < <= > >= == !=, && || !, the
-// conditional c ? a : b, parentheses, and min max round floor ceil abs sqrt sin cos tan (degrees) atan2 (degrees) pi.
+// conditional c ? a : b, parentheses, and min max round floor ceil abs sqrt sin cos tan (degrees) atan atan2 (degrees)
+// ln exp, pi.
 // Parsed once to a tree of plain records; evaluated by a switch. Booleans are 1 and 0.
 
 type Node =
@@ -133,7 +148,7 @@ type Node =
   | { readonly k: 'bin'; readonly op: string; readonly a: Node; readonly b: Node }
   | { readonly k: 'if'; readonly c: Node; readonly a: Node; readonly b: Node }
   | { readonly k: 'call'; readonly fn: string; readonly args: readonly Node[] };
-const FUNCTIONS: Readonly<Record<string, number>> = { min: -2, max: -2, round: 1, floor: 1, ceil: 1, abs: 1, sqrt: 1, sin: 1, cos: 1, tan: 1, atan2: 2 };
+const FUNCTIONS: Readonly<Record<string, number>> = { min: -2, max: -2, round: 1, floor: 1, ceil: 1, abs: 1, sqrt: 1, sin: 1, cos: 1, tan: 1, atan2: 2, atan: 1, ln: 1, exp: 1 };
 const TOKEN = /\s*(?:(\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|(<=|>=|==|!=|&&|\|\||[-+*/%^()<>?:,!]))/y;
 
 /** An expression's tree, or a typed refusal (EXPRESSION) saying where it stops. */
@@ -238,6 +253,7 @@ function evaluate(n: Node, values: Readonly<Record<string, number>>, where: stri
         case 'min': return Math.min(...a); case 'max': return Math.max(...a); case 'round': return Math.round(a[0]); case 'floor': return Math.floor(a[0]);
         case 'ceil': return Math.ceil(a[0]); case 'abs': return Math.abs(a[0]); case 'sqrt': return Math.sqrt(a[0]);
         case 'sin': return Math.sin(a[0] * DEG); case 'cos': return Math.cos(a[0] * DEG); case 'tan': return Math.tan(a[0] * DEG);
+        case 'atan': return Math.atan(a[0]) / DEG; case 'ln': return Math.log(a[0]); case 'exp': return Math.exp(a[0]);
         default: return Math.atan2(a[0], a[1]) / DEG;
       }
     }
@@ -309,6 +325,15 @@ export function loadCadLibrary(input: unknown): CadLibrary {
       if (!(ends[0].accepts?.includes(ends[1].role) || ends[1].accepts?.includes(ends[0].role))) throw new CadLibraryError('REFERENCE', at, `${ends[0].role} and ${ends[1].role} do not accept each other`);
       if (fit.offset !== undefined && (!Array.isArray(fit.offset) || fit.offset.length !== 3 || fit.offset.some(x => typeof x !== 'number' || !Number.isFinite(x)))) throw new CadLibraryError('FORMAT', at, 'offset must be three numbers');
       if (fit.maxOverlapMM3 !== undefined && !(typeof fit.maxOverlapMM3 === 'number' && fit.maxOverlapMM3 >= 0)) throw new CadLibraryError('FORMAT', at, 'maxOverlapMM3 must be a number, 0 or more');
+      if (fit.checks !== undefined) {
+        if (!Array.isArray(fit.checks)) throw new CadLibraryError('FORMAT', at, 'checks must be a list');
+        const both = [...Object.keys(parts.get((fit.a as { part: string }).part)!.part.parameters).map(k => `a_${k}`), ...Object.keys(parts.get((fit.b as { part: string }).part)!.part.parameters).map(k => `b_${k}`)];
+        for (const c of fit.checks as unknown[]) {
+          if (!isRecord(c) || typeof c.id !== 'string' || !ID.test(c.id) || typeof c.expr !== 'string' || typeof c.message !== 'string') throw new CadLibraryError('FORMAT', at, 'a fit check is { id, expr, value?, message }');
+          checkNames(parseLibraryExpression(c.expr, `${at}!${c.id}`), both, `${at}!${c.id}`);
+          if (c.value !== undefined) checkNames(parseLibraryExpression(c.value as string, `${at}!${c.id}.value`), both, `${at}!${c.id}.value`);
+        }
+      }
     }
   }
   return { manifest: m as unknown as CadLibraryManifest, parts };
@@ -400,6 +425,15 @@ function loadPart(p: unknown, lib: string): LoadedPart {
       if (c.value !== undefined) { const v = parseLibraryExpression(c.value as string, `${where}!${c.id}.value`); checkNames(v, [...names, ...contextNames], `${where}!${c.id}.value`); exprs.set(`checkvalue:${c.id}`, v); }
     }
   }
+  if (p.reports !== undefined) {
+    if (!Array.isArray(p.reports)) throw new CadLibraryError('FORMAT', where, 'reports must be a list');
+    const seen = new Set<string>();
+    for (const r of p.reports as unknown[]) {
+      if (!isRecord(r) || typeof r.id !== 'string' || !ID.test(r.id) || typeof r.value !== 'string' || typeof r.message !== 'string') throw new CadLibraryError('FORMAT', where, 'a report is { id, value, unit?, message }');
+      if (seen.has(r.id) || (p.checks as { id: string }[] | undefined)?.some(c => c.id === r.id)) throw new CadLibraryError('FORMAT', `${where}!${r.id}`, 'a report id appears twice (or is a check\'s)'); seen.add(r.id);
+      const node = parseLibraryExpression(r.value, `${where}!${r.id}`); checkNames(node, [...names, ...contextNames], `${where}!${r.id}`); exprs.set(`report:${r.id}`, node);
+    }
+  }
   if (p.operation !== undefined && p.operation !== 'add' && p.operation !== 'cut') throw new CadLibraryError('FORMAT', where, "operation must be 'add' or 'cut'");
   if (p.outputs !== undefined && (!Array.isArray(p.outputs) || !p.outputs.length || p.outputs.some(o => typeof o !== 'string' || !ids.has(o.split('/')[0])))) throw new CadLibraryError('REFERENCE', where, 'outputs must name recipe features');
   if (p.interfaces !== undefined) {
@@ -485,13 +519,23 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
     if (typeof v !== 'number' || !Number.isFinite(v)) throw new CadLibraryError('PARAMETER', `${where}.context.${k}`, 'must be a finite number');
   }
   const scope = { ...values, ...given2 };
+  // (Unknown when the evaluation reaches context not given — a short-circuit past it, `isFdm == 0 || …`, does not;
+  // every missing name it reads is said.)
+  const needs = (node: Node, vnode?: Node) => { const missing = [...expressionNames(node), ...(vnode ? expressionNames(vnode) : [])].filter(n => n in context && !(n in given2)); return `needs ${[...new Set(missing)].map(n => `${n}${context[n].description ? ` (${context[n].description})` : ''}`).join(', ')}`; };
+  const missingContext = (cause: unknown) => cause instanceof CadLibraryError && cause.code === 'REFERENCE' && /^no parameter /.test(cause.message.replace(/^library: [^:]*: /, ''));
   const checks: CadLibraryCheckResult[] = (part.checks ?? []).map(c => {
     const node = exprs.get(`check:${c.id}`)!, vnode = c.value === undefined ? undefined : exprs.get(`checkvalue:${c.id}`)!;
-    const missing = [...expressionNames(node), ...(vnode ? expressionNames(vnode) : [])].filter(n => n in context && !(n in given2));
-    if (missing.length) return { id: c.id, level: c.level, pass: null, message: c.message, unknown: `needs ${[...new Set(missing)].map(n => `${n}${context[n].description ? ` (${context[n].description})` : ''}`).join(', ')}` };
-    const pass = evaluateLibraryExpression(node, scope, `${where}!${c.id}`) !== 0;
-    const value = vnode ? evaluateLibraryExpression(vnode, scope, `${where}!${c.id}.value`) : undefined;
+    let pass: boolean;
+    try { pass = evaluateLibraryExpression(node, scope, `${where}!${c.id}`) !== 0; }
+    catch (cause) { if (missingContext(cause)) return { id: c.id, level: c.level, pass: null, message: c.message, unknown: needs(node, vnode) }; throw cause; }
+    let value: number | undefined;
+    try { value = vnode ? evaluateLibraryExpression(vnode, scope, `${where}!${c.id}.value`) : undefined; } catch (cause) { if (!missingContext(cause)) throw cause; }
     return { id: c.id, level: c.level, pass, message: c.message, ...(value === undefined ? {} : { value }) };
+  });
+  const reports: CadLibraryReportResult[] = (part.reports ?? []).map(r => {
+    const node = exprs.get(`report:${r.id}`)!;
+    try { return { id: r.id, value: evaluateLibraryExpression(node, scope, `${where}!${r.id}`), ...(r.unit ? { unit: r.unit } : {}), message: r.message }; }
+    catch (cause) { if (missingContext(cause)) return { id: r.id, value: null, ...(r.unit ? { unit: r.unit } : {}), message: r.message, unknown: needs(node) }; throw cause; }
   });
   const said = (c: CadLibraryCheckResult) => `${c.id}: ${c.message}${c.value === undefined ? '' : ` (${+c.value.toFixed(6)})`}`;
   const infeasible = checks.filter(c => c.level === 'feasible' && c.pass === false);
@@ -529,7 +573,7 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
     const kept = { ...out, ...(faces ? { faces } : {}) } as Record<string, unknown>; delete kept.when;
     return kept as unknown as CadLibraryInterface;
   });
-  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: given, values: used }, warnings, interfaces, checks };
+  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: given, values: used }, warnings, interfaces, checks, reports, values };
 }
 /** A recipe value with its expressions evaluated and its references renamed. */
 function substitute(value: unknown, values: Readonly<Record<string, number>>, exprs: ReadonlyMap<string, Node>, fid: string, key: string, path: string, where: string, kept: ReadonlySet<string>, rename: (id: string) => string, resolve: (ref: string, at: string) => string): unknown {

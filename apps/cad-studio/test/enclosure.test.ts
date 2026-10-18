@@ -165,3 +165,77 @@ test('R6b.7 materials and process profiles: the data checked (every value source
     assert.equal(r.node.warnings.some(x => x.startsWith('strain:')), !pass, `${id}: ${r.node.warnings.join(' | ')}`);
   }
 });
+
+test('R6b.3 cantilever snap hook: its volume the closed form; its root strain read against the body\'s material — met on ABS, warned on PLA, refused past PLA\'s yield, unknown without a material; library_check gives ε / allowable', async () => {
+  const { withLook } = await import('../src/app/bodies');
+  const { runCheck } = await import('../src/chat/spec');
+  const doc = plate(3), b0 = bodies(doc)[0];
+  const snap = (material: string | null, params: Record<string, number> = {}, d: StudioDoc = doc) => addLibraryPartToBody(material ? withLook(d, b0, { material }) : d, 'enclosure', 'snap-hook', { params }, top(3, 30, 20));
+  // (A uniform beam: ε = 1.5 × 1.5 × 1 / 12² = 0.015625.)
+  const eps = 1.5 * 1.5 * 1 / 144;
+  const abs = snap('abs') as { doc: StudioDoc; node: LibraryNode };
+  assert.deepEqual([abs.node.context!.epsAllow, abs.node.context!.E, abs.node.context!.ys, abs.node.context!.mu], [0.025, 2200, 40, 0.5]);
+  assert.ok(!abs.node.warnings.some(w => /^(strain|yield)/.test(w)), abs.node.warnings.join(' | '));
+  // (A 1.5 × 6 beam 12 long, a 1 × 2 hook: (1.5 × 14 + 1 × 2 / 2) × 6.)
+  assert.ok(Math.abs(bodies(abs.doc)[0].volumeMM3! - (60 * 40 * 3 + (1.5 * 14 + 1) * 6)) < 1e-6);
+  const pla = snap('pla') as { node: LibraryNode };
+  assert.ok(pla.node.warnings.some(w => w === `strain: the beam is strained past the material's allowable strain on assembly (${+(eps / 0.015).toFixed(6)})`), pla.node.warnings.join(' | '));
+  assert.match((snap('pla', { y: 1.5 }) as { error: string }).error, /yield: the beam would yield on assembly .* \(1\.49/);
+  const none = snap(null) as { node: LibraryNode };
+  assert.ok(none.node.warnings.some(w => /^strain: unknown — needs epsAllow/.test(w)) && none.node.warnings.includes("context epsAllow: the body's material is not set"));
+  const ev = async () => evaluateDoc(abs.doc, 1), q = await runCheck(abs.doc, bodies(abs.doc), ev as never, { op: '<=', query: { fn: 'library_check', feature: abs.doc.nodes[2].id!, check: 'strain' }, value: 1 });
+  assert.equal(q.status, 'pass'); assert.ok(Math.abs((q.measured as number) - +(eps / 0.025).toFixed(4)) < 1e-9);
+});
+
+test('R6b.3 the tapered beam: its root strain and deflection force checked against an independent numerical integration of the beam\'s deflection (Simpson, 20 000 steps over Euler–Bernoulli), for taper ratios 1, 0.8, 0.6, 0.45', () => {
+  const lib = libraryById('enclosure')!, E = 2200, L = 12, t = 1.5, b = 6, y = 1;
+  for (const r of [1, 0.8, 0.6, 0.45]) {
+    const i = instantiateLibraryPart(lib, 'snap-hook', { params: { r }, context: { epsAllow: 0.025, E, ys: 40, mu: 0.5, isFdm: 0 } });
+    // The tip deflection for a unit load: ∫₀ᴸ (L − x)² / (E I(x)) dx, I = b t(x)³ / 12, t(x) = t (1 − (1 − r) x / L).
+    const n = 20000, h = L / n, f = (x: number) => (L - x) ** 2 / (E * b * (t * (1 - (1 - r) * x / L)) ** 3 / 12);
+    let integral = f(0) + f(L);
+    for (let k = 1; k < n; k++) integral += (k % 2 ? 4 : 2) * f(k * h);
+    integral *= h / 3;
+    const P = y / integral, rootStrain = P * L * (t / 2) / (E * b * t ** 3 / 12);
+    assert.ok(Math.abs(i.values.eps / rootStrain - 1) < 1e-9, `r ${r}: ${i.values.eps} vs ${rootStrain}`);
+    const force = i.reports.find(x => x.id === 'deflectionForce')!.value!;
+    assert.ok(Math.abs(force / P - 1) < 1e-9, `r ${r}: P ${force} vs ${P}`);
+  }
+});
+
+test('R6b.3 forces and the other rules: push-on W = P (μ + tan α) / (1 − μ tan α) from the lead angle, pull-off by the same form from the retaining angle (a square one locks: −1); a lead so steep it locks refused; a hook too short for its retaining face refused; FDM wants the bend in the print plane — unknown until the orientation is known, warned when given out of it; unknown μ leaves the forces unknown', () => {
+  const lib = libraryById('enclosure')!, ctx = { epsAllow: 0.025, E: 2200, ys: 40, mu: 0.5, isFdm: 0 };
+  const report = (i: ReturnType<typeof instantiateLibraryPart>, id: string) => i.reports.find(x => x.id === id)!;
+  const i = instantiateLibraryPart(lib, 'snap-hook', { context: ctx }), P = 2200 * 6 * 1.5 ** 3 * 1 / (4 * 12 ** 3), ta = 1 / 2;
+  assert.ok(Math.abs(report(i, 'deflectionForce').value! - P) < 1e-12);
+  assert.ok(Math.abs(report(i, 'pushOn').value! - P * (0.5 + ta) / (1 - 0.5 * ta)) < 1e-12);
+  assert.equal(report(i, 'pullOff').value, -1);
+  // A 30° retaining face lets go: its rise 1/tan 30° = 1.732 under a 4 mm head.
+  const r30 = instantiateLibraryPart(lib, 'snap-hook', { params: { ar: 30, hh: 4 }, context: ctx }), t30 = Math.tan(Math.PI / 6), a30 = Math.atan(1 / (4 - 1 / t30));
+  assert.ok(Math.abs(report(r30, 'pullOff').value! - P * (0.5 + t30) / (1 - 0.5 * t30)) < 1e-9);
+  assert.ok(Math.abs(report(r30, 'pushOn').value! - P * (0.5 + Math.tan(a30)) / (1 - 0.5 * Math.tan(a30))) < 1e-9);
+  assert.throws(() => instantiateLibraryPart(lib, 'snap-hook', { params: { hh: 0.4 }, context: ctx }), (e: Error) => /lead-locks: the lead face is so steep it locks/.test(e.message));
+  assert.throws(() => instantiateLibraryPart(lib, 'snap-hook', { params: { ar: 30, hh: 1.5 }, context: ctx }), (e: Error) => /shape: the hook is too short/.test(e.message));
+  // FDM: the orientation unknown — said; given out of plane — warned; moulded — no question.
+  const fdm = addLibraryPartToBody(plate(3, 'fdm'), 'enclosure', 'snap-hook', {}, top(3, 30, 20)) as { node: LibraryNode };
+  assert.ok(fdm.node.warnings.includes('context bendInPlane: the print orientation is not known yet (it arrives with AM2/AM4)') && fdm.node.warnings.some(w => /^print-plane: unknown/.test(w)), fdm.node.warnings.join(' | '));
+  const out = instantiateLibraryPart(lib, 'snap-hook', { context: { ...ctx, isFdm: 1, bendInPlane: 0 } });
+  assert.ok(out.warnings.some(w => /^print-plane: printed in layers/.test(w)));
+  assert.equal(instantiateLibraryPart(lib, 'snap-hook', { context: ctx }).checks.find(c => c.id === 'print-plane')!.pass, true);
+  const noMu = instantiateLibraryPart(lib, 'snap-hook', { context: { epsAllow: 0.025, E: 2200, ys: 40, isFdm: 0 } });
+  assert.equal(report(noMu, 'pushOn').value, null); assert.match(report(noMu, 'pushOn').unknown!, /needs mu/);
+});
+
+test('R6b.3 the hook latched under its ledge (a declared fit): no overlap, in contact, engaged; straight and tapered; a ledge shallower than the undercut by more than the clearance fails the fit\'s engagement rule', async () => {
+  const { checkLibraryFit } = await import('@barocss/cad');
+  const lib = libraryById('enclosure')!;
+  for (const id of ['hook-on-ledge', 'tapered-hook-on-ledge']) {
+    const r = checkLibraryFit(lib, id);
+    assert.deepEqual([r.ok, r.overlapMM3, r.contact, r.checks.every(c => c.pass)], [true, 0, true, true], `${id}: ${JSON.stringify(r)}`);
+  }
+  const fit = lib.manifest.fits!.find(f => f.id === 'hook-on-ledge')!;
+  // (A ledge only 0.75 deep under a 1 mm undercut: placed clear, in contact, but engaged 0.25 short — past the 0.2 clearance.)
+  const shallow = checkLibraryFit(lib, { ...fit, a: { ...fit.a, params: { e: 0.75 } } });
+  assert.deepEqual([shallow.overlapMM3, shallow.contact, shallow.ok], [0, true, false]);
+  assert.deepEqual([shallow.checks.find(c => c.id === 'engagement')!.pass, shallow.checks.find(c => c.id === 'engagement')!.value], [false, -0.25]);
+});

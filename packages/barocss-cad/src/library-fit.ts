@@ -7,7 +7,7 @@ import { brepMassProperties } from './solid-mass.js';
 import { transformBrep } from './brep-transform.js';
 import type { Brep } from './brep-core.js';
 import { evaluateCadPart } from './part-model.js';
-import { CadLibraryError, instantiateLibraryPart, type CadLibrary, type CadLibraryFitEnd, type CadLibraryInterface } from './library.js';
+import { CadLibraryError, evaluateLibraryExpression, instantiateLibraryPart, parseLibraryExpression, type CadLibrary, type CadLibraryFit, type CadLibraryFitEnd, type CadLibraryInterface } from './library.js';
 
 /** A rigid placement: p ↦ R p + t (R row-major 3 × 3). */
 export interface LibraryPlacement { readonly rotation: readonly number[]; readonly translation: readonly [number, number, number] }
@@ -30,28 +30,36 @@ export function placeByInterfaces(a: CadLibraryInterface, b: CadLibraryInterface
 }
 
 /** One end built: its bodies (the part's outputs) and its interface. */
-function build(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): { breps: Brep[]; itf: CadLibraryInterface; warnings: readonly string[] } {
+function build(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): { breps: Brep[]; itf: CadLibraryInterface; warnings: readonly string[]; values: Readonly<Record<string, number>> } {
   const inst = instantiateLibraryPart(lib, end.part, { ...(end.variant ? { variant: end.variant } : {}), ...(end.params ? { params: end.params } : {}), prefix });
   const itf = inst.interfaces.find(i => i.id === end.interface);
   if (!itf) throw new CadLibraryError('REFERENCE', `${lib.manifest.id}/${end.part}`, `interface ${end.interface} is not there for these values`);
   const result = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: inst.features });
-  return { breps: inst.outputs.map(o => result.output(o).brep), itf, warnings: inst.warnings };
+  return { breps: inst.outputs.map(o => result.output(o).brep), itf, warnings: inst.warnings, values: inst.values };
 }
 
 /**
  * A fit's result: the overlap as placed; whether the parts touch — pushed `contactProbeMM` further into a (along −z of
  * a's interface) they overlap — so a fit is not passed by parts standing apart; ok when both hold.
  */
-export interface LibraryFitReport { readonly id: string; readonly overlapMM3: number; readonly maxOverlapMM3: number; readonly contact: boolean; readonly contactProbeMM: number; readonly ok: boolean; readonly placement: LibraryPlacement; readonly warnings: readonly string[] }
+export interface LibraryFitReport {
+  readonly id: string; readonly overlapMM3: number; readonly maxOverlapMM3: number; readonly contact: boolean; readonly contactProbeMM: number; readonly ok: boolean; readonly placement: LibraryPlacement; readonly warnings: readonly string[];
+  /** The fit's own rules over both parts' values, each met or not (with its value). */
+  readonly checks: readonly { readonly id: string; readonly pass: boolean; readonly value?: number; readonly message: string }[];
+}
 
 /** A declared fit (or one given): both parts built, b placed onto a, their overlap by the exact Boolean intersection. */
-export function checkLibraryFit(lib: CadLibrary, fit: string | { readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly id?: string }): LibraryFitReport {
+export function checkLibraryFit(lib: CadLibrary, fit: string | { readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly id?: string; readonly checks?: CadLibraryFit['checks'] }): LibraryFitReport {
   const f = typeof fit === 'string' ? lib.manifest.fits?.find(x => x.id === fit) : fit;
   if (!f) throw new CadLibraryError('REFERENCE', lib.manifest.id, `no fit ${String(fit)}`);
   const A = build(lib, f.a, 'A'), B = build(lib, f.b, 'B'), offset = f.offset ?? [0, 0, 0], placement = placeByInterfaces(A.itf, B.itf, offset);
   const probe = 0.01, pushed = placeByInterfaces(A.itf, B.itf, [offset[0], offset[1], offset[2] - probe]);
   const overlap = overlapOf(A.breps, B.breps, placement), max = f.maxOverlapMM3 ?? 1e-6, contact = overlapOf(A.breps, B.breps, pushed) > max;
-  return { id: f.id ?? 'fit', overlapMM3: overlap, maxOverlapMM3: max, contact, contactProbeMM: probe, ok: overlap <= max && contact, placement, warnings: [...A.warnings, ...B.warnings] };
+  const scope: Record<string, number> = {};
+  for (const [k, v] of Object.entries(A.values)) scope[`a_${k}`] = v;
+  for (const [k, v] of Object.entries(B.values)) scope[`b_${k}`] = v;
+  const checks = (f.checks ?? []).map(c => ({ id: c.id, pass: evaluateLibraryExpression(parseLibraryExpression(c.expr), scope, `${f.id ?? 'fit'}!${c.id}`) !== 0, ...(c.value ? { value: evaluateLibraryExpression(parseLibraryExpression(c.value), scope) } : {}), message: c.message }));
+  return { id: f.id ?? 'fit', overlapMM3: overlap, maxOverlapMM3: max, contact, contactProbeMM: probe, ok: overlap <= max && contact && checks.every(c => c.pass), placement, warnings: [...A.warnings, ...B.warnings], checks };
 }
 /** The volume common to a's bodies and b's placed. */
 function overlapOf(a: readonly Brep[], b: readonly Brep[], p: LibraryPlacement): number {
