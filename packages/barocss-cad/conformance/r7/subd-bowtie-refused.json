@@ -1,0 +1,68 @@
+{
+  "id": "r7-subd-bowtie-refused",
+  "step": "R7",
+  "decisions": [
+    "D78"
+  ],
+  "about": "Two quads meeting only at a vertex (a bowtie): not a manifold, refused as INPUT.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              -10,
+              0,
+              0,
+              -10,
+              -10,
+              0,
+              0,
+              -10,
+              0
+            ],
+            "faces": [
+              [
+                0,
+                1,
+                2,
+                3
+              ],
+              [
+                0,
+                4,
+                5,
+                6
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "not a manifold"
+    }
+  },
+  "oracle": "The rule, by decision."
+}

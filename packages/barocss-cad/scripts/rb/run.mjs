@@ -24,10 +24,12 @@ const out = resolve(option('--out', join(tmpdir(), 'barocss-rb-rows.jsonl'))), r
 function casesOf(root) {
   const found = [], walk = dir => { for (const name of readdirSync(dir).sort()) { const p = join(dir, name); if (statSync(p).isDirectory()) walk(p); else if (/\.(json|step|stp)$/i.test(name) && name !== 'todo.json') found.push(p); } };
   walk(root);
-  return found.map(file => {
+  // (A conformance case a later step superseded is the record of what its step promised: not run, conformance/README.)
+  return found.flatMap(file => {
     const rel = relative(root, file).split(sep), json = file.endsWith('.json') ? JSON.parse(readFileSync(file, 'utf8')) : null;
+    if (json?.supersededBy) return [];
     const inputClass = json ? (json.input?.partDocument ? 'conformance' : 'part') : 'step';
-    return { file, id: `${root.split(sep).pop()}/${rel.join('/')}`, inputClass, category: rel.length > 1 ? rel.slice(0, -1).join('/') : root.split(sep).pop() };
+    return [{ file, id: `${root.split(sep).pop()}/${rel.join('/')}`, inputClass, category: rel.length > 1 ? rel.slice(0, -1).join('/') : root.split(sep).pop() }];
   });
 }
 const cases = roots.flatMap(casesOf);

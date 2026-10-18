@@ -3089,3 +3089,90 @@ Evidence:
 - Against the previous `App.tsx` it fails with "props: Mesh ring with 16384 mm³" (several times). With the fix it passes, and the evaluating state was seen.
 - Full browser flow 118/118; studio 337/337; lint 0 errors.
 
+## D78 — R7 SD2: extraordinary vertices, n-gons and darts as G1 caps (2026-10-18)
+
+Decision (`packages/barocss-cad/src/subd-sd2.ts`, `subd.ts`, `subd-report.ts`; studio "SubD box"):
+- **When SD1 is left.** A cage regular everywhere (only quads; every vertex valence 4, or a straight crease, or an
+  all-sharp corner, or a regular boundary) is SD1's, unchanged: the same faces and names.
+  - Otherwise one Catmull–Clark step is taken (OpenSubdiv: sharp edges midpoint, crease vertices (a + 6v + b)/8, corners fixed, darts smooth).
+  - A second step is taken when a quad would hold two irregular corners: an n-gon's face point beside an irregular vertex.
+  - `steps: 2` asks for the second step anyway: caps a quarter of the area, nearer the limit, four times the faces.
+  - Not a *local* step as the roadmap first said: refining only round the vertex leaves T-junctions. The global step keeps every regular region exact (B-spline refinement).
+- **Exact where it can be.** A quad whose corners are all regular is SD1's exact bicubic B-spline, packed into faces as before.
+- **Caps.** A quad at an irregular vertex is one face: a bicubic patch split once each way at τ = ¼ from the vertex, with double knots `0 0 0 0 ¼ ¼ 1 1 1 1` (2 × 2 Bézier pieces, C1 inside).
+  - **Start:** the generalised B-spline-to-Bézier averages:
+    - face points (4c + 2a + 2d + o)/9;
+    - edge points the mean of the two faces' points, or (2v + a)/3 along a sharp edge;
+    - corners at the exact limit position (smooth (n²v + 4Σe + Σd)/(n(n + 5)), crease (a + 4v + b)/6, corner v).
+    - These reproduce SD1's B-spline wherever all four corners are regular.
+  - **Held:**
+    - the rows next to a regular neighbour (C1 with it, and with the limit there);
+    - the irregular vertex at its limit position;
+    - crease and boundary edges as their B-spline (G0 across them).
+  - **G1 conditions** along every edge out of the vertex that is not sharp: ∂(left) + ∂(right) = α(t)·b′(t), with α = 2 cos θ (1 − t/τ)² on the part at the vertex and 0 beyond.
+    - That part of the edge is kept quadratic (third difference 0), so α·b′ is cubic like the cross derivatives.
+    - The condition, a polynomial of degree ≤ 4 on each part, is imposed at five points of each.
+    - **θ:** 2π/n round a smooth vertex or a dart; π/k across k faces between a crease's two edges or at a boundary; φ/k at a corner.
+    - A dart's sharp edge is shared (G0), not G1.
+  - **Solved per vertex.** The conditions are made orthonormal (modified Gram–Schmidt, twice). A dependent condition must already hold within 1e-9 of the cage's size, else CAPABILITY.
+  - **Fitted.** Within the conditions (null-space least squares), the cap is fitted to the limit surface itself.
+    - Samples: a 9 × 9 grid per cap, refining its one-ring three times.
+    - Each of four rounds moves every sample's parameters to its closest point on the cap just fitted, so the surface is fitted, not the limit's non-polynomial parametrisation.
+    - A slight pull μ = 1e-6 to the start covers what the samples leave free.
+- **Found and fixed while measuring: folded caps.**
+  - The first form, α = 2 cos θ (1 − 2t) on the half at the vertex and 0 beyond, has a kink at the double knot where it is 0. A cap's cross derivatives are C1 along the edge there, so the kink forces the edge's derivative to 0 at the knot.
+  - The caps collapsed and folded: |Su × Sv| ≈ 1e-15, normals 180° apart, tessellation never settled (RB TIMEOUT).
+  - G1 along the edges and a small closest-point distance (0.031 mm) both passed. So the report now measures the caps' shape (below), and the tests tessellate every case.
+  - With α C1 at τ: |Su × Sv| ≥ 0.15 of its median, normals turn ≤ 1.8°, and the cube's deviation fell to 0.0033 mm.
+- **Measured and not taken:**
+  - α nonzero on the far part (c (1 − s)², that part quadratic): no solution for one case; folds at τ = ¼.
+  - α from the limit's own edge directions at a crease vertex (not evenly spread: 4 faces 59.7°, 30.3°, 30.3°, 59.7°): deviated more (half star of 4: 0.26 mm against 0.13 mm).
+  - τ: the cube cage gives 0.0020 mm at τ = 0.2, 0.0033 at ¼, 0.0105 at ½. The half star of 5 gives 0.26, 0.16 and 0.21: ¼ is the compromise.
+- **Names.** Refined quads are labelled by face and corner (`<face>_<corner>`, `<face>_<corner>_<corner>` after two steps). Caps are `<id>.cap<label>`; exact faces `<id>.patch<label>` (SD1 cages keep `<id>.patch<k>`).
+- **Refused.**
+  - INPUT: a vertex whose faces are not one fan (a bowtie), a face of fewer than three sides, and the earlier input refusals.
+  - CAPABILITY: more than 32 edges at a vertex or sides on a face; a cap with no G1 solution.
+- **Promised:** C2 away from irregular vertices; C1 between caps and exact faces; G1 at and round irregular vertices; G0 across creases; never G2.
+- **The report** (`subdReport`):
+  - Steps, irregular vertices, caps.
+  - **G1:** along every edge that is not sharp, both faces' normals at 9 points by their own parameters (the largest angle) and the largest gap between them.
+  - **Caps' shape**, on a 33 × 33 grid per cap: the smallest |Su × Sv| against its median, and the largest angle between neighbouring normals. A one-face crease sector's corner (a straight angle, as in the limit) is left out.
+  - **Deviation:** limit samples on a 17 × 17 grid per cap, refining its one-ring four times. Given as the distance to the closest point on that cap, and at the same parameters.
+  - **Exact quads**, measured the same way as a check of the measure (≈ 1e-14).
+- **Studio:** "SubD box": a box cage of n quads along each side, its eight corners valence 3. The history label says faces when the cage has other polygons.
+
+Evidence:
+- **Kernel `test/subd.test.mjs` 10/10.** Every SD2 case is checked for: strictly valid; G1 ≤ 1.7e-6°; gaps ≤ 1e-12 mm; |Su × Sv| ≥ 0.05 of median; normals turn < 15°; it tessellates.
+- Volumes are checked against an independent Catmull–Clark written in the test (any polygon, sharp rules, limit masks; levels 5 and 6 extrapolated).
+
+  | Case | Steps | Deviation (mm) | Volume against the limit |
+  |---|---|---|---|
+  | Cube cage (24 caps) | 1 | 0.0033 | −4.5e-5 |
+  | Tetrahedron | 2 | 0.0007 | |
+  | Pentagonal prism | 2 | 0.0036 | |
+  | Hexagonal prism | 2 | 0.0093 | |
+  | Creased-top cube | 1 | 0.0034 | |
+  | Dart torus (8 × 6) | 1 | 0.050 | |
+  | Stars of 3, 5, 6 | 1 | 0.0001–0.012 | |
+  | Half stars round a boundary vertex of 3, 4 faces | 1 | 0.066 / 0.140 | |
+
+  - The cube's STEP round trip holds to 1e-9; the inward-wound cage gives the same body.
+  - Refusals: bowtie, two-sided face, valence 33.
+- **The weak spot:** boundary and crease vertices, at up to 0.7% of a 20 mm sheet with one step. With `steps: 2` the 4-face half star is 0.084 mm and the cube 0.0007 mm.
+  - TODO: the limit's own characteristic map for crease sectors (eigen-analysis), so caps there follow the limit's uneven edges.
+- **Conformance `conformance/r7/`, 7 cases:**
+  - cube, creased top, tetrahedron, pentagonal prism, dart torus: volume, area and centroid against the independent oracle to 2e-3; STEP round trip;
+  - refusals: valence and bowtie.
+  - R5's two refusal cases (extraordinary vertices, darts) are kept as the record and marked `supersededBy: R7`; the harness skips such cases (README).
+- **Speed (Node):** cube cage build 70–150 ms (24 caps, fit included); tessellation of every case under 0.11 s.
+- Studio 338/338, primitives 12/12 (SubD box). Browser flow "SubD box":
+  - default box 30 × 20 × 16, 3 quads a side: 60 faces, 24 of them caps, volume 8,638 mm³, inside its box;
+  - in the kernel: deviation 0.0025 mm, |Su × Sv| ≥ 0.10 of median, turn ≤ 1.7°;
+  - its display mesh: 2,588 triangles, watertight, smallest 0.019 mm².
+  - "SubD torus" still passes.
+- **Observed, not fixed:** the box's screenshot shows a short dotted dark stroke on its top face near a corner.
+  - Its mesh is watertight with no sliver, and the cap there is G1, unfolded, within 0.0025 mm.
+  - So it is in the viewport's drawing (likely ambient occlusion on a shallow ridge of triangles), not the geometry.
+  - TODO: look at it with AO off and with zebra.
+- Kernel 1001/1002 (the known environmental test); lint clean. RB over conformance and corpus: 1,102 rows, every R7 row OK, the WRONG/INVALID rows the known TODOs.
+- RB now skips superseded cases too.

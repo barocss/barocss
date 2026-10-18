@@ -1,0 +1,94 @@
+{
+  "id": "r7-subd-tetrahedron",
+  "step": "R7",
+  "decisions": [
+    "D78"
+  ],
+  "about": "Four triangles: n-gons whose face points are irregular beside irregular vertices, so two Catmull–Clark steps.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "tet",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                2,
+                1
+              ],
+              [
+                0,
+                1,
+                3
+              ],
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                0,
+                3,
+                2
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18.4064,
+          "relTol": 0.002
+        },
+        "centroidMM": {
+          "value": [
+            2.5,
+            2.5,
+            2.5
+          ],
+          "absTol": 0.01
+        },
+        "areaMM2": {
+          "value": 37.0416,
+          "relTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^tet\\.(cap|patch)\\d+_\\d+_\\d+$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  },
+  "oracle": "An independent Catmull–Clark written for this purpose (any polygon, OpenSubdiv sharp-edge rules), refined 5 and 6 times (the dart torus 4 and 5), each vertex taken to its limit position (smooth, crease and corner masks), the triangle mesh's volume, area and centroid extrapolated by Richardson (x6 + (x6 − x5)/3). The tolerance (2e-3) is the caps' deviation from the limit, not the oracle's error."
+}

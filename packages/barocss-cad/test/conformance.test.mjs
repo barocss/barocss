@@ -12,6 +12,8 @@ const base = name => name.replace(/#\d+$/, '');
 
 for (const file of cases) {
   const c = JSON.parse(readFileSync(file, 'utf8'));
+  // (A case a later step superseded stays as the record of what that step promised; it is not run.)
+  if (c.supersededBy) continue;
   test(`conformance ${c.id}: ${c.about}`, () => {
     assert.equal(`${c.step.toLowerCase()}-${file.split('/').pop().replace(/\.json$/, '')}`, c.id, 'id matches the file');
     if (c.expect.error) {

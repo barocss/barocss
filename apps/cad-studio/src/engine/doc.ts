@@ -491,7 +491,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
     case 'mesh': return `Mesh ${node.name}`;
-    case 'subd': return `SubD ${node.name} (${node.cage.faces.length} quads)`;
+    case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
     case 'gear': return `${node.helixAngle || (node.mesh && nodes?.[node.mesh.gear]?.kind === 'gear' && helical(nodes, node.mesh.gear)) ? 'Helical gear mn' : 'Spur gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;

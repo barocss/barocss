@@ -90,5 +90,9 @@
       "code": "CAPABILITY",
       "messageIncludes": "extraordinary"
     }
+  },
+  "supersededBy": {
+    "step": "R7",
+    "why": "R7 (D78) builds extraordinary vertices: see r7-subd-cube."
   }
 }

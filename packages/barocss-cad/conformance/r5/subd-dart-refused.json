@@ -1188,5 +1188,9 @@
       "code": "CAPABILITY",
       "messageIncludes": "dart"
     }
+  },
+  "supersededBy": {
+    "step": "R7",
+    "why": "R7 (D78) builds darts: see r7-subd-dart-torus."
   }
 }

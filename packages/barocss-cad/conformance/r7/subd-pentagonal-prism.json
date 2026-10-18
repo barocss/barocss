@@ -1,0 +1,136 @@
+{
+  "id": "r7-subd-pentagonal-prism",
+  "step": "R7",
+  "decisions": [
+    "D78"
+  ],
+  "about": "A pentagonal prism: two pentagons (face points of valence 5) and ten vertices of valence 3; two steps; exact patches between the caps.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              10,
+              0,
+              0,
+              3.09017,
+              9.510565,
+              0,
+              -8.09017,
+              5.877853,
+              0,
+              -8.09017,
+              -5.877853,
+              0,
+              3.09017,
+              -9.510565,
+              0,
+              10,
+              0,
+              10,
+              3.09017,
+              9.510565,
+              10,
+              -8.09017,
+              5.877853,
+              10,
+              -8.09017,
+              -5.877853,
+              10,
+              3.09017,
+              -9.510565,
+              10
+            ],
+            "faces": [
+              [
+                4,
+                3,
+                2,
+                1,
+                0
+              ],
+              [
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              [
+                0,
+                1,
+                6,
+                5
+              ],
+              [
+                1,
+                2,
+                7,
+                6
+              ],
+              [
+                2,
+                3,
+                8,
+                7
+              ],
+              [
+                3,
+                4,
+                9,
+                8
+              ],
+              [
+                4,
+                0,
+                5,
+                9
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 940.8498,
+          "relTol": 0.002
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 0.01
+        },
+        "areaMM2": {
+          "value": 485.211,
+          "relTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^p\\.(cap|patch)\\d+_\\d+_\\d+$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  },
+  "oracle": "An independent Catmull–Clark written for this purpose (any polygon, OpenSubdiv sharp-edge rules), refined 5 and 6 times (the dart torus 4 and 5), each vertex taken to its limit position (smooth, crease and corner masks), the triangle mesh's volume, area and centroid extrapolated by Richardson (x6 + (x6 − x5)/3). The tolerance (2e-3) is the caps' deviation from the limit, not the oracle's error."
+}

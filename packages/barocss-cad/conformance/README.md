@@ -34,7 +34,9 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
     // keep their total volume and area to relTol.
     "stepRoundTrip": { "relTol": 1e-6 }
   },
-  "oracle": "how the expected values were obtained (closed form, an independent tool, or this kernel)"
+  "oracle": "how the expected values were obtained (closed form, an independent tool, or this kernel)",
+  // Optional: a later step changed what this case pins (a refusal it now builds). Kept as the record; not run.
+  "supersededBy": { "step": "R7", "why": "…" }
 }
 ```
 

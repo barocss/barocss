@@ -229,3 +229,18 @@ test('Helical gear (R6a.5c, D59–D60): β 20° right hand from the command — 
   assert.equal(k.rack?.spec.hand, 'left');
   assert.ok(k.notes!.some(n => /^Helical rack β 20° left hand/.test(n.text)) && k.notes!.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(k.notes));
 });
+
+test('SubD box (SD2, D78): a box cage, its eight corners extraordinary — one body of G1 caps and exact patches inside the box, rounder with fewer quads; editable as values', () => {
+  const box = make('subd-box', { w: 30, d: 20, h: 16, n: 3, x: 0, y: 0, z: 0 });
+  const v3 = box.volumeMM3!;
+  assert.ok(v3 < 30 * 20 * 16 && v3 > 0.6 * 30 * 20 * 16, String(v3));
+  const b = box.mesh.bounds;
+  // (Inside its box, touching its sides: a flat cage face's middle has a flat limit.)
+  assert.ok([0, 1, 2].every(k => b.min[k] >= [-15, -10, 0][k] - 1e-9 && b.max[k] <= [15, 10, 16][k] + 1e-9), JSON.stringify(b));
+  assert.ok(box.mesh.faces.some(f => /^n0\.cap/.test(f.name)) && box.mesh.faces.some(f => /^n0\.patch/.test(f.name)), box.mesh.faces.map(f => f.name).slice(0, 6).join(' '));
+  // More quads along a side: closer to the box.
+  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 6, x: 0, y: 0, z: 0 }).volumeMM3! > v3);
+  assert.ok(make('subd-box', { w: 30, d: 20, h: 16, n: 1, x: 0, y: 0, z: 0 }).volumeMM3! < v3);
+  const cmd = commands.find(c => c.id === 'subd-box')!, node = cmd.build!(ctx, { ...cmd.defaults!(ctx), n: 2 }).nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
+  assert.deepEqual([node.cage.faces.length, node.cage.positions.length / 3], [24, 26]);
+});

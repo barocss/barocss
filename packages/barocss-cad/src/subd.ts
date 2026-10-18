@@ -9,10 +9,13 @@
 // surface limit), clamped by knot insertion; their edges are runs of cage edges between the corners of either face,
 // each made once, so neighbouring faces share it exactly.
 //
-// Extraordinary vertices (valence ≠ 4), n-gons and darts (a crease ending inside the surface) are refused as
-// CAPABILITY: they arrive with SD2 (R7: a local Catmull–Clark step and G1 caps).
+// Extraordinary vertices (valence ≠ 4), n-gons and darts (a crease ending inside the surface) are SD2's (R7,
+// subd-sd2.ts): a Catmull–Clark step, then G1 caps at those vertices; the quads away from them stay exact here.
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
+import { buildCaps, capKnots, polyMesh, refine, SubdError, type Cap, type PolyMesh } from './subd-sd2.js';
+
+export { SubdError } from './subd-sd2.js';
 
 export interface SubdCage {
   /** x, y, z per vertex (mm). */
@@ -22,9 +25,10 @@ export interface SubdCage {
   /** Infinitely sharp edges, as pairs of vertex numbers. */
   readonly creases?: readonly (readonly [number, number])[];
 }
-export interface SubdOptions { readonly id?: string }
-export class SubdError extends Error {
-  constructor(readonly code: 'INPUT' | 'CAPABILITY', detail: string) { super(`SubD: ${detail}`); this.name = 'SubdError'; }
+export interface SubdOptions {
+  readonly id?: string;
+  /** SD2: at least this many Catmull–Clark steps where the cage is not regular (1 or 2): two make the caps a quarter the area, nearer the limit, at four times the faces. */
+  readonly steps?: 1 | 2;
 }
 
 /** The most quads along a face's side: 13 spans are 16 poles, the surface's limit. */
@@ -34,23 +38,52 @@ type P3 = [number, number, number];
 /** The cage's topology: each face's neighbour across each side, which sides are sharp, and each vertex's checks. */
 interface Topo { nv: number; F: number[][]; across: Int32Array; sharp: Uint8Array; P: Float64Array }
 
-export function subdBrep(cage: SubdCage, options: SubdOptions = {}): Brep {
-  const id = (options.id ?? 'subd').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
-  let t = topology(cage);
-  // (A closed cage wound inward is turned outward: each face's corners the other way round.)
-  if (!t.across.some(x => x < 0) && cageVolume(t) < 0) t = topology({ ...cage, faces: cage.faces.map(f => [...f].reverse()) });
-  const blocks = packBlocks(t);
-  return assemble(id, t, blocks);
-}
+export function subdBrep(cage: SubdCage, options: SubdOptions = {}): Brep { return buildSubd(cage, options).brep; }
 
-function topology(cage: SubdCage): Topo {
+/** What the build did: Catmull–Clark steps taken, the caps (by refined face) and the refined cage, for the report. */
+/** A face's side along an edge: its block (the B-rep face of the same index), side, first cell and cells. */
+export interface EdgeRun { readonly face: number; readonly side: number; readonly q0: number; readonly count: number; readonly K: number; readonly L: number }
+export interface SubdBuild {
+  readonly brep: Brep; readonly steps: number; readonly caps: ReadonlyMap<number, Cap>; readonly mesh: PolyMesh | null; readonly labels: readonly string[] | null;
+  readonly sharpEdges: ReadonlySet<string>; readonly runs: ReadonlyMap<string, EdgeRun[]>;
+  /** The quad cage the faces were built from (refined, turned outward). */
+  readonly quads: SubdCage;
+  /** Each B-rep face's quads: the cage face, its frame and its place in the face's grid. */
+  readonly cells: readonly { readonly face: number; readonly r: number; readonly i: number; readonly j: number }[][];
+}
+export function buildSubd(cage: SubdCage, options: SubdOptions = {}): SubdBuild {
+  const id = (options.id ?? 'subd').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
+  const first = polyMesh(cage);
+  if (first.F.every(f => f.length === 4) && first.fans.every(f => !f || f.regular)) {
+    // SD1: regular everywhere, the cage is the B-spline net.
+    let t = topology(cage), quads = cage;
+    // (A closed cage wound inward is turned outward: each face's corners the other way round.)
+    if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...cage, faces: cage.faces.map(f => [...f].reverse()) }; t = topology(quads); }
+    const blocks = packBlocks(t, new Map()), sharpEdges = new Set<string>(), runs = new Map<string, EdgeRun[]>();
+    return { brep: assemble(id, t, blocks, null, sharpEdges, runs), steps: 0, caps: new Map(), mesh: null, labels: null, sharpEdges, runs, cells: cellsOf(blocks), quads };
+  }
+  // SD2: one Catmull–Clark step; a second when a quad would hold two irregular corners.
+  let r = refine(first), steps = 1, mesh = polyMesh(r.cage);
+  if (twoIrregular(mesh) || options.steps === 2) { r = refine(mesh, r.labels); steps = 2; mesh = polyMesh(r.cage); }
+  let quads: SubdCage = r.cage;
+  let t = topology(quads, false);
+  if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...quads, faces: quads.faces.map(f => [...f].reverse()) }; t = topology(quads, false); mesh = polyMesh(quads); }
+  let lo = Infinity, hi = -Infinity; for (let i = 0; i < t.P.length; i++) { lo = Math.min(lo, t.P[i]); hi = Math.max(hi, t.P[i]); }
+  const caps = buildCaps(mesh, hi - lo), blocks = packBlocks(t, caps), sharpEdges = new Set<string>(), runs = new Map<string, EdgeRun[]>();
+  return { brep: assemble(id, t, blocks, r.labels, sharpEdges, runs), steps, caps, mesh, labels: r.labels, sharpEdges, runs, cells: cellsOf(blocks), quads };
+}
+const cellsOf = (blocks: Block[]) => blocks.map(b => b.grid.flatMap((row, j) => row.map((p, i) => ({ face: p.face, r: p.r, i, j }))));
+/** Whether some quad has two irregular corners. */
+function twoIrregular(m: PolyMesh): boolean { return m.F.some(f => f.filter(v => !m.fans[v]!.regular).length > 1); }
+
+function topology(cage: SubdCage, check = true): Topo {
   const P = Float64Array.from(cage.positions), nv = P.length / 3;
   if (!Number.isInteger(nv) || nv < 4) throw new SubdError('INPUT', 'the cage needs x, y, z for at least four vertices');
   for (let i = 0; i < P.length; i++) if (!Number.isFinite(P[i])) throw new SubdError('INPUT', 'a cage position is not a finite number');
   const F = cage.faces.map(f => [...f]);
   if (!F.length) throw new SubdError('INPUT', 'the cage has no faces');
   F.forEach((f, k) => {
-    if (f.length !== 4) throw new SubdError('CAPABILITY', `face ${k} has ${f.length} sides: n-gons arrive with SD2 (only quads yet)`);
+    if (f.length !== 4) throw new SubdError('CAPABILITY', `face ${k} has ${f.length} sides (SD1 takes quads; SD2 the rest)`);
     for (const v of f) if (!Number.isInteger(v) || v < 0 || v >= nv) throw new SubdError('INPUT', `face ${k} names vertex ${v}, not one of the ${nv}`);
     if (new Set(f).size !== 4) throw new SubdError('INPUT', `face ${k} repeats a vertex`);
   });
@@ -72,7 +105,7 @@ function topology(cage: SubdCage): Topo {
   const sharp = new Uint8Array(4 * F.length);
   F.forEach((f, k) => f.forEach((a, s) => { const b = f[(s + 1) % 4]; if (across[4 * k + s] < 0 || creases.has(Math.min(a, b) * nv + Math.max(a, b))) sharp[4 * k + s] = 1; }));
   const t: Topo = { nv, F, across, sharp, P };
-  checkVertices(t);
+  if (check) checkVertices(t);
   return t;
 }
 
@@ -96,11 +129,11 @@ function checkVertices(t: Topo): void {
     if (sh === valence && valence >= 2 && (open || valence >= 3)) continue; // a corner: every face's corner its own
     if (open) {
       if (sh === 2 && (valence === 3 || valence === 2) && faces === valence - 1) continue;
-      throw new SubdError('CAPABILITY', `boundary vertex ${v} has ${valence} edges${sh > 2 ? `, ${sh} of them sharp` : ''}: only 3 (or 2 at a corner) are regular yet; extraordinary vertices arrive with SD2`);
+      throw new SubdError('CAPABILITY', `boundary vertex ${v} has ${valence} edges${sh > 2 ? `, ${sh} of them sharp` : ''}: not regular (SD2's)`);
     }
-    if (valence !== 4) throw new SubdError('CAPABILITY', `vertex ${v} has ${valence} edges (extraordinary): SD1 takes only regular vertices (4 edges); extraordinary vertices arrive with SD2`);
+    if (valence !== 4) throw new SubdError('CAPABILITY', `vertex ${v} has ${valence} edges (extraordinary: SD2's)`);
     if (sh === 0) continue;
-    if (sh === 1) throw new SubdError('CAPABILITY', `vertex ${v} ends a crease inside the surface (a dart): darts arrive with SD2`);
+    if (sh === 1) throw new SubdError('CAPABILITY', `vertex ${v} ends a crease inside the surface (a dart: SD2's)`);
     if (sh === 2 && opposite(t, v)) continue;
     throw new SubdError('CAPABILITY', `vertex ${v} has ${sh} sharp edges that do not run straight through it: only a crease line through it, or every edge sharp (a corner), is regular yet`);
   }
@@ -135,17 +168,21 @@ function step(t: Topo, p: Placed, side: number): Placed | null {
  * and no quad turned more than a right angle from the seed's (a face stays a graph over its plane: its outer loop
  * then tells its side, as the validator reads it).
  */
-interface Block { grid: Placed[][]; seed: number }
-function packBlocks(t: Topo): Block[] {
+interface Block { grid: Placed[][]; seed: number; cap?: Cap }
+function packBlocks(t: Topo, caps: ReadonlyMap<number, Cap>): Block[] {
   const taken = new Int32Array(t.F.length).fill(-1), blocks: Block[] = [];
+  // (A cap is a block of its own quad, in its frame from the irregular corner; no regular block grows into one.)
+  for (const f of caps.keys()) taken[f] = -2;
   for (let seed = 0; seed < t.F.length; seed++) {
+    const cap = caps.get(seed);
+    if (cap) { taken[seed] = blocks.length; blocks.push({ grid: [[{ face: seed, r: cap.r }]], seed, cap }); continue; }
     if (taken[seed] >= 0) continue;
     const mine = new Set<number>([seed]), row: Placed[] = [{ face: seed, r: 0 }], n0 = quadNormal(t, seed);
-    for (let next = step(t, row[0], 1); next && row.length < BLOCK && taken[next.face] < 0 && !mine.has(next.face) && !touchesRow(t, next, mine, 1) && dot3(quadNormal(t, next.face), n0) > 0; next = step(t, next, 1)) { row.push(next); mine.add(next.face); }
+    for (let next = step(t, row[0], 1); next && row.length < BLOCK && taken[next.face] === -1 && !mine.has(next.face) && !touchesRow(t, next, mine, 1) && dot3(quadNormal(t, next.face), n0) > 0; next = step(t, next, 1)) { row.push(next); mine.add(next.face); }
     const grid: Placed[][] = [row];
     while (grid.length < BLOCK) {
       const up: Placed[] = [];
-      for (const p of grid[grid.length - 1]) { const q = step(t, p, 2); if (!q || taken[q.face] >= 0 || mine.has(q.face) || up.some(x => x.face === q.face) || !(dot3(quadNormal(t, q.face), n0) > 0)) break; up.push(q); }
+      for (const p of grid[grid.length - 1]) { const q = step(t, p, 2); if (!q || taken[q.face] !== -1 || mine.has(q.face) || up.some(x => x.face === q.face) || !(dot3(quadNormal(t, q.face), n0) > 0)) break; up.push(q); }
       if (up.length !== row.length || !rowConsistent(t, up) || touchesRow(t, up[0], mine, 2, up)) break;
       grid.push(up); for (const p of up) mine.add(p.face);
     }
@@ -249,21 +286,25 @@ function blockNet(t: Topo, b: Block): P3[][] {
   return net;
 }
 
-function assemble(id: string, t: Topo, blocks: Block[]): Brep {
+function assemble(id: string, t: Topo, blocks: Block[], labels: readonly string[] | null, sharpEdges: Set<string>, edgeRuns: Map<string, EdgeRun[]>): Brep {
   // Which block (and where in it) each face is.
   const blockOf = new Int32Array(t.F.length), at = new Int32Array(2 * t.F.length);
   blocks.forEach((b, k) => b.grid.forEach((row, j) => row.forEach((p, i) => { blockOf[p.face] = k; at[2 * p.face] = i; at[2 * p.face + 1] = j; })));
-  const nets = blocks.map(b => blockNet(t, b));
+  const nets = blocks.map(b => b.cap ? null : blockNet(t, b));
   const vertexIds = new Map<number, string>(), vertices: { id: string; point: Point }[] = [];
   const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [], edgeOf = new Map<number, { id: string; from: number }>();
   const faces: BrepFaceInput[] = [];
   const vertexAt = (cv: number, p: P3) => { let v = vertexIds.get(cv); if (!v) { v = `${id}_v${cv}`; vertexIds.set(cv, v); vertices.push({ id: v, point: [p[0], p[1], p[2]] }); } return v; };
   blocks.forEach((b, k) => {
     const net = nets[k], K = b.grid[0].length, L = b.grid.length;
-    // The face: the net clamped along u (each v column), then along v (each u row).
-    const cols: P3[][] = []; for (let c = 0; c < L + 3; c++) cols.push(clamp(net.map(row => row[c])));
-    const control: Point[][] = []; for (let a = 0; a < K + 3; a++) control.push(clamp(cols.map(col => col[a])).map(p => [p[0], p[1], p[2]] as Point));
-    const surface: Surface = { kind: 'surface', id: `${id}_s${k}`, degreeU: 3, degreeV: 3, knotsU: clampedKnots(K), knotsV: clampedKnots(L), controlPoints: control, weights: control.map(r => r.map(() => 1)) };
+    let surface: Surface;
+    if (b.cap) surface = { kind: 'surface', id: `${id}_s${k}`, degreeU: 3, degreeV: 3, knotsU: capKnots(b.cap.tau), knotsV: capKnots(b.cap.tau), controlPoints: b.cap.poles.map(r => r.map(p => [p[0], p[1], p[2]] as Point)), weights: b.cap.poles.map(r => r.map(() => 1)) };
+    else {
+      // The face: the net clamped along u (each v column), then along v (each u row).
+      const cols: P3[][] = []; for (let c = 0; c < L + 3; c++) cols.push(clamp(net!.map(row => row[c])));
+      const control: Point[][] = []; for (let a = 0; a < K + 3; a++) control.push(clamp(cols.map(col => col[a])).map(p => [p[0], p[1], p[2]] as Point));
+      surface = { kind: 'surface', id: `${id}_s${k}`, degreeU: 3, degreeV: 3, knotsU: clampedKnots(K), knotsV: clampedKnots(L), controlPoints: control, weights: control.map(r => r.map(() => 1)) };
+    }
     // Its boundary, counter-clockwise in (u, v): each side in runs that end at a corner of this block or the one across.
     const uses: { edge: string; sense: 'forward' | 'reversed' }[] = [];
     for (let side = 0; side < 4; side++) {
@@ -281,21 +322,31 @@ function assemble(id: string, t: Topo, blocks: Block[]): Brep {
         const key = edgeKey(t, cells[run.cells[0]], side, run.cells.length);
         let e = edgeOf.get(key);
         if (!e) {
-          const curve = runCurve(net, K, L, side, run.cells[0], run.cells.length, `${id}_e${edges.length}`);
+          const curve = b.cap ? capCurve(b.cap, side, `${id}_e${edges.length}`) : runCurve(net!, K, L, side, run.cells[0], run.cells.length, `${id}_e${edges.length}`);
+          { const p = cells[run.cells[0]]; if (t.sharp[4 * p.face + (p.r + side) % 4]) sharpEdges.add(curve.id); }
           const p0 = curve.controlPoints[0], p1 = curve.controlPoints[curve.controlPoints.length - 1];
           e = { id: curve.id, from: run.from };
           edges.push({ id: curve.id, curve, vertices: [vertexAt(run.from, p0 as P3), vertexAt(run.to, p1 as P3)] });
           edgeOf.set(key, e);
         }
         uses.push({ edge: e.id, sense: e.from === run.from ? 'forward' : 'reversed' });
+        const list = edgeRuns.get(e.id) ?? []; list.push({ face: k, side, q0: run.cells[0], count: run.cells.length, K, L }); edgeRuns.set(e.id, list);
       }
     }
-    faces.push({ id: `${id}_f${k}`, name: `${id}.patch${b.seed}`, surface, sense: 'forward', loops: [{ kind: 'outer', uses }] });
+    faces.push({ id: `${id}_f${k}`, name: `${id}.${b.cap ? 'cap' : 'patch'}${labels ? labels[b.seed] : b.seed}`, surface, sense: 'forward', loops: [{ kind: 'outer', uses }] });
   });
   const open = t.across.some(x => x < 0);
   // A closed body outward: the cage wound inward is turned (its faces reversed).
   const brep = buildBrep({ source: { family: 'subd', id }, vertices, edges, bodies: [{ id, kind: open ? 'sheet' : 'solid', shells: [{ id: `${id}_shell`, faces, closed: !open }] }] });
   return brep;
+}
+/** A cap's side as its boundary curve, running the loop's way (knots 0 0 0 0 τ τ 1 1 1 1, or 1 − τ run back). */
+function capCurve(cap: Cap, side: number, id: string): Curve {
+  const P = cap.poles, line: Point[] = [];
+  for (let a = 0; a < 6; a++) line.push(side === 0 ? P[a][0] : side === 1 ? P[5][a] : side === 2 ? P[5 - a][5] : P[0][5 - a]);
+  // (Running back along u or v, the knot sits at 1 − τ.)
+  const knots = side < 2 ? capKnots(cap.tau) : capKnots(1 - cap.tau);
+  return { kind: 'curve', id, degree: 3, knots, controlPoints: line.map(p => [p[0], p[1], p[2]] as Point), weights: line.map(() => 1) };
 }
 /** Whether a face's side ends at a corner of the block across (its neighbour along the side is in another block). */
 function isBlockCorner(t: Topo, blocks: Block[], blockOf: Int32Array, at: Int32Array, p: Placed, side: number): boolean {

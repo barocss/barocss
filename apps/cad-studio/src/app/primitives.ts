@@ -32,6 +32,23 @@ function torusCage(R: number, r: number, nu: number, nv: number, [x, y, z]: [num
   for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) faces.push([at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1)]);
   return { positions, faces };
 }
+/**
+ * A box's cage (SD2, D78): w × d × h on its surface lattice of `n` quads along each side, wound outward; its eight
+ * corners valence 3 (extraordinary). More quads, a squarer limit (rounder edges with fewer).
+ */
+export function boxCage(w: number, d: number, h: number, n: number, [x, y, z]: [number, number, number]) {
+  const at = new Map<string, number>(), positions: number[] = [], faces: number[][] = [];
+  const vertex = (p: number[]) => { const key = p.join(','); let i = at.get(key); if (i === undefined) { i = positions.length / 3; at.set(key, i); positions.push(x - w / 2 + p[0] * w / n, y - d / 2 + p[1] * d / n, z + p[2] * h / n); } return i; };
+  // Each side: its fixed axis a at 0 or n; (b, c) with e_b × e_c outward.
+  for (const a of [0, 1, 2]) for (const s of [0, n]) {
+    const [b, c] = s ? [(a + 1) % 3, (a + 2) % 3] : [(a + 2) % 3, (a + 1) % 3];
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const p = (u: number, v: number) => { const q = [0, 0, 0]; q[a] = s; q[b] = u; q[c] = v; return vertex(q); };
+      faces.push([p(i, j), p(i + 1, j), p(i + 1, j + 1), p(i, j + 1)]);
+    }
+  }
+  return { positions, faces };
+}
 const circleLoop = (cx: number, cy: number, r: number): LoopSegment[] => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
 
 type V3 = [number, number, number];
@@ -142,6 +159,18 @@ export const primitives: Command[] = [
       const [R, r] = n(v, 'R', 'r');
       if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
       return withNode(ctx.doc, { kind: 'subd', name: 'torus', cage: torusCage(R, r, Math.round(Number(v.nu)), Math.round(Number(v.nv)), n(v, 'x', 'y', 'z') as [number, number, number]) });
+    },
+  },
+  {
+    id: 'subd-box', label: 'SubD box', icon: 'cad-subd', hint: 'A smooth block from a box cage (SubD): exact B-spline faces, G1 caps at its eight corners (extraordinary vertices)', group: 'create', keywords: 'subd subdivision smooth cage organic box block rounded freeform pebble',
+    available: () => ok,
+    fields: () => [{ key: 'w', label: 'Width X', kind: 'mm', min: 1 }, { key: 'd', label: 'Depth Y', kind: 'mm', min: 1 }, { key: 'h', label: 'Height Z', kind: 'mm', min: 1 }, { key: 'n', label: 'Quads along a side', kind: 'count', min: 1, max: 12 }, ...at],
+    defaults: ctx => ({ w: 30, d: 20, h: 16, n: 3, ...beside(ctx, 15) }),
+    place: centred,
+    handles: (_, v) => { const [w, d, h, x, y, z] = n(v, 'w', 'd', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('w', [x + w / 2, y, z + h / 2], X, { min: 1 }), arrow('d', [x, y + d / 2, z + h / 2], Y, { min: 1 }), arrow('h', [x, y, z + h], Z, { min: 1 })]; },
+    build: (ctx, v) => {
+      const [w, d, h] = n(v, 'w', 'd', 'h');
+      return withNode(ctx.doc, { kind: 'subd', name: 'box', cage: boxCage(w, d, h, Math.round(Number(v.n)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
   {

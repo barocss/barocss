@@ -155,10 +155,11 @@ export type CadPartFeature = Base & (
    * two of them within `tolerance` mm); the faces keep their exact surfaces.
    */
   /**
-   * SD1 (R5): a SubD cage — quads counter-clockwise from outside, optional infinitely sharp creases — as its exact
-   * limit surface (OpenSubdiv rules; boundary edges and corners interpolated): bicubic B-spline faces
-   * `${id}.patch<k>`, a solid when the cage is closed, a sheet when it has a boundary. Regular vertices only yet
-   * (extraordinary vertices, n-gons and darts arrive with SD2).
+   * SD1 (R5): a SubD cage — faces counter-clockwise from outside, optional infinitely sharp creases — as its limit
+   * surface (OpenSubdiv rules; boundary edges and corners interpolated): bicubic B-spline faces `${id}.patch<k>`, a
+   * solid when the cage is closed, a sheet when it has a boundary. SD2 (R7): with extraordinary vertices, n-gons or
+   * darts, one or two Catmull–Clark steps, exact faces `${id}.patch<label>` away from them and G1 caps
+   * `${id}.cap<label>` at them.
    */
   | { readonly kind: 'subd'; readonly cage: { readonly positions: readonly number[] | Float64Array; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] } }
   | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
