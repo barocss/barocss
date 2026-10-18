@@ -1899,3 +1899,67 @@ Evidence:
   9860 mm³. The stop-a-long-Boolean step now unites two meshes, still F0's path, since a hole is no longer slow.
   - A full run was 113/114. The new step read the properties panel before it changed, so it now waits for the ring;
     it was rerun with its neighbours.
+
+## D53 — R6a.1–2: the involute spur gear's first stage — dimensions, the profile with a measured fit, the solid and bore (2026-10-18, issue #2167)
+
+This follows owner issue [#2167](https://github.com/barocss/barocss/issues/2167) (GEAR-01/02) and its points as the
+peer relayed them; they take precedence over the first gear brief.
+
+Decision (`gear.ts`: `spurGearDimensions`, `spurGearProfile`, `spurGear`, `spurGearPairNominal`):
+- **Scope of this stage.** External, parallel axes, straight teeth, α = 20°, x = 0. Everything else is refused with
+  its code, never approximated:
+  - another pressure angle: UNSUPPORTED_GEAR_KIND;
+  - x ≠ 0: UNSUPPORTED_PROFILE_SHIFT;
+  - an undercut tooth count, z < 2/sin²α ≈ 17.1: UNSUPPORTED_PROFILE_SHIFT, saying the shift that would avoid it,
+    x = 1 − z/z_min;
+  - more than 200 teeth: INVALID_INPUT;
+  - any other root policy: INVALID_INPUT.
+- **Formulas.** Textbook involute geometry, with KHK's technical reference cited in the issue as provenance; no
+  standard text.
+  - d = mz, db = d cos α, da = d + 2m, df = d − 2.5m.
+  - s = πm/2 − Δs, where Δs is the gear's `toothThicknessReductionMM` at the reference circle.
+  - The half thickness at radius r is ψ(r) = s/d + inv α − inv φ(r).
+  - A tooth coming to a point below its tip, or teeth meeting at the root: SELF_INTERSECTION.
+- **Flanks.**
+  - Each flank is a cubic B-spline of C¹ Hermite pieces on the involute's roll parameter, X(t) = rb(cos t + t sin t),
+    Y(t) = rb(sin t − t cos t).
+  - It takes the fewest pieces meeting `profileToleranceMM` (default 1e-4·m), at most 5: a side face holds 16 poles.
+  - The deviation is measured, as the distance along the circle to the involute at the same radius (a bound), and
+    reported apart from any render chord. Past 5 pieces: PROFILE_BUDGET_EXCEEDED, never a looser tolerance.
+  - The S0 check: 3 pieces give ≤ 2.6e-5·m and 5 give ≤ 3.7e-6·m, at z 18–200.
+- **Root.** The involute is never carried below the base circle. Where the root circle lies under it (z < 42 here), a
+  radial line joins them, then the root arc; above, the flank meets the root arc at a corner. Either way the report
+  says `rootPolicy: 'schematic-radial'`, `manufacturingValidated: false` and gives the warning
+  ROOT_TRANSITION_UNVALIDATED. Tool-generated roots come last (GEAR-05).
+- **Solid.**
+  - The profile is extruded through the face width by a B-rep built directly: side faces are the curves extruded; the
+    end faces are planar with the profile and the bore as loops.
+  - Faces: `<id>.flankL#k`, `.flankR#k`, `.tip#k`, `.root#k`, the radial joins `.rootL#k` / `.rootR#k`, `.face0` /
+    `.face1`, `.bore#1/#2`.
+  - The bore must leave `minimumRimMM` (default 1 m) below the root circle; else BORE_INTERSECTION, giving the
+    largest allowed. That is a geometric margin, not a strength claim.
+- **Pair, nominal values only.** `spurGearPairNominal`:
+  - a = m(z1 + z2)/2 and the speed ratio −z1/z2;
+  - the ideal transverse εα by the formula;
+  - backlash Δs1 + Δs2 at that centre distance;
+  - differing modules or angles: MATE_INCOMPATIBLE.
+  - The real pair checks (phase, clearance over a rotation, the usable flank) are R6a.4.
+
+Evidence — kernel `test/gear.test.mjs` 5/5:
+- **The issue's fixture (m 2, z 20/40):**
+  - d 40, db 37.5877048314 (1e-9), da 44, df 35;
+  - a 60, ratio −0.5, εα 1.6351859636 (1e-9);
+  - backlash 0.05 + 0.07 = 0.12;
+  - MATE_INCOMPATIBLE for module 2.5.
+- **Solids** m2 z20, m2 z40 with bore and reduction, m1 z60, m3 z18 with bore:
+  - valid;
+  - volume equal to the exact profile's area × b, the area by Green's theorem over the analytic involute densely
+    sampled, apart from the generator, to within 2z·deviation·flank length·b (observed 4e-7 to 5e-6 relative);
+  - names per tooth.
+- **Tolerance:** 1e-2 takes fewer pieces than 1e-5; 1e-9 is PROFILE_BUDGET_EXCEEDED. The schematic root is reported.
+- **Every refusal code,** with the undercut shift x = 0.298 for z 12 and the largest bore Ø31.
+- **STEP round trip:** the same volume to 1e-6, the names kept.
+- **Times:** 1–3 ms a gear (z 18–60).
+
+Next: R6a.3 — the part feature (persisted with its generator version), the studio's Gear command, export, and
+conformance fixtures from the issue's values.
