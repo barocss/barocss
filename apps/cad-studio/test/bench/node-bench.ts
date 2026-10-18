@@ -3,7 +3,7 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepMassProperties, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepFromTriangles, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
 import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
@@ -148,6 +148,16 @@ const scenarios: Scenario[] = [
     const cmd = commands.find(c => c.id === 'subd-torus')!;
     const outs = Array.from({ length: 4 }, (_, k) => evaluateCadPart(toPartDocument(cmd.build!(commandCtx, { ...cmd.defaults!(commandCtx), R: 20, r: 6, nu: 64, nv: 32, x: 1e-3 * k, y: 0, z: 0 }))).outputs[0]);
     let k = 0; return () => outs[k++ % outs.length].massProperties(2700);
+  } },
+  // (PERF3 B9: mesh bodies' mass and area, each run a B-rep of its own (they are kept per B-rep): facet faces, and the
+  // planar representation an STL opens as, a face per triangle here. Before: 17 ms; and 355 ms mass, 651 ms area.)
+  { name: 'mass: 200k-triangle facet body (cold)', budgetMS: 15, runs: 3, setup() {
+    const m = torusMesh(20, 5, 400, 250), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
+    let k = 0; return () => brepMassProperties(breps[k++ % breps.length], 1000, { segmentsPerQuarter: 32 });
+  } },
+  { name: 'mass and area: 40k-triangle planar mesh (cold)', budgetMS: 160, runs: 3, setup() {
+    const m = torusMesh(20, 5, 200, 100), breps = Array.from({ length: 4 }, (_, k) => brepFromTriangles(m.positions, m.indices, { id: `m${k}`, maximumTriangles: 1e6 }));
+    let k = 0; return () => { const b = breps[k++ % breps.length]; return [brepMassProperties(b, 1000, { segmentsPerQuarter: 32 }), brepSurfaceArea(b)]; };
   } },
   // (Gears, R6a: the pair check keeps its last 64 answers by its arguments, so each run a face width of its own, which the
   // 2D sweep does not read. The verdict on a clear pair, and the report on a pair that interferes, its costliest case.)

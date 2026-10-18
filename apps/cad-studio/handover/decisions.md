@@ -3609,3 +3609,43 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - Bench `viewport: 100 edge picks, 120-hole plate`: 0.3 ms, budget 1 ms (the walk took about 27 ms).
   - GPU 72/72.
 - **Left for C17:** `rayTriangles` still makes its `test` closure per call.
+- (B7 and B8 together: the browser flow, 119/119, on the tree with both and the hover fix.)
+
+### B9 — mesh bodies' mass and area
+- **Confirmed (cold, a fresh B-rep each call):**
+
+  | Mesh body | Mass, before | Area, before | How |
+  |---|---|---|---|
+  | 200k-triangle facet body | 16.9 ms | 5.7 ms | mass through a tessellation of every facet face; area by quadrature, already exact |
+  | 40k-triangle planar body (how an STL opens: a planar face per triangle when nothing is flat) | 355 ms | 651 ms | mass through a tessellation; area by Green quadrature, 48 points an edge |
+  | 4k-triangle planar body | 36.7 ms | 58.8 ms | the same |
+
+  - The F1 split's check (`volumeOfSolid`, part-model) works out the same volumes three times, with the quadrature off.
+- **Fix (`solid-mass.ts`):**
+  - `polyhedralIntegrals(brep)` covers a body whose every face is a facet patch, or a planar face bounded by straight edges.
+    - Its ten volume integrals and area are exact and need no tessellation: tetrahedra from the body's centre over each facet triangle (`facetIntegrals`) and over a fan of each planar loop.
+    - A fan's signed triangles cover the loop's region, holes and concave outlines too. The loops turn about the outward normal, so a face's area along it is positive; otherwise the function refuses (null) and the old path runs.
+    - Kept per B-rep in a WeakMap; a B-rep is a value.
+  - `brepMassProperties` and `brepSurfaceArea` try it first. The method stays `planar-exact`.
+  - Bodies with any curved face, or any curved edge on a planar face, take the old paths unchanged.
+- **After (cold):**
+
+  | Mesh body | Mass | Area | Again |
+  |---|---|---|---|
+  | 200k facets | 6.0 ms | 5.9 ms | 0.01 ms |
+  | 40k planar | 70 ms (half of it the id maps, once per B-rep) | 73 ms | |
+  | 4k planar | 4.5 ms | 4.5 ms | |
+
+  - Part model, 200k mesh with a split: 364 → 345 ms.
+- **Values:**
+  - On the toruses, volume equal to every printed digit, area within 2e-15 relative.
+  - Kernel test `mass-polyhedral.test.mjs` against tetrahedra over the input triangles (an independent sum in the test): volume 1e-12, centroid 1e-11 mm, inertia 1e-11, area 1e-12.
+  - A block with a square hole through it, as its closed form (volume, area, centroid).
+  - An L prism equal to the prismatic closed form, inertia within 1e-12.
+  - A cylinder keeps `quadrature`.
+  - Conformance `perf3/`: a square frame of 32 triangles, planar (10 faces, two with a hole) and as facets: 168 mm³, 280 mm², centroid (5, 5, 1), to 1e-12.
+- **Checks:**
+  - Kernel 1012/1013 (the known Node-version test); conformance 67/67.
+  - RB: no NEW row, the TODO rows the known ones.
+  - Studio 356/356.
+  - Benches `mass: 200k-triangle facet body (cold)` 6.25 ms (budget 15) and `mass and area: 40k-triangle planar mesh (cold)` 76 ms (budget 160).

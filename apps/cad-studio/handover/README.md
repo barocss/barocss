@@ -30,10 +30,11 @@ Done:
 - **PERF3 D19** (D82 § D19): eleven new benches (plate and SubD torus mass, gear verdict and interfering report, library fits, STEP 200k read, F1 200k, F2 20k, orientation 100k, printability, 3MF 200k), budgets about 2×.
 - **PERF3 B7** (D82 § B7): hover repaints only the faces whose state changed (`fillColors` ranges); plate hover 0.44 → 0.009 ms, 62 → 0.8 KiB; the hover now clears when the pointer leaves the canvas.
 - **PERF3 B8** (D82 § B8): edge picks through a segment hierarchy (`nearestSegment`, the same answers as the walk); 120-hole plate 0.267 → 0.014 ms a pick.
+- **PERF3 B9** (D82 § B9): mesh bodies' mass and area exactly from their triangles and loops, once per B-rep (`polyhedralIntegrals`); 40k planar mesh 355/651 → 70/73 ms, 200k facets 17 → 6 ms.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **B9–B13**: mesh-body mass via facetIntegrals and a WeakMap, F2 rebuild, mesh repair adjacency, worker reply payload, memory.
+   - **B10–B13**: F2 rebuild, mesh repair adjacency, worker reply payload, memory.
    - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
