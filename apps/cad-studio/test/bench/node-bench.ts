@@ -164,10 +164,10 @@ const scenarios: Scenario[] = [
     const m = torusMesh(20, 5, 200, 100), breps = Array.from({ length: 4 }, (_, k) => brepFromTriangles(m.positions, m.indices, { id: `m${k}`, maximumTriangles: 1e6 }));
     let k = 0; return () => { const b = breps[k++ % breps.length]; return [brepMassProperties(b, 1000, { segmentsPerQuarter: 32 }), brepSurfaceArea(b)]; };
   } },
-  // (Gears, R6a: the pair check keeps its last 64 answers by its arguments, so each run a face width of its own, which the
-  // 2D sweep does not read. The verdict on a clear pair, and the report on a pair that interferes, its costliest case.)
-  { name: 'gear: verdict, clear pair (m2, 20/40)', budgetMS: 450, runs: 3, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, { ...GEAR2, faceWidthMM: 10 + 1e-6 * ++k }, { mode: 'verdict' }); } },
-  { name: 'gear: report, interfering pair (a 59.8)', budgetMS: 11500, runs: 1, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, { ...GEAR2, faceWidthMM: 10 + 1e-6 * ++k }, { centerDistanceMM: 59.8, mode: 'report' }); } },
+  // (Gears, R6a: the pair check keeps its last 64 answers by its arguments (not the face widths, PERF3 C16), so each run
+  // a phase of its own, a billionth of a degree. The verdict on a clear pair, and the report on a pair that interferes.)
+  { name: 'gear: verdict, clear pair (m2, 20/40)', budgetMS: 300, runs: 3, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { mode: 'verdict', relativePhaseDeg: 1e-9 * ++k }); } },
+  { name: 'gear: report, interfering pair (a 59.8)', budgetMS: 2400, runs: 2, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, GEAR2, { centerDistanceMM: 59.8, mode: 'report', relativePhaseDeg: 1e-9 * ++k }); } },
   // (LIB2: every declared fit of the T-slot library built, placed and its overlap measured.)
   { name: 'library: tslot-20 fits (all)', budgetMS: 250, runs: 3, setup() { const lib = libraryById('tslot-20')!; return () => checkFits(lib); } },
   // (A tessellated STEP of 200k triangles read as the studio's worker reads it; F1 split and F2 hole on facet bodies,

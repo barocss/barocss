@@ -37,6 +37,7 @@ Done:
 - **PERF3 B13** (D82 § B13): recovery copy from per-node JSON (an edit beside a 200k inline mesh 36 → 0.8 ms; past the storage limit not tried); parameter rename copy-on-write; STEP meshes posted as typed arrays; STL weld 165 → 27 ms; uv and blob eviction measured, left (TODO).
 - **PERF3 C14** (D82 § C14): the outline's mask search only in the outlined meshes' screen box (pixel-identical); its GPU cost at DPR 2 2.1–3.6 → 0.9–1.1 ms a frame; `bench:browser` orbit with a body outlined.
 - **PERF3 C15** (D82 § C15): measured, no change — a 60-step handle drag in a production build: App re-renders 0.25 ms a move (1.6 ms script a move in all); the dev server's 16 ms a move is React's development JSX.
+- **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):

@@ -163,3 +163,14 @@ test('profile shift (R6a.5a, D57): KHK\'s shifted pair (m 3, z 12 and 24, x 0.6 
   close(r.output('b').gearPlacement.center[0], 56.4999, 1e-4, 'placed');
   assert.equal(checkPlacedSpurGears(r.output('a').gearPlacement, r.output('b').gearPlacement, { mode: 'verdict' }).sweep.interference, false);
 });
+
+test('PERF3 C16 pair check: the sweep kept whatever the face widths (it does not read them); each width\'s own axial and total contact ratios; a width out of range still refused when the pair is kept', () => {
+  const h1 = { normalModuleMM: 2, teeth: 18, faceWidthMM: 12, helixAngleDeg: 15, hand: 'right' }, h2 = { normalModuleMM: 2, teeth: 36, faceWidthMM: 12, helixAngleDeg: 15, hand: 'left' };
+  const a = checkSpurGearPair(h1, h2, { mode: 'verdict' }), t0 = performance.now(), b = checkSpurGearPair({ ...h1, faceWidthMM: 30 }, { ...h2, faceWidthMM: 25 }, { mode: 'verdict' }), kept = performance.now() - t0;
+  assert.deepEqual(b.sweep, a.sweep); assert.equal(b.usableContactRatio, a.usableContactRatio);
+  const nominal = spurGearPairNominal({ ...h1, faceWidthMM: 30 }, { ...h2, faceWidthMM: 25 });
+  assert.equal(b.axialContactRatio, nominal.axialContactRatio); assert.equal(b.totalContactRatio, b.usableContactRatio + nominal.axialContactRatio);
+  assert.ok(Math.abs(b.axialContactRatio / a.axialContactRatio - 25 / 12) < 1e-12);
+  assert.ok(kept < 5, `${kept} ms: the sweep was not kept`);
+  assert.throws(() => checkSpurGearPair({ ...h1, faceWidthMM: -1 }, h2, { mode: 'verdict' }), /faceWidthMM/);
+});

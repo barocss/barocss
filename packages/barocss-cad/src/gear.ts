@@ -403,14 +403,18 @@ export interface SpurGearPairCheck {
  * cross. A few frames are not proof: twice the samples must find the same least clearance (converged).
  */
 export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions = {}): SpurGearPairCheck {
-  // (The same pair, distance, phase and sweep again: the result kept — panels and checks ask often.)
-  const key = JSON.stringify([g1, g2, options.centerDistanceMM ?? null, options.relativePhaseDeg ?? 0, options.samples ?? 64, options.mode ?? 'report']);
-  const kept = pairCache.get(key);
-  if (kept) { pairCache.delete(key); pairCache.set(key, kept); return kept; }
-  const out = pairCheck(g1, g2, options);
-  pairCache.set(key, out); if (pairCache.size > 64) pairCache.delete(pairCache.keys().next().value!);
-  return out;
+  // (The same pair, distance, phase and sweep again: the result kept — panels and checks ask often. The face widths are
+  // left out of the key: the sweep is in the transverse plane and does not read them; only the axial and total contact
+  // ratios do, and those are worked out again for the widths asked. The widths are checked first, as the check would.)
+  const d1 = spurGearDimensions(g1); spurGearDimensions(g2);
+  const key = JSON.stringify([withoutWidth(g1), withoutWidth(g2), options.centerDistanceMM ?? null, options.relativePhaseDeg ?? 0, options.samples ?? 64, options.mode ?? 'report']);
+  let kept = pairCache.get(key);
+  if (kept) { pairCache.delete(key); pairCache.set(key, kept); }
+  else { kept = pairCheck(g1, g2, options); pairCache.set(key, kept); if (pairCache.size > 64) pairCache.delete(pairCache.keys().next().value!); }
+  const epsB = Math.min(g1.faceWidthMM, g2.faceWidthMM) * Math.abs(Math.sin(d1.beta)) / (Math.PI * d1.mn);
+  return epsB === kept.axialContactRatio ? kept : { ...kept, axialContactRatio: epsB, totalContactRatio: kept.usableContactRatio + epsB };
 }
+function withoutWidth(g: SpurGearSpec): Partial<SpurGearSpec> { const rest: Partial<SpurGearSpec> = { ...g }; delete rest.faceWidthMM; return rest; }
 const pairCache = new Map<string, SpurGearPairCheck>();
 function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions): SpurGearPairCheck {
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
@@ -490,7 +494,7 @@ function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P
   // Each side's segments near the other gear (within its tip circle and a little), once.
   const sa = nearSegments(A, a, 0, ra2 + 1), sb = nearSegments(B, 0, 0, ra1 + 1);
   let best = Infinity, crossed = false;
-  for (let i = 0; i < sa.length; i += 4) {
+  pairs: for (let i = 0; i < sa.length; i += 4) {
     const ax = sa[i], ay = sa[i + 1], bx = sa[i + 2], by = sa[i + 3];
     const x0 = Math.min(ax, bx), x1 = Math.max(ax, bx), y0 = Math.min(ay, by), y1 = Math.max(ay, by);
     for (let j = 0; j < sb.length; j += 4) {
@@ -498,7 +502,8 @@ function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P
       // (Boxes farther apart than the best so far: no nearer pair here, and no crossing.)
       const gx = Math.max(0, Math.min(cx, dx) - x1, x0 - Math.max(cx, dx)), gy = Math.max(0, Math.min(cy, dy) - y1, y0 - Math.max(cy, dy));
       if (gx * gx + gy * gy > best * best) continue;
-      if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) { if (verdict) return -1; crossed = true; best = 0; continue; }
+      // (Crossed: the answer is how deep, whatever else is nearer — the rest of the pairs need not be measured.)
+      if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) { if (verdict) return -1; crossed = true; break pairs; }
       best = Math.min(best, segmentDistance(ax, ay, bx, by, cx, cy, dx, dy));
     }
   }
@@ -546,16 +551,22 @@ export function segmentDistance(ax: number, ay: number, bx: number, by: number, 
  */
 function depthInside(sa: Float64Array, sb: Float64Array, a: number, ra1: number, ra2: number): number {
   let deep = 0;
-  for (const [X, Y, cx, ra] of [[sa, sb, a, ra2], [sb, sa, 0, ra1]] as const) for (let i = 0; i < X.length; i += 2) {
+  for (const [X, Y, cx, ra] of [[sa, sb, a, ra2], [sb, sa, 0, ra1]] as const) for (let i = 0, near = -1; i < X.length; i += 2) {
     const px = X[i], py = X[i + 1];
+    // (A segment's start is the end of the one before along a run: the same point, the same depth, measured once.)
+    if (i >= 2 && px === X[i - 2] && py === X[i - 1]) continue;
     // (Only a point within the other gear's tip circle can be inside it.)
     if ((px - cx) * (px - cx) + py * py >= ra * ra) continue;
-    let d = Infinity, side = 0;
+    // The nearest segment, the first of the nearest in order (as a walk from the first one finds it); started from the
+    // previous point's nearest, which is near, so that most boxes are passed over at once.
+    let d = Infinity, side = 0, at = -1;
+    if (near >= 0) { d = pointSegment(px, py, Y[near], Y[near + 1], Y[near + 2], Y[near + 3]); at = near; side = orient(Y[near], Y[near + 1], Y[near + 2], Y[near + 3], px, py); }
     for (let j = 0; j < Y.length; j += 4) {
       const gx = Math.max(0, Math.min(Y[j], Y[j + 2]) - px, px - Math.max(Y[j], Y[j + 2])), gy = Math.max(0, Math.min(Y[j + 1], Y[j + 3]) - py, py - Math.max(Y[j + 1], Y[j + 3]));
-      if (gx * gx + gy * gy >= d * d) continue;
-      const e = pointSegment(px, py, Y[j], Y[j + 1], Y[j + 2], Y[j + 3]); if (e < d) { d = e; side = orient(Y[j], Y[j + 1], Y[j + 2], Y[j + 3], px, py); }
+      if (gx * gx + gy * gy > d * d) continue;
+      const e = pointSegment(px, py, Y[j], Y[j + 1], Y[j + 2], Y[j + 3]); if (e < d || (e === d && j < at)) { d = e; at = j; side = orient(Y[j], Y[j + 1], Y[j + 2], Y[j + 3], px, py); }
     }
+    near = at;
     if (side > 0 && d > deep) deep = d;
   }
   return deep;

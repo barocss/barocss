@@ -3830,3 +3830,26 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
 - **Decision: no code change.** In production the re-renders are a quarter of a millisecond a move, inside a 16.7 ms frame. Memoising App's toolbar and panels would put stale closures at risk for no measurable gain. The dev-server number is React's development build, which users do not run. Note that the browser flow and `bench:browser` run on the dev server, so frame CPU there reads high for this reason.
 - **The script:** `cdp-drag.mjs` in the session notes folder. It needs a vite URL and PW_DIR; `PROD=<dir>` builds and previews production, and `NOMIN=1` keeps names.
+
+### C16 — small items
+**Gears: the interfering report, and the sweep's key**
+- **Confirmed (profile):** a pair check in report mode on a pair whose teeth cross took 5.8 s (m2, 20/40 at a = 59.8). `depthInside` and its `pointSegment` were 14 of 18 s across five cases, for three reasons:
+  - the pair loop in `profileClearance` went on measuring every remaining pair after a crossing, although the answer is then only the depth;
+  - `depthInside` measured each point twice, since consecutive segments share an end;
+  - each point's nearest-segment search started from nothing, so few boxes were passed over.
+  - Also, the cache key held the face widths, which the 2D sweep does not read, so changing a gear's thickness ran the whole sweep again.
+- **Fix (`gear.ts`):**
+  - The pair loop stops at the first crossing (report mode).
+  - A point equal to the one just measured is skipped.
+  - Each search starts from the previous point's nearest segment and keeps the first of the nearest in order, as the walk from the first segment did. The boxes are passed over only when strictly farther.
+  - The cache key leaves the widths out. They are validated first, as the check does, and the axial and total contact ratios are worked out again for the widths asked.
+- **The same results:** five cases (report interfering at 59.8, 59.5, 59.95; report clear; verdict clear) hashed whole, before and after: identical.
+- **After:**
+
+  | Bench | Before | After | Budget |
+  |---|---|---|---|
+  | `gear: report, interfering pair (a 59.8)` | 5.8 s | 1.17 s | 11.5 s → 2.4 s |
+  | `gear: verdict, clear pair` | 215 ms | 146 ms | 450 → 300 |
+
+  - The benches now vary the phase by a billionth of a degree a run (the face width is no longer in the key).
+- **Test** (kernel `gear.test.mjs`): another width gives the same sweep with its own ratios (equal to the nominal formula's), kept (under 5 ms); a width out of range is still refused when the pair is kept. Gear tests 10/10; conformance 67/67; studio 362/362.
