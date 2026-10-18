@@ -39,19 +39,17 @@ Done:
 - **PERF3 C15** (D82 § C15): measured, no change — a 60-step handle drag in a production build: App re-renders 0.25 ms a move (1.6 ms script a move in all); the dev server's 16 ms a move is React's development JSX.
 - **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths; SubD — the caps kept whatever the cage's extent (a top-raising drag 109–162 → 35–69 ms), the topology read from the mesh, `opposite()` counted; kernel — mass and area share one quadrature (plate STEP export 732 → 512 ms), an import's text out of the reuse keys (10 MB: 27 → 1 ms an edit), STEP tokens sticky; studio — cage overlay 3.6 → 1.5 ms a frame and its validation once a drag, render_views highlight 215–263 → 83–106 ms, library fit ends kept. Open items in `c16-review-findings.md` (notes folder).
 - **PERF3 C17** (D82 § C17): closures hoisted or written out on hot paths (rays, vertex normals, frustum planes, frame sorts, lights, vertex snap, display-edge mates now by face pair, SubD nets); the same results hashed; the AM4 wall-clock test given headroom.
+- **PERF3 D20** (D82 § D20): RB trend and properties rows for HEAD (205 cases, 0 new, the 8 known TODOs); todo.json checked, unchanged. **PERF3 done.**
 
 **Next, in this order:**
-1. PERF3, as the peer listed it (D82 has the item list):
-   - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
-   - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
-2. Rest of **R8.2**:
+1. Rest of **R8.2**:
    - agent cage tools (`subd_select`, extrude, `insert_loop`, bridge, fill, weld, crease, move; D41 proposals at L2 for topology);
    - the browser-flow step;
    - the cap cache per one-ring, which is done in A4 (`keptCapsAt`, by 2-ring).
-3. **R8.3**.
-4. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
-5. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
-6. RB5–RB9.
+2. **R8.3**.
+3. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
+4. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+5. RB5–RB9.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 

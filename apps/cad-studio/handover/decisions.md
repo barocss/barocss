@@ -3959,3 +3959,20 @@ Sites from the review agent's list (`c16-review-findings.md`), each hoisted to m
 - **The AM4 wall-clock test** (`printing.test.ts`, 100k triangles oriented) had a 2 s bound and failed once under parallel load (about 0.6 s alone). It now has a 6 s bound with a comment; the measure is the bench row `print: orientation search, 100k triangles` (budget 1.2 s). The README TODO is removed.
 - **Left:** the cap fit's numeric helpers (`fanOf`, `refine`, `limitGrids`, `capsAt`'s `formAt`/`gridOf`/`polesOf`) and `cageTopology`'s template keys, listed in the notes. These are per vertex or face of a cold SubD build, where keeping the caps bit-identical needs care. They go with a cold-build pass, as do the viewer's per-frame object allocations (GC only).
 - GPU 73/73; studio 364/364; kernel SubD 18/18; browser flow 119/119; `bench:browser` within budget.
+
+### D20 — RB bookkeeping
+- **Trend.** The last trend row was `b7a924fa7` (2026-10-17, 156 cases). The steps since (R4 F1 D50 through R8.1 and PERF3) were not recorded as they landed. A row for HEAD `8f49f6d5d` now covers them all, keyed by the dataset's hash (`b9bce8f88c06e704`):
+
+  | Cases | OK | REFUSED | INVALID | WRONG | CRASH / TIMEOUT | New | TODO | Improvement |
+  |---|---|---|---|---|---|---|---|---|
+  | 205 | 1 099 | 5 | 3 | 5 | 0 | 0 | 8 | 0 |
+
+  The steps in between are not rebuilt one by one: that needs each commit's own build.
+- **Properties:** `properties.jsonl` row for the same commit (seed 20261018, 200 runs a property). Every property passes; two runs refused (the uniform scale, the cylinder-box oracles).
+- **todo.json:** refreshed by checking, not by editing. All eight rows still fail as recorded, and the run lists no improvement:
+  - the 1 nm graze, a wrong body: four rows on `x45-in0_000001`, `x45-in0_00001`;
+  - three graze intersects refused as non-manifold where the oracle has a body: `x52_389-in0_01`, `x27_564-in0_001`, and `y1-in0_01` tessellate;
+  - helical × helical refused.
+
+  The peer's note that two graze rows pass no longer holds, so the file stands as it is. F2 at 1M positions (3 of 8 holes) is not an RB row; it stays in README §0's open TODOs.
+- **PERF3 is done:** A1–A6, D18, D19, B7–B13, C14–C17, D20.
