@@ -4224,3 +4224,31 @@ D31's plan, taken up as R10a, with the coordinating session's research note (`ha
   - Command-made sketches stay positional until edited in the sketcher.
   - The ids read `e<k>`.
   - Constraints are stored by index alongside the ids.
+
+## D87 — R10 S0: feasibility of general fillets (2026-10-19)
+
+The roadmap's feasibility checkpoint before R10, with the coordinating session's research note (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) as design input. The question: does the research note's R10.1 hold on the method fillets use today (`edge-finish.ts`: a rolling-ball tool, the region between the two faces and the fillet surface grown a little into the air or the body, one analytic Boolean), or does it need the contact-trimming the note gives R10.2?
+
+The method's risk is the Boolean meeting a tool tangent to a curved face: along a line for a cylinder, along a circle for a cone. The note lists it ("tangential contact is the marcher's worst case") and the intersections' notes say grazing cylinders are refused.
+
+- **Probed with the tools built by hand** (`packages/barocss-cad/test/r10-s0.test.mjs`, kept as evidence; closed-form volumes):
+
+  | Class (R10.1) | Case | Tool | Result |
+  |---|---|---|---|
+  | (a) translational, concave | a rod (R 5, axis along X at the plate's top) on a plate: the junction along its ruling | the 2D fillet region (line, circle, fillet arc) extruded along X, unioned | valid; added volume = (triangle C–T1–F − fillet sector − rod sector) × 40 to 1e-13, r 1, 2, 3; 16–39 ms |
+  | (a) translational, convex | a groove (the rod cut away), its rim | the same, below the top, subtracted | valid; to 2e-12 |
+  | (b) coaxial, convex | a cylinder under a cone (one axis), the rim circle | the meridian fillet region revolved, subtracted | valid; removed volume = 2π × (kite − 45° sector)'s first moment to 1e-9 |
+
+  - Tangent contact with a cylinder along a ruling, and with a cone along a circle, goes through the analytic Boolean exactly. The refused grazing is the crossing of two cylinders' surfaces, not a tool face tangent to a body face, which the plane/plane fillets have always relied on.
+- **Today** (the same file, which R10.1 turns over in plain sight):
+  - the rod's junction is refused: "straight edges can be finished between two planes only";
+  - the cone rim is refused: "only edges between planes and cylinders can be finished yet";
+  - **`faceReach` confirmed as a defect.** A block whose top bows in on its far side (10 mm deep at its ends, 7.93 at the middle) takes a fillet of 8.5 mm. It is admitted, because `faceReach` is the farthest control point (10). The result is a valid solid but no quarter round: the round runs off the top into the bowed wall.
+- **Verdict: R10.1 as the research note gives it, on today's method.** No new trimming machinery is needed for it.
+  - **(a) translational:** a straight edge along d between faces extruded along d (planes ∥ d, cylinders with axis ∥ d). Solve the 2D fillet in the cross-section (line/line, line/circle, circle/circle; convex or concave), extrude the region along the edge, with today's runs past the ends and tangent chains.
+  - **(b) coaxial:** an edge between surfaces of revolution about one axis (plane ⊥ axis, cylinder, cone, sphere, torus). Solve in the meridian plane and revolve, as `arcTool` does for plane/cylinder.
+  - **Typed refusals:** `TANGENT_FACES`, `RADIUS_EXCEEDS_FACE` (the true reach) and `NOT_ANALYTIC_PAIR` (→ R10.2).
+  - **`faceReach`:** a true reach replaces it: the face's least extent across the edge along its length.
+  - **Fixtures:** each class's volume in closed form (as here); name stability across a radius change; RB4's fillet properties extended.
+  - R10.2 (marched spines, contact trimming), R10.3 (vertex blends), R10.4 (overflow) and R10.5 (variable radius) stay as the note orders them.
+- **Not decided here:** whether the pipe-clamp lug's B-rep version (the note's §5) is R10.1's acceptance part. It needs R10.1(a) for the blend and R10.3 for the lug's own corners; taken as a later fixture, not R10.1's.

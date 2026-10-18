@@ -8,6 +8,7 @@ import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { createServer as createNetServer } from 'node:net';
 
 const root = resolve(import.meta.dirname, '..');
 if (!process.env.PW_DIR) { console.error('Set PW_DIR to a Playwright package directory.'); process.exit(2); }
@@ -16,8 +17,15 @@ const { createServer } = await import('vite');
 const out = resolve(process.argv[2] ?? join(tmpdir(), 'cad-studio-flow'));
 mkdirSync(out, { recursive: true });
 
-// (The chat server's port, read when the config loads: the L2 step starts the real one there, other chat steps mock it.)
-process.env.CAD_STUDIO_CHAT_PORT ??= '52091';
+// (The chat server's port, read when the config loads: the L2 step starts the real one there, other chat steps mock it.
+// The first free one from 52091 up, unless CAD_STUDIO_CHAT_PORT says: another tool's server on 52091 failed the chat
+// steps once, D86.)
+/** Whether nothing listens on 127.0.0.1:port (a listen there succeeds). */
+const portFree = port => new Promise(ok => { const s = createNetServer(); s.once('error', () => ok(false)); s.listen(port, '127.0.0.1', () => s.close(() => ok(true))); });
+if (!process.env.CAD_STUDIO_CHAT_PORT) {
+  let port = 52091; while (port < 52191 && !(await portFree(port))) port++;
+  process.env.CAD_STUDIO_CHAT_PORT = String(port);
+}
 const server = await createServer({ root, configFile: join(root, 'vite.config.ts'), server: { port: 52031, strictPort: false }, logLevel: 'error' });
 await server.listen();
 const renderer = process.env.FLOW_RENDERER ?? 'webgpu';
