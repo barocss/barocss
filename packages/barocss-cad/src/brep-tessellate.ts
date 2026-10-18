@@ -14,7 +14,7 @@
 //                      step apart inserted Delaunay-wise, then interior edges across which the normal
 //                      turns by more than 1.5 steps bisected conformingly
 //   other faces        refused (BrepError GEOMETRY): poles, seams inside one face, edges off the surface
-import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
+import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-core.js';
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from './math.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { cross, dot, sub, unit } from './vec3.js';
@@ -339,29 +339,32 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   const vertexPoint = new Map(brep.vertices.map(v => [v.id, v.point as Point]));
   // Up to three rounds: an edge chord a curved face's triangles tilt from (the chord off the surface by its sagitta,
   // the face's points near it — a dent where the faces meet, darkened by depth-based ambient occlusion, D79) has its
-  // midpoint added to its edge, which both faces share, and every face is tessellated again.
+  // midpoint added to its edge, which both faces share, and those faces are tessellated again (PERF3 A5: only those;
+  // a face's mesh reads its own loops' samples only, so the others' stand, and the mesh is the same).
   // (Not an edge of a facet face: its points are the mesh's own, which it triangulates as they are.)
+  for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
   const facetEdges = new Set(brep.faces.filter(f => f.surface.kind === 'facets').flatMap(f => f.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge))));
+  const edgesOf = new Map(brep.faces.map(f => [f.id, new Set(f.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge)))]));
+  const sampled = (e: BrepEdge): Point[] => {
+    const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
+    if (a && s.length) s[0] = [a[0], a[1], a[2]];
+    if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
+    return s;
+  };
+  const samples = new Map(brep.edges.map(e => [e.id, sampled(e)])), segIndex = new Map<string, [string, number]>();
+  const index = (id: string, add: boolean) => { const sm = samples.get(id)!; for (let j = 0; j + 1 < sm.length; j++) { const k = segmentKey(sm[j], sm[j + 1]); if (add) segIndex.set(k, [id, j]); else if (segIndex.get(k)?.[0] === id) segIndex.delete(k); } };
+  for (const e of brep.edges) if (!facetEdges.has(e.id)) index(e.id, true);
+  // Each face's mesh, kept from round to round (local indices), joined in the faces' order at the end.
+  interface FaceMesh { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }
+  const meshes = new Map<string, FaceMesh>();
+  let dirty: Set<string> | null = null;
   for (let round = 0; ; round++) {
-    const splits = new Map<string, Set<number>>(), segIndex = new Map<string, [string, number]>();
-    const samples = new Map(brep.edges.map(e => {
-      const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
-      if (a && s.length) s[0] = [a[0], a[1], a[2]];
-      if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
-      return [e.id, s];
-    }));
-    for (const [id, sm] of samples) for (let j = 0; j + 1 < sm.length; j++) segIndex.set(segmentKey(sm[j], sm[j + 1]), [id, j]);
-    // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
-    // strip between the chord and the edge can be integrated too.)
-    if (segments) for (const e of brep.edges) {
-      const ts = params.get(e.id)!, s = samples.get(e.id)!;
-      for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
-    }
+    const splits = new Map<string, Set<number>>();
     const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
     /** A loop as one ring of points (each coedge without its last point). */
     const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
 
-    const positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
+    let positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
     // (`exact`: the surface's own normal at each point (along Su × Sv), where known: the shading then matches across
     // a smooth edge between faces — an average of each face's own triangles differs on either side of it, D79.)
     const emit = (faceId: string, kind: BrepMeshFace['kind'], pts: Point[], tris: [number, number, number][], flat: Point | null, exact: (Point | null)[] | null = null, sense = 1) => {
@@ -373,9 +376,10 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         const n = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a]));
         for (const i of [a, b, c]) { acc[i][0] += n[0]; acc[i][1] += n[1]; acc[i][2] += n[2]; }
       }
-      // Smooth within the face: points at one position (a seam) share one normal.
+      // Smooth within the face: points at one position (a seam) share one normal (wanted only where there is no
+      // exact one).
       const key = (p: Point) => p.join(','), byPos = new Map<string, Point>();
-      acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
+      if (!flat && (!exact || exact.some(e => !e))) acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
       pts.forEach((p, i) => {
         // (Su × Sv is outward for a forward face, inward for a reversed one.)
         const e = exact?.[i], n = flat ?? (e ? [sense * e[0], sense * e[1], sense * e[2]] : unit(byPos.get(key(p))!));
@@ -384,9 +388,11 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       faces.push({ faceId, kind, vertexOffset: base, vertexCount: pts.length, indexOffset, indexCount: indices.length - indexOffset });
     };
 
-    for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
     for (const face of brep.faces) {
       if (only && !only.has(face.id)) continue;
+      if (dirty && !dirty.has(face.id)) continue;
+      const mine: FaceMesh = { positions: [], normals: [], indices: [], faces: [] };
+      meshes.set(face.id, mine); ({ positions, normals, indices, faces } = mine);
       // A facet face: its own triangles (the mesh's exact points, which its polyline edges pass through), smooth
       // within the face, turned over when its sense is reversed.
       if (face.surface.kind === 'facets') { emitFacets(face.id, face.surface, face.sense === 'forward', positions, normals, indices, faces); continue; }
@@ -421,7 +427,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
           const na = exact[a], nb = exact[b], nc = exact[c]; if (!na || !nb || !nc) continue;
           const g = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a])), l = Math.hypot(g[0], g[1], g[2]), m = add3(add3(na, nb), nc), lm = Math.hypot(m[0], m[1], m[2]);
           if (!(l > 0) || Math.abs(dot(g, m)) / (l * lm) >= cosTilt) continue;
-          for (const [x, y] of [[a, b], [b, c], [c, a]]) { const hit = segIndex.get(segmentKey(pts[x], pts[y])); if (hit && !facetEdges.has(hit[0])) (splits.get(hit[0]) ?? splits.set(hit[0], new Set()).get(hit[0])!).add(hit[1]); }
+          for (const [x, y] of [[a, b], [b, c], [c, a]]) { const hit = segIndex.get(segmentKey(pts[x], pts[y])); if (hit) (splits.get(hit[0]) ?? splits.set(hit[0], new Set()).get(hit[0])!).add(hit[1]); }
         }
         parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
       }
@@ -460,13 +466,36 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       if (left.length) fan(0, b0, 0, left.map((_, k) => l0 + k));
       emit(face.id, 'ruled', pts, tris, null);
     }
-    if (!splits.size || round === 2) return {
-      positionsMM: new Float64Array(positions), normals: new Float64Array(normals), indices: new Uint32Array(indices), faces,
-      edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })),
-    };
-    for (const [id, js] of splits) { const ts = params.get(id)!, out: number[] = []; ts.forEach((t, j) => { out.push(t); if (js.has(j) && j + 1 < ts.length) out.push((t + ts[j + 1]) / 2); }); params.set(id, out); }
-    segments?.clear(); parameters?.clear();
+    if (!splits.size || round === 2) {
+      // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
+      // strip between the chord and the edge can be integrated too.)
+      if (segments) for (const e of brep.edges) {
+        const ts = params.get(e.id)!, s = samples.get(e.id)!;
+        for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
+      }
+      return { ...joined(brep.faces.flatMap(f => meshes.get(f.id) ?? [])), edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })) };
+    }
+    dirty = new Set();
+    for (const [id, js] of splits) {
+      const ts = params.get(id)!, out: number[] = []; ts.forEach((t, j) => { out.push(t); if (js.has(j) && j + 1 < ts.length) out.push((t + ts[j + 1]) / 2); }); params.set(id, out);
+      index(id, false); samples.set(id, sampled(edges.get(id)!)); index(id, true);
+    }
+    for (const [face, ids] of edgesOf) for (const id of splits.keys()) if (ids.has(id)) { dirty.add(face); break; }
   }
+}
+/** The faces' meshes as one (each face's local indices offset by the vertices before it). */
+function joined(parts: readonly { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }[]): Pick<BrepMesh, 'positionsMM' | 'normals' | 'indices' | 'faces'> {
+  let nv = 0, ni = 0;
+  for (const p of parts) { nv += p.positions.length; ni += p.indices.length; }
+  const positionsMM = new Float64Array(nv), normals = new Float64Array(nv), indices = new Uint32Array(ni), faces: BrepMeshFace[] = [];
+  let v = 0, i = 0;
+  for (const p of parts) {
+    positionsMM.set(p.positions, v); normals.set(p.normals, v);
+    const base = v / 3; for (let k = 0; k < p.indices.length; k++) indices[i + k] = p.indices[k] + base;
+    for (const f of p.faces) faces.push({ ...f, vertexOffset: f.vertexOffset + base, indexOffset: f.indexOffset + i });
+    v += p.positions.length; i += p.indices.length;
+  }
+  return { positionsMM, normals, indices, faces };
 }
 
 /** All control points in one plane. */
@@ -770,7 +799,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const polePoint = new Set(poles.map(q => q.point)), atPoleIdx = (i: number) => polePoint.has(pts[i]);
   // (A flat triangle is left too: bisecting it only makes flat triangles.)
   const bent = (t: number) => { const [a, b, c] = tris[t]; return !flat3(t) && ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep); };
-  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
     pts.push(at(mid[0], mid[1])); uv.push(mid); nrm.push(normal(mid));
@@ -794,13 +823,20 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const flipAll = () => {
     for (let pass = 0, changed = true; changed && pass < 50; pass++) {
       changed = false;
-      for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) {
+      for (let t = 0; t < tris.length; t++) {
+        // (t's flatness, worked out once for its three edges: it changes only when t flips, which ends them.)
+        let isFlat: boolean | undefined;
+        for (let e = 0; e < 3; e++) {
         const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
         if (o === undefined) continue;
-        const d = third(tris[o], x, y), scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
+        const d = third(tris[o], x, y), lxy = len2(x, y), scale2 = lxy ** 2 * lxy ** 2;
         // A flat triangle (three boundary points in a line) has no circumcircle: flip it whenever it can be.
-        if (!flat3(t) && incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
+        isFlat ??= flat3(t);
+        if (!isFlat && incircle(x, y, c, d) <= 1e-9 * scale2) continue;
+        const lcd2 = len2(c, d) ** 2;
+        if (orient(c, x, d) <= 1e-12 * lcd2 || orient(d, y, c) <= 1e-12 * lcd2) continue;
         unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
+        }
       }
     }
   };

@@ -88,6 +88,8 @@ const scenarios: Scenario[] = [
     return () => { const p = [...c.positions]; p[3 * v + 2] += 0.01 * ++k; return subdBrep({ ...c, positions: p }); };
   } },
   { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
+  // (PERF3 A5: the D79 split rounds tessellate again only the faces next to a split edge.)
+  { name: 'tessellate: SubD body of a ~2k-face cage', budgetMS: 2000, runs: 2, setup() { const b = subdBrep(boxCage(30, 20, 16, 18, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
     const sheet = d.objects[0].id; directDisplay(d); let k = 0;

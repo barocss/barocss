@@ -3458,3 +3458,31 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   | `subd: 6-a-side box, 4 bumps (cold)` | 457 ms | 900 ms |
   | `subd: ~2k-face cage, one vertex moved` | 22 ms | 60 ms |
   | `tessellate: SubD box` | 22 ms | 60 ms |
+
+### A5 — tessellation's D79 split rounds
+- **Confirmed:** each of up to three rounds re-tessellated every face.
+  - It also re-evaluated every edge's samples, rebuilt the segment index over every edge (facet edges too, then skipped at lookup), and rebuilt `segments` for mass every round.
+  - `emit` summed the per-position normals (`byPos`) even where every point had an exact one.
+  - In `surfaceTriangles`' Delaunay flips, `across` copied a `Set` to an array per call, `flat3(t)` was worked out for each of a triangle's three edges, and `len2` (two `Math.hypot`) twice for one value.
+- **Fix (`brep-tessellate.ts`):**
+  - Each face's mesh is kept from round to round and joined in the faces' order at the end. After a round, only the faces with a split edge in their loops are tessellated again. A face's mesh reads its own loops' samples only, so the others stand.
+  - Only split edges are sampled again, and the segment index (without facet edges) is updated for those.
+  - `segments` are filled once, at the end.
+  - `byPos` is worked out only when some point has no exact normal.
+  - In the flips, the same values are worked out once.
+  - The loops' topology check runs once, before anything walks the loops (it ran per round).
+- **The mesh is the same to the bit:** positions, normals, indices, faces, edge samples, `segments` and `parameters`, on ten cases (SubD box, ~2k-face body, bump body, filleted box, patterned holes; 4 and 8 segments a quarter).
+- **After (best of 4, 8 a quarter):**
+
+  | Body | Before | After |
+  |---|---|---|
+  | SubD body of the ~2k-face cage (414 faces, 23k triangles) | 2 050 ms | 1 025 ms |
+  | bump body | 394 ms | 191 ms |
+  | SubD box | 26 ms | 26 ms (its faces all split) |
+
+- **Left:** the flips run full passes over all triangles (up to 50). A worklist would visit far fewer, but on cocircular points (grid-like domains) it can choose other diagonals, so the mesh would change; noted for C16.
+- **Tests:**
+  - Kernel 1012/1013 (the known Node-version test).
+  - RB: nothing new.
+  - Studio 351/351.
+  - Bench `tessellate: SubD body of a ~2k-face cage`: 1 007 ms, budget 2 000 ms.
