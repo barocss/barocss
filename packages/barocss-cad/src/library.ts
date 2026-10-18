@@ -75,6 +75,8 @@ export interface CadLibraryPart {
    * not), and a check reading one not given is unknown, with why, never passed.
    */
   readonly context?: Readonly<Record<string, { readonly unit?: string; readonly description?: string; readonly from?: readonly string[] }>>;
+  /** Added to a body (R6b): united with it (`add`, the default: a boss) or taken from it (`cut`: an insert's hole). */
+  readonly operation?: 'add' | 'cut';
   readonly tags?: readonly string[];
 }
 export interface CadLibraryManifest {
@@ -398,6 +400,7 @@ function loadPart(p: unknown, lib: string): LoadedPart {
       if (c.value !== undefined) { const v = parseLibraryExpression(c.value as string, `${where}!${c.id}.value`); checkNames(v, [...names, ...contextNames], `${where}!${c.id}.value`); exprs.set(`checkvalue:${c.id}`, v); }
     }
   }
+  if (p.operation !== undefined && p.operation !== 'add' && p.operation !== 'cut') throw new CadLibraryError('FORMAT', where, "operation must be 'add' or 'cut'");
   if (p.outputs !== undefined && (!Array.isArray(p.outputs) || !p.outputs.length || p.outputs.some(o => typeof o !== 'string' || !ids.has(o.split('/')[0])))) throw new CadLibraryError('REFERENCE', where, 'outputs must name recipe features');
   if (p.interfaces !== undefined) {
     if (!Array.isArray(p.interfaces)) throw new CadLibraryError('FORMAT', where, 'interfaces must be a list');

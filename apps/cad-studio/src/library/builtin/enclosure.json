@@ -3,7 +3,7 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.1.0",
+ "libraryVersion": "0.2.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing).",
@@ -525,6 +525,400 @@
     "enclosure",
     "boss",
     "screw"
+   ]
+  },
+  {
+   "id": "insert-hole",
+   "name": "Heat-set insert hole",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "The hole a brass heat-set insert is pressed into: cut from a boss or a wall at a point on its face.",
+   "parameters": {
+    "d": {
+     "value": 3,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dh": {
+     "value": 4.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "hole diameter"
+    },
+    "Lh": {
+     "value": 5.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "hole depth"
+    },
+    "De": {
+     "value": 4.6,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "the insert's outer diameter"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dh": 3.2,
+      "Lh": 4.0,
+      "De": 3.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dh": 3.6,
+      "Lh": 4.6,
+      "De": 4.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dh": 4.0,
+      "Lh": 5.0,
+      "De": 4.6
+     }
+    },
+    {
+     "id": "M4",
+     "values": {
+      "d": 4,
+      "dh": 5.6,
+      "Lh": 6.6,
+      "De": 6.3
+     }
+    },
+    {
+     "id": "M5",
+     "values": {
+      "d": 5,
+      "dh": 6.4,
+      "Lh": 7.5,
+      "De": 7.1
+     }
+    }
+   ],
+   "context": {
+    "depth": {
+     "unit": "mm",
+     "description": "the material under the point, along the hole",
+     "from": [
+      "measured",
+      "given"
+     ]
+    },
+    "around": {
+     "unit": "mm",
+     "description": "the least material round the hole's axis, halfway down",
+     "from": [
+      "measured",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "breaks-through",
+     "expr": "depth >= Lh + 0.4",
+     "value": "depth - Lh",
+     "level": "feasible",
+     "message": "the hole would leave less than 0.4 mm under it, or break through"
+    },
+    {
+     "id": "wall-round",
+     "expr": "around - dh / 2 >= 0.8",
+     "value": "around - dh / 2",
+     "level": "feasible",
+     "message": "less than 0.8 mm of material round the insert"
+    },
+    {
+     "id": "boss-size",
+     "expr": "around >= De",
+     "value": "around / De",
+     "level": "recommended",
+     "message": "the boss round an insert should reach about twice its diameter across"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dh / 2"
+     }
+    },
+    {
+     "id": "x",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "Lh + 1"
+     },
+     "from": -1
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "its mouth on the face, the hole going in along +z"
+    },
+    {
+     "id": "insert",
+     "role": "insert-axis",
+     "accepts": [
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "axis": "x.side0"
+     }
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "insert",
+    "heat-set"
+   ]
+  },
+  {
+   "id": "pcb-standoff",
+   "name": "PCB standoff",
+   "category": "enclosure",
+   "simplified": true,
+   "description": "A standoff a board is screwed to: added to a floor by its base, the board on its top.",
+   "parameters": {
+    "d": {
+     "value": 2.5,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dp": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for printed or moulded PCB standoffs (written for this library); verify with your process",
+     "description": "pilot hole for a thread-forming screw"
+    },
+    "OD": {
+     "value": {
+      "expr": "2 * d + 1.2"
+     },
+     "unit": "mm",
+     "description": "standoff diameter"
+    },
+    "h": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the board's height over the floor"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dp": 1.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dp": 2.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dp": 2.5
+     }
+    }
+   ],
+   "context": {
+    "wall": {
+     "unit": "mm",
+     "description": "the nominal wall of the body it is added to",
+     "from": [
+      "min_wall",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "standoff-wall",
+     "expr": "(OD - dp) / 2 <= 1.0 * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the standoff's wall is thicker than the nominal wall (sink marks)"
+    },
+    {
+     "id": "engagement",
+     "expr": "h - 0.6 >= 1.5 * d",
+     "value": "(h - 0.6) / d",
+     "level": "recommended",
+     "message": "less than one and a half screw diameters of thread engagement"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "OD / 2"
+     }
+    },
+    {
+     "id": "b",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "h"
+     }
+    },
+    {
+     "id": "bh",
+     "kind": "hole",
+     "target": "b",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dp / 2"
+     },
+     "depth": {
+      "expr": "h - 0.6"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.bottom"
+     }
+    },
+    {
+     "id": "screw",
+     "role": "pcb-mount",
+     "accepts": [
+      "pcb-hole",
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "h"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.top",
+      "axis": "bh.side0"
+     },
+     "description": "the board's seat and the screw's axis"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "standoff",
+    "pcb"
    ]
   }
  ]

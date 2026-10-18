@@ -149,7 +149,7 @@ export function regenerateLibraryNode(node: LibraryNode, overrides: { variant?: 
   const variant = overrides.variant === undefined ? node.library.variant : overrides.variant ?? undefined;
   const made = libraryNode(lib, node.library.part, { ...(variant ? { variant } : {}), params: { ...node.library.params, ...overrides.params }, ...(node.context ? { context: node.context } : {}) }, node.prefix);
   // (Where it stands and what it is added to are the document's: kept.)
-  const next: LibraryNode = { ...made, ...(node.placement ? { placement: node.placement } : {}), ...(node.addTo ? { addTo: node.addTo } : {}), ...(node.on ? { on: node.on } : {}) };
+  const next: LibraryNode = { ...made, ...(node.placement ? { placement: node.placement } : {}), ...(node.addTo ? { addTo: node.addTo } : {}), ...(node.on ? { on: node.on } : {}), ...(node.cut ? { cut: true } : {}) };
   return JSON.stringify(next) === JSON.stringify(node) ? null : next;
 }
 
@@ -204,7 +204,8 @@ export const checkFits = (lib: CadLibrary) => (lib.manifest.fits ?? []).map(f =>
 export interface BodyFacePick { readonly body: BodyRef; readonly face: string; readonly point: Vec3; readonly normal: Vec3; readonly xDir?: Vec3 }
 
 /**
- * A library part added to a body (R6b, D65) as one step: its `base` interface (or the one named) put on the picked
+ * A library part added to a body (R6b, D65) as one step — or, for a part whose operation is `cut` (an insert's hole,
+ * D66), taken from it: its `base` interface (or the one named) put on the picked
  * face — the frames facing, x along `xDir` — and the part united with the body. Its checks get the wall there (given,
  * or measured inward from the point through the body); not measured, those checks are unknown, said. Refused, with
  * why, when its base is not all on the body (some of its footprint, pushed a hair in, falls outside the body) or the
@@ -220,8 +221,22 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   if (!target) return { error: 'No such body to add to' };
   const n = unitV(at.normal), x = at.xDir ? unitV(at.xDir) : perpendicular(n);
   // The wall there: given, or the body's thickness inward from the point (its checks read it).
-  const declared = lib.parts.get(part)?.part.context ?? {}, context: Record<string, number> = { ...options.context };
-  if ('wall' in declared && context.wall === undefined) { const w = thicknessAt(target.mesh, at.point, n); if (w !== null) context.wall = +w.toFixed(6); }
+  const libPart = lib.parts.get(part)?.part, declared = libPart?.context ?? {}, context: Record<string, number> = { ...options.context }, cut = libPart?.operation === 'cut';
+  // (Measured where it goes, when not given: `wall` and `depth` the body's thickness inward from the point; `around`
+  // the material round the axis halfway down — the least of eight rays across it.)
+  // (A hole's part — it has `dh` — is measured at its rim, just outside its radius: a pilot hole already on the axis is inside it.)
+  let rim = 0;
+  try { const v = instantiateLibraryPart(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(options.params ? { params: options.params } : {}) }).origin.values; if (typeof v.dh === 'number') rim = v.dh / 2 + 0.01; } catch { /* refused below, with why */ }
+  const side = perpendicular(n), at0 = rim ? [at.point[0] + rim * side[0], at.point[1] + rim * side[1], at.point[2] + rim * side[2]] : at.point;
+  const inward = thicknessAt(target.mesh, at0, n);
+  for (const k of ['wall', 'depth'] as const) if (k in declared && context[k] === undefined && inward !== null) context[k] = +inward.toFixed(6);
+  if ('around' in declared && context.around === undefined && inward !== null) {
+    // (Halfway down the part's own depth `Lh` when it has one — an insert's hole — else halfway through the body.)
+    // (From the hole's own radius `dh`/2 out, when it has one: a pilot hole already there is inside it.)
+    let reach = inward, from = 0;
+    try { const v = instantiateLibraryPart(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(options.params ? { params: options.params } : {}) }).origin.values; if (typeof v.Lh === 'number') reach = Math.min(inward, v.Lh); if (typeof v.dh === 'number') from = v.dh / 2; } catch { /* refused below, with why */ }
+    const a = aroundAt(target.mesh, at.point, n, reach / 2, from); if (a !== null) context.around = +a.toFixed(6);
+  }
   let node: LibraryNode;
   try { node = libraryNode(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(options.params ? { params: options.params } : {}), context }, freshPrefix(doc)); }
   catch (cause) { return { error: cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause) }; }
@@ -236,15 +251,17 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   let feet = 0;
   for (let i = 0; i < m.length; i += 3) {
     const v: Vec3 = [m[i], m[i + 1], m[i + 2]], d = (v[0] - at.point[0]) * n[0] + (v[1] - at.point[1]) * n[1] + (v[2] - at.point[2]) * n[2];
-    if (Math.abs(d) > 1e-4) continue;
+    // (A boss: its points on the face. A cut: every point, brought onto the face — its whole outline must open there.)
+    if (!cut && Math.abs(d) > 1e-4) continue;
     feet++;
-    if (pointInBody(target.mesh, [v[0] - 0.05 * n[0], v[1] - 0.05 * n[1], v[2] - 0.05 * n[2]]) === 'outside') off.push(i / 3);
+    const q: Vec3 = cut ? [v[0] - d * n[0], v[1] - d * n[1], v[2] - d * n[2]] : v;
+    if (pointInBody(target.mesh, [q[0] - 0.05 * n[0], q[1] - 0.05 * n[1], q[2] - 0.05 * n[2]]) === 'outside') off.push(i / 3);
   }
   if (!feet) return { error: `${node.name}'s base does not lie on the face (its ${base.id} interface is off it)` };
   if (off.length) return { error: `${node.name}'s base is not all on the body: ${off.length} of ${feet} points of its footprint fall off it — move it inward` };
-  const added: LibraryNode = { ...node, placement, addTo: at.body, on: { face: at.face, point: [...at.point] as Vec3 } };
+  const added: LibraryNode = { ...node, placement, addTo: at.body, on: { face: at.face, point: [...at.point] as Vec3 }, ...(cut ? { cut: true } : {}) };
   const next = withNode(doc, added), after = evaluateDoc(next, 1);
-  if (!after.ok) return { error: `${node.name} could not be united with the body: ${after.error.title} — ${after.error.hint}` };
+  if (!after.ok) return { error: `${node.name} could not be ${cut ? 'cut from' : 'united with'} the body: ${after.error.title} — ${after.error.hint}` };
   return { doc: next, node: added };
 }
 const unitV = (v: readonly number[]): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -252,6 +269,20 @@ const unitV = (v: readonly number[]): Vec3 => { const l = Math.hypot(v[0], v[1],
 function perpendicular(n: Vec3): Vec3 {
   const a: Vec3 = Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], d = a[0] * n[0] + a[1] * n[1] + a[2] * n[2];
   return unitV([a[0] - d * n[0], a[1] - d * n[1], a[2] - d * n[2]]);
+}
+/** The least material round an axis: from the point `depth` in along −n, eight rays across it — from `from` off the axis — to where each leaves the body; null if one never does. */
+export function aroundAt(mesh: DisplayMesh, point: readonly number[], n: Vec3, depth: number, from = 0): number | null {
+  const x = perpendicular(n), y: Vec3 = [n[1] * x[2] - n[2] * x[1], n[2] * x[0] - n[0] * x[2], n[0] * x[1] - n[1] * x[0]];
+  const c = [point[0] - depth * n[0], point[1] - depth * n[1], point[2] - depth * n[2]];
+  let least = Infinity;
+  for (let k = 0; k < 8; k++) {
+    const a = k * Math.PI / 4, d: Vec3 = [Math.cos(a) * x[0] + Math.sin(a) * y[0], Math.cos(a) * x[1] + Math.sin(a) * y[1], Math.cos(a) * x[2] + Math.sin(a) * y[2]];
+    // (thicknessAt casts along −its normal: give it −d.)
+    const t = thicknessAt(mesh, [c[0] + from * d[0], c[1] + from * d[1], c[2] + from * d[2]], [-d[0], -d[1], -d[2]]);
+    if (t === null) return null;
+    least = Math.min(least, from + t);
+  }
+  return least;
 }
 /** The body's thickness at a point on its surface: from it along −n to where the ray leaves the body (its display mesh); null if it never does. */
 export function thicknessAt(mesh: DisplayMesh, point: readonly number[], n: readonly number[]): number | null {

@@ -84,3 +84,50 @@ test('library_check as a requirement: a boss\'s rule margins on the plate (met),
   const none = await runCheck(r.doc, b, ev as never, { op: '>=', query: { fn: 'library_check', feature: id, check: 'nope' }, value: 0 });
   assert.equal(none.status, 'unknown'); assert.match(none.why!, /no rule nope/);
 });
+
+test('R6b.2 heat-set insert hole: cut into a boss\'s top — the material under it and round it measured (the pilot hole inside its radius ignored); the volume less exactly the hole beyond the pilot; too shallow a wall refused (it would break through); off the boss refused', () => {
+  const boss = addLibraryPartToBody(plate(2.5), 'enclosure', 'screw-boss', { variant: 'M3' }, top(2.5, 20, 20)) as { doc: StudioDoc };
+  const before = bodies(boss.doc)[0];
+  const bossTop = { body: before.ref!, face: 'lib1_b.top', point: [20, 20, 10.5] as [number, number, number], normal: [0, 0, 1] as [number, number, number] };
+  const r = addLibraryPartToBody(boss.doc, 'enclosure', 'insert-hole', { variant: 'M3' }, bossTop);
+  assert.ok(!('error' in r), JSON.stringify(r));
+  const node = (r as { node: LibraryNode }).node;
+  // (10.5 deep under the boss's top; round the axis 2.5 down the boss's 3.2 radius, at 45° clear of the gussets.)
+  assert.deepEqual([node.cut, node.context!.depth], [true, 10.5]); assert.ok(Math.abs(node.context!.around - 3.2) < 1e-3, String(node.context!.around));
+  assert.ok(node.warnings.some(w => /^boss-size: .* \(0\.69/.test(w)), node.warnings.join(' | '));
+  const after = bodies((r as { doc: StudioDoc }).doc)[0];
+  // (A Ø4 × 5 hole where the Ø2.5 pilot already was: π (2² − 1.25²) 5 taken.)
+  assert.ok(Math.abs(before.volumeMM3! - after.volumeMM3! - Math.PI * (4 - 1.5625) * 5) < 1e-6, String(before.volumeMM3! - after.volumeMM3!));
+  // Into the bare 2.5 mm plate: it would break through.
+  assert.match((addLibraryPartToBody(plate(2.5), 'enclosure', 'insert-hole', { variant: 'M3' }, top(2.5, 30, 20)) as { error: string }).error, /breaks-through: .* \(-2\.5\)/);
+  // Its mouth over the plate's edge: refused, its outline not all on the body.
+  assert.match((addLibraryPartToBody(plate(10), 'enclosure', 'insert-hole', { variant: 'M3' }, top(10, 0.5, 20)) as { error: string }).error, /not all on the body|wall-round/);
+});
+
+test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an imported board (a STEP with four Ø3.2 holes) line up to 1e-9; one moved 0.3 mm is off by 0.3 — as a requirement it fails, said', async () => {
+  const { evaluateCadPart, exportStep } = await import('@barocss/cad');
+  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { runCheck } = await import('../src/chat/spec');
+  const holes = [[4, 4], [46, 4], [4, 36], [46, 36]];
+  const board = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [50, 40] }, { id: 'pcb', kind: 'extrude', sketch: 's', height: 1.6 },
+    ...holes.map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: k ? `h${k - 1}` : 'pcb', center: [x, y], radius: 1.6 }))] as never }).output('h3').brep;
+  const step = exportStep([board], { name: 'pcb' });
+  const place = (shift = 0) => {
+    let doc = rectanglePart(70, 60, 2);
+    for (const [k, [x, y]] of holes.entries()) {
+      const leaf = bodies(doc)[0].ref!;
+      const r = addLibraryPartToBody(doc, 'enclosure', 'pcb-standoff', { variant: 'M2.5', params: { h: 6 } }, { body: leaf, face: 'n1.top', point: [x + 6 + (k === 1 ? shift : 0), y + 6, 2], normal: [0, 0, 1] });
+      assert.ok(!('error' in r), JSON.stringify(r)); doc = (r as { doc: StudioDoc }).doc;
+    }
+    // The board as a placed part on the standoffs' tops (z 2 + 6), its holes over them.
+    return { ...doc, instances: [{ id: 'p1', name: 'PCB', doc: withNode(emptyDoc(), { kind: 'import', name: 'pcb', step }), position: [6, 6, 8] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }] };
+  };
+  const doc = place(), b = bodies(doc), ev = async () => evaluateDoc(doc, 1);
+  const ok = await runCheck(doc, b, ev as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p1' }, value: 0.05, unit: 'mm' });
+  assert.equal(ok.status, 'pass', JSON.stringify(ok)); assert.ok(Math.abs(ok.measured as number) < 1e-9);
+  const off = place(0.3), bad = await runCheck(off, bodies(off), (async () => evaluateDoc(off, 1)) as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p1' }, value: 0.05, unit: 'mm' });
+  assert.deepEqual([bad.status, bad.measured], ['fail', 0.3]); assert.match(bad.hint!, /off .* by 0\.3 mm/);
+  const none = await runCheck(doc, b, ev as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p9' }, value: 0.05 });
+  assert.equal(none.status, 'unknown'); assert.match(none.why!, /no part p9/);
+});

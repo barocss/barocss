@@ -49,7 +49,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'library': {
       // (Placed: its output turned and moved, `<prefix>_placed`; added to a body: united with it, as one step.)
       const out = node.placement ? `${node.prefix}_placed` : node.outputs[0];
-      return node.addTo ? { ...at, kind: 'union', target: ref(node.addTo), tool: out } : { ...at, kind: 'translate', target: out, offset: [0, 0, 0] };
+      return node.addTo ? { ...at, kind: node.cut ? 'difference' : 'union', target: ref(node.addTo), tool: out } : { ...at, kind: 'translate', target: out, offset: [0, 0, 0] };
     }
     case 'rack': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction !== undefined ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }

@@ -129,7 +129,9 @@ type ModelNodeBase = SketchNode
        * `addTo` — one step; `on` the face it was put on (its name for re-matching, the point picked) and the
        * context its checks were given (the wall there).
        */
-      placement?: { rotation: [number, number, number]; position: [number, number, number] }; addTo?: BodyRef; on?: { face: string; point: [number, number, number] }; context?: Record<string, number> }
+      placement?: { rotation: [number, number, number]; position: [number, number, number] }; addTo?: BodyRef; on?: { face: string; point: [number, number, number] }; context?: Record<string, number>;
+      /** Taken from `addTo` instead of united with it (an insert's hole, R6b.2). */
+      cut?: boolean }
   | { kind: 'rack'; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim; origin: [number, number]; angle?: number; from?: number; mesh?: RackMesh; generator: 'spur-rack@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */

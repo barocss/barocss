@@ -2614,3 +2614,49 @@ Evidence:
   - `add_library_part` by face name and point, with "not a flat face" refused;
   - `library_check` as requirements: rib-sink 0.8333 fails ≤ 0.6, engagement passes, an unknown rule is unknown.
 - Studio 315/315; lint 0 errors.
+
+## D66 — R6b.2: heat-set insert holes (cut from a body), PCB standoffs, and the hole-pattern alignment check (2026-10-18)
+
+Decision:
+- **Library `operation: 'add' | 'cut'`** (LIB format). A cut part added to a body is taken from it: a library node
+  with `cut`, the kernel's difference, still one step.
+  - A cut's footprint check is wider than a boss's: every point of the tool, brought onto the face and pushed a hair
+    in, must fall inside the body, so its whole outline opens on the face.
+- **Context measured where it goes:**
+  - `depth`/`wall`: the body's thickness inward from the point. A hole part (one with `dh`) is measured at its rim,
+    just outside its radius, so a pilot hole already on the axis does not cut the measure short (it read 7.4, the
+    pilot's bottom, instead of 10.5);
+  - `around`: the least material round the axis, eight rays across it, halfway down the part's depth `Lh`, from the
+    hole's own radius out.
+- **Insert hole** ("Enclosure elements" 0.2.0).
+  - Variants M2–M5: hole Ø, depth and the insert's Ø, all estimates written for this library (no supplier's table).
+  - The tool runs into the body along +z of its base frame. It has an `insert` axis interface for the screw.
+  - Rules:
+    - depth ≥ Lh + 0.4 (feasible: it would break through);
+    - around − dh/2 ≥ 0.8 (feasible: material round the insert);
+    - around ≥ the insert's Ø (recommended: a boss about twice its diameter across).
+- **PCB standoff:** M2–M3; OD = 2d + 1.2; free height; pilot hole. Rules: its wall against the nominal wall, and
+  engagement ≥ 1.5d. A `screw` interface (role `pcb-mount`) carries the seat plane and the screw axis.
+- **Hole alignment** (`src/library/alignment.ts`; A3 `hole_alignment { board, features? }`):
+  - the board's holes are the inner cylinders of its exact faces (an imported PCB STEP as a placed part, or the base
+    part), moved into place;
+  - the standoffs' screw axes come from their interfaces as placed;
+  - each axis is compared with the nearest parallel hole, its offset being the distance between the axes; the
+    largest offset is the measure;
+  - a standoff with no parallel hole is unknown, said, and so is a missing board.
+
+Evidence (`test/enclosure.test.ts` 6/6):
+- **An M3 insert into the top of an M3 boss on a 2.5 mm plate:**
+  - depth 10.5; around 3.2 (the boss's radius, at 45° clear of the gussets);
+  - boss-size warned (0.696: an M3 boss is small for an insert);
+  - the volume drops by exactly π(2² − 1.25²)·5, the hole beyond the pilot, to 1e-6.
+- Into the bare plate: refused, breaks-through (−2.5). Its mouth over the edge: refused.
+- **Four M2.5 standoffs** on a 70 × 60 × 2 floor under a 50 × 40 × 1.6 board, exported to STEP with four Ø3.2 holes,
+  imported and placed on their tops:
+  - `hole_alignment` 0 to 1e-9; passes ≤ 0.05;
+  - one standoff 0.3 mm off: measured 0.3, fails, with the worst pair named;
+  - a missing board: unknown.
+- Studio 317/317; kernel library 5/5; lint 0 errors.
+
+Next: R6b.7, the material library and process profiles (moved up, peer). Then R6b.3 snap-fits, whose strain checks
+read them.

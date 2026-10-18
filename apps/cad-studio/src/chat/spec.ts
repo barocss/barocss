@@ -13,6 +13,7 @@ import { factsOf } from './observe';
 import { draftAnalysis, interference, wallThickness } from './analysis';
 import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } from '@barocss/cad';
 import { libraryById } from '../library/libraries';
+import { holeAlignment } from '../library/alignment';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -30,7 +31,9 @@ export type Query =
   /** A pair of spur gears (R6a.4b, D56), `a` and `b` their feature ids (n<k>), as placed: the kernel's pair checks. */
   | { fn: 'gear_center_distance' | 'gear_backlash' | 'gear_contact_ratio' | 'gear_clearance'; a: string; b: string }
   /** A library part's rule (R6b, D65): its value (the margin it reports), else 1 met / 0 not; unknown when its context was not given. */
-  | { fn: 'library_check'; feature: string; check: string };
+  | { fn: 'library_check'; feature: string; check: string }
+  /** R6b.2: the largest offset (mm) of the standoffs' screw axes from a board's holes (`board`: base or a part id). */
+  | { fn: 'hole_alignment'; board: string; features?: string[] };
 /** `==`: value ± tol; `<=` / `>=`: against value (tol allowed); `between`: min … max. */
 export interface Predicate { op: '==' | '<=' | '>=' | 'between'; query: Query; value?: number; tol?: number; min?: number; max?: number; unit?: string }
 export interface Requirement {
@@ -135,6 +138,13 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
+    case 'hole_alignment': {
+      const r = holeAlignment(doc, q.board, q.features);
+      if (typeof r === 'string') return { unknown: r };
+      if (r.unmatched.length || r.maxOffsetMM === null) return { unknown: `no hole of ${q.board} runs parallel to ${r.unmatched.join(', ')}` };
+      const worst = r.pairs.reduce((a, b) => (b.offsetMM ?? 0) > (a.offsetMM ?? 0) ? b : a);
+      return { x: r.maxOffsetMM, entities: r.pairs.map(p => p.feature), hint: `${r.pairs.length} axes against ${r.holes} holes; the worst ${worst.feature} off ${worst.hole} by ${+r.maxOffsetMM.toFixed(4)} mm` };
+    }
     case 'library_check': {
       const i = nodeIndexOf(doc.nodes, q.feature), node = i >= 0 ? doc.nodes[i] : undefined;
       if (node?.kind !== 'library') return { unknown: `${q.feature} is not a library part` };
@@ -200,7 +210,7 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 
-const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check'];
+const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment'];
 /** Why a requirement cannot be kept (malformed), or null. */
 export function checkRequirement(r: unknown): string | null {
   if (typeof r !== 'object' || r === null) return 'a requirement is an object';
@@ -217,6 +227,7 @@ export function checkRequirement(r: unknown): string | null {
   if (f.fn === 'distance_between' && (f.a === undefined || f.b === undefined)) return `${q.id}: distance_between takes a and b (faces or edges)`;
   if ((f.fn === 'radius' || f.fn === 'hole_diameter') && f.face === undefined) return `${q.id}: ${f.fn} takes a face`;
   if (f.fn === 'clearance' && (typeof f.a !== 'string' || typeof f.b !== 'string')) return `${q.id}: clearance takes two body keys a and b`;
+  if (f.fn === 'hole_alignment' && (typeof f.board !== 'string' || (f.features !== undefined && (!Array.isArray(f.features) || f.features.some(x => typeof x !== 'string'))))) return `${q.id}: hole_alignment takes board (base or a part id) and features? (library part ids)`;
   if (f.fn === 'library_check' && (typeof f.feature !== 'string' || typeof f.check !== 'string')) return `${q.id}: library_check takes a library part's feature id (n<k>) and the rule's id (check)`;
   if (String(f.fn).startsWith('gear_') && (typeof f.a !== 'string' || typeof f.b !== 'string')) return `${q.id}: ${f.fn} takes two spur gears' feature ids a and b (n<k>)`;
   if (q.invariant === true && (typeof q.invariant_reason !== 'string' || !q.invariant_reason)) return `${q.id}: an invariant requirement says why (invariant_reason)`;
