@@ -36,6 +36,7 @@ import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { buildSubd, subdSummary, SubdError, type SubdSummary } from './subd.js';
 import { decimateMesh, type DecimateReport } from './mesh-decimate.js';
+import type { FilletReport } from './rolling-ball.js';
 import { SIDE_TAG, type SideTags } from './side-names.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
@@ -268,6 +269,8 @@ export interface CadPartOutput {
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
   readonly decimate?: DecimateReport;
+  /** A general fillet's reports (R10.2, D89), one a rolling-ball tool: its stations, patches and measured deviations. */
+  readonly fillet?: readonly FilletReport[];
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -325,6 +328,7 @@ interface Part {
   readonly rackPlace?: RackPlacement;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
+  readonly fillet?: readonly FilletReport[];
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -1171,11 +1175,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!Array.isArray(f.edges) || !f.edges.length || f.edges.length > CadPartLimits.edges || !f.edges.every(e => typeof e === 'string')) fail('INPUT', 'edges must list 1 to 64 edge names');
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
       return () => {
-        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', solid = finishEdges(t, f.edges as string[], size, kind, at, fail);
+        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [], solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports);
         // A body that left the upright family keeps how it was made, so that it can still be shelled.
         const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
         const history = solid.kind === 'brep' && base ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
-        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}) }] };
+        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}) }] };
       };
     }
   }
@@ -1632,7 +1636,7 @@ function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, 
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
-function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail']): Solid {
+function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[]): Solid {
   // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
   // tool (finishBrepEdges).
@@ -1662,7 +1666,7 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
   if (general.length) {
     const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at) }; }
+    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports }) }; }
     catch (cause) {
       const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;
       if (m) fail(m[1] as CadPartErrorCode, m[2]);
@@ -1782,7 +1786,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

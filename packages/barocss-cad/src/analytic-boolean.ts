@@ -109,6 +109,8 @@ const nurbsNormal = (s: Nurbs, p: XY): P3 => {
 };
 interface GFace {
   solid: 0 | 1; surf: Surf; region: CurveRegion2; out: 1 | -1; min: P3; max: P3; name?: string; cuts: CurveSegment2[];
+  /** The source face's id. */
+  id: string;
 }
 /** A 3D curve piece: a segment, or an arc about c in the plane ⊥ n from u through `sweep` (≥ 0, CCW about n). */
 type Curve3 = { kind: 'line'; p: P3; q: P3 } | { kind: 'arc'; c: P3; n: P3; r: number; u: P3; sweep: number }
@@ -354,7 +356,7 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
     // A general patch bulges past its edges (a hemisphere bounded by two meridians in one plane): its
     // control net bounds it.
     if (surf.kind === 'nurbs') for (const row of surfaceOfFace(face).controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
-    return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [] };
+    return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [], id: face.id };
   });
 }
 
@@ -435,7 +437,25 @@ const boxesMeet = (f: GFace, g: GFace, tol: number) => [0, 1, 2].every(k => f.mi
 
 class Refused extends BrepError { constructor(detail: string) { super('GEOMETRY', 'analytic Boolean: ' + detail); } }
 
-function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
+/** Whether one of f's boundary edges lies on g's surface. */
+function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
+  for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
+    const k = curve3Of(f, seg);
+    if ([0, 0.25, 0.5, 0.75, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) return true;
+  }
+  return false;
+}
+function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = false): void {
+  // (Faces the caller says meet only along edges of one lying on the other — a fillet tool's contacts with the faces it
+  // rounds, D89 — are cut there, and nothing is computed: their contact is tangent or along a face's own boundary.)
+  if (touching) {
+    // (As the edges are: made exact arcs, neighbouring pieces' ends would move apart by their fit.)
+    for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
+      const k = curve3Of(f, seg);
+      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) g.cuts.push(curve2(g, k, tol));
+    }
+    return;
+  }
   const addCut = (k: Curve3) => { fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
   // (Each probe on fa first: where it misses fa, fb's search — on a cylinder, its seam scan — is skipped; the overlap is empty either way.)
   const lineCuts = (p: P3, d: P3) => {
@@ -940,7 +960,7 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  * Edges that are an exact curve's map onto a general face and lie on a circle are made that arc
  * (`exactEdges: false` keeps them fitted).
  */
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's only along their own edges lying on them (a fillet tool's contact faces, D89). */ readonly contactFaces?: readonly string[] } = {}): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
@@ -949,7 +969,8 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
-  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span);
+  const contact = new Set(options.contactFaces ?? []);
+  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && edgeOnSurface(fb, fa, tol));
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
   // there) adds nothing but slivers.
   for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));

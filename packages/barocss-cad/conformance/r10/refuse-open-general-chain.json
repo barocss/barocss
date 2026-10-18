@@ -1,0 +1,105 @@
+{
+  "id": "r10-refuse-open-general-chain",
+  "step": "R10",
+  "decisions": [
+    "D89"
+  ],
+  "about": "R10.2a: a groove cut by a rod tilted 10°, its rim on the top (ellipse arcs running out at the plate's ends) filleted — an open chain of general edges: R10.2b (NOT_ANALYTIC_PAIR).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -10
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "y",
+          "angleDegrees": 10,
+          "pivot": [
+            20,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "g",
+          "kind": "difference",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "c0.side0|pe.top#2#4"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[NOT_ANALYTIC_PAIR]"
+    }
+  },
+  "oracle": "A plane cutting a tilted cylinder: an ellipse, here longer than the plate, so its arcs end at the plate's sides."
+}

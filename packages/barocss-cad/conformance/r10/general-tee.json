@@ -1,0 +1,123 @@
+{
+  "id": "r10-general-tee",
+  "step": "R10",
+  "decisions": [
+    "D89"
+  ],
+  "about": "R10.2a: a pipe tee (a tube of radius 10 along X, a branch of 5 up Z), the junction filleted 2 mm from one of its edges — the whole closed loop, a rolling-ball fillet between two cylinders (no closed form).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 25
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|b.side0#2#4"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 20068.74056227893,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            30.00000000000026,
+            5.887052415621164e-12,
+            1.0472912328573303
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "a.bottom",
+          "a.side0",
+          "a.top",
+          "b.side0",
+          "b.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "This kernel (no closed form): its fillet's lofted contacts within 2.5e-7 mm of their faces, G1 there to 1e-3°; the same fillet lofted through twice the stations agrees to 1e-6 of its volume, and the general path forced on a boss, a hole and a cone rim matches their closed forms to 5e-7–5e-6 of the fillet (test/r10-2.test.mjs). relTol 1e-7 of the part is about 1e-4 of the fillet."
+}

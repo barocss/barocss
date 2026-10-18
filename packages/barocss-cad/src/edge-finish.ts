@@ -29,8 +29,10 @@ import { circleOf } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
 import { revolutionOf, type Revolution } from './surface-revolution.js';
 import { acrossOf, filletSection, refuseFillet, type SectionSide } from './fillet-section.js';
+import { invertOn, normalOn, ringFillet, sheetOf, type FilletReport } from './rolling-ball.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
-import type { Curve, Point } from './types.js';
+import { linearToleranceMM } from './numeric-policy.js';
+import type { Curve, Point, Surface } from './types.js';
 import type { ProfileSegmentInput } from './extruded-profile-solid.js';
 
 type XY = [number, number];
@@ -45,7 +47,9 @@ interface Use { face: Brep['faces'][number]; geometry: Geo; sense: 'forward' | '
  * Fillets (radius) or chamfers (distance) the named edges of `body` and the edges continuing them
  * tangentially. Tool faces are named `${id}.face` (the fillet or chamfer surface).
  */
-export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string): Brep {
+export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: { readonly reports?: FilletReport[]; readonly general?: boolean } = {}): Brep {
+  // (`general`: every closed loop by the rolling ball, even where a closed form exists — to check one against the other.)
+  const reports = options.reports;
   let scaleMM = 1; for (const v of body.vertices) for (const x of v.point) scaleMM = Math.max(scaleMM, Math.abs(x));
   const tol = 1e-9 * scaleMM;
   const faces = new Map(body.faces.map(f => [f.id, f])), loopFace = new Map(body.loops.map(l => [l.id, l.face]));
@@ -107,13 +111,13 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     return ['coaxial', ...k.c.map(r), r(k.r), ...a.map(q), ...sides].join(',');
   };
   const groups = new Map<string, Brep['edges'][number][]>();
-  for (const e of chain.values()) { const key = circleKey(e); if (key) groups.set(key, [...(groups.get(key) ?? []), e]); }
+  if (!options.general) for (const e of chain.values()) { const key = circleKey(e); if (key) groups.set(key, [...(groups.get(key) ?? []), e]); }
   for (const list of groups.values()) {
     const total = list.reduce((acc, e) => { const k = circleOf(e.curve)!; return acc + k.spans.reduce((a, x) => a + x.phi, 0); }, 0);
     if (Math.abs(total - 2 * Math.PI) <= 1e-9) { closedCircle.add(list[0].id); for (const e of list.slice(1)) skip.add(e.id); }
   }
 
-  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [];
+  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[] }[] = [];
   // Corner blends: where three filleted straight edges between three planes meet at a convex vertex,
   // the rolling ball rounds the corner with a sphere about the point r from all three planes. Each
   // edge's tool then stops at the plane through that centre square to the edge (where its cylinder
@@ -142,8 +146,22 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     const e = body.edges.find(x => x.id === eid)!, [E0, E1] = ends(e), L = len(sub(E1.x, E0.x));
     if (t0 + t1 >= L - tol) refuse('PARAMETER', `edge ${e.name}: a fillet of ${size} mm is too large (the corners at its ends need ${+(t0 + t1).toFixed(6)} mm of a ${+L.toFixed(6)} mm edge)`);
   }
+  // R10.2a (D89): a closed loop of the chain with an edge no closed form finishes gets one rolling-ball tool.
+  for (const comp of components([...chain.values()].filter(e => !skip.has(e.id)))) {
+    for (const e of comp) if ((usesOf.get(e.id) ?? []).length !== 2) refuse('SELECTION', `edge ${e.name} does not join exactly two faces`);
+    const straightOf = (e: Brep['edges'][number]) => e.curve.degree === 1 && e.curve.controlPoints.length === 2;
+    const general = options.general && kind === 'fillet' && closedLoop(comp) ? comp : comp.filter(e => !(straightOf(e) && usesOf.get(e.id)!.every(u => u.geometry.kind === 'plane')) && pairOf(e, usesOf.get(e.id)!, straightOf(e), kind, tol, true) === 'general');
+    if (!general.length) continue;
+    if (kind === 'chamfer') refuse('CAPABILITY', `edge ${general[0].name}: chamfers between general faces are not supported yet`);
+    const loop = closedLoop(comp);
+    if (!loop) pairOf(general[0], usesOf.get(general[0].id)!, straightOf(general[0]), kind, tol);
+    const ring = generalRing(body, loop!, usesOf, ends, size, id, scaleMM);
+    rings.push(ring);
+    reports?.push(ring.report);
+    for (const e of comp) handled.add(e.id);
+  }
   for (const e of chain.values()) {
-    if (skip.has(e.id)) continue;
+    if (skip.has(e.id) || handled.has(e.id)) continue;
     const uses = usesOf.get(e.id) ?? [];
     if (uses.length !== 2) refuse('SELECTION', `edge ${e.name} does not join exactly two faces`);
     // A convex finish of a straight edge between two planes must fit on both faces: its setback from the
@@ -215,10 +233,66 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
       out = booleanAnalytic(was, combine(groups.map(g => g.length === 1 ? g[0] : g.reduce((acc, t) => booleanAnalytic(acc, t, 'union', { id: `${id}_tools` }))), id), op, { id });
     }
   };
+  // The rolling-ball tools first, each on its own: its contact faces meet the body along their contacts only.
+  for (const ring of rings) out = booleanAnalytic(out, ring.brep, ring.convex ? 'difference' : 'union', { id, contactFaces: ring.contactFaces });
   apply(convexTools, 'difference');
   apply(cornerTools, 'difference');
   apply(concaveTools, 'union');
   return out;
+}
+
+type Edge = Brep['edges'][number];
+type Ends = (e: Edge) => { v: string; x: Point; out: Point }[];
+/** The chain's edges in groups joined at vertices. */
+function components(edges: readonly Edge[]): Edge[][] {
+  const root = edges.map((_, i) => i), find = (x: number): number => root[x] === x ? x : (root[x] = find(root[x]));
+  const at = new Map<string, number[]>();
+  edges.forEach((e, i) => { for (const v of new Set(e.vertices)) at.set(v, [...(at.get(v) ?? []), i]); });
+  for (const list of at.values()) for (const i of list.slice(1)) root[find(i)] = find(list[0]);
+  const groups = new Map<number, Edge[]>(); edges.forEach((e, i) => groups.set(find(i), [...(groups.get(find(i)) ?? []), e]));
+  return [...groups.values()];
+}
+/** A group of edges as one closed loop, in order (each with whether it runs backwards), or null (open, or branching). */
+function closedLoop(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | null {
+  const at = new Map<string, Edge[]>();
+  for (const e of comp) for (const v of e.vertices) at.set(v, [...(at.get(v) ?? []), e]);
+  if ([...at.values()].some(l => l.length !== 2)) return null;
+  const out = [{ e: comp[0], reversed: false }], seen = new Set([comp[0].id]);
+  for (;;) {
+    const last = out.at(-1)!, v = last.reversed ? last.e.vertices[0] : last.e.vertices[1], next = at.get(v)!.find(o => !seen.has(o.id));
+    if (!next) break;
+    out.push({ e: next, reversed: next.vertices[1] === v && next.vertices[0] !== v }); seen.add(next.id);
+  }
+  const tail = out.at(-1)!, back = tail.reversed ? tail.e.vertices[0] : tail.e.vertices[1];
+  return out.length === comp.length && back === (comp[0].vertices[0]) ? out : null;
+}
+/**
+ * The rolling-ball tool of a closed loop (R10.2a): its faces sorted to the loop's two sides (by the first edge's,
+ * then by a shared face or by the normals where consecutive edges meet), its convexity from the first edge.
+ */
+function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf: Map<string, Use[]>, ends: Ends, r: number, id: string, scaleMM: number): { brep: Brep; convex: boolean; report: FilletReport; contactFaces: string[] } {
+  const normalAt = (f: Brep['faces'][number], x: Point) => { const s = sheetOf(f.surface as Surface, f.sense); return normalOn(s, ...invertOn(s, x)); };
+  const first = loop[0], u0 = usesOf.get(first.e.id)!, A = new Set([u0[0].face.id]), B = new Set([u0[1].face.id]), sideA = [u0[0].face], sideB = [u0[1].face];
+  // Into each face at the loop's start, square to the edge (the face left of its coedge seen from outside): the edge's
+  // own direction there, turned by the coedge's sense.
+  const [E0, E1] = ends(first.e), X0 = first.reversed ? E1.x : E0.x, own = first.reversed ? scale(E1.out, -1) : E0.out;
+  const into = u0.map(u => { const n = normalAt(u.face, X0); return { n, w: unit(cross(n, u.sense === 'forward' ? own : scale(own, -1))) }; });
+  const convex = convexAt(into);
+  for (let k = 1; k < loop.length; k++) {
+    const { e, reversed } = loop[k], us = usesOf.get(e.id)!, [F, G] = [us[0].face, us[1].face];
+    let toA: Brep['faces'][number], toB: Brep['faces'][number];
+    if (A.has(F.id) || B.has(G.id)) { toA = F; toB = G; }
+    else if (A.has(G.id) || B.has(F.id)) { toA = G; toB = F; }
+    else {
+      const V = reversed ? ends(e)[1].x : ends(e)[0].x, nA = normalAt(sideA.at(-1)!, V);
+      [toA, toB] = len(sub(normalAt(F, V), nA)) <= len(sub(normalAt(G, V), nA)) ? [F, G] : [G, F];
+    }
+    if (!A.has(toA.id)) { A.add(toA.id); sideA.push(toA); }
+    if (!B.has(toB.id)) { B.add(toB.id); sideB.push(toB); }
+  }
+  const tolMM = 0.25 * 10 * linearToleranceMM(scaleMM), names = loop.map(l => l.e.name ?? l.e.id);
+  const { brep, report, contactFaces } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM });
+  return { brep, convex, report, contactFaces };
 }
 
 /**
@@ -561,22 +635,22 @@ function straightTool(e: Brep['edges'][number], uses: Use[], P: Point, Q: Point,
 }
 
 /** Which closed form finishes the edge: two planes, the translational or coaxial pair, or a plane and a cylinder square to it. */
-function pairOf(e: Brep['edges'][number], uses: Use[], straight: boolean, kind: EdgeFinishKind, tol: number): 'planes' | 'translational' | 'plane-cylinder' | 'coaxial' {
-  const gs = uses.map(u => u.geometry);
+function pairOf(e: Brep['edges'][number], uses: Use[], straight: boolean, kind: EdgeFinishKind, tol: number, soft = false): 'planes' | 'translational' | 'plane-cylinder' | 'coaxial' | 'general' {
+  const gs = uses.map(u => u.geometry), none = (detail: string) => soft ? 'general' as const : refuseFillet('NOT_ANALYTIC_PAIR', detail);
   if (straight) {
     if (gs.every(g => g.kind === 'plane')) return 'planes';
     const p = e.curve.controlPoints, d = unit(sub(p[p.length - 1] as Point, p[0] as Point));
-    if (!gs.every(g => g.kind === 'plane' ? Math.abs(dot(g.n, d)) < 1e-9 : g.kind === 'cylinder' && len(cross(g.a, d)) < 1e-9)) refuseFillet('NOT_ANALYTIC_PAIR', `edge ${e.name}: its faces do not both run along it (planes along the edge, cylinders with their axis along it); this fillet arrives with R10.2`);
+    if (!gs.every(g => g.kind === 'plane' ? Math.abs(dot(g.n, d)) < 1e-9 : g.kind === 'cylinder' && len(cross(g.a, d)) < 1e-9)) return none(`edge ${e.name}: its faces do not both run along it (planes along the edge, cylinders with their axis along it), and its chain is not closed; open general chains arrive with R10.2b`);
     if (kind === 'chamfer') refuse('CAPABILITY', `edge ${e.name}: chamfers along a straight edge of a curved face are not supported yet`);
     return 'translational';
   }
   const k = circleOf(e.curve);
-  if (!k) return refuseFillet('NOT_ANALYTIC_PAIR', `edge ${e.name}: the edge is neither a line nor a circle; this fillet arrives with R10.2`);
+  if (!k) return none(`edge ${e.name}: the edge is neither a line nor a circle, and its chain is not closed; open general chains arrive with R10.2b`);
   const pl = gs.find(g => g.kind === 'plane') as Extract<FaceGeometry, { kind: 'plane' }> | undefined, cy = gs.find(g => g.kind === 'cylinder') as Extract<FaceGeometry, { kind: 'cylinder' }> | undefined;
   if (pl && cy && Math.abs(Math.abs(dot(cy.a, pl.n)) - 1) <= 1e-9 && Math.abs(k.r - cy.r) <= 1e3 * tol) return 'plane-cylinder';
   const axis = unit(cross(k.e1, k.e2)), onAxis = (c: Point, a: Point) => len(cross(a, axis)) < 1e-9 && len(cross(sub(c, k.c), axis)) <= 1e3 * tol;
   const coaxial = gs.every(g => g.kind === 'plane' ? Math.abs(dot(g.n, axis)) > 1 - 1e-9 : g.kind === 'cylinder' ? onAxis(g.c, g.a) : g.kind === 'revolution' && onAxis(g.R.c, g.R.a));
-  if (!coaxial) refuseFillet('NOT_ANALYTIC_PAIR', `edge ${e.name}: its faces are not surfaces of revolution about the circle's axis; this fillet arrives with R10.2`);
+  if (!coaxial) return none(`edge ${e.name}: its faces are not surfaces of revolution about the circle's axis, and its chain is not closed; open general chains arrive with R10.2b`);
   if (kind === 'chamfer') refuse('CAPABILITY', `edge ${e.name}: chamfers along a circle between curved faces other than a plane and a cylinder are not supported yet`);
   return 'coaxial';
 }

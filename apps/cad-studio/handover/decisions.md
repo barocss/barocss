@@ -4309,3 +4309,54 @@ R10.1 as D87's verdict and the research note (`handover/notes/research-r10-r11-f
     - **Next:** R10.2's contact pcurves, or a Boolean repair of seam slivers.
   - **Mass:** where quadrature's finer pass (q 16) cannot place a mesh point on such a torus, the result's mass falls back to the tessellation (5 in 200 there). It is reported honestly as `tessellated`, up to 4.4e-4 of the part off at the default chords in those seen (the removed 13.20 mm³ against 11.33); the coarse pass alone is exact there. A quadrature robustness item.
 - **Not done:** chamfers of the new pairs (refused with CAPABILITY); the pipe-clamp lug's B-rep version (needs R10.3 too, D87); variable radius, vertex blends and overflow (R10.2–R10.5).
+
+## D89 — R10.2a: the rolling-ball fillet of closed chains between any two faces (2026-10-19)
+
+R10.2 split in two, as the research note's R10.2 is large. **R10.2a** (this): closed chains, any faces. **R10.2b** (next): open chains (their ends).
+- **Method:** the tool + analytic Boolean method of R10.1, with a lofted NURBS tool. The note warned against a NURBS-tool Boolean; the risk it names (marching tangential contact) is met by telling the Boolean where the tool touches (below), not by contact-pcurve surgery.
+- **The ball** (`packages/barocss-cad/src/rolling-ball.ts`):
+  - At stations along the chain, the ball of radius r touching both faces is solved: centre c = S_A + σ_A·r·n_A = S_B + σ_B·r·n_B, in the plane through the station square to the chain. That is four equations in the contacts' (u, v), solved by damped Newton from the last station, with finite-difference normals.
+  - Derivatives are central inside the domain and second-order one-sided at its edges: one-sided O(h) normals at a seam left a 2.8e-6 mm residual.
+  - The solved balls' |c − p| − r is 1e-10 to 1e-9 mm.
+  - Each station's section lies in the ball's plane through both contacts: the contacts, the faces' tangent lines grown g = r/2 outside the corner, their corner, and the fillet arc (rational quadratic).
+- **The loft:**
+  - **Along the chain:** a C² cubic B-spline through the stations, solved by collocation, with end tangents from five-point stencils (one-sided at a stretch's ends, so O(h⁴): stencils across a stretch's ends made it O(h²)). Up to 13 spans a patch within the 16-pole limit.
+  - The arc's middle row is interpolated in homogeneous coordinates.
+  - Five faces a patch: the fillet `<id>.face`; the walls at both contacts and the grown corner `<id>.tool`.
+- **The breaks:** the tool's patches break where a contact crosses from one face to the next (a seam between halves), found by bisection to rounding. A tool contact edge crossing a body seam inside a patch broke the Boolean: the cone and rod case.
+  - Stations are spaced evenly in length within each stretch.
+  - A stretch's first station is seeded by a fresh inversion: the last stretch's (u, v) belong to the face across the seam.
+- **Refinement:** the station count starts from max(64, length / (r/4)). It grows as the h⁴ rate predicts, until the lofted contacts lie within a quarter of the Boolean's tolerance (2.5e-7 mm at this scale) of their faces. Past 4096 stations it is refused, `APPROX_TOLERANCE_NOT_MET`.
+- **The Boolean** (`analytic-boolean.ts`): a new option `contactFaces`, the tool's faces that meet the body only along their own edges lying on it (the fillet and the two contact walls). For such a pair (and an edge of it on the other's surface), those edges become the cuts and nothing is marched.
+  - Without it the march along the wall's edge and the edge-on-surface cut overlapped. With the option kept on `exactly()`'s arc refit, neighbouring pieces' ends moved 1.5e-6 apart and the face was not split. The result failed erratically with the station count: the boss passed at 240 and 300 stations and failed at 248–264.
+  - Each rolling-ball tool is applied in its own Boolean, before the other tools.
+- **Where it applies:** a closed component of the selected edges' tangent chain containing an edge no closed form finishes (R10.1's `NOT_ANALYTIC_PAIR` cases) gets one ring tool for the whole loop.
+  - The sides' faces are sorted by shared faces, then by normals at the loop's vertices; convexity comes from the first edge.
+  - `finishBrepEdges(…, { general: true })` forces the path on loops that have a closed form, for testing.
+  - The output carries `fillet: FilletReport[]`: stations, patches, `contactMM`, `normalDeg` (fillet against face normals at the contacts), `sectionMM` (lofted against true sections between stations), `ballMM`.
+- **Refusals:**
+  - An open chain of general edges: `[NOT_ANALYTIC_PAIR] … open general chains arrive with R10.2b`.
+  - A contact off all the side faces: `[CONTACT_LEAVES_FACE]` (rolling over is R10.4).
+  - `[APPROX_TOLERANCE_NOT_MET]`.
+  - Chamfers between general faces: CAPABILITY.
+- **Evidence** (`test/r10-2.test.mjs`, 5 tests):
+  - **Against the closed forms**, the general path forced: boss foot (concave) and hole rim (convex) to 1.7e-7 of the fillet's volume; cone rim to 2.8e-6. That is the loft's ~2e-7 mm section deviation over the fillet's area.
+  - **Pipe tee (radius 10 and 5, r 2) and crossing rods (5 and 3, r 1):**
+    - valid, the loop from one edge;
+    - contacts 0.7–1.4e-7 mm off their faces;
+    - G1 to 2e-5–7e-5°;
+    - sections 1–2.2e-7 mm off the true ones;
+    - volume within 1e-6 of a loft through twice the stations.
+  - **Names:** every face but the fillet's keeps its name across r 1 and 2. The fillet's faces are `f.face#k`, one a patch; their count follows the refinement, so the fillet's own face names are not stable across a radius change.
+  - **Conformance:**
+    - `r10/general-tee` and `r10/general-crossing-rods` (this kernel's volume to 1e-7 of the part, about 1e-4 of the fillet; STEP round trip);
+    - `r10/refuse-open-general-chain` (an oblique groove's rim) and `r10/refuse-contact-leaves-face` (a branch too short for r 3);
+    - `r10/refuse-not-analytic-pair` superseded: the crossing rods now build. R10.1's test uses the oblique groove instead.
+  - **Studio:** errors.ts hints; a flow step opens a pipe-tee file and fillets the junction in the UI (+15.71 mm³, as the conformance case).
+- **The coordinator's probe, the pipe clamp's lug as a B-rep** (in `r10-2.test.mjs`): a tube along X with a lug standing on it, broad faces along the axis, narrow ends square to it, the hole square to the broad faces.
+  - The broad faces meet the tube in **rulings** (translational, R10.1) and the narrow ends in **arcs** (plane × square cylinder). The note's wording holds for this orientation.
+  - R10.1 fillets each of the four edges alone. The loop in one feature is refused at its four inside corners ("inside corner of their face"): there the ball rolls round the lug's convex vertical edge, a mixed corner, R10.3. It is kept as a conformance case once R10.3 builds it.
+- **Cost (known):** a general fillet takes 3–5 s for one loop (tee, boss, crossing rods) and 11 s for the cone and rod (30 patches). The studio's evaluation took 9 s for the tee.
+  - The Boolean takes most of it: the march, the curved arrangement of the many cut pieces, and stitching.
+  - Candidates: fewer patches (a higher-order loft), and the Boolean's arrangement of many short cuts.
+- **Not done:** open chains (R10.2b); variable radius, vertex blends, overflow (R10.3–R10.5); general chamfers.

@@ -1,0 +1,89 @@
+{
+  "id": "r10-refuse-contact-leaves-face",
+  "step": "R10",
+  "decisions": [
+    "D89"
+  ],
+  "about": "R10.2a: a tee whose branch stands 12 high (its foot at 8.66–10), the junction filleted 3 mm: the ball would touch the branch up to 13, past its top — CONTACT_LEAVES_FACE (rolling over is R10.4).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 12
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|b.side0#2#4"
+          ],
+          "radius": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[CONTACT_LEAVES_FACE]"
+    }
+  },
+  "oracle": "At the junction's top (y = 0, z = 10) the concave ball touches the branch r above the tube: 13 > 12."
+}
