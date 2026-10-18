@@ -8,6 +8,8 @@ import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
 import { projectViews } from '../../src/drawing/project';
+import { checkSpec, type Requirement } from '../../src/chat/spec';
+import { withLook } from '../../src/app/bodies';
 
 interface Scenario { name: string; budgetMS: number; runs: number; setup(): () => unknown }
 const D = (features: unknown[]): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features } as unknown as CadPartDocument);
@@ -27,6 +29,15 @@ function chain20(): StudioDoc {
   return doc;
 }
 
+/** The 16-hole plate printed in ABS on FDM, standing up Z, with eight requirements (bbox, volume, mass, wall, overhang, three print rules). */
+function printedPlate(width: number): StudioDoc {
+  const plate = holePlate(width), first = evaluateDoc(plate, 1);
+  let doc: StudioDoc = { ...plate, process: 'fdm', printer: 'fdm-256', print: { direction: [0, 0, 1] } };
+  if (first.ok) doc = withLook(doc, first.bodies[0], { material: 'abs' });
+  const q = (id: string, query: Requirement['check']['query'], op: '<=' | '>=', value: number): Requirement => ({ id, source: id, hard: false, basis: 'stated', check: { op, query, value } } as Requirement);
+  return { ...doc, requirements: [q('R1', { fn: 'bbox', axis: 'x' }, '<=', 200), q('R2', { fn: 'volume' }, '>=', 1), q('R3', { fn: 'mass' }, '<=', 500), q('R4', { fn: 'min_wall' }, '>=', 0.8),
+    q('R5', { fn: 'overhang_area' }, '<=', 1e6), q('R6', { fn: 'print_rule', rule: 'wall' }, '>=', 0.8), q('R7', { fn: 'print_rule', rule: 'tip' }, '<=', 10), q('R8', { fn: 'print_rule', rule: 'overhang' }, '<=', 1e6)] };
+}
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 3000, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 120, runs: 5, setup() {
@@ -58,6 +69,13 @@ const scenarios: Scenario[] = [
     });
     let k = 0; return () => projectViews([plates[k++]]);
   } },
+  // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
+  { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {
+    // (Each run a fresh document, as after an edit; its evaluation done here, outside the time.)
+    const ready = Array.from({ length: 4 }, (_, k) => { const doc = printedPlate(100 + 1e-3 * (k + 1)), r = evaluateDoc(doc, k + 1); if (!r.ok) throw new Error('eval'); return { doc, bodies: r.bodies }; });
+    let k = 0;
+    return () => { const { doc, bodies } = ready[k++ % ready.length]; return checkSpec(doc, bodies, async d => evaluateDoc(d, 1)); };
+  } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
     const sheet = d.objects[0].id; directDisplay(d); let k = 0;
@@ -67,9 +85,9 @@ const scenarios: Scenario[] = [
 
 const rows: { name: string; ms: number; budgetMS: number; ok: boolean }[] = [];
 for (const s of scenarios) {
-  const run = s.setup(); run();
+  const run = s.setup(); await run();
   let best = Infinity;
-  for (let i = 0; i < s.runs; i++) { const t0 = performance.now(); run(); best = Math.min(best, performance.now() - t0); }
+  for (let i = 0; i < s.runs; i++) { const t0 = performance.now(); await run(); best = Math.min(best, performance.now() - t0); }
   rows.push({ name: s.name, ms: +best.toFixed(2), budgetMS: s.budgetMS, ok: best <= s.budgetMS });
 }
 if (process.env.BENCH_JSON) console.log(JSON.stringify(rows));

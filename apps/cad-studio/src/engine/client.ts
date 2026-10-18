@@ -1,8 +1,12 @@
+import { rememberFaceTable } from '../assembly/faces';
 import type { EvalResult } from './evaluate';
 import type { StudioDoc } from './doc';
 import type { DrawingResult } from '../drawing/project';
 import { WireSender } from './wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
+
+/** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
+function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTable) rememberFaceTable(doc, r.faceTable); }
 
 /** One worker; the newest evaluation wins and stale replies are dropped. */
 export class EngineClient {
@@ -43,7 +47,7 @@ export class EngineClient {
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
     const id = this.next++; this.latestEval = id;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve(id === this.latestEval ? (data as { result: EvalResult }).result : null));
+      this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(id === this.latestEval ? r : null); });
       this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision });
     });
   }
@@ -70,7 +74,7 @@ export class EngineClient {
   part(doc: StudioDoc, revision: number): Promise<EvalResult> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(r); });
       this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision });
     });
   }

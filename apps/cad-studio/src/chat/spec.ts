@@ -15,7 +15,7 @@ import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } fro
 import { libraryById } from '../library/libraries';
 import { holeAlignment } from '../library/alignment';
 import { overhangOf } from '../print/overhang';
-import { printability } from '../print/rules';
+import { printability, type PrintabilityReport } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { faceTableOf } from '../assembly/faces';
 
@@ -108,6 +108,15 @@ function pickOf(doc: StudioDoc, bodies: readonly BodyResult[], sel: unknown): { 
 }
 const bodiesOf = (bodies: readonly BodyResult[], key?: string) => key ? bodies.filter(b => b.key === key) : bodies;
 
+// One printability report per evaluation (its bodies), process, printer, direction and looks (materials: warp): every print_rule of a
+// check run reads the same one (it measured every rule each time, PERF3 A1).
+const printReports = new WeakMap<readonly BodyResult[], Map<string, Promise<PrintabilityReport>>>();
+function printabilityOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, direction?: readonly number[]): Promise<PrintabilityReport> {
+  const key = JSON.stringify([doc.process, doc.printer, direction ?? doc.print?.direction ?? null, doc.bodies ?? null]);
+  let byKey = printReports.get(bodies); if (!byKey) { byKey = new Map(); printReports.set(bodies, byKey); }
+  let r = byKey.get(key); if (!r) { r = printability(doc, bodies, evaluate, direction ? { direction } : {}); byKey.set(key, r); }
+  return r;
+}
 /** A query's measurement, with the faces or bodies it is about; or unknown with why. */
 async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, q: Query): Promise<{ x: number; entities?: string[]; hint?: string } | { unknown: string }> {
   if ('body' in q && q.body !== undefined && !bodies.some(b => b.key === q.body)) return { unknown: `no body ${q.body} (bodies: ${bodies.map(b => b.key).join(', ') || 'none'})` };
@@ -148,7 +157,7 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
     case 'print_rule': {
-      const report = await printability(doc, bodies, evaluate, q.direction ? { direction: q.direction } : {});
+      const report = await printabilityOf(doc, bodies, evaluate, q.direction);
       const r = report.rules.find(x => x.id === q.rule);
       if (!r) return { unknown: `no rule ${q.rule} (rules: ${report.rules.map(x => x.id).join(', ')})` };
       if (r.status === 'unknown' || r.status === 'n/a' || r.value === undefined) return { unknown: `${q.rule}: ${r.status === 'n/a' ? 'not applicable — ' : ''}${r.why ?? r.message}` };

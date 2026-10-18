@@ -167,7 +167,14 @@ function gridRay(m: DisplayMesh, g: Grid, ox: number, oy: number, oz: number, dx
  * face's normal to the next wall (through a uniform grid of the triangles). The thinnest (with where), and the
  * faces under `below` mm if asked. On the display mesh: good to its chord error on curved walls.
  */
+// (A body's wall thickness depends on its mesh alone: kept per mesh, as the print rules and checks ask again, PERF3 A1.)
+const walls = new WeakMap<DisplayMesh, Map<number | undefined, Record<string, unknown>>>();
 export function wallThickness(b: BodyResult, below?: number): Record<string, unknown> {
+  let byBelow = walls.get(b.mesh); if (!byBelow) { byBelow = new Map(); walls.set(b.mesh, byBelow); }
+  let r = byBelow.get(below); if (!r) { r = measureWalls(b, below); byBelow.set(below, r); }
+  return r;
+}
+function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
   const m = b.mesh, T = m.indices.length / 3, perFace = new Map<number, number>(), g = gridOf(m);
   let min = Infinity, at: Vec3 = [0, 0, 0], face = -1;
   for (let t = 0; t < T; t++) {

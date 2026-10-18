@@ -3326,3 +3326,29 @@ Still to do in R8.2 (after PERF3):
 - agent tools (`subd_select`, `subd_extrude`, `subd_insert_loop`, `subd_bridge`, `subd_fill`, `subd_weld`, `subd_crease`, `subd_move`; under D41, proposals at L2 for topology);
 - a browser-flow step;
 - the cap cache by one-ring hash, so a drag rebuilds only nearby caps (PERF3 A4).
+
+## D82 — PERF3: second performance review (2026-10-18; owner: before R8.2)
+
+The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리뷰 세션에 전달해줘"). It came from a read-only review of f4648d8e6 by four agents (kernel, app, GPU, benches). Each finding is confirmed in code before it is changed, and measured before and after.
+- **Baseline** (`pnpm bench`, Node 22, Apple M-series):
+
+  | Bench | Time |
+  |---|---|
+  | 16-hole plate, cold | 1 397 ms |
+  | filleted box: tessellate / mass | 37.6 / 449 ms |
+  | 20-feature chain, unchanged | 0.13 ms |
+  | stepped body × 12 | 694 ms |
+  | 120-hole drawing | 1 283 ms |
+  | pole drag | 4.1 ms |
+
+### A1 — requirement checks after every edit
+- **Confirmed and measured:** eight requirements on the 16-hole plate printed on FDM took **4 075 ms** after every edit, on the main thread.
+  - `faceTableOf` evaluated the whole part (≈ 1 s) on every call. It ran once for `overhang_area` and again inside every `printability()`, which every `print_rule` also re-ran in full.
+  - `wallThickness` ≈ 25 ms each time; facts ≈ 0.
+- **Fix:**
+  - The worker and in-process evaluations hand back the face table built from the B-rep they already have (`faceTableFrom`, a few ms). The client registers it on the main thread (`rememberFaceTable`, by the part's content).
+  - `faceTableOf` reads that cache before it would evaluate; `tableOf` is now the same function.
+  - One printability report per evaluation (its bodies array), process, printer, direction and looks.
+  - Wall thickness kept per mesh.
+- **After: 22 ms** (×185). The new bench `check_spec: 8 requirements after an edit` has a budget of 50 ms.
+- Studio 343/343.

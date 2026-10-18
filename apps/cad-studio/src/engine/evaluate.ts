@@ -1,3 +1,5 @@
+import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
+import type { FaceTable } from '../assembly/mates';
 import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, type SubdSummary, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
@@ -36,7 +38,9 @@ export interface BodyResult {
   subd?: SubdSummary;
 }
 export type EvalResult =
-  | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
+  // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
+  // print rules and mates read, kept so they do not evaluate the part again; PERF3 A1.)
+  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable }
   | { ok: false; revision: number; error: FriendlyError; ms: number };
 
 const ALUMINIUM = 2700;
@@ -75,7 +79,8 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   try {
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
+    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
@@ -109,7 +114,8 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): Eva
   try {
     const part = toPartDocument(doc), snapshot = lastPart ? lastPart.withDocument(part) : evaluateCadPart(part); lastPart = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
+    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
