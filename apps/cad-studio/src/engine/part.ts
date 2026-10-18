@@ -44,6 +44,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
     case 'subd': return { ...at, kind: 'subd', cage: node.cage };
+    case 'rack': {
+      const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction !== undefined ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
+        : { origin: node.origin, ...(node.from ? { from: node.from } : {}), ...(node.angle ? { angle: node.angle } : {}) };
+      return { ...at, kind: 'spur-rack', module: node.module, teeth: node.teeth, faceWidth: node.faceWidth, height: node.height, generator: node.generator, ...own, ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    }
     case 'gear': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
@@ -74,7 +79,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -87,7 +92,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
       features.push(...featuresOf(node, i)); return;
     }
     if (makes) {
-      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || (node.kind === 'gear' && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
+      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...featuresOf(node, i)); return;
     }
     const parent = (node as { parent: BodyRef }).parent;

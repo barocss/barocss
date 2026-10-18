@@ -1,0 +1,56 @@
+{
+  "id": "r6a-rack-m2-n10",
+  "step": "R6a",
+  "decisions": [
+    "D58"
+  ],
+  "about": "A rack (m 2, 10 teeth, 10 mm from pitch line to back, 10 wide): the basic 20\u00b0 rack profile on a bar, its volume and centroid the trapezoid teeth and the bar's in closed form; faces named per tooth.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "k",
+          "kind": "spur-rack",
+          "module": 2,
+          "teeth": 10,
+          "faceWidth": 10,
+          "height": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6207.998977209992,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            31.41592653589793,
+            -4.893543560723243,
+            5
+          ],
+          "absTol": 1e-07
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^k\\.(flankL|flankR|tip|root|back|end0|end1|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  },
+  "oracle": "closed form: bar L(H \u2212 1.25m) plus n trapezoids (tip s \u2212 2m tan \u03b1, root s + 2.5m tan \u03b1, height 2.25m)"
+}

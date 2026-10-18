@@ -169,3 +169,40 @@ test('Profile shift (R6a.5a, D57): a 12-tooth pinion at x 0.6 from the command, 
   const notes = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)!.notes! : [];
   assert.ok(notes.some(n => /centre distance 56\.4999 mm, ratio −12:24, backlash 0 mm/.test(n.text)) && notes.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(notes));
 });
+
+test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
+  const { editFields } = await import('../src/app/editFields');
+  const { runCheck } = await import('../src/chat/spec');
+  const rack = commands.find(c => c.id === 'gear-rack')!, gear = commands.find(c => c.id === 'gear')!;
+  const alone = rack.build!(ctx, { ...rack.defaults!(ctx), m: 2, teeth: 10, b: 10, h: 10, x: 0, y: 0, z: 0 }), ra = evaluateDoc(alone, 1);
+  assert.ok(ra.ok, ra.ok ? '' : ra.error.hint);
+  const T = Math.tan(Math.PI / 9), p = 2 * Math.PI, s = p / 2, tooth = ((s - 4 * T) + (s + 5 * T)) / 2 * 4.5;
+  close(ra.ok ? ra.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth) * 10, 1e-9);
+  assert.ok(ra.ok && ra.bodies[0].notes!.some(n => /^Length 62\.8319 mm, pitch 6\.2832 mm/.test(n.text)));
+  const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 2);
+  assert.ok(r1.ok);
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  assert.deepEqual(rack.fields!(picked).map(f => f.key), ['teeth', 'h', 'dir']);
+  const two = rack.build!(picked, rack.defaults!(picked)), r2 = evaluateDoc(two, 3);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const k = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
+  assert.ok(k.notes!.some(n => /^Meshes with n0: pitch line 20 mm from its axis, 125\.6637 mm a turn, backlash 0 mm/.test(n.text)) && k.notes!.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(k.notes));
+  // (Under the gear: its pitch line at y −20, the bar below.)
+  assert.ok(k.mesh.bounds.max[1] < -20 + 2 + 1e-9 && k.mesh.bounds.min[1] > -20 - 8 - 1e-9, JSON.stringify(k.mesh.bounds));
+  // The gear turned 10°: the rack travels 20 × 10° in radians along +X, still clear.
+  const rot = editFields(two.nodes, 0).find(f => f.key === 'rot')! as Extract<ReturnType<typeof editFields>[number], { kind: 'number' }>;
+  const r3 = evaluateDoc({ ...two, nodes: rot.set(two.nodes, 10) }, 4); assert.ok(r3.ok);
+  const k3 = r3.ok ? r3.bodies.find(b => b.ref?.node === 1)! : null!;
+  close(k3.centroid![0] - k.centroid![0], 20 * Math.PI / 18, 1e-6);
+  assert.ok(k3.notes!.some(n => /^Clear over/.test(n.text)));
+  // Slid 1 mm off its place: the teeth cross.
+  const slide = editFields(two.nodes, 1).find(f => f.key === 'ph')! as Extract<ReturnType<typeof editFields>[number], { kind: 'number' }>;
+  const r4 = evaluateDoc({ ...two, nodes: slide.set(two.nodes, 1) }, 5); assert.ok(r4.ok);
+  assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => n.warning && /The teeth cross .* \(slid 1\.000 mm\): interference/.test(n.text)));
+  // Gear queries take a gear and a rack.
+  const bodies = r2.ok ? r2.bodies : [], ev = async () => r2;
+  const cd = await runCheck(two, bodies, ev as never, { op: '==', query: { fn: 'gear_center_distance', a: 'n0', b: 'n1' }, value: 20, tol: 1e-9 });
+  assert.equal(cd.status, 'pass', JSON.stringify(cd));
+  const cr = await runCheck(two, bodies, ev as never, { op: '>=', query: { fn: 'gear_contact_ratio', a: 'n1', b: 'n0' }, value: 1.7 });
+  assert.equal(cr.status, 'pass', JSON.stringify(cr));
+});

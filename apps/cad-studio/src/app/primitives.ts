@@ -113,6 +113,23 @@ export const primitives: Command[] = [
     },
   },
   {
+    id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (straight teeth on a bar): meshing with the selected spur gear, under it and travelling with its turn; or on its own', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
+    available: () => ok,
+    // (Meshing with a selected gear: its module and face width; where it stands, from the gear.)
+    fields: ctx => gearPicked(ctx) ? [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, { key: 'dir', label: 'Direction', kind: 'deg' }]
+      : [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, ...at],
+    defaults: (ctx): Values => { const g = gearPicked(ctx); return g ? { teeth: Math.max(4, Math.round(g.node.teeth * 0.8)), h: 4 * Number(g.node.module), dir: -90 } : { m: 2, teeth: 15, b: 10, h: 8, ...beside(ctx, 10) }; },
+    build: (ctx, v) => {
+      const g = gearPicked(ctx), [z, h] = n(v, 'teeth', 'h');
+      if (g) {
+        const dir = Number(v.dir);
+        return withNode(ctx.doc, { kind: 'rack', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, height: h, ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), origin: [0, 0], mesh: { gear: g.index, ...(dir !== -90 ? { direction: dir } : {}) }, generator: 'spur-rack@0' });
+      }
+      const [m, b, x, y, zz] = n(v, 'm', 'b', 'x', 'y', 'z');
+      return withNode(ctx.doc, { kind: 'rack', module: m, teeth: Math.round(z), faceWidth: b, height: h, origin: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-rack@0' });
+    },
+  },
+  {
     id: 'subd-torus', label: 'SubD torus', icon: 'cad-subd', hint: 'A smooth ring from a quad cage (SubD): its exact limit surface, B-spline faces', group: 'create', keywords: 'subd subdivision smooth cage organic ring freeform',
     available: () => ok,
     fields: () => [{ key: 'R', label: 'Ring radius', kind: 'mm', min: 1 }, { key: 'r', label: 'Tube radius', kind: 'mm', min: 0.5 }, { key: 'nu', label: 'Quads round', kind: 'count', min: 4, max: 64 }, { key: 'nv', label: 'Quads across', kind: 'count', min: 4, max: 32 }, ...at],

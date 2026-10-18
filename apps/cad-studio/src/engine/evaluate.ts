@@ -1,4 +1,4 @@
-import { evaluateCadPart, checkPlacedSpurGears, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, exportStep } from '@barocss/cad';
+import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -28,6 +28,8 @@ export interface BodyResult {
   notes?: { text: string; warning?: boolean }[];
   /** A spur gear as made: its spec and where it stands (the gear queries, A3; a meshing gear's other gear with it). */
   gear?: GearPlacement;
+  /** A rack as made: its spec and where it stands (and the gear it meshes with). */
+  rack?: RackPlacement;
 }
 export type EvalResult =
   | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
@@ -52,7 +54,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
-  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}) };
+  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -249,3 +251,23 @@ function meshNotes(g: GearPlacement | undefined): { text: string; warning?: bool
       : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` },
     ...c.diagnostics.filter(x => x.code !== 'SELF_INTERSECTION' && x.code !== 'ROOT_TRANSITION_UNVALIDATED').map(x => ({ text: x.message, warning: x.severity === 'warning' }))];
 }
+
+/** A rack's report as lines for the body's panel (R6a.5b, D58). */
+function rackNotes(k: NonNullable<CadPartSnapshot['outputs'][number]['rack']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4);
+  return [{ text: `Length ${mm(k.lengthMM)} mm, pitch ${mm(k.pitchMM)} mm; tooth ${mm(k.toothThicknessMM)} mm on the pitch line, tip ${mm(k.tipWidthMM)}, root gap ${mm(k.rootWidthMM)} mm` },
+    { text: 'Schematic root: not the cutting tool\'s, not validated for manufacturing', warning: true }];
+}
+/** A rack meshing with a gear: the pair's check in verdict mode, its time (as meshNotes). */
+function rackMeshNotes(k: RackPlacement | undefined): { text: string; warning?: boolean }[] {
+  if (!k?.driver) return [];
+  const t0 = performance.now();
+  let c: ReturnType<typeof checkPlacedSpurRack>;
+  try { c = checkPlacedSpurRack(k.driver, k, { mode: 'verdict' }); }
+  catch (cause) { return [{ text: `Does not mesh with ${k.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
+  const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4);
+  return [{ text: `Meshes with ${k.meshesWith}: pitch line ${mm(c.centerDistanceMM)} mm from its axis, ${mm(Math.PI * k.spec.moduleMM * k.driver.spec.teeth)} mm a turn, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}` },
+    c.sweep.interference ? { text: `The teeth cross at ${c.sweep.atDegrees.toFixed(2)}° of ${k.meshesWith} (slid ${c.rackPhaseMM.toFixed(3)} mm): interference (${ms.toFixed(0)} ms)`, warning: true }
+      : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` }];
+}
+

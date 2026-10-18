@@ -11,7 +11,7 @@ import { measureBetween, type MeasurePick } from '../app/measure';
 import { resolveEdge, resolveFace, resolveNames } from './names';
 import { factsOf } from './observe';
 import { draftAnalysis, interference, wallThickness } from './analysis';
-import { checkPlacedSpurGears } from '@barocss/cad';
+import { checkPlacedSpurGears, checkPlacedSpurRack } from '@barocss/cad';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -142,11 +142,14 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
  * tooth period (the full sweep: minus the depth when the teeth cross). Gears built on further are not gears here.
  */
 function gearPair(doc: StudioDoc, bodies: readonly BodyResult[], q: Extract<Query, { a: string; b: string }>): { x: number; entities?: string[]; hint?: string } | { unknown: string } {
-  const gearOf = (id: string) => { const i = nodeIndexOf(doc.nodes, id); return i < 0 ? undefined : bodies.find(b => b.ref?.node === i && b.gear)?.gear; };
-  const g1 = gearOf(q.a), g2 = gearOf(q.b);
-  if (!g1 || !g2) return { unknown: `${!g1 ? q.a : q.b} is not a spur gear body as made (a gear built on further is a body, not a gear, here)` };
-  let c: ReturnType<typeof checkPlacedSpurGears>;
-  try { c = checkPlacedSpurGears(g1, g2, { mode: q.fn === 'gear_clearance' ? 'report' : 'verdict' }); }
+  const bodyOf = (id: string) => { const i = nodeIndexOf(doc.nodes, id); return i < 0 ? undefined : bodies.find(b => b.ref?.node === i && (b.gear || b.rack)); };
+  const b1 = bodyOf(q.a), b2 = bodyOf(q.b);
+  if (!b1 || !b2) return { unknown: `${!b1 ? q.a : q.b} is not a spur gear or rack body as made (one built on further is a body, not a gear, here)` };
+  if (b1.rack && b2.rack) return { unknown: 'two racks do not mesh' };
+  const mode = q.fn === 'gear_clearance' ? 'report' : 'verdict';
+  // (A gear and a rack, either way round: the rack's checks — the centre distance is the gear axis's from its pitch line.)
+  let c: { centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; usableContactRatio: number; idealContactRatio: number; sweep: { minimumClearanceMM: number; interference: boolean; atDegrees: number } };
+  try { c = b1.gear && b2.gear ? checkPlacedSpurGears(b1.gear, b2.gear, { mode }) : checkPlacedSpurRack((b1.gear ?? b2.gear)!, (b1.rack ?? b2.rack)!, { mode }); }
   catch (cause) { return { unknown: cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause) }; }
   const entities = [q.a, q.b];
   switch (q.fn) {

@@ -120,7 +120,7 @@ test('gear queries (R6a.4b, D56): centre distance, backlash, contact ratio and c
   let rep = parse((await runTool(s, 'check_spec', {}, evaluate)).content);
   // (Each tooth 0.1 mm thinner: backlash 0.2 mm on the pitch circle; the least clearance the normal one, j·cos 20° / 2.)
   assert.deepEqual(rep.summary, { pass: 4, fail: 0, unknown: 1, hard_failing: 0 }, JSON.stringify(rep));
-  assert.match(rep.unknowns[0].why, /n9 is not a spur gear body/);
+  assert.match(rep.unknowns[0].why, /n9 is not a spur gear or rack body/);
   // Half a pitch out: the teeth cross, the clearance negative (minus the depth).
   s = { ...s, doc: { ...s.doc, nodes: [s.doc.nodes[0], { ...s.doc.nodes[1], mesh: { gear: 0, phase: 4.5 } } as typeof s.doc.nodes[number]] } };
   const re = await evaluate(s.doc); assert.ok(re.ok); s = { ...s, bodies: re.ok ? re.bodies : [] };

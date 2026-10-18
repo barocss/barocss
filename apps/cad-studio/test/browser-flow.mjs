@@ -2329,6 +2329,21 @@ try {
     assert.ok(pair.some(t => /centre distance 60 mm, ratio −20:40/.test(t)) && pair.some(t => /Clear over a full tooth period \(checked in \d+ ms\)/.test(t)), pair.join(' | '));
     await press('f'); await page.waitForTimeout(500);
     await snap('spur-gear-pair');
+    // A rack under the first gear (R6a.5b): meshing, its verdict in the notes.
+    await page.locator('.outliner .ol').first().click();
+    await press(' '); await page.locator('.palette input').fill('gear rack'); await press('Enter'); await hudReady();
+    // (On the far side from the other gear: its pitch line left of the axis.)
+    await field('Direction').fill('180'); await field('Teeth').fill('10'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[2]?.kind === 'rack' && window.__studioDoc.nodes[2].mesh?.gear === 0 && /3 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.locator('.outliner .ol').nth(2).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0: pitch line 20 mm/.test(n.textContent ?? '')), null, { timeout: 15000 });
+    const rackNotes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(rackNotes.some(t => /Clear over a full tooth period/.test(t)), rackNotes.join(' | '));
+    await press('f'); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes[2].mesh.direction), 180);
+    await snap('spur-gear-rack');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {

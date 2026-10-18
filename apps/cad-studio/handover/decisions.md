@@ -2154,3 +2154,79 @@ Evidence:
 - **Studio:** the shifted pinion's notes; the meshing gear at x 0.36 at 56.4999 mm, clear. Kernel 972/973 (the known environmental test); studio 304/304.
 
 Next: R6a.5b — the rack (a straight-toothed bar meshing with a spur gear) and its pair checks; then R6a.5c helical.
+
+## D58 — R6a.5b: the rack — the basic rack on a bar, gear-and-rack checks, a rack meshing with a gear (2026-10-18, issue #2167)
+
+Decision:
+- **`spurRack(spec)`** (`gear-rack.ts`): the basic 20° rack.
+  - Straight flanks; addendum m, dedendum 1.25 m; the tooth πm/2 on the pitch line, less its thickness reduction.
+  - On a bar `heightMM` from the pitch line to the back. The back must be at least 2.25 m from the pitch line: the
+    dedendum plus a rim of m, a geometric margin, not a strength check.
+  - n teeth over n·πm, a half gap at each end. The faces are planes: `.flankL#k`, `.flankR#k`, `.tip#k`, `.root#k`
+    (n + 1 of them), `.back`, `.end0`, `.end1`, `.face0`, `.face1`.
+  - The root corner is schematic, as for gears. A pointed tooth and meeting roots are SELF_INTERSECTION.
+- **Shared extrusion:** the gear's extrusion code became `extrudedProfile`, used by both the gear and the rack, with
+  identical output.
+- **`checkSpurGearRack(gear, rack, {centerDistanceMM, rackPhaseMM, mode})`** — the gear axis D from the rack's pitch
+  line, by default r + x m:
+  - **Backlash** p − s_rack − s_gear + 2(D − r) tan α, zero for a shifted gear at r + x m. The working pressure angle
+    is α at any distance.
+  - **Tip clearances:** D − ra + 1.25 m for the gear's tip, D − rf − m for the rack's.
+  - **Contact ratio:** the ideal εα = [√(ra² − rb²) − r sin α + (m − x m − d)/sin α]/(π m cos α), and the usable one
+    with the rack's part ending where the gear's usable flank starts.
+  - **The sweep:** the gear's exact outline against the rack's straight one over a tooth period, the rack travelling
+    r θ and taken as long as the mesh needs. Report and verdict modes and the cache work as in D55.
+  - **Touching is not crossing:** a crossing no deeper than 1e-9 m is contact, 0. At zero backlash the straight rack
+    flank passes through the involute's sample points to rounding.
+- **`checkPlacedSpurRack(gear, rack)`:**
+  - D and u come from the rack's frame; the phase is (−u − r θ) mod p, with θ the gear's turn from the direction.
+  - Teeth facing away from the gear, or faces apart along the axis, are MATE_INCOMPATIBLE.
+- **Part feature `spur-rack`.**
+  - Standing alone: origin, angle and from.
+  - With `mesh: {gear, direction (default −90°), centerDistance, phase (mm)}`: under the gear, its pitch line at D
+    across the direction, its middle gap at the gear's tooth. The direction is counted from the nearest whole tooth
+    angle — the same mesh, whole pitches along, so the rack's middle stands at the gear.
+  - A meshing rack travels r per radian of the gear's turn, continuously.
+  - The other gear is referenced, not consumed. Outputs carry `rack` and `rackPlacement`.
+- **Studio.**
+  - The `rack` node is guarded by `usesOf`; suppression carries through.
+  - **Gear rack** command: on its own, with module, teeth, face width, height and position; with a spur gear selected,
+    meshing with it, with teeth, height and direction (module and face width from the gear).
+  - Edit fields: Angle when on its own; Direction and Slide when meshing.
+  - Notes: length, pitch, tooth and tip; "Meshes with n0: pitch line D mm from its axis, πmz mm a turn, backlash,
+    contact ratio", then the verdict with its time.
+  - The A3 gear queries take a gear and a rack, either way round.
+
+Evidence:
+- **Kernel** `test/gear-rack.test.mjs` 3/3.
+  - The rack's volume equals the closed form, bar plus trapezoids, to 1e-9, over three sizes; valid; names; STEP
+    round trip.
+  - **Checks** (m 2, z 20):
+    - D 20: backlash 0, tips 0.5/0.5, touching over the period, not crossing;
+    - εα = 1.768824 by the formula, equal to the usable ratio;
+    - reductions 0.05 + 0.05: least clearance 0.1 cos 20°/2 to 1e-5;
+    - D 20.3: backlash 2·0.3 tan 20° and the clearance backlash·cos α/2;
+    - D 19.8: crossing, the depth equal to backlash·cos α/2 to 1e-4;
+    - a 0.5 mm slide with 0.1 backlash crosses.
+  - A shifted pinion (z 12, x 0.6) at 19.8: backlash 0, touching, and εα by the shifted formula.
+  - **Placed** (z 18, D 18; turns 0, 7 and 13.25°):
+    - the exact Boolean intersection of gear and rack is empty, independent of the sweep (also probed at 30°);
+    - the rack travels 18·θ;
+    - the placed check gives phase 0, clear;
+    - a 1 mm slide crosses;
+    - a rack turned away is refused.
+- **Conformance** 57: `rack-m2-n10` (closed-form volume and centroid to 1e-9, STEP) and `rack-height-refused`.
+- **Studio** 305/305:
+  - a rack alone, its volume exact;
+  - meshing with the selected gear: notes, the bar under the gear, the gear turned 10° and the rack 20·10° along,
+    still clear;
+  - a 1 mm slide is a warning;
+  - gear queries on the pair.
+  Browser flow: the Spur gear step adds a 10-tooth rack at 180° to the first gear; the panel reads "pitch line 20 mm…
+  Clear over a full tooth period (checked in 11 ms)".
+- **Kernel** 977/978 (the known environmental test).
+- **Timings** (z 20, rack 30):
+  - report: clean 37–55 ms, crossing 113–145 ms;
+  - verdict: clean 9 ms, crossing 0–1 ms.
+
+Next: R6a.5c — helical gears.

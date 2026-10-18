@@ -1,0 +1,32 @@
+{
+  "id": "r6a-rack-height-refused",
+  "step": "R6a",
+  "decisions": [
+    "D58"
+  ],
+  "about": "A rack whose back is closer to the pitch line than the dedendum and a rim of one module is refused, saying the least height.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "k",
+          "kind": "spur-rack",
+          "module": 2,
+          "teeth": 10,
+          "faceWidth": 10,
+          "height": 4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "at least the dedendum and a rim of one module, 4.5000 mm"
+    }
+  }
+}

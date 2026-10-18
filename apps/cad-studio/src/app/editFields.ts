@@ -146,6 +146,20 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       break;
     case 'fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
+    case 'rack': {
+      const k = (n: ModelNode) => n as typeof node;
+      number('m', 'Module', 'mm', n => num(k(n).module), (n, v) => ({ ...k(n), module: v }));
+      number('z', 'Teeth', undefined, n => k(n).teeth, (n, v) => ({ ...k(n), teeth: Math.round(v) }));
+      number('b', 'Face width', 'mm', n => num(k(n).faceWidth), (n, v) => ({ ...k(n), faceWidth: v }));
+      number('h', 'Height', 'mm', n => num(k(n).height), (n, v) => ({ ...k(n), height: v }));
+      number('ds', 'Thinner by', 'mm', n => num(k(n).thicknessReduction ?? 0), (n, v) => ({ ...k(n), thicknessReduction: v }));
+      if (!node.mesh) number('ang', 'Angle', '°', n => k(n).angle ?? 0, (n, v) => ({ ...k(n), angle: v }));
+      else {
+        number('dir', 'Direction', '°', n => k(n).mesh!.direction ?? -90, (n, v) => ({ ...k(n), mesh: { ...k(n).mesh!, direction: v } }));
+        number('ph', 'Slide', 'mm', n => num(k(n).mesh!.phase ?? 0), (n, v) => ({ ...k(n), mesh: { ...k(n).mesh!, phase: v } }));
+      }
+      break;
+    }
     case 'gear': {
       const g = (n: ModelNode) => n as typeof node;
       number('m', 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));

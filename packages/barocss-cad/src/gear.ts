@@ -60,7 +60,7 @@ export interface SpurGearReport {
 interface Piece { readonly role: 'flankL' | 'flankR' | 'tip' | 'root' | 'rootL' | 'rootR' | 'bore'; readonly tooth: number; readonly curve: Curve }
 
 const MAX_PIECES = 5, MAX_TEETH = 200, MIN_SHIFT = -0.5, MAX_SHIFT = 1;
-const inv = (phi: number) => Math.tan(phi) - phi;
+export const inv = (phi: number) => Math.tan(phi) - phi;
 
 /** The gear's dimensions and the checks of this stage's inputs (refusals thrown, as GearError). */
 export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { alpha: number; rb: number; ra: number; rf: number; r: number; psi: number } {
@@ -124,7 +124,7 @@ function flankDeviation(rb: number, t0: number, t1: number, N: number): number {
   return worst;
 }
 const bezierKnots = (N: number) => { const k = [0, 0, 0, 0]; for (let i = 1; i < N; i++) k.push(i, i, i); k.push(N, N, N, N); return k; };
-const lineCurve = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
+export const lineCurve = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
 /** A circular arc about the origin, radius r, from angle a0 counter-clockwise by sweep (> 0; spans of at most 90°), or clockwise when sweep < 0. */
 function arcCurve(id: string, r: number, a0: number, sweep: number): Curve {
   const spans = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2) - 1e-12)), dt = sweep / spans, w = Math.cos(Math.abs(dt) / 2);
@@ -188,12 +188,24 @@ const extruded = (c: Curve, z0: number, z1: number, id: string): Surface => ({ k
  * schematic radial joins), `.face0`/`.face1` (z 0 / the far face), `.bore#1`/`#2`.
  */
 export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } = {}): { brep: Brep; report: SpurGearReport } {
-  const id = (options.id ?? 'gear').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
-  const { pieces, bore, report } = spurGearProfile(spec), z0 = 0, z1 = spec.faceWidthMM;
-  const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
+  const id = safeId(options.id ?? 'gear');
+  const { pieces, bore, report } = spurGearProfile(spec);
   const nameOf = (p: Piece) => p.role === 'bore' ? `${id}.bore#${p.tooth}` : `${id}.${p.role}#${p.tooth}`;
+  const brep = extrudedProfile(id, 'gear', pieces.map(p => ({ name: nameOf(p), curve: p.curve })), bore.map(p => ({ name: nameOf(p), curve: p.curve })), spec.faceWidthMM, report.dimensions.tipDiameterMM / 2 + 1);
+  return { brep, report };
+}
+/** A feature id made safe for B-rep entity ids. */
+export const safeId = (id: string) => id.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
+
+/**
+ * A closed plane profile (z 0; its curves counter-clockwise, a hole's clockwise) pulled from z 0 through `depth`:
+ * each curve a side face of its name, `<id>.face0`/`.face1` the end faces (their planes reaching `R` about the origin).
+ */
+export function extrudedProfile(id: string, family: string, outerPieces: readonly { name: string; curve: Curve }[], innerPieces: readonly { name: string; curve: Curve }[], depth: number, R: number): Brep {
+  const z0 = 0, z1 = depth;
+  const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
   /** One closed loop's side faces and its edges at both ends; the loops' uses for the two end faces. */
-  const ring = (list: Piece[], tag: string) => {
+  const ring = (list: readonly { name: string; curve: Curve }[], tag: string) => {
     const n = list.length, bottom: string[] = [], top: string[] = [];
     list.forEach((p, i) => { const s = p.curve.controlPoints[0]; vertices.push({ id: `${id}_${tag}${i}b`, point: [s[0], s[1], z0] }, { id: `${id}_${tag}${i}t`, point: [s[0], s[1], z1] }); });
     list.forEach((p, i) => {
@@ -203,20 +215,18 @@ export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } =
       const s = p.curve.controlPoints[0];
       edges.push({ id: `${id}_${tag}${i}ev`, curve: lineCurveAt(`${id}_${tag}${i}cv`, [s[0], s[1], z0], [s[0], s[1], z1]), vertices: [`${id}_${tag}${i}b`, `${id}_${tag}${i}t`] });
       bottom.push(`${id}_${tag}${i}eb`); top.push(`${id}_${tag}${i}et`);
-      const name = nameOf(p);
-      faces.push({ id: `${id}_${tag}f${i}`, name, surface: extruded(p.curve, z0, z1, `${id}_${tag}s${i}`), sense: 'forward',
+      faces.push({ id: `${id}_${tag}f${i}`, name: p.name, surface: extruded(p.curve, z0, z1, `${id}_${tag}s${i}`), sense: 'forward',
         loops: [{ kind: 'outer', uses: [{ edge: `${id}_${tag}${i}eb`, sense: 'forward' }, { edge: `${id}_${tag}${j}ev`, sense: 'forward' }, { edge: `${id}_${tag}${i}et`, sense: 'reversed' }, { edge: `${id}_${tag}${i}ev`, sense: 'reversed' }] }] });
     });
     return { bottom, top };
   };
-  const outer = ring(pieces, 'o'), hole = bore.length ? ring(bore, 'h') : null;
-  const R = report.dimensions.tipDiameterMM / 2 + 1, plane = (z: number, up: boolean, sid: string): Surface => ({ kind: 'surface', id: sid, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
+  const outer = ring(outerPieces, 'o'), hole = innerPieces.length ? ring(innerPieces, 'h') : null;
+  const plane = (z: number, up: boolean, sid: string): Surface => ({ kind: 'surface', id: sid, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
     controlPoints: up ? [[[-R, -R, z], [-R, R, z]], [[R, -R, z], [R, R, z]]] : [[[-R, -R, z], [R, -R, z]], [[-R, R, z], [R, R, z]]], weights: [[1, 1], [1, 1]] });
   const loops = (uses: string[], up: boolean) => up ? uses.map(edge => ({ edge, sense: 'forward' as const })) : [...uses].reverse().map(edge => ({ edge, sense: 'reversed' as const }));
   faces.push({ id: `${id}_face0`, name: `${id}.face0`, surface: plane(z0, false, `${id}_p0`), sense: 'forward', loops: [{ kind: 'outer', uses: loops(outer.bottom, false) }, ...(hole ? [{ kind: 'inner' as const, uses: loops(hole.bottom, false) }] : [])] });
   faces.push({ id: `${id}_face1`, name: `${id}.face1`, surface: plane(z1, true, `${id}_p1`), sense: 'forward', loops: [{ kind: 'outer', uses: loops(outer.top, true) }, ...(hole ? [{ kind: 'inner' as const, uses: loops(hole.top, true) }] : [])] });
-  const brep = buildBrep({ source: { family: 'gear', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
-  return { brep, report };
+  return buildBrep({ source: { family, id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
 }
 const lineCurveAt = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
 
@@ -347,7 +357,7 @@ function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOpti
  * A gear's exact outline for the sweep, as one tooth (from root to root, centred on angle 0): the analytic involute at
  * 150 points a flank (chords within about 1e-5 m of it), the arcs at 24.
  */
-function exactProfile(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimensions>): { tooth: Float64Array; z: number } {
+export function exactProfile(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimensions>): { tooth: Float64Array; z: number } {
   const r0 = Math.max(g.rb, g.rf), t0 = Math.sqrt(Math.max(0, (r0 / g.rb) ** 2 - 1)), t1 = Math.sqrt((g.ra / g.rb) ** 2 - 1), F = 150, A = 24, z = spec.teeth, step = 2 * Math.PI / z;
   const psiStart = g.psi - inv(Math.acos(g.rb / r0)), psiTip = g.psi - inv(Math.acos(g.rb / g.ra)), pts: number[] = [];
   const polar = (r: number, ang: number) => { pts.push(r * Math.cos(ang), r * Math.sin(ang)); };
@@ -385,7 +395,7 @@ function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P
   return crossed ? -depthInside(sa, sb, a, ra1, ra2) : best;
 }
 /** The segments (x0, y0, x1, y1 each) of the tooth runs with an end within `reach` of (cx, cy). */
-function nearSegments(runs: Float64Array[], cx: number, cy: number, reach: number): Float64Array {
+export function nearSegments(runs: Float64Array[], cx: number, cy: number, reach: number): Float64Array {
   const out: number[] = [], r2 = reach * reach;
   for (const p of runs) for (let i = 0; i + 3 < p.length; i += 2) {
     const ax = p[i] - cx, ay = p[i + 1] - cy, bx = p[i + 2] - cx, by = p[i + 3] - cy;
@@ -395,7 +405,7 @@ function nearSegments(runs: Float64Array[], cx: number, cy: number, reach: numbe
   return Float64Array.from(out);
 }
 /** The teeth of a gear turned by θ about (cx, cy) whose middles lie within three pitches of the direction `toward`. */
-function teethNear(P: { tooth: Float64Array; z: number }, theta: number, cx: number, cy: number, toward: number): Float64Array[] {
+export function teethNear(P: { tooth: Float64Array; z: number }, theta: number, cx: number, cy: number, toward: number): Float64Array[] {
   const out: Float64Array[] = [], step = 2 * Math.PI / P.z;
   for (let k = 0; k < P.z; k++) {
     const ang = theta + step * k; let d = ang - toward; d -= 2 * Math.PI * Math.round(d / (2 * Math.PI));
@@ -406,16 +416,16 @@ function teethNear(P: { tooth: Float64Array; z: number }, theta: number, cx: num
   }
   return out;
 }
-const orient = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => (qx - px) * (ry - py) - (qy - py) * (rx - px);
-function segmentsCross(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): boolean {
+export const orient = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => (qx - px) * (ry - py) - (qy - py) * (rx - px);
+export function segmentsCross(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): boolean {
   const d1 = orient(cx, cy, dx, dy, ax, ay), d2 = orient(cx, cy, dx, dy, bx, by), d3 = orient(ax, ay, bx, by, cx, cy), d4 = orient(ax, ay, bx, by, dx, dy);
   return d1 * d2 < 0 && d3 * d4 < 0;
 }
-function pointSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+export function pointSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey, t = l2 > 0 ? Math.max(0, Math.min(1, ((px - ax) * ex + (py - ay) * ey) / l2)) : 0;
   return Math.hypot(px - ax - t * ex, py - ay - t * ey);
 }
-function segmentDistance(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): number {
+export function segmentDistance(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): number {
   if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) return 0;
   return Math.min(pointSegment(ax, ay, cx, cy, dx, dy), pointSegment(bx, by, cx, cy, dx, dy), pointSegment(cx, cy, ax, ay, bx, by), pointSegment(dx, dy, ax, ay, bx, by));
 }

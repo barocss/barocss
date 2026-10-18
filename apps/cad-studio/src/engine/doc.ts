@@ -110,6 +110,13 @@ type ModelNodeBase = SketchNode
    * `phase` degrees) and following its turn by −z1/z2 — its own centre, `from` and rotation then unused. The gear it
    * meshes with is referenced, not consumed (both stay bodies): `usesOf`, not `parentsOf`.
    */
+  /**
+   * A rack (R6a.5b, D58): its pitch line from `origin` along `angle` degrees, teeth to its left, the back `height`
+   * below the line, standing on z `from`; with `mesh` under an earlier spur gear (node `mesh.gear`), its pitch line at
+   * `centerDistance` (default r + x m) across `direction` (default −90°: below), slid to mesh (plus `phase` mm) and
+   * travelling with the gear's turn. Referenced, not consumed, as a meshing gear's other gear.
+   */
+  | { kind: 'rack'; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim; origin: [number, number]; angle?: number; from?: number; mesh?: RackMesh; generator: 'spur-rack@0' }
   | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
   /**
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
@@ -297,19 +304,21 @@ export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 
 /** A gear meshing with an earlier one (node `gear`). */
 export interface GearMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
+/** A rack meshing with an earlier spur gear (node `gear`); `phase` in mm along the rack. */
+export interface RackMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
 
 /**
  * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
  * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
  */
-export const usesOf = (node: ModelNode): number[] => node.kind === 'gear' && node.mesh ? [node.mesh.gear] : parentsOf(node);
+export const usesOf = (node: ModelNode): number[] => (node.kind === 'gear' || node.kind === 'rack') && node.mesh ? [node.mesh.gear] : parentsOf(node);
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -322,7 +331,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -451,6 +460,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'import': return `Import ${node.name}`;
     case 'mesh': return `Mesh ${node.name}`;
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} quads)`;
+    case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
     case 'gear': return `Spur gear m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;

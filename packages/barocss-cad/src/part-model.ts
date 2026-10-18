@@ -35,6 +35,7 @@ import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { subdBrep, SubdError } from './subd.js';
+import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
@@ -179,6 +180,16 @@ export type CadPartFeature = Base & (
      */
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: number };
     readonly generator?: 'spur-gear@0' }
+  /**
+   * A rack (R6a.5b, D58): its pitch line from `origin` along `angle` degrees (teeth to its left, the back `height` below
+   * the line), standing on z `from`; or, with `mesh`, under a spur gear — its pitch line `centerDistance` from the gear's
+   * axis (default r + x m) across `direction` (degrees from +X, the axis to the pitch point), on the gear's face plane,
+   * slid so its middle gap meets a tooth (plus `phase` mm) and travelling r per radian of the gear's turn.
+   */
+  | { readonly kind: 'spur-rack'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number; readonly thicknessReduction?: CadPartDim;
+    readonly origin?: CadPartPoint2; readonly angle?: number; readonly from?: CadPartDim;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: CadPartDim };
+    readonly generator?: 'spur-rack@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -228,6 +239,9 @@ export interface CadPartOutput {
   readonly gear?: SpurGearReport;
   /** A gear's placement (spec, centre, face plane, turn; the gear it meshes with). */
   readonly gearPlacement?: GearPlacement;
+  /** A rack's report and placement (R6a.5b). */
+  readonly rack?: SpurRackReport;
+  readonly rackPlacement?: RackPlacement;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -280,7 +294,12 @@ interface Part {
   /** A generated gear's report (R6a), and where it stands (its spec, centre, face plane, turn). */
   readonly gear?: SpurGearReport;
   readonly gearPlace?: GearPlacement;
+  /** A generated rack's report and placement (R6a.5b). */
+  readonly rack?: SpurRackReport;
+  readonly rackPlace?: RackPlacement;
 }
+/** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
+export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
 /** A spur gear as placed: its spec, axis through `center` along +Z from `from`, turned by `rotation` (radians). */
 export interface GearPlacement {
   readonly spec: SpurGearSpec; readonly center: XY; readonly from: number; readonly rotation: number;
@@ -918,6 +937,43 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
+      };
+    }
+    case 'spur-rack': {
+      if (f.generator !== undefined && f.generator !== 'spur-rack@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), H = dim(f.height as CadPartDim, 'height', true);
+      const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
+      const spec: SpurRackSpec = { moduleMM: m, teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }) };
+      let place: RackPlacement;
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined) {
+        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
+        const other = ref(mesh!.gear, 'mesh.gear').result;
+        const g = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+        if (!g) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
+        if (g!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${g!.spec.moduleMM}`);
+        const dirDeg = mesh!.direction ?? -90;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg))) fail('INPUT', 'mesh.direction must be a number of degrees');
+        const r = m * g!.spec.teeth / 2, D = mesh!.centerDistance === undefined ? r + (g!.spec.profileShiftCoefficient ?? 0) * m : dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const phase = mesh!.phase === undefined ? 0 : dim(mesh!.phase as CadPartDim, 'mesh.phase');
+        // The rack's frame: +x along the pitch line (β = φ + 90°), +y toward the gear; a gap at r θ + phase from the
+        // gear's foot, θ the gear's turn from the direction, and the rack's middle gap there. (The direction counted
+        // from the nearest whole tooth angle: the same mesh, whole pitches along, the rack's middle at the gear.)
+        const phi = (dirDeg as number) * Math.PI / 180, beta = phi + Math.PI / 2, tooth = 2 * Math.PI / g!.spec.teeth;
+        const x0 = r * (g!.rotation - (phi - tooth * Math.round(phi / tooth))) + phase - Math.PI * m * Math.round((f.teeth as number) / 2);
+        const cb = Math.cos(beta), sb = Math.sin(beta);
+        place = { spec, origin: [g!.center[0] + cb * x0 + sb * D, g!.center[1] + sb * x0 - cb * D], angle: beta, from: g!.from, meshesWith: String(mesh!.gear), driver: g! };
+      } else {
+        place = { spec, origin: f.origin === undefined ? [0, 0] : xy(f.origin as CadPartPoint2, 'origin'), angle: ((f.angle as number | undefined) ?? 0) * Math.PI / 180, from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from') };
+      }
+      return () => {
+        let made: ReturnType<typeof spurRack>;
+        try { made = spurRack(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const c = Math.cos(place.angle), sn = Math.sin(place.angle);
+        const brep = place.angle || place.origin[0] || place.origin[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.origin[0], place.origin[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, rack: made!.report, rackPlace: place }] };
       };
     }
     case 'thread': {
@@ -1592,7 +1648,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

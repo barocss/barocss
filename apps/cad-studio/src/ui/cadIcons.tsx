@@ -172,6 +172,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sphere': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><path d="M3.5 12a8.5 3.2 0 0 0 17 0" strokeOpacity={0.55} /><ellipse cx="9" cy="8.6" rx="2.6" ry="1.8" style={tone(0.3)} stroke="none" /><circle cx="12" cy="12" r="8.5" /></>,
   'cad-cone': <>{cylinder(0.5, 0.52, -0.08, 1.05, 0)}</>,
   'cad-gear': <><path d="M12 2.5l1.6 2.6 3-.6.6 3 2.6 1.6-1.4 2.9 1.4 2.9-2.6 1.6-.6 3-3-.6L12 21.5l-1.6-2.6-3 .6-.6-3-2.6-1.6 1.4-2.9-1.4-2.9 2.6-1.6.6-3 3 .6z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.6" style={dark} /></>,
+  // A rack: a bar with trapezoid teeth along its top.
+  'cad-rack': <><path d="M2.5 19.5v-6h1.4l1.2-3.4h2l1.2 3.4h1.4l1.2-3.4h2l1.2 3.4h1.4l1.2-3.4h2l1.2 3.4h.5v6z" style={tone(TONE.right)} /></>,
   'cad-subd': <><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" style={tone(TONE.right)} /><ellipse cx="12" cy="11.6" rx="4.2" ry="2.1" style={dark} />{ac('M12 7v3.5M12 13.7v4.3M2.5 12.5h5.3M16.2 12.5h5.3')}</>,
   'cad-torus': <><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" style={tone(TONE.right)} /><ellipse cx="12" cy="11.6" rx="4.2" ry="2.1" style={dark} />
     <path d="M7.8 11.6a4.2 2.1 0 0 0 8.4 0" strokeOpacity={0.6} /><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" /></>,
