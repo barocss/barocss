@@ -452,7 +452,11 @@ gear crank.
   - Joints: revolute, continuous, prismatic, fixed; cylindrical and ball mates as chains of dummy links.
   - Limits, effort and velocity.
   - A redundant mate is reported as a loop, never dropped (today's solver refuses loops, mates.ts:192).
+  - Gear mate (from D56, peer 2026-10-18): the assembly-level mate between gear instances is a coupled joint (URDF
+    `mimic`, MJCF equality), its ratio −z1/z2, centre distance and phase taken from `checkPlacedSpurGears`.
 - RM2: FK over a general joint tree, and a joint-slider preview. Planar 2R to 1e-9.
+  - Gear preview (from D56): the animated rotation and joint preview land here; a gear pair turns together, the
+    clearance verdict shown.
 - RM3: link-frame inertia about the CoM, I_L = R·I·Rᵀ, checked against an analytic rotated off-origin cuboid; SPD
   and the triangle inequality.
 - RM4: URDF export (child frame at the joint, meshes in the link frame, convex-hull collision, mm→m).

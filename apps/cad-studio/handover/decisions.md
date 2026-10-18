@@ -2104,9 +2104,11 @@ Evidence:
   - report: clean 650 ms, interfering 4.2–4.5 s.
 
 Limits, recorded:
-- The mesh is between gears as generated. A gear moved, or built on, after it was made does not carry its follower;
-  that needs the assembly-level gear mate between instances, a later sub-step in the mates solver.
-- The rotation preview is the edit field, not an animation.
+- The mesh is between gears as generated. A gear moved, or built on, after it was made does not carry its follower.
+  The assembly-level gear mate between instances goes to RM1, as a coupled joint (URDF `mimic`, MJCF equality)
+  taking ratio, centre distance and phase from `checkPlacedSpurGears` (peer, 2026-10-18).
+- The rotation preview is the edit field. The animated turn goes to RM2's joint-slider preview, with the pair
+  turning together and the clearance verdict shown.
 - Pair checks are per pair; trains are chains of pairs.
 
 Next: R6a.5 — profile shift and rack, then helical.
