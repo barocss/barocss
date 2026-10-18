@@ -38,7 +38,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sweep-curve': return { ...at, kind: 'sweep-curve', sketch: id(node.sketch), path: node.path };
     case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })), ...(node.smooth ? { smooth: true } : {}) };
     case 'import': return { ...at, kind: 'import', step: node.step, ...((node.solids ?? 1) > 1 ? { each: true } : {}) };
-    case 'mesh': return { ...at, kind: 'mesh', ...meshArrays(node), ...(node.representation ? { representation: node.representation } : {}), ...((node.pieces ?? 1) > 1 ? { each: true } : {}) };
+    case 'mesh': return { ...at, kind: 'mesh', ...meshArrays(node.repair ? { blob: node.repair.result } : node), ...(node.repair ? repaired(node.repair) : {}), ...(node.representation ? { representation: node.representation } : {}), ...((node.pieces ?? 1) > 1 ? { each: true } : {}) };
     case 'thread': return { ...at, kind: 'thread', diameter: node.diameter, pitch: node.pitch, center: node.center, seat: node.seat, ...(node.length !== undefined ? { length: node.length } : {}), ...(node.hex ? { hex: node.hex } : {}), ...(node.form ? { form: node.form } : {}) };
     case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open };
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
@@ -121,4 +121,9 @@ function meshArrays(node: { positions?: number[]; indices?: number[]; blob?: { p
   let t = typedMeshes.get(P);
   if (!t || t.indices.length !== I.length) { t = { positions: Float64Array.from(P), indices: Uint32Array.from(I) }; typedMeshes.set(P, t); }
   return t;
+}
+/** A repair's fill patches (its faces of their own) and, when it could not close the mesh, a sheet said so (D47). */
+function repaired(r: { result: { fill: string }; report: { closed: boolean } }): { groups?: Int32Array; open?: true } {
+  const fill = getBlob(r.result.fill);
+  return { ...(fill instanceof Int32Array ? { groups: fill } : {}), ...(r.report.closed ? {} : { open: true as const }) };
 }

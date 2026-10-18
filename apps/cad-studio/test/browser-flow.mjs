@@ -838,9 +838,13 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForSelector('[aria-label="Mesh units"]');
     await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    // (The floater is a finding: the repair gate offers to drop it; opened as it is, both pieces come in.)
+    await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Mesh repair"]'), /2 pieces[\s\S]*1 tiny piece/);
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Open as it is' }).click();
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal((await doc()).nodes[0].pieces, 2);
-    assert.match(await page.locator('.toast').innerText(), /2 closed pieces[\s\S]*1 of the pieces is tiny/);
+    assert.match(await page.locator('.toast').innerText(), /2 pieces, each a body of its own[\s\S]*1 of the pieces is tiny/);
     const before = await doc();
     // A part file with a hole through a 15.9k-triangle sphere (under the 16k limit): seconds; stopped, the open is taken back.
     const big = sphere(10, 112, 72, [0, 0, 0]), part = join(out, 'big-hole.bcad');
@@ -880,6 +884,38 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol').first().click();
     await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+  });
+
+  await check('a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again', async () => {
+    const fs = await import('node:fs'), { encodeBinaryStl } = await import('../../../packages/barocss-cad/dist/index.js');
+    // A sphere with its top cap off: one hole of 24 edges.
+    const n = 24, m = 12, P = [0, 0, -10], I = [];
+    for (let j = 1; j < m; j++) { const phi = -Math.PI / 2 + Math.PI * j / m; for (let i = 0; i < n; i++) { const th = 2 * Math.PI * i / n; P.push(10 * Math.cos(phi) * Math.cos(th), 10 * Math.cos(phi) * Math.sin(th), 10 * Math.sin(phi)); } }
+    const at = (j, i) => 1 + (j - 1) * n + (i % n);
+    for (let i = 0; i < n; i++) I.push(0, at(1, i + 1), at(1, i));
+    for (let j = 1; j < m - 2; j++) for (let i = 0; i < n; i++) I.push(at(j, i), at(j, i + 1), at(j + 1, i + 1), at(j, i), at(j + 1, i + 1), at(j + 1, i));
+    const file = join(out, 'cup.stl'); fs.writeFileSync(file, encodeBinaryStl(P, I, 'cup'));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Mesh repair"]'), /1 hole/);
+    assert.equal(await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Open as it is' }).count(), 0, 'not closed: no opening as it is');
+    // Coarser fill, checked: its numbers before anything changes.
+    await page.check('[aria-label="Coarser fill"]');
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Check the repair' }).click();
+    await page.waitForSelector('[aria-label="Repair report"]', { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Repair report"]'), /1 hole filled with \d+ triangles[\s\S]*Closed: it opens as a solid/);
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Apply the repair' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.repair?.report.holesFilled === 1 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const node = (await doc()).nodes[0];
+    assert.ok(node.blob && node.repair.result.fill && node.repair.steps.fill.coarseness === 2, 'the import kept, the repair recorded');
+    // The badge: the fill shown (its faces selected) and the repair open again, as it was.
+    await page.click('[aria-label="Mesh repair"]:not([role])');
+    await page.waitForSelector('[role="dialog"][aria-label="Mesh repair"]', { timeout: 15000 });
+    assert.ok(await page.locator('[aria-label="Coarser fill"]').isChecked());
+    await snap('mesh-repair');
+    await page.locator('[role="dialog"][aria-label="Mesh repair"] button', { hasText: 'Cancel' }).click();
   });
 
   await check('open a STEP file as a new part', async () => {

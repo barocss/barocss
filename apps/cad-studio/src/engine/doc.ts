@@ -89,7 +89,7 @@ type ModelNodeBase = SketchNode
    * A mesh: its arrays inline (`positions`, `indices`: files from before M1, and small tests), or named by blob
    * (`blob`: the SHA-256 of each array, kept in the blob store and the file's container; engine/blobs.ts).
    */
-  | { kind: 'mesh'; name: string; unit: string; positions?: number[]; indices?: number[]; blob?: { positions: string; indices: string }; /** 'facets' (imports from F0 on): mesh regions; absent: one planar face per flat group, as before. */ representation?: 'facets'; /** A mesh in several closed pieces (facets only): each its own body, `b<k>_part<j>`. */ pieces?: number }
+  | { kind: 'mesh'; name: string; unit: string; positions?: number[]; indices?: number[]; blob?: { positions: string; indices: string }; /** 'facets' (imports from F0 on): mesh regions; absent: one planar face per flat group, as before. */ representation?: 'facets'; /** A mesh in several closed pieces (facets only): each its own body, `b<k>_part<j>`. */ pieces?: number; /** Its repair (M3, D47): a recorded step over the original arrays, which stay. */ repair?: MeshRepairRecord; /** Where it crosses itself (not repaired; Booleans refuse it): how often, and up to 64 places. */ crossings?: { count: number; at: [number, number, number][] } }
   /**
    * A modelled ISO metric thread: a rod below `seat`, a hex head bolt (`hex`) or a hex nut (`hex.internal`).
    * `form`: helical B-spline faces (`.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`), written on every new node;
@@ -138,7 +138,15 @@ import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from '../chat/spec';
+import type { MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
 import type { HistoryEntry, Proposal } from '../chat/proposals';
+
+/**
+ * A mesh's repair as a recorded, reversible step (M3, D47): the steps asked, the arrays they gave (their own blobs:
+ * positions, indices, and each triangle's fill patch or −1) and the report. The node's own `blob` stays the import:
+ * changed steps are run again from it, and removing the record is the mesh as imported.
+ */
+export interface MeshRepairRecord { steps: MeshRepairSteps; result: { positions: string; indices: string; fill: string }; report: MeshRepairReport }
 
 export interface StudioDoc {
   format: 'barocss-cad-model';

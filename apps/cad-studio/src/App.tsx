@@ -1,7 +1,7 @@
 import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
-import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
+import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
 import { checkSpec, expectedOf, modelHash, type Outcome } from './chat/spec';
@@ -23,7 +23,9 @@ import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
-import { collectRecoveryBlobs, loadRecoveryBlobs, meshNodeBlobs, saveRecoveryBlobs } from './engine/blobs';
+import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs } from './engine/blobs';
+import { MeshRepairPanel } from './ui/MeshRepairPanel';
+import { DEFAULT_REPAIR, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import type { BindableField } from './app/editFields';
@@ -969,21 +971,99 @@ export function App() {
   // A mesh file waiting for its unit, and opening it as a part in that unit.
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
+  /**
+   * A mesh body's badges (M3, D47): repaired (its filled area; shows the fill faces and opens the repair again), an
+   * open sheet (no volume, no Booleans), and where it crosses itself (marked in the viewport).
+   */
+  const meshBadges = (i: number, b: BodyResult, steps: readonly number[]) => {
+    const at = [refOf(b).node, ...steps].find(k => evaluated.nodes[k]?.kind === 'mesh');
+    const n = at === undefined ? undefined : evaluated.nodes[at];
+    if (!n || n.kind !== 'mesh' || (!n.repair && !n.crossings)) return null;
+    const r = n.repair?.report, fills = b.mesh.faces.flatMap((f, k) => /\.fill\d+\.region\d+/.test(f.name) ? [{ body: i, face: k }] : []);
+    return <span className="ol-badges">
+      {r && <button className="ol-badge" aria-label="Mesh repair" title={`Repaired: ${r.holesFilled} hole${r.holesFilled === 1 ? '' : 's'} filled (${Math.round(r.filledAreaMM2)} mm² guessed), ${r.flipped} turned, ${r.degenerateRemoved + r.duplicatesRemoved} degenerate, ${r.finsRemoved} fins, ${r.floatersRemoved} tiny pieces dropped. Click: show the filled faces and change the repair.`}
+        onClick={() => { if (fills.length) setSelection({ faces: fills, edges: [], bodies: [] }); void editRepair(at!); }}>repaired{r.holesFilled ? ` · ${Math.round(r.filledAreaMM2)} mm² filled` : ''}</button>}
+      {r && !r.closed && <span className="ol-badge warn" title="Not closed after repair: an open sheet — no volume, no Booleans">open sheet</span>}
+      {n.crossings && <button className="ol-badge warn" aria-label="Mesh crossings" title={`It crosses itself in ${n.crossings.count} place${n.crossings.count > 1 ? 's' : ''}: Booleans refuse it (repair does not fix that). Click: mark where.`}
+        onClick={() => setSelection({ faces: [], edges: [], bodies: [], vertices: n.crossings!.at.map(p => ({ body: i, at: p })) })}>crosses itself · {n.crossings.count}</button>}
+    </span>;
+  };
+  // ---- Opening a mesh: checked in the worker, repaired as a recorded step when it needs it (M3, D47) ----------
+  /** What the worker is doing that the user waits on (checking or repairing a mesh): shown with its stage, stoppable. */
+  const [stage, setStage] = useState<string | null>(null);
+  const [repairAsk, setRepairAsk] = useState<{ mode: 'import' | 'edit'; node?: number; name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; steps: MeshRepairSteps; result: MeshRepairResult | null } | null>(null);
+  const stopStage = () => { engine.restart(); setStage(null); setToast({ title: 'Stopped', hint: 'The mesh check or repair was stopped; nothing changed.', detail: '' }); };
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
     const { name, format, unit } = meshAsk;
+    setStage('checking the mesh');
+    const d = await engine.diagnose(meshInUnit.positions, meshInUnit.indices);
+    setStage(null);
+    if ('error' in d) { if (d.error !== 'stopped') setToast({ title: 'Could not read this mesh', hint: d.error, detail: '' }); return; }
+    setMeshAsk(null);
+    // (Anything a step would change, or crossings to say: the gate; else straight in.)
+    if (!d.closed || d.degenerate || d.duplicates || d.floaters || d.selfIntersections) { setRepairAsk({ mode: 'import', name, format, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, diagnosis: d, steps: DEFAULT_REPAIR, result: null }); return; }
+    await openMeshNode({ name, format, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, diagnosis: d });
+  };
+  /** The mesh node made (its import's blobs, a repair's beside them) and opened as the part. */
+  const openMeshNode = async (o: { name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; repair?: { steps: MeshRepairSteps; result: MeshRepairResult } }) => {
     // (Its arrays as blobs, by their SHA-256: the document names them, M1.)
-    const node = await meshNodeBlobs({ kind: 'mesh' as const, name, unit, representation: 'facets' as const }, meshInUnit.positions, meshInUnit.indices);
-    // Read before replacing the current part: a mesh that does not close keeps the part. Read piece by piece, so a
-    // file of several closed pieces (a kit, separate eyes, a scan's floaters) opens as that many bodies (D42).
+    const base = await meshNodeBlobs({ kind: 'mesh' as const, name: o.name, unit: o.unit, representation: 'facets' as const }, o.positions, o.indices);
+    const repair = o.repair ? await repairRecord(o.repair.steps, o.repair.result) : undefined;
+    const crossings = o.repair ? o.repair.result.report.selfIntersections : o.diagnosis.selfIntersections;
+    const node = { ...base, ...(repair ? { repair } : {}), ...(crossings ? { crossings: { count: crossings, at: o.diagnosis.selfIntersectionAt.map(p => [...p] as [number, number, number]) } } : {}) };
+    // Read before replacing the current part: a mesh that does not build keeps the part. Read piece by piece, so a
+    // file of several closed pieces (a kit, separate eyes) opens as that many bodies (D42).
     const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++);
     if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
     const pieces = read.bodies.length, next = withNode(emptyDoc(), { ...node, ...(pieces > 1 ? { pieces } : {}) });
-    setMeshAsk(null); replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
+    setRepairAsk(null); replaceDoc(next); setFileName(o.name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
     const faces = read.bodies.reduce((n, b) => n + b.mesh.faces.length, 0), volume = read.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
-    // (Pieces under 1% of the largest one's volume: floaters, most likely; repair, R3.4, will offer to drop them.)
-    const largest = Math.max(...read.bodies.map(b => b.volumeMM3 ?? 0)), tiny = read.bodies.filter(b => (b.volumeMM3 ?? 0) < 0.01 * largest).length;
-    setToast({ title: `${format} opened`, hint: `${pieces > 1 ? `${pieces} closed pieces, each a body of its own (${faces.toLocaleString('en-US')} regions in all)` : `A mesh solid of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'}`} — ${(meshInUnit.indices.length / 3).toLocaleString('en-US')} triangles, grouped where they meet at less than 30°, read in ${MESH_UNITS.find(u => u.value === unit)!.label.toLowerCase()}; ${Math.round(volume).toLocaleString('en-US')} mm³.${tiny ? ` ${tiny} of the pieces ${tiny === 1 ? 'is' : 'are'} tiny (under 1% of the largest): stray bits, likely — delete ${tiny === 1 ? 'it' : 'them'}, or repair will offer to when it comes.` : ''} Booleans and holes work up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles (previewed up to ${FACET_PREVIEW_TRIANGLES.toLocaleString('en-US')}); fillets, shells and drafts on mesh faces come later.`, detail: '' });
+    const r = repair?.report, sheet = r && !r.closed;
+    // (Pieces under 1% of the largest one's volume, kept: floaters, likely — the repair drops them when asked.)
+    const largest = Math.max(...read.bodies.map(b => b.volumeMM3 ?? 0)), tiny = pieces > 1 ? read.bodies.filter(b => (b.volumeMM3 ?? 0) < 0.01 * largest).length : 0;
+    setToast({ title: `${o.format ?? 'Mesh'} opened${repair ? ', repaired' : ''}`, hint: `${pieces > 1 ? `${pieces} pieces, each a body of its own (${faces.toLocaleString('en-US')} regions in all)` : `${sheet ? 'An open sheet' : 'A mesh solid'} of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'}`} — ${(o.indices.length / 3).toLocaleString('en-US')} triangles read in ${MESH_UNITS.find(u => u.value === o.unit)?.label.toLowerCase() ?? o.unit}${sheet ? '' : `; ${Math.round(volume).toLocaleString('en-US')} mm³`}.${r?.holesFilled ? ` ${r.holesFilled} hole${r.holesFilled > 1 ? 's' : ''} filled (${Math.round(r.filledAreaMM2).toLocaleString('en-US')} mm² guessed: its badge shows where).` : ''}${sheet ? ' It is not closed: no volume, no Booleans.' : ''}${tiny ? ` ${tiny} of the pieces ${tiny === 1 ? 'is' : 'are'} tiny (under 1% of the largest): stray bits, likely — delete ${tiny === 1 ? 'it' : 'them'}, or open the mesh with its repair.` : ''}${crossings ? ` It crosses itself in ${crossings} place${crossings > 1 ? 's' : ''}: Booleans will refuse it.` : ''} Booleans and holes work up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles (previewed up to ${FACET_PREVIEW_TRIANGLES.toLocaleString('en-US')}); fillets, shells and drafts on mesh faces come later.`, detail: '' });
+  };
+  /** A repair's arrays as blobs, and the record the node keeps. */
+  const repairRecord = async (steps: MeshRepairSteps, r: MeshRepairResult): Promise<MeshRepairRecord> => {
+    const [positions, indices, fill] = await Promise.all([putBlob(positionsArray(r.positions)), putBlob(r.indices), putBlob(r.fill)]);
+    return { steps, result: { positions, indices, fill }, report: r.report };
+  };
+  /** The checked repair (in the worker, its stages shown, stoppable). */
+  const checkRepair = async () => {
+    if (!repairAsk) return;
+    setStage('weld');
+    const r = await engine.repair(repairAsk.positions, repairAsk.indices, repairAsk.steps, st => setStage(st));
+    setStage(null);
+    if ('error' in r) { if (r.error !== 'stopped') setToast({ title: 'Could not repair this mesh', hint: r.error, detail: '' }); return; }
+    setRepairAsk(a => a && { ...a, result: r });
+  };
+  const applyRepair = async () => {
+    const a = repairAsk; if (!a?.result) return;
+    if (a.mode === 'import') { await openMeshNode({ ...a, repair: { steps: a.steps, result: a.result } }); return; }
+    const n = doc.nodes[a.node!]; if (n?.kind !== 'mesh') return;
+    const repair = await repairRecord(a.steps, a.result), crossings = a.result.report.selfIntersections;
+    const rest = { ...n }; delete rest.crossings;
+    setRepairAsk(null);
+    commit({ ...doc, nodes: doc.nodes.map((x, i) => i === a.node ? { ...rest, repair, ...(crossings ? { crossings: { count: crossings, at: a.diagnosis.selfIntersectionAt.map(p => [...p] as [number, number, number]) } } : {}) } : x) }, false);
+  };
+  /** A mesh node's repair opened again: its import checked anew, its steps as they were. */
+  const editRepair = async (index: number) => {
+    const n = doc.nodes[index]; if (n?.kind !== 'mesh') return;
+    const positions = n.blob ? getBlob(n.blob.positions) : n.positions, indices = n.blob ? getBlob(n.blob.indices) : n.indices;
+    if (!positions || !indices) return;
+    setStage('checking the mesh');
+    const d = await engine.diagnose(positions, indices);
+    setStage(null);
+    if ('error' in d) return;
+    setRepairAsk({ mode: 'edit', node: index, name: n.name, unit: n.unit, positions, indices, diagnosis: d, steps: n.repair?.steps ?? DEFAULT_REPAIR, result: null });
+  };
+  const removeRepair = () => {
+    const a = repairAsk; if (!a || a.mode !== 'edit') return;
+    const n = doc.nodes[a.node!]; if (n?.kind !== 'mesh') return;
+    const rest = { ...n }; delete rest.repair;
+    setRepairAsk(null);
+    commit({ ...doc, nodes: doc.nodes.map((x, i) => i === a.node ? rest : x) }, false);
   };
   const open = async (file: File) => {
     try {
@@ -1546,6 +1626,7 @@ export function App() {
                 onBlur={e => { if (e.currentTarget.value.trim() !== bodyName(doc, b)) commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); }} />
               : <button className={'ol' + (sel ? ' sel' : '')} onClick={pick} onDoubleClick={() => setRenaming(b.key)} title="Double-click to rename">
                 {bodyName(doc, b)}{(() => { const last = lastFeature(doc, b); return last ? <span className="muted"> · {last}</span> : null; })()}</button>}
+            {meshBadges(i, b, steps)}
           </div>
           {open && steps.map(k => <button key={k} className={'ol ol-step' + (editNode === k ? ' sel' : '')} onClick={() => { setEditNode(k); setSelection({ faces: [], edges: [], bodies: [i] }); }}>
             <Icon name={iconFor(evaluated.nodes[k])} small />{featureLabel(evaluated.nodes[k], k, evaluated.nodes)}</button>)}
@@ -1815,7 +1896,9 @@ export function App() {
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
       </div>}
 
-      {busy && slow && <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working…</span>
+      {stage !== null ? <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working… {stage}</span>
+        <button className="ghost small" aria-label="Cancel the computation" title="Stop it: nothing changes" onClick={stopStage}>Cancel</button></div>
+      : busy && slow && <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working…</span>
         <button className="ghost small" aria-label="Cancel the computation" title="Stop this computation and take the change back" onClick={cancelWork}>Cancel</button></div>}
       <div className="corner-left">
         <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
@@ -1906,6 +1989,11 @@ export function App() {
             <button className="ghost" onClick={() => setMeshAsk(null)}>Cancel</button>
           </div></div>
       </div>}
+      {repairAsk && <MeshRepairPanel title={repairAsk.mode === 'import' ? `Open ${repairAsk.name}${repairAsk.format ? `.${repairAsk.format.toLowerCase()}` : ''}: it needs repair` : `Repair of ${repairAsk.name}`}
+        diagnosis={repairAsk.diagnosis} steps={repairAsk.steps} onSteps={steps => setRepairAsk(a => a && { ...a, steps, result: null })} report={repairAsk.result?.report ?? null} busy={stage !== null}
+        onCheck={() => void checkRepair()} onApply={() => void applyRepair()}
+        {...(repairAsk.diagnosis.closed ? { onAsIs: repairAsk.mode === 'import' ? () => void openMeshNode(repairAsk) : removeRepair } : {})}
+        asIsLabel={repairAsk.mode === 'import' ? 'Open as it is' : 'Remove the repair'} onCancel={() => setRepairAsk(null)} />}
       {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
         <Icon name="history" className="accent" />
         <div><div className="toast-title">Unsaved work from {new Date(recovery.savedAt).toLocaleString()}</div>
@@ -1928,7 +2016,7 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !recovery && !meshAsk && <div className="toast card" role="alert">
+      {toast && !cascade && !recovery && !meshAsk && !repairAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}</div>

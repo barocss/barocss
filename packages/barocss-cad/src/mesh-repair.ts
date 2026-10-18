@@ -21,8 +21,11 @@ import type { Point } from './types.js';
 
 export interface MeshRepairSteps {
   readonly weld?: boolean; readonly degenerate?: boolean; readonly fins?: boolean; readonly orient?: boolean;
-  /** Fill holes; `skip`: the holes (by their number in the diagnosis) left open. */
-  readonly fill?: boolean | { readonly skip?: readonly number[] };
+  /**
+   * Fill holes; `skip`: the holes (by their number in the diagnosis) left open; `coarseness`: the fill's edge length
+   * against its rim's (1, the default: as dense as the rim; 2: half the resolution — a quarter of the triangles).
+   */
+  readonly fill?: boolean | { readonly skip?: readonly number[]; readonly coarseness?: number };
   /** Drop closed pieces under this share of the largest one's volume (default 0.01; false: keep them). */
   readonly floaters?: false | { readonly minFraction: number };
   /** Corners closer than this are one vertex (mm; default 1e-6 of the mesh's size). */
@@ -46,6 +49,8 @@ export interface MeshDiagnosis {
   /** Pieces under 1% of the largest volume. */
   readonly floaters: number;
   readonly selfIntersections: number;
+  /** Where (up to 64): the midpoint of each crossing pair's centroids. */
+  readonly selfIntersectionAt: readonly Point[];
   /** Whether the mesh would import as a closed solid as it is (no hole, no edge of more than two, wound one way). */
   readonly closed: boolean;
 }
@@ -142,10 +147,11 @@ export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   let nonManifold = 0, inconsistent = 0;
   for (const list of sides.values()) { if (list.length > 2) nonManifold++; else if (list.length === 2 && from(m.T, list[0]) === from(m.T, list[1])) inconsistent++; }
   const loops = holeLoops(m.T, sides), vols = volumesOf(m.P, m.T, of, count).map(Math.abs), largest = Math.max(0, ...vols);
+  const crossing = selfIntersections(Float64Array.from(m.P), Uint32Array.from(m.T));
   return {
     triangles: m.T.length / 3, vertices: m.nv, welded: counts.welded, degenerate: counts.degenerate, duplicates: counts.duplicates,
     nonManifoldEdges: nonManifold, inconsistentEdges: inconsistent, holes: loops.map((l, index) => holeOf(m.P, l, index)), pieces: count, pieceVolumesMM3: vols,
-    floaters: vols.filter(v => v < 0.01 * largest).length, selfIntersections: selfIntersections(Float64Array.from(m.P), Uint32Array.from(m.T)).count,
+    floaters: vols.filter(v => v < 0.01 * largest).length, selfIntersections: crossing.count, selfIntersectionAt: crossing.at,
     closed: !loops.length && !nonManifold && !inconsistent,
   };
 }
@@ -156,14 +162,16 @@ function holeOf(P: number[], loop: number[], index: number): MeshHole {
 }
 
 /** The mesh repaired by the steps asked (DEFAULT_REPAIR by default), with what each did. */
-export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<number> | null, steps: MeshRepairSteps = DEFAULT_REPAIR): MeshRepairResult {
+export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<number> | null, steps: MeshRepairSteps = DEFAULT_REPAIR, progress?: (stage: string) => void): MeshRepairResult {
   const s = { ...DEFAULT_REPAIR, ...steps }, counts = { welded: 0, degenerate: 0, duplicates: 0 };
+  progress?.('weld');
   const m = prepare(positions, indices, s, counts);
   let T = m.T; const P = m.P;
   let finsRemoved = 0, finTriangles = 0, flipped = 0;
   // Fins: at each edge of more than two triangles, the pieces (through two-triangle edges) meeting there but the
   // largest, when open or enclosing no volume (a fin, a doubled sheet).
   if (s.fins) {
+    progress?.('fins');
     const sides = edgeSides(T, m.nv), { of, count } = pieces(T, sides), vols = volumesOf(P, T, of, count), size = new Float64Array(count), open = new Uint8Array(count), fin = new Uint8Array(count);
     for (let t = 0; t < T.length / 3; t++) size[of[t]]++;
     for (const list of sides.values()) if (list.length === 1) open[of[(list[0] / 3) | 0]] = 1;
@@ -180,6 +188,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   }
   // Orient: across each two-triangle edge the neighbour runs it the other way (breadth first), then each piece outward.
   if (s.orient) {
+    progress?.('orient');
     const sides = edgeSides(T, m.nv), nt = T.length / 3, flip = new Int8Array(nt).fill(-1), queue = new Int32Array(nt), across = new Int32Array(T.length).fill(-1);
     for (const list of sides.values()) if (list.length === 2) { across[list[0]] = list[1]; across[list[1]] = list[0]; }
     for (let s0 = 0; s0 < nt; s0++) {
@@ -201,11 +210,12 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   const fillOf: number[] = new Array<number>(T.length / 3).fill(-1);
   let holesFilled = 0, fillTriangles = 0, largestPerimeter = 0, filledArea = 0, holesLeft = 0;
   if (s.fill) {
-    const skip = new Set(typeof s.fill === 'object' ? s.fill.skip ?? [] : []);
+    const skip = new Set(typeof s.fill === 'object' ? s.fill.skip ?? [] : []), coarse = typeof s.fill === 'object' ? Math.max(1, s.fill.coarseness ?? 1) : 1;
     const loops = holeLoops(T, edgeSides(T, m.nv));
     loops.forEach((loop, index) => {
       if (skip.has(index)) { holesLeft++; return; }
-      const patch = fillHole(P, loop);
+      progress?.(`fill ${index + 1} of ${loops.length}`);
+      const patch = fillHole(P, loop, coarse);
       if (!patch) { holesLeft++; return; }
       for (let i = 0; i < patch.length; i += 3) { T.push(patch[i], patch[i + 1], patch[i + 2]); fillOf.push(index); filledArea += Math.sqrt(area2(P, patch[i], patch[i + 1], patch[i + 2])) / 2; }
       holesFilled++; fillTriangles += patch.length / 3; largestPerimeter = Math.max(largestPerimeter, holeOf(P, loop, index).perimeterMM);
@@ -213,6 +223,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   }
   // Each closed piece outward; floaters dropped.
   let floatersRemoved = 0, floaterVolume = 0;
+  progress?.('floaters');
   {
     const sides = edgeSides(T, m.nv), { of, count } = pieces(T, sides), vols = volumesOf(P, T, of, count), open = new Uint8Array(count);
     for (const list of sides.values()) if (list.length !== 2) for (const h of list) open[of[(h / 3) | 0]] = 1;
@@ -229,6 +240,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   const used = new Int32Array(P.length / 3).fill(-1), outP: number[] = [];
   const outT = new Uint32Array(T.length);
   for (let i = 0; i < T.length; i++) { const v = T[i]; if (used[v] < 0) { used[v] = outP.length / 3; outP.push(P[3 * v], P[3 * v + 1], P[3 * v + 2]); } outT[i] = used[v]; }
+  progress?.('check');
   const outList = Array.from(outT), finalSides = edgeSides(outList, outP.length / 3);
   let nonManifoldLeft = 0, openEdges = 0, wrong = 0;
   for (const list of finalSides.values()) { if (list.length > 2) nonManifoldLeft++; else if (list.length === 1) openEdges++; else if (from(outList, list[0]) === from(outList, list[1])) wrong++; }
@@ -244,13 +256,14 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
 // ---- the fill (Liepa) -------------------------------------------------------------------------------------------
 const DP_LIMIT = 120;
 /** Triangles closing a hole loop (corners appended to P for the refinement's new vertices), or null when it cannot be closed. */
-function fillHole(P: number[], loop: number[]): number[] | null {
+function fillHole(P: number[], loop: number[], coarse = 1): number[] | null {
   const n = loop.length;
   let tris: number[] | null = n <= DP_LIMIT ? minimumArea(P, loop) : projected(P, loop);
   if (!tris) return null;
   // Densities: each rim vertex's, the mean length of its two rim edges.
   const sigma = new Map<number, number>();
-  for (let i = 0; i < n; i++) { const a = loop[(i + n - 1) % n], b = loop[i], c = loop[(i + 1) % n]; sigma.set(b, (dist(P, a, b) + dist(P, b, c)) / 2); }
+  // (Coarser than the rim when asked: each density scaled, so the patch's edges come out that much longer.)
+  for (let i = 0; i < n; i++) { const a = loop[(i + n - 1) % n], b = loop[i], c = loop[(i + 1) % n]; sigma.set(b, coarse * (dist(P, a, b) + dist(P, b, c)) / 2); }
   const rim = new Set<number>();
   for (let i = 0; i < n; i++) { const a = loop[i], b = loop[(i + 1) % n]; rim.add(Math.min(a, b) * 1e9 + Math.max(a, b)); }
   tris = refine(P, tris, sigma, rim);

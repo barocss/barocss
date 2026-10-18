@@ -5,9 +5,9 @@
 // recovery copy keeps them in IndexedDB. The store holds every blob of the session: they are not evicted.
 import type { ModelNode, StudioDoc } from './doc';
 
-export type BlobArray = Float64Array | Float32Array | Uint32Array;
-export type BlobType = 'f64' | 'f32' | 'u32';
-export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : 'u32';
+export type BlobArray = Float64Array | Float32Array | Uint32Array | Int32Array;
+export type BlobType = 'f64' | 'f32' | 'u32' | 'i32';
+export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : a instanceof Int32Array ? 'i32' : 'u32';
 /** Positions at their own precision (D45): single precision when every value is one, else double. */
 export function positionsArray(p: ArrayLike<number>): Float64Array | Float32Array {
   for (let i = 0; i < p.length; i++) if (Math.fround(p[i]) !== p[i]) return Float64Array.from(p);
@@ -35,7 +35,7 @@ export async function putBlob(a: BlobArray): Promise<string> {
 export function putKnownBlob(hash: string, a: BlobArray): void { if (!store.has(hash)) store.set(hash, a); }
 export const getBlob = (hash: string): BlobArray | undefined => store.get(hash);
 /** An array of the type over the bytes. */
-export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : new Uint32Array(buffer);
+export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : dtype === 'i32' ? new Int32Array(buffer) : new Uint32Array(buffer);
 export const hasBlob = (hash: string): boolean => store.has(hash);
 
 /** A mesh node (without inline arrays) with its arrays stored as blobs and named. */
@@ -53,6 +53,8 @@ export function blobRefs(doc: StudioDoc, out = new Set<string>()): Set<string> {
 }
 function addRefs(n: ModelNode, out: Set<string>): void {
   if (n.kind === 'mesh' && n.blob) { out.add(n.blob.positions); out.add(n.blob.indices); }
+  // (A repair's result: its own blobs, the original kept beside them, D47.)
+  if (n.kind === 'mesh' && n.repair) { out.add(n.repair.result.positions); out.add(n.repair.result.indices); out.add(n.repair.result.fill); }
 }
 /** The hashes named but not in the store (a file or recovery copy missing them). */
 export const missingBlobs = (doc: StudioDoc): string[] => [...blobRefs(doc)].filter(h => !store.has(h));

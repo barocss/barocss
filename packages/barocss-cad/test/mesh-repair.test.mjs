@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, brepMassProperties, evaluateCadPart, CadPartError, DEFAULT_REPAIR } from '../dist/index.js';
+import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, evaluateCadPart, CadPartError, DEFAULT_REPAIR } from '../dist/index.js';
 
 // M3 (R3.4): the broken set — a hole, flipped triangles, a fin, floaters, degenerate and duplicate triangles, crossing
 // shells, an open sheet — each diagnosed, repaired by explicit steps, with the report it should give.
@@ -142,4 +142,14 @@ test('an open sheet in a part: no mass and no Booleans, each refused with its re
   assert.equal(snap.output('s').brep.bodies[0].kind, 'sheet');
   assert.throws(() => snap.output('s').massProperties(1), /encloses no volume/);
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets', open: true }, { id: 'h', kind: 'hole', target: 's', center: [5, 5], radius: 1 }])), /need a closed solid: this mesh is open/);
+});
+
+test('fill coarseness: half the resolution, about a quarter of the triangles; stages reported as it goes', () => {
+  function sphereCut(n, m) { const P = [0, 0, -10], I = []; for (let j = 1; j < m; j++) { const phi = -Math.PI / 2 + Math.PI * j / m; for (let i = 0; i < n; i++) { const th = 2 * Math.PI * i / n; P.push(10 * Math.cos(phi) * Math.cos(th), 10 * Math.cos(phi) * Math.sin(th), 10 * Math.sin(phi)); } } const at = (j, i) => 1 + (j - 1) * n + (i % n); for (let i = 0; i < n; i++) I.push(0, at(1, i + 1), at(1, i)); for (let j = 1; j < m - 3; j++) for (let i = 0; i < n; i++) I.push(at(j, i), at(j, i + 1), at(j + 1, i + 1), at(j, i), at(j + 1, i + 1), at(j + 1, i)); return { P, I }; }
+  const { P, I } = sphereCut(64, 40), stages = [];
+  const fine = repairMesh(P, I, undefined, s => stages.push(s)), coarse = repairMesh(P, I, { ...DEFAULT_REPAIR, fill: { coarseness: 2 } });
+  assert.deepEqual(stages, ['weld', 'fins', 'orient', 'fill 1 of 1', 'floaters', 'check']);
+  assert.ok(fine.report.closed && coarse.report.closed);
+  const ratio = coarse.report.fillTriangles / fine.report.fillTriangles;
+  assert.ok(ratio > 0.15 && ratio < 0.45, `${coarse.report.fillTriangles} / ${fine.report.fillTriangles}`);
 });

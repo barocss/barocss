@@ -396,3 +396,12 @@ button.chip.snap:hover { background: #3a3c41; }
 .chat-chip button { border: 0; background: transparent; color: inherit; padding: 0 2px; cursor: pointer; line-height: 1; }
 .chat-autonomy { font-size: 11px; padding: 1px 2px; }
 .work-bar { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 12px; }
+/* Mesh repair (M3). */
+.mesh-repair { max-width: 520px; }
+.repair-steps, .repair-holes { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; font-size: 12px; }
+.repair-holes { padding-left: 20px; }
+.repair-steps label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.repair-report { margin: 4px 0 6px; }
+.ol-badges { display: inline-flex; gap: 3px; margin-left: 4px; flex-shrink: 0; }
+.ol-badge { border: 0; border-radius: 8px; padding: 0 6px; font-size: 10px; line-height: 16px; background: rgba(255, 255, 255, 0.08); color: var(--accent); cursor: pointer; white-space: nowrap; }
+.ol-badge.warn { color: #c9a227; }

@@ -1393,3 +1393,57 @@ Evidence:
 
   At first the relaxation made one swap per pass and the closing check copied the index array per edge (22.9 s at
   11k); both are fixed.
+
+## D47 — The mesh repair gate: checked in the worker, repaired as a recorded step, badges for what was guessed (2026-10-18, R3.4b)
+Decided (per the peer's R3.4 guidance, under the delegation):
+- **Checked first, in the worker.** Opening an STL or OBJ, the worker diagnoses it (`engine.diagnose`) behind the
+  "Working… checking the mesh" bar, which can be cancelled.
+  - A clean mesh opens as before.
+  - Anything a step would change (open, degenerate or duplicate triangles, floaters), or crossings to report, opens
+    the repair gate instead.
+- **The gate (`ui/MeshRepairPanel.tsx`).**
+  - It shows what was found and the steps: degenerate and duplicates, fins, orient, fill, and floaters under 1%.
+    All are on by default and each can be turned off.
+  - Holes are listed by size, largest first (8 with ticks; the rest follow the fill tick). A coarser fill (half the
+    rim's resolution, `fill.coarseness: 2`: about a quarter of the triangles) can be chosen.
+  - **Check the repair** runs it in the worker. The bar names its stage (weld, fins, orient, fill k of n, floaters,
+    check) and can be cancelled, leaving nothing changed.
+  - The report comes before anything is applied: corners welded, triangles dropped, fins, triangles turned, holes
+    filled with how many triangles and the area added, tiny pieces and their volume, and whether the mesh closes
+    (or opens as a sheet).
+  - "Open as it is" is offered only when the mesh is closed as it is.
+- **The repair is a recorded, reversible step on the mesh node.**
+  - The node keeps its import's `blob`. `repair: {steps, result: {positions, indices, fill}, report}` names the
+    result's own blobs; `fill` is an `i32` blob giving each triangle's patch.
+  - The kernel feature takes the result with its fill groups, so fill patches are faces of their own. If the mesh
+    is still open, it is taken as a sheet (`open: true`).
+  - Opening the repair again (its badge) diagnoses the import anew with the steps as they were. Applying replaces
+    the record. "Remove the repair" is offered when the import is closed on its own; an open import would not build.
+  - Undo takes any of these back. Crossings are kept on the node (`crossings: {count, at}`).
+- **Badges on the mesh body** in the Browser:
+  - "repaired · N mm² filled": its tooltip is the report; clicking it selects the filled faces in the viewport and
+    opens the repair;
+  - "open sheet" when the repair could not close it;
+  - "crosses itself · N": clicking it marks the crossing places as points in the viewport.
+- The open toast says a repaired mesh's filled area and pieces, a sheet's limits, crossings, and tiny pieces kept.
+- **Kernel additions.** `fill.coarseness` scales each rim density, so refinement stops at longer edges.
+  `repairMesh(…, progress)` names its stages. `MeshDiagnosis.selfIntersectionAt` gives up to 64 crossing places.
+
+Evidence:
+- Kernel 922/923; the one failure is the known environmental test. The new mesh-repair test checks:
+  - coarseness 2 gives 15–45% of the default's fill triangles;
+  - the stages come in order (weld, fins, orient, fill 1 of 1, floaters, check).
+- Studio 296/296. The recorded repair on the M0 broken hole:
+  - 5 blobs: the import plus the result;
+  - the fill is its own face and the volume matches the repaired arrays;
+  - the container round trip keeps it;
+  - without the record the open import is refused, not faked closed.
+- Browser flow 109/109. The new step:
+  - a sphere with its cap off gives 1 hole, and no "Open as it is";
+  - with the coarser fill checked, the report reads "1 hole filled with N triangles … Closed";
+  - applied, the node keeps its blob and a repair with `coarseness: 2`;
+  - its badge "repaired · 78 mm² filled" selects the filled cap (a 77.65 mm² planar face) and reopens the repair as
+    it was.
+  
+  The kit step now passes through the gate (its floater is a finding) and opens as it is.
+- Lint clean.

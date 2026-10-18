@@ -9,7 +9,7 @@
 //
 // Reading checks each blob's SHA-256 against its name before it is used. Files of either kind open; a plain JSON
 // file's inline mesh arrays stay as they are.
-import { blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha256, type BlobArray, type BlobType } from './blobs';
+import { arrayOf, blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha256, type BlobArray, type BlobType } from './blobs';
 import { readStudioDoc } from './migrate';
 import type { StudioDoc } from './doc';
 
@@ -63,10 +63,10 @@ export async function decodeStudioFile(bytes: Uint8Array): Promise<{ text: strin
     const payload = bytes.subarray(at, at + pl); at += pad8(pl);
     if (header.kind === 'document') { text = dec.decode(payload); continue; }
     if (header.kind !== 'blob') continue;
-    const width = header.dtype === 'f64' ? 8 : header.dtype === 'u32' || header.dtype === 'f32' ? 4 : 0;
+    const width = header.dtype === 'f64' ? 8 : header.dtype === 'u32' || header.dtype === 'f32' || header.dtype === 'i32' ? 4 : 0;
     if (!width || header.count! * width !== pl || typeof header.sha256 !== 'string') throw new ContainerError('a mesh chunk is malformed');
     // (Copied into its own buffer: aligned, and not holding the whole file alive.)
-    const own = payload.slice(), array: BlobArray = width === 8 ? new Float64Array(own.buffer, 0, header.count!) : header.dtype === 'f32' ? new Float32Array(own.buffer, 0, header.count!) : new Uint32Array(own.buffer, 0, header.count!);
+    const own = payload.slice(), array: BlobArray = arrayOf(header.dtype!, own.buffer);
     if (await sha256(array) !== header.sha256) throw new ContainerError(`a mesh chunk does not match its hash (${header.sha256.slice(0, 12)}…): the file is damaged`);
     putKnownBlob(header.sha256, array); blobs++;
   }
