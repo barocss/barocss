@@ -3044,7 +3044,18 @@ Evidence (`test/threemf.test.ts` 4/4; read back by an independent reader — Nod
 
 Not done, said:
 - No slicer on this machine (PrusaSlicer, Bambu, Orca, Cura absent): opening in a slicer is left to be checked by hand.
-- The Export 3MF button was type-checked, not clicked in a browser.
 - No thumbnail is written yet.
+
+Browser evidence (added at the peer's review):
+- **Browser flow:** a new step clicks Export 3MF on a new box and captures the download.
+  - It reads the download back independently: CRCs by zlib, entries inflated by zlib; Python's zipfile `testzip` and ElementTree read 1 object, 8 vertices, 12 triangles, 1 item, millimeter.
+  - The volume read back is the box's from its sketch and height. There are 3 UUIDs.
+  - The toast reads "3MF written: 1 body, 12 triangles … As modelled" and nothing open.
+- **Full flow:** 118 steps; the first run had one failure, step 100 (F2 ring with a hole).
+  - Cause: a race in the test. While the 30k-triangle ring evaluated, the body panel showed the previous part's body (a 32 × 32 × 16 box, 16,384 mm³) under the new document's name ("Mesh ring").
+  - The engine gives 9,737 mm³ in Node, as D52 recorded.
+  - The step now waits for the ring's own bounds (50 × …) before reading the volume; its volume check is unchanged.
+  - Rerun after step 99: passes. The full flow was not rerun after the fix.
+- **TODO (studio, not fixed here):** the body panel pairs the new document's names with the previous evaluation's bodies until the new one arrives. It should show nothing, or "evaluating", in between.
 
 Next: R7 (SD2).

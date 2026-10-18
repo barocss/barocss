@@ -692,6 +692,41 @@ try {
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
   });
 
+  await check('export a box as 3MF: the download read back independently (zlib CRC and inflate, Python zipfile and ElementTree), its triangles closed, its volume the box\'s, UUIDs, the toast', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    const d = await doc(), sk = d.nodes.find(n => n.kind === 'sketch' && n.profile === 'rectangle'), ex = d.nodes.find(n => n.kind === 'extrude');
+    const want = (sk.max[0] - sk.min[0]) * (sk.max[1] - sk.min[1]) * ex.height;
+    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export 3MF"]')]);
+    assert.match(download.suggestedFilename(), /\.3mf$/);
+    const { readFileSync } = await import('node:fs'), { inflateRawSync, crc32 } = await import('node:zlib'), { execFileSync } = await import('node:child_process');
+    const file = await download.path(), bytes = new Uint8Array(readFileSync(file)), dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    // The ZIP by its central directory, each entry's CRC against zlib's.
+    let end = bytes.length - 22; while (end >= 0 && dv.getUint32(end, true) !== 0x06054b50) end--;
+    const entries = new Map(); let at = dv.getUint32(end + 16, true);
+    for (let i = 0; i < dv.getUint16(end + 10, true); i++) {
+      const method = dv.getUint16(at + 10, true), crc = dv.getUint32(at + 16, true), csize = dv.getUint32(at + 20, true), nlen = dv.getUint16(at + 28, true), local = dv.getUint32(at + 42, true);
+      const name = new TextDecoder().decode(bytes.subarray(at + 46, at + 46 + nlen)), start = local + 30 + dv.getUint16(local + 26, true) + dv.getUint16(local + 28, true), body = bytes.subarray(start, start + csize);
+      const data = method === 8 ? new Uint8Array(inflateRawSync(body)) : body;
+      assert.equal(crc32(data) >>> 0, crc, `${name} CRC`); entries.set(name, data);
+      at += 46 + nlen + dv.getUint16(at + 30, true) + dv.getUint16(at + 32, true);
+    }
+    assert.deepEqual([...entries.keys()], ['[Content_Types].xml', '_rels/.rels', '3D/3dmodel.model']);
+    const xml = new TextDecoder().decode(entries.get('3D/3dmodel.model'));
+    assert.match(xml, /<model unit="millimeter"/);
+    const v = [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].map(m => [+m[1], +m[2], +m[3]]);
+    const t = [...xml.matchAll(/<triangle v1="(\d+)" v2="(\d+)" v3="(\d+)"/g)].map(m => [+m[1], +m[2], +m[3]]);
+    assert.deepEqual([v.length, t.length], [8, 12]);
+    let vol = 0; for (const [a, b, c] of t.map(k => k.map(i => v[i]))) vol += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+    assert.ok(Math.abs(vol / 6 - want) < 1e-3 * want, `${vol / 6} vs ${want}`);
+    assert.equal((xml.match(/p:UUID="[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"/g) ?? []).length, 3);
+    const py = execFileSync('python3', ['-I', '-c', 'import sys, zipfile, xml.etree.ElementTree as ET\nz = zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None\nns = {"c": "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"}\nr = ET.fromstring(z.read("3D/3dmodel.model"))\nprint(len(r.findall(".//c:object", ns)), len(r.findall(".//c:vertex", ns)), len(r.findall(".//c:triangle", ns)), len(r.findall(".//c:item", ns)), r.get("unit"))', file], { encoding: 'utf8' });
+    assert.equal(py.trim(), '1 8 12 1 millimeter');
+    assert.match(await page.locator('.toast').innerText(), /3MF written: 1 body, 12 triangles[\s\S]*As modelled/);
+    assert.doesNotMatch(await page.locator('.toast').innerText(), /not closed/);
+    await page.click('.toast [aria-label="Dismiss"]');
+  });
+
   await check('drawing revision: Next gives A in the title block; a model change since is flagged', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -2296,7 +2331,8 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', part);
     await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'hole' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    // (The ring's own body: its bounds, not the previous part's body still shown while the 30k mesh evaluates.)
+    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Bounds 50 × /.test(document.querySelector('.props')?.textContent ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
     const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
     const ring = 2 * Math.PI * Math.PI * 20 * 25;
     assert.ok(vol < ring && vol > ring - 2 * Math.PI * 4 * 10, `${vol}`);
