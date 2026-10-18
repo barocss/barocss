@@ -433,6 +433,10 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | R3.3 — M1 container | `4c8e19b4e` `454747f5f` | SHA-256 blobs; 1M file 17.2 MB (55 MB as inline JSON); chat sends blobs once; cap 2M. |
 | R3.4 — M3 repair | `14aca6bea` `f1f267b00` | Diagnose and repair as a recorded step; Liepa fill; sheets; crossings refused; the gate in the worker. |
 | R3.5 — AP242 tessellated STEP | `2234bfdb3` | 1M: 49.9 MB tessellated (planar refused past 250k); mixed files; mesh-only STEP through the gate. |
+| D49 — STEP size caps | `daa9b0989` `737d64196` | 32 MiB outside meshes; tessellated up to 128 MiB (owner); 2M opens in the studio in 11.2 s, renderer peak 3.06 GB. |
+| D41 — L2 is option (b) (owner) | `737d64196` `1b9049a66` | Value edits of one feature apply with an Undo toast; the rest is a proposal; the first build on an empty part applies. Tested through the real chat and tool servers. |
+| R4 — F1 facet × plane split and section | `d571d6f2d` `c2e79c1b9` | Any size, exact planar cap; 1M in 2.0 s. Oblique splits of planar bodies had always failed: fixed. RB round trip of meshes checked tessellated. |
+| R5 — SD1 SubD cage | `235c6a422` | Regular cages exact (Catmull–Clark step agrees to 1e-12); creases, boundaries, corners; SubD torus command. |
 
 Checks at the end:
 
