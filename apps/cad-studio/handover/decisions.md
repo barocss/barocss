@@ -2556,3 +2556,61 @@ without the library give the same bodies ✓; an agent lists, inserts and snaps 
 
 Next: R6b, enclosure elements, built as library items where they can be (owner: "after it, R6b, much of R12c and FR
 are built as library items").
+
+## D65 — R6b.1: declared checks with context, "add to body" as one step, the screw boss as a library item (2026-10-18)
+
+Decision (the peer approved the plan, with its refinements):
+- **Checks in the library format:** `checks: [{ id, expr, level: 'recommended' | 'feasible', message, value? }]`.
+  These are process rules as data:
+  - a recommended rule that fails is a warning on the part, with its margin (`value`);
+  - a feasible rule that fails refuses the instance (PARAMETER), naming the rule and its margin;
+  - the instance reports every rule (`checks`: met, not met, or unknown).
+- **Context inputs:** `context: { wall: { unit, description, from } }` — what the checks need from where the part goes.
+  - Given at instantiation. Only checks read them; recipes cannot (the geometry does not depend on the target).
+  - A check reading a context input that was not given is unknown, with why ("needs wall (…)"), never passed.
+  - Context names may not shadow parameters, pi or functions.
+- **Variant ids** may hold a dot (M2.5).
+- **Add to body** (`addLibraryPartToBody`; agent tool `add_library_part`):
+  - The part's `base` interface goes on a picked flat face at a point, the frames facing, then the part is united
+    with the body.
+  - It is one step: a `library` node with `placement` (kernel turns and a move, `<prefix>_placed`), `addTo` (the
+    body, consumed as a Boolean's first) and `on` (the face's name and the point, for A1.3's re-match).
+  - Suppressed, the body passes on as it was. Its look is the body's (it builds on it).
+  - **The wall there:** given, or measured: the ray from the point inward through the body's mesh.
+  - **Refused, with why — never added half on, never dropped:**
+    - the footprint (the placed part's points on the face plane, each pushed 0.05 mm in) is not all inside the
+      body: "k of n points of its footprint fall off it";
+    - its base is off the face;
+    - the union does not build;
+    - a feasible rule fails.
+- **A3:** `library_check { feature, check }` gives the rule's margin (or 1 or 0), unknown without its context or its
+  library.
+- **The built-in "Enclosure elements" library** (0.1.0, CC0, legal review before release). Its first part is a
+  **screw boss** for a thread-forming screw.
+  - Variants M2–M5 (pilot holes as estimates); OD = 2d + 0.4; free height; 0 or 4 triangular gussets (thickness an
+    estimate) on vertical planes.
+  - Rules against the wall:
+    - boss wall within [0.6, 1.0] of it, recommended;
+    - gusset ≤ 0.6 wall, recommended (sink), and ≤ the wall, feasible;
+    - engagement ≥ 2d, recommended.
+  - Interfaces `base` (its foot) and `screw` (the pilot's axis).
+- **Next step: R6b.7.** The material and process profiles (injection, FDM, SLA) and their thresholds with source
+  IDs come next, moved up to right after R6b.2.
+
+Evidence:
+- **Kernel** `library.test.mjs` 5/5. A rib's rules on a 2.5 mm wall are met (0.48); on 1.6, one warning (0.75); on
+  1.0, refused (1.2); without a wall, both wall rules unknown and said, the height rule still checked. Bad context
+  and check declarations are refused.
+- **The bosses:** all ten (M2–M5 × gussets) valid. The M3 without gussets equals π·3.2²·8 − π·1.25²·7.4 to 1e-6 on
+  the plate.
+- **Studio** `test/enclosure.test.ts`:
+  - on a 60 × 40 × 2.5 plate: the wall measured 2.5, no rule warned, one body, 10.5 high;
+  - on 1.2: boss-wall-thick (1.625) and rib-sink (0.833) warned;
+  - on 0.8: refused, rib-wall (1.25);
+  - half off the edge: refused, saying how many footprint points fall off;
+  - on the side face: lying along X to 68;
+  - suppressed: the plate's volume;
+  - no wall where the ray leaves nothing: unknown;
+  - `add_library_part` by face name and point, with "not a flat face" refused;
+  - `library_check` as requirements: rib-sink 0.8333 fails ≤ 0.6, engagement passes, an unknown rule is unknown.
+- Studio 315/315; lint 0 errors.

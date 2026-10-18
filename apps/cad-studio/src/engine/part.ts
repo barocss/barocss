@@ -6,6 +6,7 @@ import { getBlob } from './blobs';
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
 import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
+import { rotationSteps } from '../assembly/mates';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -45,7 +46,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
     case 'subd': return { ...at, kind: 'subd', cage: node.cage };
     // (A library part's own feature: its output passed on under the node's id; its features come before it, featuresOf.)
-    case 'library': return { ...at, kind: 'translate', target: node.outputs[0], offset: [0, 0, 0] };
+    case 'library': {
+      // (Placed: its output turned and moved, `<prefix>_placed`; added to a body: united with it, as one step.)
+      const out = node.placement ? `${node.prefix}_placed` : node.outputs[0];
+      return node.addTo ? { ...at, kind: 'union', target: ref(node.addTo), tool: out } : { ...at, kind: 'translate', target: out, offset: [0, 0, 0] };
+    }
     case 'rack': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction !== undefined ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { origin: node.origin, ...(node.from ? { from: node.from } : {}), ...(node.angle ? { angle: node.angle } : {}) };
@@ -68,7 +73,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
 
 /** A node's kernel features: one, or a patterned hole's copies one after another (the last named `n<i>`). */
 function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
-  if (node.kind === 'library') return [...node.features, featureOf(node, index, current)];
+  if (node.kind === 'library') return [...node.features, ...placementOf(node), featureOf(node, index, current)];
   if (node.kind !== 'hole' || !node.pattern || node.pattern.count <= 1) return [featureOf(node, index, current)];
   const centres = holeCentres(node.center.map(Number), node.pattern), base = featureOf(node, index, current) as CadPartFeature & { target: string };
   return centres.map((center, j) => ({ ...base, id: j === centres.length - 1 ? id(index) : `${id(index)}_p${j}`, center, target: j === 0 ? base.target : `${id(index)}_p${j - 1}` }));
@@ -99,6 +104,8 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
       features.push(...featuresOf(node, i)); return;
     }
     if (makes) {
+      // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
+      if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i)); return; }
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...featuresOf(node, i)); return;
     }
@@ -155,3 +162,14 @@ export function helixOf(node: Extract<ModelNode, { kind: 'gear' }>, nodes: reado
   }
   return node.helixAngle ? { angle: node.helixAngle, hand: node.hand ?? 'right' } : null;
 }
+
+/** A placed library part's turns (about X, then Y, then Z, through the origin) and move, ending at `<prefix>_placed`. */
+function placementOf(node: Extract<ModelNode, { kind: 'library' }>): CadPartFeature[] {
+  if (!node.placement) return [];
+  const steps = rotationSteps(node.placement.rotation), out: CadPartFeature[] = [];
+  let target = node.outputs[0];
+  steps.forEach((s, k) => { const id = `${node.prefix}_turn${k}`; out.push({ id, kind: 'rotate', target, axis: s.axis, angleDegrees: s.angleDegrees } as CadPartFeature); target = id; });
+  out.push({ id: `${node.prefix}_placed`, kind: 'translate', target, offset: node.placement.position } as CadPartFeature);
+  return out;
+}
+

@@ -140,7 +140,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if ((n.kind === 'gear' || n.kind === 'rack') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
-  for (const key of ['parent', 'left', 'right', 'tool'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
+  for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   return n;
 }
 /** A node's names (fillet and chamfer edges, shell openings, draft faces) with feature ids replaced. */

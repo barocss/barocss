@@ -169,3 +169,37 @@ test('LIB2 fits: b placed onto a by interfaces facing each other (an exact rigid
   refused(bad([{ id: 'f', a: KEYED.fits[0].b, b: KEYED.fits[0].b }]), 'REFERENCE', /do not accept each other/);
   refused(bad([KEYED.fits[0], KEYED.fits[0]]), 'FORMAT', /appears twice/);
 });
+
+test('declared checks (R6b, D65): recommended ones warn, feasible ones refuse, with the margin; context inputs (the wall of the body it goes on) given at insertion — a check needing one not given is unknown, said, never passed', () => {
+  const RIB = {
+    format: 'barocss-cad-library', version: 1, id: 'test-ribs', name: 'Ribs', libraryVersion: '1.0.0', units: 'mm',
+    parts: [{ id: 'rib', name: 'Rib', parameters: { r: { value: 1.2, source: 'test' }, h: { value: 8, source: 'test' } },
+      context: { wall: { unit: 'mm', description: 'the nominal wall of the body it goes on', from: ['given', 'min_wall'] } },
+      checks: [
+        { id: 'sink', expr: 'r <= 0.6 * wall', value: 'r / wall', level: 'recommended', message: 'a rib thicker than 0.6 of the wall risks sink marks' },
+        { id: 'too-thick', expr: 'r <= wall', value: 'r / wall', level: 'feasible', message: 'a rib thicker than the wall' },
+        { id: 'tall', expr: 'h <= 3 * 4', level: 'recommended', message: 'a rib taller than 3 × its base' },
+      ],
+      recipe: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'r' }, 20] }, { id: 'x', kind: 'extrude', sketch: 's', height: { expr: 'h' } }] }],
+  };
+  const lib = loadCadLibrary(RIB);
+  // On a 2.5 mm wall: 1.2 ≤ 1.5, met.
+  let i = instantiateLibraryPart(lib, 'rib', { context: { wall: 2.5 } });
+  assert.deepEqual(i.checks.map(c => [c.id, c.pass, c.value]), [['sink', true, 0.48], ['too-thick', true, 0.48], ['tall', true, undefined]]); assert.deepEqual(i.warnings, []);
+  // On a 1.6 mm wall: over 0.6 (0.75 of it) — a warning with the margin; not over the wall.
+  i = instantiateLibraryPart(lib, 'rib', { context: { wall: 1.6 } });
+  assert.deepEqual(i.warnings, ['sink: a rib thicker than 0.6 of the wall risks sink marks (0.75)']);
+  // On a 1 mm wall: thicker than the wall — refused, with why.
+  refused(() => instantiateLibraryPart(lib, 'rib', { context: { wall: 1 } }), 'PARAMETER', /too-thick: a rib thicker than the wall \(1\.2\)/);
+  // No wall given: both wall checks unknown, said; the other still checked (a tall rib warned).
+  i = instantiateLibraryPart(lib, 'rib', { params: { h: 14 } });
+  assert.deepEqual(i.checks.map(c => [c.id, c.pass]), [['sink', null], ['too-thick', null], ['tall', false]]);
+  assert.deepEqual(i.warnings, ['sink: unknown — needs wall (the nominal wall of the body it goes on)', 'too-thick: unknown — needs wall (the nominal wall of the body it goes on)', 'tall: a rib taller than 3 × its base']);
+  // Context not declared, a recipe reading context, a check reading neither: refused.
+  refused(() => instantiateLibraryPart(lib, 'rib', { context: { depth: 3 } }), 'REFERENCE', /no context input depth/);
+  const bad = patch => () => loadCadLibrary({ ...RIB, parts: [{ ...RIB.parts[0], ...patch }] });
+  refused(bad({ recipe: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'wall' }, 20] }] }), 'REFERENCE', /reads wall, which is not a parameter/);
+  refused(bad({ checks: [{ id: 'c', expr: 'q > 0', level: 'feasible', message: 'm' }] }), 'REFERENCE', /reads q/);
+  refused(bad({ checks: [{ id: 'c', expr: 'r > 0', level: 'maybe', message: 'm' }] }), 'FORMAT', /a check is/);
+  refused(bad({ context: { r: {} } }), 'FORMAT', /not a parameter's/);
+});

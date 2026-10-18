@@ -1,0 +1,531 @@
+{
+ "format": "barocss-cad-library",
+ "version": 1,
+ "id": "enclosure",
+ "name": "Enclosure elements",
+ "libraryVersion": "0.1.0",
+ "units": "mm",
+ "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
+ "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing).",
+ "parts": [
+  {
+   "id": "screw-boss",
+   "name": "Screw boss",
+   "category": "enclosure",
+   "simplified": true,
+   "description": "A boss for a thread-forming screw, with four gussets: added to a wall or floor by its base.",
+   "parameters": {
+    "d": {
+     "value": 3,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dp": {
+     "value": 2.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "description": "pilot hole for a thread-forming screw"
+    },
+    "OD": {
+     "value": {
+      "expr": "2 * d + 0.4"
+     },
+     "unit": "mm",
+     "description": "boss outer diameter"
+    },
+    "h": {
+     "value": 8,
+     "unit": "mm",
+     "min": 2,
+     "max": 60,
+     "source": "free: the boss height"
+    },
+    "ribs": {
+     "value": 4,
+     "unit": "count",
+     "integer": true,
+     "min": 0,
+     "max": 4,
+     "source": "free: 0 or 4 gussets"
+    },
+    "rt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "description": "gusset thickness"
+    },
+    "rl": {
+     "value": {
+      "expr": "d + 1"
+     },
+     "unit": "mm",
+     "description": "how far a gusset reaches out from the boss"
+    },
+    "rh": {
+     "value": {
+      "expr": "h * 0.75"
+     },
+     "unit": "mm",
+     "description": "gusset height on the boss"
+    },
+    "r0": {
+     "value": {
+      "expr": "OD / 2 - 0.2"
+     },
+     "unit": "mm"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dp": 1.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dp": 2.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dp": 2.5
+     }
+    },
+    {
+     "id": "M4",
+     "values": {
+      "d": 4,
+      "dp": 3.3
+     }
+    },
+    {
+     "id": "M5",
+     "values": {
+      "d": 5,
+      "dp": 4.2
+     }
+    }
+   ],
+   "context": {
+    "wall": {
+     "unit": "mm",
+     "description": "the nominal wall of the body it is added to",
+     "from": [
+      "min_wall",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "boss-wall-thin",
+     "expr": "(OD - dp) / 2 >= 0.6 * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the boss wall is thinner than 0.6 of the nominal wall (weak, hard to fill)"
+    },
+    {
+     "id": "boss-wall-thick",
+     "expr": "(OD - dp) / 2 <= 1.0 * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the boss wall is thicker than the nominal wall (sink marks, voids)"
+    },
+    {
+     "id": "rib-sink",
+     "expr": "ribs == 0 || rt <= 0.6 * wall",
+     "value": "rt / wall",
+     "level": "recommended",
+     "message": "a gusset thicker than 0.6 of the wall risks sink marks"
+    },
+    {
+     "id": "rib-wall",
+     "expr": "ribs == 0 || rt <= wall",
+     "value": "rt / wall",
+     "level": "feasible",
+     "message": "a gusset thicker than the wall it stands on"
+    },
+    {
+     "id": "engagement",
+     "expr": "h - 0.6 >= 2 * d",
+     "value": "(h - 0.6) / d",
+     "level": "recommended",
+     "message": "less than two screw diameters of thread engagement"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "OD / 2"
+     }
+    },
+    {
+     "id": "b",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "h"
+     }
+    },
+    {
+     "id": "bh",
+     "kind": "hole",
+     "target": "b",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dp / 2"
+     },
+     "depth": {
+      "expr": "h - 0.6"
+     }
+    },
+    {
+     "id": "g0s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       {
+        "expr": "1.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       0.0,
+       -1.0,
+       0.0
+      ],
+      "xAxis": [
+       1.0,
+       0.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g0x",
+     "kind": "extrude",
+     "sketch": "g0s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g0u",
+     "kind": "union",
+     "target": "bh",
+     "tool": "g0x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-1.0 * rt / 2"
+       },
+       {
+        "expr": "0.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       1.0,
+       0.0,
+       0.0
+      ],
+      "xAxis": [
+       0.0,
+       1.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1x",
+     "kind": "extrude",
+     "sketch": "g1s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1u",
+     "kind": "union",
+     "target": "g0u",
+     "tool": "g1x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       {
+        "expr": "-1.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       0.0,
+       1.0,
+       0.0
+      ],
+      "xAxis": [
+       -1.0,
+       0.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2x",
+     "kind": "extrude",
+     "sketch": "g2s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2u",
+     "kind": "union",
+     "target": "g1u",
+     "tool": "g2x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "1.0 * rt / 2"
+       },
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "xAxis": [
+       0.0,
+       -1.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3x",
+     "kind": "extrude",
+     "sketch": "g3s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3u",
+     "kind": "union",
+     "target": "g2u",
+     "tool": "g3x",
+     "when": "ribs >= 4"
+    }
+   ],
+   "outputs": [
+    "g3u"
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.bottom"
+     },
+     "description": "its foot, on the face it is added to"
+    },
+    {
+     "id": "screw",
+     "role": "screw-hole",
+     "accepts": [
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "h"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "axis": "bh.side0"
+     }
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "boss",
+    "screw"
+   ]
+  }
+ ]
+}

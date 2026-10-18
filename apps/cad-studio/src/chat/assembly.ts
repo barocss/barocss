@@ -7,7 +7,8 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, tablesFor } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import type { ToolDefinition } from './api';
-import { addDocLibrary, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
+import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
+import { faceTableOf } from '../assembly/faces';
 import { UNLICENSED } from '../library/sharing';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -83,7 +84,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -199,6 +200,21 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
           content: json({ ok: true, library: args.library.id, check: r.check, license: r.license ?? UNLICENSED, estimates: r.estimates, authored_by: 'agent', note: 'kept with this document, marked as an agent\'s until a person confirms it; insert its parts with insert_part' }) };
       } catch (cause) { return fail(doc, cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause)); }
     }
+    case 'add_library_part': {
+      // (R6b: a library part added to a body of the base part, on a flat face at a point, as one step.)
+      if (typeof args.library !== 'string' || typeof args.part !== 'string' || typeof args.face !== 'string') return fail(doc, '"library", "part" and "face" (a flat face\'s name) are required, with "point" on it.');
+      const point = vec3(args.point); if (!point) return fail(doc, '"point" is [x, y, z] on the face.');
+      const face = faceTableOf(doc)[args.face.replace(/#\d+$/, '')];
+      if (!face || face.kind !== 'plane') return fail(doc, `"${args.face}" is not a flat face of the part.`);
+      const body = state.bodies.find(b => b.ref && b.mesh.faces.some(f => f.name === args.face || f.name.replace(/#\d+$/, '') === args.face));
+      if (!body?.ref) return fail(doc, `No body has the face "${args.face}".`);
+      const num = (v: unknown) => isObj(v) && Object.values(v).every(x => typeof x === 'number') ? v as Record<string, number> : undefined;
+      const r = addLibraryPartToBody(doc, args.library, args.part, { ...(typeof args.variant === 'string' ? { variant: args.variant } : {}), ...(num(args.params) ? { params: num(args.params) } : {}), ...(num(args.context) ? { context: num(args.context) } : {}) },
+        { body: body.ref, face: args.face, point, normal: face.normal, ...(vec3(args.x_direction) ? { xDir: vec3(args.x_direction)! } : {}) });
+      if ('error' in r) return fail(doc, r.error);
+      return { doc: r.doc, isError: false, changed: true, summary: `added ${r.node.name} to the body on ${args.face}`,
+        content: json({ ok: true, added: r.node.name, feature: r.doc.nodes.length - 1, ...(r.node.context ? { context: r.node.context } : {}), warnings: r.node.warnings }) };
+    }
     case 'snap_part': {
       const end = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.interface === 'string' ? { part: v.part, interface: v.interface } : null;
       const a = end(args.a), b = end(args.b), offset = args.offset === undefined ? [0, 0, 0] : vec3(args.offset);
@@ -265,6 +281,11 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'add_library',
     description: 'Adds a part library written as data (a manifest of parts: parameters each with a source or estimate: true, variants, a recipe of ordinary part-model features with {expr} values and `when`, interfaces with frames, declared fits). Checked at once: it loads, every part builds valid in every variant, its fits touch without overlapping. Kept with the document, marked as written by an agent until a person confirms it. No imported models (STEP, meshes) in a library.',
     input_schema: { type: 'object', properties: { library: { type: 'object' } }, required: ['library'], additionalProperties: false },
+  },
+  {
+    name: 'add_library_part',
+    description: 'Adds a library part (a screw boss, a standoff …) to a body of the part as one step: its base put on a flat face at a point (facing out of it), united with the body. Its rules are checked against the wall measured there (or "context": {wall}) — warnings with margins, a rule that cannot be met refused; refused too when its base is not all on the body. Changes the part: at L2 it is a proposal unless the part is empty.',
+    input_schema: { type: 'object', properties: { library: { type: 'string' }, part: { type: 'string' }, variant: { type: 'string' }, params: { type: 'object', additionalProperties: { type: 'number' } }, face: { type: 'string' }, point: xyz, x_direction: xyz, context: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['library', 'part', 'face', 'point'], additionalProperties: false },
   },
   {
     name: 'snap_part',

@@ -24,6 +24,10 @@ export interface CadLibraryParameter {
   readonly estimate?: boolean;
   readonly description?: string;
 }
+/** A rule over a part's values (R6b): met when `expr` holds; `value` the quantity it is about, for the report. */
+export interface CadLibraryCheck { readonly id: string; readonly expr: string; readonly level: 'recommended' | 'feasible'; readonly message: string; readonly value?: string }
+/** A rule as evaluated for an instance: met, not met, or unknown (`pass` null) when its context was not given — why in `unknown`. */
+export interface CadLibraryCheckResult { readonly id: string; readonly level: 'recommended' | 'feasible'; readonly pass: boolean | null; readonly message: string; readonly value?: number; readonly unknown?: string }
 /** A named row of the parameter table (a size: 20×20, 20×40). */
 export interface CadLibraryVariant { readonly id: string; readonly name?: string; readonly values: Readonly<Record<string, number>> }
 /** A recipe step: a part-model feature whose numbers may be `{ expr }`, kept only when `when` (an expression) is true. */
@@ -59,6 +63,18 @@ export interface CadLibraryPart {
   readonly interfaces?: readonly CadLibraryInterface[];
   /** Simplified internals: the part is not for structural calculation, and says so. */
   readonly simplified?: boolean;
+  /**
+   * Rules over its values (R6b, D65): process rules as data. `recommended` ones that fail are warnings on the part;
+   * `feasible` ones that fail refuse it (PARAMETER). Each `expr` holds (non-zero) when the rule is met; `value`, an
+   * optional expression, is the margin reported with it.
+   */
+  readonly checks?: readonly CadLibraryCheck[];
+  /**
+   * What its checks need from where it goes (R6b, D65): the nominal wall of the body it is added to, its material's
+   * values… — given at insertion (`instantiateLibraryPart`'s `context`); checks only read them (the geometry does
+   * not), and a check reading one not given is unknown, with why, never passed.
+   */
+  readonly context?: Readonly<Record<string, { readonly unit?: string; readonly description?: string; readonly from?: readonly string[] }>>;
   readonly tags?: readonly string[];
 }
 export interface CadLibraryManifest {
@@ -88,6 +104,8 @@ export interface CadLibraryInstance {
   readonly warnings: readonly string[];
   /** The interfaces with their expressions evaluated (ids prefixed), for LIB2. */
   readonly interfaces: readonly CadLibraryInterface[];
+  /** The part's rules as evaluated (R6b): all of them, met or not (a failed feasible one refuses the instance). */
+  readonly checks: readonly CadLibraryCheckResult[];
 }
 
 /** This kernel's version, recorded with a library's sharing check (kept equal to package.json's by a test). */
@@ -237,7 +255,7 @@ function evaluate(n: Node, values: Readonly<Record<string, number>>, where: stri
 
 // ---- loading -------------------------------------------------------------------------------------------------------
 
-const ID = /^[A-Za-z][A-Za-z0-9_-]*$/, VARIANT_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/, SEMVER = /^\d+\.\d+\.\d+$/;
+const ID = /^[A-Za-z][A-Za-z0-9_-]*$/, VARIANT_ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/, SEMVER = /^\d+\.\d+\.\d+$/;
 /** Recipe keys that name other recipe features (renamed with the instance's prefix). */
 const REFERENCE_KEYS = new Set(['sketch', 'target', 'tool', 'gear']);
 /** Recipe keys holding face or edge names, `<feature>.<role>` joined by | or + (their feature ids renamed). */
@@ -332,8 +350,8 @@ function loadPart(p: unknown, lib: string): LoadedPart {
     if (!Array.isArray(p.variants) || p.variants.length > CadLibraryLimits.variants) throw new CadLibraryError('FORMAT', where, `variants must list at most ${CadLibraryLimits.variants}`);
     const seen = new Set<string>();
     for (const v of p.variants as unknown[]) {
-      // (A variant may be named by its size: 2020.)
-      if (!isRecord(v) || typeof v.id !== 'string' || !VARIANT_ID.test(v.id) || !isRecord(v.values)) throw new CadLibraryError('FORMAT', where, 'a variant is { id, name?, values }, its id letters, digits, _ and -');
+      // (A variant may be named by its size: 2020, M2.5.)
+      if (!isRecord(v) || typeof v.id !== 'string' || !VARIANT_ID.test(v.id) || !isRecord(v.values)) throw new CadLibraryError('FORMAT', where, 'a variant is { id, name?, values }, its id letters, digits, _, . and -');
       if (seen.has(v.id)) throw new CadLibraryError('FORMAT', `${where}@${v.id}`, 'a variant id appears twice'); seen.add(v.id);
       for (const [k, x] of Object.entries(v.values)) {
         if (!names.includes(k)) throw new CadLibraryError('REFERENCE', `${where}@${v.id}`, `sets ${k}, which is not a parameter`);
@@ -362,6 +380,24 @@ function loadPart(p: unknown, lib: string): LoadedPart {
     });
     ids.add(f.id);
   });
+  if (p.context !== undefined) {
+    if (!isRecord(p.context)) throw new CadLibraryError('FORMAT', where, 'context must map names to { unit?, description?, from? }');
+    for (const [k, c] of Object.entries(p.context)) {
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(k) || names.includes(k) || k === 'pi' || k in FUNCTIONS) throw new CadLibraryError('FORMAT', `${where}.context.${k}`, 'a context name is a word, not a parameter\'s, pi or a function\'s');
+      if (!isRecord(c)) throw new CadLibraryError('FORMAT', `${where}.context.${k}`, 'a context input is { unit?, description?, from? }');
+    }
+  }
+  const contextNames = isRecord(p.context) ? Object.keys(p.context) : [];
+  if (p.checks !== undefined) {
+    if (!Array.isArray(p.checks)) throw new CadLibraryError('FORMAT', where, 'checks must be a list');
+    const seen = new Set<string>();
+    for (const c of p.checks as unknown[]) {
+      if (!isRecord(c) || typeof c.id !== 'string' || !ID.test(c.id) || typeof c.expr !== 'string' || (c.level !== 'recommended' && c.level !== 'feasible') || typeof c.message !== 'string') throw new CadLibraryError('FORMAT', where, "a check is { id, expr, level: 'recommended' | 'feasible', message, value? }");
+      if (seen.has(c.id)) throw new CadLibraryError('FORMAT', `${where}!${c.id}`, 'a check id appears twice'); seen.add(c.id);
+      const node = parseLibraryExpression(c.expr, `${where}!${c.id}`); checkNames(node, [...names, ...contextNames], `${where}!${c.id}`); exprs.set(`check:${c.id}`, node);
+      if (c.value !== undefined) { const v = parseLibraryExpression(c.value as string, `${where}!${c.id}.value`); checkNames(v, [...names, ...contextNames], `${where}!${c.id}.value`); exprs.set(`checkvalue:${c.id}`, v); }
+    }
+  }
   if (p.outputs !== undefined && (!Array.isArray(p.outputs) || !p.outputs.length || p.outputs.some(o => typeof o !== 'string' || !ids.has(o.split('/')[0])))) throw new CadLibraryError('REFERENCE', where, 'outputs must name recipe features');
   if (p.interfaces !== undefined) {
     if (!Array.isArray(p.interfaces)) throw new CadLibraryError('FORMAT', where, 'interfaces must be a list');
@@ -406,7 +442,7 @@ function walkRecipe(value: unknown, visit: (value: unknown, key: string, path: s
  * and edge names) prefixed with `prefix` (default the part's id). The features carry nothing of the library; the
  * caller records `origin` with them (LIB3).
  */
-export function instantiateLibraryPart(lib: CadLibrary, partId: string, options: { readonly variant?: string; readonly params?: Readonly<Record<string, number>>; readonly prefix?: string } = {}): CadLibraryInstance {
+export function instantiateLibraryPart(lib: CadLibrary, partId: string, options: { readonly variant?: string; readonly params?: Readonly<Record<string, number>>; readonly prefix?: string; readonly context?: Readonly<Record<string, number>> } = {}): CadLibraryInstance {
   const loaded = lib.parts.get(partId);
   if (!loaded) throw new CadLibraryError('REFERENCE', lib.manifest.id, `no part ${partId} (parts: ${[...lib.parts.keys()].slice(0, 20).join(', ')})`);
   const { part, order, exprs } = loaded, where = `${lib.manifest.id}/${part.id}`;
@@ -439,6 +475,28 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
     // (Its source is in the library, listed with it: the warning says only that it is one.)
     if (q.estimate && !(name in given)) warnings.push(`${name} = ${v}${q.unit && q.unit !== 'count' ? ` ${q.unit}` : ''} is an estimate${q.description ? ` (${q.description})` : ''}`);
   }
+  // The checks: over the values and the context given; one reading context not given is unknown, said.
+  const context = part.context ?? {}, given2 = options.context ?? {};
+  for (const [k, v] of Object.entries(given2)) {
+    if (!(k in context)) throw new CadLibraryError('REFERENCE', where, `no context input ${k} (context: ${Object.keys(context).join(', ') || 'none'})`);
+    if (typeof v !== 'number' || !Number.isFinite(v)) throw new CadLibraryError('PARAMETER', `${where}.context.${k}`, 'must be a finite number');
+  }
+  const scope = { ...values, ...given2 };
+  const checks: CadLibraryCheckResult[] = (part.checks ?? []).map(c => {
+    const node = exprs.get(`check:${c.id}`)!, vnode = c.value === undefined ? undefined : exprs.get(`checkvalue:${c.id}`)!;
+    const missing = [...expressionNames(node), ...(vnode ? expressionNames(vnode) : [])].filter(n => n in context && !(n in given2));
+    if (missing.length) return { id: c.id, level: c.level, pass: null, message: c.message, unknown: `needs ${[...new Set(missing)].map(n => `${n}${context[n].description ? ` (${context[n].description})` : ''}`).join(', ')}` };
+    const pass = evaluateLibraryExpression(node, scope, `${where}!${c.id}`) !== 0;
+    const value = vnode ? evaluateLibraryExpression(vnode, scope, `${where}!${c.id}.value`) : undefined;
+    return { id: c.id, level: c.level, pass, message: c.message, ...(value === undefined ? {} : { value }) };
+  });
+  const said = (c: CadLibraryCheckResult) => `${c.id}: ${c.message}${c.value === undefined ? '' : ` (${+c.value.toFixed(6)})`}`;
+  const infeasible = checks.filter(c => c.level === 'feasible' && c.pass === false);
+  if (infeasible.length) throw new CadLibraryError('PARAMETER', where, infeasible.map(said).join('; '));
+  for (const c of checks) {
+    if (c.pass === false) warnings.push(said(c));
+    else if (c.pass === null) warnings.push(`${c.id}: unknown — ${c.unknown}`);
+  }
   if (part.simplified) warnings.push(`${part.name}: simplified internals — not for structural calculation`);
   const kept = part.recipe.filter(f => !f.when || evaluateLibraryExpression(exprs.get(`when:${f.id}`)!, values, `${where}:${f.id}.when`) !== 0);
   const keptIds = new Set(kept.map(f => f.id)), rename = (id: string) => `${prefix}_${id}`, byId = new Map(part.recipe.map(f => [f.id, f]));
@@ -468,7 +526,7 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
     const kept = { ...out, ...(faces ? { faces } : {}) } as Record<string, unknown>; delete kept.when;
     return kept as unknown as CadLibraryInterface;
   });
-  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: given, values: used }, warnings, interfaces };
+  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: given, values: used }, warnings, interfaces, checks };
 }
 /** A recipe value with its expressions evaluated and its references renamed. */
 function substitute(value: unknown, values: Readonly<Record<string, number>>, exprs: ReadonlyMap<string, Node>, fid: string, key: string, path: string, where: string, kept: ReadonlySet<string>, rename: (id: string) => string, resolve: (ref: string, at: string) => string): unknown {
