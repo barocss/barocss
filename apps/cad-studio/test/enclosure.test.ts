@@ -140,7 +140,7 @@ test('R6b.7 materials and process profiles: the data checked (every value source
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
   assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.gPerCm3]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
   assert.ok(MATERIALS_DATA.materials.every(m => m.estimate && Object.keys(m.sources).length >= 5));
-  assert.deepEqual(MATERIALS_DATA.profiles.map(p => p.id), ['injection', 'fdm', 'sla']);
+  assert.deepEqual(MATERIALS_DATA.profiles.map(p => p.id), ['injection', 'fdm', 'sla', 'sls', 'mjf']);
   // The same M3 boss on a 1.2 mm wall: moulding warns (sink, a thick boss wall); FDM does not; no process: unknown.
   const on = (process: string | null) => addLibraryPartToBody(plate(1.2, process), 'enclosure', 'screw-boss', { variant: 'M3' }, top(1.2, 20, 20)) as { node: LibraryNode };
   const w = (n: LibraryNode) => n.warnings.filter(x => /^(boss|rib|context)/.test(x));

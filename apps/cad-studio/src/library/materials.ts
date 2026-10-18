@@ -10,14 +10,19 @@ export interface MaterialData {
   readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
   /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
   readonly friction: number;
+  /** How prone it is to warp as it cools, 0–1 (printing; AM1). */
+  readonly warpRisk?: number;
   /** A living-hinge material's (polypropylene's) allowable strain and thickness range; others have none. */
   readonly livingHingeStrain?: number; readonly livingHingeTMin?: number; readonly livingHingeTMax?: number;
   readonly wallMM?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
   readonly estimate: boolean; readonly sources: Readonly<Record<string, string>>;
 }
 export interface ProcessThreshold { readonly value: number; readonly unit: string; readonly source: string; readonly description: string }
-export interface ProcessProfile { readonly id: string; readonly label: string; readonly thresholds: Readonly<Record<string, ProcessThreshold>> }
-export interface MaterialsData { readonly format: 'barocss-materials'; readonly version: 1; readonly libraryVersion: string; readonly license: string; readonly provenance: string; readonly sources: Readonly<Record<string, string>>; readonly materials: readonly MaterialData[]; readonly profiles: readonly ProcessProfile[] }
+/** A process: its rules' thresholds; `additive` for the printing processes (AM1: overhang, bridge, hole, gap, escape holes). */
+export interface ProcessProfile { readonly id: string; readonly label: string; readonly thresholds: Readonly<Record<string, ProcessThreshold>>; readonly additive?: boolean }
+/** A printer (AM1, D72): its process, build volume (X, Y, Z mm), layer, nozzle and bed — a generic one of its class, or the user's. */
+export interface PrinterProfile { readonly id: string; readonly label: string; readonly process: string; readonly buildMM: readonly [number, number, number]; readonly layerMM: number; readonly nozzleMM?: number; readonly heatedBed?: boolean; readonly source: string }
+export interface MaterialsData { readonly format: 'barocss-materials'; readonly version: 1; readonly libraryVersion: string; readonly license: string; readonly provenance: string; readonly sources: Readonly<Record<string, string>>; readonly materials: readonly MaterialData[]; readonly profiles: readonly ProcessProfile[]; readonly printers: readonly PrinterProfile[] }
 
 const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink', 'friction'] as const;
 /** The data checked: every number finite and not negative (density, modulus and yield above 0), every source id known. */
@@ -32,7 +37,18 @@ export function checkMaterials(d: MaterialsData): string[] {
     for (const k of NUMERIC) if (!(k in m.sources)) problems.push(`${m.id}.${k}: no source`);
     for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
   }
+  // (Printing processes carry every printing threshold; printers name a known process, a positive build volume and layer.)
+  const AM = ['minWallUnsupported', 'maxOverhangDeg', 'maxBridgeMM', 'minHoleMM', 'fitGap', 'escapeHoleMM', 'escapeHoles', 'horizontalHoleMM'];
+  for (const p of d.profiles) if (p.additive) for (const k of AM) if (!p.thresholds[k]) problems.push(`${p.id}: no ${k}`);
+  const pids = new Set(d.profiles.map(p => p.id)), prn = new Set<string>();
+  for (const pr of d.printers ?? []) {
+    if (prn.has(pr.id)) problems.push(`printer ${pr.id} twice`); prn.add(pr.id);
+    if (!pids.has(pr.process) || !d.profiles.find(p => p.id === pr.process)!.additive) problems.push(`printer ${pr.id}: ${pr.process} is not a printing process`);
+    if (!(pr.buildMM.length === 3 && pr.buildMM.every(v => v > 0) && pr.layerMM > 0)) problems.push(`printer ${pr.id}: its build volume or layer`);
+    if (!(pr.source in d.sources)) problems.push(`printer ${pr.id}: unknown source ${pr.source}`);
+  }
   for (const p of d.profiles) for (const [k, t] of Object.entries(p.thresholds)) {
+    if (!t) continue;
     if (!Number.isFinite(t.value)) problems.push(`${p.id}.${k}: ${t.value}`);
     if (!(t.source in d.sources)) problems.push(`${p.id}.${k}: unknown source ${t.source}`);
   }
@@ -41,6 +57,7 @@ export function checkMaterials(d: MaterialsData): string[] {
 export const MATERIALS_DATA = materialsJson as unknown as MaterialsData;
 export const materialData = (id: string | undefined): MaterialData | undefined => MATERIALS_DATA.materials.find(m => m.id === id);
 export const processProfile = (id: string | undefined): ProcessProfile | undefined => MATERIALS_DATA.profiles.find(p => p.id === id);
+export const printerProfile = (id: string | undefined): PrinterProfile | undefined => MATERIALS_DATA.printers.find(p => p.id === id);
 
 /**
  * A context input's value from a material and a process: `material.<field>` (a number field, or `wallMin`/`wallMax` for

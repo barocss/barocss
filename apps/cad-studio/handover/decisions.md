@@ -2851,3 +2851,36 @@ built and checked from data.
   - the print orientation for the FDM rules (AM2/AM4).
 
 Next in the roadmap: AM1–AM5.
+
+## D72 — AM1: process and printer profiles for 3D printing (2026-10-18)
+
+Decision (the peer approved the AM1–AM5 plan; its notes are folded into each step):
+- **Process profiles** (materials 0.5.0) now include SLS and MJF beside injection, FDM and SLA. Each printing
+  (`additive`) profile carries the printing thresholds, each with a source id (P-FDM, P-SLA, P-SLS, P-MJF; BaroCSS
+  rules of thumb, written):
+  - minWallUnsupported;
+  - maxOverhangDeg (90 for powder: it supports itself);
+  - maxBridgeMM;
+  - minHoleMM;
+  - fitGap (parts printed together do not fuse);
+  - escapeHoleMM and escapeHoles (powder and resin; none for FDM);
+  - horizontalHoleMM (the largest horizontal hole that prints round unsupported; for AM3's sag rule).
+- **Materials:**
+  - `warpRisk` 0–1 per polymer (for AM3's warp warning);
+  - PA12 suits SLS and MJF, with wall ranges.
+- **Printer profiles:** five generic printers of their class, under names written here, not product datasheets
+  (P-PRN): FDM 256³, FDM 220 × 220 × 250, desktop SLA, SLS 300³, MJF 380 × 284 × 380. Each has its process, build
+  volume, layer, and nozzle or bed where they apply.
+- **`checkMaterials`** also requires every printing threshold on every printing profile, and every printer on a
+  printing process with a positive build volume and layer and a known source.
+- **`StudioDoc.printer`** is chosen in the Library panel among the printers of the chosen process; changing the
+  process drops a printer of another one.
+
+Evidence:
+- `test/printing.test.ts`: the data checks clean; every printing threshold is sourced; powder has no overhang limit
+  and wants escape holes, FDM none; the printers and their volumes; a printer on a moulding process and a missing
+  threshold are caught.
+- Studio 326/326; lint 0 errors.
+
+Next: AM2, the overhang map — exact normals for planar faces, display triangles only for curved ones (accurate to
+the chord error).

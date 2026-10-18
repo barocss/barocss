@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import type { StudioDoc } from '../engine/doc';
 import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '../library/libraries';
 import { UNLICENSED } from '../library/sharing';
-import { MATERIALS_DATA } from '../library/materials';
+import { MATERIALS_DATA, processProfile } from '../library/materials';
 import { Icon } from './atoms';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];
@@ -51,8 +51,11 @@ export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioD
   return <aside className="card props library-panel" aria-label="Library panel">
     <div className="card-title">LIBRARY <button className="tool tiny" aria-label="Close library" onClick={onClose}><Icon name="close" small /></button></div>
     {/* The process the part is made by: its rules' thresholds for the parts' checks (R6b.7). */}
-    <label className="kv"><span>Process</span><select aria-label="Process" value={doc.process ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.process = ev.target.value; else delete next.process; onCommit(next); }}>
+    <label className="kv"><span>Process</span><select aria-label="Process" value={doc.process ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.process = ev.target.value; else delete next.process; if (next.printer && MATERIALS_DATA.printers.find(p => p.id === next.printer)?.process !== next.process) delete next.printer; onCommit(next); }}>
       <option value="">Not chosen (rules unknown)</option>{MATERIALS_DATA.profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>
+    {/* The printer (AM1): its build volume; choosing one sets its process. */}
+    {processProfile(doc.process)?.additive && <label className="kv"><span>Printer</span><select aria-label="Printer" value={doc.printer ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.printer = ev.target.value; else delete next.printer; onCommit(next); }}>
+      <option value="">Not chosen</option>{MATERIALS_DATA.printers.filter(p => p.process === doc.process).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>}
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>

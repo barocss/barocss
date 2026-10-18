@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.4.0",
+ "libraryVersion": "0.5.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -10,7 +10,10 @@
   "S-DENS": "BaroCSS typical density for the family, written for this table (the studio's earlier density list, kept)",
   "P-INJ": "BaroCSS rule of thumb for injection moulding, written for this table (not a moulder's or a standard's text): verify with your moulder",
   "P-FDM": "BaroCSS rule of thumb for FDM printing with a 0.4 mm nozzle, written for this table: verify with your printer and slicer",
-  "P-SLA": "BaroCSS rule of thumb for resin (SLA) printing, written for this table: verify with your printer and resin"
+  "P-SLA": "BaroCSS rule of thumb for resin (SLA) printing, written for this table: verify with your printer and resin",
+  "P-SLS": "BaroCSS rule of thumb for powder-bed polymer sintering (SLS), written for this table: verify with your service or printer",
+  "P-MJF": "BaroCSS rule of thumb for multi-jet fusion (MJF), written for this table: verify with your service or printer",
+  "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's"
  },
  "materials": [
   {
@@ -154,7 +157,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -166,7 +170,8 @@
      4.0
     ]
    },
-   "friction": 0.5
+   "friction": 0.5,
+   "warpRisk": 0.8
   },
   {
    "id": "pla",
@@ -188,7 +193,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "fdm": [
@@ -196,7 +202,8 @@
      4.0
     ]
    },
-   "friction": 0.45
+   "friction": 0.45,
+   "warpRisk": 0.2
   },
   {
    "id": "pa12",
@@ -209,7 +216,9 @@
    "shrink": 0.01,
    "processes": [
     "injection",
-    "sla"
+    "mjf",
+    "sla",
+    "sls"
    ],
    "estimate": true,
    "sources": {
@@ -219,7 +228,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -229,9 +239,18 @@
     "sla": [
      0.8,
      4.0
+    ],
+    "sls": [
+     0.8,
+     6.0
+    ],
+    "mjf": [
+     0.8,
+     6.0
     ]
    },
-   "friction": 0.35
+   "friction": 0.35,
+   "warpRisk": 0.6
   },
   {
    "id": "pc",
@@ -253,7 +272,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -261,7 +281,8 @@
      3.8
     ]
    },
-   "friction": 0.5
+   "friction": 0.5,
+   "warpRisk": 0.7
   },
   {
    "id": "pp",
@@ -286,7 +307,8 @@
     "friction": "S-TYP",
     "livingHingeStrain": "S-TYP",
     "livingHingeTMin": "S-TYP",
-    "livingHingeTMax": "S-TYP"
+    "livingHingeTMax": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -297,7 +319,8 @@
    "friction": 0.35,
    "livingHingeStrain": 0.5,
    "livingHingeTMin": 0.2,
-   "livingHingeTMax": 0.5
+   "livingHingeTMax": 0.5,
+   "warpRisk": 0.7
   },
   {
    "id": "petg",
@@ -319,7 +342,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "fdm": [
@@ -327,7 +351,8 @@
      4.0
     ]
    },
-   "friction": 0.45
+   "friction": 0.45,
+   "warpRisk": 0.3
   },
   {
    "id": "pom",
@@ -349,7 +374,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -357,7 +383,8 @@
      3.0
     ]
    },
-   "friction": 0.25
+   "friction": 0.25,
+   "warpRisk": 0.6
   },
   {
    "id": "resin",
@@ -379,7 +406,8 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
    },
    "wallMM": {
     "sla": [
@@ -387,7 +415,8 @@
      4.0
     ]
    },
-   "friction": 0.45
+   "friction": 0.45,
+   "warpRisk": 0.2
   }
  ],
  "profiles": [
@@ -508,8 +537,57 @@
      "unit": "mm",
      "source": "P-FDM",
      "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 45,
+     "unit": "deg",
+     "source": "P-FDM",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 2.0,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 0,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 0,
+     "unit": "count",
+     "source": "P-FDM",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 6,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
     }
-   }
+   },
+   "additive": true
   },
   {
    "id": "sla",
@@ -568,8 +646,341 @@
      "unit": "mm",
      "source": "P-SLA",
      "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 30,
+     "unit": "deg",
+     "source": "P-SLA",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.2,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 3.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-SLA",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
     }
-   }
+   },
+   "additive": true
+  },
+  {
+   "id": "sls",
+   "label": "Powder-bed sintering (SLS)",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-SLS",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-SLS",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 90,
+     "unit": "deg",
+     "source": "P-SLS",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 5.0,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-SLS",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    }
+   },
+   "additive": true
+  },
+  {
+   "id": "mjf",
+   "label": "Multi-jet fusion (MJF)",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-MJF",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-MJF",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 90,
+     "unit": "deg",
+     "source": "P-MJF",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 5.0,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-MJF",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    }
+   },
+   "additive": true
+  }
+ ],
+ "printers": [
+  {
+   "id": "fdm-256",
+   "label": "Generic FDM 256³",
+   "process": "fdm",
+   "buildMM": [
+    256,
+    256,
+    256
+   ],
+   "layerMM": 0.2,
+   "nozzleMM": 0.4,
+   "heatedBed": true,
+   "source": "P-PRN"
+  },
+  {
+   "id": "fdm-220",
+   "label": "Generic FDM 220 × 220 × 250",
+   "process": "fdm",
+   "buildMM": [
+    220,
+    220,
+    250
+   ],
+   "layerMM": 0.2,
+   "nozzleMM": 0.4,
+   "heatedBed": true,
+   "source": "P-PRN"
+  },
+  {
+   "id": "sla-desktop",
+   "label": "Generic desktop SLA 145 × 145 × 185",
+   "process": "sla",
+   "buildMM": [
+    145,
+    145,
+    185
+   ],
+   "layerMM": 0.05,
+   "source": "P-PRN"
+  },
+  {
+   "id": "sls-300",
+   "label": "Generic SLS 300³",
+   "process": "sls",
+   "buildMM": [
+    300,
+    300,
+    300
+   ],
+   "layerMM": 0.1,
+   "source": "P-PRN"
+  },
+  {
+   "id": "mjf-380",
+   "label": "Generic MJF 380 × 284 × 380",
+   "process": "mjf",
+   "buildMM": [
+    380,
+    284,
+    380
+   ],
+   "layerMM": 0.08,
+   "source": "P-PRN"
   }
  ]
 }
