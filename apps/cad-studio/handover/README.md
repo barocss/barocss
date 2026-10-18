@@ -17,7 +17,7 @@ The sections after it are the older hand-over (2026-10-16/17), kept as history: 
 | Worktree | `.claude/worktrees/barocss-cad-gpu-review-efbb2c` |
 | HEAD at hand-over | the commit that adds this section (`git log -1 -- apps/cad-studio/handover/README.md`); last code commit `2831d318a` (PERF3 A6) |
 | Uncommitted, not ours | `REVIEW-2026-10-14-cad-gpu.md`, `review-drafts/`, `packages/barocss-gpu/src/engine-uv-material-wgsl.ts`, `.claude/`: the earlier review session's drafts — keep, do not commit or delete |
-| Decision log | `handover/decisions.md`, D1–D82 (D82 = PERF3, with sections A1–A6) |
+| Decision log | `handover/decisions.md`, D1–D84 (D82 = PERF3, with sections A1–A6; D84 = R8.3 and the owner's pipe clamp) |
 | Conformance fixtures | `packages/barocss-cad/conformance/` (`r5/`, `r6/`, `r7/`, …; superseded cases carry `supersededBy`) and the RB corpus `packages/barocss-cad/corpus/` |
 | Coordination hand-over | `handover/notes/coordination-2026-10-18.md`: the owner's coordinating session's direction and research decisions, the "why" (copied from `.claude/worktrees/amazing-euler-c18b94/HANDOVER-coordination-2026-10-18.md`) |
 
@@ -25,6 +25,7 @@ The sections after it are the older hand-over (2026-10-16/17), kept as history: 
 Done:
 - R1–R7, RB1–RB4, A1–A4 (AI collaboration), R3–R6, R6a gears, LIB1–4, R6b, AM1–AM5.
 - R8.1 cage operations (D80); R8.2a cage editor (D81); R8.2b the agent's cage tools and their browser-flow step (D83).
+- **R8.3** (D84): the cage editor by hand end to end in the browser flow (extrude by Shift-drag, loop, crease, mirror, session undo, Done, document undo); the owner's acceptance part, a **SubD pipe clamp** (`handover/notes/acceptance/subd-pipe-clamp.png`), built by the agent's cage tools (43 calls, unit test and through the real chat) and its shape by hand in the editor; one body of genus 2, its SubD metrics, mass, STEP round trip and tessellation in the kernel's conformance case `r8/subd-pipe-clamp`. New: `subd-tube` primitive, `subd_insert_loop`'s `t`, the boundary query's box, a hole's rim by double-click, the editor ending its session when the part changes under it, a drag of nothing no step.
 - **PERF3 A1–A6** (D82): A1 `49c4da306`; A2 `818f92cef`; A3 `dfae081e1` and memo key `8ddb29262`; A4 `4e4e7017d`; A5 `bf02e4204`; A6 `2831d318a`.
 - **PERF3 D18** (D82 § D18): bench budgets about 2× the latest values, Node and browser; all rows pass.
 - **PERF3 D19** (D82 § D19): eleven new benches (plate and SubD torus mass, gear verdict and interfering report, library fits, STEP 200k read, F1 200k, F2 20k, orientation 100k, printability, 3MF 200k), budgets about 2×.
@@ -42,10 +43,13 @@ Done:
 - **PERF3 D20** (D82 § D20): RB trend and properties rows for HEAD (205 cases, 0 new, the 8 known TODOs); todo.json checked, unchanged. **PERF3 done.**
 
 **Next, in this order:**
-1. **R8.3**: the cage editor edited end to end in the browser flow (extrude, loop, crease, mirror, undo), with screenshots; and `direct.ts`' pole gizmo driven by cage data if it fits (D83's pending decision).
-2. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
-3. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
-4. RB5–RB9.
+1. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
+   - R10a: design input `handover/notes/research-sketch-solver-2026-10-18.md` (its S2, stable entity ids, is R10a; S1 and S3–S6 are not scheduled).
+   - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5, R11.1–R11.3 proposed, not scheduled).
+   - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
+   - A7 (multi-agent v1, the Integrator's op patches against a base revision): design input the same note.
+2. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+3. RB5–RB9.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
@@ -90,17 +94,24 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - **R8.2 / R8.3 split (D83):** the hand-over put "the browser-flow step" under R8.2, while the original R8 plan made R8.3 the browser flow.
   - Taken: R8.2's step is the agent's cage tools through the chat; R8.3 is the person's end-to-end cage edit (extrude, loop, crease, mirror, undo) with screenshots.
   - To change: say which, and the steps move.
+- **The clamp's lug and hole (D84):** the coordinating session's message said the lug's plane is square to the tube's axis and the hole's axis parallel to it; the reference image shows the lug along the tube and the hole across it.
+  - Taken: the image (the lug's plane holds the tube's axis, the hole square to it).
+  - To change: the other reading is a lug from a ring of rim faces; say so and it is added as a second case.
 
 ### Open TODOs and known defects
 - 1 nm graze gives a wrong body (RB TODO; `cylinder-box-graze-*` rows).
 - Helical × helical Boolean is refused (`gear-helical-pair-crossing-intersect`).
 - F2 at 1M positions: 3 of 8 holes.
 - Crease and boundary-vertex caps deviate most from the limit; a warning past 0.2% of size (D78/D79).
-- D79 boundary slivers: concave folds of 14–38° remain at cap boundaries (box3 18°, box6 38°; they were 51° and 180°).
+- D79 boundary slivers: concave folds of 14–38° remain at cap boundaries (box3 18°, box6 38°; they were 51° and 180°). On the pipe clamp (D84) up to 88.6° between sliver triangles about 0.01 mm high inside exact patches along the rims' tight holding loops (held below 89° by its test; A5).
+- The Selection panel's "Surface area" sums the tessellation's triangles: 0.11% under the exact area on the pipe clamp (11 007 against 11 019.5 mm²) (D84).
 - 3MF: opening it in a slicer (PrusaSlicer or Bambu) is pending for the owner.
 - εγ: pending (the coordinating session's open item).
 - Blob eviction (PERF3 B13, not done): the blob store keeps every mesh blob of the session, in the studio and the worker. Safe eviction needs every holder — document, undo/redo, proposals, a pending repair, the chat's states, and the worker wire's sender (it assumes the worker keeps what it sent).
 - Kernel suite: one environmental failure, `actual native Split source…`, which pins Node 22.23.3.
+- **`faceReach` is an upper bound** (`packages/barocss-cad/src/edge-finish.ts:304`, the W2 wall check of 2026-10-16): it takes the farthest control point of the face's edges, so it can admit a fillet that does not fit on a face with curved boundaries. The true reach is R10.1's (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`).
+- **Chat turn overwrites edits made during it** (confirmed by code reading, 2026-10-18; not fixed, the owner's decision): `ChatPanel.send` takes `base = props.base()` when the message is sent (`src/ui/ChatPanel.tsx:106`) and at the end commits the agent's whole document built on it (`:131` → `App.tsx:2042` `commit(next)`); nothing stops editing while a turn runs (`blocked` covers only an open sketch or command). Repro (not yet run): send a turn that takes a while and changes the part (e.g. a scripted run of many `subd_move` calls), add a box or change a parameter meanwhile; when the turn ends the box or value is gone. ⌘Z brings back the document with the edit, without the agent's change. Design input for the fix: `handover/notes/research-cad-server-2026-10-18.md` (merge the agent's ops onto the current document, or refuse/re-propose).
+- Kernel `B9 performance` (mass-polyhedral) asserts wall-clock times (40k planar mesh < 400 ms; 75 ms alone): it failed once at 417 ms with the studio suite running beside it (D84). Load-sensitive, as AM4's was; move it to the bench or give it headroom when next touched.
 
 ### How to run
 §2 below has the setup. In short:
@@ -349,8 +360,9 @@ Open, with IDs as in the report:
 - **E15 (kernel)** the kernel still accepts a `holes` loop that crosses the outer loop (the app refuses it).
 - **W1 (rest)** overlapping shapes in one sketch are refused; an actual union of them is not implemented.
 - **X1** interference between bodies of the part: done (Inspect › Interference); between placed instances still not.
-- Sketch solver: about 16 points per outline; each placed circle costs helper points, so two fully placed
-  holes nearly reach it ("Too many points…").
+- Sketch solver: 64 points, 64 segments and 128 constraints per outline (kernel profile `bounded-length-angle-v1`
+  since `ced02dd39`; v0's 16 stays frozen); each placed circle still costs helper points ("Too many points…" past
+  the limit). Scaling it: `handover/notes/research-sketch-solver-2026-10-18.md`.
 - Drawings: one section only (parallel to the front view), no dimensions on the section or iso view.
 
 Chat backlog (from the chat session): threads/springs/involute gears/helical surfaces need kernel features;
@@ -817,9 +829,9 @@ else a proposal, the first build on an empty part applied directly (D41); STEP c
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: see §0 (PERF3 A1–A6 done, D82; D18/D19, B7–B13, C14–C17, D20 next), then the rest of R8.2 (R8.2a, the cage editor, done: D81; agent tools and the flow step remain), then R8.3 (R8.1 done: D80; R7 done: D78; AM1–AM5 done: D72–D76; R6b done: D65–D71; LIB1–LIB4 done: D61–D64; R6a done: D53–D60; the trochoid root moved to R12b, manufacturing validation pending; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
+Next: see §0 (PERF3 done, D82; R8.2b done: D83; R8.3 and the pipe clamp done: D84; R9 next) (R8.2a done: D81; R8.1 done: D80; R7 done: D78; AM1–AM5 done: D72–D76; R6b done: D65–D71; LIB1–LIB4 done: D61–D64; R6a done: D53–D60; the trochoid root moved to R12b, manufacturing validation pending; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → **R6a** (R6a.1–2 spur gear ✓ D53; R6a.3 feature and command ✓ D54; R6a.4a pair checks ✓ D55; R6a.4b meshing gears ✓ D56; R6a.5a profile shift ✓ D57; R6a.5b rack ✓ D58; R6a.5c helical ✓ D59, helical rack ✓ D60; trochoid root → R12b; manufacturing validation pending) → **LIB** (LIB1 format and loader ✓ D61; LIB2 interfaces and fits ✓ D62; LIB3 library nodes ✓ D63; LIB4 panel, sharing rules, agent tools ✓ D64) → **R6b** (R6b.1 screw boss ✓ D65; R6b.2 inserts, standoffs, alignment ✓ D66; R6b.7 materials and process profiles ✓ D67; R6b.3 snap hook ✓ D68; R6b.4 lip and groove ✓ D69; R6b.5 vents ✓ D70; R6b.6 living hinge ✓ D71) → **AM** (AM1 profiles ✓ D72; AM2 overhang map ✓ D73; AM3 rules ✓ D74; AM4 orientation ✓ D75; AM5 3MF ✓ D76) → **R7** (SD2 caps ✓ D78) → R8 SD3 next → … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → **R6a** (R6a.1–2 spur gear ✓ D53; R6a.3 feature and command ✓ D54; R6a.4a pair checks ✓ D55; R6a.4b meshing gears ✓ D56; R6a.5a profile shift ✓ D57; R6a.5b rack ✓ D58; R6a.5c helical ✓ D59, helical rack ✓ D60; trochoid root → R12b; manufacturing validation pending) → **LIB** (LIB1 format and loader ✓ D61; LIB2 interfaces and fits ✓ D62; LIB3 library nodes ✓ D63; LIB4 panel, sharing rules, agent tools ✓ D64) → **R6b** (R6b.1 screw boss ✓ D65; R6b.2 inserts, standoffs, alignment ✓ D66; R6b.7 materials and process profiles ✓ D67; R6b.3 snap hook ✓ D68; R6b.4 lip and groove ✓ D69; R6b.5 vents ✓ D70; R6b.6 living hinge ✓ D71) → **AM** (AM1 profiles ✓ D72; AM2 overhang map ✓ D73; AM3 rules ✓ D74; AM4 orientation ✓ D75; AM5 3MF ✓ D76) → **R7** (SD2 caps ✓ D78) → **R8** (SD3: R8.1 cage operations ✓ D80; R8.2a editor ✓ D81; PERF3 ✓ D82; R8.2b agent tools ✓ D83; R8.3 end to end and the owner's pipe clamp ✓ D84) → R9 next → … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

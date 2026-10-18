@@ -411,7 +411,7 @@ test('circles are placed from horizontal / vertical edges and from each other', 
   r = commitDimension(s, 'ccdx0_1', 25); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   r = commitDimension(s, 'ccdy0_1', 12); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   assert.deepEqual(s.circles![1].c, [40, 20]); assert.equal(dof(s), 0);
-  // One more is refused: over-defined, or past the solver's 16 points / segments with a clear reason.
+  // One more is refused: over-defined, or past the solver's 64 points / 64 segments / 128 constraints with a clear reason.
   assert.match((commitDimension(s, 'ccdist0_1', 30) as { reason: string }).reason, /over-define|conflict|Too many points/);
   assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail), [
     'Distance edge 1 – circle 1 = 8', 'Distance edge 4 – circle 1 = 15', 'Horizontal distance circle 1 – circle 2 = 25', 'Vertical distance circle 1 – circle 2 = 12']);
