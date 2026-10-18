@@ -22,6 +22,7 @@ import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions, type
 import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
+import { rememberedEvaluate } from '../engine/evalMemo';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -395,6 +396,8 @@ export function agentMayNotAccept(p: Proposal, level: number): string | null {
 /** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
 interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
 async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun> {
+  // (The same ops on the same part again — a proposal accepted or rebased — are the evaluations already made, PERF3 A3.)
+  evaluate = rememberedEvaluate(evaluate);
   const ops = Array.isArray(input) ? input : null;
   if (!ops?.length) return { fail: fail(state, 'Pass "ops": a list of {tool, args, opId?}.') };
   const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [];

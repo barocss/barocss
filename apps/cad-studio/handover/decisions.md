@@ -3370,3 +3370,28 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   | orbit, 60 steps | 61, 2 in one frame | 60, 1 |
 
 - GPU package 70/70.
+
+### A3 — an agent's turn evaluates the same parts again
+- **Confirmed (new `test/evalCount.test.ts`):**
+  - Five holes in one `apply_ops`, on a block with four filleted corners and two hard requirements that pass, cost **9** evaluations: one per op, plus one per fillet for the reference check at the batch end. Those four are prefixes that did not change: the fillets' own batch had evaluated them.
+  - The same five holes as a proposal cost **5**, and accepting it **5 more**: the same ops on the same part.
+  - Server: the MCP's `changed` flag stays set for the rest of the turn, so the chat server re-sent the whole part after every tool result, read-only ones too.
+  - Client: the chat panel evaluated every state it received, and none was dropped. Each was parsed from JSON, so every node was a new object, which the worker wire re-sent and the evaluator's chain did not reuse.
+- **Fix:**
+  - `rememberedEvaluate` (`engine/evalMemo.ts`): evaluations kept by what they read (`evaluatedPart`: nodes, parameters, outputs, instances), the last 16. Refusals and superseded runs are not kept. Every ops run (apply_ops, propose, accept, rebase) and every reference check or signature refresh goes through it.
+  - `StateFile.version`: the MCP bumps it on each change, and the chat server sends a state only when it rose. A state file without it is sent as before.
+  - The panel's previews go through `latestPump` (`chat/pump.ts`): one evaluation at a time, and a state that arrives meanwhile replaces the one waiting, so a burst costs at most two evaluations. `reshareNodes` gives each received state the node objects of the one before wherever they are equal, so the wire and the chain see only what changed.
+- **After:**
+
+  | Flow | Evaluations before | After |
+  |---|---|---|
+  | five-hole `apply_ops` | 9 | 5 (one per op is the floor: a later op names faces of the body the one before left) |
+  | propose | 5 | 5 |
+  | accept | 5 | 0 |
+
+  - In Node the batch went from 120 ms to 107 ms; evaluation is 101 of the 104 ms left.
+  - In the studio each evaluation saved is a worker round trip that posts meshes.
+- **Measured, not done:**
+  - Deferring the guard, facts and description to the batch end would save about 3 ms of that 104.
+  - Caching `checkSpec` by model hash: after A1 a check is about 1 ms on this part and 22 ms on the 16-hole plate, and a proposal runs two of them.
+- Studio 348/348 (343 before): new tests for evaluation counts (2), the pump and resharing (2), and the server's version rule (1).

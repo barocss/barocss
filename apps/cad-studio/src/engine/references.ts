@@ -22,6 +22,7 @@ import type { FaceTable, MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { bodyKeyFor } from './ids';
 import { prefixDoc, type StudioDoc } from './doc';
+import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
 import { matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
 import type { Vec3 } from './mesh';
@@ -161,7 +162,7 @@ async function parentBodies(doc: StudioDoc, refs: readonly Ref[], evaluate: Eval
   const out = new Map<number, BodyResult | undefined>();
   for (const ref of refs) {
     if (ref.node === null || out.has(ref.node)) continue;
-    const r = await evaluate(prefixDoc(doc, ref.node));
+    const r = await rememberedEvaluate(evaluate)(prefixDoc(doc, ref.node));
     out.set(ref.node, r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(doc.nodes, ref.parent!.node, ref.parent!.side)) : undefined);
   }
   return out;

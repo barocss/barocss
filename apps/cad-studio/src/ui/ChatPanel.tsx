@@ -9,6 +9,7 @@ import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../cha
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { diffLine, withHistory } from '../chat/proposals';
 import { treeDiff } from '../chat/transactions';
+import { latestPump, reshareNodes } from '../chat/pump';
 import { modelHash } from '../chat/spec';
 import { Icon } from './atoms';
 import './chat.css';
@@ -100,8 +101,12 @@ export function ChatPanel(props: ChatPanelProps) {
     setItems(list => [...list, { kind: 'user', text: text.trim(), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
-    let open = false, built: StudioDoc | null = null, previewing = 0;
+    let open = false, built: StudioDoc | null = null;
     const base = props.base();
+    // (The previews: one evaluation at a time, the latest state waiting; nodes a state did not change are the ones
+    // already sent, PERF3 A3.)
+    let shared = base;
+    const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (abort.current === controller && bodies) latest.current.onPreview(bodies); });
     const done = await runServerTurn({
       text: message, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
       onEvent: e => {
@@ -110,15 +115,15 @@ export function ChatPanel(props: ChatPanelProps) {
           setItems(list => wasOpen ? [...list.slice(0, -1), { kind: 'assistant', text: (list[list.length - 1] as { text: string }).text + e.delta }] : [...list, { kind: 'assistant', text: e.delta }]);
         } else if (e.type === 'tool') { open = false; setItems(list => [...list, { kind: 'tool', name: e.name, input: e.input, summary: e.summary, isError: e.isError }]); }
         else if (e.type === 'state') {
-          built = e.doc; const n = ++previewing;
-          void latest.current.evaluate(e.doc).then(bodies => { if (n === previewing && abort.current === controller && bodies) latest.current.onPreview(bodies); });
+          built = shared = reshareNodes(shared, e.doc); previews.push(built);
         }
       },
     });
+    previews.close();
     if (done.session) session.current = done.session;
     abort.current = null; setRunning(false);
     // An aborted turn keeps what it had built when it stopped.
-    let doc = done.doc ?? (done.end === 'aborted' ? built : null);
+    let doc = done.doc ? reshareNodes(shared, done.doc) : done.end === 'aborted' ? built : null;
     // (The turn in the design history, saved with the part: the message capped, the model, what it changed.)
     if (doc) {
       const hash = modelHash(doc), line = diffLine(treeDiff(base, doc));

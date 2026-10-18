@@ -250,6 +250,28 @@ async function turn(url: string, body: unknown, signal?: AbortSignal) {
   return { status: res.status, events };
 }
 
+test('the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)', async () => {
+  const plate = rectanglePart(64, 32, 8);
+  const one = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });
+  const two = withNode(one, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [20, 6], radius: 4 });
+  const sid = '7235de6e-4fc3-4fc4-b479-410846a6528b';
+  const use = (id: string, name: string) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: `mcp__cad__${name}`, input: {} }] }, session_id: sid });
+  const result = (id: string) => JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, content: [{ type: 'text', text: '{"ok":true}' }] }] }, session_id: sid });
+  const fake = fakeClaude((_args, statePath) => [
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS.map(t => `mcp__cad__${t.name}`) }),
+    use('t1', 'run_command'), () => writeFileSync(statePath, JSON.stringify({ doc: one, changed: true, version: 1 })), result('t1'),
+    use('t2', 'describe_part'), result('t2'), use('t3', 'measure'), result('t3'),
+    use('t4', 'run_command'), () => writeFileSync(statePath, JSON.stringify({ doc: two, changed: true, version: 2 })), result('t4'),
+    JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
+  ]);
+  const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: scratch() }));
+  try {
+    const { events } = await turn(srv.url, { text: 'two holes', doc: plate });
+    assert.deepEqual(events.map(e => e.type), ['tool', 'state', 'tool', 'tool', 'tool', 'state', 'done']);
+    assert.deepEqual((events[5] as { doc: StudioDoc }).doc, two);
+  } finally { await srv.close(); }
+});
+
 test('the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result', async () => {
   const plate = rectanglePart(64, 32, 8);
   const built = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });

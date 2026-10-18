@@ -241,6 +241,7 @@ export function createChatServer(options: ChatServerOptions) {
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });
     child.stderr?.on('data', d => { stderr = (stderr + d).slice(-2000); });
     const calls = new Map<string, { name: string; input: unknown }>();
+    let sent = 0;
     const lines = createInterface({ input: child.stdout! });
     lines.on('line', line => {
       let m: Record<string, any>;
@@ -255,7 +256,8 @@ export function createChatServer(options: ChatServerOptions) {
           const call = calls.get(b.tool_use_id) ?? { name: 'tool', input: {} };
           const text = typeof b.content === 'string' ? b.content : (b.content ?? []).map((c: { text?: string }) => c.text ?? '').join('');
           emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(call.name, text, !!b.is_error), isError: !!b.is_error || /"ok":false/.test(text) });
-          const s = read(); if (s?.changed) emit({ type: 'state', doc: s.doc });
+          // (Only a part a tool changed since the last state sent: a read-only call re-sent nothing, PERF3 A3.)
+          const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc }); }
         }
       } else if (m.type === 'result' && (m.is_error || m.subtype !== 'success')) failure = m.subtype === 'error_max_turns' ? `Stopped after ${MAX_TURNS} steps.` : String(m.result ?? m.subtype ?? 'The turn failed.');
     });

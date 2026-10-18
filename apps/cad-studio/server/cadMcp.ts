@@ -13,7 +13,7 @@ import { arrayOf, putKnownBlob, type BlobType } from '../src/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[] }
+export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[] }
 
 let revision = 1;
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
@@ -23,10 +23,10 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
   for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
-  let changed = saved.changed;
+  let changed = saved.changed, version = saved.version ?? 0;
   const save = () => {
     const tmp = `${statePath}.tmp`;
-    writeFileSync(tmp, JSON.stringify({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed } satisfies StateFile));
+    writeFileSync(tmp, JSON.stringify({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version } satisfies StateFile));
     renameSync(tmp, statePath);
   };
   const reply = (id: unknown, result: unknown) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\n');
@@ -42,7 +42,7 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
       case 'tools/list': return reply(msg.id, { tools: TOOLS.map(t => ({ name: t.name, description: t.description, inputSchema: t.input_schema })) });
       case 'tools/call': {
         const out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
-        state = out.state; changed ||= out.changed;
+        state = out.state; changed ||= out.changed; if (out.changed) version++;
         if (out.changed || msg.params?.name === 'select') save();
         return reply(msg.id, { content: [{ type: 'text', text: out.content }, ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], isError: out.isError });
       }
