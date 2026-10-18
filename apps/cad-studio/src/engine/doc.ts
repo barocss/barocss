@@ -140,7 +140,8 @@ type ModelNodeBase = SketchNode
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
    * numbers); the body is its exact limit surface, bicubic B-spline faces `<id>.patch<k>` (a sheet when the cage has a boundary).
    */
-  | { kind: 'subd'; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] } }
+  // (`mirror`: the cage is one half, mirrored across that plane through the origin for the body, R8.2, D81.)
+  | { kind: 'subd'; name: string; cage: { positions: number[]; faces: number[][]; creases?: [number, number][] }; mirror?: 'x' | 'y' | 'z' }
   /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */

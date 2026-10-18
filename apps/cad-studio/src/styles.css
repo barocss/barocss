@@ -407,3 +407,21 @@ button.chip.snap:hover { background: #3a3c41; }
 .ol-badges { display: inline-flex; gap: 3px; margin-left: 4px; flex-shrink: 0; }
 .ol-badge { border: 0; border-radius: 8px; padding: 0 6px; font-size: 10px; line-height: 16px; background: rgba(255, 255, 255, 0.08); color: var(--accent); cursor: pointer; white-space: nowrap; }
 .ol-badge.warn { color: #c9a227; }
+/* R8.2: the SubD cage being edited (drawn over the body). */
+.cage-edge { stroke: #7aa7ff; stroke-width: 1.2; opacity: 0.85; fill: none; }
+.cage-edge.picked { stroke: #ffb020; stroke-width: 2.6; opacity: 1; }
+.cage-edge.crease { stroke-width: 2.4; stroke-dasharray: none; }
+.cage-edge.open { stroke: #f0c94a; }
+.cage-edge.bad { stroke: #ff4d4d; stroke-width: 2.6; }
+.cage-vertex { fill: #7aa7ff; stroke: none; }
+.cage-vertex.picked { fill: #ffb020; }
+.cage-vertex.pole { fill: none; stroke: #e98a3b; stroke-width: 1.5; }
+.cage-vertex.bad { fill: #ff4d4d; }
+.cage-face.picked { fill: rgba(255, 176, 32, 0.22); stroke: none; }
+.cage-face.ngon { fill: rgba(233, 138, 59, 0.12); stroke: none; }
+.cage-mirror { fill: none; stroke: #7aa7ff; stroke-width: 0.8; opacity: 0.3; stroke-dasharray: 3 3; }
+.cage-panel .seg { display: flex; gap: 4px; margin: 4px 0; }
+.cage-panel .seg button { flex: 1; }
+.cage-panel .cage-ops { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.cage-panel .row-buttons { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+.cage-panel .row-buttons .grow { flex: 1; }

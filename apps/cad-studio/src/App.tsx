@@ -11,7 +11,7 @@ import { candidatesFor, captureSignatures, confirmReference, markedReferences, v
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
-import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
+import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, pointInBody, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
 import { DRAG_TYPE, Viewport, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -29,6 +29,8 @@ import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, type MeshDiagnosis, type MeshRep
 import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
+import { CagePanel } from './ui/CagePanel';
+import { useCageEditor } from './subd/useCageEditor';
 import { loadUserLibraries } from './library/libraries';
 import { processProfile } from './library/materials';
 import type { BindableField } from './app/editFields';
@@ -288,6 +290,10 @@ export function App() {
   const [browserOpen, setBrowserOpen] = useState(() => { try { return localStorage.getItem('cad-studio.browser') !== 'closed'; } catch { return true; } });
   // Measuring: up to two picked faces or edges (null: not measuring).
   const [measure, setMeasure] = useState<MeasurePick[] | null>(null);
+  // The SubD cage editor (R8.2, D81): a session on one subd node; Done commits it (see commitRef: commit is defined below).
+  const commitRef = useRef<(next: StudioDoc) => void>(() => {});
+  const cageEdRef = useRef<ReturnType<typeof useCageEditor>>(null!);
+  const cageEd = useCageEditor(doc, useCallback((d: StudioDoc) => engine.preview(d, revision.current++), [engine]), useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []));
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
@@ -318,6 +324,12 @@ export function App() {
     (window as unknown as { __studioPickFace: (name: string) => boolean }).__studioPickFace = name => {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { pickRef.current({ face: { body: b, face: i }, edge: null, point: null }, false); return true; } }
       return false;
+    };
+    // The cage editor's picked faces' mean height and the camera's depth for two points (tests: which face a click took).
+    (window as unknown as { __studioCage: () => unknown }).__studioCage = () => {
+      const s = cageEdRef.current.session; if (!s) return null;
+      const z = s.sel.faces.map(f => s.cage.faces[f].reduce((t, v) => t + s.cage.positions[3 * v + 2], 0) / s.cage.faces[f].length);
+      return { faces: s.sel.faces.length, z, cageFaces: s.cage.faces.length };
     };
     // Where a model point is on the page (CSS px), for clicks that must land on a face.
     (window as unknown as { __studioScreenOf: (p: Vec3) => [number, number] | null }).__studioScreenOf = p => {
@@ -414,6 +426,7 @@ export function App() {
     if (!Object.keys(next.outputs).length) { setBodies([]); claimBodies.current = true; setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
   }, [doc, marker, bodies]);
+  commitRef.current = commit; cageEdRef.current = cageEd;
   /** One undoable change of the render settings (the model and the rollback marker stay). */
   const commitRender = useCallback((next: RenderSettings) => {
     pushUndo();
@@ -644,6 +657,7 @@ export function App() {
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
     if (cmd.action === 'interference') { void checkInterference(); return; }
+    if (cmd.action === 'cage') { const n = subdNodeOf(ctx); if (n !== null) { cageEd.begin(n); setSelection(emptySel); setEditNode(null); } return; }
     if (cmd.action === 'measure') {
       // Start from what is selected (one face or edge), then click what to measure to.
       const first: MeasurePick[] = selection.faces[0] ? [{ body: selection.faces[0].body, face: selection.faces[0].face }] : selection.edges[0] ? [{ body: selection.edges[0].body, edge: selection.edges[0].edge }] : [];
@@ -1300,6 +1314,7 @@ export function App() {
   }, []);
   {
     const onKey = (e: KeyboardEvent) => {
+      if (cageEd.onKey(e)) return;
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -1570,7 +1585,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={gizmo ?? instGizmo ?? poleGizmo} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : shownBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -1841,7 +1856,8 @@ export function App() {
               <Icon name="warning" small />{ia >= 0 ? bodyName(doc, bodies[ia]) : c.a} ∩ {ib >= 0 ? bodyName(doc, bodies[ib]) : c.b}<span className="muted"> · {fmt(Math.round(c.volume * 10) / 10)} mm³</span></button>); })}
       </aside>}
       {/* (A running command's HUD takes this place at the right.) */}
-      {!rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
+      {cageEd.session && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
+      {!cageEd.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {selection.vertices?.length ? (<>
           <div className="card-title">SELECTION · {selection.vertices.length === 1 ? 'POINT' : `${selection.vertices.length} POINTS`}</div>
           {selection.vertices.map((v, k) => <div key={k} className="kv">{selection.vertices!.length > 1 ? `Point ${k + 1}` : 'X Y Z'} <b>{v.at.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div>)}

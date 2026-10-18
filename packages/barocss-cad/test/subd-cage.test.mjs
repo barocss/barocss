@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subdBrep, checkBrep, brepMassProperties, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, keepOnPlane, cageTopology, SubdError } from '../dist/index.js';
+import { subdBrep, checkBrep, brepMassProperties, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, cageTopology, SubdError } from '../dist/index.js';
 
 // SD3 (R8.1, D80): the cage's topology and edits as pure functions. Every edit keeps the cage a valid manifold and the
 // kernel builds it; exact answers where there are closed ones (the all-creased cube, the mirror, the bridge's genus).
@@ -113,4 +113,8 @@ test('mirror across X: a half box (open on the plane) and its mirror are exactly
   const moved = keepOnPlane(moveVertices(half, [...onPlane, off], [0.5, 0, 0]), 'x', onPlane);
   assert.equal(onPlane.length, 4); assert.ok(onPlane.every(v => moved.positions[3 * v] === 0)); sound(mirrorCage(moved, 'x'));
   assert.throws(() => mirrorCage(CUBE, 'x'), e => e instanceof SubdError && /lies in the mirror plane/.test(e.message));
+  // Halving a whole cage for mirroring: the 2 × 1 × 1 box's positive half, mirrored, is that box again; a face across the plane refused.
+  const back = mirrorCage(halfCage(whole, 'x'), 'x');
+  assert.ok(Math.abs(vol(back) / vol(whole) - 1) < 1e-12);
+  assert.throws(() => halfCage(box([-10, 0, 0], [20, 10, 10], [1, 1, 1]), 'x'), e => e instanceof SubdError && /crosses the X plane/.test(e.message));
 });

@@ -3290,3 +3290,39 @@ Evidence (`test/subd-cage.test.mjs` 5/5). Every edit's result is a valid cage an
   - a move kept on the plane;
   - a face in the plane refused.
 - Refusals: mismatched bridge, an open fill, not an edge.
+
+## D81 — R8.2a SD3: the studio cage editor, first part (2026-10-18; paused for PERF3)
+
+Done (`src/subd/cageEdit.ts`, `useCageEditor.ts`, `ui/CagePanel.tsx`, `viewport/CageMarks.tsx`; kernel `subdPreviewMesh`, `halfCage`, `extrudeFaces` with `noWall`):
+- **Session on a subd node** ("Edit cage" in the palette).
+  - The cage, or its half with `mirror` on the node; the studio sends the kernel the full cage (`mirrorCage`).
+  - Its own undo and redo (⌘Z inside the session).
+  - Done writes the node once: one document undo step, the same timeline feature. Cancel drops it. Done is refused while the cage is not a manifold.
+- **Picking and selection:**
+  - vertex, edge and face modes (keys 1 2 3); Shift adds;
+  - double-click an edge for its loop (Alt: its ring);
+  - the cage is drawn over the body, each kind of mark as one SVG path.
+- **Gizmo:** moves the selection; Shift held as the drag starts extrudes faces or boundary edges first; mirrored cages keep the plane's vertices on it and put no wall in the plane.
+- **Operations** (panel and keys): extrude (E), insert loop (L), loop and ring, bridge (B), fill (F), weld (W), weld near, crease (C) and smooth edges, delete (⌫), mirror across X, Y or Z (refused if a face crosses the plane), mirror off.
+- **Box / Smooth** (Tab). While dragging, a quick limit preview: the kernel's uniform Catmull–Clark at levels 1–3, chosen so the preview stays under about 20 000 triangles. After each step, the exact body: one kernel build per step, never per pointer move.
+- **Validation overlay:** red non-manifold, ringed poles, tinted n-gons, open edges, plus the counts in the panel.
+- Measured in Chrome (WebGPU), dragging a top face:
+
+  | Cage | Per pointer move | Frame time | Preview |
+  |---|---|---|---|
+  | 6-a-side box (216 faces) | 26 ms | 16.7 ms (p95 16.7) | 5 ms |
+  | ~2k-face box (1 944 faces) | 48 ms | 16.7 ms (p95 16.8) | 10 ms |
+
+  - Each pointer move includes Playwright's own round trip.
+  - Before two fixes the ~2k cage took 114 ms per move (p95 117): the overlay was redrawn as 3 900 elements, and the validation was recomputed on every move (now the session's, since a move keeps the topology).
+  - A render loop was caught in the same run: the preview time was set every render.
+- Evidence:
+  - `test/cageEdit.test.ts` 4/4: picking; drag; extrude on drag; undo and redo; loop; insert loop; crease; delete and fill; mirror (exact); preview levels.
+  - Kernel `subd-cage` 5/5 (halfCage, mirror round trip exact).
+  - Studio 343/343.
+  - A scripted Chrome run: SubD box → Edit cage → top face picked → Shift-drag up 4.1 mm (54 → 58 faces) → Done (one node, cage 58) → ⌘Z (54).
+
+Still to do in R8.2 (after PERF3):
+- agent tools (`subd_select`, `subd_extrude`, `subd_insert_loop`, `subd_bridge`, `subd_fill`, `subd_weld`, `subd_crease`, `subd_move`; under D41, proposals at L2 for topology);
+- a browser-flow step;
+- the cap cache by one-ring hash, so a drag rebuilds only nearby caps (PERF3 A4).

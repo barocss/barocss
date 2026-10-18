@@ -139,3 +139,23 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
 }
 
 const vec = (a: ArrayLike<number>, i: number): Vec3 => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]];
+
+/**
+ * A display mesh straight from triangles (one face, named `name`; no edges): a SubD cage's preview while it is dragged,
+ * or the cage itself in Box mode (R8.2, D81). `normals` null: each triangle's own (flat).
+ */
+export function triangleMesh(positions: ArrayLike<number>, indices: ArrayLike<number>, normals: ArrayLike<number> | null, name: string): DisplayMesh {
+  const b = newBuilder();
+  if (normals) addFace(b, name, name, 'curved', positions, normals, indices);
+  else {
+    // (Flat: every triangle its own corners, so each keeps its normal.)
+    const p: number[] = [], idx: number[] = [];
+    for (let t = 0; t < indices.length; t++) { const v = indices[t]; p.push(positions[3 * v], positions[3 * v + 1], positions[3 * v + 2]); idx.push(t); }
+    const n: number[] = [];
+    for (let t = 0; t < idx.length; t += 3) { const a = vec(p, t), c = vec(p, t + 1), d = vec(p, t + 2), m = norm(cross(sub(c, a), sub(d, a))); n.push(...m, ...m, ...m); }
+    addFace(b, name, name, 'plane', p, n, idx);
+  }
+  const P = new Float32Array(b.p), min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  for (let v = 0; v < P.length; v += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], P[v + k]); max[k] = Math.max(max[k], P[v + k]); }
+  return { positions: P, normals: new Float32Array(b.n), faceOfVertex: new Float32Array(b.f), indices: new Uint32Array(b.i), faces: b.faces, edgeLines: new Float32Array(0), edgeOfSegment: new Float32Array(0), edges: [], bounds: { min, max } };
+}

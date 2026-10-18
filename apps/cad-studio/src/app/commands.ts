@@ -38,7 +38,7 @@ export interface Command {
   defaults?(ctx: Ctx): Values;
   build?(ctx: Ctx, values: Values): StudioDoc;
   /** Commands without a build run a UI action (sketch mode, measure, …). */
-  action?: 'sketch' | 'measure' | 'interference';
+  action?: 'sketch' | 'measure' | 'interference' | 'cage';
   /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
   handles?(ctx: Ctx, values: Values): HandleSpec[];
   /** A face or edge clicked in the viewport while it runs (a revolve's axis): new values, or why it cannot be used. */
@@ -631,8 +631,18 @@ const allCommands: Command[] = [
   })),
   { id: 'interference', label: 'Interference', icon: 'cad-interference', hint: 'Where bodies overlap, and by how much (the picked bodies, or all of them)', group: 'inspect', keywords: 'clash collision overlap check',
     available: ctx => ctx.bodies.length > 1 ? ok : no('Interference needs two or more bodies.'), action: 'interference' },
+  // (R8.2, D81: the picked SubD body's cage, or the part's only SubD.)
+  { id: 'subd-edit', label: 'Edit cage', icon: 'cad-subd', hint: 'Edit a SubD body\u2019s cage: pick vertices, edges or faces; move, extrude, insert loops, bridge, fill, weld, crease, mirror', group: 'modify', keywords: 'subd subdivision cage edit vertex edge face loop extrude crease mirror',
+    available: ctx => subdNodeOf(ctx) !== null ? ok : no('Pick a SubD body (its cage is edited).'), action: 'cage' },
   { id: 'measure', label: 'Measure', icon: 'cad-measure', hint: 'Distances, angles and sizes between picked faces and edges', shortcut: 'Shift M', group: 'inspect', keywords: 'distance dimension', available: () => ok, action: 'measure' },
 ];
+/** The subd node the picked body comes from (its own output), or the part's only one; null when neither. */
+export function subdNodeOf(ctx: Ctx): number | null {
+  const picked = [...ctx.selection.bodies, ...ctx.selection.faces.map(f => f.body), ...ctx.selection.edges.map(e => e.body)].map(i => ctx.bodies[i]).filter(Boolean);
+  for (const b of picked) { const n = refOf(b).node; if (ctx.doc.nodes[n]?.kind === 'subd') return n; }
+  const all = ctx.doc.nodes.flatMap((n, i) => n.kind === 'subd' ? [i] : []);
+  return all.length === 1 ? all[0] : null;
+}
 export const commands: Command[] = allCommands.map(c => c.place && c.build ? remembered(oriented(c)) : c);
 
 export const commandById = (id: string) => commands.find(c => c.id === id);

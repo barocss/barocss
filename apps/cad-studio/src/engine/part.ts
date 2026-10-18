@@ -3,6 +3,7 @@
 // features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import { getBlob } from './blobs';
+import { mirrorCage } from '@barocss/cad';
 import type { CadPartDocument, CadPartFeature } from '@barocss/cad';
 import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
@@ -44,7 +45,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open };
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
-    case 'subd': return { ...at, kind: 'subd', cage: node.cage };
+    case 'subd': return { ...at, kind: 'subd', cage: node.mirror ? mirrorCage(node.cage, node.mirror) as typeof node.cage : node.cage };
     // (A library part's own feature: its output passed on under the node's id; its features come before it, featuresOf.)
     case 'library': {
       // (Placed: its output turned and moved, `<prefix>_placed`; added to a body: united with it, as one step.)

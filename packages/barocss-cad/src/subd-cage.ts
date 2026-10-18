@@ -2,7 +2,7 @@
 // refuses, SubdError INPUT). Shared by the studio's cage editor, the agent tools and headless use: selection by edge
 // loop and ring, a validation for overlays, moving, extruding faces and boundary edges, inserting an edge loop,
 // deleting faces, bridging two boundary loops, filling a hole, welding, creases, and one mirror plane.
-import { SubdError } from './subd-sd2.js';
+import { limitPosition, polyMesh, refine, SubdError } from './subd-sd2.js';
 
 export interface Cage { readonly positions: readonly number[]; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] }
 type V3 = [number, number, number];
@@ -168,9 +168,9 @@ function regionNormals(c: Cage, faces: readonly number[]): Map<number, V3> {
 /**
  * The faces extruded as one region: their vertices copied and moved `distance` along the region's normal there, the
  * faces moved onto the copies, and a side quad along every border edge of the region (an edge with no other region
- * face). Returns the cage and the new faces' indices (the region, now at the copies).
+ * face; `noWall`: none along such boundary edges). Returns the cage and the new faces' indices (the region, now at the copies).
  */
-export function extrudeFaces(c: Cage, faces: readonly number[], distance = 0): { cage: Cage; faces: number[]; vertices: number[] } {
+export function extrudeFaces(c: Cage, faces: readonly number[], distance = 0, noWall?: (a: number, b: number) => boolean): { cage: Cage; faces: number[]; vertices: number[] } {
   const region = new Set(faces);
   if (!region.size || [...region].some(k => !(k >= 0 && k < c.faces.length))) throw new SubdError('INPUT', 'extrude: name faces of the cage');
   const t = cageTopology(c), normals = regionNormals(c, [...region]), positions = [...c.positions], copy = new Map<number, number>();
@@ -181,6 +181,8 @@ export function extrudeFaces(c: Cage, faces: readonly number[], distance = 0): {
   for (const k of region) c.faces[k].forEach((a, s, f) => {
     const b = f[(s + 1) % f.length], across = t.edges.get(ek(a, b))!.faces.find(g => g !== k);
     if (across !== undefined && region.has(across)) return;
+    // (No wall where told: a mirrored half's open side on the plane, R8.2.)
+    if (across === undefined && noWall?.(a, b)) return;
     out.push([a, b, copy.get(b)!, copy.get(a)!]);
   });
   return { cage: withCreases(c, out, positions, [...(c.creases ?? [])] as [number, number][]), faces: [...region], vertices: [...copy.values()] };
@@ -333,9 +335,47 @@ export function mirrorCage(half: Cage, axis: MirrorAxis, tolerance = 1e-9): Cage
   const creases = [...(half.creases ?? []).map(([a, b]) => [a, b] as [number, number]), ...(half.creases ?? []).filter(([a, b]) => copy[a] !== a || copy[b] !== b).map(([a, b]) => [copy[a], copy[b]] as [number, number])];
   return withCreases(half, faces, positions, creases);
 }
+/**
+ * One side of a cage (`side` 1: the positive, −1: the negative) for mirroring across `axis`: the faces with every
+ * vertex on that side or on the plane, the plane's vertices snapped onto it. Refused when a face crosses the plane (an
+ * edge loop on it first), or when nothing is on that side.
+ */
+export function halfCage(c: Cage, axis: MirrorAxis, side: 1 | -1 = 1, tolerance = 1e-6): Cage {
+  const k = axis === 'x' ? 0 : axis === 'y' ? 1 : 2, x = (v: number) => side * c.positions[3 * v + k];
+  for (const f of c.faces) if (f.some(v => x(v) > tolerance) && f.some(v => x(v) < -tolerance)) throw new SubdError('INPUT', `mirror: a face crosses the ${axis.toUpperCase()} plane (insert an edge loop on it first)`);
+  const faces = c.faces.filter(f => f.every(v => x(v) >= -tolerance) && f.some(v => x(v) > tolerance));
+  if (!faces.length) throw new SubdError('INPUT', `mirror: nothing on that side of the ${axis.toUpperCase()} plane`);
+  const positions = [...c.positions];
+  for (let v = 0; v < positions.length / 3; v++) if (Math.abs(positions[3 * v + k]) <= tolerance) positions[3 * v + k] = 0;
+  return compact({ ...c, positions, faces });
+}
 /** The half's vertices on the mirror plane put back on it exactly (after a move): they must stay there for the halves to meet. */
 export function keepOnPlane(c: Cage, axis: MirrorAxis, onPlane: readonly number[]): Cage {
   const k = axis === 'x' ? 0 : axis === 'y' ? 1 : 2, positions = [...c.positions];
   for (const v of onPlane) positions[3 * v + k] = 0;
   return { ...c, positions };
+}
+
+// ---- A fast preview of the limit surface (while a cage is dragged) -------------------------------------------------
+
+/**
+ * The cage refined `levels` times by Catmull–Clark (any polygons, sharp rules) and each vertex taken to its limit
+ * position: a triangle mesh near the limit surface, cheap enough to redraw while a cage is dragged. The exact B-rep
+ * (subdBrep) is built when the drag ends.
+ */
+export function subdPreviewMesh(c: Cage, levels = 2): { positions: Float64Array; indices: Uint32Array; normals: Float64Array } {
+  let mesh = polyMesh(c, true, true);
+  for (let l = 0; l < levels; l++) mesh = polyMesh(refine(mesh).cage, true, true);
+  const nv = mesh.nv, positions = new Float64Array(3 * nv), normals = new Float64Array(3 * nv), tris: number[] = [];
+  for (let v = 0; v < nv; v++) { if (!mesh.fans[v]) continue; const p = limitPosition(mesh, v); positions[3 * v] = p[0]; positions[3 * v + 1] = p[1]; positions[3 * v + 2] = p[2]; }
+  for (const f of mesh.F) for (let i = 1; i + 1 < f.length; i++) tris.push(f[0], f[i], f[i + 1]);
+  for (let t = 0; t < tris.length; t += 3) {
+    const a = tris[t], b = tris[t + 1], d = tris[t + 2];
+    const ux = positions[3 * b] - positions[3 * a], uy = positions[3 * b + 1] - positions[3 * a + 1], uz = positions[3 * b + 2] - positions[3 * a + 2];
+    const vx = positions[3 * d] - positions[3 * a], vy = positions[3 * d + 1] - positions[3 * a + 1], vz = positions[3 * d + 2] - positions[3 * a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    for (const v of [a, b, d]) { normals[3 * v] += nx; normals[3 * v + 1] += ny; normals[3 * v + 2] += nz; }
+  }
+  for (let v = 0; v < nv; v++) { const l = Math.hypot(normals[3 * v], normals[3 * v + 1], normals[3 * v + 2]) || 1; normals[3 * v] /= l; normals[3 * v + 1] /= l; normals[3 * v + 2] /= l; }
+  return { positions, indices: Uint32Array.from(tris), normals };
 }

@@ -18,6 +18,9 @@ import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
+import { CageMarks } from './CageMarks';
+import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '../subd/cageEdit';
+import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
 import { splineOutline } from '../sketch/spline';
 import type { Analysis } from './analysis';
@@ -152,6 +155,17 @@ interface Props {
   onPickProfile?(id: number | null, additive: boolean): void;
   /** An instance shown moved while the gizmo drags it (see assembly/drag.ts previewMatrix). */
   instancePreview?: { id: string; matrix: Float64Array } | null;
+  /**
+   * A SubD cage being edited (R8.2, D81): drawn over the body (edges, vertices, the selection, what its validation
+   * flags), clicks pick in its mode (Shift adds), a double-click on an edge its loop (Alt: its ring).
+   */
+  cage?: CageOverlay | null;
+  onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
+}
+export interface CageOverlay {
+  cage: StudioCage; mode: CageMode; sel: CageSelection; validation: CageValidation;
+  /** The mirrored half (drawn faint), when the cage is one half. */
+  mirrored?: StudioCage | null;
 }
 
 
@@ -632,6 +646,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     }
     if (d.mode || d.moved || e.button !== 0) return;
     if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
+    // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
+    const cg = propsRef.current.cage;
+    if (cg) { propsRef.current.onPickCage?.(pickCage(cg.cage, p => camera.current.project(p as Vec3, w, h), x, y, cg.mode), e.shiftKey); request(); return; }
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
@@ -869,6 +886,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key="bbox">{edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
         <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
     }
+    // The cage being edited: the mirrored half faint, faces picked (n-gons tinted), edges (creases heavier, open
+    // and non-manifold ones marked), vertices (poles ringed), all over the body.
+    if (!sk && props.cage) items.push(<CageMarks key="cage" overlay={props.cage} project={q => cam.project(q as Vec3, w, h)} />);
     // The selected curve's or surface's poles, the picked one ringed.
     if (!sk) (props.poles ?? []).forEach(p => {
       const q = cam.project(p.at, w, h), on = p.key === props.pickedPole;
@@ -924,7 +944,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
-        onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return; const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
+        onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
+          if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
       {error && <div className="vp-error" role="alert">{error}</div>}
