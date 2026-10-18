@@ -2464,6 +2464,41 @@ try {
     await snap('subd-box');
   });
 
+  await check('R8.2 the agent\'s SubD cage tools through the real chat and tool servers: a SubD box built, a cage vertex moved (a value edit, applied), a face extruded (topology: refused at L2, proposed, accepted in the studio)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await idle();
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const send = async calls => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      };
+      await send([{ tool: 'run_command', args: { command: 'subd-box', values: { w: 30, d: 20, h: 16, n: 2, x: 0, y: 0, z: 0 } } }, { tool: 'subd_cage', args: { index: 0 } }]);
+      await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+      const before = (await doc()).nodes[0].cage;
+      // A move of the cage: the feature's values — applied, with an undo.
+      await send([{ tool: 'subd_move', args: { index: 0, vertices: [0], delta: [0, 0, 2] } }]);
+      await page.waitForFunction(z => window.__studioDoc.nodes[0].cage.positions[2] === z, before.positions[2] + 2, { timeout: 20000 });
+      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
+      assert.deepEqual((await doc()).nodes[0].cage.faces, before.faces);
+      // An extrusion changes the cage's topology: at L2 refused, then proposed; accepted, the cage has four faces more.
+      const extrude = { tool: 'subd_extrude', args: { index: 0, faces: [0], distance: 3 } };
+      await send([extrude, { tool: 'propose', args: { title: 'A bump', ops: [extrude] } }]);
+      assert.match(await page.locator('.chat-tool').nth(-2).innerText(), /L2|propos/i);
+      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
+      assert.equal((await doc()).nodes[0].cage.faces.length, 24);
+      await page.locator('[aria-label="Proposal P1"] button', { hasText: /^Accept/ }).click();
+      await page.waitForFunction(() => window.__studioDoc.nodes[0].cage.faces.length === 28 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+      await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+      await snap('subd-agent-bump');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

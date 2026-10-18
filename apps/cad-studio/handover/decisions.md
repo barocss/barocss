@@ -3978,3 +3978,48 @@ Sites from the review agent's list (`handover/notes/c16-review-findings.md`), ea
 
   The peer's note that two graze rows pass no longer holds, so the file stands as it is. F2 at 1M positions (3 of 8 holes) is not an RB row; it stays in README §0's open TODOs.
 - **PERF3 is done:** A1–A6, D18, D19, B7–B13, C14–C17, D20.
+
+## D83 — R8.2b SD3: the agent's SubD cage tools (2026-10-18)
+
+The rest of R8.2 after PERF3: the cage editor's operations for the agent, and a browser-flow step through the chat.
+- **Tools** (`src/chat/cageTools.ts`; in `TOOLS`, so in the MCP server and the chat server's allowed list):
+
+  | Tool | Does | Kind |
+  |---|---|---|
+  | `subd_cage` | counts, creases, mirror plane, bounds, validation (poles, n-gons, open edges, non-manifold) | read only |
+  | `subd_select` | faces by outward `normal` (within `within_deg`, default 30) and/or a `box` on their centres; vertices in a `box`; the `loop` or `ring` through an `edge`; the `boundary` (open edges) | read only, up to `limit` (200) items with centres and normals, the rest counted |
+  | `subd_move` | `vertices`, or those of `edges` or `faces`, by `delta` | value edit |
+  | `subd_extrude` | `faces` as one region (walled) by `offset`, or `distance` along their mean normal; or open `edges` by `offset` | topology; the new faces or edges named in the result |
+  | `subd_insert_loop` | the loop across `edge`'s ring, at its middle | topology |
+  | `subd_bridge` | two open loops of equal length in `edges` | topology |
+  | `subd_fill` | the hole round open `edges` | topology |
+  | `subd_weld` | `vertices` into one, or those within `tolerance` | topology |
+  | `subd_crease` | `edges` (or the sides of `faces`) sharp, or smooth with `on: false` | beyond values |
+  | `subd_delete` | `faces` | topology |
+
+  All of them act on a subd feature by `index`.
+- **The same steps as the editor:** each tool is a cage session step (`cageEdit.ts`: `commitDrag`, `runOp`), so a mirrored node behaves as it does in the editor.
+  - Indices are the cage's as the node keeps it: the half, on the + side of the plane.
+  - The plane's vertices stay on it, and no wall is put in the plane.
+- **Refusals:** a result that is not a manifold is refused, as the editor's Done refuses it. So is an index or edge not in the cage, nothing to move, or a step that changes nothing. Each refusal is typed and says why; the part stays unchanged.
+- **Autonomy (D41, the owner's L2 = (b)):**
+  - A move is a value edit of the feature and applies directly. `valuesOnly` now reads a `cage` with the same faces and creases, and as many positions, as values. `positions` stays structural elsewhere (mesh nodes).
+  - Every other change touches what the cage is made of, so at L2 it is refused with `needs_proposal` and proposed. A proposal of cage ops replays them (they are batchable in `apply_ops` and `propose`).
+- **System prompt:** a paragraph on making smooth organic shapes from `subd-box` or `subd-torus` with these tools.
+- **Tests (`test/cageTools.test.ts`, 5):**
+  - the tools listed; read-only queries (4 top faces of a 2-a-side box; one in a box);
+  - extrude by distance (28 faces, the volume up, the top raised), a loop inserted, a crease on and off, a face's vertices moved (faces unchanged);
+  - delete → boundary query → fill (closed again), an edge's ends welded, refusals;
+  - a mirrored cage (indices of the half, an extrusion keeping the plane's vertices on it, the body whole);
+  - L2: a move applies, an extrusion is refused with `needs_proposal` and proposed (the part unchanged).
+  - Every result's kernel body passes `checkBrep`, and its cage is valid.
+  - `chat.test.ts`' tool list includes the ten.
+  - Studio 369/369; browser flow 120/120.
+- **Browser flow:** a step through the real chat server and tool server, with the scripted stand-in for the CLI (no model):
+  1. a SubD box built on an empty part (the first build, applied);
+  2. a cage vertex moved: applied with "Applied by the agent";
+  3. a face extruded: refused at L2, proposed, P1 accepted in the studio's panel; the cage has 28 faces and the body is one solid.
+- **Pending decision (reversible default):** the hand-over listed "the browser-flow step" under R8.2, and the original R8 plan made R8.3 "the browser flow: a SubD box edited end to end (extrude, loop, crease, mirror, undo), with screenshots". Taken here as follows:
+  - the R8.2 step is the agent's tools through the chat (above);
+  - R8.3 is the person's end-to-end edit in the cage editor;
+  - R8.3 also covers the plan's other item, reusing `direct.ts`' pole gizmo driven by cage data, if it fits.

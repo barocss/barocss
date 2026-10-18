@@ -8,6 +8,7 @@ import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
+import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { featureId } from '../engine/ids';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
@@ -108,10 +109,10 @@ function features(doc: StudioDoc) {
 }
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
-const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part']);
+const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
-const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part']);
+const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -343,6 +344,9 @@ const dimLike = (x: unknown) => typeof x === 'number' || (isObj(x) && Object.key
 /** Whether `b` differs from `a` only in values (numbers, or a value bound to a parameter) outside the structural fields. */
 function valuesOnly(a: unknown, b: unknown, key = ''): boolean {
   if (a === b) return true;
+  // (A SubD cage with the same faces and creases — its vertices moved — is the feature's values, D83: what it is built
+  // of, the topology, is its structure.)
+  if (key === 'cage' && isObj(a) && isObj(b)) return JSON.stringify(a.faces) === JSON.stringify(b.faces) && JSON.stringify(a.creases ?? []) === JSON.stringify(b.creases ?? []) && Array.isArray(a.positions) && Array.isArray(b.positions) && a.positions.length === b.positions.length;
   if (STRUCTURAL.has(key)) return JSON.stringify(a) === JSON.stringify(b);
   if (dimLike(a) && dimLike(b)) return true;
   if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => valuesOnly(x, b[i], key));
@@ -882,6 +886,13 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       return { state: { ...state, selection: sel }, content: json({ ok: true, selected: sel, ...(r.resolved.length ? { resolved: r.resolved } : {}) }), isError: false, changed: false, summary: `${count} selected` };
     }
   }
+  // (R8.2: the SubD cage tools, D83.)
+  if (CAGE_TOOL_NAMES.has(name)) {
+    const r = runCageTool(state.doc, name, args);
+    if ('error' in r) return fail(state, r.error, { kept: 'the part is unchanged' });
+    if ('read' in r) return { state, content: json({ ok: true, ...r.read }), isError: false, changed: false, summary: `${name}: read` };
+    return accept(state, r.doc, evaluate, r.did, r.extra);
+  }
   return fail(state, `Unknown tool "${name}".`);
 }
 
@@ -1072,6 +1083,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     description: 'Highlights faces, edges or bodies in the user’s viewport when the turn ends (for example to show what was filleted). Does not change the part.',
     input_schema: { type: 'object', properties: { faces: selectorList('Faces'), edges: selectorList('Edges'), bodies: nameList }, additionalProperties: false },
   },
+  ...CAGE_TOOLS,
 ];
 
 /** `response_format` on the tools that list the part (A2.4). */
@@ -1095,5 +1107,7 @@ Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 
 For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly. Assembly changes always need the user's approval, so you propose them: build the main or fixed part as the base part directly, then propose the rest — ops that add each other part with add_part (ids p1, p2, … in order) and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read the proposal's result: what each part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly once the user has accepted it.
+
+For a smooth, organic shape (a handle, a mouse shell, a bottle), start from run_command subd-box or subd-torus and shape its cage: subd_select finds faces (by the way they face, or a box), vertices, loops and rings, and the open edges; subd_extrude, subd_insert_loop and subd_move shape it; subd_crease makes edges sharp; subd_fill, subd_bridge, subd_weld and subd_delete mend or open it; subd_cage reports its validation. Moving vertices is a value edit; changing the cage's topology is proposed for the user.
 
 Finish with one or two sentences: what was built and its key numbers (volume, overall size). The user can undo your whole turn with one undo.`;

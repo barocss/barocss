@@ -24,7 +24,7 @@ The sections after it are the older hand-over (2026-10-16/17), kept as history: 
 ### Roadmap (serial, one implementation session), status
 Done:
 - R1–R7, RB1–RB4, A1–A4 (AI collaboration), R3–R6, R6a gears, LIB1–4, R6b, AM1–AM5.
-- R8.1 cage operations (D80); R8.2a cage editor (D81).
+- R8.1 cage operations (D80); R8.2a cage editor (D81); R8.2b the agent's cage tools and their browser-flow step (D83).
 - **PERF3 A1–A6** (D82): A1 `49c4da306`; A2 `818f92cef`; A3 `dfae081e1` and memo key `8ddb29262`; A4 `4e4e7017d`; A5 `bf02e4204`; A6 `2831d318a`.
 - **PERF3 D18** (D82 § D18): bench budgets about 2× the latest values, Node and browser; all rows pass.
 - **PERF3 D19** (D82 § D19): eleven new benches (plate and SubD torus mass, gear verdict and interfering report, library fits, STEP 200k read, F1 200k, F2 20k, orientation 100k, printability, 3MF 200k), budgets about 2×.
@@ -42,14 +42,10 @@ Done:
 - **PERF3 D20** (D82 § D20): RB trend and properties rows for HEAD (205 cases, 0 new, the 8 known TODOs); todo.json checked, unchanged. **PERF3 done.**
 
 **Next, in this order:**
-1. Rest of **R8.2**:
-   - agent cage tools (`subd_select`, extrude, `insert_loop`, bridge, fill, weld, crease, move; D41 proposals at L2 for topology);
-   - the browser-flow step;
-   - the cap cache per one-ring, which is done in A4 (`keptCapsAt`, by 2-ring).
-2. **R8.3**.
-3. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
-4. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
-5. RB5–RB9.
+1. **R8.3**: the cage editor edited end to end in the browser flow (extrude, loop, crease, mirror, undo), with screenshots; and `direct.ts`' pole gizmo driven by cage data if it fits (D83's pending decision).
+2. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
+3. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+4. RB5–RB9.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
@@ -89,6 +85,11 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - **Library data rules:** sourced or estimate-flagged values, no vendor CAD bundled, a licence needed to share, legal review before release.
 - **Gears** follow barocss/barocss#2167.
 - **Mesh body / SubD:** one B-rep body, a Parasolid-convergent subset F0–F2 plus SubD; Hunyuan3D is never in the pipeline (licence).
+
+### Pending decisions (reversible defaults taken)
+- **R8.2 / R8.3 split (D83):** the hand-over put "the browser-flow step" under R8.2, while the original R8 plan made R8.3 the browser flow.
+  - Taken: R8.2's step is the agent's cage tools through the chat; R8.3 is the person's end-to-end cage edit (extrude, loop, crease, mirror, undo) with screenshots.
+  - To change: say which, and the steps move.
 
 ### Open TODOs and known defects
 - 1 nm graze gives a wrong body (RB TODO; `cylinder-box-graze-*` rows).
