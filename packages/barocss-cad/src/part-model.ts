@@ -35,7 +35,7 @@ import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { subdBrep, SubdError } from './subd.js';
-import { spurGear, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
+import { spurGear, spurGearCenterDistance, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -173,7 +173,7 @@ export type CadPartFeature = Base & (
     readonly rotation?: number;
     /**
      * Meshing with another spur gear (R6a.4, D56): placed beside it — on its face plane, at `centerDistance` (default
-     * the nominal m(z1 + z2)/2) along `direction` (degrees from +X) — and turned so its teeth mesh (a space facing the
+     * the one without backlash: m(z1 + z2)/2, or the working one for shifted gears) along `direction` (degrees from +X) — and turned so its teeth mesh (a space facing the
      * other's tooth on the line of centres, plus `phase` degrees), following the other's turn by −z1/z2. Its own
      * `center`, `from` and `rotation` are then not used.
      */
@@ -901,7 +901,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (driver!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${driver!.spec.moduleMM}`);
         const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
-        const z1 = driver!.spec.teeth, z2 = f.teeth as number, a = mesh!.centerDistance === undefined ? m * (z1 + z2) / 2 : dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const z1 = driver!.spec.teeth, z2 = f.teeth as number;
+        let a: number;
+        if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        else { try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; } }
         const phi = (dirDeg as number) * Math.PI / 180;
         place = { spec, center: [driver!.center[0] + a * Math.cos(phi), driver!.center[1] + a * Math.sin(phi)], from: driver!.from,
           rotation: phi + Math.PI - Math.PI / z2 - (driver!.rotation - phi) * z1 / z2 + (phaseDeg as number) * Math.PI / 180, meshesWith: String(mesh!.gear), driver: driver! };

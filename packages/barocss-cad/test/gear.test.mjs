@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, checkSpurGearPair, checkPlacedSpurGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.1–2 (issue #2167, D53): the involute spur gear's first stage — 20°, no profile shift, external, straight teeth.
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
@@ -8,9 +8,9 @@ const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: $
  * The exact profile's area, apart from the generator: Green's theorem over the analytic involute X(t) = rb(cos t +
  * t sin t), Y(t) = rb(sin t − t cos t) sampled densely, the tip and root arcs and radial joins exactly.
  */
-function exactArea(m, z, red = 0) {
-  const a = 20 * Math.PI / 180, inv = p => Math.tan(p) - p, r = m * z / 2, rb = r * Math.cos(a), ra = r + m, rf = r - 1.25 * m, r0 = Math.max(rb, rf);
-  const psi = (Math.PI * m / 2 - red) / (2 * r) + inv(a), psiS = psi - inv(Math.acos(rb / r0)), psiT = psi - inv(Math.acos(rb / ra)), step = 2 * Math.PI / z;
+function exactArea(m, z, red = 0, x = 0) {
+  const a = 20 * Math.PI / 180, inv = p => Math.tan(p) - p, r = m * z / 2, rb = r * Math.cos(a), ra = r + m * (1 + x), rf = r - m * (1.25 - x), r0 = Math.max(rb, rf);
+  const psi = (m * (Math.PI / 2 + 2 * x * Math.tan(a)) - red) / (2 * r) + inv(a), psiS = psi - inv(Math.acos(rb / r0)), psiT = psi - inv(Math.acos(rb / ra)), step = 2 * Math.PI / z;
   let A = 0;
   const seg = pts => { for (let i = 0; i + 1 < pts.length; i++) A += (pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1]) / 2; };
   const flank = (turn, mirror, rev) => {
@@ -37,13 +37,14 @@ test('the issue\'s fixture (m 2, α 20°, x 0, z 20 and 40): d, db, da, df; the 
 });
 
 test('the solid: valid; its volume the exact profile\'s area × the face width to within what the measured flank deviation allows; the bore taken out; tooth by tooth names', () => {
-  for (const [m, z, b, bore, red] of [[2, 20, 10, 0, 0], [2, 40, 10, 12, 0.05], [1, 60, 5, 0, 0], [3, 18, 8, 10, 0]]) {
-    const { brep, report } = spurGear({ moduleMM: m, teeth: z, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red }, { id: 'g' });
+  // (With profile shifts too, R6a.5: the KHK pair's 12 teeth at x 0.6 and 24 at 0.36, a negative shift on 30.)
+  for (const [m, z, b, bore, red, x = 0] of [[2, 20, 10, 0, 0], [2, 40, 10, 12, 0.05], [1, 60, 5, 0, 0], [3, 18, 8, 10, 0], [3, 12, 10, 0, 0, 0.6], [3, 24, 10, 10, 0.05, 0.36], [2, 30, 6, 0, 0, -0.3]]) {
+    const { brep, report } = spurGear({ moduleMM: m, teeth: z, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red, profileShiftCoefficient: x }, { id: 'g' });
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues[0]);
     assert.ok(report.profileDeviationMM <= report.profileToleranceMM && report.profileToleranceMM === 1e-4 * m);
     // (Each flank's area moves by at most its deviation times its length; 2z flanks, each shorter than ra − rf + its arc.)
-    const want = exactArea(m, z, red) * b - Math.PI * (bore / 2) ** 2 * b, flankLength = 2.5 * m, slack = 2 * z * report.profileDeviationMM * flankLength * b;
-    close(brepMassProperties(brep, 1).volumeMM3, want, slack, `m${m} z${z} volume`);
+    const want = exactArea(m, z, red, x) * b - Math.PI * (bore / 2) ** 2 * b, flankLength = 2.5 * m, slack = 2 * z * report.profileDeviationMM * flankLength * b;
+    close(brepMassProperties(brep, 1).volumeMM3, want, slack, `m${m} z${z} x${x} volume`);
     const names = brep.faces.map(f => f.name);
     for (const k of [1, z]) for (const role of ['flankL', 'flankR', 'tip', 'root']) assert.ok(names.includes(`g.${role}#${k}`), `g.${role}#${k}`);
     assert.ok(names.includes('g.face0') && names.includes('g.face1'));
@@ -63,12 +64,15 @@ test('the profile: as few cubic pieces as the tolerance asks, the deviation meas
   assert.deepEqual(r.diagnostics.map(d => [d.code, d.severity]), [['ROOT_TRANSITION_UNVALIDATED', 'warning']]);
 });
 
-test('refusals with their codes: bad input, a pressure angle other than 20°, a profile shift, an undercut tooth count (the shift that would avoid it), a bore into the rim', () => {
+test('refusals with their codes: bad input, a pressure angle other than 20°, a profile shift out of range, an undercut tooth count (the shift that would avoid it), a bore into the rim', () => {
   const g = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, code = (spec, c, re) => assert.throws(() => spurGear(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)));
   code({ ...g, moduleMM: 0 }, 'INVALID_INPUT'); code({ ...g, moduleMM: NaN }, 'INVALID_INPUT'); code({ ...g, teeth: 20.5 }, 'INVALID_INPUT'); code({ ...g, faceWidthMM: -1 }, 'INVALID_INPUT');
   code({ ...g, profileToleranceMM: 0 }, 'INVALID_INPUT'); code({ ...g, toothThicknessReductionMM: 4 }, 'INVALID_INPUT', /leaves no tooth/);
   code({ ...g, pressureAngleDeg: 14.5 }, 'UNSUPPORTED_GEAR_KIND');
-  code({ ...g, profileShiftCoefficient: 0.2 }, 'UNSUPPORTED_PROFILE_SHIFT');
+  code({ ...g, profileShiftCoefficient: 1.2 }, 'UNSUPPORTED_PROFILE_SHIFT', /from -0\.5 to 1/); code({ ...g, profileShiftCoefficient: -0.6 }, 'UNSUPPORTED_PROFILE_SHIFT');
+  code({ ...g, teeth: 12, profileShiftCoefficient: 0.2 }, 'UNSUPPORTED_PROFILE_SHIFT', /with x = 0\.2 are undercut \(below 13\.7\): a shift of at least x = 0\.298/);
+  // (A large shift on few teeth points the tooth.)
+  code({ ...g, teeth: 10, profileShiftCoefficient: 1 }, 'SELF_INTERSECTION', /point below its tip circle/);
   code({ ...g, teeth: 12 }, 'UNSUPPORTED_PROFILE_SHIFT', /undercut \(below 17\.1\): a shift of at least x = 0\.298/);
   code({ ...g, boreDiameterMM: 34 }, 'BORE_INTERSECTION', /at most Ø31\.000/);
   code({ ...g, rootPolicy: 'tool-generated' }, 'INVALID_INPUT');
@@ -139,4 +143,23 @@ test('a meshing gear (R6a.4b, D56): placed beside its driver and turned to mesh 
   assert.throws(() => evaluateCadPart(D([g1(0), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'c', kind: 'extrude', sketch: 's', height: 3 }, { ...g2({}), mesh: { gear: 'c' } }])), e => e.code === 'REFERENCE' && /not a spur gear/.test(e.message));
   const apart = { ...r.output('g2').gearPlacement, from: 10 };
   assert.throws(() => checkPlacedSpurGears(r.output('g1').gearPlacement, apart), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+});
+
+test('profile shift (R6a.5a, D57): KHK\'s shifted pair (m 3, z 12 and 24, x 0.6 and 0.36) — α_w 26.0886°, a 56.4999 mm, df 32.1; at that distance no backlash, and the exact profiles swept touch without crossing (the formula and the geometry agree); a meshing gear stands there', () => {
+  const g1 = { moduleMM: 3, teeth: 12, faceWidthMM: 10, profileShiftCoefficient: 0.6 }, g2 = { moduleMM: 3, teeth: 24, faceWidthMM: 10, profileShiftCoefficient: 0.36 };
+  // (KHK's worked example: inv α_w = 0.034316, α_w = 26.0886°, centre distance 56.4999 mm; root diameters 32.1 and 66.66.)
+  close(spurGearCenterDistance(g1, g2), 56.4999, 1e-4, 'a'); close(spurGearDimensions(g1).rootDiameterMM, 32.1, 1e-12, 'df1'); close(spurGearDimensions(g2).rootDiameterMM, 66.66, 1e-12, 'df2');
+  close(spurGearDimensions(g1).toothThicknessMM, 3 * (Math.PI / 2 + 1.2 * Math.tan(Math.PI / 9)), 1e-12, 's1');
+  const c = checkSpurGearPair(g1, g2);
+  close(c.workingPressureAngleDeg, 26.0886, 1e-4, 'α_w'); close(c.backlashMM, 0, 1e-12, 'backlash'); close(c.nominalCenterDistanceMM, c.centerDistanceMM, 0, 'default distance');
+  assert.ok(Math.abs(c.sweep.minimumClearanceMM) < 1e-5 && !c.sweep.interference && c.sweep.converged, JSON.stringify(c.sweep));
+  // (No tip shortening: the tip clearances reported, 0.37 mm here, under the unshifted 0.25 m.)
+  close(c.tipClearancesMM[0], 56.4999 - 22.8 - 33.33, 1e-4, 'tip clearance');
+  // At the reference distance m(z1 + z2)/2 the shifted teeth jam.
+  assert.equal(checkSpurGearPair(g1, g2, { centerDistanceMM: 54, mode: 'verdict' }).sweep.interference, true);
+  // Through the part model: the meshing gear's default distance is the working one.
+  const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
+  const r = evaluateCadPart(D([{ id: 'a', kind: 'spur-gear', module: 3, teeth: 12, faceWidth: 10, profileShift: 0.6 }, { id: 'b', kind: 'spur-gear', module: 3, teeth: 24, faceWidth: 10, profileShift: 0.36, mesh: { gear: 'a' } }]));
+  close(r.output('b').gearPlacement.center[0], 56.4999, 1e-4, 'placed');
+  assert.equal(checkPlacedSpurGears(r.output('a').gearPlacement, r.output('b').gearPlacement, { mode: 'verdict' }).sweep.interference, false);
 });

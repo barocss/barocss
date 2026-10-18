@@ -1,0 +1,90 @@
+{
+  "id": "r6a-spur-shifted-pair",
+  "step": "R6a",
+  "decisions": [
+    "D57"
+  ],
+  "about": "KHK's shifted pair (m 3, z 12 at x 0.6 and 24 at x 0.36): the meshing gear stands at the working centre distance 56.4999 mm (inv \u03b1_w = inv \u03b1 + 2 tan \u03b1 (x1 + x2)/(z1 + z2)); each volume the shifted profile's exact area \u00d7 the face width (the bore out).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "a",
+          "kind": "spur-gear",
+          "module": 3,
+          "teeth": 12,
+          "faceWidth": 10,
+          "profileShift": 0.6
+        },
+        {
+          "id": "b",
+          "kind": "spur-gear",
+          "module": 3,
+          "teeth": 24,
+          "faceWidth": 10,
+          "profileShift": 0.36,
+          "bore": 12,
+          "mesh": {
+            "gear": "a"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11739.7328,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^a\\.(flankL|flankR|tip|root|rootL|rootR|face0|face1)$"
+      },
+      {
+        "volumeMM3": {
+          "value": 41369.4828,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            56.4999,
+            0,
+            5
+          ],
+          "absTol": 0.0001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^b\\.(flankL|flankR|tip|root|rootL|rootR|bore|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "centre distance and root diameters: KHK's worked example; volumes: Green's theorem over the analytic shifted profile (test/gear.test.mjs exactArea)"
+}

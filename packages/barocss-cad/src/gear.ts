@@ -28,7 +28,7 @@ export interface SpurGearSpec {
   /** The reference pressure angle; 20° only in this stage. */
   readonly pressureAngleDeg?: number;
   readonly faceWidthMM: number;
-  /** 0 only in this stage (UNSUPPORTED_PROFILE_SHIFT otherwise). */
+  /** x, the cutting rack moved out by x m (R6a.5, D57): from −0.5 to 1 (UNSUPPORTED_PROFILE_SHIFT otherwise). */
   readonly profileShiftCoefficient?: number;
   /** 0: no bore. */
   readonly boreDiameterMM?: number;
@@ -48,6 +48,8 @@ export interface SpurGearDimensions {
 export interface SpurGearReport {
   readonly generator: 'spur-gear@0';
   readonly dimensions: SpurGearDimensions;
+  /** The profile shift coefficient x it was cut with (0: none). */
+  readonly profileShift: number;
   /** Cubic pieces in each flank, and the largest measured deviation of a flank from the involute (mm). */
   readonly flankPieces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
   readonly rootPolicy: 'schematic-radial'; readonly manufacturingValidated: false;
@@ -57,7 +59,7 @@ export interface SpurGearReport {
 /** A curve of the profile in the plane (z 0): its role, the tooth it belongs to (1-based) and its curve. */
 interface Piece { readonly role: 'flankL' | 'flankR' | 'tip' | 'root' | 'rootL' | 'rootR' | 'bore'; readonly tooth: number; readonly curve: Curve }
 
-const MAX_PIECES = 5, MAX_TEETH = 200;
+const MAX_PIECES = 5, MAX_TEETH = 200, MIN_SHIFT = -0.5, MAX_SHIFT = 1;
 const inv = (phi: number) => Math.tan(phi) - phi;
 
 /** The gear's dimensions and the checks of this stage's inputs (refusals thrown, as GearError). */
@@ -70,19 +72,23 @@ export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { a
   if (alphaDeg !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
   const x = spec.profileShiftCoefficient ?? 0;
   if (!Number.isFinite(x)) throw new GearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
-  if (x !== 0) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `profile shift ${x}: only 0 in this stage (shifted profiles arrive with R6a.5)`);
+  if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
   const alpha = alphaDeg * Math.PI / 180;
-  // Undercut: the basic rack's addendum line cuts below the base circle under z = 2 / sin²α (about 17.1 at 20°).
-  const zMin = 2 / Math.sin(alpha) ** 2;
-  if (z < zMin) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth at 20° without profile shift are undercut (below ${zMin.toFixed(1)}): a shift of at least x = ${(1 - z / zMin).toFixed(3)} would avoid it (shifted profiles arrive with R6a.5)`);
+  // Undercut: the basic rack's addendum line, moved out by x m, cuts below the base circle under z = 2(1 − x)/sin²α
+  // (about 17.1 at 20° unshifted).
+  const zMin = 2 * (1 - x) / Math.sin(alpha) ** 2;
+  if (z < zMin) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth at 20°${x ? ` with x = ${x}` : ' without profile shift'} are undercut (below ${zMin.toFixed(1)}): a shift of at least x = ${(1 - z * Math.sin(alpha) ** 2 / 2).toFixed(3)} would avoid it`);
   if (z > MAX_TEETH) throw new GearError('INVALID_INPUT', `teeth at most ${MAX_TEETH} in this stage`);
-  const d = m * z, r = d / 2, rb = r * Math.cos(alpha), ra = r + m, rf = r - 1.25 * m;
+  // The shifted gear cut by the standard rack (addendum m, dedendum 1.25 m) moved out by x m: tip and root move out by
+  // x m, the reference tooth thickens by 2 x m tan α. (No tip shortening: that depends on the mate; the pair checks
+  // report the tip clearances.)
+  const d = m * z, r = d / 2, rb = r * Math.cos(alpha), ra = r + m * (1 + x), rf = r - m * (1.25 - x);
   const red = spec.toothThicknessReductionMM ?? 0;
   if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
-  const s = Math.PI * m / 2 - red;
-  if (!(s > 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the reference thickness is ${(Math.PI * m / 2).toFixed(4)} mm)`);
+  const s0 = m * (Math.PI / 2 + 2 * x * Math.tan(alpha)), s = s0 - red;
+  if (!(s > 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the reference thickness is ${s0.toFixed(4)} mm)`);
   const psi = s / d + inv(alpha), tipHalf = psi - inv(Math.acos(rb / ra));
-  if (!(tipHalf > 0)) throw new GearError('SELF_INTERSECTION', 'the tooth comes to a point below its tip circle');
+  if (!(tipHalf > 0)) throw new GearError('SELF_INTERSECTION', `the tooth comes to a point below its tip circle${x > 0 ? ` (a shift of ${x} on ${z} teeth)` : ''}`);
   return { referenceDiameterMM: d, baseDiameterMM: 2 * rb, tipDiameterMM: 2 * ra, rootDiameterMM: 2 * rf, circularPitchMM: Math.PI * m, toothThicknessMM: s, tipThicknessMM: 2 * ra * tipHalf, alpha, rb, ra, rf, r, psi };
 }
 
@@ -170,7 +176,7 @@ export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Pi
   }
   const diagnostics: GearDiagnostic[] = [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: radial ? 'the root joins the flanks by radial lines from the base circle and a root arc: a schematic root, not the one the cutting tool generates' : 'the flanks meet the root arc at a corner: a schematic root, not the one the cutting tool generates' }];
   const dims: SpurGearDimensions = { referenceDiameterMM: g.referenceDiameterMM, baseDiameterMM: g.baseDiameterMM, tipDiameterMM: g.tipDiameterMM, rootDiameterMM: g.rootDiameterMM, circularPitchMM: g.circularPitchMM, toothThicknessMM: g.toothThicknessMM, tipThicknessMM: g.tipThicknessMM };
-  return { pieces, bore, report: { generator: 'spur-gear@0', dimensions: dims, flankPieces: N, profileDeviationMM: deviation, profileToleranceMM: tol, rootPolicy: 'schematic-radial', manufacturingValidated: false, diagnostics } };
+  return { pieces, bore, report: { generator: 'spur-gear@0', dimensions: dims, profileShift: spec.profileShiftCoefficient ?? 0, flankPieces: N, profileDeviationMM: deviation, profileToleranceMM: tol, rootPolicy: 'schematic-radial', manufacturingValidated: false, diagnostics } };
 }
 
 const moved = (c: Curve, z: number, id: string): Curve => ({ ...c, id, controlPoints: c.controlPoints.map(p => [p[0], p[1], z] as Point) });
@@ -215,6 +221,28 @@ export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } =
 const lineCurveAt = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
 
 /**
+ * The pair's centre distance with no backlash (R6a.5, D57): unshifted, m(z1 + z2)/2; shifted, a = m(z1 + z2) cos α /
+ * (2 cos α_w), with inv α_w = inv α + 2 tan α (x1 + x2)/(z1 + z2) solved by Newton's method (inv is increasing).
+ * (Thickness reductions are backlash, not a change of distance.)
+ */
+function workingDistance(g1: SpurGearSpec, g2: SpurGearSpec, alpha: number): number {
+  const z1 = g1.teeth, z2 = g2.teeth, aRef = g1.moduleMM * (z1 + z2) / 2, sum = (g1.profileShiftCoefficient ?? 0) + (g2.profileShiftCoefficient ?? 0);
+  if (sum === 0) return aRef;
+  const target = inv(alpha) + 2 * Math.tan(alpha) * sum / (z1 + z2);
+  if (!(target > 0)) throw new GearError('MATE_INCOMPATIBLE', `shifts summing to ${sum} on ${z1} + ${z2} teeth leave no working pressure angle`);
+  let w = alpha;
+  for (let i = 0; i < 50; i++) { const f = inv(w) - target, dw = f / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw new GearError('MATE_INCOMPATIBLE', 'no working pressure angle for these shifts'); if (Math.abs(dw) < 1e-15) break; }
+  return aRef * Math.cos(alpha) / Math.cos(w);
+}
+/** The centre distance at which two spur gears mesh without backlash (shifted pairs: the working one). */
+export function spurGearCenterDistance(g1: SpurGearSpec, g2: SpurGearSpec): number {
+  const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
+  if (g1.moduleMM !== g2.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g1.moduleMM} and ${g2.moduleMM} mm do not mesh`);
+  if (a1.alpha !== a2.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  return workingDistance(g1, g2, a1.alpha);
+}
+
+/**
  * A pair's nominal values from the formulas alone (issue #2167 §6): the same module and pressure angle (else
  * MATE_INCOMPATIBLE), centre distance a = m(z1 + z2)/2, the speed ratio −z1/z2, the ideal transverse contact ratio
  * εα = [√(ra1² − rb1²) + √(ra2² − rb2²) − a sin α] / (π m cos α), and the backlash at that centre distance, the sum of
@@ -224,8 +252,8 @@ export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { cente
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
   if (g1.moduleMM !== g2.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g1.moduleMM} and ${g2.moduleMM} mm do not mesh`);
   if (a1.alpha !== a2.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
-  const m = g1.moduleMM, a = m * (g1.teeth + g2.teeth) / 2, alpha = a1.alpha;
-  const eps = (Math.sqrt(a1.ra ** 2 - a1.rb ** 2) + Math.sqrt(a2.ra ** 2 - a2.rb ** 2) - a * Math.sin(alpha)) / (Math.PI * m * Math.cos(alpha));
+  const m = g1.moduleMM, a = workingDistance(g1, g2, a1.alpha), alpha = a1.alpha, alphaW = Math.acos(m * (g1.teeth + g2.teeth) / 2 * Math.cos(alpha) / a);
+  const eps = (Math.sqrt(a1.ra ** 2 - a1.rb ** 2) + Math.sqrt(a2.ra ** 2 - a2.rb ** 2) - a * Math.sin(alphaW)) / (Math.PI * m * Math.cos(alpha));
   return { centerDistanceMM: a, speedRatio: -g1.teeth / g2.teeth, idealContactRatio: eps, backlashMM: (g1.toothThicknessReductionMM ?? 0) + (g2.toothThicknessReductionMM ?? 0) };
 }
 
@@ -272,9 +300,9 @@ function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOpti
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
   if (g1.moduleMM !== g2.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g1.moduleMM} and ${g2.moduleMM} mm do not mesh`);
   if (a1.alpha !== a2.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
-  const m = g1.moduleMM, z1 = g1.teeth, z2 = g2.teeth, alpha = a1.alpha, a0 = m * (z1 + z2) / 2, a = options.centerDistanceMM ?? a0;
+  const m = g1.moduleMM, z1 = g1.teeth, z2 = g2.teeth, alpha = a1.alpha, aRef = m * (z1 + z2) / 2, a0 = workingDistance(g1, g2, alpha), a = options.centerDistanceMM ?? a0;
   if (!(Number.isFinite(a) && a > 0)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
-  const cw = a0 * Math.cos(alpha) / a;
+  const cw = aRef * Math.cos(alpha) / a;
   if (!(cw < 1)) throw new GearError('MATE_INCOMPATIBLE', `at ${a} mm the gears' base circles overlap: no working pressure angle`);
   const alphaW = Math.acos(cw), rw1 = a * z1 / (z1 + z2), rw2 = a * z2 / (z1 + z2);
   // Thickness at the working circle: s_w = 2 r_w (s/d + inv α − inv α_w); backlash p_w − s_w1 − s_w2.

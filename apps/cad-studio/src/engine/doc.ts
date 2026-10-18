@@ -104,13 +104,13 @@ type ModelNodeBase = SketchNode
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
   /**
    * An involute spur gear (R6a, issue #2167, D53–D54): module, teeth and face width, standing on z `from` about
-   * `center`, turned `rotation` degrees; 20°, no profile shift in this stage. `generator` the version that made it
+   * `center`, turned `rotation` degrees; 20°, profile shift x from −0.5 to 1 (R6a.5a, D57). `generator` the version that made it
    * (kept with the document). With `mesh` (R6a.4b, D56) it meshes with an earlier gear (node `mesh.gear`): beside it
    * along `direction` (degrees from +X) at `centerDistance` (default the nominal m(z1 + z2)/2), turned to mesh (plus
    * `phase` degrees) and following its turn by −z1/z2 — its own centre, `from` and rotation then unused. The gear it
    * meshes with is referenced, not consumed (both stay bodies): `usesOf`, not `parentsOf`.
    */
-  | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
+  | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
   /**
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
    * numbers); the body is its exact limit surface, bicubic B-spline faces `<id>.patch<k>` (a sheet when the cage has a boundary).

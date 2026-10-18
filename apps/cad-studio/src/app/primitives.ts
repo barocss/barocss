@@ -92,24 +92,24 @@ export const primitives: Command[] = [
   {
     id: 'gear', label: 'Spur gear', icon: 'cad-gear', hint: 'An involute spur gear by module, teeth and face width (20°; a schematic root, not validated for manufacturing)', group: 'create', keywords: 'gear spur involute module teeth pinion wheel cog transmission',
     available: () => ok,
-    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 18, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
-    defaults: ctx => ({ m: 2, teeth: 20, b: 10, bore: 8, ...beside(ctx, 30) }),
+    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
+    defaults: ctx => ({ m: 2, teeth: 20, b: 10, shift: 0, bore: 8, ...beside(ctx, 30) }),
     place: centred,
     handles: (_, v) => { const [m, z, b, x, y, zz] = n(v, 'm', 'teeth', 'b', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz + b], Z)]; },
     build: (ctx, v) => {
-      const [m, z, b, bore, x, y, zz] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z');
-      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
+      const [m, z, b, bore, x, y, zz, shift] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z', 'shift');
+      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
     },
   },
   {
     id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio',
     available: ctx => gearPicked(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur gear to mesh with.' },
-    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 18, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
-    defaults: ctx => { const g = gearPicked(ctx); return { teeth: g ? Math.min(200, 2 * g.node.teeth) : 40, dir: 0, bore: 8 }; },
+    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
+    defaults: ctx => { const g = gearPicked(ctx); return { teeth: g ? Math.min(200, 2 * g.node.teeth) : 40, dir: 0, shift: 0, bore: 8 }; },
     build: (ctx, v) => {
       const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear to mesh with.');
-      const [z, dir, bore] = n(v, 'teeth', 'dir', 'bore');
-      return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@0' });
+      const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
+      return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@0' });
     },
   },
   {

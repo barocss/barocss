@@ -2112,3 +2112,45 @@ Limits, recorded:
 - Pair checks are per pair; trains are chains of pairs.
 
 Next: R6a.5 — profile shift and rack, then helical.
+
+## D57 — R6a.5a: profile shift — the shifted spur gear and the working centre distance of a shifted pair (2026-10-18, issue #2167)
+
+Decision:
+- `profileShiftCoefficient` x from −0.5 to 1. Outside that range: UNSUPPORTED_PROFILE_SHIFT, never clamped.
+- The shifted gear is cut by the standard rack (addendum m, dedendum 1.25 m) moved out by x m:
+  - ra = r + m(1 + x), rf = r − m(1.25 − x);
+  - the reference tooth thickness m(π/2 + 2x tan α), less the thickness reduction.
+- The undercut limit becomes z ≥ 2(1 − x)/sin²α. The refusal names the least x for the tooth count:
+  1 − z sin²α/2.
+- A pointed tip from a large shift on few teeth is SELF_INTERSECTION. The report carries `profileShift`.
+- **No tip shortening.** The KHK-style addendum (1 + y − x_mate)m depends on the mate. A gear stays one part: its tip
+  is the standard one. The pair checks report the tip clearances, and the sweep finds any tip interference.
+  Pending, reversible: a pair-level tip-shortening option.
+- **Centre distance of a pair without backlash.**
+  - Unshifted: m(z1 + z2)/2.
+  - Shifted: m(z1 + z2) cos α / (2 cos α_w), with inv α_w = inv α + 2 tan α (x1 + x2)/(z1 + z2) solved by Newton's
+    method.
+  - It is `spurGearCenterDistance`, the pair checks' and `spurGearPairNominal`'s default, and a meshing gear's
+    default distance.
+  - The ideal contact ratio now uses α_w.
+- **Studio:**
+  - "Profile shift x" on the Spur gear and Meshing gear commands (key `shift`) and in the edit fields;
+  - the command's tooth minimum is now 6, the kernel's undercut refusal giving the least x;
+  - the notes begin "Profile shift x …" when shifted.
+
+Evidence:
+- **KHK's worked example** (m 3, z 12 and 24, x 0.6 and 0.36):
+  - a = 56.4999 and α_w = 26.0886° to 1e-4; df1 = 32.1 and df2 = 66.66 exactly; s1 = 3(π/2 + 1.2 tan 20°);
+  - the formula's backlash is 0 there, and the exact-profile sweep touches (|clearance| < 1e-5) without crossing,
+    converged — the geometry agrees with the inv α_w formula;
+  - at 54 mm the shifted teeth jam;
+  - the part model places the meshing gear at 56.4999.
+- **Volumes** of shifted solids (z 12 at x 0.6, z 24 at x 0.36 with a bore and reduction, z 30 at x −0.3) equal the
+  analytic shifted profile's area (Green's theorem) × the face width, within the measured flank deviation.
+- **Refusals:** x 1.2 and −0.6 are out of range; 12 teeth at x 0.2 are undercut (below 13.7, x ≥ 0.298); 10 teeth at
+  x 1 come to a point.
+- **Conformance** 55: `r6a-spur-shifted-pair` is new, with volumes from the exact area within 6e-6; `spur-shift-refused`
+  now uses x 1.3.
+- **Studio:** the shifted pinion's notes; the meshing gear at x 0.36 at 56.4999 mm, clear. Kernel 972/973 (the known environmental test); studio 304/304.
+
+Next: R6a.5b — the rack (a straight-toothed bar meshing with a spur gear) and its pair checks; then R6a.5c helical.

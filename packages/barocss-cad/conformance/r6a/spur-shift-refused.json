@@ -3,9 +3,10 @@
   "step": "R6a",
   "decisions": [
     "D53",
-    "D54"
+    "D54",
+    "D57"
   ],
-  "about": "A profile shift is refused with its code (UNSUPPORTED_PROFILE_SHIFT), never approximated: shifted profiles arrive with R6a.5.",
+  "about": "A profile shift outside this stage's range (\u22120.5 to 1) is refused with its code (UNSUPPORTED_PROFILE_SHIFT), never approximated (R6a.5a, D57; until then every shift was refused, D53).",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -19,7 +20,7 @@
           "module": 2,
           "teeth": 20,
           "faceWidth": 10,
-          "profileShift": 0.3
+          "profileShift": 1.3
         }
       ]
     }

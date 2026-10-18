@@ -156,3 +156,16 @@ test('Meshing gear (R6a.4b, D56): beside the selected gear at the centre distanc
   // Suppressed, the driver takes the follower with it.
   const r5 = evaluateDoc({ ...two, nodes: [{ ...two.nodes[0], suppressed: true }, two.nodes[1]] }, 5); assert.ok(r5.ok); assert.equal(r5.ok && r5.bodies.length, 0);
 });
+
+test('Profile shift (R6a.5a, D57): a 12-tooth pinion at x 0.6 from the command, its shift in the notes; a 24-tooth gear at x 0.36 meshing with it stands at the working centre distance 56.4999 mm, clear', () => {
+  const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 3, teeth: 12, shift: 0.6, b: 10, bore: 0, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
+  assert.equal((one.nodes[0] as Extract<ModelNode, { kind: 'gear' }>).profileShift, 0.6);
+  assert.ok(r1.ok && r1.bodies[0].notes!.some(n => /^Profile shift x 0\.6: Reference Ø36, tip Ø45\.6, root Ø32\.1/.test(n.text)), JSON.stringify(r1.ok && r1.bodies[0].notes));
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  const two = mesh.build!(picked, { ...mesh.defaults!(picked), teeth: 24, shift: 0.36, bore: 10 }), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const notes = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)!.notes! : [];
+  assert.ok(notes.some(n => /centre distance 56\.4999 mm, ratio −12:24, backlash 0 mm/.test(n.text)) && notes.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(notes));
+});

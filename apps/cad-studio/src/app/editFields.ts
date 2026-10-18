@@ -151,6 +151,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('m', 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
       number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
       number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
+      number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; if (v) next.profileShift = v; else delete next.profileShift; return next; });
       number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
       number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
       // Its turn (a meshing gear: where it stands beside the other gear, and its phase; its turn follows the other's).
