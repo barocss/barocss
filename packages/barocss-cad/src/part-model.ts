@@ -33,6 +33,7 @@ import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
+import { subdBrep, SubdError } from './subd.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -150,6 +151,13 @@ export type CadPartFeature = Base & (
    * Open NURBS surfaces sewn into one closed solid along their natural edges (each edge shared by exactly
    * two of them within `tolerance` mm); the faces keep their exact surfaces.
    */
+  /**
+   * SD1 (R5): a SubD cage — quads counter-clockwise from outside, optional infinitely sharp creases — as its exact
+   * limit surface (OpenSubdiv rules; boundary edges and corners interpolated): bicubic B-spline faces
+   * `${id}.patch<k>`, a solid when the cage is closed, a sheet when it has a boundary. Regular vertices only yet
+   * (extraordinary vertices, n-gons and darts arrive with SD2).
+   */
+  | { readonly kind: 'subd'; readonly cage: { readonly positions: readonly number[] | Float64Array; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] } }
   | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
@@ -218,7 +226,7 @@ export interface CadPartSnapshot {
  * threads. The part document's own text stays at `fileBytes`. `stepTessellatedBytes`: a file whose excess over
  * `stepBytes` is tessellated meshes (AP242: the studio's own mesh exports, scans) — see `stepSizeProblem`.
  */
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000, subdVertices: 100_000 });
 /**
  * Why a STEP file is too large to read, or null: its text past `stepTessellatedBytes`, or what is not tessellated in
  * it (B-rep records and the rest) past `stepBytes` (D49). Tessellated records take about 13 times their text while
@@ -794,6 +802,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => {
         try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
         catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
+    case 'subd': {
+      const cage = f.cage as Record<string, unknown> | undefined;
+      if (!isRecord(cage) || !(Array.isArray(cage.positions) || cage.positions instanceof Float64Array) || !Array.isArray(cage.faces)) fail('INPUT', 'cage must be { positions, faces, creases? }');
+      const { positions, faces, creases } = cage as { positions: ArrayLike<number>; faces: unknown[]; creases?: unknown };
+      if (positions.length > 3 * CadPartLimits.subdVertices || faces.length > CadPartLimits.subdVertices) fail('INPUT', `a cage has at most ${CadPartLimits.subdVertices} vertices and faces`);
+      if (!faces.every(x => Array.isArray(x) && x.every(v => Number.isInteger(v)))) fail('INPUT', 'cage faces must list vertex numbers');
+      if (creases !== undefined && !(Array.isArray(creases) && creases.every(c => Array.isArray(c) && c.length === 2 && c.every(v => Number.isInteger(v))))) fail('INPUT', 'cage creases must be pairs of vertex numbers');
+      return () => {
+        try { return one({ kind: 'brep', brep: subdBrep({ positions, faces: faces as number[][], ...(creases ? { creases: creases as [number, number][] } : {}) }, { id: at }) }); }
+        catch (cause) { if (cause instanceof SubdError) fail(cause.code, cause.message.replace(/^SubD: /, '')); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
       };
     }
     case 'sew': {

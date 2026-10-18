@@ -438,9 +438,9 @@ Checks at the end:
 
 | Suite | Result |
 |---|---|
-| kernel | 938/939 (the known environmental demo-spawn test) |
-| studio | 299/299 |
-| browser flow | 112/112 |
+| kernel | 947/948 (the known environmental demo-spawn test) |
+| studio | 300/300 |
+| browser flow | 113/113 |
 | RB and props | 0 NEW |
 | bench | within budget |
 
@@ -453,9 +453,9 @@ else a proposal, the first build on an empty part applied directly (D41); STEP c
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: R5 (R4 done: D50; R3 done: D42–D49).
+Next: R6, F2 (R5 done: D51; R4 done: D50; R3 done: D42–D49).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → R5 … R14 → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → R6 … R14 → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

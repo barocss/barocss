@@ -1728,3 +1728,85 @@ regression from R3.5 that the R3.5 run missed, and the new R4 cases.
 
 Still with the planar path (explode, 16k): Booleans and holes against mesh bodies. That is F2, next on the facet
 track.
+
+## D51 — SD1: a SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology (2026-10-18, R5)
+
+Decision (`subdBrep` in `subd.ts`; the part model's `subd` feature; the studio's `subd` node and its "SubD torus"
+command):
+- **The cage.** Positions, quads counter-clockwise from outside, and optional infinitely sharp creases (pairs of
+  vertex numbers). It is stored as the node's own data: no 64-surface limit and no inline surfaces, as `sew` has.
+  The part limit is 100,000 vertices and faces.
+- **What becomes exact.** Where every vertex is regular, the Catmull–Clark limit surface is exactly the uniform
+  bicubic B-spline whose control net is the cage. Each quad takes its 4 × 4 net from its neighbours, placed in one
+  frame.
+- **Boundaries, creases and corners (OpenSubdiv rules, "edge and corner" boundary interpolation).**
+  - Across a boundary or an infinitely sharp crease, the missing neighbours are mirrored phantoms, 2·P(edge) −
+    P(inside). Along it, the limit is then the cubic B-spline of its vertices: the crease and boundary rule.
+  - With both sides mirrored, a corner is interpolated: the corner rule. That applies to a boundary vertex of two
+    edges, and to a vertex whose every edge is sharp.
+- **Regular means:**
+  - inside: valence 4, and either no sharp edge or two opposite ones (a crease line);
+  - on a boundary: 3 edges, or 2 at a corner;
+  - or every edge sharp.
+- **Refused as CAPABILITY, naming SD2 (R7):** extraordinary vertices (valence ≠ 4), n-gons, darts (a crease ending
+  inside the surface), and sharp edges not running straight through.
+- **Refused as INPUT:** non-manifold or inconsistently wound cages, unknown vertices, and creases that are not cage
+  edges.
+- **Faces.**
+  - Regular regions are packed into blocks: rows grown along u, then along v, up to 13 × 13 quads (16 × 16 poles, the
+    surface limit).
+  - A block never wraps onto itself, never crosses a sharp edge, and stops at a quad turned more than 90° from its
+    seed's. So each face stays a graph over its plane, which is how the validator tells its side; a 32 × 12 torus
+    packed by size alone made one face span 330° of the tube, and the validator misread it.
+  - Each block's net is clamped by Boehm knot insertion (knots 0…K).
+  - Faces are named `<id>.patch<k>`, after the block's seed quad.
+- **Edges.** A face's boundary is cut into runs of cage edges that end at a corner of either face. Each run is made
+  once, as the limit curve along it (the net's line averaged across, (1, 4, 1)/6, clamped), so neighbours share it
+  exactly. Vertices are the cage vertices at run ends.
+- **Body kind.** A solid when the cage is closed (a cage wound inward is turned outward), a sheet when it has a
+  boundary.
+- **Studio.**
+  - "SubD torus" makes a regular nu × nv cage. Its radii are grown so the limit over the cage's vertices sits at the
+    ring radius and, across the tube, the tube radius: within 3% of a true torus at 16 × 8.
+  - The node holds the cage inline (JSON numbers).
+  - The cage editor is SD3 (R8); the chat writes a SubD through the command for now.
+
+Evidence:
+- **Kernel `test/subd.test.mjs` 5/5.**
+  - Tori 16 × 8, 32 × 12 and 30 × 30: one Catmull–Clark step, written apart in the test, gives the same volume and
+    area to 1e-12. All valid, genus 1, poles ≤ 16 × 16.
+  - A creased torus (two crease rings) and a bumpy open sheet agree with a Catmull–Clark step the same way. The crease
+    ring's edges lie on z = 0, and the sheet passes through its four corners to 1e-12.
+  - Exact by construction: a flat 4 × 3 grid has area 1200; an all-creased cube is 1000 mm³ and 600 mm², the same
+    when wound inward.
+  - Refusals: a plain cube (valence 3), a triangle and a dart are CAPABILITY; a bad vertex, a bad crease and a
+    doubled face are INPUT.
+  - Part model: patch names; the STEP round-trip volume to 1e-9; a cube cage is CAPABILITY; a split of the SubD
+    torus through the analytic path sums to 1e-6.
+- **Conformance `conformance/r5/`, 4 cases:**
+  - the creased cube (1000 mm³, 600 mm², centroid (5, 5, 5), STEP round trip);
+  - the 16 × 8 torus (STEP round trip);
+  - the extraordinary cube refused;
+  - the dart refused.
+- **Suites and RB.** Kernel 947/948 (the known environmental test). RB on the conformance set: 232 rows, all OK.
+  Studio 300/300 (new: the SubD torus command).
+- **Browser flow 113/113.** New step: "SubD torus" from the palette gives 128 quads and 1 body, the volume within 3%
+  of 2π²Rr². A split across X gives 2 bodies.
+- **Numbers (Node), a 200 × 100 torus cage of 20,000 quads:**
+
+  | Stage | Time |
+  |---|---|
+  | Build (128 faces) | 58 ms |
+  | Validator | 10 ms |
+  | Mass properties | 3.9 s |
+
+  Mass is quadrature over every span: B0's per-span Gauss, 20k spans; a later step can integrate a block's spans
+  together.
+- **Display, against the analytic (revolved) torus of the same size:**
+
+  | Quality | SubD torus | Revolved torus |
+  |---|---|---|
+  | 8 | 3,442 triangles, worst turn 17.1° | 2,048, 12.5° |
+  | 16 | 11,316, 8.9° | 8,192, 7.1° |
+
+  In line with the analytic torus.

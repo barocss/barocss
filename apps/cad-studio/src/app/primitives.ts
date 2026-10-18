@@ -16,6 +16,22 @@ function turned(doc: StudioDoc, sketch: ModelNode): StudioDoc {
   const d = withNode(doc, sketch);
   return withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: 'y', angleDegrees: 360 });
 }
+/**
+ * A regular torus cage (every vertex valence 4) of nu × nv quads standing on z, wound outward. Its radii are grown so
+ * that the limit surface's points over the cage's vertices sit at the ring radius and, across the tube, the tube
+ * radius (a vertex's limit is the (1, 4, 1)/6 average of its neighbours along each direction).
+ */
+function torusCage(R: number, r: number, nu: number, nv: number, [x, y, z]: [number, number, number]) {
+  const cu = (4 + 2 * Math.cos(2 * Math.PI / nu)) / 6, cv = (4 + 2 * Math.cos(2 * Math.PI / nv)) / 6, Rc = R / cu, rc = r / cv;
+  const positions: number[] = [], faces: number[][] = [], round = (t: number) => Math.round(t * 1e9) / 1e9;
+  for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
+    const u = 2 * Math.PI * i / nu, w = 2 * Math.PI * j / nv;
+    positions.push(round(x + (Rc + rc * Math.cos(w)) * Math.cos(u)), round(y + (Rc + rc * Math.cos(w)) * Math.sin(u)), round(z + r + rc * Math.sin(w)));
+  }
+  const at = (i: number, j: number) => (i % nu) * nv + (j % nv);
+  for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) faces.push([at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1)]);
+  return { positions, faces };
+}
 const circleLoop = (cx: number, cy: number, r: number): LoopSegment[] => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
 
 type V3 = [number, number, number];
@@ -63,6 +79,19 @@ export const primitives: Command[] = [
       const R = Number(v.R), r = Number(v.r);
       if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
       return turned(ctx.doc, { kind: 'sketch', profile: 'circle', center: [R, r], radius: r, plane: upright(v) });
+    },
+  },
+  {
+    id: 'subd-torus', label: 'SubD torus', icon: 'cad-subd', hint: 'A smooth ring from a quad cage (SubD): its exact limit surface, B-spline faces', group: 'create', keywords: 'subd subdivision smooth cage organic ring freeform',
+    available: () => ok,
+    fields: () => [{ key: 'R', label: 'Ring radius', kind: 'mm', min: 1 }, { key: 'r', label: 'Tube radius', kind: 'mm', min: 0.5 }, { key: 'nu', label: 'Quads round', kind: 'count', min: 4, max: 64 }, { key: 'nv', label: 'Quads across', kind: 'count', min: 4, max: 32 }, ...at],
+    defaults: ctx => ({ R: 20, r: 6, nu: 16, nv: 8, ...beside(ctx, 30) }),
+    place: centred,
+    handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
+    build: (ctx, v) => {
+      const [R, r] = n(v, 'R', 'r');
+      if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
+      return withNode(ctx.doc, { kind: 'subd', name: 'torus', cage: torusCage(R, r, Math.round(Number(v.nu)), Math.round(Number(v.nv)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
   {

@@ -2282,6 +2282,27 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    assert.match(await page.textContent('.history'), /SubD torus \(128 quads\)/);
+    await page.locator('.outliner .ol').first().click();
+    const props = await page.textContent('.props');
+    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, '')), exact = 2 * Math.PI * Math.PI * 20 * 36;
+    assert.ok(Math.abs(vol / exact - 1) < 0.03, `${vol} vs ${exact}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('subd-torus');
+    // A split across Z through it (the analytic path: B-spline faces).
+    await press(' '); await page.locator('.palette input').fill('split'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 });
+    await snap('subd-torus-split');
+  });
+
   await check('face colour: the top of a box coloured on its own, kept by the face name; cleared again', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

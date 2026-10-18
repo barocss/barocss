@@ -90,3 +90,17 @@ test('a shape placed on a side face stands out of it: turned about where it was 
   const [hb] = (evaluateDoc(box.build!(ctx, bv), 3) as { bodies: BodyResult[] }).bodies;
   assert.deepEqual([hb.mesh.bounds.min[2], hb.mesh.bounds.max[2]].map(Math.round), [4, 8]);
 });
+
+test('SubD torus (SD1, D51): a subd node from a regular cage — a smooth ring near the asked radii, curved B-spline faces, editable as values', () => {
+  const ring = make('subd-torus', { R: 20, r: 6, nu: 16, nv: 8, x: 0, y: 0, z: 0 });
+  // The limit over the cage's vertices sits at the radii (across the tube within 1 − cu of r): near a true torus.
+  const exact = 2 * Math.PI * Math.PI * 20 * 36;
+  assert.ok(Math.abs(ring.volumeMM3! / exact - 1) < 0.03, `${ring.volumeMM3} vs ${exact}`);
+  assert.ok(Math.abs(ring.mesh.bounds.max[2] - 12) < 0.05 && Math.abs(ring.mesh.bounds.min[2]) < 0.05, JSON.stringify(ring.mesh.bounds));
+  const cmd = commands.find(c => c.id === 'subd-torus')!, doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), nu: 24, nv: 12 });
+  const node = doc.nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
+  assert.deepEqual([node.kind, node.cage.faces.length, node.cage.positions.length], ['subd', 288, 864]);
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok);
+  assert.ok(r.bodies[0].mesh.faces.every(f => /^n0\.patch\d+$/.test(f.name)), r.bodies[0].mesh.faces.map(f => f.name).join(' '));
+  assert.throws(() => cmd.build!(ctx, { ...cmd.defaults!(ctx), R: 5, r: 6 }), /smaller/);
+});
