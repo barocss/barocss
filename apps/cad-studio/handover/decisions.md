@@ -2884,3 +2884,34 @@ Evidence:
 
 Next: AM2, the overhang map — exact normals for planar faces, display triangles only for curved ones (accurate to
 the chord error).
+
+## D73 — AM2: the overhang map (2026-10-18)
+
+Decision (`src/print/overhang.ts`):
+- **The rule:** against the build direction b (+Z by default), a surface needs support when −n·b > sin θ, with θ the
+  printing process's `maxOverhangDeg` from the vertical: 45 for FDM, 30 for SLA, 90 for powder, which never needs
+  support. Its angle from the vertical is asin(−n·b).
+- **Bed faces** — facing straight down at the part's lowest point along b — rest on the bed. They are left out and
+  reported apart.
+- **Exactness (peer):**
+  - a planar face is judged whole by its exact normal from the B-rep face table, its area the face's;
+  - a curved face is judged triangle by triangle on the display mesh. The report says `approximate`: accurate only
+    to the chord error.
+- **A3 `overhang_area { body?, direction? }`:** the overhanging area. Unknown without a printing process (moulding is
+  not printing; none chosen). The hint names the limit and says when curved faces made it approximate.
+- **Viewport:** the Analyse button's third look, offered for a printing process, is the overhang map. Past the limit
+  is red, deepening with the angle; the bed grey; the rest pale. It is a WGSL shader material beside zebra and
+  curvature, its limit and bed height as parameters.
+- Pending: the map follows +Z until AM4 chooses an orientation.
+
+Evidence (`test/printing.test.ts` 3/3):
+- A box on the bed: none, its 400 mm² bottom on the bed.
+- A T: its arms' undersides, exactly 300 mm², 90°, exact.
+- A slope 60° from the vertical counts its exact area against 45°; one at 30° does not.
+- Built along −X: another bed and other overhangs.
+- A cylinder lying along Y: the band within 45° of straight down, 5·π/2·20, matched within 3% by triangles, marked
+  approximate.
+- As requirements: FDM fails with 300; SLS passes with 0; moulding and no process are unknown.
+- The browser flow shows the overhang look with FDM. Studio tests pass; lint 0 errors.
+
+Next: AM3, printability rule checks.

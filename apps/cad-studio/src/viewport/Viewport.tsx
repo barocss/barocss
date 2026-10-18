@@ -313,7 +313,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const overlayKey = shapeOf([props.gizmo, props.handles]);
   useEffect(() => { request(); }, [props.sketch, overlayKey]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
-  useEffect(() => { renderer.current?.setAnalysis?.(props.analysis ?? null); request(); }, [props.analysis, backend]);
+  useEffect(() => { renderer.current?.setAnalysis?.(props.analysis ?? null); request(); }, [typeof props.analysis === 'object' && props.analysis ? `${props.analysis.sinLimit}:${props.analysis.bedZ}` : props.analysis, backend]);
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);

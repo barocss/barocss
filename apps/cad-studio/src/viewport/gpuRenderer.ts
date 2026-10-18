@@ -5,7 +5,7 @@
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
-import { curvature, zebra, type Analysis } from './analysis';
+import { curvature, overhang, zebra, type Analysis } from './analysis';
 
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
@@ -57,6 +57,7 @@ export class GpuRenderer implements ViewRenderer {
   private regions: Mesh[] = [];
   /** A surface analysis look (zebra, curvature) for the modelling view, or none. */
   private analysis: ShaderMaterial | null = null;
+  private analysisKey: string | null = null;
   /** Colour maps by image (null while one loads), and the tiling each instance surface has. */
   private maps = new Map<string, ImageTexture | null>();
   private instanceTiles = new WeakMap<Mesh, { tile?: number }>();
@@ -349,8 +350,10 @@ export class GpuRenderer implements ViewRenderer {
 
   /** Zebra stripes or the curvature map on every body in the modelling view (null: the plain look). */
   setAnalysis(mode: Analysis | null): void {
-    const next = mode === 'zebra' ? ZEBRA : mode === 'curvature' ? CURVATURE : null;
-    if (next === this.analysis) return;
+    const key = mode && typeof mode === 'object' ? `overhang:${mode.sinLimit}:${mode.bedZ}` : mode;
+    if (key === this.analysisKey) return;
+    this.analysisKey = key;
+    const next = mode === 'zebra' ? ZEBRA : mode === 'curvature' ? CURVATURE : mode && typeof mode === 'object' ? overhang(mode.sinLimit, mode.bedZ) : null;
     this.analysis = next;
     for (const b of this.bodies) b.state = '';
     if (this.view) this.setState(this.view);

@@ -4,7 +4,8 @@
 // pixel's own derivatives), flat blue through green to red.
 import type { ShaderMaterial } from '@barocss/gpu/viewer';
 
-export type Analysis = 'zebra' | 'curvature';
+/** Zebra, curvature, or the printing overhang map (AM2): faces leaning down past `sinLimit` (sin of the process's limit from the vertical) red, the bed at `bedZ` left out. */
+export type Analysis = 'zebra' | 'curvature' | { readonly kind: 'overhang'; readonly sinLimit: number; readonly bedZ: number };
 
 const VIEW = 'select(-frame.forward.xyz, normalize(frame.eye.xyz - world), frame.eye.w > 0.5)';
 
@@ -38,3 +39,18 @@ fn curvatureColor(world: vec3f, n: vec3f) -> vec3f {
   expression: 'curvatureColor(world, normal)',
   params: [full],
 });
+
+/** AM2's overhang map along +Z: past the limit red, facing down on the bed grey, the rest pale. */
+export const overhang = (sinLimit: number, bedZ: number): ShaderMaterial => ({
+  declarations: /* wgsl */ `
+fn overhangColor(world: vec3f, n: vec3f) -> vec3f {
+  let down = -normalize(n).z;
+  if (down > 0.999 && world.z < materialParams.slot[0].y + 1e-3) { return vec3f(0.45); }
+  if (down > materialParams.slot[0].x) { return mix(vec3f(0.95, 0.55, 0.2), vec3f(0.85, 0.12, 0.1), clamp((down - materialParams.slot[0].x) * 4.0, 0.0, 1.0)); }
+  return vec3f(0.82, 0.86, 0.8);
+}
+`,
+  expression: 'overhangColor(world, normal)',
+  params: [sinLimit, bedZ],
+});
+

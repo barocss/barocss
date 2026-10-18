@@ -2385,6 +2385,11 @@ try {
     assert.ok(notes.some(t => /is an estimate/.test(t)) && notes.some(t => /not for structural calculation/.test(t)), notes.join(' | '));
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('library-tslot');
+    // AM2: with FDM chosen, the analysis button's third look is the overhang map.
+    for (let k = 0; k < 3; k++) await page.click('[aria-label="Surface analysis"]');
+    assert.equal(await page.textContent('[aria-label="Surface analysis"]'), 'Overhang');
+    await page.waitForTimeout(400); await snap('overhang-map');
+    await page.click('[aria-label="Surface analysis"]');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
