@@ -1,6 +1,6 @@
-// Representative evaluation costs, best of several runs, each against a budget: a few times the time
-// measured when the budget was set (2026-10-17, Apple M-series, Node 22), so noise passes and a real
-// regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
+// Representative evaluation costs, best of several runs, each against a budget: about twice the time
+// measured when the budget was set (PERF3 D18, 2026-10-18, Apple M-series, Node 22; sub-millisecond
+// rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { brepMassProperties, evaluateCadPart, extrudeFaces, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
@@ -40,28 +40,28 @@ function printedPlate(width: number): StudioDoc {
     q('R5', { fn: 'overhang_area' }, '<=', 1e6), q('R6', { fn: 'print_rule', rule: 'wall' }, '>=', 0.8), q('R7', { fn: 'print_rule', rule: 'tip' }, '<=', 10), q('R8', { fn: 'print_rule', rule: 'overhang' }, '<=', 1e6)] };
 }
 const scenarios: Scenario[] = [
-  { name: 'evaluate: 16-hole plate (cold)', budgetMS: 3000, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
-  { name: 'tessellate: 12-edge filleted box', budgetMS: 120, runs: 5, setup() {
+  { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
+  { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
     const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
     const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
     const brep = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].brep;
     return () => tessellateBrep(brep, { segmentsPerQuarter: 8 });
   } },
-  { name: 'mass: 12-edge filleted box', budgetMS: 900, runs: 3, setup() {
+  { name: 'mass: 12-edge filleted box', budgetMS: 800, runs: 3, setup() {
     const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
     const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
     const brep = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].brep;
     return () => brepMassProperties(brep, 1);
   } },
-  { name: 'evaluate: 20-feature chain, unchanged', budgetMS: 10, runs: 10, setup() { const doc = chain20(); evaluateDoc(doc, 1); let k = 1; return () => evaluateDoc(doc, ++k); } },
-  { name: 'evaluate: stepped body patterned × 12', budgetMS: 1500, runs: 3, setup() {
+  { name: 'evaluate: 20-feature chain, unchanged', budgetMS: 1, runs: 10, setup() { const doc = chain20(); evaluateDoc(doc, 1); let k = 1; return () => evaluateDoc(doc, ++k); } },
+  { name: 'evaluate: stepped body patterned × 12', budgetMS: 1400, runs: 3, setup() {
     const f: unknown[] = [];
     for (let k = 0; k < 6; k++) f.push({ id: `s${k}`, kind: 'sketch', profile: 'circle', center: [5, 5], radius: 5 - k * 0.6 }, { id: `e${k}`, kind: 'extrude', sketch: `s${k}`, height: 2, ...(k ? { from: 2 * k } : {}) });
     for (let k = 1; k < 6; k++) f.push({ id: `u${k}`, kind: 'union', target: k === 1 ? 'e0' : `u${k - 1}`, tool: `e${k}` });
     let r = 30;
     return () => evaluateCadPart(D([...f, { id: 'p', kind: 'circular-pattern', target: 'u5', axis: 'z', angleDegrees: 30, count: 12, pivot: [r += 1e-3, 5, 0] }]));
   } },
-  { name: 'drawing: 120-hole plate, 4 views (cold)', budgetMS: 4000, runs: 3, setup() {
+  { name: 'drawing: 120-hole plate, 4 views (cold)', budgetMS: 2600, runs: 3, setup() {
     // (A fresh part each run: a drawing's tessellation is cached with its B-rep.)
     const plates = Array.from({ length: 4 }, (_, k) => {
       const f: unknown[] = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [240 + k * 1e-3, 120] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
@@ -90,7 +90,7 @@ const scenarios: Scenario[] = [
   { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   // (PERF3 A5: the D79 split rounds tessellate again only the faces next to a split edge.)
   { name: 'tessellate: SubD body of a ~2k-face cage', budgetMS: 2000, runs: 2, setup() { const b = subdBrep(boxCage(30, 20, 16, 18, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
-  { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
+  { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
     const sheet = d.objects[0].id; directDisplay(d); let k = 0;
     return () => { d = movePole(d, sheet, '1,1', [110, 6.67, 6 + 0.01 * ++k]); return directDisplay(d); };

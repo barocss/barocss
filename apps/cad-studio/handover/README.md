@@ -26,10 +26,10 @@ Done:
 - R1–R7, RB1–RB4, A1–A4 (AI collaboration), R3–R6, R6a gears, LIB1–4, R6b, AM1–AM5.
 - R8.1 cage operations (D80); R8.2a cage editor (D81).
 - **PERF3 A1–A6** (D82): A1 `49c4da306`; A2 `818f92cef`; A3 `dfae081e1` and memo key `8ddb29262`; A4 `4e4e7017d`; A5 `bf02e4204`; A6 `2831d318a`.
+- **PERF3 D18** (D82 § D18): bench budgets about 2× the latest values, Node and browser; all rows pass.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **D18** (tighten budgets to about 2× the latest values; rerun `pnpm bench`). The new A1/A4/A5 benches already have about 2× budgets.
    - **D19** new benches still missing:
      - 16-hole plate mass;
      - 2,048-quad torus mass;

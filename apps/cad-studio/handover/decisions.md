@@ -3502,3 +3502,30 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - the read-only walk returns the document itself;
   - `modelHash` matches the whole walk's value.
 - Studio 353/353.
+
+### D18 — budgets about twice the latest values
+- **Why:** the old budgets were a few times the 2026-10-17 values, set before A1–A6; most rows had grown 2.5–40× room, so a lost cache could double a cost and still pass.
+- **Node (`pnpm bench`, best of the runs, three runs of the whole suite):**
+
+  | Bench | Latest | Budget before | Budget now |
+  |---|---|---|---|
+  | `evaluate: 16-hole plate (cold)` | 1 359–1 368 ms | 3 000 | 2 800 |
+  | `tessellate: 12-edge filleted box` | 33–36 ms | 120 | 70 |
+  | `mass: 12-edge filleted box` | 385–388 ms | 900 | 800 |
+  | `evaluate: 20-feature chain, unchanged` | 0.24–0.28 ms | 10 | 1 (a 1 ms floor below a millisecond) |
+  | `evaluate: stepped body patterned × 12` | 645–690 ms | 1 500 | 1 400 |
+  | `drawing: 120-hole plate, 4 views (cold)` | 1 253–1 299 ms | 4 000 | 2 600 |
+  | `direct: pole-drag step (warped sheet)` | 4.2–4.3 ms | 20 | 10 |
+
+  The A1/A4/A5 rows already had about 2× budgets and keep them.
+- **Browser (`bench:browser`, two runs):**
+
+  | Scenario | Latest | Budget before | Budget now |
+  |---|---|---|---|
+  | hover, 60 moves | 17 submits, 0.25–0.30 ms a frame | 60, 8 ms | 34, 2 ms |
+  | face clicked | 1–2 submits, 0.2–0.3 ms | 2, 8 ms | 2, 2 ms |
+  | Escape | 1, 0.2–0.3 ms | 2, 8 ms | 2, 2 ms |
+  | orbit, 60 steps | 60, 0.33 ms | 90, 12 ms | 64, 2 ms |
+
+  Frame CPU has a 2 ms floor (headless scheduling noise); the orbit is one submit per step, so its budget is a few submits over 60, not twice. One submit per frame stays the budget everywhere.
+- All 13 Node rows and all 4 browser rows pass on the new budgets.

@@ -1,5 +1,6 @@
-// Interaction costs in a real Chromium, each against a budget (a few times what was measured when the
-// budget was set, 2026-10-17, Apple M-series, WebGPU): GPU submits and frame CPU time while the pointer
+// Interaction costs in a real Chromium, each against a budget (about twice what was measured when the
+// budget was set, PERF3 D18, 2026-10-18, Apple M-series, WebGPU; frame CPU has a 2 ms floor, and a count
+// that is one per step, the orbit's, a few submits over it): GPU submits and frame CPU time while the pointer
 // hovers across the starter plate, and while the camera orbits. Opt-in (needs a browser):
 //   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] node test/bench-browser.mjs
 import { createRequire } from 'node:module';
@@ -37,14 +38,14 @@ try {
   await page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
   const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2;
   // 60 pointer moves across the plate (faces, edges, the hole): a submit only when what is hovered changes.
-  await measure('hover: 60 moves across the plate', { submits: 60, avgFrameMS: 8, perFrame: 1 }, async () => {
+  await measure('hover: 60 moves across the plate', { submits: 34, avgFrameMS: 2, perFrame: 1 }, async () => {
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx - 300 + 10 * i, cy - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
   });
   // A click on a face from idle (the selection changes): one frame drawn, once.
-  await measure('select: a face clicked from idle', { submits: 2, avgFrameMS: 8, perFrame: 1 }, async () => { await page.mouse.click(cx + 40, cy + 30); });
-  await measure('select: cleared (Escape) from idle', { submits: 2, avgFrameMS: 8, perFrame: 1 }, async () => { await page.keyboard.press('Escape'); });
+  await measure('select: a face clicked from idle', { submits: 2, avgFrameMS: 2, perFrame: 1 }, async () => { await page.mouse.click(cx + 40, cy + 30); });
+  await measure('select: cleared (Escape) from idle', { submits: 2, avgFrameMS: 2, perFrame: 1 }, async () => { await page.keyboard.press('Escape'); });
   // An orbit drag of 60 steps: one frame each.
-  await measure('orbit: 60-step drag', { submits: 90, avgFrameMS: 12, perFrame: 1 }, async () => {
+  await measure('orbit: 60-step drag', { submits: 64, avgFrameMS: 2, perFrame: 1 }, async () => {
     await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
