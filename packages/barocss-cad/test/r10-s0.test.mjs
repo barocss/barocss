@@ -45,8 +45,8 @@ test('R10 S0 (b) coaxial: a revolved tool tangent to a cone (the rim between a c
   const cut = [...body, { id: 't', kind: 'sketch', profile: 'loop', segments: loop, plane: xz }, { id: 'tr', kind: 'revolve', sketch: 't', axis: { origin: [0, 0], direction: 'y' } }, { id: 'f', kind: 'difference', target: 'r', tool: 'tr' }];
   assert.equal(valid(cut), true);
   // The removed meridian region: the kite P–T1–c–T2 less the 45° sector; its first moment about the axis, times 2π.
-  const kite = [[10, 10], T1, c, T2]; let A = 0, Mx = 0;
-  for (let i = 0; i < 4; i++) { const [x0, y0] = kite[i], [x1, y1] = kite[(i + 1) % 4], cr = x0 * y1 - x1 * y0; A += cr / 2; Mx += (x0 + x1) * cr / 6; }
+  const kite = [[10, 10], T1, c, T2]; let Mx = 0;
+  for (let i = 0; i < 4; i++) { const [x0, y0] = kite[i], [x1, y1] = kite[(i + 1) % 4], cr = x0 * y1 - x1 * y0; Mx += (x0 + x1) * cr / 6; }
   const th = Math.PI / 4, As = rf * rf * th / 2, cx = c[0] + (2 * rf * Math.sin(th / 2)) / (3 * th / 2) * Math.cos(th / 2);
   const exact = 2 * Math.PI * (Math.abs(Mx) - As * cx);
   assert.ok(Math.abs((vol(body) - vol(cut)) / exact - 1) < 1e-9, `${vol(body) - vol(cut)} vs ${exact}`);
