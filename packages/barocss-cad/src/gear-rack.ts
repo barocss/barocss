@@ -17,7 +17,16 @@ import {
 
 /** Version 0 of the rack's inputs (lengths in mm). */
 export interface SpurRackSpec {
-  readonly moduleMM: number;
+  /** A straight rack's module. (A helical rack's is `normalModuleMM`.) */
+  readonly moduleMM?: number;
+  /**
+   * A helical rack (R6a.5c, D60): the normal module, the teeth inclined at β to the gear axis and its hand — the label
+   * of the z → ∞ external gear it is, so it meshes with gears of the opposite hand: a left-hand rack's teeth slide
+   * +X by z tan β (teeth toward +Y), meshing with right-hand gears.
+   */
+  readonly normalModuleMM?: number;
+  readonly helixAngleDeg?: number;
+  readonly hand?: 'right' | 'left';
   /** Teeth along its length; the rack is teeth × πm long, a half gap at each end. */
   readonly teeth: number;
   readonly faceWidthMM: number;
@@ -32,20 +41,35 @@ export interface SpurRackReport {
   readonly generator: 'spur-rack@0';
   readonly lengthMM: number; readonly pitchMM: number; readonly toothThicknessMM: number; readonly tipWidthMM: number; readonly rootWidthMM: number;
   readonly addendumMM: number; readonly dedendumMM: number;
+  /** A helical rack's: β, its hand label, the normal module, and how far its teeth slide along it per mm up the face. */
+  readonly helix?: { readonly helixAngleDeg: number; readonly hand: 'right' | 'left'; readonly normalModuleMM: number; readonly shear: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
 const MAX_RACK_TEETH = 500;
 
 /** The rack's dimensions and its input checks (refusals thrown, as GearError). */
-export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha: number; s: number } {
-  const m = spec.moduleMM, n = spec.teeth, H = spec.heightMM;
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw new GearError('INVALID_INPUT', 'moduleMM must be a number of mm above 0, at most 100');
+export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha: number; alphaN: number; s: number; mn: number; beta: number; shear: number } {
+  const n = spec.teeth, H = spec.heightMM, helical = spec.helixAngleDeg !== undefined && spec.helixAngleDeg !== 0;
+  let m: number, beta = 0;
+  if (helical) {
+    const bd = spec.helixAngleDeg!;
+    if (spec.moduleMM !== undefined) throw new GearError('INVALID_INPUT', 'a helical rack takes normalModuleMM (the normal module), not moduleMM');
+    if (!(Number.isFinite(bd) && bd > 0 && bd <= 45)) throw new GearError('UNSUPPORTED_GEAR_KIND', `helix angle ${bd}°: from above 0 to 45° in this stage`);
+    if (spec.hand !== 'right' && spec.hand !== 'left') throw new GearError('INVALID_INPUT', "a helical rack needs its hand, 'right' or 'left'");
+    m = spec.normalModuleMM as number; beta = (spec.hand === 'right' ? 1 : -1) * bd * Math.PI / 180;
+  } else {
+    if (spec.normalModuleMM !== undefined || spec.hand !== undefined) throw new GearError('INVALID_INPUT', 'normalModuleMM and hand belong to a helical rack: give helixAngleDeg too (a straight rack takes moduleMM)');
+    m = spec.moduleMM as number;
+  }
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw new GearError('INVALID_INPUT', `${helical ? 'normalModuleMM' : 'moduleMM'} must be a number of mm above 0, at most 100`);
   if (!(Number.isInteger(n) && n >= 1 && n <= MAX_RACK_TEETH)) throw new GearError('INVALID_INPUT', `teeth must be a whole number from 1 to ${MAX_RACK_TEETH}`);
   if (!(Number.isFinite(spec.faceWidthMM) && spec.faceWidthMM > 0 && spec.faceWidthMM <= 10000)) throw new GearError('INVALID_INPUT', 'faceWidthMM must be a number of mm above 0');
   const alphaDeg = spec.pressureAngleDeg ?? 20;
   if (alphaDeg !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
-  const alpha = alphaDeg * Math.PI / 180, ha = m, hf = 1.25 * m, p = Math.PI * m, t = Math.tan(alpha);
+  // (Helical: the transverse section — pitch π m_t, pressure angle α_t, heights in m_n — sliding along the rack as it
+  // rises: −tan β for a right-hand label, +tan β for a left.)
+  const cb = Math.cos(beta), alpha = Math.atan(Math.tan(alphaDeg * Math.PI / 180) / cb), ha = m, hf = 1.25 * m, p = Math.PI * m / cb, t = Math.tan(alpha), shear = -Math.tan(beta);
   if (!(Number.isFinite(H) && H >= hf + m)) throw new GearError('INVALID_INPUT', `heightMM must be at least the dedendum and a rim of one module, ${(hf + m).toFixed(4)} mm (a geometric margin, not a strength check)`);
   const red = spec.toothThicknessReductionMM ?? 0;
   if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
@@ -53,7 +77,7 @@ export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha
   if (!(tip > 0)) throw new GearError('SELF_INTERSECTION', 'the rack tooth comes to a point below its tip line');
   if (!(root > 0)) throw new GearError('SELF_INTERSECTION', 'neighbouring rack teeth meet at the root');
   return { generator: 'spur-rack@0', lengthMM: n * p, pitchMM: p, toothThicknessMM: s, tipWidthMM: tip, rootWidthMM: root, addendumMM: ha, dedendumMM: hf,
-    diagnostics: [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root line at a corner: a schematic root, not the cutting tool\'s' }], alpha, s };
+    diagnostics: [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root line at a corner: a schematic root, not the cutting tool\'s' }], alpha, alphaN: alphaDeg * Math.PI / 180, s, mn: m, beta, shear };
 }
 
 /**
@@ -62,7 +86,7 @@ export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha
  * before tooth k; `#n+1` the end gap), `.back`, `.end0`/`.end1` (x 0 / the far end), `.face0`/`.face1`.
  */
 export function spurRack(spec: SpurRackSpec, options: { readonly id?: string } = {}): { brep: Brep; report: SpurRackReport } {
-  const id = safeId(options.id ?? 'rack'), d = spurRackDimensions(spec), m = spec.moduleMM, H = spec.heightMM, n = spec.teeth;
+  const id = safeId(options.id ?? 'rack'), d = spurRackDimensions(spec), m = d.mn, H = spec.heightMM, n = spec.teeth;
   const p = d.pitchMM, t = Math.tan(d.alpha), ha = d.addendumMM, hf = d.dedendumMM, L = d.lengthMM;
   const out: { name: string; curve: Curve }[] = [], line = (name: string, a: [number, number], b: [number, number]) => out.push({ name, curve: lineCurve('l', [a[0], a[1], 0], [b[0], b[1], 0]) });
   // Counter-clockwise: along the back, up the far end, the teeth from the far end back to x 0, down the near end.
@@ -79,8 +103,8 @@ export function spurRack(spec: SpurRackSpec, options: { readonly id?: string } =
   }
   line(`${id}.root#1`, [x, -hf], [0, -hf]);
   line(`${id}.end0`, [0, -hf], [0, -H]);
-  const brep = extrudedProfile(id, 'gear', out, [], spec.faceWidthMM, L + H + m);
-  const report: SpurRackReport = { generator: d.generator, lengthMM: d.lengthMM, pitchMM: d.pitchMM, toothThicknessMM: d.toothThicknessMM, tipWidthMM: d.tipWidthMM, rootWidthMM: d.rootWidthMM, addendumMM: d.addendumMM, dedendumMM: d.dedendumMM, diagnostics: d.diagnostics };
+  const brep = extrudedProfile(id, 'gear', out, [], spec.faceWidthMM, L + H + m + Math.abs(d.shear) * spec.faceWidthMM, undefined, d.shear);
+  const report: SpurRackReport = { generator: d.generator, lengthMM: d.lengthMM, pitchMM: d.pitchMM, toothThicknessMM: d.toothThicknessMM, tipWidthMM: d.tipWidthMM, rootWidthMM: d.rootWidthMM, addendumMM: d.addendumMM, dedendumMM: d.dedendumMM, ...(d.beta ? { helix: { helixAngleDeg: spec.helixAngleDeg!, hand: spec.hand!, normalModuleMM: d.mn, shear: d.shear } } : {}), diagnostics: d.diagnostics };
   return { brep, report };
 }
 
@@ -95,6 +119,8 @@ export interface SpurRackPairCheck {
   /** The gear's tip from the rack's root line, the rack's tip from the gear's root circle (0.25 m each, unshifted at nominal). */
   readonly tipClearancesMM: readonly [number, number];
   readonly idealContactRatio: number; readonly usableContactRatio: number;
+  /** Helical: εβ = b sin β / (π m_n) over the narrower face, and εγ = the usable εα + εβ (straight: 0 and εα). */
+  readonly axialContactRatio: number; readonly totalContactRatio: number;
   readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
@@ -117,10 +143,10 @@ const rackCache = new Map<string, SpurRackPairCheck>();
 
 function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPairOptions): SpurRackPairCheck {
   const g = spurGearDimensions(gear), k = spurRackDimensions(rack);
-  // (A helical gear needs a helical rack, its teeth inclined at β: not in this stage.)
-  if (g.beta !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', 'a helical gear meshes with a helical rack, which this stage does not make');
-  if (g.mn !== rack.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g.mn} and ${rack.moduleMM} mm do not mesh`);
-  if (g.alpha !== k.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  // (Helical: the rack as the z → ∞ gear of the pair — the same β, the opposite hand; checked in the transverse plane.)
+  if (g.mn !== k.mn) throw new GearError('MATE_INCOMPATIBLE', `modules ${g.mn} and ${k.mn} mm do not mesh`);
+  if (g.alphaN !== k.alphaN) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  if (g.beta !== -k.beta) throw new GearError('MATE_INCOMPATIBLE', g.beta === 0 || k.beta === 0 ? 'a straight rack does not mesh with a helical gear, nor a helical rack with a spur gear' : Math.abs(g.beta) !== Math.abs(k.beta) ? 'helix angles differ' : 'a rack of the same hand as the gear does not mesh (the rack carries the opposite hand, as the z → ∞ gear of an external pair)');
   const m = g.mn, alpha = g.alpha, x = gear.profileShiftCoefficient ?? 0, D0 = g.r + x * m, D = options.centerDistanceMM ?? D0;
   if (!(Number.isFinite(D) && D > g.rb)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm beyond the base circle');
   const dd = D - D0, t = Math.tan(alpha), sa = Math.sin(alpha);
@@ -132,7 +158,8 @@ function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPair
   // Along the line of action from the pitch point: the gear's side to where its tip meets it, the rack's side to the
   // rack's tip line, or to where the gear's usable flank starts.
   const A = Math.sqrt(g.ra ** 2 - g.rb ** 2) - g.r * sa, rackSide = (k.addendumMM - x * m - dd) / sa, lo = Math.sqrt(Math.max(0, Math.max(g.rb, g.rf) ** 2 - g.rb ** 2));
-  const pb = Math.PI * m * Math.cos(alpha), ideal = (A + rackSide) / pb, usable = (Math.max(0, A) + Math.max(0, Math.min(rackSide, g.r * sa - lo))) / pb;
+  const pb = k.pitchMM * Math.cos(alpha), ideal = (A + rackSide) / pb, usable = (Math.max(0, A) + Math.max(0, Math.min(rackSide, g.r * sa - lo))) / pb;
+  const epsB = Math.min(gear.faceWidthMM, rack.faceWidthMM) * Math.abs(Math.sin(g.beta)) / (Math.PI * m);
   // The sweep: the gear about (0, D), a tooth pointing down at θ 0 and turned by θ; the rack's pitch line y 0, a gap
   // centred under the gear at θ 0 and the phase, travelling r θ.
   const P = exactProfile(gear, g), period = 2 * Math.PI / gear.teeth, N = Math.max(16, options.samples ?? 64), phase = options.rackPhaseMM ?? 0, verdict = options.mode === 'verdict';
@@ -140,7 +167,7 @@ function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPair
   // backlash — is contact, 0: interference is a crossing deeper than 1e-9 m.)
   const touch = 1e-9 * m, at = (theta: number) => { const d = rackClearance(P, theta, D, g.ra, g.r * theta + phase, k); return d < 0 && d >= -touch ? 0 : d; };
   const result = (least: number, tAt: number, converged: boolean, coarse: number, crossed: boolean, diagnostics: GearDiagnostic[]): SpurRackPairCheck => ({
-    centerDistanceMM: D, nominalCenterDistanceMM: D0, workingPressureAngleDeg: alpha * 180 / Math.PI, backlashMM: backlash, tipClearancesMM: tips, idealContactRatio: ideal, usableContactRatio: usable,
+    centerDistanceMM: D, nominalCenterDistanceMM: D0, workingPressureAngleDeg: alpha * 180 / Math.PI, backlashMM: backlash, tipClearancesMM: tips, idealContactRatio: ideal, usableContactRatio: usable, axialContactRatio: epsB, totalContactRatio: usable + epsB,
     sweep: { samples: N, minimumClearanceMM: least, atDegrees: tAt * 180 / Math.PI, interference: crossed, converged, coarseMinimumMM: coarse }, diagnostics });
   if (verdict) {
     let least = Infinity, tAt = 0;
@@ -241,8 +268,11 @@ export function checkPlacedSpurRack(gear: { readonly spec: SpurGearSpec; readonl
   const ex = Math.cos(rack.angle), ey = Math.sin(rack.angle), qx = gear.center[0] - rack.origin[0], qy = gear.center[1] - rack.origin[1];
   const u = qx * ex + qy * ey, D = -qx * ey + qy * ex;
   if (!(D > 0)) throw new GearError('MATE_INCOMPATIBLE', 'the rack\'s teeth face away from the gear');
-  const g = spurGearDimensions(gear.spec), r = g.r, p = Math.PI * g.mt, theta = gear.rotation - (rack.angle - Math.PI / 2);
-  let phase = ((-u - r * theta) % p + p) % p; if (phase < 1e-9 * p || p - phase < 1e-9 * p) phase = 0;
+  // (Helical: both taken at the same height, where their faces begin to overlap — the gear's section turned along its
+  // helix, the rack's slid along its shear.)
+  const g = spurGearDimensions(gear.spec), k = spurRackDimensions(rack.spec), r = g.r, p = Math.PI * g.mt, zRef = Math.max(gear.from, rack.from);
+  const theta = gear.rotation + (zRef - gear.from) * Math.tan(g.beta) / r - (rack.angle - Math.PI / 2);
+  let phase = ((-u + k.shear * (zRef - rack.from) - r * theta) % p + p) % p; if (phase < 1e-9 * p || p - phase < 1e-9 * p) phase = 0;
   const check = checkSpurGearRack(gear.spec, rack.spec, { ...options, centerDistanceMM: D, rackPhaseMM: phase });
   return { ...check, rackPhaseMM: phase, faceOverlapMM: overlap };
 }

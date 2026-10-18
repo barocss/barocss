@@ -1,4 +1,4 @@
-import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, exportStep } from '@barocss/cad';
+import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -257,7 +257,8 @@ function meshNotes(g: GearPlacement | undefined): { text: string; warning?: bool
 /** A rack's report as lines for the body's panel (R6a.5b, D58). */
 function rackNotes(k: NonNullable<CadPartSnapshot['outputs'][number]['rack']>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => +x.toFixed(4);
-  return [{ text: `Length ${mm(k.lengthMM)} mm, pitch ${mm(k.pitchMM)} mm; tooth ${mm(k.toothThicknessMM)} mm on the pitch line, tip ${mm(k.tipWidthMM)}, root gap ${mm(k.rootWidthMM)} mm` },
+  return [...(k.helix ? [{ text: `Helical rack β ${k.helix.helixAngleDeg}° ${k.helix.hand} hand (normal module ${mm(k.helix.normalModuleMM)}): its teeth slide ${mm(k.helix.shear)} mm along per mm up the face` }] : []),
+    { text: `Length ${mm(k.lengthMM)} mm, pitch ${mm(k.pitchMM)} mm; tooth ${mm(k.toothThicknessMM)} mm on the pitch line, tip ${mm(k.tipWidthMM)}, root gap ${mm(k.rootWidthMM)} mm` },
     { text: 'Schematic root: not the cutting tool\'s, not validated for manufacturing', warning: true }];
 }
 /** A rack meshing with a gear: the pair's check in verdict mode, its time (as meshNotes). */
@@ -268,7 +269,7 @@ function rackMeshNotes(k: RackPlacement | undefined): { text: string; warning?: 
   try { c = checkPlacedSpurRack(k.driver, k, { mode: 'verdict' }); }
   catch (cause) { return [{ text: `Does not mesh with ${k.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
   const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4);
-  return [{ text: `Meshes with ${k.meshesWith}: pitch line ${mm(c.centerDistanceMM)} mm from its axis, ${mm(Math.PI * k.spec.moduleMM * k.driver.spec.teeth)} mm a turn, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}` },
+  return [{ text: `Meshes with ${k.meshesWith}: pitch line ${mm(c.centerDistanceMM)} mm from its axis, ${mm(Math.PI * spurGearDimensions(k.driver.spec).referenceDiameterMM)} mm a turn, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}${c.axialContactRatio ? ` + overlap ${c.axialContactRatio.toFixed(3)} = ${c.totalContactRatio.toFixed(3)}` : ''}` },
     c.sweep.interference ? { text: `The teeth cross at ${c.sweep.atDegrees.toFixed(2)}° of ${k.meshesWith} (slid ${c.rackPhaseMM.toFixed(3)} mm): interference (${ms.toFixed(0)} ms)`, warning: true }
       : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` }];
 }

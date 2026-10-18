@@ -1,0 +1,72 @@
+{
+  "id": "gear-helical-pair-crossing-intersect",
+  "about": "Two helical gears (m_n 2, \u03b2 20\u00b0, z 18 right and left, 6 wide, 0.05 mm thinner) meshing 3\u00b0 off their phase: their intersection, the overlap of the crossing teeth.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "a",
+          "kind": "spur-gear",
+          "normalModule": 2,
+          "helixAngle": 20,
+          "hand": "right",
+          "teeth": 18,
+          "faceWidth": 6,
+          "thicknessReduction": 0.05,
+          "generator": "spur-gear@0"
+        },
+        {
+          "id": "b",
+          "kind": "spur-gear",
+          "normalModule": 2,
+          "helixAngle": 20,
+          "hand": "left",
+          "teeth": 18,
+          "faceWidth": 6,
+          "thicknessReduction": 0.05,
+          "mesh": {
+            "gear": "a",
+            "phase": 3
+          },
+          "generator": "spur-gear@0"
+        },
+        {
+          "id": "i",
+          "kind": "intersect",
+          "target": "a",
+          "tool": "b"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 24.1495,
+          "relTol": 0.001
+        },
+        "centroidMM": {
+          "value": [
+            19.14239,
+            -0.33067,
+            3.07265
+          ],
+          "absTol": 0.005
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "numeric: at 60 heights, the exact transverse profiles (exactProfile, turned along their helices from the placements) intersected by scanlines 5e-4 mm apart, the areas and moments integrated over the face (converged to 1e-5 against 30 heights and 1e-3 mm); the same integrator on a spur pair 4.5\u00b0 off gives 196.7188 mm\u00b3 against the exact Boolean's 196.7163. Topology: one overlap body assumed (the crossing at the pitch point)."
+}

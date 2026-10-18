@@ -36,7 +36,7 @@ import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { subdBrep, SubdError } from './subd.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
-import { spurGear, spurGearCenterDistance, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
+import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -188,7 +188,9 @@ export type CadPartFeature = Base & (
    * axis (default r + x m) across `direction` (degrees from +X, the axis to the pitch point), on the gear's face plane,
    * slid so its middle gap meets a tooth (plus `phase` mm) and travelling r per radian of the gear's turn.
    */
-  | { readonly kind: 'spur-rack'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number; readonly thicknessReduction?: CadPartDim;
+  | { readonly kind: 'spur-rack';
+    /** A straight rack's module; a helical rack's `normalModule`, `helixAngle` and `hand` (meshing: taken from the gear, the opposite hand). */
+    readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number; readonly thicknessReduction?: CadPartDim;
     readonly origin?: CadPartPoint2; readonly angle?: number; readonly from?: CadPartDim;
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: CadPartDim };
     readonly generator?: 'spur-rack@0' }
@@ -947,30 +949,41 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'spur-rack': {
       if (f.generator !== undefined && f.generator !== 'spur-rack@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
-      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), H = dim(f.height as CadPartDim, 'height', true);
+      const b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), H = dim(f.height as CadPartDim, 'height', true);
       const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
-      const spec: SpurRackSpec = { moduleMM: m, teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }) };
-      let place: RackPlacement;
       const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined && (!isRecord(mesh) || typeof mesh.gear !== 'string')) fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
+      const other = mesh === undefined ? undefined : ref(mesh.gear, 'mesh.gear').result;
+      const g = other && other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+      if (mesh !== undefined && !g) fail('REFERENCE', `${String(mesh.gear)} is not a spur gear`);
+      // Its helix: its own (normalModule, helixAngle, hand); meshing, the gear's angle with the opposite hand (the rack
+      // as the z → ∞ gear of an external pair), a contrary one given refused.
+      const gHelix = g?.spec.helixAngleDeg ? { angle: g.spec.helixAngleDeg, hand: g.spec.hand === 'right' ? 'left' as const : 'right' as const } : null;
+      const ownAngle = f.helixAngle as number | undefined, ownHand = f.hand as 'right' | 'left' | undefined;
+      if (g && ((ownAngle ?? 0) !== 0 || ownHand !== undefined) && (!gHelix || ownAngle !== gHelix.angle || (ownHand ?? gHelix.hand) !== gHelix.hand))
+        fail('INPUT', `[MATE_INCOMPATIBLE] the rack's helix must be ${gHelix ? `${gHelix.angle}° ${gHelix.hand}-hand (the gear's angle, the opposite hand)` : 'none (the gear is straight)'} to mesh with ${String(mesh!.gear)}`);
+      const helix = g ? gHelix : ownAngle ? { angle: ownAngle, hand: ownHand as 'right' | 'left' } : null;
+      if (helix && f.module !== undefined) fail('INPUT', 'a helical rack takes normalModule (the normal module), not module');
+      const mGiven = helix ? f.normalModule : f.module;
+      const m = mGiven !== undefined ? dim(mGiven as CadPartDim, helix ? 'normalModule' : 'module', true) : g ? spurGearDimensions(g.spec).mn : dim(undefined as unknown as CadPartDim, 'module', true);
+      const spec: SpurRackSpec = { ...(helix ? { normalModuleMM: m, helixAngleDeg: helix.angle, hand: helix.hand } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }) };
+      let place: RackPlacement;
       if (mesh !== undefined) {
-        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
-        const other = ref(mesh!.gear, 'mesh.gear').result;
-        const g = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
-        if (!g) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
-        if (g!.spec.helixAngleDeg) fail('CAPABILITY', '[UNSUPPORTED_GEAR_KIND] a helical gear meshes with a helical rack, which this stage does not make');
-        if (g!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${g!.spec.moduleMM}`);
-        const dirDeg = mesh!.direction ?? -90;
+        const gd = spurGearDimensions(g!.spec);
+        if (gd.mn !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh.gear)}'s ${gd.mn}`);
+        const dirDeg = mesh.direction ?? -90;
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg))) fail('INPUT', 'mesh.direction must be a number of degrees');
-        const r = m * g!.spec.teeth / 2, D = mesh!.centerDistance === undefined ? r + (g!.spec.profileShiftCoefficient ?? 0) * m : dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
-        const phase = mesh!.phase === undefined ? 0 : dim(mesh!.phase as CadPartDim, 'mesh.phase');
+        const r = gd.r, D = mesh.centerDistance === undefined ? r + (g!.spec.profileShiftCoefficient ?? 0) * m : dim(mesh.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const phase = mesh.phase === undefined ? 0 : dim(mesh.phase as CadPartDim, 'mesh.phase');
         // The rack's frame: +x along the pitch line (β = φ + 90°), +y toward the gear; a gap at r θ + phase from the
         // gear's foot, θ the gear's turn from the direction, and the rack's middle gap there. (The direction counted
         // from the nearest whole tooth angle: the same mesh, whole pitches along, the rack's middle at the gear.)
+        // Both at the gear's face plane, where the rack starts: the helices agree there.
         const phi = (dirDeg as number) * Math.PI / 180, beta = phi + Math.PI / 2, tooth = 2 * Math.PI / g!.spec.teeth;
-        const x0 = r * (g!.rotation - (phi - tooth * Math.round(phi / tooth))) + phase - Math.PI * m * Math.round((f.teeth as number) / 2);
+        const x0 = r * (g!.rotation - (phi - tooth * Math.round(phi / tooth))) + phase - Math.PI * gd.mt * Math.round((f.teeth as number) / 2);
         const cb = Math.cos(beta), sb = Math.sin(beta);
-        place = { spec, origin: [g!.center[0] + cb * x0 + sb * D, g!.center[1] + sb * x0 - cb * D], angle: beta, from: g!.from, meshesWith: String(mesh!.gear), driver: g! };
+        place = { spec, origin: [g!.center[0] + cb * x0 + sb * D, g!.center[1] + sb * x0 - cb * D], angle: beta, from: g!.from, meshesWith: String(mesh.gear), driver: g! };
       } else {
         place = { spec, origin: f.origin === undefined ? [0, 0] : xy(f.origin as CadPartPoint2, 'origin'), angle: ((f.angle as number | undefined) ?? 0) * Math.PI / 180, from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from') };
       }

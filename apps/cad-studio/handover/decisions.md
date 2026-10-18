@@ -2301,3 +2301,53 @@ Evidence:
 - **Kernel** 983/984 (the known environmental test).
 
 Next: R6a.6, the tool-generated (trochoid) root — #2167's last item. Manufacturing validation needs physical evidence and stays pending. Then LIB1–LIB4.
+
+## D60 — R6a.5c (cont.): the helical rack by geometry; the trochoid root moved to R12b; the twisted × twisted Boolean recorded for RB5 (2026-10-18, issue #2167; peer's decisions)
+
+Decision:
+- **The helical rack is defined by geometry, not by a naming rule.**
+  - In the common pitch plane, the rack's tooth line coincides with the gear's tooth trace at the pitch cylinder.
+  - It is the z → ∞ external gear of the pair. Its transverse section uses pitch π m_t, α_t and heights in m_n.
+  - The section slides along the rack by tan β per mm up the face: a sheared extrusion, planar faces, exact.
+  - **The hand label follows from the external-pair rule:** opposite to its gear. A left-hand rack (teeth toward +Y)
+    slides +X going up and meshes with right-hand gears.
+  - Meshing, the label is derived from the gear, never taken as an input; a contrary helix is refused,
+    MATE_INCOMPATIBLE, naming the one required.
+  - Standing alone, a rack takes `normalModuleMM`, `helixAngleDeg` and `hand`, as gears do (`moduleMM` with a helix is
+    refused).
+  - The report carries `helix` (β, hand, normal module, shear).
+- **Gear-and-rack checks** take helical pairs: the same m_n, α_n and β with opposite hands, else MATE_INCOMPATIBLE (a
+  same-hand rack, a straight rack with a helical gear). The sweep runs in the transverse plane; εβ = b sin β/(π m_n);
+  εγ.
+- **Placed racks** are compared at the same height: the gear's section turned along its helix, the rack's slid along
+  its shear.
+- **Studio.** Gear rack under a helical gear takes the module, β and hand from the gear (the opposite hand). Notes:
+  "Helical rack β … left hand …: its teeth slide … mm along per mm up the face"; contact ratio "+ overlap".
+- **R6a.6, the trochoid root, is skipped for now** and goes to R12b with internal, bevel and worm gears. The current
+  gears flag their schematic root honestly with ROOT_TRANSITION_UNVALIDATED. Manufacturing validation stays pending,
+  since it needs physical evidence.
+- **RB5:**
+  - Two crossing helical gears (twisted × twisted B-spline flanks): the analytic Boolean refuses their intersection
+    as "not a manifold solid" — a WRONG TODO in `robustness/todo.json`, oracle case
+    `corpus/oracle/gear-helical-pair-crossing-intersect.json`.
+    - Its expected 24.1495 mm³ and centroid come from an independent scanline integration of the exact profiles,
+      turned along their helices, at 60 heights. It is converged to 1e-5.
+    - The same integrator on a spur pair 4.5° off gives 196.7188 mm³ against the exact Boolean's 196.7163.
+  - A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted × planar and cylindrical)
+    pass every RB stage. They are corpus seeds now: `gear-helical-m2-z40-{keyway,slot,tooth-hole}.json`.
+  - So the limit is narrower than D59 said: only two twisted faces meeting.
+
+Evidence (`test/gear-helical.test.mjs`, the new fifth test):
+- The rack: valid, all faces degree 1 × 1, shear tan 20° exactly; volume equals the closed-form sheared prism to 1e-9.
+- With a right-hand gear: backlash 0, touching, εβ = 8 sin 20°/2π, εγ the sum. A right-hand rack, and a straight one
+  with a helical gear, are MATE_INCOMPATIBLE.
+- **In the part model, by sections of the solids' own faces at five heights, independent of the sweep:**
+  - meshed at turns 0/7° and directions −90/30°: no crossings, and the hand derived is left;
+  - slid 0.6 mm: crossings at every height;
+  - the same placement with a right-hand rack: crossings above the face it starts on;
+  - the placed verdict agrees;
+  - a contrary helix given is refused.
+- **Conformance** 60: `helical-rack-mesh` (rack volume closed form to 1e-9; gear from the transverse area; STEP).
+- **RB:** exit 0. The three helical seeds are OK at every stage; the crossing pair is the recorded WRONG TODO.
+
+Next: LIB1–LIB4, the library system.

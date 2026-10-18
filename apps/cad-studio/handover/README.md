@@ -512,7 +512,7 @@ gear crank.
 - Later: CNC7 feature recognition and stock export; CNC8 an optional 2.5D CAM preview marked "not for production"; no
   production G-code.
 
-**R12b — internal, bevel and worm gears.**
+**R12b — internal, bevel and worm gears**, and the tool-generated (trochoid) root moved here from R6a.6 (peer, 2026-10-18, D60): the envelope of a basic-rack tip of radius ρ (a parameter, 0.38 m by default), checked against the textbook form-circle radius and against the rack never cutting the generated root.
 
 **R12c — machine and power-transmission elements**, in order:
 1. Springs via the helical sweep (rate k = Gd⁴/(8D³n), solid height, stress).
@@ -632,6 +632,7 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
   - Grazes within 3–30 tolerances refuse.
   - Two random 10 µm and 1 µm X-turned grazes refuse.
   - A 10 µm lens's mesh folds.
+  - Two crossing helical gears (twisted × twisted B-spline flanks): the intersection is refused as not a manifold (D60). Keyways, slots and holes on helical gears pass.
 
 **Overnight summary (2026-10-18, under the owner's delegation; commits local, nothing pushed):**
 
@@ -671,7 +672,8 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | R6a.4b — meshing gears | `d02bb2cca` `6edc1e6ee` | A gear placed and turned by the one it meshes with; the pair's verdict in the panel; gear queries for requirements; the exact Boolean of a meshed pair is empty (D56). |
 | R6a.5a — profile shift | `a0d1cf3ce` | x −0.5 to 1; the working centre distance by inv α_w; KHK's shifted pair to 1e-4, the sweep touching at it (D57). |
 | R6a.5b — rack | `eea43ab1e` | The basic rack on a bar; gear-and-rack checks against independent formulas; a rack meshing with a gear, travelling with its turn; the exact Boolean of the pair empty (D58). |
-| R6a.5c — helical gears | (see git log) | Normal module, β, hand; the transverse involute turned along the helix (fit measured, axial segments); KHK's helical pair; εα + εβ = εγ; the solids' own sections clear when meshed (D59). |
+| R6a.5c — helical gears | `75c3c5171` | Normal module, β, hand; the transverse involute turned along the helix (fit measured, axial segments); KHK's helical pair; εα + εβ = εγ; the solids' own sections clear when meshed (D59). |
+| R6a.5c — helical rack | (see git log) | The z → ∞ gear: β, the opposite hand derived; a sheared prism, exact; sections clear when meshed, crossing slid or of the same hand (D60). Trochoid root moved to R12b. |
 
 Checks at the end:
 
@@ -692,9 +694,9 @@ else a proposal, the first build on an empty part applied directly (D41); STEP c
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: R6a.6, the tool-generated (trochoid) root — R6a's last geometry item; manufacturing validation needs physical evidence and stays pending; the helical rack pending its hand convention. Then LIB1–LIB4 (R6a.1–5c done: D53–D59; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
+Next: LIB1–LIB4, the library system (R6a done: D53–D60; the trochoid root moved to R12b, manufacturing validation pending; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → **R6a** (R6a.1–2 spur gear ✓ D53; R6a.3 feature and command ✓ D54; R6a.4a pair checks ✓ D55; R6a.4b meshing gears ✓ D56; R6a.5a profile shift ✓ D57; R6a.5b rack ✓ D58; R6a.5c helical ✓ D59; R6a.6 trochoid root next; manufacturing validation pending) → R6b → AM1–AM5 → R7 … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → **R6a** (R6a.1–2 spur gear ✓ D53; R6a.3 feature and command ✓ D54; R6a.4a pair checks ✓ D55; R6a.4b meshing gears ✓ D56; R6a.5a profile shift ✓ D57; R6a.5b rack ✓ D58; R6a.5c helical ✓ D59, helical rack ✓ D60; trochoid root → R12b; manufacturing validation pending) → **LIB1–LIB4** next → R6b → AM1–AM5 → R7 … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

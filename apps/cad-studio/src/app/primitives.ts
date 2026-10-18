@@ -115,8 +115,8 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (straight teeth on a bar): meshing with the selected spur gear, under it and travelling with its turn; or on its own', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
-    available: ctx => gearPicked(ctx)?.node.helixAngle ? { ok: false as const, reason: 'A helical gear meshes with a helical rack, which is not made yet.' } : ok,
+    id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (teeth on a bar): meshing with the selected gear — helical too, its teeth inclined, the opposite hand — under it and travelling with its turn; or on its own (straight)', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
+    available: () => ok,
     // (Meshing with a selected gear: its module and face width; where it stands, from the gear.)
     fields: ctx => gearPicked(ctx) ? [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, { key: 'dir', label: 'Direction', kind: 'deg' }]
       : [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, ...at],

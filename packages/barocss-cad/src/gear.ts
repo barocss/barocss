@@ -244,11 +244,12 @@ export interface ProfileTwist { readonly angle: number; readonly segments: numbe
  * With a `twist` (helical gears, R6a.5c) the outer profile turns as it rises: each side face the curve turned by A(v),
  * a cubic Hermite fit of the rotation e^{iθ(v)} (exact at the piece ends, so the faces of neighbouring axial segments
  * meet on the exactly turned curve), its deviation measured by `twistDeviation`; segment j's faces are named `#k.j`
- * after the first. The holes do not turn.
+ * after the first. The holes do not turn. With a `shear` (helical racks) the profile slides along +X by shear × z as it
+ * rises: planar faces still, exactly.
  */
-export function extrudedProfile(id: string, family: string, outerPieces: readonly { name: string; curve: Curve }[], innerPieces: readonly { name: string; curve: Curve }[], depth: number, R: number, twist?: ProfileTwist): Brep {
+export function extrudedProfile(id: string, family: string, outerPieces: readonly { name: string; curve: Curve }[], innerPieces: readonly { name: string; curve: Curve }[], depth: number, R: number, twist?: ProfileTwist, shear = 0): Brep {
   const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
-  const outer = ring(id, 'o', outerPieces, depth, twist && twist.angle ? twist : undefined, vertices, edges, faces), hole = innerPieces.length ? ring(id, 'h', innerPieces, depth, undefined, vertices, edges, faces) : null;
+  const outer = ring(id, 'o', outerPieces, depth, twist && twist.angle ? twist : undefined, shear, vertices, edges, faces), hole = innerPieces.length ? ring(id, 'h', innerPieces, depth, undefined, shear, vertices, edges, faces) : null;
   const z0 = 0, z1 = depth;
   const plane = (z: number, up: boolean, sid: string): Surface => ({ kind: 'surface', id: sid, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
     controlPoints: up ? [[[-R, -R, z], [-R, R, z]], [[R, -R, z], [R, R, z]]] : [[[-R, -R, z], [R, -R, z]], [[-R, R, z], [R, R, z]]], weights: [[1, 1], [1, 1]] });
@@ -280,21 +281,22 @@ export function twistDeviation(step: number): number {
   return worst;
 }
 const turnPoint = (p: Point, c: number, s: number, z: number): Point => [c * p[0] - s * p[1], s * p[0] + c * p[1], z];
+const slid = (p: Point, shear: number): Point => shear ? [p[0] + shear * p[2], p[1], p[2]] : p;
 
 /**
  * One closed loop's side faces between z 0 and `depth` — straight, or turning (`twist`: in its axial segments) — their
  * edges at every level, and the edge uses of the bottom and top levels (for the end faces).
  */
-function ring(id: string, tag: string, list: readonly { name: string; curve: Curve }[], depth: number, twist: ProfileTwist | undefined, vertices: { id: string; point: Point }[], edges: { id: string; curve: Curve; vertices: [string, string] }[], faces: BrepFaceInput[]): { bottom: string[]; top: string[] } {
+function ring(id: string, tag: string, list: readonly { name: string; curve: Curve }[], depth: number, twist: ProfileTwist | undefined, shear: number, vertices: { id: string; point: Point }[], edges: { id: string; curve: Curve; vertices: [string, string] }[], faces: BrepFaceInput[]): { bottom: string[]; top: string[] } {
   const n = list.length, S = twist ? twist.segments : 1, N = twist ? twist.pieces : 1, levels: string[][] = [];
   const angleAt = (j: number) => twist ? twist.angle * j / S : 0, zAt = (j: number) => depth * j / S;
   const V = (i: number, j: number) => `${id}_${tag}${i}${j === 0 ? 'b' : j === S ? 't' : `l${j}`}`;
   for (let j = 0; j <= S; j++) {
     const c = Math.cos(angleAt(j)), s = Math.sin(angleAt(j)), z = zAt(j), level: string[] = [];
-    list.forEach((p, i) => vertices.push({ id: V(i, j), point: turnPoint(p.curve.controlPoints[0], c, s, z) }));
+    list.forEach((p, i) => vertices.push({ id: V(i, j), point: slid(turnPoint(p.curve.controlPoints[0], c, s, z), shear) }));
     list.forEach((p, i) => {
       const eid = j === 0 ? `${id}_${tag}${i}eb` : j === S ? `${id}_${tag}${i}et` : `${id}_${tag}${i}el${j}`;
-      edges.push({ id: eid, curve: { ...p.curve, id: `${eid}c`, controlPoints: p.curve.controlPoints.map(q => turnPoint(q, c, s, z)) }, vertices: [V(i, j), V((i + 1) % n, j)] });
+      edges.push({ id: eid, curve: { ...p.curve, id: `${eid}c`, controlPoints: p.curve.controlPoints.map(q => slid(turnPoint(q, c, s, z), shear)) }, vertices: [V(i, j), V((i + 1) % n, j)] });
       level.push(eid);
     });
     levels.push(level);
@@ -304,7 +306,7 @@ function ring(id: string, tag: string, list: readonly { name: string; curve: Cur
     const zs = rot ? rot.map((_, k) => za + (zb - za) * k / (rot.length - 1)) : [za, zb];
     const knotsV = rot ? bezierKnots(N) : [0, 0, 1, 1], degreeV = rot ? 3 : 1;
     // (A cubic Bézier chain's control z's evenly spaced: z exactly linear in v.)
-    const side = (p: Point, k: number): Point => rot ? turnPoint(p, rot[k][0], rot[k][1], zs[k]) : [p[0], p[1], zs[k]];
+    const side = (p: Point, k: number): Point => rot ? turnPoint(p, rot[k][0], rot[k][1], zs[k]) : [p[0] + shear * zs[k], p[1], zs[k]];
     list.forEach((p, i) => {
       const s0 = p.curve.controlPoints[0], eid = S === 1 ? `${id}_${tag}${i}ev` : `${id}_${tag}${i}ev${j}`;
       edges.push({ id: eid, curve: { kind: 'curve', id: `${eid}c`, degree: degreeV, knots: knotsV, controlPoints: zs.map((_, k) => side(s0, k)), weights: zs.map(() => 1) }, vertices: [V(i, j), V(i, j + 1)] });

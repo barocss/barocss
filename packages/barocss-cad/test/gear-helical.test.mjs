@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurRack, checkPlacedSpurRack, spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.5c (issue #2167, D59): helical gears — normal module and pressure angle, helix angle and hand; the transverse
 // involute turned along the helix.
@@ -88,7 +88,7 @@ test('the helical solid: valid; the flanks turned along the helix within the mea
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
 });
 
-test('helical refusals: a module with a helix angle (normalModuleMM named), no hand, β past 45°, undercut by the virtual tooth number, a twist past the axial budget; pairs of the same hand, of other angles, spur with helical; a helical gear with the (straight) rack', () => {
+test('helical refusals: a module with a helix angle (normalModuleMM named), no hand, β past 45°, undercut by the virtual tooth number, a twist past the axial budget; pairs of the same hand, of other angles, spur with helical; a helical gear with a straight rack', () => {
   const code = (f, c, re) => assert.throws(f, e => e instanceof GearError && e.code === c && (!re || re.test(e.message)));
   code(() => spurGearDimensions({ ...KHK1, moduleMM: 3 }), 'INVALID_INPUT', /takes normalModuleMM/);
   code(() => spurGearDimensions({ ...KHK1, hand: undefined }), 'INVALID_INPUT', /needs its hand/);
@@ -100,7 +100,7 @@ test('helical refusals: a module with a helix angle (normalModuleMM named), no h
   code(() => checkSpurGearPair(KHK1, { ...KHK2, hand: 'right' }), 'MATE_INCOMPATIBLE', /same hand/);
   code(() => checkSpurGearPair(KHK1, { ...KHK2, helixAngleDeg: 25 }), 'MATE_INCOMPATIBLE', /helix angles differ/);
   code(() => checkSpurGearPair(KHK1, { moduleMM: 3, teeth: 60, faceWidthMM: 20 }), 'MATE_INCOMPATIBLE', /spur gear does not mesh with a helical one/);
-  code(() => checkSpurGearRack(KHK1, { moduleMM: 3, teeth: 20, faceWidthMM: 20, heightMM: 10 }), 'UNSUPPORTED_GEAR_KIND', /helical rack/);
+  code(() => checkSpurGearRack(KHK1, { moduleMM: 3, teeth: 20, faceWidthMM: 20, heightMM: 10 }), 'MATE_INCOMPATIBLE', /straight rack does not mesh with a helical gear/);
 });
 
 test('a meshing helical gear in the part model: opposite hand at the transverse centre distance, turned to mesh — the solids\' own sections at five heights do not cross (independent of the sweep), and do at a phase off; the placed check agrees; the same hand refused', () => {
@@ -115,4 +115,37 @@ test('a meshing helical gear in the part model: opposite hand at the transverse 
   }
   assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { hand: 'right' })])), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE.*same hand/.test(e.message));
   assert.throws(() => evaluateCadPart(D([g1(0), { ...g2({}), module: 2 }])), e => e.code === 'INPUT' && /takes normalModule/.test(e.message));
+});
+
+test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β, the opposite hand label, its teeth sliding tan β along it per mm up; planar faces, exact; meshing in the part model, the solids\' own sections at five heights clear, crossing slid 0.6 mm and for a same-hand rack; checks with εβ', () => {
+  const k = { normalModuleMM: 2, helixAngleDeg: 20, hand: 'left', teeth: 10, faceWidthMM: 8, heightMM: 8 };
+  const { brep, report } = spurRack(k, { id: 'k' });
+  assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues[0]);
+  assert.ok(brep.faces.every(f => f.surface.degreeU === 1 && f.surface.degreeV === 1), 'planar faces');
+  close(report.helix.shear, Math.tan(Math.PI / 9), 1e-15, 'shear'); close(report.pitchMM, 2 * Math.PI / Math.cos(Math.PI / 9), 1e-12, 'transverse pitch');
+  // (A sheared prism: the transverse area × b, the area the straight rack's with the transverse pitch and α_t.)
+  const at = Math.atan(Math.tan(Math.PI / 9) / Math.cos(Math.PI / 9)), T = Math.tan(at), p = report.pitchMM, s = p / 2, tooth = ((s - 4 * T) + (s + 5 * T)) / 2 * 4.5;
+  close(brepMassProperties(brep, 1).volumeMM3, (10 * p * (8 - 2.5) + 10 * tooth) * 8, 1e-9 * 10 * p * 8 * 8, 'volume');
+  // With a gear: the same β of the opposite hand meshes; the rack's checks in the transverse plane, εβ = b sin β / (π m_n).
+  const g = { normalModuleMM: 2, helixAngleDeg: 20, hand: 'right', teeth: 18, faceWidthMM: 8 };
+  const c = checkSpurGearRack(g, { ...k, teeth: 20 });
+  close(c.backlashMM, 0, 1e-12, 'j'); assert.ok(Math.abs(c.sweep.minimumClearanceMM) < 1e-6 && !c.sweep.interference);
+  close(c.axialContactRatio, 8 * Math.sin(Math.PI / 9) / (2 * Math.PI), 1e-12, 'εβ'); close(c.totalContactRatio, c.usableContactRatio + c.axialContactRatio, 1e-12, 'εγ');
+  assert.throws(() => checkSpurGearRack(g, { ...k, hand: 'right' }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE' && /same hand as the gear/.test(e.message));
+  assert.throws(() => checkSpurGearRack({ moduleMM: 2, teeth: 18, faceWidthMM: 8 }, k), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+  // In the part model: the hand derived, verified by the solids' sections.
+  const gear = rot => ({ id: 'g', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 8, thicknessReduction: 0.05, rotation: rot, center: [5, 3] });
+  const rack = mesh => ({ id: 'k', kind: 'spur-rack', teeth: 12, faceWidth: 8, height: 8, thicknessReduction: 0.05, mesh: { gear: 'g', ...mesh } });
+  const run = (feats, near = 25) => { const r = evaluateCadPart(D(feats)), G = r.output('g'), K = r.output('k'), cg = G.gearPlacement.center; return { K, G, n: [0, 2, 4, 6, 8].map(z => crossings(section(G.brep, z, cg, 30), section(K.brep, z, cg, near))) }; };
+  for (const [rot, dir, phase, crossed] of [[0, -90, 0, false], [7, 30, 0, false], [7, -90, 0.6, true]]) {
+    const { K, G, n } = run([gear(rot), rack({ direction: dir, phase })]);
+    assert.equal(K.rackPlacement.spec.hand, 'left'); assert.equal(K.rack.helix.hand, 'left');
+    assert.ok(crossed ? n.every(x => x > 0) : n.every(x => x === 0), `${rot} ${dir} ${phase}: ${n}`);
+    assert.equal(checkPlacedSpurRack(G.gearPlacement, K.rackPlacement, { mode: 'verdict' }).sweep.interference, crossed);
+  }
+  // The same placement with a right-hand rack: it crosses above the face it starts on.
+  const meshed = run([gear(0), rack({})]).K.rackPlacement;
+  const same = run([gear(0), { id: 'k', kind: 'spur-rack', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 12, faceWidth: 8, height: 8, thicknessReduction: 0.05, origin: meshed.origin, angle: meshed.angle * 180 / Math.PI }]);
+  assert.ok(same.n.slice(1).every(x => x > 0), String(same.n));
+  assert.throws(() => evaluateCadPart(D([gear(0), rack({}), { ...rack({}), id: 'k2', helixAngle: 20, hand: 'right' }])), e => e.code === 'INPUT' && /must be 20° left-hand/.test(e.message));
 });

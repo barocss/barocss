@@ -1,0 +1,89 @@
+{
+  "id": "r6a-helical-rack-mesh",
+  "step": "R6a",
+  "decisions": [
+    "D60"
+  ],
+  "about": "A helical rack meshing with a right-hand helical gear (m_n 2, \u03b2 20\u00b0, z 18): the rack takes the gear's \u03b2 and the opposite (left) hand, its pitch line r = 19.1552 mm below the axis; its volume the sheared prism's (transverse rack area \u00d7 b) in closed form; the gear's the transverse profile's area \u00d7 b within the fits.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "normalModule": 2,
+          "helixAngle": 20,
+          "hand": "right",
+          "teeth": 18,
+          "faceWidth": 8
+        },
+        {
+          "id": "k",
+          "kind": "spur-rack",
+          "teeth": 10,
+          "faceWidth": 8,
+          "height": 8,
+          "mesh": {
+            "gear": "g"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 9004.7128,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            4
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^g\\.(flankL|flankR|tip|root|rootL|rootR|face0|face1)$"
+      },
+      {
+        "volumeMM3": {
+          "value": 4215.303435400416,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            4.7990940091887,
+            -23.00654024109645,
+            4
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^k\\.(flankL|flankR|tip|root|back|end0|end1|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "volumes: closed form (rack: n p_t (H \u2212 1.25 m_n) + n trapezoids at \u03b1_t, \u00d7 b) and Green's theorem (gear); the rack's centroid and place: regression, the mesh verified by sections in test/gear-helical.test.mjs"
+}
