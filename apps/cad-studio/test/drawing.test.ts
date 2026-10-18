@@ -369,3 +369,17 @@ test('cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden
   assert.equal(side.length, 2); assert.ok(side.every(m => m.pen === 'thin'));
   assert.ok(near(Math.abs(side[0].a[0] - side[1].a[0]), minorDiameter(8, 1.25) * bl.views.front.scale, 1e-6), 'Ø6.466 apart');
 });
+
+test('section A–A of a mesh body past the explode limit: cut on its own triangles (F1, D50), its cut faces two rings to hatch', () => {
+  // A torus round Z (R 20, r 5) of 30,000 triangles, cut by Y = 0: a disc each side of the hole.
+  const n = 150, m = 100, P: number[] = [], I: number[] = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * (i + 0.5) / n, v = 2 * Math.PI * j / m; P.push((20 + 5 * Math.cos(v)) * Math.cos(u), (20 + 5 * Math.cos(v)) * Math.sin(u), 5 * Math.sin(v)); }
+  const at = (i: number, j: number) => (i % n) * m + (j % m);
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) I.push(at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j), at(i + 1, j + 1), at(i, j + 1));
+  const doc = withNode(emptyDoc(), { kind: 'mesh', name: 'ring', unit: 'mm', positions: P, indices: I, representation: 'facets' });
+  const r = sectionOf(doc, 0);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.rings.length, 2);
+  const xs = r.rings.map(ring => [Math.min(...ring.map(p => p[0])), Math.max(...ring.map(p => p[0]))]).sort((a, b) => a[0] - b[0]);
+  assert.ok(Math.abs(xs[0][0] + 25) < 0.05 && Math.abs(xs[0][1] + 15) < 0.05 && Math.abs(xs[1][0] - 15) < 0.05 && Math.abs(xs[1][1] - 25) < 0.05, JSON.stringify(xs));
+});

@@ -1574,3 +1574,79 @@ Evidence:
   - the cup padded to 33 MiB opens as an import body;
   - padded to 65 MiB, it shows the refusal, and the part is unchanged.
   - A full run before this step's extension had no other failure; the mesh steps were rerun after it.
+
+## D50 — F1: a facet body split by a plane on its own triangles, each side closed by an exact planar cap; oblique splits of planar bodies fixed (2026-10-18, R4)
+
+Before, a split of a mesh body went through F0's explode, to the planar per-triangle B-rep. It was refused past
+16,000 triangles (5,000 in a preview), and so was the drawing's section A–A, which is built on the split.
+
+Decision (`splitFacetBrep` in `facet-split.ts`, used by the part model's split for a body of mesh faces only):
+- **Vertex sides.**
+  - Each vertex's side is decided once, from its distance to the plane.
+  - One tie rule: a vertex within the tie distance is on the plane. It is moved onto it and counted above.
+  - The tie is twice the weld the sides are built with (1e-6 of the mesh's size). So a cut point is never within the
+    weld of a vertex off the plane, and the rebuild cannot collapse a sliver.
+  - A triangle wholly on the plane goes to the side it faces away from. A step's face at the cut stays with the
+    material it bounds; otherwise it would leave a zero-thickness flange on the other side.
+- **Cutting.**
+  - Each crossed edge is cut once, cached by its vertex pair, so both triangles at the edge share the point.
+  - Faces meet at shared corners, welded once at 1e-12 of the size first.
+  - A cut triangle's piece on each side (3 or 4 corners, convex) is fanned.
+- **The cap.**
+  - It is built from that side's open edges with both ends on the plane, reversed, chained into loops. Where loops
+    touch at a corner, the leftmost turn keeps material on the left.
+  - Holes come from containment: each hole goes to the smallest material loop that holds it. A loop wound against its
+    depth is refused as GEOMETRY ("the cut crosses itself").
+  - Each material loop and its holes are triangulated with the kernel's polygon triangulation, from those very
+    points. Nothing is added: the cap is the section, exactly planar.
+- **Names.**
+  - Faces keep their names; a face cut in two is a face on each side.
+  - The cap is `<at>.cut.top` below and `<at>.cut.bottom` above, as the analytic split names the box's faces. More
+    than one cap face on a side is numbered `#n`.
+- **Sheets.** An open mesh (a sheet) splits into two sheets with no cap.
+- **No limit.** No explode and no triangle limit. A preview runs the same split.
+
+Found on the way and fixed (contained): an oblique split (a normal not along an axis) of a planar body always failed
+"face … is not planar".
+- Cause: the half-space tool was a box rotated to the normal, and its quads are not exactly coplanar in binary64. The
+  exact polyhedral Boolean refuses that.
+- Fix: the tool is now a tetrahedron per side. Its base triangle lies on the plane (inradius 2R about the target's
+  centre) and its apex is 4R off it, so it holds everything within R. Both sides use the same three base corners, so
+  they share one exact plane.
+- Faces are named as before: `<at>.cut.top` / `.bottom`, and `<at>.cut.side<k>` (never on a result).
+- The mitre split in the browser flow (normal 1, 1, 0) happened to pass before; a [1, 1, 1] split of a cube did not.
+
+Evidence:
+- Kernel `test/facet-split.test.mjs` 6/6:
+  - cube splits across, through grid vertices, along Y and obliquely: volumes exact to 1e-9 (370/630, 500/500,
+    284/716, 250/750); both sides valid; every cap point on the plane to 1e-12;
+  - torus: an annulus cap across the midplane (genus 1, halves to 1e-9); two discs a side through the axis; a tilted
+    cut that sums;
+  - the stepped block at the step, and at the step + 1e-9 (the tie): 500 and 80, valid;
+  - an open sheet: two sheets, no cap;
+  - part model, 32,000-triangle torus: axis, flipped normal, oblique; the sum to 1e-9; a miss is SELECTION;
+  - D50's fix: a cube split by x + y + z = 12 gives 284/716 with its cap names; the 4 mm slab's corner is 124/6; a
+    holed cube split by (1, 0, 1) sums to 1000 − 40π.
+- Conformance `conformance/r4/`: 5 cases.
+  - facet cube across, where the volumes and centroids are known by hand;
+  - facet cube oblique, checked against the exact polyhedral split of the upright cube, an independent path;
+  - facet torus annulus;
+  - a miss refused;
+  - the upright cube's oblique split.
+- Kernel suite 938/939; the one failure is the known environmental test.
+- Studio 297/297, with a new drawing test: section A–A of a 30,000-triangle torus mesh, past the old limit, gives two
+  rings at x ∈ [−25, −15] and [15, 25].
+- Browser flow 111/111 in a full run. New step: a 30,000-triangle STL torus opens; the toast says "Splits and sections work at any size";
+  Split previews and applies to 2 bodies, the negative half 4,930 of 9,860 mm³. The mitre split still passes.
+- Lint and type-check clean.
+- Organic torus fixtures, Node:
+
+  | Mesh | Split at z = 0.3 | Volume sum |
+  |---|---|---|
+  | 200k | 0.3 s | to 3e-11 |
+  | 1M | 2.0 s (building the mesh body itself takes 2.0 s) | to 3e-12 |
+
+  Two cap loops; one body a side.
+
+Still with the planar path (explode, 16k): Booleans and holes against mesh bodies. That is F2, next on the facet
+track.

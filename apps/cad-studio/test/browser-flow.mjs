@@ -1882,6 +1882,27 @@ try {
     await snap('split-mitre');
   });
 
+  await check('a mesh past the explode limit splits on its own triangles (F1): previewed, applied, two capped bodies', async () => {
+    const { encodeBinaryStl } = await import('../../../packages/barocss-cad/dist/index.js');
+    // A torus of 30,000 triangles (the planar path took 16,000 at most).
+    const n = 150, m = 100, P = [], I = [];
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; P.push((20 + 5 * Math.cos(v)) * Math.cos(u), (20 + 5 * Math.cos(v)) * Math.sin(u), 5 * Math.sin(v)); }
+    const at = (i, j) => (i % n) * m + (j % m);
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) I.push(at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j), at(i + 1, j + 1), at(i, j + 1));
+    await page.setInputFiles('input[aria-label="Model file"]', { name: 'ring.stl', mimeType: 'model/stl', buffer: Buffer.from(encodeBinaryStl(P, I, 'ring')) });
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    assert.match(await page.evaluate(() => document.body.innerText), /Splits and sections work at any size/);
+    await idle();
+    await page.locator('.outliner .ol').first().click();
+    await press(' '); await page.locator('.palette input').fill('split'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('split-mesh');
+  });
+
   await check('double-click an edge of a rounded plate picks its tangent rim; Fillet takes them all', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();

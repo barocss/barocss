@@ -26,6 +26,7 @@ import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep, stepTessellatedChars } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
+import { splitFacetBrep, type FacetSplitResult } from './facet-split.js';
 import { selfIntersections } from './mesh-repair.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
@@ -887,6 +888,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return () => {
           const s = target[0].solid, box = bounds(s);
           if (!(cut > box.min[a] && cut < box.max[a])) fail('SELECTION', `the split plane ${axis} = ${cut} does not cross the target (${box.min[a]} to ${box.max[a]})`);
+          if (facetBody(s)) { const e: Point = [0, 0, 0]; e[a] = 1; const pieces = splitFacets(s, e, cut, at); return many(flip ? pieces.reverse() : pieces); }
           const half = (lo: boolean) => { const min = box.min.map(v => v - 1) as Point, max = box.max.map(v => v + 1) as Point; if (lo) max[a] = cut; else min[a] = cut; return boxSolid(min, max, `${at}.cut`); };
           const pieces = [boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)];
           return many(flip ? pieces.reverse() : pieces);
@@ -895,13 +897,12 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => {
         // An oblique plane: each side a box standing on the plane (its frame turned to the normal) round the target.
         const s = target[0].solid, box = bounds(s), n = unit(normal), d = level / len(normal);
+        if (facetBody(s)) return many(splitFacets(s, n, d, at));
         const corners = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [i & 1 ? box.max[0] : box.min[0], i & 2 ? box.max[1] : box.min[1], i & 4 ? box.max[2] : box.min[2]] as Point).map(c => dot(n, c));
         if (!(d > Math.min(...corners) && d < Math.max(...corners))) fail('SELECTION', 'the split plane does not cross the target');
         const c = scale(add(box.min, box.max), 0.5), o = sub(c, scale(n, dot(n, c) - d)), R = len(sub(box.max, box.min)) + 2;
         const x = unit(cross(n, Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), y = cross(n, x);
-        const m: BrepAffine['matrix'] = [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]];
-        const half = (lo: boolean) => affine(boxSolid([-R, -R, lo ? -R : 0], [R, R, lo ? 0 : R], `${at}.cut`), m, o);
-        const pieces = [boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)];
+        const pieces = [boolean(s, obliqueHalf(o, n, x, y, R, true, at), 'intersection', at), boolean(s, obliqueHalf(o, n, x, y, R, false, at), 'intersection', at)];
         if (pieces.some(empty)) fail('SELECTION', 'the split plane does not cross the target');
         return many(pieces);
       };
@@ -920,6 +921,34 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
   }
   return fail('INPUT', `unknown feature kind ${String((f as { kind?: unknown }).kind)}`);
+}
+
+/**
+ * One side of an oblique split plane round a target within R of o: a tetrahedron, its base a triangle on the plane
+ * (inradius 2R about o) and its apex 4R off it, so that it holds everything within R of o on its side. Triangles
+ * only: a rotated box's quads are not exactly planar in binary64 and the exact polyhedral Boolean refused them
+ * (D50). Both sides take the same three base corners, so they share one exact plane. Its base is `<at>.cut.top`
+ * below and `<at>.cut.bottom` above, as the axis split's box names it.
+ */
+function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: boolean, at: string): Solid {
+  const corner = (deg: number) => add(o, add(scale(x, 4 * R * Math.cos(deg * Math.PI / 180)), scale(y, 4 * R * Math.sin(deg * Math.PI / 180))));
+  const apex = add(o, scale(n, below ? -4 * R : 4 * R));
+  const positions = [...corner(90), ...corner(210), ...corner(330), ...apex];
+  // The base first (wound about +n below, −n above), then the sides against its edges.
+  const indices = below ? [0, 1, 2, 1, 0, 3, 2, 1, 3, 0, 2, 3] : [0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3];
+  const tool = brepFromTriangles(positions, indices, { id: `${at}_cut`, maximumTriangles: 4 });
+  const base = `${at}_cut.facet0`, cap = `${at}.cut.${below ? 'top' : 'bottom'}`;
+  return { kind: 'brep', brep: transformBrep(tool, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, name => name.split('|').map(q => q === base ? cap : q.replace(`${at}_cut.facet`, `${at}.cut.side`)).join('|')) };
+}
+/** A body of mesh faces only (F0): split on its own triangles (F1), any size. */
+const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.every(isFacetFace);
+/** F1 (R4, D50): a facet body cut by n·p = d, below then above, each closed by an exact planar cap. */
+function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
+  let r: FacetSplitResult;
+  try { r = splitFacetBrep((s as Extract<Solid, { kind: 'brep' }>).brep, { normal: n, offset: d, at }); }
+  catch (cause) { if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+  if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
+  return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
 
 function boxSolid(min: Point, max: Point, tag: string): Solid {

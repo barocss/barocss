@@ -1,0 +1,112 @@
+{
+  "id": "r4-oblique-split-box",
+  "step": "R4",
+  "decisions": [
+    "D50"
+  ],
+  "about": "An upright 10 mm cube split by x + y + z = 12 (once refused: a rotated box tool is not exactly planar): 284 and 716 mm³, the cut faces o.cut.top / o.cut.bottom.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "c",
+          "kind": "split",
+          "target": "b",
+          "normal": [
+            1,
+            1,
+            1
+          ],
+          "at": 12
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 284,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            2.988262911,
+            2.988262911,
+            2.988262911
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "c.cut.top"
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 716,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            5.797951583,
+            5.797951583,
+            5.797951583
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "c.cut.bottom"
+        ]
+      }
+    ]
+  }
+}
