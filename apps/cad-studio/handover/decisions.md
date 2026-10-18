@@ -1800,8 +1800,20 @@ Evidence:
   | Validator | 10 ms |
   | Mass properties | 3.9 s |
 
-  Mass is quadrature over every span: B0's per-span Gauss, 20k spans; a later step can integrate a block's spans
-  together.
+  Mass is quadrature over every span: B0's per-span Gauss, 20k spans.
+  - **Follow-up, done the same day (the peer asked for it before SD3).** The profile showed 2.26 s of the 3.9 s in
+    `validateSurface`, called by `evaluateSurfaceD1` at every Gauss point, plus a constant-axis scan of every pole
+    per call.
+  - Whole-patch faces (any untrimmed NURBS face, SubD or not) now integrate batched:
+    - each direction's basis values and first derivatives at the Gauss points are worked out once per span
+      (Cox–de Boor);
+    - the poles are kept homogeneous in one array;
+    - the u sums are made once per Gauss point in u and reused along v;
+    - no evaluator call, validation or allocation runs per point.
+  - The Gauss order and the integrand are unchanged.
+  - Result: a 20k-quad torus takes 3.9 s → 0.22 s, the volume the same to 3e-16. A 2,048-quad torus takes 35 ms.
+  - Kernel 947/948, RB on the conformance set 232/232 OK, the property tests pass, and the SubD Catmull–Clark checks
+    still agree to 1e-12.
 - **Display, against the analytic (revolved) torus of the same size:**
 
   | Quality | SubD torus | Revolved torus |

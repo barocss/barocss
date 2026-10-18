@@ -10,7 +10,7 @@
 // curves (a disc's rim is a circle, not its chords).
 import { planar, polesOf, segmentKey, tessellateBrepWithParameters, type FaceParameters } from './brep-tessellate.js';
 import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
-import { curveD1Evaluator, evaluateSurfaceD1, type CurveD1Result } from './derivatives.js';
+import { curveD1Evaluator, type CurveD1Result } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 import { facetIntegrals } from './facet-patch.js';
@@ -440,16 +440,95 @@ function patchIntegrals(face: BrepFace, I: number[]): void {
   const S = face.surface as Surface, sign = face.sense === 'forward' ? 1 : -1, { u: U, v: V } = surfaceDomain(S);
   const rational = S.weights.some(row => row.some(w => w !== 1));
   const gu = gaussOf(Math.min(20, Math.ceil(5 * S.degreeU / 2) + (rational ? 4 : 0))), gv = gaussOf(Math.min(20, Math.ceil(5 * S.degreeV / 2) + (rational ? 4 : 0)));
-  const spansU = spans(S.knotsU, U), spansV = spans(S.knotsV, V);
-  for (let a = 0; a + 1 < spansU.length; a++) for (let b = 0; b + 1 < spansV.length; b++) {
-    const u0 = spansU[a], lu = spansU[a + 1] - u0, v0 = spansV[b], lv = spansV[b + 1] - v0;
-    for (let i = 0; i < gu.x.length; i++) for (let j = 0; j < gv.x.length; j++) {
-      const { point, du, dv } = evaluateSurfaceD1(S, u0 + lu * gu.x[i], v0 + lv * gv.x[j]);
-      normal[0] = du[1] * dv[2] - du[2] * dv[1]; normal[1] = du[2] * dv[0] - du[0] * dv[2]; normal[2] = du[0] * dv[1] - du[1] * dv[0];
-      accumulate(I, point, normal, sign * gu.w[i] * gv.w[j] * lu * lv);
-      I[10] += Math.hypot(normal[0], normal[1], normal[2]) * gu.w[i] * gv.w[j] * lu * lv;
+  // (Batched: each direction's basis values and first derivatives at its Gauss points worked out once per span; the
+  // poles kept homogeneous in one array; the u sums made once per Gauss point in u and reused along v. No evaluator
+  // call, validation or allocation per point: a 20k-span SubD body in a fraction of a second.)
+  const bu = spanBases(S.knotsU, S.degreeU, spans(S.knotsU, U), gu.x), bv = spanBases(S.knotsV, S.degreeV, spans(S.knotsV, V), gv.x);
+  const nu = S.controlPoints.length, nv = S.controlPoints[0].length, Pw = new Float64Array(4 * nu * nv);
+  for (let r = 0; r < nu; r++) for (let c = 0; c < nv; c++) { const w = S.weights[r][c], q = S.controlPoints[r][c], o = 4 * (r * nv + c); Pw[o] = q[0] * w; Pw[o + 1] = q[1] * w; Pw[o + 2] = q[2] * w; Pw[o + 3] = w; }
+  const p = S.degreeU, q = S.degreeV, R = new Float64Array(4 * (q + 1)), Ru = new Float64Array(4 * (q + 1));
+  for (let a = 0; a < bu.length; a++) {
+    const A = bu[a];
+    for (let i = 0; i < gu.x.length; i++) for (let b = 0; b < bv.length; b++) {
+      const B = bv[b];
+      uSums(Pw, nv, A.first, B.first, p, q, A.N, A.D, i, R, Ru);
+      for (let j = 0; j < gv.x.length; j++) patchPoint(I, R, Ru, B.N, B.D, j, q, sign * gu.w[i] * gv.w[j] * A.length * B.length);
     }
   }
+}
+/** One span's basis values N and first derivatives D (p + 1 each) at every Gauss point, and its first pole index. */
+interface SpanBasis { first: number; length: number; N: Float64Array; D: Float64Array }
+function spanBases(knots: readonly number[], p: number, edges: readonly number[], x: readonly number[]): SpanBasis[] {
+  const out: SpanBasis[] = [], left = new Float64Array(p + 1), right = new Float64Array(p + 1), ndu = new Float64Array((p + 1) * (p + 1));
+  for (let a = 0; a + 1 < edges.length; a++) {
+    const t0 = edges[a], length = edges[a + 1] - t0;
+    let k = p; while (k + 1 < knots.length - p - 1 && knots[k + 1] <= t0) k++;
+    const N = new Float64Array(x.length * (p + 1)), D = new Float64Array(x.length * (p + 1));
+    for (let g = 0; g < x.length; g++) basisDerivatives(knots, p, k, t0 + length * x[g], left, right, ndu, N, D, g * (p + 1));
+    out.push({ first: k - p, length, N, D });
+  }
+  return out;
+}
+/**
+ * The p + 1 nonzero B-spline basis values at t in knot span k (knots[k] ≤ t < knots[k + 1]) and their first
+ * derivatives, written at N[o…], D[o…] (the NURBS Book's triangle of ndu, then N′ from the degree p − 1 values).
+ */
+function basisDerivatives(knots: readonly number[], p: number, k: number, t: number, left: Float64Array, right: Float64Array, ndu: Float64Array, N: Float64Array, D: Float64Array, o: number): void {
+  const w = p + 1;
+  ndu[0] = 1;
+  for (let j = 1; j <= p; j++) {
+    left[j] = t - knots[k + 1 - j]; right[j] = knots[k + j] - t;
+    let saved = 0;
+    for (let r = 0; r < j; r++) {
+      ndu[j * w + r] = right[r + 1] + left[j - r];
+      const temp = ndu[r * w + j - 1] / ndu[j * w + r];
+      ndu[r * w + j] = saved + right[r + 1] * temp;
+      saved = left[j - r] * temp;
+    }
+    ndu[j * w + j] = saved;
+  }
+  for (let r = 0; r <= p; r++) N[o + r] = ndu[r * w + p];
+  // N′(i, p) = p N(i, p − 1)/(u(i+p) − u(i)) − p N(i+1, p − 1)/(u(i+p+1) − u(i+1)), i = k − p + r; the degree p − 1
+  // values of i = k − p + 1 + s are ndu[s][p − 1].
+  for (let r = 0; r <= p; r++) {
+    const i = k - p + r;
+    let d = 0;
+    if (r > 0) { const den = knots[i + p] - knots[i]; if (den > 0) d += p * ndu[(r - 1) * w + p - 1] / den; }
+    if (r < p) { const den = knots[i + p + 1] - knots[i + 1]; if (den > 0) d -= p * ndu[r * w + p - 1] / den; }
+    D[o + r] = d;
+  }
+}
+/** At Gauss point i in u of a span pair: for each pole column s of the v span, Σ_r N_r Pw and Σ_r N′_r Pw (homogeneous). */
+function uSums(Pw: Float64Array, nv: number, ru: number, cv: number, p: number, q: number, N: Float64Array, D: Float64Array, i: number, R: Float64Array, Ru: Float64Array): void {
+  const o = i * (p + 1);
+  for (let s = 0; s <= q; s++) {
+    let x = 0, y = 0, z = 0, w = 0, xu = 0, yu = 0, zu = 0, wu = 0;
+    for (let r = 0; r <= p; r++) {
+      const n = N[o + r], d = D[o + r], at = 4 * ((ru + r) * nv + cv + s);
+      x += n * Pw[at]; y += n * Pw[at + 1]; z += n * Pw[at + 2]; w += n * Pw[at + 3];
+      xu += d * Pw[at]; yu += d * Pw[at + 1]; zu += d * Pw[at + 2]; wu += d * Pw[at + 3];
+    }
+    R[4 * s] = x; R[4 * s + 1] = y; R[4 * s + 2] = z; R[4 * s + 3] = w;
+    Ru[4 * s] = xu; Ru[4 * s + 1] = yu; Ru[4 * s + 2] = zu; Ru[4 * s + 3] = wu;
+  }
+}
+const point3: Point = [0, 0, 0];
+/** At Gauss point j in v: the surface point and its partials (the quotient rule from the homogeneous sums), into I. */
+function patchPoint(I: number[], R: Float64Array, Ru: Float64Array, N: Float64Array, D: Float64Array, j: number, q: number, weight: number): void {
+  const o = j * (q + 1);
+  let x = 0, y = 0, z = 0, w = 0, xu = 0, yu = 0, zu = 0, wu = 0, xv = 0, yv = 0, zv = 0, wv = 0;
+  for (let s = 0; s <= q; s++) {
+    const n = N[o + s], d = D[o + s], k = 4 * s;
+    x += n * R[k]; y += n * R[k + 1]; z += n * R[k + 2]; w += n * R[k + 3];
+    xu += n * Ru[k]; yu += n * Ru[k + 1]; zu += n * Ru[k + 2]; wu += n * Ru[k + 3];
+    xv += d * R[k]; yv += d * R[k + 1]; zv += d * R[k + 2]; wv += d * R[k + 3];
+  }
+  const px = x / w, py = y / w, pz = z / w;
+  const ux = (xu - px * wu) / w, uy = (yu - py * wu) / w, uz = (zu - pz * wu) / w, vx = (xv - px * wv) / w, vy = (yv - py * wv) / w, vz = (zv - pz * wv) / w;
+  normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
+  point3[0] = px; point3[1] = py; point3[2] = pz;
+  accumulate(I, point3, normal, weight);
+  I[10] += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(weight);
 }
 /** A knot vector's distinct values inside the domain, ends included. */
 function spans(knots: readonly number[], range: readonly number[]): number[] {
