@@ -3529,3 +3529,38 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
   Frame CPU has a 2 ms floor (headless scheduling noise); the orbit is one submit per step, so its budget is a few submits over 60, not twice. One submit per frame stays the budget everywhere.
 - All 13 Node rows and all 4 browser rows pass on the new budgets.
+
+### D19 — the missing benches
+- **Added to `pnpm bench`** (`test/bench/node-bench.ts`), each at about twice the value measured (three runs of the suite):
+
+  | Bench | What it runs | Time | Budget |
+  |---|---|---|---|
+  | `mass: 16-hole plate` | the output's `massProperties(2700)` (the body card's numbers), quadrature over the curved holes | 294–323 ms | 650 |
+  | `mass: SubD torus, 2,048 quads` | the `subd-torus` command at its maximum, 64 × 32, the same call | 31–33 ms | 70 |
+  | `gear: verdict, clear pair (m2, 20/40)` | `checkSpurGearPair(…, { mode: 'verdict' })`, as `evaluateDoc`'s mesh notes run it | 215–217 ms | 450 |
+  | `gear: report, interfering pair (a 59.8)` | the same in `report` mode (the `gear_clearance` query) at a centre distance where the teeth cross | 5 766–5 866 ms | 11 500 |
+  | `library: tslot-20 fits (all)` | `checkFits`: every declared fit built, placed and its overlap measured (LIB2) | 116–123 ms | 250 |
+  | `step: tessellated read, 200k triangles` | `stepMeshes` on a 200k-triangle tessellated STEP (the worker's read) | 150–159 ms | 300 |
+  | `facet: F1 split, 200k triangles` | `splitFacetBrep` at z = 1 of a 400 × 250 torus | 181–186 ms | 380 |
+  | `facet: F2 hole, 20k triangles` | `facetBoolean` difference of a Ø4 cylinder through a 100 × 100 torus | 522–601 ms | 1 100 |
+  | `print: orientation search, 100k triangles` | `searchOrientation` on the AM4 test's 100k facet body | 508–592 ms | 1 200 |
+  | `print: printability, 16-hole plate` | `printability` on the FDM-printed plate after an edit | 20–22 ms | 45 |
+  | `print: 3MF of 200k triangles` | `write3mf` of the AM5 test's 200k bump sphere (weld, XML, deflate, ZIP) | 350–397 ms | 800 |
+
+- **Caches kept out of the times:** `evaluateDoc` keeps masses per B-rep, the pair check its last 64 answers by its arguments, the facet Boolean its crossings and the facet BVH per B-rep, and the wall thickness is kept per mesh. So every run gets its own B-rep, bodies or arguments (a face width the 2D sweep does not read, for the gears).
+- **Already there:** the SubD box build and tessellation and the ~2k-cage drag (A4), and the agent-turn evaluation count (`test/evalCount.test.ts`, A3).
+- **Seen, for later items:** the interfering pair's report is the slowest row by far: 5.9 s against 0.5 ms for its verdict (which stops at the first crossing) and 0.66 s for a clear pair's report. It goes with C16's gear sweep item. The 2,048-quad torus here is the SubD one; B9 (mesh-body mass) adds a mesh torus when it changes that path.
+- All 27 Node rows pass; type-check clean; lint 0 errors.
+
+### Items still open, as the peer listed them (copied here from the previous account's transcript)
+- **B7** hover rewrites the whole colour buffer.
+- **B8** picking paths without the BVH.
+- **B9** mesh-body mass and area through tessellation → facet integrals plus a WeakMap.
+- **B10** F2 rebuild costs.
+- **B11** mesh repair adjacency.
+- **B12** worker reply payload: unchanged bodies by id, volume-only and signature-only requests, one snapshot slot per purpose.
+- **B13** memory: uv, undo sharing, blob eviction, recovery writes, transferable mesh posts.
+- **C14** outline cost. **C15** App re-renders during drags.
+- **C16** smaller items: STEP parser sticky regexes; gear sweep cache key; SubD topology recheck, `opposite()`, JSON reuse key, fit allocations and closures; library memo; render_views; per-frame allocations; D25/D22 costs; the Delaunay flips' full passes (A5).
+- **C17** nested functions (about 20 sites).
+- **D20** RB bookkeeping: trend.jsonl rows for D50/D78/D79 and later; refresh todo.json (two graze rows now pass); keep the open items visible (1 nm graze wrong body, helical × helical refused, F2 at 1M positions).

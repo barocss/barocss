@@ -3,7 +3,7 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepMassProperties, evaluateCadPart, extrudeFaces, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepMassProperties, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
 import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
@@ -11,6 +11,14 @@ import { directDisplay, emptyDirect, importSource, movePole } from '../../src/en
 import { projectViews } from '../../src/drawing/project';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
 import { withLook } from '../../src/app/bodies';
+import { emptyDoc } from '../../src/engine/doc';
+import { faceTableOf } from '../../src/assembly/faces';
+import { searchOrientation } from '../../src/print/orient';
+import { printability } from '../../src/print/rules';
+import { write3mf } from '../../src/print/threemf';
+import { toPartDocument } from '../../src/engine/part';
+import { commands, type Ctx } from '../../src/app/commands';
+import { checkFits, libraryById } from '../../src/library/libraries';
 
 interface Scenario { name: string; budgetMS: number; runs: number; setup(): () => unknown }
 const D = (features: unknown[]): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features } as unknown as CadPartDocument);
@@ -39,6 +47,26 @@ function printedPlate(width: number): StudioDoc {
   return { ...doc, requirements: [q('R1', { fn: 'bbox', axis: 'x' }, '<=', 200), q('R2', { fn: 'volume' }, '>=', 1), q('R3', { fn: 'mass' }, '<=', 500), q('R4', { fn: 'min_wall' }, '>=', 0.8),
     q('R5', { fn: 'overhang_area' }, '<=', 1e6), q('R6', { fn: 'print_rule', rule: 'wall' }, '>=', 0.8), q('R7', { fn: 'print_rule', rule: 'tip' }, '<=', 10), q('R8', { fn: 'print_rule', rule: 'overhang' }, '<=', 1e6)] };
 }
+/** A bumpy sphere of n × n quads with welded poles (about 2n² triangles), as the AM4 and AM5 tests make it. */
+function bumpSphere(n: number): { positions: number[]; indices: number[] } {
+  const P: number[] = [0, 0, 20], I: number[] = [];
+  for (let i = 1; i < n; i++) for (let j = 0; j < n; j++) { const th = Math.PI * i / n, ph = 2 * Math.PI * j / n, r = 20 + 2 * Math.sin(5 * th) * Math.cos(3 * ph); P.push(r * Math.sin(th) * Math.cos(ph), r * Math.sin(th) * Math.sin(ph), r * Math.cos(th)); }
+  P.push(0, 0, -20);
+  const at = (i: number, j: number) => i === 0 ? 0 : i === n ? 1 + (n - 1) * n : 1 + (i - 1) * n + (j % n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const a = at(i, j), b = at(i + 1, j), c = at(i + 1, j + 1), d = at(i, j + 1); if (i > 0) I.push(a, b, d); if (i < n - 1) I.push(b, c, d); }
+  return { positions: P, indices: I };
+}
+/** A plain torus mesh of n × m quads (2nm triangles), as the facet-split and facet-boolean tests make it. */
+function torusMesh(R: number, r: number, n: number, m: number): { positions: number[]; indices: number[] } {
+  const P: number[] = [], I: number[] = [], at = (i: number, j: number) => (i % n) * m + (j % m);
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; P.push((R + r * Math.cos(v)) * Math.cos(u), (R + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v)); }
+  for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) I.push(at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j), at(i + 1, j + 1), at(i, j + 1));
+  return { positions: P, indices: I };
+}
+const commandCtx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+const GEAR1 = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, GEAR2 = { moduleMM: 2, teeth: 40, faceWidthMM: 10 };
+let uuidSeq = 0;
+const benchUuid = () => `00000000-0000-4000-8000-${(++uuidSeq).toString(16).padStart(12, '0')}`;
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -90,6 +118,55 @@ const scenarios: Scenario[] = [
   { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   // (PERF3 A5: the D79 split rounds tessellate again only the faces next to a split edge.)
   { name: 'tessellate: SubD body of a ~2k-face cage', budgetMS: 2000, runs: 2, setup() { const b = subdBrep(boxCage(30, 20, 16, 18, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
+  // (PERF3 D19: AM4 orientation search on a 100k-triangle facet body; AM3 printability of the 16-hole plate after an
+  // edit (fresh bodies each run, so the wall thickness kept per mesh is not reused); AM5 3MF of 200k triangles.)
+  { name: 'print: orientation search, 100k triangles', budgetMS: 1200, runs: 3, setup() {
+    const m = bumpSphere(224), doc = withNode(emptyDoc(), { kind: 'mesh', name: 'bump', unit: 'mm', positions: m.positions, indices: m.indices, representation: 'facets' } as never);
+    const r = evaluateDoc(doc, 1); if (!r.ok) throw new Error('eval');
+    const mesh = r.bodies[0].mesh, table = faceTableOf(doc);
+    return () => searchOrientation(mesh, table, 45);
+  } },
+  { name: 'print: printability, 16-hole plate', budgetMS: 45, runs: 3, setup() {
+    const ready = Array.from({ length: 4 }, (_, k) => { const doc = printedPlate(100 + 2e-3 * (k + 1)), r = evaluateDoc(doc, k + 1); if (!r.ok) throw new Error('eval'); return { doc, bodies: r.bodies }; });
+    let k = 0;
+    return () => { const { doc, bodies } = ready[k++ % ready.length]; return printability(doc, bodies, async d => evaluateDoc(d, 1)); };
+  } },
+  { name: 'print: 3MF of 200k triangles', budgetMS: 800, runs: 2, setup() {
+    const m = bumpSphere(317), date = new Date(2026, 9, 18, 12, 0, 0);
+    return async () => { const r = await write3mf({ title: 'bump', objects: [{ name: 'bump', positions: m.positions, indices: m.indices, material: 'PLA', color: '#888' }], items: [{ object: 0 }], uuid: benchUuid, date }); if (!('bytes' in r)) throw new Error(r.error); return r; };
+  } },
+  // (PERF3 D19: masses as the body card gets them — the output's massProperties, which evaluateDoc keeps per B-rep, so
+  // each run a B-rep of its own; the plate's curved holes and the SubD torus's B-spline faces both by quadrature.)
+  { name: 'mass: 16-hole plate', budgetMS: 650, runs: 3, setup() {
+    const outs = Array.from({ length: 4 }, (_, k) => evaluateCadPart(toPartDocument(holePlate(100 + 3e-3 * (k + 1)))).outputs[0]);
+    let k = 0; return () => outs[k++ % outs.length].massProperties(2700);
+  } },
+  { name: 'mass: SubD torus, 2,048 quads', budgetMS: 70, runs: 3, setup() {
+    const cmd = commands.find(c => c.id === 'subd-torus')!;
+    const outs = Array.from({ length: 4 }, (_, k) => evaluateCadPart(toPartDocument(cmd.build!(commandCtx, { ...cmd.defaults!(commandCtx), R: 20, r: 6, nu: 64, nv: 32, x: 1e-3 * k, y: 0, z: 0 }))).outputs[0]);
+    let k = 0; return () => outs[k++ % outs.length].massProperties(2700);
+  } },
+  // (Gears, R6a: the pair check keeps its last 64 answers by its arguments, so each run a face width of its own, which the
+  // 2D sweep does not read. The verdict on a clear pair, and the report on a pair that interferes, its costliest case.)
+  { name: 'gear: verdict, clear pair (m2, 20/40)', budgetMS: 450, runs: 3, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, { ...GEAR2, faceWidthMM: 10 + 1e-6 * ++k }, { mode: 'verdict' }); } },
+  { name: 'gear: report, interfering pair (a 59.8)', budgetMS: 11500, runs: 1, setup() { let k = 0; return () => checkSpurGearPair(GEAR1, { ...GEAR2, faceWidthMM: 10 + 1e-6 * ++k }, { centerDistanceMM: 59.8, mode: 'report' }); } },
+  // (LIB2: every declared fit of the T-slot library built, placed and its overlap measured.)
+  { name: 'library: tslot-20 fits (all)', budgetMS: 250, runs: 3, setup() { const lib = libraryById('tslot-20')!; return () => checkFits(lib); } },
+  // (A tessellated STEP of 200k triangles read as the studio's worker reads it; F1 split and F2 hole on facet bodies,
+  // a facet B-rep of its own each run: the kernel keeps per-B-rep indexes.)
+  { name: 'step: tessellated read, 200k triangles', budgetMS: 300, runs: 3, setup() {
+    const m = torusMesh(20, 5, 400, 250), text = exportStep([facetBrepFromTriangles(m.positions, m.indices, { id: 'm' })], { name: 'torus', meshes: 'tessellated' });
+    return () => stepMeshes(text);
+  } },
+  { name: 'facet: F1 split, 200k triangles', budgetMS: 380, runs: 3, setup() {
+    const m = torusMesh(20, 5, 400, 250), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
+    let k = 0; return () => splitFacetBrep(breps[k++ % breps.length], { normal: [0, 0, 1], offset: 1, at: 'c' });
+  } },
+  { name: 'facet: F2 hole, 20k triangles', budgetMS: 1100, runs: 3, setup() {
+    const m = torusMesh(20, 6, 100, 100), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
+    const tool = evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [20, 0.37], radius: 2 }, { id: 'c', kind: 'extrude', sketch: 's', height: 30, from: -15 }])).outputs[0].brep;
+    let k = 0; return () => facetBoolean(breps[k++ % breps.length], tool, 'difference', { id: 'r' });
+  } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
     const sheet = d.objects[0].id; directDisplay(d); let k = 0;

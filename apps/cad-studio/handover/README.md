@@ -27,20 +27,10 @@ Done:
 - R8.1 cage operations (D80); R8.2a cage editor (D81).
 - **PERF3 A1–A6** (D82): A1 `49c4da306`; A2 `818f92cef`; A3 `dfae081e1` and memo key `8ddb29262`; A4 `4e4e7017d`; A5 `bf02e4204`; A6 `2831d318a`.
 - **PERF3 D18** (D82 § D18): bench budgets about 2× the latest values, Node and browser; all rows pass.
+- **PERF3 D19** (D82 § D19): eleven new benches (plate and SubD torus mass, gear verdict and interfering report, library fits, STEP 200k read, F1 200k, F2 20k, orientation 100k, printability, 3MF 200k), budgets about 2×.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **D19** new benches still missing:
-     - 16-hole plate mass;
-     - 2,048-quad torus mass;
-     - gear verdict and interfering report;
-     - library fit;
-     - orientation at 100k triangles;
-     - a printability run;
-     - 3MF at 200k;
-     - STEP tessellated read at 200k;
-     - F2 at 20k and F1 at 200k.
-   - The agent-turn evaluation count exists: `test/evalCount.test.ts`.
    - **B7–B13**: hover colour buffer, picking without BVH, mesh-body mass via facetIntegrals and a WeakMap, F2 rebuild, mesh repair adjacency, worker reply payload, memory.
    - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
