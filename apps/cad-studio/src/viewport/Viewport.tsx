@@ -208,7 +208,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (bi === undefined || f === 'face' || f === 'body') return null;
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
     let best: Vec3 | null = null, d0 = 7;
-    for (const e of mesh.edges) for (const p of [e.a, e.b]) { const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
+    // (Each edge's two ends in turn: no pair array an edge, a pointer move at a time; PERF3 C17.)
+    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a, q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;

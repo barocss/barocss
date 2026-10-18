@@ -35,15 +35,19 @@ export const boxRadius = (b: Box3): number => Math.hypot(b.max[0] - b.min[0], b.
 
 /** Six planes (a, b, c, d with a·x + b·y + c·z + d ≥ 0 inside) of a reversed-depth view-projection. */
 export function frustumPlanes(viewProjection: Mat4): Float64Array {
-  const m = viewProjection, row = (r: number) => [m[r], m[4 + r], m[8 + r], m[12 + r]];
-  const r0 = row(0), r1 = row(1), r2 = row(2), r3 = row(3), out = new Float64Array(24);
+  const m = viewProjection, out = new Float64Array(24);
   // Left, right, bottom, top, near (z ≤ w), far (z ≥ 0); a far plane at infinity is a zero plane that passes all.
-  const planes = [r3.map((v, i) => v + r0[i]), r3.map((v, i) => v - r0[i]), r3.map((v, i) => v + r1[i]), r3.map((v, i) => v - r1[i]), r3.map((v, i) => v - r2[i]), r2];
-  planes.forEach((p, k) => {
-    const l = Math.hypot(p[0], p[1], p[2]) || 1;
-    for (let i = 0; i < 4; i++) out[k * 4 + i] = p[i] / l;
-  });
+  // (Each plane row 3 ± row k of the matrix, worked out in place: no arrays or closures a frame; PERF3 C17.)
+  plane(out, 0, m, 0, 1); plane(out, 1, m, 0, -1); plane(out, 2, m, 1, 1); plane(out, 3, m, 1, -1); plane(out, 4, m, 2, -1);
+  const l = Math.hypot(m[2], m[6], m[10]) || 1;
+  for (let i = 0; i < 4; i++) out[20 + i] = m[4 * i + 2] / l;
   return out;
+}
+/** Plane k of the frustum: row 3 plus `sign` times row r, normalised by its normal's length. */
+function plane(out: Float64Array, k: number, m: Mat4, r: number, sign: 1 | -1): void {
+  const a = sign > 0 ? m[3] + m[r] : m[3] - m[r], b = sign > 0 ? m[7] + m[4 + r] : m[7] - m[4 + r], c = sign > 0 ? m[11] + m[8 + r] : m[11] - m[8 + r], d = sign > 0 ? m[15] + m[12 + r] : m[15] - m[12 + r];
+  const l = Math.hypot(a, b, c) || 1;
+  out[k * 4] = a / l; out[k * 4 + 1] = b / l; out[k * 4 + 2] = c / l; out[k * 4 + 3] = d / l;
 }
 
 /** Whether a box is at least partly inside the frustum (conservative: may keep a box just outside a corner). */

@@ -327,6 +327,9 @@ const SCENE_FORMAT = 'rgba16float';
 
 const SAMPLES = 4;
 
+const sortKeys = new Map<Mesh, string>();
+const byPipeline = (a: Mesh, b: Mesh): number => { const x = sortKeys.get(a)!, y = sortKeys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; };
+const farFirst = (a: { d: number }, b: { d: number }): number => b.d - a.d;
 export class Viewer {
   readonly camera: Camera;
   readonly controls: OrbitControls | null = null;
@@ -780,14 +783,15 @@ export class Viewer {
   /** Whether the viewer can draw: not disposed and not replacing a lost device. */
   get ready(): boolean { return !this.disposed && !this.recovering; }
 
+  /** The frame callback, made once (not a closure a request; PERF3 C17). */
+  private readonly scheduledRun = (): void => { this.scheduled = 0; this.render(); };
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
     if (this.disposed) return;
     if (this.options.onRequestRender) { this.options.onRequestRender(); return; }
     if (this.scheduled) return;
     const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => number }).requestAnimationFrame;
-    const run = () => { this.scheduled = 0; this.render(); };
-    this.scheduled = raf ? raf(run) : (setTimeout(run, 0) as unknown as number);
+    this.scheduled = raf ? raf(this.scheduledRun) : (setTimeout(this.scheduledRun, 0) as unknown as number);
   }
 
   private cancelScheduled(): void {
@@ -865,9 +869,10 @@ export class Viewer {
     }
     // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
     // it, so they come after the surfaces), then transparent far to near.
-    const keys = new Map(opaque.map(m => [m, (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false)]));
-    opaque.sort((a, b) => { const x = keys.get(a)!, y = keys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; });
-    transparent.sort((a, b) => b.d - a.d);
+    // (The keys in a map kept for the purpose, and comparators at module level: no closures a frame; PERF3 C17.)
+    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false));
+    opaque.sort(byPipeline); sortKeys.clear();
+    transparent.sort(farFirst);
     return { opaque, transparent: transparent.map(t => t.m), culled };
   }
 

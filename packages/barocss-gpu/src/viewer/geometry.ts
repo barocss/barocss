@@ -1,7 +1,7 @@
 // Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking) and
 // its vertex data as the viewer uploads it: positions, normals and linear RGBA8 colours.
 import { boxOfPositions, type Box3 } from './bounds.js';
-import { cross, srgbToLinear, sub, type Vec3 } from './math.js';
+import { srgbToLinear, type Vec3 } from './math.js';
 
 export interface GeometryInput {
   /** x, y, z per vertex. */
@@ -95,12 +95,15 @@ export function fillVertexColors(colors: Uint8Array, first: number, count: numbe
 
 /** Area-weighted normals of the triangles around each vertex. */
 export function vertexNormals(positions: Float32Array, indices: ArrayLike<number> | null): Float32Array {
-  const n = new Float32Array(positions.length), count = indices ? indices.length : positions.length / 3;
-  const at = (i: number): Vec3 => [positions[3 * i], positions[3 * i + 1], positions[3 * i + 2]];
+  const n = new Float32Array(positions.length), count = indices ? indices.length : positions.length / 3, P = positions;
+  // (The cross product of b − a and c − a written out, as cross(sub(…), sub(…)) works it: no arrays a triangle; PERF3 C17.)
   for (let t = 0; t + 2 < count; t += 3) {
     const a = indices ? indices[t] : t, b = indices ? indices[t + 1] : t + 1, c = indices ? indices[t + 2] : t + 2;
-    const f = cross(sub(at(b), at(a)), sub(at(c), at(a)));
-    for (const v of [a, b, c]) { n[3 * v] += f[0]; n[3 * v + 1] += f[1]; n[3 * v + 2] += f[2]; }
+    const ux = P[3 * b] - P[3 * a], uy = P[3 * b + 1] - P[3 * a + 1], uz = P[3 * b + 2] - P[3 * a + 2], vx = P[3 * c] - P[3 * a], vy = P[3 * c + 1] - P[3 * a + 1], vz = P[3 * c + 2] - P[3 * a + 2];
+    const fx = uy * vz - uz * vy, fy = uz * vx - ux * vz, fz = ux * vy - uy * vx;
+    n[3 * a] += fx; n[3 * a + 1] += fy; n[3 * a + 2] += fz;
+    n[3 * b] += fx; n[3 * b + 1] += fy; n[3 * b + 2] += fz;
+    n[3 * c] += fx; n[3 * c + 1] += fy; n[3 * c + 2] += fz;
   }
   for (let v = 0; v < n.length; v += 3) {
     const l = Math.hypot(n[v], n[v + 1], n[v + 2]);
@@ -173,36 +176,43 @@ function bvhOf(g: PreparedGeometry): Bvh {
  */
 export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3): { triangle: number; t: number } | null {
   if (g.topology !== 'triangles' || !g.bounds) return null;
-  const [ox, oy, oz] = origin, [dx, dy, dz] = direction, ix = 1 / dx, iy = 1 / dy, iz = 1 / dz;
-  if (slab([...g.bounds.min, ...g.bounds.max], 0, ox, oy, oz, ix, iy, iz) === Infinity) return null;
-  const P = g.positions, I = g.indices;
-  let bestT = Infinity, bestTri = -1;
-  // Möller–Trumbore, both faces, with no allocation.
-  const test = (t: number) => {
-    const a = I ? I[3 * t] : 3 * t, b = I ? I[3 * t + 1] : 3 * t + 1, c = I ? I[3 * t + 2] : 3 * t + 2;
-    const ax = P[3 * a], ay = P[3 * a + 1], az = P[3 * a + 2];
-    const e1x = P[3 * b] - ax, e1y = P[3 * b + 1] - ay, e1z = P[3 * b + 2] - az, e2x = P[3 * c] - ax, e2y = P[3 * c + 1] - ay, e2z = P[3 * c + 2] - az;
-    const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz;
-    if (Math.abs(det) < 1e-20) return;
-    const inv = 1 / det, sx = ox - ax, sy = oy - ay, sz = oz - az, u = (sx * px + sy * py + sz * pz) * inv;
-    if (u < -1e-7 || u > 1 + 1e-7) return;
-    const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, v = (dx * qx + dy * qy + dz * qz) * inv;
-    if (v < -1e-7 || u + v > 1 + 1e-7) return;
-    const d = (e2x * qx + e2y * qy + e2z * qz) * inv;
-    if (d > 0 && d < bestT) { bestT = d; bestTri = t; }
-  };
+  const [ox, oy, oz] = origin, [dx, dy, dz] = direction, ix = 1 / dx, iy = 1 / dy, iz = 1 / dz, B = rayBox;
+  B[0] = g.bounds.min[0]; B[1] = g.bounds.min[1]; B[2] = g.bounds.min[2]; B[3] = g.bounds.max[0]; B[4] = g.bounds.max[1]; B[5] = g.bounds.max[2];
+  if (slab(B, 0, ox, oy, oz, ix, iy, iz) === Infinity) return null;
+  ray.P = g.positions; ray.I = g.indices; ray.ox = ox; ray.oy = oy; ray.oz = oz; ray.dx = dx; ray.dy = dy; ray.dz = dz; ray.bestT = Infinity; ray.bestTri = -1;
   const n = g.elementCount / 3;
-  if (n < BVH_FROM) for (let t = 0; t < n; t++) test(t);
+  if (n < BVH_FROM) for (let t = 0; t < n; t++) rayTriangle(t);
   else {
     const h = bvhOf(g), stack = [0];
     while (stack.length) {
       const node = stack.pop()!;
-      if (slab(h.box, 6 * node, ox, oy, oz, ix, iy, iz) >= bestT) continue;
-      if (h.left[node] < 0) { for (let i = h.start[node], e = i + h.count[node]; i < e; i++) test(h.order[i]); continue; }
+      if (slab(h.box, 6 * node, ox, oy, oz, ix, iy, iz) >= ray.bestT) continue;
+      if (h.left[node] < 0) { for (let i = h.start[node], e = i + h.count[node]; i < e; i++) rayTriangle(h.order[i]); continue; }
       stack.push(h.left[node], h.right[node]);
     }
   }
-  return bestTri < 0 ? null : { triangle: bestTri, t: bestT };
+  const out = ray.bestTri < 0 ? null : { triangle: ray.bestTri, t: ray.bestT };
+  ray.P = EMPTY; ray.I = null;
+  return out;
+}
+// (The ray being tested and the nearest hit so far, at module level: one function for every triangle, no closure per
+// pick; PERF3 C17.)
+const EMPTY = new Float32Array(0), rayBox = new Float64Array(6);
+const ray = { P: EMPTY as Float32Array<ArrayBufferLike>, I: null as Uint32Array | Uint16Array | null, ox: 0, oy: 0, oz: 0, dx: 0, dy: 0, dz: 0, bestT: Infinity, bestTri: -1 };
+/** Möller–Trumbore, both faces, with no allocation: triangle t against the ray, kept when nearer. */
+function rayTriangle(t: number): void {
+  const P = ray.P, I = ray.I, dx = ray.dx, dy = ray.dy, dz = ray.dz;
+  const a = I ? I[3 * t] : 3 * t, b = I ? I[3 * t + 1] : 3 * t + 1, c = I ? I[3 * t + 2] : 3 * t + 2;
+  const ax = P[3 * a], ay = P[3 * a + 1], az = P[3 * a + 2];
+  const e1x = P[3 * b] - ax, e1y = P[3 * b + 1] - ay, e1z = P[3 * b + 2] - az, e2x = P[3 * c] - ax, e2y = P[3 * c + 1] - ay, e2z = P[3 * c + 2] - az;
+  const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz;
+  if (Math.abs(det) < 1e-20) return;
+  const inv = 1 / det, sx = ray.ox - ax, sy = ray.oy - ay, sz = ray.oz - az, u = (sx * px + sy * py + sz * pz) * inv;
+  if (u < -1e-7 || u > 1 + 1e-7) return;
+  const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, v = (dx * qx + dy * qy + dz * qz) * inv;
+  if (v < -1e-7 || u + v > 1 + 1e-7) return;
+  const d = (e2x * qx + e2y * qy + e2z * qz) * inv;
+  if (d > 0 && d < ray.bestT) { ray.bestT = d; ray.bestTri = t; }
 }
 
 /** The segment of a line geometry drawn nearest a point of the canvas: its index, distance (CSS pixels) and parameter along it in 3D. */

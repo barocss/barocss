@@ -27,6 +27,10 @@ const THEMES: Record<ThemeName, Theme> = {
 };
 const ACCENT: Vec3 = [0.910, 0.761, 0.353];
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
+/** A direction in the camera's frame (x right, y up, z toward the eye) as the world's, negated: where a light shines (PERF3 C17: module level). */
+const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: number): Vec3 => [-(x * right[0] + y * up[0] - z * forward[0]), -(x * right[1] + y * up[1] - z * forward[1]), -(x * right[2] + y * up[2] - z * forward[2])];
+/** A box grown to hold another. */
+const grow = (min: Vec3, max: Vec3, b: { min: readonly number[]; max: readonly number[] }) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); } };
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 /** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
@@ -258,10 +262,9 @@ export class GpuRenderer implements ViewRenderer {
   /** Lights that follow the camera, as the WebGL renderer's: a key from upper left, a fill from the right. */
   private lights(camera: OrbitCamera): Light[] {
     const { right, up, forward } = camera.basis();
-    const toward = (x: number, y: number, z: number): Vec3 => [0, 1, 2].map(k => -(x * right[k] + y * up[k] - z * forward[k])) as unknown as Vec3;
     return [
-      { kind: 'directional', direction: toward(-0.45, 0.55, 0.70), intensity: 0.8 },
-      { kind: 'directional', direction: toward(0.6, -0.2, 0.5), intensity: 0.22 },
+      { kind: 'directional', direction: toward(right, up, forward, -0.45, 0.55, 0.70), intensity: 0.8 },
+      { kind: 'directional', direction: toward(right, up, forward, 0.6, -0.2, 0.5), intensity: 0.22 },
       // No light, only a shadow from nearly overhead (fixed, so it stays put as the view turns).
       { kind: 'directional', direction: [0.12, 0.18, -1], intensity: 0, castShadow: true },
     ];
@@ -316,10 +319,9 @@ export class GpuRenderer implements ViewRenderer {
   bounds(): { min: Vec3; max: Vec3 } | null {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-    const grow = (b: { min: readonly number[]; max: readonly number[] }) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); } };
-    for (const b of this.bodies) grow(b.result.mesh.bounds);
-    for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(b); }
-    for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(b); }
+    for (const b of this.bodies) grow(min, max, b.result.mesh.bounds);
+    for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(min, max, b); }
+    for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(min, max, b); }
     return { min, max };
   }
 

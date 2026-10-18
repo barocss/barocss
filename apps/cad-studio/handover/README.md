@@ -37,11 +37,11 @@ Done:
 - **PERF3 B13** (D82 § B13): recovery copy from per-node JSON (an edit beside a 200k inline mesh 36 → 0.8 ms; past the storage limit not tried); parameter rename copy-on-write; STEP meshes posted as typed arrays; STL weld 165 → 27 ms; uv and blob eviction measured, left (TODO).
 - **PERF3 C14** (D82 § C14): the outline's mask search only in the outlined meshes' screen box (pixel-identical); its GPU cost at DPR 2 2.1–3.6 → 0.9–1.1 ms a frame; `bench:browser` orbit with a body outlined.
 - **PERF3 C15** (D82 § C15): measured, no change — a 60-step handle drag in a production build: App re-renders 0.25 ms a move (1.6 ms script a move in all); the dev server's 16 ms a move is React's development JSX.
-- **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths.; SubD — the caps kept whatever the cage's extent (a top-raising drag 109–162 → 35–69 ms), the topology read from the mesh, `opposite()` counted; kernel — mass and area share one quadrature (plate STEP export 732 → 512 ms), an import's text out of the reuse keys (10 MB: 27 → 1 ms an edit), STEP tokens sticky; studio — cage overlay 3.6 → 1.5 ms a frame and its validation once a drag, render_views highlight 215–263 → 83–106 ms, library fit ends kept. Open items in `c16-review-findings.md` (notes folder)
+- **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths; SubD — the caps kept whatever the cage's extent (a top-raising drag 109–162 → 35–69 ms), the topology read from the mesh, `opposite()` counted; kernel — mass and area share one quadrature (plate STEP export 732 → 512 ms), an import's text out of the reuse keys (10 MB: 27 → 1 ms an edit), STEP tokens sticky; studio — cage overlay 3.6 → 1.5 ms a frame and its validation once a drag, render_views highlight 215–263 → 83–106 ms, library fit ends kept. Open items in `c16-review-findings.md` (notes folder).
+- **PERF3 C17** (D82 § C17): closures hoisted or written out on hot paths (rays, vertex normals, frustum planes, frame sorts, lights, vertex snap, display-edge mates now by face pair, SubD nets); the same results hashed; the AM4 wall-clock test given headroom.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **C17**: nested functions on hot paths (the list in the notes folder's `c16-review-findings.md`); the AM4 wall-clock test given headroom or moved.
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
 2. Rest of **R8.2**:
@@ -101,7 +101,6 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - 3MF: opening it in a slicer (PrusaSlicer or Bambu) is pending for the owner.
 - εγ: pending (the coordinating session's open item).
 - Blob eviction (PERF3 B13, not done): the blob store keeps every mesh blob of the session, in the studio and the worker. Safe eviction needs every holder — document, undo/redo, proposals, a pending repair, the chat's states, and the worker wire's sender (it assumes the worker keeps what it sent).
-- Load-sensitive test: studio `printing.test.ts` 'AM4 performance: 100 000 triangles oriented under 2 s' is a wall-clock assertion (about 0.6 s alone). It failed once while the kernel suite ran beside it. A red run under load is not a regression; the bench row `print: orientation search, 100k triangles` (budget 1.2 s) is the measure. To be moved or given headroom in C17/D20.
 - Kernel suite: one environmental failure, `actual native Split source…`, which pins Node 22.23.3.
 
 ### How to run

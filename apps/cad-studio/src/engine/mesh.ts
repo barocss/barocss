@@ -43,6 +43,9 @@ function addFace(b: Builder, id: string, name: string, kind: DisplayFace['kind']
 }
 
 const baseName = (name: string | undefined) => (name ?? '').replace(/#\d+$/, '');
+/** Whether two edge ends are one point (to 1e-6 of the size). */
+const near = (p: Vec3, q: Vec3) => len(sub(p, q)) < 1e-6 * Math.max(1, len(p));
+const pushSegment = (lines: number[], p: Vec3, q: Vec3) => { lines.push(p[0], p[1], p[2], q[0], q[1], q[2]); };
 
 export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMesh {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
@@ -51,7 +54,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
   const loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const facesOfEdge = new Map<string, string[]>();
-  for (const c of brep.coedges) facesOfEdge.set(c.edge, [...(facesOfEdge.get(c.edge) ?? []), loopFace.get(c.loop)!]);
+  for (const c of brep.coedges) { const l = facesOfEdge.get(c.edge), f = loopFace.get(c.loop)!; if (l) l.push(f); else facesOfEdge.set(c.edge, [f]); }
   // Plane of a planar face (unit normal, offset) for merging coplanar neighbours.
   const planeOf = (id: string): [Vec3, number] | null => {
     const f = meshFace.get(id)!; if (f.kind !== 'planar') return null;
@@ -65,7 +68,8 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   const sameNamed = (a: string, b: string) => baseName(nameOf.get(a)) !== '' && baseName(nameOf.get(a)) === baseName(nameOf.get(b));
   for (const [, fs] of facesOfEdge) if (fs.length === 2 && fs[0] !== fs[1] && (coplanar(fs[0], fs[1]) || sameNamed(fs[0], fs[1]))) parent.set(find(fs[0]), find(fs[1]));
   const groups = new Map<string, string[]>();
-  for (const f of brep.faces) { const r = find(f.id); groups.set(r, [...(groups.get(r) ?? []), f.id]); }
+  for (const f of brep.faces) { const r = find(f.id), l = groups.get(r); if (l) l.push(f.id); else groups.set(r, [f.id]); }
+  const faceById = new Map(brep.faces.map(f => [f.id, f]));
 
   const b = newBuilder(), displayOf = new Map<string, number>();
   for (const [root, members] of groups) {
@@ -78,11 +82,11 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     }
     const names = [...new Set(members.map(m => baseName(nameOf.get(m))))];
     // (A mesh region that is flat shows as a plane: sketches and mates take it; a curved one as curved, no radius.)
-    const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(brep.faces.find(f => f.id === root)!).kind === 'plane';
+    const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(faceById.get(root)!).kind === 'plane';
     addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), rootKind === 'planar' || flatRegion ? 'plane' : 'curved', pos, nor, idx);
     if (rootKind !== 'planar' && rootKind !== 'facet') {
       // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).
-      const face = brep.faces.find(f => f.id === root)!;
+      const face = faceById.get(root)!;
       let radius: number | undefined;
       try { const g = faceGeometry(face); if (g.kind === 'cylinder') radius = g.r; } catch { /* a general surface */ }
       if (radius === undefined && face.surface.kind === 'surface') { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
@@ -98,7 +102,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     for (let v = f.vertexOffset; v < f.vertexOffset + f.vertexCount; v++) if (P[v * 3] === p[0] && P[v * 3 + 1] === p[1] && P[v * 3 + 2] === p[2]) return [N[v * 3], N[v * 3 + 1], N[v * 3 + 2]];
     return null;
   };
-  const edges: DisplayEdge[] = [], lines: number[] = [], segmentEdge: number[] = [];
+  // (The display edges by the pair of faces they run between, in the order made: a piece's mate is looked for among its
+  // pair's alone — the first that fits, as a walk over all of them finds it; PERF3 C17.)
+  const edges: DisplayEdge[] = [], lines: number[] = [], segmentEdge: number[] = [], byPair = new Map<number, DisplayEdge[]>(), F = brep.faces.length + 1;
   const curves = new Map(brep.edges.map(e => [e.id, e.curve])), edgeName = new Map(brep.edges.map(e => [e.id, e.name ?? e.id]));
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
@@ -110,10 +116,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     const a = pts[0], z = pts[pts.length - 1], dir = norm(sub(z, a)), fa = displayOf.get(fs[0])!, fb = displayOf.get(fs[1])!;
     // Pieces between the same two faces show as one edge: collinear straight pieces (grid vertices split
     // them), and curved pieces joined end to end (a circle in halves).
-    const pair = (d: DisplayEdge) => (d.faces[0] === fa && d.faces[1] === fb) || (d.faces[0] === fb && d.faces[1] === fa);
-    const near = (p: Vec3, q: Vec3) => len(sub(p, q)) < 1e-6 * Math.max(1, len(p));
-    const mate = straight ? edges.find(d => d.straight && pair(d) && len(cross(norm(sub(d.b, d.a)), dir)) < 1e-9 && len(cross(sub(a, d.a), dir)) < 1e-6)
-      : edges.find(d => !d.straight && pair(d) && (near(d.a, a) || near(d.a, z) || near(d.b, a) || near(d.b, z)));
+    const key = fa < fb ? fa * F + fb : fb * F + fa, same = byPair.get(key);
+    let mate: DisplayEdge | undefined;
+    if (same) for (const d of same) if (straight ? d.straight && len(cross(norm(sub(d.b, d.a)), dir)) < 1e-9 && len(cross(sub(a, d.a), dir)) < 1e-6 : !d.straight && (near(d.a, a) || near(d.a, z) || near(d.b, a) || near(d.b, z))) { mate = d; break; }
     if (mate) {
       if (straight) {
         const ext = [mate.a, mate.b, a, z], d0 = norm(sub(mate.b, mate.a)), t = ext.map(p => dot(sub(p, mate.a), d0));
@@ -124,13 +129,14 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
         if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
       }
       mate.names.push(edgeName.get(e.edgeId)!);
-      for (let k = 0; k + 1 < pts.length; k++) { lines.push(...pts[k], ...pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
+      for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
       continue;
     }
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
     const index = edges.length;
-    edges.push({ index, faces: [fa, fb], a, b: z, straight, axis, names: [edgeName.get(e.edgeId)!] });
-    for (let k = 0; k + 1 < pts.length; k++) { lines.push(...pts[k], ...pts[k + 1]); segmentEdge.push(index, index); }
+    const made: DisplayEdge = { index, faces: [fa, fb], a, b: z, straight, axis, names: [edgeName.get(e.edgeId)!] };
+    edges.push(made); if (same) same.push(made); else byPair.set(key, [made]);
+    for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(index, index); }
   }
   const positions = new Float32Array(b.p), normals = new Float32Array(b.n), faceOfVertex = new Float32Array(b.f), indices = new Uint32Array(b.i);
   const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];

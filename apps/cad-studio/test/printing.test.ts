@@ -164,7 +164,7 @@ test('AM4 orientation: a T prints on its flat side (whole outline on the bed, lo
   for (let i = 0; i < 200; i++) { const o = [20 + 10 * Math.sin(i), 5 + 3 * Math.cos(i), 12 + 8 * Math.sin(2 * i)]; assert.equal(rayHit(bvh, o, dirs[i]), brute(o, dirs[i]), `ray ${i}`); }
 });
 
-test('AM4 performance: 100 000 triangles oriented under 2 s; the snap hook\'s print-plane rule read from the chosen orientation', async () => {
+test('AM4 performance: 100 000 triangles oriented (well under 6 s even under load; the bench holds it to 1.2 s); the snap hook\'s print-plane rule read from the chosen orientation', async () => {
   // A bumpy sphere-like mesh, 224 × 224 quads, 100 352 triangles.
   const n = 224, P: number[] = [], I: number[] = [];
   for (let i = 0; i <= n; i++) for (let j = 0; j < n; j++) { const th = Math.PI * i / n, ph = 2 * Math.PI * j / n, r = 20 + 2 * Math.sin(5 * th) * Math.cos(3 * ph); P.push(r * Math.sin(th) * Math.cos(ph), r * Math.sin(th) * Math.sin(ph), r * Math.cos(th)); }
@@ -176,7 +176,9 @@ test('AM4 performance: 100 000 triangles oriented under 2 s; the snap hook\'s pr
   const mesh = r0.ok ? r0.bodies[0].mesh : null!;
   const tris = mesh.indices.length / 3; assert.ok(tris >= 99_000, String(tris));
   const r = searchOrientation(mesh, faceTableOf(doc), 45);
-  assert.ok(r.ms < 2000, `${r.ms} ms for ${tris} triangles`);
+  // (A wall-clock bound, so with room for a loaded machine — the suite beside the kernel's once took it past 2 s; the
+  // measure is the bench row 'print: orientation search, 100k triangles', budget 1.2 s, about 0.6 s alone.)
+  assert.ok(r.ms < 6000, `${r.ms} ms for ${tris} triangles`);
   if (process.env.AM_PERF) console.log(`AM4 perf: ${tris} triangles, ${r.candidates} candidates, ${r.ms.toFixed(0)} ms`);
   // The snap hook on a plate's top face: printed up +Z its beam stands up (across the layers) — warned; up +X it lies in them.
   const { addLibraryPartToBody } = await import('../src/library/libraries');

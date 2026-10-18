@@ -3930,3 +3930,32 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - **Cold SubD cap fits.** `limitGrids`' meshes per level, `closestOnGrid`'s layout, `formAt`'s copies: 38 + 14 + 7 ms per cold build. Each is a restructuring of numeric code to keep bit-identical; with C17's nested functions, or later.
   - **Delaunay flips.** A worklist would change cocircular diagonals (A5): left.
 - Studio 364/364; kernel library tests 6/6; browser flow 119/119.
+
+### C17 — functions made inside hot paths
+Sites from the review agent's list (`c16-review-findings.md`), each hoisted to module level or written out, with the same arithmetic in the same order.
+
+| Where | How often | Change |
+|---|---|---|
+| `rayTriangles` (gpu `geometry.ts`) | per pick, per mesh | its `test` closure is a module function with module-level ray state (as `nearestSegment`); the bounds no longer spread into an array |
+| `vertexNormals` (gpu `geometry.ts`) | per triangle | `at`, `sub`, `cross` and the `[a, b, c]` array written out |
+| `frustumPlanes` (gpu `bounds.ts`) | per frame | `row`, five `map`s and a `forEach` → `plane()` in place |
+| `requestRender` (gpu `viewer.ts`) | per request | `run` → one bound field |
+| `visibleMeshes` (gpu `viewer.ts`) | per frame | the key Map and the two comparators → a kept map and module comparators |
+| `lights()` / `bounds()` (studio `gpuRenderer.ts`) | per frame | `toward` and `grow` at module level |
+| `vertexAt` (studio `Viewport.tsx`) | per pointer move | no `[e.a, e.b]` array an edge |
+| `bodyMesh` (studio `engine/mesh.ts`) | per evaluated body | `pair`/`near` hoisted; the mate looked for among the display edges of the same two faces (the first that fits, as before; it was an O(E²) `find`); `facesOfEdge` and the groups by `push`, not a spread copy each; a face map for `brep.faces.find`; segments pushed without spreads |
+| `netOf` (kernel `subd.ts`) | per quad of a build | `pt`, `mirror`, the corner table and the `[1, 2]` loops at module level |
+| `twoIrregular` (kernel `subd.ts`) | per face | a loop, no `filter` array |
+
+- **The same results:**
+  - `vertexNormals` and 4 000 rays hashed (40k and 200 triangles);
+  - `bodyMesh` hashed on five bodies (smooth 40k planar mesh, low-poly mesh, a sharp 12k mesh with 6 000 display edges, the SubD ~2k body, the 120-hole plate);
+  - the SubD builds' hashes unchanged.
+- **Measured where it shows:**
+  - `bodyMesh` on the sharp 12k mesh: 270 → 161 ms (tessellation 100 ms of it);
+  - the smooth 40k planar mesh: 543 → 502 ms;
+  - 2 000 rays at 40k: 28.0 → 25.7 ms.
+  - The per-frame sites are microseconds; the change is the rule.
+- **The AM4 wall-clock test** (`printing.test.ts`, 100k triangles oriented) had a 2 s bound and failed once under parallel load (about 0.6 s alone). It now has a 6 s bound with a comment; the measure is the bench row `print: orientation search, 100k triangles` (budget 1.2 s). The README TODO is removed.
+- **Left:** the cap fit's numeric helpers (`fanOf`, `refine`, `limitGrids`, `capsAt`'s `formAt`/`gridOf`/`polesOf`) and `cageTopology`'s template keys, listed in the notes. These are per vertex or face of a cold SubD build, where keeping the caps bit-identical needs care. They go with a cold-build pass, as do the viewer's per-frame object allocations (GC only).
+- GPU 73/73; studio 364/364; kernel SubD 18/18; browser flow 119/119; `bench:browser` within budget.

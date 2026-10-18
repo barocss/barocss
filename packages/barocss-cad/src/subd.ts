@@ -92,7 +92,10 @@ export function buildSubd(cage: SubdCage, options: SubdOptions = {}): SubdBuild 
 }
 const cellsOf = (blocks: Block[]) => blocks.map(b => b.grid.flatMap((row, j) => row.map((p, i) => ({ face: p.face, r: p.r, i, j }))));
 /** Whether some quad has two irregular corners. */
-function twoIrregular(m: PolyMesh): boolean { return m.F.some(f => f.filter(v => !m.fans[v]!.regular).length > 1); }
+function twoIrregular(m: PolyMesh): boolean {
+  for (const f of m.F) { let n = 0; for (const v of f) if (!m.fans[v]!.regular && ++n > 1) return true; }
+  return false;
+}
 
 /** An all-quad mesh's topology: its half-edge 4k + s is face k's side s (the mesh checked the cage: windings, twins, creases). */
 function topoOf(m: PolyMesh): Topo { return { nv: m.nv, F: m.F, across: m.twin, sharp: m.sharp, P: m.P }; }
@@ -211,25 +214,28 @@ function rowConsistent(t: Topo, row: Placed[]): boolean {
 }
 
 /** A placed face's 4 × 4 control net, phantoms mirrored across its sharp sides: net[a][b], a along u, b along v. */
+const ptOf = (t: Topo, v: number): P3 => [t.P[3 * v], t.P[3 * v + 1], t.P[3 * v + 2]];
+const mirror = (x: P3, y: P3): P3 => [2 * x[0] - y[0], 2 * x[1] - y[1], 2 * x[2] - y[2]];
+/** A net's four corners left after its sides: the corner, and the two points it is mirrored from along u and along v. */
+const NET_CORNERS: readonly (readonly [number, number, number, number, number, number])[] = [[0, 0, 1, 2, 1, 2], [3, 0, 2, 1, 1, 2], [3, 3, 2, 1, 2, 1], [0, 3, 1, 2, 2, 1]];
 function netOf(t: Topo, p: Placed): P3[][] {
-  const pt = (v: number): P3 => [t.P[3 * v], t.P[3 * v + 1], t.P[3 * v + 2]];
+  // (Its helpers at module level: this runs for every quad of a build; PERF3 C17.)
   const N: (P3 | null)[][] = [[null, null, null, null], [null, null, null, null], [null, null, null, null], [null, null, null, null]];
-  N[1][1] = pt(corner(t, p, 0)); N[2][1] = pt(corner(t, p, 1)); N[2][2] = pt(corner(t, p, 2)); N[1][2] = pt(corner(t, p, 3));
+  N[1][1] = ptOf(t, corner(t, p, 0)); N[2][1] = ptOf(t, corner(t, p, 1)); N[2][2] = ptOf(t, corner(t, p, 2)); N[1][2] = ptOf(t, corner(t, p, 3));
   const below = step(t, p, 0), right = step(t, p, 1), above = step(t, p, 2), left = step(t, p, 3);
-  if (below) { N[1][0] = pt(corner(t, below, 0)); N[2][0] = pt(corner(t, below, 1)); }
-  if (right) { N[3][1] = pt(corner(t, right, 1)); N[3][2] = pt(corner(t, right, 2)); }
-  if (above) { N[1][3] = pt(corner(t, above, 3)); N[2][3] = pt(corner(t, above, 2)); }
-  if (left) { N[0][1] = pt(corner(t, left, 0)); N[0][2] = pt(corner(t, left, 3)); }
+  if (below) { N[1][0] = ptOf(t, corner(t, below, 0)); N[2][0] = ptOf(t, corner(t, below, 1)); }
+  if (right) { N[3][1] = ptOf(t, corner(t, right, 1)); N[3][2] = ptOf(t, corner(t, right, 2)); }
+  if (above) { N[1][3] = ptOf(t, corner(t, above, 3)); N[2][3] = ptOf(t, corner(t, above, 2)); }
+  if (left) { N[0][1] = ptOf(t, corner(t, left, 0)); N[0][2] = ptOf(t, corner(t, left, 3)); }
   // Diagonals, through a smooth regular corner.
-  if (below && left) { const d = step(t, below, 3); if (d) N[0][0] = pt(corner(t, d, 0)); }
-  if (below && right) { const d = step(t, below, 1); if (d) N[3][0] = pt(corner(t, d, 1)); }
-  if (above && right) { const d = step(t, above, 1); if (d) N[3][3] = pt(corner(t, d, 2)); }
-  if (above && left) { const d = step(t, above, 3); if (d) N[0][3] = pt(corner(t, d, 3)); }
-  const mirror = (x: P3, y: P3): P3 => [2 * x[0] - y[0], 2 * x[1] - y[1], 2 * x[2] - y[2]];
-  for (const a of [1, 2]) { if (!below) N[a][0] = mirror(N[a][1]!, N[a][2]!); if (!above) N[a][3] = mirror(N[a][2]!, N[a][1]!); }
-  for (const b of [1, 2]) { if (!left) N[0][b] = mirror(N[1][b]!, N[2][b]!); if (!right) N[3][b] = mirror(N[2][b]!, N[1][b]!); }
+  if (below && left) { const d = step(t, below, 3); if (d) N[0][0] = ptOf(t, corner(t, d, 0)); }
+  if (below && right) { const d = step(t, below, 1); if (d) N[3][0] = ptOf(t, corner(t, d, 1)); }
+  if (above && right) { const d = step(t, above, 1); if (d) N[3][3] = ptOf(t, corner(t, d, 2)); }
+  if (above && left) { const d = step(t, above, 3); if (d) N[0][3] = ptOf(t, corner(t, d, 3)); }
+  for (let a = 1; a <= 2; a++) { if (!below) N[a][0] = mirror(N[a][1]!, N[a][2]!); if (!above) N[a][3] = mirror(N[a][2]!, N[a][1]!); }
+  for (let b = 1; b <= 2; b++) { if (!left) N[0][b] = mirror(N[1][b]!, N[2][b]!); if (!right) N[3][b] = mirror(N[2][b]!, N[1][b]!); }
   // Corners left: mirrored along whichever side is sharp (both sharp: the corner rule).
-  for (const [a, b, a1, a2, b1, b2] of [[0, 0, 1, 2, 1, 2], [3, 0, 2, 1, 1, 2], [3, 3, 2, 1, 2, 1], [0, 3, 1, 2, 2, 1]]) {
+  for (const [a, b, a1, a2, b1, b2] of NET_CORNERS) {
     if (N[a][b]) continue;
     const sideU = a === 0 ? left : right;
     N[a][b] = sideU ? mirror(N[a][b1]!, N[a][b2]!) : mirror(N[a1][b]!, N[a2][b]!);
