@@ -427,15 +427,20 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | A3.3 — panel | `ce24750eb` `48a0f2c78` | |
 | A4.1 — transactions, field registry | `deb9283ca` `2381f66f4` `7f121134b` | |
 | A4.2 — proposals, design history | `802ed22be` | Fixed D39's carry-over leak (a new or opened part inherited the old one's history and looks). |
-| A4.3 — rebase before accept, partial accept, autonomy, chips | this step | Stale proposals are never accepted blind (peer's decision). |
+| A4.3 — rebase before accept, partial accept, autonomy, chips | `47df11eb1` `9fcdac730` | Stale proposals are never accepted blind; assembly, mate, drawing and locked-part changes only through proposals (peer's decisions). |
+| R3.1 — F0 facet faces | `1ec8f4d8f` `79c74f8f2` | 200k: convert 10.5 s → 0.2 s; 1M: 1.3 s, 845 MB. Pieces as bodies; Booleans previewed to 5k, committed to 16k (D43). |
+| R3.2 — BVH point classification | `9b57d5f4e` | 1000 points at 1M: 6.9 ms. The 18k mesh hole: 10.8 → 4.1 s (stitch and coplanar merge indexed). |
+| R3.3 — M1 container | `4c8e19b4e` `454747f5f` | SHA-256 blobs; 1M file 17.2 MB (55 MB as inline JSON); chat sends blobs once; cap 2M. |
+| R3.4 — M3 repair | `14aca6bea` `f1f267b00` | Diagnose and repair as a recorded step; Liepa fill; sheets; crossings refused; the gate in the worker. |
+| R3.5 — AP242 tessellated STEP | `2234bfdb3` | 1M: 49.9 MB tessellated (planar refused past 250k); mixed files; mesh-only STEP through the gate. |
 
 Checks at the end:
 
 | Suite | Result |
 |---|---|
-| kernel | all pass but the known environmental Node-version test |
-| studio | 285/285 |
-| browser flow | 106/106 |
+| kernel | 926/927 (the known environmental demo-spawn test) |
+| studio | 296/296 |
+| browser flow | 110/110 |
 | RB and props | 0 NEW |
 | bench | within budget |
 
