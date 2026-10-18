@@ -691,6 +691,7 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | AM5 — 3MF export | (see git log) | Own ZIP and CRC-32, CompressionStream deflate; welded objects, base materials, face colours (base or colour group), Production UUIDs, items turned and set on the bed by the print direction; Export 3MF button (D76). |
 | Stale results | (see git log) | Bodies tagged with the document they were computed for; while stale, no names, values, checks or exports paired with the new document (D77). |
 | R7 — SD2 caps | (see git log) | Extraordinary vertices, n-gons and darts: one or two Catmull–Clark steps, exact B-spline away from them, G1 caps (double knots at ¼, α C1 at the knot — an earlier kink folded them) fitted to the limit within exact G1 conditions; `subdReport` measures G1, gaps, folds and deviation; boundary vertices the weak spot (TODO); SubD box command (D78). |
+| D79 — SubD shading and caps shown | (see git log) | Display normals the surfaces' own; tilting edge chords split (51° dents gone); caps' deviation in body notes, warned past 0.2% at crease/boundary vertices; `subd_deviation` A3 query (D79). |
 
 Checks at the end:
 

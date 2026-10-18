@@ -244,3 +244,25 @@ test('SubD box (SD2, D78): a box cage, its eight corners extraordinary — one b
   const cmd = commands.find(c => c.id === 'subd-box')!, node = cmd.build!(ctx, { ...cmd.defaults!(ctx), n: 2 }).nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
   assert.deepEqual([node.cage.faces.length, node.cage.positions.length / 3], [24, 26]);
 });
+
+test('SubD caps shown (D79): the box\'s notes give the caps and their deviation from the limit as a share of its size; a half star round a boundary vertex warns past 0.2%; the subd_deviation query reads the same figure, unknown for a cage regular everywhere', async () => {
+  const { runCheck } = await import('../src/chat/spec');
+  const { withNode } = await import('../src/engine/doc');
+  const box = make('subd-box', { w: 30, d: 20, h: 16, n: 3, x: 0, y: 0, z: 0 });
+  assert.equal(box.notes?.length, 1, JSON.stringify(box.notes));
+  assert.match(box.notes![0].text, /^Caps: G1 at 8 irregular vertices \(24 caps, 1 Catmull–Clark step\); max deviation from the limit surface [\d.]+ mm \([\d.]+% of its size\)$/);
+  assert.ok(box.subd && box.subd.maxDeviationMM > 0 && box.subd.maxDeviationMM < 0.01 && box.subd.creaseDeviationMM === 0, JSON.stringify(box.subd));
+  // A half star of 4 quads round a boundary vertex: its caps past 0.2% of its size, warned.
+  const positions = [0, 0, 0]; for (let k = 0; k <= 8; k++) { const a = Math.PI * k / 8; positions.push(10 * Math.cos(a), 10 * Math.sin(a), 0.4 * Math.sin(2 * a)); }
+  const half = withNode(emptyDoc(), { kind: 'subd', name: 'half star', cage: { positions, faces: [0, 1, 2, 3].map(k => [0, 1 + 2 * k, 2 + 2 * k, 3 + 2 * k]) } } as ModelNode);
+  const r = evaluateDoc(half, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint);
+  const b = r.ok ? r.bodies[0] : null!;
+  assert.ok(b.notes!.some(n => n.warning && /At crease, corner or boundary vertices the caps are [\d.]+ mm from the limit \([\d.]+% of its size, past 0\.2%\)[\s\S]*even angles \(to do: the limit's own characteristic map\)/.test(n.text)), JSON.stringify(b.notes));
+  const query = (doc: typeof half, bodies: BodyResult[], at?: 'crease') => runCheck(doc, bodies, (async () => evaluateDoc(doc, 1)) as never, { op: '<=', query: { fn: 'subd_deviation', ...(at ? { at } : {}) }, value: 0.05 });
+  const q = await query(half, r.ok ? r.bodies : [], 'crease');
+  assert.equal(q.status, 'fail'); assert.ok(Math.abs((q.measured as number) - b.subd!.creaseDeviationMM) < 1e-4, JSON.stringify(q)); // (measured to 4 places)
+  const cmd = commands.find(c => c.id === 'subd-box')!, boxDoc = cmd.build!(ctx, { ...cmd.defaults!(ctx) }), rb = evaluateDoc(boxDoc, 1);
+  assert.equal((await query(boxDoc, rb.ok ? rb.bodies : [])).status, 'pass');
+  const torus = commands.find(c => c.id === 'subd-torus')!.build!(ctx, { ...commands.find(c => c.id === 'subd-torus')!.defaults!(ctx) }), rt = evaluateDoc(torus, 1);
+  assert.equal((await query(torus, rt.ok ? rt.bodies : [])).status, 'unknown');
+});

@@ -34,7 +34,7 @@ import { sweepSolid } from './sweep-solid.js';
 import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
-import { subdBrep, SubdError } from './subd.js';
+import { buildSubd, subdSummary, SubdError, type SubdSummary } from './subd.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
@@ -247,6 +247,8 @@ export interface CadPartOutput {
   /** A rack's report and placement (R6a.5b). */
   readonly rack?: SpurRackReport;
   readonly rackPlacement?: RackPlacement;
+  /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
+  readonly subd?: SubdSummary;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -302,6 +304,7 @@ interface Part {
   /** A generated rack's report and placement (R6a.5b). */
   readonly rack?: SpurRackReport;
   readonly rackPlace?: RackPlacement;
+  readonly subd?: SubdSummary;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -872,7 +875,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!faces.every(x => Array.isArray(x) && x.every(v => Number.isInteger(v)))) fail('INPUT', 'cage faces must list vertex numbers');
       if (creases !== undefined && !(Array.isArray(creases) && creases.every(c => Array.isArray(c) && c.length === 2 && c.every(v => Number.isInteger(v))))) fail('INPUT', 'cage creases must be pairs of vertex numbers');
       return () => {
-        try { return one({ kind: 'brep', brep: subdBrep({ positions, faces: faces as number[][], ...(creases ? { creases: creases as [number, number][] } : {}) }, { id: at }) }); }
+        try {
+          const built = buildSubd({ positions, faces: faces as number[][], ...(creases ? { creases: creases as [number, number][] } : {}) }, { id: at });
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: built.brep }, subd: subdSummary(built) }] };
+        }
         catch (cause) { if (cause instanceof SubdError) fail(cause.code, cause.message.replace(/^SubD: /, '')); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
       };
     }
@@ -1669,7 +1675,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

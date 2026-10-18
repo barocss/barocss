@@ -251,7 +251,13 @@ export function splitNet(B: P3[][], t = CAP_TAU): P3[][] {
 
 // ---- The caps: a constrained least change -----------------------------------------------------------------------------
 
-export interface Cap { readonly face: number; readonly r: number; readonly vertex: number; /** 6 × 6 B-spline poles, knots 0 0 0 0 τ τ 1 1 1 1 both ways. */ readonly poles: Point[][]; readonly tau: number }
+export interface Cap {
+  readonly face: number; readonly r: number; readonly vertex: number; /** 6 × 6 B-spline poles, knots 0 0 0 0 τ τ 1 1 1 1 both ways. */ readonly poles: Point[][]; readonly tau: number;
+  /** The largest distance from the limit surface's samples (a 17 × 17 grid, finer than the fit's) to the cap, by closest points. */
+  readonly deviationMM: number;
+  /** Its vertex's kind: at a crease or a corner (or a boundary) the caps' even angles cost the most (D78). */
+  readonly kind: VertexKind;
+}
 export const capKnots = (tau: number) => [0, 0, 0, 0, tau, tau, 1, 1, 1, 1];
 
 /** A point of a cap's 7 × 7 grid as a linear form: unknowns (index, weight) and a constant. */
@@ -369,9 +375,11 @@ function capsAt(m: PolyMesh, v: number, fan: Fan, scale: number): Cap[] {
     if (round === CAP_FIT.rounds - 1) break;
     samples.forEach((list, k) => { const G = gridOf(k, sol); for (const g of list) [g.u, g.v] = closestOnGrid(G, tau, g.p, g.u, g.v); });
   }
+  // (Each cap's distance from the limit, sampled finer than the fit (17 × 17, as the report does), after the last fit.)
+  const deviation = fan.faces.map((f, k) => { const G = gridOf(k, sol); let worst = 0; for (const g of limitGrid(m, f.face, f.side, 4)) { const [u, w] = closestOnGrid(G, tau, g.p, g.u, g.v), q = gridEval(G, tau, u, w).p; worst = Math.max(worst, Math.hypot(q[0] - g.p[0], q[1] - g.p[1], q[2] - g.p[2])); } return worst; });
   return fan.faces.map((f, k) => {
     const poles = polesOf(k, sol);
-    return { face: f.face, r: f.side, vertex: v, poles, tau };
+    return { face: f.face, r: f.side, vertex: v, poles, tau, deviationMM: deviation[k], kind: fan.kind };
   });
 }
 const bern = (s: number) => { const t = 1 - s; return [t * t * t, 3 * s * t * t, 3 * s * s * t, s * s * s]; };

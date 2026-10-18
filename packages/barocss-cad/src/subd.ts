@@ -41,6 +41,20 @@ interface Topo { nv: number; F: number[][]; across: Int32Array; sharp: Uint8Arra
 export function subdBrep(cage: SubdCage, options: SubdOptions = {}): Brep { return buildSubd(cage, options).brep; }
 
 /** What the build did: Catmull–Clark steps taken, the caps (by refined face) and the refined cage, for the report. */
+/**
+ * What a SubD body is made of, for its notes (D79): Catmull–Clark steps, irregular vertices and caps, the caps'
+ * largest distance from the limit surface (on the fit's samples), and that at crease, corner and boundary vertices
+ * (where the caps' even angles cost the most); the body's size (its cage's bounding diagonal).
+ */
+export interface SubdSummary { readonly steps: number; readonly irregularVertices: number; readonly caps: number; readonly maxDeviationMM: number; readonly creaseDeviationMM: number; readonly sizeMM: number }
+export function subdSummary(build: SubdBuild): SubdSummary {
+  let max = 0, crease = 0;
+  for (const c of build.caps.values()) { max = Math.max(max, c.deviationMM); if (c.kind !== 'smooth') crease = Math.max(crease, c.deviationMM); }
+  const P = build.quads.positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], P[i + a]); hi[a] = Math.max(hi[a], P[i + a]); }
+  const vertices = new Set([...build.caps.values()].map(c => c.vertex));
+  return { steps: build.steps, irregularVertices: vertices.size, caps: build.caps.size, maxDeviationMM: max, creaseDeviationMM: crease, sizeMM: Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) };
+}
 /** A face's side along an edge: its block (the B-rep face of the same index), side, first cell and cells. */
 export interface EdgeRun { readonly face: number; readonly side: number; readonly q0: number; readonly count: number; readonly K: number; readonly L: number }
 export interface SubdBuild {

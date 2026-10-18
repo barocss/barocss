@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subdBrep, subdReport, tessellateBrep, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface } from '../dist/index.js';
+import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface } from '../dist/index.js';
+import { openEdges } from '../scripts/rb/stages.mjs';
+import { tessellateBrepWithParameters } from '../dist/brep-tessellate.js';
 
 // SD1 (R5, D51): a regular SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology.
 // The check that does not trust the construction: one Catmull–Clark step (written here, apart from it) gives a cage
@@ -245,4 +247,47 @@ test('SD2 leaves regular cages to SD1: a torus cage takes no step, its names and
   assert.deepEqual([r.steps, r.capCount], [0, 0]);
   assert.ok(r.deviation.exactMaxMM < 1e-12 && r.deviation.exactSamples > 0);
   assert.ok(subdBrep(torusCage(16, 8), { id: 's' }).faces.every(f => /^s\.patch\d+$/.test(f.name)));
+});
+
+// ---- D79: shading and tessellation of SubD bodies ------------------------------------------------------------------
+function boxCage(w, d, h, n) {
+  const at = new Map(), positions = [], faces = [];
+  const vertex = p => { const key = p.join(','); let i = at.get(key); if (i === undefined) { i = positions.length / 3; at.set(key, i); positions.push(-w / 2 + p[0] * w / n, -d / 2 + p[1] * d / n, p[2] * h / n); } return i; };
+  for (const a of [0, 1, 2]) for (const s of [0, n]) {
+    const [b, c] = s ? [(a + 1) % 3, (a + 2) % 3] : [(a + 2) % 3, (a + 1) % 3];
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const p = (u, v) => { const q = [0, 0, 0]; q[a] = s; q[b] = u; q[c] = v; return vertex(q); }; faces.push([p(i, j), p(i + 1, j), p(i + 1, j + 1), p(i, j + 1)]); }
+  }
+  return { positions, faces };
+}
+/** The largest concave fold between neighbouring triangles (a dent; 0 on a convex body tessellated well). */
+function worstFold(mesh) {
+  const P = mesh.positionsMM, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]], edges = new Map();
+  for (let t = 0; t < I.length / 3; t++) for (let k = 0; k < 3; k++) { const a = key(I[3 * t + k]), c = key(I[3 * t + (k + 1) % 3]), e = a < c ? `${a}|${c}` : `${c}|${a}`; if (!edges.has(e)) edges.set(e, []); edges.get(e).push(t); }
+  const tri = t => { const a = pt(I[3 * t]), b = pt(I[3 * t + 1]), c = pt(I[3 * t + 2]), u = b.map((x, i) => x - a[i]), v = c.map((x, i) => x - a[i]), n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n); return { n: n.map(x => x / l), c: [0, 1, 2].map(i => (a[i] + b[i] + c[i]) / 3) }; };
+  let worst = 0;
+  for (const ts of edges.values()) {
+    if (ts.length !== 2) continue;
+    const A = tri(ts[0]), B = tri(ts[1]);
+    if ((B.c[0] - A.c[0]) * A.n[0] + (B.c[1] - A.c[1]) * A.n[1] + (B.c[2] - A.c[2]) * A.n[2] <= 0) continue;
+    worst = Math.max(worst, Math.acos(Math.max(-1, Math.min(1, A.n[0] * B.n[0] + A.n[1] * B.n[1] + A.n[2] * B.n[2]))) * 180 / Math.PI);
+  }
+  return worst;
+}
+
+test('D79 display of a SubD box: vertex normals are the surface\'s own (they were each face\'s triangles\' average, 8° off on caps, 17° on exact faces — a seam at every edge); edge chords that tilted their triangles are split (a 51° dent, 180° on a finer cage, before); watertight', () => {
+  const b = subdBrep(boxCage(30, 20, 16, 3), { id: 'n0' });
+  const { mesh, parameters } = tessellateBrepWithParameters(b, { segmentsPerQuarter: 8 });
+  let worst = 0;
+  for (const f of mesh.faces) {
+    const face = b.faces.find(x => x.id === f.faceId), uv = parameters.get(f.faceId).uv, sign = face.sense === 'forward' ? 1 : -1;
+    for (let k = 0; k < f.vertexCount; k++) {
+      const d = evaluateSurfaceD1(face.surface, uv[k][0], uv[k][1]), a = d.du, c = d.dv, n = [a[1] * c[2] - a[2] * c[1], a[2] * c[0] - a[0] * c[2], a[0] * c[1] - a[1] * c[0]], l = Math.hypot(...n);
+      const v = f.vertexOffset + k, m = [mesh.normals[3 * v], mesh.normals[3 * v + 1], mesh.normals[3 * v + 2]];
+      worst = Math.max(worst, Math.acos(Math.max(-1, Math.min(1, sign * (n[0] * m[0] + n[1] * m[1] + n[2] * m[2]) / l))) * 180 / Math.PI);
+    }
+  }
+  assert.ok(worst < 0.01, `vertex normals ${worst}° off the surface's`);
+  assert.ok(worstFold(mesh) < 25, `a ${worstFold(mesh)}° dent`);
+  assert.ok(worstFold(tessellateBrep(subdBrep(boxCage(30, 20, 16, 6)), { segmentsPerQuarter: 8 })) < 45);
+  assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0);
 });

@@ -41,7 +41,8 @@ export type Query =
   /** AM2: the area (mm²) overhanging past the printing process's limit, built along `direction` (default +Z); `body` one body. */
   | { fn: 'overhang_area'; body?: string; direction?: [number, number, number] }
   /** AM3: one printability rule's value (wall, hole, gap, cavity, bed-fit, overhang, warp, tip …); unknown or n/a, said. */
-  | { fn: 'print_rule'; rule: string; direction?: [number, number, number] };
+  | { fn: 'print_rule'; rule: string; direction?: [number, number, number] }
+  | { fn: 'subd_deviation'; body?: string; at?: 'all' | 'crease' };
 /** `==`: value ± tol; `<=` / `>=`: against value (tol allowed); `between`: min … max. */
 export interface Predicate { op: '==' | '<=' | '>=' | 'between'; query: Query; value?: number; tol?: number; min?: number; max?: number; unit?: string }
 export interface Requirement {
@@ -153,6 +154,13 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       if (r.status === 'unknown' || r.status === 'n/a' || r.value === undefined) return { unknown: `${q.rule}: ${r.status === 'n/a' ? 'not applicable — ' : ''}${r.why ?? r.message}` };
       return { x: r.value, ...(r.entities ? { entities: [...r.entities] } : {}), hint: `${r.status}: ${r.message}${r.limit !== undefined ? ` (limit ${r.limit}${r.unit ? ` ${r.unit}` : ''}, ${r.source})` : ''}` };
     }
+    case 'subd_deviation': {
+      // (R7, D79: the SubD caps' largest distance from the limit surface; at: crease — only those at crease, corner or boundary vertices.)
+      const subs = bodiesOf(bodies, q.body).filter(b => b.subd);
+      if (!subs.length) return { unknown: q.body ? `${q.body} is not a SubD body with caps` : 'no SubD body with caps (its cage is regular everywhere: exact, no deviation)' };
+      const worst = subs.reduce((a, b) => (q.at === 'crease' ? b.subd!.creaseDeviationMM > a.subd!.creaseDeviationMM : b.subd!.maxDeviationMM > a.subd!.maxDeviationMM) ? b : a), s = worst.subd!, x = q.at === 'crease' ? s.creaseDeviationMM : s.maxDeviationMM;
+      return { x, entities: [worst.key], hint: `${+(100 * x / s.sizeMM).toPrecision(2)}% of its size (${s.caps} caps at ${s.irregularVertices} irregular ${s.irregularVertices === 1 ? 'vertex' : 'vertices'}); warned past 0.2% at crease, corner or boundary vertices` };
+    }
     case 'overhang_area': {
       const profile = processProfile(doc.process);
       if (!profile?.additive) return { unknown: profile ? `${profile.label} is not printing: no overhang limit` : 'no printing process is chosen' };
@@ -233,7 +241,7 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 
-const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area', 'print_rule'];
+const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area', 'print_rule', 'subd_deviation'];
 /** Why a requirement cannot be kept (malformed), or null. */
 export function checkRequirement(r: unknown): string | null {
   if (typeof r !== 'object' || r === null) return 'a requirement is an object';

@@ -1,4 +1,4 @@
-import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, exportStep } from '@barocss/cad';
+import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, type RackPlacement, type SubdSummary, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -32,6 +32,8 @@ export interface BodyResult {
   gear?: GearPlacement;
   /** A rack as made: its spec and where it stands (and the gear it meshes with). */
   rack?: RackPlacement;
+  /** A SubD body with caps: their distance from the limit surface (the subd_deviation query, A3; D79). */
+  subd?: SubdSummary;
 }
 export type EvalResult =
   | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
@@ -60,7 +62,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -230,6 +232,18 @@ export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } 
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 
+/**
+ * A SubD body's caps as lines for its panel (R7, D79): how near the limit surface they are, and a warning where the
+ * caps at crease, corner or boundary vertices are past 0.2% of the body's size (their limit's edges are not evenly
+ * spread there; the caps use even angles — the limit's own characteristic map is to do).
+ */
+export const SUBD_CREASE_WARN = 0.002;
+function subdNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['subd']>): { text: string; warning?: boolean }[] {
+  const pct = (x: number) => `${+(100 * x / s.sizeMM).toPrecision(2)}% of its size`;
+  const out: { text: string; warning?: boolean }[] = [{ text: `Caps: G1 at ${s.irregularVertices} irregular ${s.irregularVertices === 1 ? 'vertex' : 'vertices'} (${s.caps} caps, ${s.steps} Catmull–Clark step${s.steps === 1 ? '' : 's'}); max deviation from the limit surface ${+s.maxDeviationMM.toPrecision(2)} mm (${pct(s.maxDeviationMM)})` }];
+  if (s.creaseDeviationMM > SUBD_CREASE_WARN * s.sizeMM) out.push({ text: `At crease, corner or boundary vertices the caps are ${+s.creaseDeviationMM.toPrecision(2)} mm from the limit (${pct(s.creaseDeviationMM)}, past 0.2%): the limit's edges there are not evenly spread and the caps use even angles (to do: the limit's own characteristic map)`, warning: true });
+  return out;
+}
 /** A gear's report as lines for the body's panel (R6a, D54). */
 function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): { text: string; warning?: boolean }[] {
   const d = g.dimensions, mm = (x: number) => +x.toFixed(4);

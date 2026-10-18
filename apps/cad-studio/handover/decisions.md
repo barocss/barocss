@@ -3176,3 +3176,63 @@ Evidence:
   - TODO: look at it with AO off and with zebra.
 - Kernel 1001/1002 (the known environmental test); lint clean. RB over conformance and corpus: 1,102 rows, every R7 row OK, the WRONG/INVALID rows the known TODOs.
 - RB now skips superseded cases too.
+
+## D79 — SubD shading, dents, and cap deviation shown (2026-10-18)
+
+Asked at the R7 review: verify the dark stroke on the SubD box (it was called "likely AO", unverified), and show users the caps' deviation.
+
+**Standing rule (from R7):** every SubD test checks, besides G1 and deviation:
+- the caps' shape: |Su × Sv| against its median, and the turn between neighbouring normals;
+- tessellation.
+
+Folded caps once passed G1 (1e-6°) and deviation (0.031 mm) both.
+
+**The stroke: shading and tessellation, not geometry.**
+- Looked at in the browser, before and after, close up on the box's corner:
+  - **AO off:** the stroke went. That pointed at the depth-based AO, which samples the triangles' depth, not the normals.
+  - **Zebra:** before, broken across faces with a glitch at the stroke; after, continuous.
+  - **Cap highlight:** cap selected and drawn; nothing there.
+- **Display normals compared with the exact surface normals at the same vertices.**
+  - Each face averaged its own triangles' normals: up to 8° off on caps and 17° on exact faces.
+  - Two faces meeting at a G1 edge got different normals at the same point: a shading seam at every face edge.
+  - **Fix (`brep-tessellate.ts`):** a parametric face's vertex normal is now the surface's own (Su × Sv by its tessellator's differences, turned by the face's sense; a pole keeps the average): ≤ 1e-4° off.
+- **The stroke itself: a dent.**
+  - Triangles on an edge chord tilted from the surface: the chord lies below it by its sagitta, and the face's points are near it, with a 2.1 mm chord and a point 0.16 mm off.
+  - Neighbouring faces' triangles then folded 51° concave where they met. On the 6-a-side box an old triangle was folded 180°.
+  - **Fix:** after a pass, any edge chord whose triangle is tilted more than one step (π/2/segmentsPerQuarter) from its corners' surface normals gets its midpoint added to that edge. Both faces share it, so the mesh stays watertight. Every face is tessellated again, up to three rounds.
+
+  | Box (quads a side) | Largest concave fold before | After |
+  |---|---|---|
+  | 3 | 51° | 18° |
+  | 6 | 180° | 38° |
+
+  - The browser render shows no stroke with AO on.
+  - Tried and dropped: splitting tilted triangles inside a face (it never settled at boundary chords, and hung the 6-a-side box).
+- **TODO:** the remaining folds of 14–38° are near-collinear slivers along boundaries, in the general B-spline face tessellator.
+- **Cost:** 6-a-side box tessellation 374 ms (241 before); 3-a-side 159 ms.
+
+**Cap deviation shown.**
+- The kernel's subd output carries `subd: SubdSummary`: steps, irregular vertices, caps, the caps' largest distance from the limit surface, that at crease/corner/boundary vertices, and the size (refined cage's bounding diagonal).
+- Each cap's distance is measured at build time on the limit sampled 17 × 17 by closest points, the same as `subdReport`: cube 0.0033 mm in both. Build cost: box 3 a side 259 ms (was 150).
+- **Body notes:** "Caps: G1 at N irregular vertices (k caps, s Catmull–Clark steps); max deviation from the limit surface X mm (Y% of its size)".
+- **Warning:** at crease, corner or boundary vertices past 0.2% of the size, naming the cause and the to-do. The limit's edges there are not evenly spread and the caps use even angles; the limit's own characteristic map is to do. The 4-face half star (0.14 mm, 0.63%) is warned; the SubD box (0.0025 mm, 0.0063%) is not.
+- **A3:** `subd_deviation {body?, at?: all | crease}`, in mm, with the share of size in its hint; unknown for a cage regular everywhere (exact).
+
+Evidence:
+- Kernel `subd.test` 11/11. New:
+  - vertex normals within 0.01° of the surface's;
+  - folds < 25° (3 a side), < 45° (6 a side);
+  - watertight.
+- Studio primitives 13/13. New:
+  - the box's note text;
+  - the half star's warning;
+  - `subd_deviation` failing a ≤ 0.05 mm requirement on the half star, passing on the box, unknown on the torus.
+- Screenshots (before / after) kept in this session's scratchpad, not committed.
+- **Caught by the suites:** splitting an edge of a facet face broke its exact mass (r6 facet cube ∩ sphere: 112.98 against 113.10 mm³). A facet face triangulates its own mesh points, not the edge samples, so facet faces' edges are never split now.
+- **Suites:**
+  - kernel 1002/1003 (the known environmental test);
+  - conformance all;
+  - RB 1,100 rows, nothing new — WRONG rows 7 → 5: two known oracle rows (grazing cylinder–box) now pass;
+  - studio 339/339;
+  - full browser flow 119/119;
+  - lint clean.

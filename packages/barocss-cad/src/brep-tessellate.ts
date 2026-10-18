@@ -337,111 +337,136 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   // An edge's end samples are its vertices' points: every face meeting at a corner then has the very same
   // position there (two curves evaluated at their ends differ in the last bits, which cracks the mesh).
   const vertexPoint = new Map(brep.vertices.map(v => [v.id, v.point as Point]));
-  const samples = new Map(brep.edges.map(e => {
-    const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
-    if (a && s.length) s[0] = [a[0], a[1], a[2]];
-    if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
-    return [e.id, s];
-  }));
-  // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
-  // strip between the chord and the edge can be integrated too.)
-  if (segments) for (const e of brep.edges) {
-    const ts = params.get(e.id)!, s = samples.get(e.id)!;
-    for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
-  }
-  const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
-  /** A loop as one ring of points (each coedge without its last point). */
-  const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
+  // Up to three rounds: an edge chord a curved face's triangles tilt from (the chord off the surface by its sagitta,
+  // the face's points near it — a dent where the faces meet, darkened by depth-based ambient occlusion, D79) has its
+  // midpoint added to its edge, which both faces share, and every face is tessellated again.
+  // (Not an edge of a facet face: its points are the mesh's own, which it triangulates as they are.)
+  const facetEdges = new Set(brep.faces.filter(f => f.surface.kind === 'facets').flatMap(f => f.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge))));
+  for (let round = 0; ; round++) {
+    const splits = new Map<string, Set<number>>(), segIndex = new Map<string, [string, number]>();
+    const samples = new Map(brep.edges.map(e => {
+      const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
+      if (a && s.length) s[0] = [a[0], a[1], a[2]];
+      if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
+      return [e.id, s];
+    }));
+    for (const [id, sm] of samples) for (let j = 0; j + 1 < sm.length; j++) segIndex.set(segmentKey(sm[j], sm[j + 1]), [id, j]);
+    // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
+    // strip between the chord and the edge can be integrated too.)
+    if (segments) for (const e of brep.edges) {
+      const ts = params.get(e.id)!, s = samples.get(e.id)!;
+      for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
+    }
+    const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
+    /** A loop as one ring of points (each coedge without its last point). */
+    const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
 
-  const positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
-  const emit = (faceId: string, kind: BrepMeshFace['kind'], pts: Point[], tris: [number, number, number][], flat: Point | null) => {
-    const base = positions.length / 3, indexOffset = indices.length;
-    for (const p of pts) positions.push(p[0], p[1], p[2]);
-    const acc = pts.map(() => [0, 0, 0] as Point);
-    for (const [a, b, c] of tris) {
-      indices.push(base + a, base + b, base + c);
-      const n = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a]));
-      for (const i of [a, b, c]) { acc[i][0] += n[0]; acc[i][1] += n[1]; acc[i][2] += n[2]; }
-    }
-    // Smooth within the face: points at one position (a seam) share one normal.
-    const key = (p: Point) => p.join(','), byPos = new Map<string, Point>();
-    acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
-    pts.forEach(p => { const n = flat ?? unit(byPos.get(key(p))!); normals.push(n[0], n[1], n[2]); });
-    faces.push({ faceId, kind, vertexOffset: base, vertexCount: pts.length, indexOffset, indexCount: indices.length - indexOffset });
-  };
-
-  for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
-  for (const face of brep.faces) {
-    if (only && !only.has(face.id)) continue;
-    // A facet face: its own triangles (the mesh's exact points, which its polyline edges pass through), smooth
-    // within the face, turned over when its sense is reversed.
-    if (face.surface.kind === 'facets') { emitFacets(face.id, face.surface, face.sense === 'forward', positions, normals, indices, faces); continue; }
-    const surface: Surface = face.surface, sign = face.sense === 'forward' ? 1 : -1, plane = planar(surface);
-    const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
-    if (plane) {
-      const normal: Point = [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], e2 = cross(normal, plane.e1);
-      const to2 = (p: Point): XY => { const d = sub(p, plane.origin); return [dot(d, plane.e1), dot(d, e2)]; };
-      const outer = ring(outerId), holes = innerIds.map(ring);
-      const tris = triangulatePolygonWithHoles(outer.map(to2), holes.map(h => h.map(to2)));
-      emit(face.id, 'planar', [...outer, ...holes.flat()], tris, normal);
-      continue;
-    }
-    const frame = trimmed.get(face.id);
-    if (frame) {
-      // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
-      const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
-      const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
-      const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
-      const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
-      parameters?.set(face.id, { uv, at: frame.at }); continue;
-    }
-    const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
-    const rails = railsOf(face, loops, coedges, edges);
-    if (rails === undefined) {
-      // Any other parametric surface without a seam: triangulated in its (u, v) domain.
-      if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
-      const { pts, tris, uv, domain } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
-      parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
-    }
-    const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
-    const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
-    const right = chain(r1, r2), left = chain(r2, r1);
-    const pts = [...A, ...B, ...right, ...left], tris: [number, number, number][] = [];
-    // Zipper the two sides (A runs with the loop; B was reversed to run the same way), pairing the
-    // points by their parameter across the rails when the face is a ruled patch between two of its
-    // iso-lines (so the strip follows its rulings), else by their share of each side.
-    let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
-    const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
-    const gridRows = gridded.get(face.id) ?? 0;
-    if (gridRows && across && n === m && right.length === gridRows - 1 && left.length === gridRows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
-      // A twisted side with its rails paired point for point: rows between them on the surface (its
-      // straight sides were sampled at the rows), so it is followed across as well as along.
-      const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
-      const index = (k: number, r: number) => r === 0 ? k : r === gridRows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + gridRows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
-      const inner: Point[] = [];
-      for (let r = 1; r < gridRows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / gridRows));
-      const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
-      for (let r = 0; r < gridRows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
-      emit(face.id, 'ruled', all, cells, null); continue;
-    }
-    while (i < n || j < m) {
-      const advanceA = j >= m || (i < n && fa(i + 1) <= fb(j + 1));
-      if (advanceA) { tris.push([i, i + 1, b0 + j]); i++; } else { tris.push([i, b0 + j + 1, b0 + j]); j++; }
-    }
-    // Side chains: the end triangle on each straight side becomes a fan over the chain's points.
-    const fan = (t: number, from: number, to: number, interior: number[]) => {
-      const x = tris[t].find(v => v !== from && v !== to)!, c = [from, ...interior, to];
-      tris.splice(t, 1, ...c.slice(0, -1).map((v, k): [number, number, number] => [v, c[k + 1], x]));
+    const positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
+    // (`exact`: the surface's own normal at each point (along Su × Sv), where known: the shading then matches across
+    // a smooth edge between faces — an average of each face's own triangles differs on either side of it, D79.)
+    const emit = (faceId: string, kind: BrepMeshFace['kind'], pts: Point[], tris: [number, number, number][], flat: Point | null, exact: (Point | null)[] | null = null, sense = 1) => {
+      const base = positions.length / 3, indexOffset = indices.length;
+      for (const p of pts) positions.push(p[0], p[1], p[2]);
+      const acc = pts.map(() => [0, 0, 0] as Point);
+      for (const [a, b, c] of tris) {
+        indices.push(base + a, base + b, base + c);
+        const n = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a]));
+        for (const i of [a, b, c]) { acc[i][0] += n[0]; acc[i][1] += n[1]; acc[i][2] += n[2]; }
+      }
+      // Smooth within the face: points at one position (a seam) share one normal.
+      const key = (p: Point) => p.join(','), byPos = new Map<string, Point>();
+      acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
+      pts.forEach((p, i) => {
+        // (Su × Sv is outward for a forward face, inward for a reversed one.)
+        const e = exact?.[i], n = flat ?? (e ? [sense * e[0], sense * e[1], sense * e[2]] : unit(byPos.get(key(p))!));
+        normals.push(n[0], n[1], n[2]);
+      });
+      faces.push({ faceId, kind, vertexOffset: base, vertexCount: pts.length, indexOffset, indexCount: indices.length - indexOffset });
     };
-    const r0 = b0 + B.length, l0 = r0 + right.length;
-    if (right.length) fan(tris.length - 1, n, b0 + m, right.map((_, k) => r0 + k));
-    if (left.length) fan(0, b0, 0, left.map((_, k) => l0 + k));
-    emit(face.id, 'ruled', pts, tris, null);
+
+    for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
+    for (const face of brep.faces) {
+      if (only && !only.has(face.id)) continue;
+      // A facet face: its own triangles (the mesh's exact points, which its polyline edges pass through), smooth
+      // within the face, turned over when its sense is reversed.
+      if (face.surface.kind === 'facets') { emitFacets(face.id, face.surface, face.sense === 'forward', positions, normals, indices, faces); continue; }
+      const surface: Surface = face.surface, sign = face.sense === 'forward' ? 1 : -1, plane = planar(surface);
+      const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
+      if (plane) {
+        const normal: Point = [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], e2 = cross(normal, plane.e1);
+        const to2 = (p: Point): XY => { const d = sub(p, plane.origin); return [dot(d, plane.e1), dot(d, e2)]; };
+        const outer = ring(outerId), holes = innerIds.map(ring);
+        const tris = triangulatePolygonWithHoles(outer.map(to2), holes.map(h => h.map(to2)));
+        emit(face.id, 'planar', [...outer, ...holes.flat()], tris, normal);
+        continue;
+      }
+      const frame = trimmed.get(face.id);
+      if (frame) {
+        // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
+        const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+        const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
+        const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
+        const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
+        parameters?.set(face.id, { uv, at: frame.at }); continue;
+      }
+      const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
+      const rails = railsOf(face, loops, coedges, edges);
+      if (rails === undefined) {
+        // Any other parametric surface without a seam: triangulated in its (u, v) domain.
+        if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
+        const { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null, exact, sign);
+        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
+        const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
+        for (const [a, b, c] of tris) {
+          const na = exact[a], nb = exact[b], nc = exact[c]; if (!na || !nb || !nc) continue;
+          const g = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a])), l = Math.hypot(g[0], g[1], g[2]), m = add3(add3(na, nb), nc), lm = Math.hypot(m[0], m[1], m[2]);
+          if (!(l > 0) || Math.abs(dot(g, m)) / (l * lm) >= cosTilt) continue;
+          for (const [x, y] of [[a, b], [b, c], [c, a]]) { const hit = segIndex.get(segmentKey(pts[x], pts[y])); if (hit && !facetEdges.has(hit[0])) (splits.get(hit[0]) ?? splits.set(hit[0], new Set()).get(hit[0])!).add(hit[1]); }
+        }
+        parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
+      }
+      const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
+      const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
+      const right = chain(r1, r2), left = chain(r2, r1);
+      const pts = [...A, ...B, ...right, ...left], tris: [number, number, number][] = [];
+      // Zipper the two sides (A runs with the loop; B was reversed to run the same way), pairing the
+      // points by their parameter across the rails when the face is a ruled patch between two of its
+      // iso-lines (so the strip follows its rulings), else by their share of each side.
+      let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
+      const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
+      const gridRows = gridded.get(face.id) ?? 0;
+      if (gridRows && across && n === m && right.length === gridRows - 1 && left.length === gridRows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
+        // A twisted side with its rails paired point for point: rows between them on the surface (its
+        // straight sides were sampled at the rows), so it is followed across as well as along.
+        const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
+        const index = (k: number, r: number) => r === 0 ? k : r === gridRows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + gridRows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
+        const inner: Point[] = [];
+        for (let r = 1; r < gridRows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / gridRows));
+        const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
+        for (let r = 0; r < gridRows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
+        emit(face.id, 'ruled', all, cells, null); continue;
+      }
+      while (i < n || j < m) {
+        const advanceA = j >= m || (i < n && fa(i + 1) <= fb(j + 1));
+        if (advanceA) { tris.push([i, i + 1, b0 + j]); i++; } else { tris.push([i, b0 + j + 1, b0 + j]); j++; }
+      }
+      // Side chains: the end triangle on each straight side becomes a fan over the chain's points.
+      const fan = (t: number, from: number, to: number, interior: number[]) => {
+        const x = tris[t].find(v => v !== from && v !== to)!, c = [from, ...interior, to];
+        tris.splice(t, 1, ...c.slice(0, -1).map((v, k): [number, number, number] => [v, c[k + 1], x]));
+      };
+      const r0 = b0 + B.length, l0 = r0 + right.length;
+      if (right.length) fan(tris.length - 1, n, b0 + m, right.map((_, k) => r0 + k));
+      if (left.length) fan(0, b0, 0, left.map((_, k) => l0 + k));
+      emit(face.id, 'ruled', pts, tris, null);
+    }
+    if (!splits.size || round === 2) return {
+      positionsMM: new Float64Array(positions), normals: new Float64Array(normals), indices: new Uint32Array(indices), faces,
+      edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })),
+    };
+    for (const [id, js] of splits) { const ts = params.get(id)!, out: number[] = []; ts.forEach((t, j) => { out.push(t); if (js.has(j) && j + 1 < ts.length) out.push((t + ts[j + 1]) / 2); }); params.set(id, out); }
+    segments?.clear(); parameters?.clear();
   }
-  return {
-    positionsMM: new Float64Array(positions), normals: new Float64Array(normals), indices: new Uint32Array(indices), faces,
-    edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })),
-  };
 }
 
 /** All control points in one plane. */
@@ -690,7 +715,7 @@ function invert(x: Inversion, p: Point): XY {
   for (const g of near) { const q = newtonUV(x, g, p), e = x.at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= x.done) break; }
   return best;
 }
-function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][] } {
+function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
   const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
@@ -859,7 +884,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
   const keep = (face.sense === 'forward') !== flip, same = (a: number, b: number) => pts[a] === pts[b];
   const wound = tris.map(([a, b, c]): [number, number, number] => keep ? [a, b, c] : [a, c, b]);
-  return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)) };
+  // (The surface's own normal at each point, along Su × Sv — none at a pole, whose normal depends on the way in.)
+  return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)), normals: nrm.map((n, i) => atPoleIdx(i) ? null : n) };
 }
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
