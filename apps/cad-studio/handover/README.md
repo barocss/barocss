@@ -5,6 +5,111 @@ then the next one) to whoever continues it. Session transcripts do not move betw
 the git history and the QA report are the record. Everything is **local only**: nothing was pushed, no PR,
 no npm publish.
 
+## 0. Start here — hand-over of 2026-10-18 (read this section first)
+
+The owner's usage ran out on 2026-10-18; work continues from another account. This section is current.
+The sections after it are the older hand-over (2026-10-16/17), kept as history: where they disagree, this one wins.
+
+### Where the work is
+| What | Value |
+|---|---|
+| Branch | `review/cad-gpu-engine-2026-10-14` — **local only, never pushed; no PR, no publish** |
+| Worktree | `.claude/worktrees/barocss-cad-gpu-review-efbb2c` |
+| HEAD at hand-over | the commit that adds this section (`git log -1 -- apps/cad-studio/handover/README.md`); last code commit `2831d318a` (PERF3 A6) |
+| Uncommitted, not ours | `REVIEW-2026-10-14-cad-gpu.md`, `review-drafts/`, `packages/barocss-gpu/src/engine-uv-material-wgsl.ts`, `.claude/`: the earlier review session's drafts — keep, do not commit or delete |
+| Decision log | `handover/decisions.md`, D1–D82 (D82 = PERF3, with sections A1–A6) |
+| Conformance fixtures | `packages/barocss-cad/conformance/` (`r5/`, `r6/`, `r7/`, …; superseded cases carry `supersededBy`) and the RB corpus `packages/barocss-cad/corpus/` |
+| Coordination hand-over | `handover/notes/coordination-2026-10-18.md`: the owner's coordinating session's direction and research decisions, the "why" (copied from `.claude/worktrees/amazing-euler-c18b94/HANDOVER-coordination-2026-10-18.md`) |
+
+### Roadmap (serial, one implementation session), status
+Done:
+- R1–R7, RB1–RB4, A1–A4 (AI collaboration), R3–R6, R6a gears, LIB1–4, R6b, AM1–AM5.
+- R8.1 cage operations (D80); R8.2a cage editor (D81).
+- **PERF3 A1–A6** (D82): A1 `49c4da306`; A2 `818f92cef`; A3 `dfae081e1` and memo key `8ddb29262`; A4 `4e4e7017d`; A5 `bf02e4204`; A6 `2831d318a`.
+
+**Next, in this order:**
+1. PERF3, as the peer listed it (D82 has the item list):
+   - **D18** (tighten budgets to about 2× the latest values; rerun `pnpm bench`). The new A1/A4/A5 benches already have about 2× budgets.
+   - **D19** new benches still missing:
+     - 16-hole plate mass;
+     - 2,048-quad torus mass;
+     - gear verdict and interfering report;
+     - library fit;
+     - orientation at 100k triangles;
+     - a printability run;
+     - 3MF at 200k;
+     - STEP tessellated read at 200k;
+     - F2 at 20k and F1 at 200k.
+   - The agent-turn evaluation count exists: `test/evalCount.test.ts`.
+   - **B7–B13**: hover colour buffer, picking without BVH, mesh-body mass via facetIntegrals and a WeakMap, F2 rebuild, mesh repair adjacency, worker reply payload, memory.
+   - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
+   - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
+   - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
+2. Rest of **R8.2**:
+   - agent cage tools (`subd_select`, extrude, `insert_loop`, bridge, fill, weld, crease, move; D41 proposals at L2 for topology);
+   - the browser-flow step;
+   - the cap cache per one-ring, which is done in A4 (`keptCapsAt`, by 2-ring).
+3. **R8.3**.
+4. R9 QEM decimation → R10a sketch-entity side ids → R10 general fillet → R11 general shell/offset → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
+5. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+6. RB5–RB9.
+
+Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
+
+### Standing rules
+- Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
+- No functions inside functions on hot paths (per frame, per element, per sample): hoist them to module level.
+- One serial implementation session; parallel agents only for read-only research.
+- Every step:
+  - a decision record (`decisions.md`);
+  - tests and conformance fixtures;
+  - lint, type-check and the affected benches;
+  - a README row update;
+  - a checkpoint (SHAs and numbers) to the coordinating session, if one is running.
+- Name and contract changes are versioned, never silent: saved documents keep resolving (the D16 pattern, versioned nodes).
+- A typed refusal rather than a wrong result. Never loosen a tolerance to pass. State accuracy honestly.
+- Every SubD test checks shape metrics (cap Jacobian ratio, normal turn, deviation) and tessellates the body.
+- Data provenance:
+  - every library, material or standard value is sourced or flagged as an estimate;
+  - no ISO/ANSI standard text;
+  - no non-commercial or unclear-licence datasets;
+  - vendor CAD is never bundled;
+  - legal review before any release.
+- Hard stops:
+  - no push, PR, publish or release;
+  - no deleting branches, worktrees or user files;
+  - no touching other sessions' checkouts.
+- Git identity: `easylogic <cyberuls@gmail.com>`. Commits end with the `Co-Authored-By` line. Replies to the owner in Korean; code, commits and peer messages in English.
+
+### Owner decisions so far
+- **Autonomy L2 = (b):**
+  - value edits of one feature apply directly, and everything else is a proposal;
+  - exception: the first build on an empty part applies directly;
+  - assembly, mates, drawing and locked parts are always proposals (D41).
+- **STEP caps:** 32 MiB B-rep, 128 MiB tessellated (D49).
+- **Helical threads** by default; old documents keep faceted `.facetK` names through the node version.
+- **F0 planar fallback** for mesh × mesh only, until F3.
+- **Library data rules:** sourced or estimate-flagged values, no vendor CAD bundled, a licence needed to share, legal review before release.
+- **Gears** follow barocss/barocss#2167.
+- **Mesh body / SubD:** one B-rep body, a Parasolid-convergent subset F0–F2 plus SubD; Hunyuan3D is never in the pipeline (licence).
+
+### Open TODOs and known defects
+- 1 nm graze gives a wrong body (RB TODO; `cylinder-box-graze-*` rows).
+- Helical × helical Boolean is refused (`gear-helical-pair-crossing-intersect`).
+- F2 at 1M positions: 3 of 8 holes.
+- Crease and boundary-vertex caps deviate most from the limit; a warning past 0.2% of size (D78/D79).
+- D79 boundary slivers: concave folds of 14–38° remain at cap boundaries (box3 18°, box6 38°; they were 51° and 180°).
+- 3MF: opening it in a slicer (PrusaSlicer or Bambu) is pending for the owner.
+- εγ: pending (the coordinating session's open item).
+- Kernel suite: one environmental failure, `actual native Split source…`, which pins Node 22.23.3.
+
+### How to run
+§2 below has the setup. In short:
+- Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Node 18 breaks the gpu tests.
+- `pnpm build:library` in `packages/barocss-cad` and `packages/barocss-gpu` before their tests and the studio (never bare `tsc` there).
+- Studio: `pnpm test`, `pnpm type-check`, `pnpm bench` (Node benches with budgets), `pnpm bench:browser` (submits per frame; needs `CHROME`/`PW_DIR` as in §2), `pnpm test:browser` (the browser flow, `node test/browser-flow.mjs <out-dir>`).
+- Kernel (`packages/barocss-cad`): `pnpm test`, `pnpm rb` (robustness bench; TODO rows are the known items above), `pnpm rb:props`, and the conformance suite `node --test test/conformance.test.mjs`.
+
 ## 1. Where the work is
 
 | What | Value |
@@ -713,7 +818,7 @@ else a proposal, the first build on an empty part applied directly (D41); STEP c
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: PERF3 (D82: A1–A3 done; A4–A6, D18–D19, then B, C and D20), then the rest of R8.2 (R8.2a, the cage editor, done: D81; agent tools and the flow step remain), then R8.3 (R8.1 done: D80; R7 done: D78; AM1–AM5 done: D72–D76; R6b done: D65–D71; LIB1–LIB4 done: D61–D64; R6a done: D53–D60; the trochoid root moved to R12b, manufacturing validation pending; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
+Next: see §0 (PERF3 A1–A6 done, D82; D18/D19, B7–B13, C14–C17, D20 next), then the rest of R8.2 (R8.2a, the cage editor, done: D81; agent tools and the flow step remain), then R8.3 (R8.1 done: D80; R7 done: D78; AM1–AM5 done: D72–D76; R6b done: D65–D71; LIB1–LIB4 done: D61–D64; R6a done: D53–D60; the trochoid root moved to R12b, manufacturing validation pending; R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
 
 **Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → **R6a** (R6a.1–2 spur gear ✓ D53; R6a.3 feature and command ✓ D54; R6a.4a pair checks ✓ D55; R6a.4b meshing gears ✓ D56; R6a.5a profile shift ✓ D57; R6a.5b rack ✓ D58; R6a.5c helical ✓ D59, helical rack ✓ D60; trochoid root → R12b; manufacturing validation pending) → **LIB** (LIB1 format and loader ✓ D61; LIB2 interfaces and fits ✓ D62; LIB3 library nodes ✓ D63; LIB4 panel, sharing rules, agent tools ✓ D64) → **R6b** (R6b.1 screw boss ✓ D65; R6b.2 inserts, standoffs, alignment ✓ D66; R6b.7 materials and process profiles ✓ D67; R6b.3 snap hook ✓ D68; R6b.4 lip and groove ✓ D69; R6b.5 vents ✓ D70; R6b.6 living hinge ✓ D71) → **AM** (AM1 profiles ✓ D72; AM2 overhang map ✓ D73; AM3 rules ✓ D74; AM4 orientation ✓ D75; AM5 3MF ✓ D76) → **R7** (SD2 caps ✓ D78) → R8 SD3 next → … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
 
