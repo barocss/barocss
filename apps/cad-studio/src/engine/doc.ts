@@ -104,9 +104,13 @@ type ModelNodeBase = SketchNode
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
   /**
    * An involute spur gear (R6a, issue #2167, D53–D54): module, teeth and face width, standing on z `from` about
-   * `center`; 20°, no profile shift in this stage. `generator` the version that made it (kept with the document).
+   * `center`, turned `rotation` degrees; 20°, no profile shift in this stage. `generator` the version that made it
+   * (kept with the document). With `mesh` (R6a.4b, D56) it meshes with an earlier gear (node `mesh.gear`): beside it
+   * along `direction` (degrees from +X) at `centerDistance` (default the nominal m(z1 + z2)/2), turned to mesh (plus
+   * `phase` degrees) and following its turn by −z1/z2 — its own centre, `from` and rotation then unused. The gear it
+   * meshes with is referenced, not consumed (both stay bodies): `usesOf`, not `parentsOf`.
    */
-  | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; generator: 'spur-gear@0' }
+  | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
   /**
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
    * numbers); the body is its exact limit surface, bicubic B-spline faces `<id>.patch<k>` (a sheet when the cage has a boundary).
@@ -290,6 +294,15 @@ export function carryOver(next: StudioDoc, was: StudioDoc, doc: StudioDoc): Stud
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
 
 export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
+
+/** A gear meshing with an earlier one (node `gear`). */
+export interface GearMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
+
+/**
+ * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
+ * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
+ */
+export const usesOf = (node: ModelNode): number[] => node.kind === 'gear' && node.mesh ? [node.mesh.gear] : parentsOf(node);
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {

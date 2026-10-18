@@ -3,7 +3,7 @@
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
 // it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
 // (engine/ids.ts), so they stay as they are.
-import { leafBodies, parentsOf, prefixDoc, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
+import { leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -139,6 +139,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);
   if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
+  if (n.kind === 'gear' && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   for (const key of ['parent', 'left', 'right', 'tool'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   return n;
 }
@@ -180,7 +181,7 @@ function rekey<T>(rec: Record<string, T>, gone: ReadonlySet<string>, moved: Read
 export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; removed: number[]; droppedDimensions: number } | { error: string } {
   const nodes = doc.nodes;
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
-  const users = (i: number) => nodes.flatMap((n, k) => parentsOf(n).includes(i) ? [k] : []);
+  const users = (i: number) => nodes.flatMap((n, k) => usesOf(n).includes(i) ? [k] : []);
   const removed = new Set([index]);
   for (const s of parentsOf(nodes[index])) if (nodes[s]?.kind === 'sketch' && users(s).every(k => k === index)) removed.add(s);
   const blocking = [...removed].flatMap(users).filter(k => !removed.has(k));
@@ -235,7 +236,7 @@ export function featureDependents(doc: StudioDoc, index: number): number[] {
   const nodes = doc.nodes, gone = new Set([index]);
   for (let k = index + 1; k < nodes.length; k++) {
     const n = nodes[k];
-    if (parentsOf(n).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
+    if (usesOf(n).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
   }
   return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch').sort((a, b) => a - b);
 }
@@ -270,7 +271,7 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   const [early, late] = dir < 0 ? [other, all[at]] : [all[at], other];
   const inEarly = (k: number) => k >= early[0] && k <= early[1];
   for (let k = late[0]; k <= late[1]; k++) {
-    const n = nodes[k], uses = [...parentsOf(n), ...(n.kind === 'sketch' && n.on ? [n.on.node] : [])].filter(inEarly);
+    const n = nodes[k], uses = [...usesOf(n), ...(n.kind === 'sketch' && n.on ? [n.on.node] : [])].filter(inEarly);
     const names = named(n).flatMap(name => nodesOfName(nodes, name)).filter(inEarly);
     if (uses.length || names.length) return { error: `${dir < 0 ? 'It' : 'The next step'} is built on ${dir < 0 ? 'the step before it' : 'it'}: it cannot come first.` };
   }

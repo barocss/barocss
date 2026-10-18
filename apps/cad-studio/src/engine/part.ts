@@ -44,7 +44,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
     case 'subd': return { ...at, kind: 'subd', cage: node.cage };
-    case 'gear': return { ...at, kind: 'spur-gear', module: node.module, teeth: node.teeth, faceWidth: node.faceWidth, center: node.center, generator: node.generator, ...(node.from ? { from: node.from } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    case 'gear': {
+      const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
+        : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
+      return { ...at, kind: 'spur-gear', module: node.module, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
     case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angleDegrees: node.angleDegrees };
     case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, radius: node.radius };
@@ -83,7 +87,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
       features.push(...featuresOf(node, i)); return;
     }
     if (makes) {
-      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p)))) { gone.add(i); return; }
+      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || (node.kind === 'gear' && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...featuresOf(node, i)); return;
     }
     const parent = (node as { parent: BodyRef }).parent;

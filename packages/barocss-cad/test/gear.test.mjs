@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, checkSpurGearPair, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, checkSpurGearPair, checkPlacedSpurGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.1–2 (issue #2167, D53): the involute spur gear's first stage — 20°, no profile shift, external, straight teeth.
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
@@ -112,4 +112,31 @@ test('pair check verdict mode (pass or fail, stopping at the first crossing) agr
   }
   const first = checkSpurGearPair(g1, g2, { centerDistanceMM: 59.9, mode: 'verdict' });
   assert.equal(checkSpurGearPair(g1, g2, { centerDistanceMM: 59.9, mode: 'verdict' }), first, 'the same object: cached');
+});
+
+test('a meshing gear (R6a.4b, D56): placed beside its driver and turned to mesh — the solids do not meet (an exact Boolean, apart from the pair check), the placed pair check at phase 0 and clear; the driver turned, the follower turns by −z1/z2; refusals', () => {
+  const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
+  const g1 = (rotation, extra = {}) => ({ id: 'g1', kind: 'spur-gear', module: 2, teeth: 18, faceWidth: 4, thicknessReduction: 0.05, rotation, center: [5, 3], ...extra });
+  const g2 = (mesh, extra = {}) => ({ id: 'g2', kind: 'spur-gear', module: 2, teeth: 18, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'g1', ...mesh }, ...extra });
+  // Turned and off the X axis: the Boolean intersection of the two solids is empty.
+  assert.throws(() => evaluateCadPart(D([g1(7), g2({ direction: 30 }), { id: 'i', kind: 'intersect', target: 'g1', tool: 'g2' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  // The driver stays an output; the follower stands at the nominal centre distance along 30°.
+  for (const turn of [0, 7, 13.25]) {
+    const r = evaluateCadPart(D([g1(turn), g2({ direction: 30 })])), p1 = r.output('g1').gearPlacement, p2 = r.output('g2').gearPlacement;
+    close(Math.hypot(p2.center[0] - 5, p2.center[1] - 3), 36, 1e-12, 'centre distance'); close(Math.atan2(p2.center[1] - 3, p2.center[0] - 5), Math.PI / 6, 1e-12, 'direction');
+    const c = checkPlacedSpurGears(p1, p2, { mode: 'verdict' });
+    assert.equal(c.relativePhaseDeg, 0); assert.equal(c.sweep.interference, false); assert.equal(c.faceOverlapMM, 4);
+    // The follower's turn: −z1/z2 of the driver's (here −1), about the line of centres.
+    const r0 = evaluateCadPart(D([g1(0), g2({ direction: 30 })])).output('g2').gearPlacement.rotation;
+    close(p2.rotation - r0, -turn * Math.PI / 180, 1e-12, 'ratio');
+  }
+  // A phase of half a pitch: the teeth cross.
+  const r = evaluateCadPart(D([g1(7), g2({ direction: 30, phase: 10 })]));
+  const c = checkPlacedSpurGears(r.output('g1').gearPlacement, r.output('g2').gearPlacement);
+  close(c.relativePhaseDeg, 10, 1e-9, 'phase'); assert.equal(c.sweep.interference, true);
+  // Another module, a gear that is not one, faces apart along the axis.
+  assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { module: 3 })])), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(0), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'c', kind: 'extrude', sketch: 's', height: 3 }, { ...g2({}), mesh: { gear: 'c' } }])), e => e.code === 'REFERENCE' && /not a spur gear/.test(e.message));
+  const apart = { ...r.output('g2').gearPlacement, from: 10 };
+  assert.throws(() => checkPlacedSpurGears(r.output('g1').gearPlacement, apart), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
 });

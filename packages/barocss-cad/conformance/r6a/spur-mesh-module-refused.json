@@ -1,0 +1,44 @@
+{
+  "id": "r6a-spur-mesh-module-refused",
+  "step": "R6a",
+  "decisions": [
+    "D56"
+  ],
+  "about": "A gear set to mesh with one of another module is refused (MATE_INCOMPATIBLE).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g1",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "rotation": 5
+        },
+        {
+          "id": "g2",
+          "kind": "spur-gear",
+          "module": 3,
+          "teeth": 40,
+          "faceWidth": 10,
+          "bore": 20,
+          "mesh": {
+            "gear": "g1",
+            "direction": 90
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "MATE_INCOMPATIBLE"
+    }
+  }
+}

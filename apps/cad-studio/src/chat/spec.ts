@@ -11,6 +11,7 @@ import { measureBetween, type MeasurePick } from '../app/measure';
 import { resolveEdge, resolveFace, resolveNames } from './names';
 import { factsOf } from './observe';
 import { draftAnalysis, interference, wallThickness } from './analysis';
+import { checkPlacedSpurGears } from '@barocss/cad';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -24,7 +25,9 @@ export type Query =
   | { fn: 'hole_diameter'; face: unknown }
   | { fn: 'min_wall'; body?: string }
   | { fn: 'draft_min'; body?: string; pull?: [number, number, number] }
-  | { fn: 'clearance'; a: string; b: string };
+  | { fn: 'clearance'; a: string; b: string }
+  /** A pair of spur gears (R6a.4b, D56), `a` and `b` their feature ids (n<k>), as placed: the kernel's pair checks. */
+  | { fn: 'gear_center_distance' | 'gear_backlash' | 'gear_contact_ratio' | 'gear_clearance'; a: string; b: string };
 /** `==`: value ± tol; `<=` / `>=`: against value (tol allowed); `between`: min … max. */
 export interface Predicate { op: '==' | '<=' | '>=' | 'between'; query: Query; value?: number; tol?: number; min?: number; max?: number; unit?: string }
 export interface Requirement {
@@ -128,8 +131,30 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       if (!pairs.length) return { unknown: `bodies ${q.a} and ${q.b} are not both there` };
       return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
     }
+    case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
   }
   return { unknown: `unknown query ${(q as { fn: string }).fn}` };
+}
+
+/**
+ * The pair checks of two spur gears as placed (R6a.4b, D56): centre distance, backlash (the circumferential one on the
+ * working pitch circle), usable contact ratio — the verdict mode, cached in the kernel — or the least clearance over a
+ * tooth period (the full sweep: minus the depth when the teeth cross). Gears built on further are not gears here.
+ */
+function gearPair(doc: StudioDoc, bodies: readonly BodyResult[], q: Extract<Query, { a: string; b: string }>): { x: number; entities?: string[]; hint?: string } | { unknown: string } {
+  const gearOf = (id: string) => { const i = nodeIndexOf(doc.nodes, id); return i < 0 ? undefined : bodies.find(b => b.ref?.node === i && b.gear)?.gear; };
+  const g1 = gearOf(q.a), g2 = gearOf(q.b);
+  if (!g1 || !g2) return { unknown: `${!g1 ? q.a : q.b} is not a spur gear body as made (a gear built on further is a body, not a gear, here)` };
+  let c: ReturnType<typeof checkPlacedSpurGears>;
+  try { c = checkPlacedSpurGears(g1, g2, { mode: q.fn === 'gear_clearance' ? 'report' : 'verdict' }); }
+  catch (cause) { return { unknown: cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause) }; }
+  const entities = [q.a, q.b];
+  switch (q.fn) {
+    case 'gear_center_distance': return { x: c.centerDistanceMM, entities, hint: `nominal ${r4(c.nominalCenterDistanceMM)} mm` };
+    case 'gear_backlash': return { x: c.backlashMM, entities, hint: 'circumferential, on the working pitch circles' };
+    case 'gear_contact_ratio': return { x: c.usableContactRatio, entities, hint: `the usable flanks (ideal ${c.idealContactRatio.toFixed(4)})` };
+    default: return { x: c.sweep.minimumClearanceMM, entities, hint: c.sweep.interference ? `the teeth cross at ${c.sweep.atDegrees.toFixed(2)}° (measured as minus the depth)` : 'the least clearance over a tooth period' };
+  }
 }
 
 /** One predicate against the part as it stands. */
@@ -157,7 +182,7 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 
-const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance'];
+const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance'];
 /** Why a requirement cannot be kept (malformed), or null. */
 export function checkRequirement(r: unknown): string | null {
   if (typeof r !== 'object' || r === null) return 'a requirement is an object';
@@ -174,6 +199,7 @@ export function checkRequirement(r: unknown): string | null {
   if (f.fn === 'distance_between' && (f.a === undefined || f.b === undefined)) return `${q.id}: distance_between takes a and b (faces or edges)`;
   if ((f.fn === 'radius' || f.fn === 'hole_diameter') && f.face === undefined) return `${q.id}: ${f.fn} takes a face`;
   if (f.fn === 'clearance' && (typeof f.a !== 'string' || typeof f.b !== 'string')) return `${q.id}: clearance takes two body keys a and b`;
+  if (String(f.fn).startsWith('gear_') && (typeof f.a !== 'string' || typeof f.b !== 'string')) return `${q.id}: ${f.fn} takes two spur gears' feature ids a and b (n<k>)`;
   if (q.invariant === true && (typeof q.invariant_reason !== 'string' || !q.invariant_reason)) return `${q.id}: an invariant requirement says why (invariant_reason)`;
   return null;
 }

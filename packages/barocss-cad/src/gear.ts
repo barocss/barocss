@@ -412,3 +412,30 @@ function depthInside(sa: Float64Array, sb: Float64Array, a: number, ra1: number,
   }
   return deep;
 }
+
+/** A spur gear as it stands: axis along +Z through `center`, its faces from `from` to `from` + b, turned by `rotation` (radians). */
+export interface PlacedSpurGear { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }
+export interface PlacedSpurGearPairCheck extends SpurGearPairCheck {
+  /** The relative phase the gears stand at (degrees, in [0, 360/z2)), and how far their faces overlap along the axis. */
+  readonly relativePhaseDeg: number;
+  readonly faceOverlapMM: number;
+}
+
+/**
+ * The pair checks for two gears as placed (R6a.4b, D56): the centre distance from their centres, the relative phase
+ * from their turns (gear 2's turn on the line of centres, less the half-pitch offset, plus gear 1's carried through
+ * the ratio, modulo gear 2's pitch angle), and the axial overlap of their faces — none is MATE_INCOMPATIBLE.
+ */
+export function checkPlacedSpurGears(g1: PlacedSpurGear, g2: PlacedSpurGear, options: Omit<SpurGearPairOptions, 'centerDistanceMM' | 'relativePhaseDeg'> = {}): PlacedSpurGearPairCheck {
+  const dx = g2.center[0] - g1.center[0], dy = g2.center[1] - g1.center[1], a = Math.hypot(dx, dy);
+  const overlap = Math.min(g1.from + g1.spec.faceWidthMM, g2.from + g2.spec.faceWidthMM) - Math.max(g1.from, g2.from);
+  if (!(overlap > 0)) throw new GearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axes (${overlap.toFixed(6)} mm)`);
+  if (!(a > 0)) throw new GearError('MATE_INCOMPATIBLE', 'the gears share an axis');
+  const phi = Math.atan2(dy, dx), z1 = g1.spec.teeth, z2 = g2.spec.teeth, pitch = 2 * Math.PI / z2;
+  const raw = (g2.rotation - phi) - (Math.PI - Math.PI / z2) + (g1.rotation - phi) * z1 / z2;
+  // (A phase within a rounding of a whole pitch is 0.)
+  let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
+  const phaseDeg = phase * 180 / Math.PI;
+  const check = checkSpurGearPair(g1.spec, g2.spec, { ...options, centerDistanceMM: a, relativePhaseDeg: phaseDeg });
+  return { ...check, relativePhaseDeg: phaseDeg, faceOverlapMM: overlap };
+}

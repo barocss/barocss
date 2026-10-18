@@ -1,4 +1,4 @@
-import { evaluateCadPart, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, exportStep } from '@barocss/cad';
+import { evaluateCadPart, checkPlacedSpurGears, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type GearPlacement, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -26,6 +26,8 @@ export interface BodyResult {
   pieces?: number;
   /** What a generator says of the body (a gear: its dimensions, its flank fit, its schematic root). */
   notes?: { text: string; warning?: boolean }[];
+  /** A spur gear as made: its spec and where it stands (the gear queries, A3; a meshing gear's other gear with it). */
+  gear?: GearPlacement;
 }
 export type EvalResult =
   | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
@@ -50,7 +52,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
-  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: gearNotes(o.gear) } : {}) };
+  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -228,4 +230,22 @@ function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): 
     { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
     ...g.diagnostics.map(x => ({ text: x.code === 'ROOT_TRANSITION_UNVALIDATED' ? 'Schematic root: not the cutting tool\'s, not validated for manufacturing' : x.message, warning: x.severity === 'warning' })),
   ];
+}
+
+/**
+ * A meshing gear's pair check against the gear it meshes with, for the body's panel (R6a.4b, D56): the verdict mode
+ * (stopping at the first crossing; the kernel caches it by both gears, the centre distance and the phase), its time.
+ */
+function meshNotes(g: GearPlacement | undefined): { text: string; warning?: boolean }[] {
+  if (!g?.driver) return [];
+  const t0 = performance.now();
+  let c: ReturnType<typeof checkPlacedSpurGears>;
+  try { c = checkPlacedSpurGears(g.driver, g, { mode: 'verdict' }); }
+  catch (cause) { return [{ text: `Does not mesh with ${g.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
+  const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4);
+  const head = `Meshes with ${g.meshesWith}: centre distance ${mm(c.centerDistanceMM)} mm, ratio −${g.driver.spec.teeth}:${g.spec.teeth}, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}`;
+  return [{ text: head },
+    c.sweep.interference ? { text: `The teeth cross at ${c.sweep.atDegrees.toFixed(2)}° of ${g.meshesWith} (phase ${c.relativePhaseDeg.toFixed(2)}°): interference (${ms.toFixed(0)} ms)`, warning: true }
+      : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` },
+    ...c.diagnostics.filter(x => x.code !== 'SELF_INTERSECTION' && x.code !== 'ROOT_TRANSITION_UNVALIDATED').map(x => ({ text: x.message, warning: x.severity === 'warning' }))];
 }

@@ -100,3 +100,34 @@ test('policy: the best snapshot, rounds without progress and a restart hint; a c
   assert.ok(!r.isError, r.content);
   assert.equal(parse(r.content).facts.bbox.max[0], 40);
 });
+
+test('gear queries (R6a.4b, D56): centre distance, backlash, contact ratio and clearance of two gears as placed; a crossing measured as minus its depth; not gears, unknown', async () => {
+  const { commands } = await import('../src/app/commands');
+  const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const ctx0 = { doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 } as StudioDoc, bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  const one = gear.build!(ctx0, { ...gear.defaults!(ctx0), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 }), r1 = await evaluate(one); assert.ok(r1.ok);
+  const doc = mesh.build!({ doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } }, { teeth: 40, dir: 0, bore: 8 });
+  let s = await stateOf({ ...doc, nodes: [{ ...doc.nodes[0], thicknessReduction: 0.1 } as typeof doc.nodes[number], { ...doc.nodes[1], thicknessReduction: 0.1 } as typeof doc.nodes[number]] });
+  const q = (fn: string) => ({ fn, a: 'n0', b: 'n1' });
+  const reqs = [
+    { id: 'G1', source: 'shafts 60 mm apart', hard: true, check: { op: '==', query: q('gear_center_distance'), value: 60, tol: 1e-6, unit: 'mm' } },
+    { id: 'G2', source: 'backlash 0.1–0.3 mm', hard: true, check: { op: 'between', query: q('gear_backlash'), min: 0.1, max: 0.3, unit: 'mm' } },
+    { id: 'G3', source: 'contact ratio at least 1.4', hard: true, check: { op: '>=', query: q('gear_contact_ratio'), value: 1.4 } },
+    { id: 'G4', source: 'teeth never touch', hard: true, check: { op: '>=', query: q('gear_clearance'), value: 0.05, unit: 'mm' } },
+    { id: 'G5', source: 'a gear pair', hard: false, check: { op: '>=', query: { fn: 'gear_backlash', a: 'n0', b: 'n9' }, value: 0 } },
+  ];
+  let r = await runTool(s, 'set_requirements', { requirements: reqs }, evaluate); assert.ok(!r.isError, r.content); s = r.state;
+  let rep = parse((await runTool(s, 'check_spec', {}, evaluate)).content);
+  // (Each tooth 0.1 mm thinner: backlash 0.2 mm on the pitch circle; the least clearance the normal one, j·cos 20° / 2.)
+  assert.deepEqual(rep.summary, { pass: 4, fail: 0, unknown: 1, hard_failing: 0 }, JSON.stringify(rep));
+  assert.match(rep.unknowns[0].why, /n9 is not a spur gear body/);
+  // Half a pitch out: the teeth cross, the clearance negative (minus the depth).
+  s = { ...s, doc: { ...s.doc, nodes: [s.doc.nodes[0], { ...s.doc.nodes[1], mesh: { gear: 0, phase: 4.5 } } as typeof s.doc.nodes[number]] } };
+  const re = await evaluate(s.doc); assert.ok(re.ok); s = { ...s, bodies: re.ok ? re.bodies : [] };
+  rep = parse((await runTool(s, 'check_spec', {}, evaluate)).content);
+  const f = rep.failures.find((x: { req_id: string }) => x.req_id === 'G4');
+  assert.ok(f && f.measured < -1, JSON.stringify(rep.failures)); assert.match(f.hint, /the teeth cross/);
+  // Malformed: a and b are feature ids.
+  r = await runTool(s, 'set_requirements', { requirements: [{ id: 'G9', source: 'x', hard: true, check: { op: '>=', query: { fn: 'gear_backlash', a: 'n0' }, value: 0 } }] }, evaluate);
+  assert.ok(r.isError); assert.match(parse(r.content).error, /gear_backlash takes two spur gears' feature ids/);
+});

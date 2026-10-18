@@ -153,6 +153,14 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
       number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
       number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      // Its turn (a meshing gear: where it stands beside the other gear, and its phase; its turn follows the other's).
+      if (!node.mesh) number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      else {
+        const other = nodes[node.mesh.gear], nominal = (n: ModelNode) => other?.kind === 'gear' ? num(other.module) * (other.teeth + g(n).teeth) / 2 : 0;
+        number('dir', 'Direction', '°', n => g(n).mesh!.direction ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, direction: v } }));
+        number('a', 'Centre distance', 'mm', n => num(g(n).mesh!.centerDistance ?? nominal(n)), (n, v) => { const mesh = { ...g(n).mesh! }; if (Math.abs(v - nominal(n)) < 1e-9) delete mesh.centerDistance; else mesh.centerDistance = v; return { ...g(n), mesh }; });
+        number('ph', 'Phase', '°', n => g(n).mesh!.phase ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, phase: v } }));
+      }
       break;
     }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;

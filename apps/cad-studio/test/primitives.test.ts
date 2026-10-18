@@ -123,3 +123,36 @@ test('Spur gear (R6a, issue #2167, D54): a gear node from the command — the vo
   const bad = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12 }] }, 3);
   assert.ok(!bad.ok && /x = 0\.298/.test(bad.error.detail + bad.error.hint), JSON.stringify(!bad.ok && bad.error));
 });
+
+test('Meshing gear (R6a.4b, D56): beside the selected gear at the centre distance, turned to mesh — the pair\'s verdict in the panel; turning the driver turns it (clear still); a phase off, the teeth cross; the driver cannot go first or be deleted from under it', async () => {
+  const { deleteFeature, moveFeature } = await import('../src/chat/features');
+  const { editFields } = await import('../src/app/editFields');
+  const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 5, y: 3, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok);
+  assert.equal(mesh.available(ctx).ok, false, 'nothing selected');
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  assert.ok(mesh.available(picked).ok); assert.equal(mesh.defaults!(picked).teeth, 40);
+  const two = mesh.build!(picked, { ...mesh.defaults!(picked), dir: 90 }), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const follower = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
+  assert.equal(r2.ok && r2.bodies.length, 2, 'both gears are bodies');
+  assert.ok(Math.abs(follower.centroid![0] - 5) < 1e-6 && Math.abs(follower.centroid![1] - 63) < 1e-6, String(follower.centroid));
+  assert.ok(follower.notes?.some(n => /^Meshes with n0: centre distance 60 mm, ratio −20:40, backlash 0 mm/.test(n.text)), JSON.stringify(follower.notes));
+  assert.ok(follower.notes?.some(n => /^Clear over a full tooth period \(checked in \d+ ms\)/.test(n.text)));
+  // The driver turned (its rotation field): the follower follows, still clear.
+  const rot = editFields(two.nodes, 0).find(f => f.key === 'rot')! as Extract<ReturnType<typeof editFields>[number], { kind: 'number' }>, turned = { ...two, nodes: rot.set(two.nodes, 7.3) };
+  const r3 = evaluateDoc(turned, 3); assert.ok(r3.ok);
+  assert.ok(r3.ok && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)));
+  // Half a pitch of phase (4.5° on 40 teeth): the teeth cross, said as a warning.
+  const ph = editFields(two.nodes, 1).find(f => f.key === 'ph')! as Extract<ReturnType<typeof editFields>[number], { kind: 'number' }>, off = { ...two, nodes: ph.set(two.nodes, 4.5) };
+  assert.deepEqual(editFields(two.nodes, 1).map(f => f.key).filter(k => ['rot', 'dir', 'a', 'ph'].includes(k)), ['dir', 'a', 'ph']);
+  assert.equal(editFields(two.nodes, 1).find(f => f.key === 'a')!.get(two.nodes), 60);
+  const r4 = evaluateDoc(off, 4); assert.ok(r4.ok);
+  assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => n.warning && /The teeth cross at .* \(phase 4\.50°\): interference/.test(n.text)));
+  // The gear it meshes with: not deleted from under it, not moved after it.
+  assert.match((deleteFeature(two, 0) as { error: string }).error, /used by feature 1/);
+  assert.ok('error' in moveFeature(two, 1, -1));
+  // Suppressed, the driver takes the follower with it.
+  const r5 = evaluateDoc({ ...two, nodes: [{ ...two.nodes[0], suppressed: true }, two.nodes[1]] }, 5); assert.ok(r5.ok); assert.equal(r5.ok && r5.bodies.length, 0);
+});

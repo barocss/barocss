@@ -41,6 +41,14 @@ export const puck = (at: V3): HandleSpec => ({ key: 'x', at, dir: [1, 0, 0], pai
 const arrow = (key: string, at: V3, dir: V3, extra: Partial<HandleSpec> = {}): HandleSpec => ({ key, at, dir, min: 0.5, step: 0.5, ...extra });
 const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
 
+/** The one selected body when it is a spur gear as made (not built on further): its node and index. */
+function gearPicked(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' }>; index: number } | null {
+  const picked = new Set<number>(ctx.selection.bodies); ctx.selection.faces.forEach(f => picked.add(f.body)); ctx.selection.edges.forEach(e => picked.add(e.body));
+  if (picked.size !== 1) return null;
+  const body = ctx.bodies[[...picked][0]], ref = body?.ref, node = ref ? ctx.doc.nodes[ref.node] : undefined;
+  return node?.kind === 'gear' && ref!.side === 'solid' ? { node, index: ref!.node } : null;
+}
+
 /** Placed with its centre (axis) at the pointer. */
 const centred = (v: Values, [x, y, z]: [number, number, number]): Values => ({ ...v, x, y, z });
 
@@ -91,6 +99,17 @@ export const primitives: Command[] = [
     build: (ctx, v) => {
       const [m, z, b, bore, x, y, zz] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z');
       return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
+    },
+  },
+  {
+    id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio',
+    available: ctx => gearPicked(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur gear to mesh with.' },
+    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 18, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
+    defaults: ctx => { const g = gearPicked(ctx); return { teeth: g ? Math.min(200, 2 * g.node.teeth) : 40, dir: 0, bore: 8 }; },
+    build: (ctx, v) => {
+      const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear to mesh with.');
+      const [z, dir, bore] = n(v, 'teeth', 'dir', 'bore');
+      return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@0' });
     },
   },
   {

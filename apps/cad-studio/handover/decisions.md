@@ -2045,3 +2045,68 @@ Evidence — kernel `test/gear.test.mjs` 6/6. Every value is checked against a f
 Next: R6a.4b — the gear mate in assemblies (ratio −z1/z2, centre distance and phase from the pair), A3 query
 functions (`gear_center_distance`, `gear_backlash`, `gear_contact_ratio`, the interference sweep), and the studio's
 rotation preview.
+
+## D56 — R6a.4b: meshing gears — a gear placed and turned by the one it meshes with, the pair's verdict in the panel, gear queries for requirements (2026-10-18, issue #2167)
+
+Decision:
+- **Kernel feature (`spur-gear`).**
+  - `rotation` (degrees about its axis; tooth 1 on +X at 0).
+  - `mesh: { gear, direction?, centerDistance?, phase? }` places a gear beside an earlier spur gear:
+    - on that gear's face plane, at `centerDistance` along `direction` (the nominal m(z1 + z2)/2 by default);
+    - turned so that a tooth space faces the other's tooth on the line of centres, plus `phase`;
+    - following the other's turn by −z1/z2: rot2 = φ + π − π/z2 − (rot1 − φ)·z1/z2 + phase.
+  - The other gear is referenced, not consumed: both stay outputs.
+  - Another module is refused (INPUT, `[MATE_INCOMPATIBLE]`); a reference that is not a spur gear is REFERENCE.
+  - Outputs carry `gearPlacement`: spec, centre, face plane, turn, and for a meshing gear the other's placement.
+- **`checkPlacedSpurGears(g1, g2, options)`** takes the centre distance from the two centres and the relative phase
+  from the two turns, modulo gear 2's pitch angle; a phase within 1e-9 of a pitch counts as 0, which also lets the
+  cache hit. Faces that do not overlap along the axis are MATE_INCOMPATIBLE. The pair checks are D55's.
+- **Studio.**
+  - The gear node has `rotation?` and `mesh?: GearMesh` (the other gear by node index, renumbered with the history).
+  - `usesOf(node)` — `parentsOf` plus the meshed gear — guards delete, move and dependents. The other gear cannot be
+    deleted from under the follower or moved after it.
+  - `parentsOf` is unchanged, so a body's own line stays its own: its look, its steps, Duplicate.
+  - Suppressing the other gear takes the follower with it.
+  - Command **Meshing gear** needs one spur gear selected (as made), with teeth (default 2 × z1), direction and bore;
+    module, face width and thickness reduction come from the selected gear.
+  - Edit fields: Rotation for a free gear; Direction, Centre distance and Phase for a meshing one.
+- **The panel.**
+  - A meshing gear's notes give the centre distance, ratio, backlash and contact ratio, then the verdict: "Clear over
+    a full tooth period (checked in N ms)", or a warning that the teeth cross, with where and at which phase.
+  - The verdict comes from `checkPlacedSpurGears` in verdict mode, which stops at the first crossing; the kernel
+    caches it by both gears, centre distance and phase.
+  - **Rotation preview:** editing the driver's Rotation turns the follower with it, re-checked each time.
+- **A3 queries:** `gear_center_distance`, `gear_backlash`, `gear_contact_ratio` (verdict mode) and `gear_clearance`
+  (the full sweep, minus the depth when the teeth cross). `a` and `b` are the gears' feature ids. A gear built on
+  further, such as one with a hole added, is a body, not a gear, here: unknown, with why.
+
+Evidence:
+- **Kernel** `test/gear.test.mjs` 8/8. The new test:
+  - z18/z18 with 0.05 + 0.05 reductions, the driver turned 7° and the follower at 30°: the exact Boolean intersection
+    of the two solids is empty. This is independent of the sweep.
+  - For driver turns 0, 7 and 13.25°, the follower stands at 36 mm along 30° (to 1e-12), the placed check gives
+    phase 0 and is clear, and the follower's turn changes by −z1/z2 of the driver's.
+  - Phase 10° (half a pitch) crosses; refusals for another module, a non-gear and faces apart.
+- **Probe (z20/z40, intersection):** empty at phases of 0 and multiples of the pitch, 197 mm³ at half a pitch.
+- **Conformance** r6a 7 cases (54 overall): `spur-mesh-pair` (driver turned 5°, follower along 90° with a bore:
+  centroid [0, 60, 5], volumes as the single-gear fixtures, the follower genus 1) and `spur-mesh-module-refused`.
+- **Studio** `primitives.test.ts` (command, notes, the driver turned and still clear, phase 4.5° crossing, delete and
+  move guarded, suppression) and `spec.test.ts`:
+  - with 0.1 + 0.1 reductions: centre distance 60, backlash 0.2 within 0.1–0.3, contact ratio ≥ 1.4, clearance
+    ≥ 0.05 all pass;
+  - an unknown gear is unknown;
+  - half a pitch out, the clearance fails at below −1 mm, said as a crossing;
+  - a malformed query is refused.
+  Studio 303/303; browser flow: the Spur gear step adds Meshing gear (2 bodies, notes "centre distance 60 mm, ratio
+  −20:40" and "Clear over a full tooth period (checked in 192 ms)").
+- **Timings (m 2, z 20/40, 150 points a flank):**
+  - verdict: clean 185–191 ms cold and 0 ms cached; interfering 0–1 ms (it stops at the first crossing);
+  - report: clean 650 ms, interfering 4.2–4.5 s.
+
+Limits, recorded:
+- The mesh is between gears as generated. A gear moved, or built on, after it was made does not carry its follower;
+  that needs the assembly-level gear mate between instances, a later sub-step in the mates solver.
+- The rotation preview is the edit field, not an animation.
+- Pair checks are per pair; trains are chains of pairs.
+
+Next: R6a.5 — profile shift and rack, then helical.

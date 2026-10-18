@@ -1,0 +1,88 @@
+{
+  "id": "r6a-spur-mesh-pair",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D56"
+  ],
+  "about": "A gear meshing with another (mesh: {gear, direction}) stands beside it at the nominal centre distance m(z1 + z2)/2 along the direction, the driver staying an output; each volume the profile's area \u00d7 the face width (as r6a-spur-m2-z20 and the bore taken out), the follower's centroid on its axis.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g1",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "rotation": 5
+        },
+        {
+          "id": "g2",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 40,
+          "faceWidth": 10,
+          "bore": 20,
+          "mesh": {
+            "gear": "g1",
+            "direction": 90
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12261.056995277,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^g1\\.(flankL|flankR|tip|root|rootL|rootR|face0|face1)$"
+      },
+      {
+        "volumeMM3": {
+          "value": 46686.06955623938,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            60,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^g2\\.(flankL|flankR|tip|root|rootL|rootR|bore|face0|face1)$"
+      }
+    ]
+  },
+  "oracle": "centre distance a = m(z1 + z2)/2 = 60 (closed form); volumes as the single-gear fixtures"
+}

@@ -168,7 +168,17 @@ export type CadPartFeature = Base & (
    * the measured flank deviation, the schematic root's warning) is the output's `gear`. `generator` records the
    * version that made it.
    */
-  | { readonly kind: 'spur-gear'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly generator?: 'spur-gear@0' }
+  | { readonly kind: 'spur-gear'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim;
+    /** Turned about its axis (degrees; tooth 1 on +X at 0). */
+    readonly rotation?: number;
+    /**
+     * Meshing with another spur gear (R6a.4, D56): placed beside it — on its face plane, at `centerDistance` (default
+     * the nominal m(z1 + z2)/2) along `direction` (degrees from +X) — and turned so its teeth mesh (a space facing the
+     * other's tooth on the line of centres, plus `phase` degrees), following the other's turn by −z1/z2. Its own
+     * `center`, `from` and `rotation` are then not used.
+     */
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: number };
+    readonly generator?: 'spur-gear@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -216,6 +226,8 @@ export interface CadPartOutput {
   surfaceArea(): number;
   /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
   readonly gear?: SpurGearReport;
+  /** A gear's placement (spec, centre, face plane, turn; the gear it meshes with). */
+  readonly gearPlacement?: GearPlacement;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -265,8 +277,15 @@ interface Part {
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
   readonly revolved?: RevolveInput;
   readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
-  /** A generated gear's report (R6a). */
+  /** A generated gear's report (R6a), and where it stands (its spec, centre, face plane, turn). */
   readonly gear?: SpurGearReport;
+  readonly gearPlace?: GearPlacement;
+}
+/** A spur gear as placed: its spec, axis through `center` along +Z from `from`, turned by `rotation` (radians). */
+export interface GearPlacement {
+  readonly spec: SpurGearSpec; readonly center: XY; readonly from: number; readonly rotation: number;
+  /** A meshing gear: the feature it meshes with, and that gear's placement (for the pair checks, checkPlacedSpurGears). */
+  readonly meshesWith?: string; readonly driver?: GearPlacement;
 }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
 const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT' };
@@ -865,16 +884,37 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'spur-gear': {
       if (f.generator !== undefined && f.generator !== 'spur-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
-      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), c = f.center === undefined ? [0, 0] as XY : xy(f.center as CadPartPoint2, 'center');
-      const z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
+      const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
       const spec: SpurGearSpec = { moduleMM: m, teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
         ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      // Where it stands: its own centre, plane and turn, or beside the gear it meshes with.
+      let place: GearPlacement;
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined) {
+        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
+        // (Referenced, not consumed: the gear it meshes with stays an output of its own.)
+        const other = ref(mesh!.gear, 'mesh.gear').result;
+        const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+        if (!driver) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
+        if (driver!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${driver!.spec.moduleMM}`);
+        const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+        const z1 = driver!.spec.teeth, z2 = f.teeth as number, a = mesh!.centerDistance === undefined ? m * (z1 + z2) / 2 : dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const phi = (dirDeg as number) * Math.PI / 180;
+        place = { spec, center: [driver!.center[0] + a * Math.cos(phi), driver!.center[1] + a * Math.sin(phi)], from: driver!.from,
+          rotation: phi + Math.PI - Math.PI / z2 - (driver!.rotation - phi) * z1 / z2 + (phaseDeg as number) * Math.PI / 180, meshesWith: String(mesh!.gear), driver: driver! };
+      } else {
+        place = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      }
       return () => {
         let made: ReturnType<typeof spurGear>;
         try { made = spurGear(spec, { id: at }); }
         catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
-        const brep = c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
-        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report }] };
+        const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+        const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
       };
     }
     case 'thread': {
@@ -1549,7 +1589,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

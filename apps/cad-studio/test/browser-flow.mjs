@@ -2317,6 +2317,18 @@ try {
     assert.ok(notes.some(t => /Reference Ø40, tip Ø44, root Ø35/.test(t)) && notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
     await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
     await snap('spur-gear');
+    // A gear meshing with it (R6a.4b): the gear selected, the command beside it; its notes give the pair's verdict.
+    await press(' '); await page.locator('.palette input').fill('meshing gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'gear' && window.__studioDoc.nodes[1].mesh?.gear === 0 && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.match(await page.textContent('.history'), /Spur gear m2 z40/);
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0/.test(n.textContent ?? '')), null, { timeout: 15000 });
+    const pair = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(pair.some(t => /centre distance 60 mm, ratio −20:40/.test(t)) && pair.some(t => /Clear over a full tooth period \(checked in \d+ ms\)/.test(t)), pair.join(' | '));
+    await press('f'); await page.waitForTimeout(500);
+    await snap('spur-gear-pair');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
