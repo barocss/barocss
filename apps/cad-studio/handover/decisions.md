@@ -2230,3 +2230,74 @@ Evidence:
   - verdict: clean 9 ms, crossing 0–1 ms.
 
 Next: R6a.5c — helical gears.
+
+## D59 — R6a.5c: helical gears — normal module, helix angle and hand; the transverse involute turned along the helix (2026-10-18, issue #2167)
+
+Decision, following the peer's conventions:
+- **Inputs.** `normalModuleMM` m_n, `helixAngleDeg` β (above 0, at most 45°) and `hand`, named so a spur-style
+  module is never misread.
+  - `moduleMM` together with a helix angle is refused, naming `normalModuleMM`; a missing hand is refused.
+  - `pressureAngleDeg` is the normal one, α_n = 20°.
+  - Transverse values follow: m_t = m_n/cos β, tan α_t = tan α_n/cos β, d = z m_t; addendum and dedendum in m_n.
+  - The tooth is m_t(π/2 + 2 x_n tan α_n) on the reference circle.
+- **Undercut** by the virtual tooth number z_v = z/cos³β against 2(1 − x_n)/sin²α_n. The refusal names the least x.
+- **Geometry.** The transverse involute profile turns by z tan β / r as it rises (lead 2πr/tan β; a right hand turns
+  counter-clockwise going up +Z). A helix has no exact NURBS form, so the side faces are A(v)·C(u):
+  - C is the fitted transverse curve; A(v) is a cubic Hermite fit of the rotation e^{iθ(v)}, exact at the piece ends.
+  - The surface lies within the flank deviation plus `twistDeviationMM` at the tip circle (both reported) of the
+    involute helicoid.
+  - At most four cubic pieces to an axial segment. Longer twists split the faces along the axis (`#k.2`, …); the
+    seams are exactly turned profile curves. Past 64 segments: PROFILE_BUDGET_EXCEEDED, never a looser fit.
+  - The bore and end faces are unchanged. The report carries `helix` (normal and transverse module, α_t, β, hand,
+    lead, twist, its fit, segments, pieces).
+- **Pairs.**
+  - Equal m_n and α_n, and equal β of opposite hands; anything else is MATE_INCOMPATIBLE, with why (same hand, other
+    angle, spur with helical).
+  - Centre distance m_t(z1 + z2)/2, or from inv α_wt = inv α_t + 2 tan α_n (x1 + x2)/(z1 + z2) when shifted.
+  - The sweep runs in the transverse plane: every section meshes alike, turned along the helix.
+  - Reported: εα (transverse, usable and ideal); εβ = b sin β/(π m_n) over the narrower face; εγ = usable εα + εβ.
+  - `axialThrust` as words, with no load: a right-handed gear 1 driving counter-clockwise from +Z is pushed toward +Z,
+    its mate toward −Z.
+  - Placed pairs are compared at the same height (each section turned along its helix).
+- **Racks.** The helical rack is not made in this stage: a helical gear with a rack is UNSUPPORTED_GEAR_KIND, and the
+  studio command says why. Pending: the rack's hand convention against the reference, which was not retrieved.
+- **Part feature `spur-gear`:** `normalModule`, `helixAngle` and `hand`. A meshing gear's hands and angles are checked
+  before it is placed.
+- **Studio.**
+  - The gear node's `module` is the normal module when helical; the label reads "Normal module".
+  - `helixAngle` and `hand` are fields on the Spur gear command and in the edit fields.
+  - A meshing gear takes the other's angle with the opposite hand itself (`helixOf`), so a pair cannot be set
+    inconsistently.
+  - The history label reads "Helical gear mn… z…".
+  - Notes: the helix line; "contact ratio εα + overlap εβ = εγ"; the axial thrust.
+
+Evidence:
+- **Kernel** `test/gear-helical.test.mjs` 4/4. The worked example is KHK's: m_n 3, β 30°, z 12 right-hand and 60
+  left-hand.
+  - Published values reproduced: m_t 3.4641, α_t 22.79588°, d 41.569 / 207.846, db1 38.322, da1 47.569, df1 34.069,
+    a 124.7077.
+  - εα checked by the independent form [z1(tan α_a1 − tan α_t) + z2(tan α_a2 − tan α_t)]/2π, and εβ by its formula.
+  - The published εγ was not retrieved: a web search found no KHK table, so εγ is checked as the sum only. Pending
+    against the KHK page.
+  - The sweep touches at a (|c| < 1e-5), converged.
+  - A shifted helical pair: inv α_wt and a_w by the formulas, touching.
+- **Solids** (KHK z 12; z 25 at β 45° and 60 wide, two axial segments; z 40, β 15°, shifted and reduced):
+  - valid; twist and lead by formula; the top edges the exactly turned profile;
+  - the volume equals the analytic transverse area × b within (2ε + ε²) of the twist fit plus the flank slack. A
+    probe gave 3–7e-6.
+  - STEP round trip within 1e-6.
+- **Placed helical meshing** (z 18/18, β 20°): sections of the B-rep's own side faces at five heights are checked
+  for crossings, independent of the sweep and its formulas.
+  - Meshed at turns 0/7° and directions 0/30°: none cross. A 3° phase crosses at every height. The placed verdict
+    agrees.
+  - The exact Boolean intersection fails here (non-manifold on the twisted B-spline faces, the analytic Boolean's
+    RB5 limit). That is why the section check is used.
+- **Refusals:** module with helix, no hand, β 50°, z_v undercut (10 teeth at 15°: virtual 11.10, x ≥ 0.351), a
+  10 m face past 64 segments, same hand, other angle, spur with helical, helical with rack.
+- **Conformance** 59: `helical-khk-pair` (a 124.7077; volumes from the exact transverse area within 2e-5; STEP) and
+  `helical-same-hand-refused`.
+- **Studio** 306/306: the helical command, notes, a meshing gear of the opposite hand at 57.4656 mm with "+ overlap
+  0.653", thrust, and no rack. The browser flow adds a "Helical gear" step: the pair's notes, clear in 172 ms.
+- **Kernel** 983/984 (the known environmental test).
+
+Next: R6a.6, the tool-generated (trochoid) root — #2167's last item. Manufacturing validation needs physical evidence and stays pending. Then LIB1–LIB4.

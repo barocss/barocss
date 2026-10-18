@@ -229,6 +229,7 @@ function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): 
   const d = g.dimensions, mm = (x: number) => +x.toFixed(4);
   return [
     { text: `${g.profileShift ? `Profile shift x ${g.profileShift}: ` : ''}Reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)}, root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)} mm; tooth ${mm(d.toothThicknessMM)} mm at the reference circle` },
+    ...(g.helix ? [{ text: `Helical β ${g.helix.helixAngleDeg}° ${g.helix.hand} hand: normal module ${mm(g.helix.normalModuleMM)}, transverse ${mm(g.helix.transverseModuleMM)} mm at α_t ${g.helix.transversePressureAngleDeg.toFixed(3)}°; lead ${mm(g.helix.leadMM)} mm, ${mm(g.helix.twistDegrees)}° over the face, the twist within ${g.helix.twistDeviationMM.toExponential(1)} mm${g.helix.axialSegments > 1 ? ` (${g.helix.axialSegments} axial segments)` : ''}` }] : []),
     { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
     ...g.diagnostics.map(x => ({ text: x.code === 'ROOT_TRANSITION_UNVALIDATED' ? 'Schematic root: not the cutting tool\'s, not validated for manufacturing' : x.message, warning: x.severity === 'warning' })),
   ];
@@ -245,10 +246,11 @@ function meshNotes(g: GearPlacement | undefined): { text: string; warning?: bool
   try { c = checkPlacedSpurGears(g.driver, g, { mode: 'verdict' }); }
   catch (cause) { return [{ text: `Does not mesh with ${g.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
   const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4);
-  const head = `Meshes with ${g.meshesWith}: centre distance ${mm(c.centerDistanceMM)} mm, ratio −${g.driver.spec.teeth}:${g.spec.teeth}, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}`;
+  const head = `Meshes with ${g.meshesWith}: centre distance ${mm(c.centerDistanceMM)} mm, ratio −${g.driver.spec.teeth}:${g.spec.teeth}, backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}${c.axialContactRatio ? ` + overlap ${c.axialContactRatio.toFixed(3)} = ${c.totalContactRatio.toFixed(3)}` : ''}`;
   return [{ text: head },
     c.sweep.interference ? { text: `The teeth cross at ${c.sweep.atDegrees.toFixed(2)}° of ${g.meshesWith} (phase ${c.relativePhaseDeg.toFixed(2)}°): interference (${ms.toFixed(0)} ms)`, warning: true }
       : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` },
+    ...(c.axialThrust ? [{ text: `Axial thrust: ${c.axialThrust.replace(/^gear 1/, g.meshesWith ?? 'gear 1').replace('gear 2', 'this gear')}` }] : []),
     ...c.diagnostics.filter(x => x.code !== 'SELF_INTERSECTION' && x.code !== 'ROOT_TRANSITION_UNVALIDATED').map(x => ({ text: x.message, warning: x.severity === 'warning' }))];
 }
 

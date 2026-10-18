@@ -90,15 +90,17 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'gear', label: 'Spur gear', icon: 'cad-gear', hint: 'An involute spur gear by module, teeth and face width (20°; a schematic root, not validated for manufacturing)', group: 'create', keywords: 'gear spur involute module teeth pinion wheel cog transmission',
+    id: 'gear', label: 'Spur gear', icon: 'cad-gear', hint: 'An involute spur or helical gear by module, teeth and face width (20°; helical: normal module, helix angle and hand; a schematic root, not validated for manufacturing)', group: 'create', keywords: 'gear spur involute module teeth pinion wheel cog transmission',
     available: () => ok,
-    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
-    defaults: ctx => ({ m: 2, teeth: 20, b: 10, shift: 0, bore: 8, ...beside(ctx, 30) }),
+    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 },
+      { key: 'helix', label: 'Helix angle β', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], when: v => Number(v.helix) > 0 },
+      { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
+    defaults: ctx => ({ m: 2, teeth: 20, b: 10, shift: 0, helix: 0, hand: 'right', bore: 8, ...beside(ctx, 30) }),
     place: centred,
     handles: (_, v) => { const [m, z, b, x, y, zz] = n(v, 'm', 'teeth', 'b', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz + b], Z)]; },
     build: (ctx, v) => {
-      const [m, z, b, bore, x, y, zz, shift] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z', 'shift');
-      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
+      const [m, z, b, bore, x, y, zz, shift, helix] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z', 'shift', 'helix');
+      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
     },
   },
   {
@@ -114,7 +116,7 @@ export const primitives: Command[] = [
   },
   {
     id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (straight teeth on a bar): meshing with the selected spur gear, under it and travelling with its turn; or on its own', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
-    available: () => ok,
+    available: ctx => gearPicked(ctx)?.node.helixAngle ? { ok: false as const, reason: 'A helical gear meshes with a helical rack, which is not made yet.' } : ok,
     // (Meshing with a selected gear: its module and face width; where it stands, from the gear.)
     fields: ctx => gearPicked(ctx) ? [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, { key: 'dir', label: 'Direction', kind: 'deg' }]
       : [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, ...at],

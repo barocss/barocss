@@ -206,3 +206,20 @@ test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact vo
   const cr = await runCheck(two, bodies, ev as never, { op: '>=', query: { fn: 'gear_contact_ratio', a: 'n1', b: 'n0' }, value: 1.7 });
   assert.equal(cr.status, 'pass', JSON.stringify(cr));
 });
+
+test('Helical gear (R6a.5c, D59): β 20° right hand from the command — the normal module labelled, its helix in the notes; a meshing gear takes the opposite hand itself, at the transverse centre distance, clear, with the overlap ratio and the thrust; a helical gear has no rack yet', () => {
+  const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!, rack = commands.find(c => c.id === 'gear-rack')!;
+  const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 18, b: 12, helix: 20, hand: 'right', bore: 0, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
+  assert.deepEqual([(one.nodes[0] as Extract<ModelNode, { kind: 'gear' }>).helixAngle, (one.nodes[0] as Extract<ModelNode, { kind: 'gear' }>).hand], [20, 'right']);
+  assert.ok(r1.ok && r1.bodies[0].notes!.some(n => /^Helical β 20° right hand: normal module 2, transverse 2\.1284 mm at α_t 21\.173°/.test(n.text)), JSON.stringify(r1.ok && r1.bodies[0].notes));
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  assert.equal(rack.available(picked).ok, false);
+  const two = mesh.build!(picked, { ...mesh.defaults!(picked), teeth: 36, bore: 0 }), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const notes = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)!.notes! : [];
+  // (a = m_n (z1 + z2) / (2 cos β) = 2 × 54 / (2 cos 20°) = 57.4656; εβ = 12 sin 20° / 2π = 0.653.)
+  assert.ok(notes.some(n => /^Helical β 20° left hand/.test(n.text)), JSON.stringify(notes));
+  assert.ok(notes.some(n => /centre distance 57\.4656 mm, ratio −18:36, backlash 0 mm, contact ratio [\d.]+ \+ overlap 0\.653 = /.test(n.text)) && notes.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(notes));
+  assert.ok(notes.some(n => /^Axial thrust: n0 \(right-handed\) driving counter-clockwise .* this gear toward −Z/.test(n.text)));
+});

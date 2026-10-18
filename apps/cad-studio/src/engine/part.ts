@@ -52,7 +52,10 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'gear': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
-      return { ...at, kind: 'spur-gear', module: node.module, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+      // (Helical: `module` is the normal module; a meshing gear takes the other's helix angle, of the opposite hand.)
+      const helix = helixOf(node, nodes ?? current);
+      const modules = helix ? { normalModule: node.module, helixAngle: helix.angle, hand: helix.hand } : { module: node.module };
+      return { ...at, kind: 'spur-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
     case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angleDegrees: node.angleDegrees };
@@ -137,4 +140,14 @@ function meshArrays(node: { positions?: number[]; indices?: number[]; blob?: { p
 function repaired(r: { result: { fill: string }; report: { closed: boolean } }): { groups?: Int32Array; open?: true } {
   const fill = getBlob(r.result.fill);
   return { ...(fill instanceof Int32Array ? { groups: fill } : {}), ...(r.report.closed ? {} : { open: true as const }) };
+}
+
+/** A gear node's helix: its own, or — meshing — the other gear's angle with the opposite hand (none: spur). */
+export function helixOf(node: Extract<ModelNode, { kind: 'gear' }>, nodes: readonly ModelNode[]): { angle: number; hand: 'right' | 'left' } | null {
+  if (node.mesh) {
+    const other = nodes[node.mesh.gear];
+    const h = other?.kind === 'gear' && other !== node ? helixOf(other, nodes) : null;
+    return h ? { angle: h.angle, hand: h.hand === 'right' ? 'left' : 'right' } : null;
+  }
+  return node.helixAngle ? { angle: node.helixAngle, hand: node.hand ?? 'right' } : null;
 }

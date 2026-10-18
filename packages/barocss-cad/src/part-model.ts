@@ -169,7 +169,9 @@ export type CadPartFeature = Base & (
    * the measured flank deviation, the schematic root's warning) is the output's `gear`. `generator` records the
    * version that made it.
    */
-  | { readonly kind: 'spur-gear'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim;
+  | { readonly kind: 'spur-gear';
+    /** A spur gear's module; a helical gear (`helixAngle` and `hand`, R6a.5c) gives `normalModule` instead. */
+    readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim;
     /** Turned about its axis (degrees; tooth 1 on +X at 0). */
     readonly rotation?: number;
     /**
@@ -903,10 +905,14 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'spur-gear': {
       if (f.generator !== undefined && f.generator !== 'spur-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
-      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
+      // (Helical: the normal module, named so; the kernel refuses a module with a helix angle.)
+      const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
+      if (helical && f.module !== undefined) fail('INPUT', 'a helical gear takes normalModule (the normal module), not module');
+      if (!helical && (f.normalModule !== undefined || f.hand !== undefined)) fail('INPUT', 'normalModule and hand belong to a helical gear: give helixAngle too (a spur gear takes module)');
+      const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
       const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
-      const spec: SpurGearSpec = { moduleMM: m, teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
+      const spec: SpurGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
         ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
       // Where it stands: its own centre, plane and turn, or beside the gear it meshes with.
       let place: GearPlacement;
@@ -917,13 +923,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const other = ref(mesh!.gear, 'mesh.gear').result;
         const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
         if (!driver) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
-        if (driver!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${driver!.spec.moduleMM}`);
         const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
         const z1 = driver!.spec.teeth, z2 = f.teeth as number;
-        let a: number;
+        // (Whether they mesh at all — module, pressure angle, helix angle and hands — before where.)
+        let a = 0;
+        try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
         if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
-        else { try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; } }
         const phi = (dirDeg as number) * Math.PI / 180;
         place = { spec, center: [driver!.center[0] + a * Math.cos(phi), driver!.center[1] + a * Math.sin(phi)], from: driver!.from,
           rotation: phi + Math.PI - Math.PI / z2 - (driver!.rotation - phi) * z1 / z2 + (phaseDeg as number) * Math.PI / 180, meshesWith: String(mesh!.gear), driver: driver! };
@@ -952,6 +958,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const other = ref(mesh!.gear, 'mesh.gear').result;
         const g = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
         if (!g) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
+        if (g!.spec.helixAngleDeg) fail('CAPABILITY', '[UNSUPPORTED_GEAR_KIND] a helical gear meshes with a helical rack, which this stage does not make');
         if (g!.spec.moduleMM !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh!.gear)}'s ${g!.spec.moduleMM}`);
         const dirDeg = mesh!.direction ?? -90;
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg))) fail('INPUT', 'mesh.direction must be a number of degrees');

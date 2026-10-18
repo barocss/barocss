@@ -117,9 +117,11 @@ const rackCache = new Map<string, SpurRackPairCheck>();
 
 function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPairOptions): SpurRackPairCheck {
   const g = spurGearDimensions(gear), k = spurRackDimensions(rack);
-  if (gear.moduleMM !== rack.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${gear.moduleMM} and ${rack.moduleMM} mm do not mesh`);
+  // (A helical gear needs a helical rack, its teeth inclined at β: not in this stage.)
+  if (g.beta !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', 'a helical gear meshes with a helical rack, which this stage does not make');
+  if (g.mn !== rack.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g.mn} and ${rack.moduleMM} mm do not mesh`);
   if (g.alpha !== k.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
-  const m = gear.moduleMM, alpha = g.alpha, x = gear.profileShiftCoefficient ?? 0, D0 = g.r + x * m, D = options.centerDistanceMM ?? D0;
+  const m = g.mn, alpha = g.alpha, x = gear.profileShiftCoefficient ?? 0, D0 = g.r + x * m, D = options.centerDistanceMM ?? D0;
   if (!(Number.isFinite(D) && D > g.rb)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm beyond the base circle');
   const dd = D - D0, t = Math.tan(alpha), sa = Math.sin(alpha);
   // The gear's reference circle rolls on the rack's line D − r above its pitch line, where the rack's space is wider
@@ -239,7 +241,7 @@ export function checkPlacedSpurRack(gear: { readonly spec: SpurGearSpec; readonl
   const ex = Math.cos(rack.angle), ey = Math.sin(rack.angle), qx = gear.center[0] - rack.origin[0], qy = gear.center[1] - rack.origin[1];
   const u = qx * ex + qy * ey, D = -qx * ey + qy * ex;
   if (!(D > 0)) throw new GearError('MATE_INCOMPATIBLE', 'the rack\'s teeth face away from the gear');
-  const r = gear.spec.moduleMM * gear.spec.teeth / 2, p = Math.PI * gear.spec.moduleMM, theta = gear.rotation - (rack.angle - Math.PI / 2);
+  const g = spurGearDimensions(gear.spec), r = g.r, p = Math.PI * g.mt, theta = gear.rotation - (rack.angle - Math.PI / 2);
   let phase = ((-u - r * theta) % p + p) % p; if (phase < 1e-9 * p || p - phase < 1e-9 * p) phase = 0;
   const check = checkSpurGearRack(gear.spec, rack.spec, { ...options, centerDistanceMM: D, rackPhaseMM: phase });
   return { ...check, rackPhaseMM: phase, faceOverlapMM: overlap };

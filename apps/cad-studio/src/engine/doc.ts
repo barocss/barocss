@@ -117,7 +117,9 @@ type ModelNodeBase = SketchNode
    * travelling with the gear's turn. Referenced, not consumed, as a meshing gear's other gear.
    */
   | { kind: 'rack'; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim; origin: [number, number]; angle?: number; from?: number; mesh?: RackMesh; generator: 'spur-rack@0' }
-  | { kind: 'gear'; module: Dim; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
+  | { kind: 'gear';
+    /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
+    module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
   /**
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
    * numbers); the body is its exact limit surface, bicubic B-spline faces `<id>.patch<k>` (a sheet when the cage has a boundary).
@@ -461,7 +463,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'mesh': return `Mesh ${node.name}`;
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} quads)`;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
-    case 'gear': return `Spur gear m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
+    case 'gear': return `${node.helixAngle || (node.mesh && nodes?.[node.mesh.gear]?.kind === 'gear' && helical(nodes, node.mesh.gear)) ? 'Helical gear mn' : 'Spur gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
     case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
@@ -488,4 +490,10 @@ export function cylinderPart(radius: number, height: number): StudioDoc {
 export function starterDoc(): StudioDoc {
   const doc = rectanglePart(64, 32, 8);
   return withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [32, 16], radius: 4 });
+}
+
+/** Whether gear node `i` is helical: its own helix angle, or that of the gear it meshes with. */
+function helical(nodes: readonly ModelNode[], i: number, guard = 0): boolean {
+  const n = nodes[i];
+  return n?.kind === 'gear' && guard < 64 && (!!n.helixAngle || (!!n.mesh && helical(nodes, n.mesh.gear, guard + 1)));
 }

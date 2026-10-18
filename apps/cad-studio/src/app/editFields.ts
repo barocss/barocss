@@ -3,6 +3,8 @@
 // sketch node, so every feature made from it follows).
 import type { Axis, Dim, ModelNode, SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
+import { helixOf } from '../engine/part';
+import { spurGearCenterDistance } from '@barocss/cad';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
@@ -161,8 +163,13 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       break;
     }
     case 'gear': {
-      const g = (n: ModelNode) => n as typeof node;
-      number('m', 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+      const g = (n: ModelNode) => n as typeof node, helix = helixOf(node, nodes);
+      number('m', helix ? 'Normal module' : 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+      // A helical gear's helix angle and hand (a meshing gear takes the other's, opposite hand).
+      if (!node.mesh) {
+        number('helix', 'Helix angle β', '°', n => g(n).helixAngle ?? 0, (n, v) => { const next = { ...g(n) }; if (v) { next.helixAngle = v; next.hand ??= 'right'; } else { delete next.helixAngle; delete next.hand; } return next; });
+        if (node.helixAngle) out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand ?? 'right', set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
+      }
       number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
       number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
       number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; if (v) next.profileShift = v; else delete next.profileShift; return next; });
@@ -171,7 +178,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       // Its turn (a meshing gear: where it stands beside the other gear, and its phase; its turn follows the other's).
       if (!node.mesh) number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       else {
-        const other = nodes[node.mesh.gear], nominal = (n: ModelNode) => other?.kind === 'gear' ? num(other.module) * (other.teeth + g(n).teeth) / 2 : 0;
+        const other = nodes[node.mesh.gear], nominal = (n: ModelNode) => other?.kind === 'gear' ? meshDistance(other, g(n), nodes) : 0;
         number('dir', 'Direction', '°', n => g(n).mesh!.direction ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, direction: v } }));
         number('a', 'Centre distance', 'mm', n => num(g(n).mesh!.centerDistance ?? nominal(n)), (n, v) => { const mesh = { ...g(n).mesh! }; if (Math.abs(v - nominal(n)) < 1e-9) delete mesh.centerDistance; else mesh.centerDistance = v; return { ...g(n), mesh }; });
         number('ph', 'Phase', '°', n => g(n).mesh!.phase ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, phase: v } }));
@@ -208,3 +215,13 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
   }
   return out;
 }
+
+/** The centre distance two gear nodes mesh at without backlash (the kernel's: shifted and helical pairs too); 0 when they do not mesh. */
+function meshDistance(a: Extract<ModelNode, { kind: 'gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
+  const spec = (n: Extract<ModelNode, { kind: 'gear' }>) => {
+    const h = helixOf(n, nodes);
+    return { ...(h ? { normalModuleMM: num(n.module), helixAngleDeg: h.angle, hand: h.hand } : { moduleMM: num(n.module) }), teeth: n.teeth, faceWidthMM: num(n.faceWidth), ...(n.profileShift ? { profileShiftCoefficient: n.profileShift } : {}) };
+  };
+  try { return spurGearCenterDistance(spec(a), spec(b)); } catch { return 0; }
+}
+
