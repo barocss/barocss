@@ -101,6 +101,7 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - 3MF: opening it in a slicer (PrusaSlicer or Bambu) is pending for the owner.
 - εγ: pending (the coordinating session's open item).
 - Blob eviction (PERF3 B13, not done): the blob store keeps every mesh blob of the session, in the studio and the worker. Safe eviction needs every holder — document, undo/redo, proposals, a pending repair, the chat's states, and the worker wire's sender (it assumes the worker keeps what it sent).
+- Load-sensitive test: studio `printing.test.ts` 'AM4 performance: 100 000 triangles oriented under 2 s' is a wall-clock assertion (about 0.6 s alone). It failed once while the kernel suite ran beside it. A red run under load is not a regression; the bench row `print: orientation search, 100k triangles` (budget 1.2 s) is the measure. To be moved or given headroom in C17/D20.
 - Kernel suite: one environmental failure, `actual native Split source…`, which pins Node 22.23.3.
 
 ### How to run

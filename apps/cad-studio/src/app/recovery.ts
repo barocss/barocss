@@ -40,11 +40,14 @@ export function recoveryText(fileName: string, savedAt: number, doc: StudioDoc, 
   if (at < 0 || length + shell.length > limit) return null;
   return `${shell.slice(0, at)}[${parts.join(',')}]${shell.slice(at + NODES_JSON.length)}`;
 }
-/** False when the browser keeps nothing (private mode, or too large a document: then not even tried). */
-export function writeRecovery(fileName: string, doc: StudioDoc): boolean {
+/**
+ * Writes the recovery copy: 'ok'; 'too-large' when the document is past the limit (not even tried); 'refused' when the
+ * browser keeps nothing (private mode, storage full). When it is not written, the copy there before is removed: an older
+ * version of the work must not be offered back after a reload as if it were the latest.
+ */
+export function writeRecovery(fileName: string, doc: StudioDoc): 'ok' | 'too-large' | 'refused' {
   const text = recoveryText(fileName, Date.now(), doc);
-  // (As when the browser refuses it: the copy there, if any, is left as it was.)
-  if (text === null) return false;
-  try { localStorage.setItem(KEY, text); return true; } catch { return false; }
+  if (text === null) { clearRecovery(); return 'too-large'; }
+  try { localStorage.setItem(KEY, text); return 'ok'; } catch { clearRecovery(); return 'refused'; }
 }
 export function clearRecovery(): void { try { localStorage.removeItem(KEY); } catch { /* storage unavailable */ } }

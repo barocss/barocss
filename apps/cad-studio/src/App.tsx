@@ -226,11 +226,22 @@ export function App() {
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
   const [recovery, setRecovery] = useState<Recovery | null>(() => readRecovery());
-  // Keep a recovery copy a moment after each change while unsaved; none once saved.
+  // Keep a recovery copy a moment after each change while unsaved; none once saved. When the browser cannot keep it
+  // (the document too large for its storage, or storage refused), the older copy is removed and that is said once for
+  // the document (until a copy is written again).
+  const recoveryOff = useRef<string | null>(null);
   useEffect(() => {
     if (!dirty) return;
     // (A mesh's blobs to IndexedDB beside it: the localStorage copy names them, M1.)
-    const t = setTimeout(() => { writeRecovery(fileName, doc); void saveRecoveryBlobs(doc); }, 800);
+    const t = setTimeout(() => {
+      const kept = writeRecovery(fileName, doc);
+      if (kept === 'ok') { recoveryOff.current = null; void saveRecoveryBlobs(doc); return; }
+      if (recoveryOff.current === fileName) return;
+      recoveryOff.current = fileName;
+      setToast(kept === 'too-large'
+        ? { title: 'Crash recovery is off for this document', hint: 'It is too large for this browser\'s storage, so no recovery copy is kept. Save to keep your work.', detail: '' }
+        : { title: 'No recovery copy', hint: 'This browser does not keep one (private browsing, or its storage is full). Save to keep your work.', detail: '' });
+    }, 800);
     return () => clearTimeout(t);
   }, [doc, fileName, dirty]);
   useEffect(() => {

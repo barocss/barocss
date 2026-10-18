@@ -3789,6 +3789,13 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   | `recovery: an edit beside a 200k inline mesh` | 0.76 ms | 2 |
 
 - **Tests:** `test/memory.test.ts` (3). Studio 362/362; browser flow 119/119.
+- **Follow-up (the coordinator's review of d7d766635): no stale recovery copy.** When a copy was not written (too large, or the browser refused it), the copy from before stayed. After a reload it would be offered back as the latest unsaved work, although it was older than the last edits. This predates B13, but B13 made the skip deliberate.
+  - **Decision: clear it.** Marking it stale would offer work known to be out of date.
+  - `writeRecovery` now returns `'ok' | 'too-large' | 'refused'` and removes the older copy when it does not write.
+  - The studio says so once per document with a toast, again only after a copy has been written in between:
+    - too large: "Crash recovery is off for this document";
+    - refused: "No recovery copy".
+  - `test/recovery.test.ts`, with a storage of its own (quota or refusal): a small copy, then an over-limit edit, leaves nothing to restore; a refused write the same.
 - **Measured, not changed:**
   - **uv:** every body's geometry has texture coordinates, 8 bytes a vertex, even without a colour map. The viewer's pipelines read the attribute, so leaving it out needs a second vertex layout in `@barocss/gpu`. For a 200k-triangle body that is under 1 MiB. Left.
   - **Blob eviction:** the blob store keeps every mesh blob of the session, in the studio and in the worker (by design, D45/M1). Evicting safely needs every holder known: the document, undo and redo, proposals, a repair waiting, the chat's states, and the worker's wire, whose sender believes the worker still has what it sent once. That is a design change. Recorded as a TODO in README §0 with that list.
