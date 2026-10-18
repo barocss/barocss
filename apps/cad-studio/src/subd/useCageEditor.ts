@@ -48,9 +48,19 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
     return () => { live = false; };
   }, [session, drag, withCage, preview]);
 
+  // The node the session began on. The part changed under it (a new part, a file opened, the agent's edit): the
+  // session ends with nothing written, and says so — Done would write over the change (D84).
+  const from = useRef<ModelNode | null>(null);
+  useEffect(() => {
+    if (!session || doc.nodes[session.node] === from.current) return;
+    setSession(null); setExact(null); setDrag(null); from.current = null;
+    fail('Cage edit ended', 'The part changed while its cage was being edited; nothing was written. Edit the cage again.');
+  }, [doc, session, fail]);
+
   const begin = useCallback((node: number) => {
     const n = doc.nodes[node];
     if (n?.kind !== 'subd') return false;
+    from.current = n;
     setSession(startSession(node, n.cage, n.mirror)); setDrag(null); setExact(null); return true;
   }, [doc.nodes]);
   const guard = useCallback((f: (s: CageSession) => CageSession) => setSession(s => {
@@ -92,23 +102,30 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
     if (!session) return;
     const v = validationOf(session);
     if (!v.valid) { fail('The cage is not a manifold', `${v.nonManifoldEdges.length} edges and ${v.nonManifoldVertices.length} vertices are marked red: undo, or weld or delete them.`); return; }
+    // (The session ends before the document changes: the change is its own.)
+    setSession(null); setExact(null); setDrag(null); from.current = null;
     if (session.undo.length) commit(withCage(session));
-    setSession(null); setExact(null); setDrag(null);
   }, [session, commit, withCage, fail]);
-  const cancel = useCallback(() => { setSession(null); setExact(null); setDrag(null); }, []);
+  const cancel = useCallback(() => { setSession(null); setExact(null); setDrag(null); from.current = null; }, []);
   const onKey = useCallback((e: KeyboardEvent): boolean => {
     if (!session) return false;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return false;
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); setSession(s => s && (e.shiftKey ? redoSession(s) : undoSession(s))); return true; }
     if (e.key === 'Enter') { e.preventDefault(); done(); return true; }
-    if (e.key === 'Escape') { if (session.sel.vertices.length || session.sel.edges.length || session.sel.faces.length) setSession(s => s && { ...s, sel: { vertices: [], edges: [], faces: [] } }); else cancel(); return true; }
+    // (Esc clears the pick; with nothing picked it leaves — but not by throwing steps away: those need Cancel or Done, D84.)
+    if (e.key === 'Escape') {
+      if (session.sel.vertices.length || session.sel.edges.length || session.sel.faces.length) setSession(s => s && { ...s, sel: { vertices: [], edges: [], faces: [] } });
+      else if (session.undo.length) fail('Still editing the cage', `${session.undo.length} step${session.undo.length === 1 ? '' : 's'} not written: Done keeps them, Cancel drops them.`);
+      else cancel();
+      return true;
+    }
     if (e.key === 'Tab') { e.preventDefault(); setSession(s => s && { ...s, smooth: !s.smooth }); return true; }
     const mode = ({ '1': 'vertex', '2': 'edge', '3': 'face' } as const)[e.key as '1' | '2' | '3'];
     if (mode) { setSession(s => s && { ...s, mode, sel: { vertices: [], edges: [], faces: [] } }); return true; }
     const op = ({ e: 'extrude', l: 'insert-loop', b: 'bridge', f: 'fill', w: 'weld', c: 'crease', Delete: 'delete', Backspace: 'delete' } as Record<string, CageOp>)[e.key];
     if (op && !e.metaKey && !e.ctrlKey) { e.preventDefault(); guard(s => runOp(s, op)); return true; }
     return false;
-  }, [session, done, cancel, guard]);
+  }, [session, done, cancel, guard, fail]);
 
   return {
     session, begin, overlay, gizmo, shown, previewMs,

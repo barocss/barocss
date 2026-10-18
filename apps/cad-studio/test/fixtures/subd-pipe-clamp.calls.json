@@ -1,0 +1,727 @@
+{
+ "about": "D84: the SubD pipe clamp as agent cage-tool calls (test/subdClamp.test.ts makes them; the browser flow replays them).",
+ "calls": [
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "subd-tube",
+    "values": {
+     "r": 20,
+     "ri": 17,
+     "h": 40,
+     "nu": 24,
+     "nh": 7,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     16,
+     17
+    ],
+    "t": 0.10500000000525
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     22,
+     23
+    ],
+    "t": 0.8949999999947498
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     30,
+     31
+    ],
+    "t": 0.8949999999947501
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     24,
+     25
+    ],
+    "t": 0.10500000000525027
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     23,
+     24
+    ],
+    "t": 0.1419081750780572
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     480,
+     24
+    ],
+    "t": 0.7105997110565713
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     31,
+     16
+    ],
+    "t": 0.8580918249219428
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     529,
+     15
+    ],
+    "t": 0.7105997110565713
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "faces": [
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "offset": [
+     4,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "faces": [
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "offset": [
+     5.714285714285714,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "faces": [
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "offset": [
+     5.714285714285714,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "faces": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "offset": [
+     5.714285714285714,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_delete",
+   "args": {
+    "index": 0,
+    "faces": [
+     593,
+     595,
+     605,
+     607,
+     594,
+     596,
+     606,
+     608
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     594,
+     595
+    ],
+    "delta": [
+     2.037330452,
+     0,
+     2.037330452
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     596,
+     597
+    ],
+    "delta": [
+     0.514285714,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     598,
+     599
+    ],
+    "delta": [
+     2.037330452,
+     0,
+     -2.037330452
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     606,
+     607
+    ],
+    "delta": [
+     0,
+     0,
+     0.514285714
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     609,
+     611
+    ],
+    "delta": [
+     0,
+     0,
+     -0.514285714
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     612,
+     613
+    ],
+    "delta": [
+     -2.037330452,
+     0,
+     2.037330452
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     615,
+     617
+    ],
+    "delta": [
+     -2.037330452,
+     0,
+     -2.037330452
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     618,
+     619
+    ],
+    "delta": [
+     -0.514285714,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "edges": [
+     [
+      594,
+      596
+     ],
+     [
+      596,
+      598
+     ],
+     [
+      594,
+      606
+     ],
+     [
+      598,
+      609
+     ],
+     [
+      606,
+      612
+     ],
+     [
+      609,
+      615
+     ],
+     [
+      612,
+      618
+     ],
+     [
+      615,
+      618
+     ]
+    ],
+    "offset": [
+     0,
+     -0.6,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_extrude",
+   "args": {
+    "index": 0,
+    "edges": [
+     [
+      595,
+      597
+     ],
+     [
+      597,
+      599
+     ],
+     [
+      595,
+      607
+     ],
+     [
+      599,
+      611
+     ],
+     [
+      607,
+      613
+     ],
+     [
+      611,
+      617
+     ],
+     [
+      613,
+      619
+     ],
+     [
+      617,
+      619
+     ]
+    ],
+    "offset": [
+     0,
+     0.6,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     620,
+     629
+    ],
+    "delta": [
+     1,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     621,
+     628
+    ],
+    "delta": [
+     0.707106781,
+     0,
+     0.707106781
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     622,
+     630
+    ],
+    "delta": [
+     0.707106781,
+     0,
+     -0.707106781
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     623,
+     631
+    ],
+    "delta": [
+     0,
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     624,
+     632
+    ],
+    "delta": [
+     0,
+     0,
+     -1
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     625,
+     633
+    ],
+    "delta": [
+     -0.707106781,
+     0,
+     0.707106781
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     626,
+     634
+    ],
+    "delta": [
+     -0.707106781,
+     0,
+     -0.707106781
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     627,
+     635
+    ],
+    "delta": [
+     -1,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_bridge",
+   "args": {
+    "index": 0,
+    "edges": [
+     [
+      620,
+      621
+     ],
+     [
+      620,
+      622
+     ],
+     [
+      621,
+      623
+     ],
+     [
+      622,
+      624
+     ],
+     [
+      623,
+      625
+     ],
+     [
+      624,
+      626
+     ],
+     [
+      625,
+      627
+     ],
+     [
+      626,
+      627
+     ],
+     [
+      628,
+      629
+     ],
+     [
+      629,
+      630
+     ],
+     [
+      628,
+      631
+     ],
+     [
+      630,
+      632
+     ],
+     [
+      631,
+      633
+     ],
+     [
+      632,
+      634
+     ],
+     [
+      633,
+      635
+     ],
+     [
+      634,
+      635
+     ]
+    ]
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     627,
+     635
+    ],
+    "t": 0.12251809176793901
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     636,
+     635
+    ],
+    "t": 0.860375364302625
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     10,
+     11
+    ],
+    "t": 0.8863857983305818
+   }
+  },
+  {
+   "tool": "subd_insert_loop",
+   "args": {
+    "index": 0,
+    "edge": [
+     653,
+     13
+    ],
+    "t": 0.8718230798785369
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     10,
+     11,
+     652,
+     685
+    ],
+    "delta": [
+     -3.928571429,
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     12,
+     13,
+     653,
+     684
+    ],
+    "delta": [
+     -1.531138243,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     16,
+     17,
+     655,
+     714
+    ],
+    "delta": [
+     -1.531138243,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     18,
+     19,
+     656,
+     713
+    ],
+    "delta": [
+     -4.873412156,
+     0,
+     -2.06683378
+    ]
+   }
+  },
+  {
+   "tool": "subd_move",
+   "args": {
+    "index": 0,
+    "vertices": [
+     614,
+     616,
+     657,
+     712
+    ],
+    "delta": [
+     -2.75635377,
+     0,
+     -0.389419128
+    ]
+   }
+  }
+ ]
+}

@@ -33,6 +33,26 @@ function torusCage(R: number, r: number, nu: number, nv: number, [x, y, z]: [num
   return { positions, faces };
 }
 /**
+ * A thick-walled tube's cage (D84): open both ends, its axis along Z from z to z + h, every vertex valence 4 (a torus
+ * by topology: regular, its limit exact). Round it `nu` columns (the first centred on +X, so a lug or tab extruded
+ * from it is square to X), along it `nh` rows on each wall, one quad across each rim. The radii are grown so that
+ * the walls' limit sits at them (as the torus'); the rims come out round, tightened by holding loops.
+ */
+export function tubeCage(ro: number, ri: number, h: number, nu: number, nh: number, [x, y, z]: [number, number, number]) {
+  const cu = (4 + 2 * Math.cos(2 * Math.PI / nu)) / 6, round = (t: number) => Math.round(t * 1e9) / 1e9, section: [number, number][] = [];
+  // The wall's section, outer wall up then inner wall down: faces wound outward.
+  for (let k = 0; k <= nh; k++) section.push([ro / cu, h * k / nh]);
+  for (let k = nh; k >= 0; k--) section.push([ri / cu, h * k / nh]);
+  const m = section.length, positions: number[] = [], faces: number[][] = [];
+  for (let i = 0; i < nu; i++) {
+    const a = 2 * Math.PI * (i - 0.5) / nu;
+    for (const [r, zz] of section) positions.push(round(x + r * Math.cos(a)), round(y + r * Math.sin(a)), round(z + zz));
+  }
+  const at = (i: number, j: number) => (i % nu) * m + (j % m);
+  for (let i = 0; i < nu; i++) for (let j = 0; j < m; j++) faces.push([at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1)]);
+  return { positions, faces };
+}
+/**
  * A box's cage (SD2, D78): w × d × h on its surface lattice of `n` quads along each side, wound outward; its eight
  * corners valence 3 (extraordinary). More quads, a squarer limit (rounder edges with fewer).
  */
@@ -159,6 +179,19 @@ export const primitives: Command[] = [
       const [R, r] = n(v, 'R', 'r');
       if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
       return withNode(ctx.doc, { kind: 'subd', name: 'torus', cage: torusCage(R, r, Math.round(Number(v.nu)), Math.round(Number(v.nv)), n(v, 'x', 'y', 'z') as [number, number, number]) });
+    },
+  },
+  {
+    id: 'subd-tube', label: 'SubD tube', icon: 'cad-subd', hint: 'A smooth thick-walled tube open at both ends from a quad cage (SubD): exact B-spline faces; insert holding loops to tighten its rims, extrude a lug from its wall', group: 'create', keywords: 'subd subdivision smooth cage organic tube pipe sleeve clamp collar ring freeform',
+    available: () => ok,
+    fields: () => [{ key: 'r', label: 'Outer radius', kind: 'mm', min: 1 }, { key: 'ri', label: 'Inner radius', kind: 'mm', min: 0.5 }, { key: 'h', label: 'Length', kind: 'mm', min: 1 }, { key: 'nu', label: 'Quads round', kind: 'count', min: 6, max: 64 }, { key: 'nh', label: 'Quads along', kind: 'count', min: 1, max: 24 }, ...at],
+    defaults: ctx => ({ r: 20, ri: 17, h: 40, nu: 24, nh: 7, ...beside(ctx, 22) }),
+    place: centred,
+    handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.5 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z, { min: 1 })]; },
+    build: (ctx, v) => {
+      const [r, ri, h] = n(v, 'r', 'ri', 'h');
+      if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
+      return withNode(ctx.doc, { kind: 'subd', name: 'tube', cage: tubeCage(r, ri, h, Math.round(Number(v.nu)), Math.round(Number(v.nh)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
   {

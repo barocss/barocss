@@ -85,13 +85,36 @@ export function pickCage(c: StudioCage, project: Project, x: number, y: number, 
   });
   return best;
 }
-/** A pick applied to the selection: alone, or added / taken away (`additive`); `grow` an edge's loop or ring. */
+/**
+ * The open edges round the hole (or along the open chain) an open edge a–b is on, in order: a double-click on a
+ * hole's rim takes the whole rim, to fill or bridge (D84). Null when a–b has a face on both sides.
+ */
+export function openRun(c: StudioCage, a: number, b: number): [number, number][] | null {
+  const t = cageTopology(c);
+  if (t.edges.get(ek(a, b))?.faces.length !== 1) return null;
+  const next = new Map<number, number[]>();
+  for (const e of t.edges.values()) if (e.faces.length === 1) { (next.get(e.a) ?? next.set(e.a, []).get(e.a)!).push(e.b); (next.get(e.b) ?? next.set(e.b, []).get(e.b)!).push(e.a); }
+  const out: [number, number][] = [[a, b]], seen = new Set([ek(a, b)]);
+  // On from b, then back from a, along the open edges (one way on at a manifold's boundary vertex; stop where it branches).
+  for (const [from, to, back] of [[a, b, false], [b, a, true]] as const) {
+    let p: number = from, q: number = to;
+    for (;;) {
+      const on = (next.get(q) ?? []).filter(r => r !== p && !seen.has(ek(q, r)));
+      if (on.length !== 1) break;
+      seen.add(ek(q, on[0]));
+      if (back) out.unshift([on[0], q]); else out.push([q, on[0]]);
+      p = q; q = on[0];
+    }
+  }
+  return out;
+}
+/** A pick applied to the selection: alone, or added / taken away (`additive`); `grow` an edge's loop (a hole's whole rim for an open edge) or ring. */
 export function select(s: CageSession, hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): CageSession {
   if (!hit) return additive ? s : { ...s, sel: emptyCageSel };
   const base = additive ? s.sel : emptyCageSel;
   if (hit.kind === 'vertex') { const has = base.vertices.includes(hit.v); return { ...s, sel: { ...emptyCageSel, vertices: has ? base.vertices.filter(v => v !== hit.v) : [...base.vertices, hit.v] } }; }
   if (hit.kind === 'face') { const has = base.faces.includes(hit.f); return { ...s, sel: { ...emptyCageSel, faces: has ? base.faces.filter(f => f !== hit.f) : [...base.faces, hit.f] } }; }
-  const add: (readonly [number, number])[] = grow === 'loop' ? edgeLoop(s.cage, hit.a, hit.b) : grow === 'ring' ? edgeRing(s.cage, hit.a, hit.b) : [[hit.a, hit.b]];
+  const add: (readonly [number, number])[] = grow === 'loop' ? openRun(s.cage, hit.a, hit.b) ?? edgeLoop(s.cage, hit.a, hit.b) : grow === 'ring' ? edgeRing(s.cage, hit.a, hit.b) : [[hit.a, hit.b]];
   const keys = new Set(base.edges.map(([a, b]) => ek(a, b)));
   const toggled = !grow && keys.has(ek(hit.a, hit.b));
   const edges = toggled ? base.edges.filter(([a, b]) => ek(a, b) !== ek(hit.a, hit.b)) : [...base.edges, ...add.filter(([a, b]) => !keys.has(ek(a, b)))];
@@ -136,7 +159,9 @@ export function dragged(s: CageSession, delta: readonly number[], extrude: boole
 }
 /** A drag let go: one step. */
 export function commitDrag(s: CageSession, delta: readonly number[], extrude: boolean): CageSession {
-  if (!extrude && delta.every(x => x === 0)) return s;
+  // (A drag of nothing is no step; extruded, it would leave the copies on the faces they came from, which the kernel
+  // refuses — a Shift-click on the gizmo did that, D84. Extrude-then-drag is the E key's.)
+  if (delta.every(x => x === 0)) return s;
   const d = dragged(s, delta, extrude);
   return step(s, d.cage, d.sel);
 }
@@ -157,9 +182,10 @@ function twoBoundaries(c: StudioCage, edges: readonly (readonly [number, number]
 }
 /**
  * An operation on the selection: one step, or refused (SubdError, said by the panel). Extrude here goes out 0 (the
- * gizmo then moves it); insert-loop runs across the ring through the first selected edge, at its middle.
+ * gizmo then moves it); insert-loop runs across the ring through the first selected edge, at `t` along it from its
+ * first vertex (the middle unless told: a holding loop near an edge, D84).
  */
-export function runOp(s: CageSession, op: CageOp, tolerance = 0.01): CageSession {
+export function runOp(s: CageSession, op: CageOp, tolerance = 0.01, t = 0.5): CageSession {
   const c = s.cage, sel = s.sel;
   switch (op) {
     case 'select-loop': case 'select-ring': {
@@ -173,8 +199,8 @@ export function runOp(s: CageSession, op: CageOp, tolerance = 0.01): CageSession
     }
     case 'insert-loop': {
       const e = sel.edges[0]; if (!e) throw new SubdError('INPUT', 'insert loop: pick an edge across which the loop runs');
-      const r = insertEdgeLoop(c, e[0], e[1], 0.5), t = cageTopology(r.cage);
-      const edges = [...t.edges.values()].filter(x => r.vertices.includes(x.a) && r.vertices.includes(x.b)).map(x => [x.a, x.b] as [number, number]);
+      const r = insertEdgeLoop(c, e[0], e[1], t), topo = cageTopology(r.cage);
+      const edges = [...topo.edges.values()].filter(x => r.vertices.includes(x.a) && r.vertices.includes(x.b)).map(x => [x.a, x.b] as [number, number]);
       return step(s, plain(r.cage), { ...emptyCageSel, edges });
     }
     case 'bridge': { const [a, b] = twoBoundaries(c, sel.edges); return step(s, plain(bridge(c, a, b)), emptyCageSel); }

@@ -4023,3 +4023,71 @@ The rest of R8.2 after PERF3: the cage editor's operations for the agent, and a 
   - the R8.2 step is the agent's tools through the chat (above);
   - R8.3 is the person's end-to-end edit in the cage editor;
   - R8.3 also covers the plan's other item, reusing `direct.ts`' pole gizmo driven by cage data, if it fits.
+
+## D84 — R8.3 SD3: the cage editor end to end, and the owner's pipe clamp (2026-10-18)
+
+R8.3 as D83's default took it (the person's end-to-end cage edit in the browser flow), with an acceptance part the owner added on 2026-10-18 through the coordinating session ("그렇게 해줘"): a SubD-modelled pipe clamp, from a reference image now at `handover/notes/acceptance/subd-pipe-clamp.png`.
+- **The part** (as the image shows it):
+  - a thick-walled tube, open at both ends, its rims rounded by holding loops;
+  - a flat lug rising from the tube's wall, its plane holding the tube's axis;
+  - a round hole through the lug, its axis square to the tube's;
+  - the lug's top an arc round the hole, a small square step at one end, the lug blended into the tube with no hard edge.
+  - The coordinating session's message said the lug's plane is square to the tube's axis and the hole's axis parallel to it. The image shows it the other way: the lug runs along the tube, and the hole looks across it. The image is followed; the other reading is a different cage (the lug from a ring of rim faces) and can be added on request.
+  - Axis along Z (the studio's tube and the SubD primitives stand on Z); the lug points along +X.
+- **What was added for it:**
+  - **`subd-tube`** primitive (`primitives.ts` `tubeCage`; palette and `run_command`): outer and inner radius, length, quads round (6–64) and along (1–24). Every vertex valence 4, so the limit is exact B-spline faces. Its first column is centred on +X, so a lug extruded from it is square to X. The radii are grown by the ring's limit factor, as the torus' are.
+  - **`subd_insert_loop`'s `t`**: the fraction along the edge from its first vertex (default 0.5); `runOp`'s insert-loop takes it too. A holding loop is a loop near an edge.
+  - **`subd_select` `boundary` with a `box`**: the open edges with both ends in it, for one hole among several.
+  - **A hole's rim by double-click** (`openRun` in `cageEdit.ts`): a double-click on an open edge selects the whole rim round the hole (Shift: added), to fill or bridge. Before, the loop of an open edge stopped at its ends.
+  - **The cage editor ends its session when the part changes under it** (a new part, a file opened, the agent's edit): nothing written, a toast says so. Found by the browser flow: a new part while a cage was open crashed the panel (`featureLabel` of a node that was gone), and Done would have written over the change.
+  - **A drag of nothing is no step** (`commitDrag`): a Shift-press on the gizmo with no movement extruded the picked faces by 0 (copies on the faces they came from, which the kernel refuses: 8 new poles and no body). Found when a Shift-click to add a face landed on the gizmo's arrow. The E key still extrudes in place for the gizmo to drag.
+  - **Esc no longer throws steps away:** with nothing picked it left the session as Cancel does, dropping every step unasked (a second Esc did it). Now it leaves only when there is nothing to lose, and otherwise says that Done keeps the steps and Cancel drops them.
+  - `__studioCage` (dev only) returns the session's selection, cage, creases, mirror and undo depth, for the browser flow.
+- **Built by the agent's cage tools** (`test/subdClamp.test.ts`), as an agent would: each pick found by `subd_select` (faces by normal and box, vertices by box, open edges by box) or read off the cage, each change one tool call. 43 calls, kept as `test/fixtures/subd-pipe-clamp.calls.json`:
+  1. `run_command subd-tube` r 20, ri 17, h 40, 24 round, 7 along;
+  2. eight holding loops at the rims, 0.6 mm from each corner: on each wall near each end, and on each rim near both corners;
+  3. the lug: the five outer faces of column 0 in rows 1–5 extruded out along +X three times (4, 5.71, 5.71 mm), then four of them once more (5.71 mm): the first row stops a level short, which is the step;
+  4. the hole: the 2 × 2 side faces at levels 2–3 of rows 3–4 deleted on both sides; the old rims moved onto a circle of 5.2 mm; each rim's open edges pulled 0.6 mm into the lug (a short funnel, the mouth's holding ring) and the new edges moved onto the hole's circle of 4.2 mm; the two mouths bridged;
+  5. holding loops in the hole near both mouths, and along both faces of the lug (their ring runs on round the tube's column 0);
+  6. the lug's top moved onto an arc of radius 11.4 mm round the hole's centre, its right end down the side, its left end a little down to the step.
+  - Every call's result is a body the kernel builds; the tool refuses one that is not. The first recipe pulled the rims out by 0 to drag afterwards, as the editor's gizmo does; that leaves coincident vertices, which the kernel refuses ("a singular surface or a degenerate loop cannot be tessellated"). The funnel replaced it.
+  - The same calls through the editor's own session steps (`commitDrag`, `runOp`: what the editor runs for a person's picks and drags) give the same cage, number for number.
+  - 43 calls take 60 s in the unit test: each evaluates the part (1–2 s for the clamp, its tessellation most of it).
+- **The result** (kernel conformance case `conformance/r8/subd-pipe-clamp.json`, its cage the one the agent's calls make):
+
+  | Measure | Value | Bound |
+  |---|---|---|
+  | Body | one solid, 1 shell, genus 2; 424 faces (exact patches and 88 caps); 20 irregular vertices, one Catmull–Clark step | |
+  | G1 between faces along smooth edges | 1.9e-6° | 1e-5° |
+  | Seams | 2.2e-14 mm | 1e-12 mm |
+  | Caps' largest distance from the limit | 0.0120 mm (rms 0.0006; 0.0145% of the 83 mm size) | 0.02 mm |
+  | Smallest \|Su × Sv\| against its cap's median | 0.068 | > 0.05 |
+  | Largest turn between neighbouring normals in a cap | 3.3° | < 15° |
+  | Volume | 16 476.176 mm³; the independent oracle 16 476.177 (5e-8) | relTol 1e-4 |
+  | Area | 11 019.525 mm²; oracle 11 019.522 (3.4e-7) | relTol 1e-4 |
+  | Centroid | [4.41189, 0, 19.99865] mm; oracle within 3e-6 mm | absTol 1e-3 mm |
+  | Tessellation (8 a quarter) | 56 060 triangles, watertight, 1.06 s | |
+  | STEP | 1.8 MB, written and read in 4.3 s; volume and area equal to rounding; strict check valid | relTol 1e-9 |
+
+  - The oracle is the independent Catmull–Clark in `test/subd.test.mjs` (its limit-mesh volume, now also area and centroid: `limitMeasures`), refined 4 and 5 times and extrapolated; 3 and 4 times differs by 6e-8.
+  - **Known open item, not loosened (D79, A5):** the tessellation has concave folds up to **88.6°** (69.7° at 12 a quarter) between sliver triangles about 0.01 mm high, inside exact B-spline patches along the rims' tight holding loops. It is the general B-spline face tessellator's D79 to-do, not a fold of the surface and not at a cap's boundary: the caps' normals turn 3.3° at most. The kernel test holds it below 89° (no worse) and the case's `notes` records it. The studio's render shows no mark there.
+  - The conformance runner reads a new optional `expect.subd`: the standing SubD promises as bounds on the named feature's cage (`conformance/README.md`).
+- **Tests:**
+  - Kernel `subd.test` (D84): every SD2 promise on the clamp; 1 shell, genus 2; volume the oracle's to 1e-6; folds < 89°. Conformance r8 1/1.
+  - Studio `subdClamp.test.ts` (2): the build through the tools (the calls and the cage as kept; `UPDATE_CLAMP=1` writes both again), and through the editor's steps.
+  - `primitives.test`: the SubD tube (regular, no caps, genus 1, between its radii and length, column 0 centred on +X, refused inside out).
+  - `cageEdit.test`: a hole's rim by double-click (in order, closed; a second rim added; bridged: genus 1).
+- **Browser flow:**
+  - **R8.3, by hand on a SubD box** (4 a side): a top face picked and Shift-dragged up the gizmo's Z arrow (extruded, 100 faces); a front edge picked, L (a loop round the box, 116), C (the new loop creased, 16 edges); Mirror X (the + half, the body the half and its image); ⌘Z in the session (whole again, the loop and creases kept); Done (one node edit); the document's ⌘Z (the box as it was) and ⇧⌘Z. Screenshots after each.
+  - **D84, by the agent through the real chat and tool servers** (the scripted CLI stand-in): the tube built on the empty part (applied), then the other 42 calls as one proposal at L2, accepted in the studio: one body, its cage the conformance case's exactly, its volume shown (16 476 mm³); STEP exported and opened again: one solid, the same volume. 100 s through the chat.
+  - **D84, by hand in the cage editor**: a SubD tube from the palette with its sizes typed; a holding loop at the top rim (L); the lug's five faces picked (Right view), Shift-dragged out twice, the lowest taken out of the pick (Shift-click), the rest out twice more; in an orthographic front view the hole's four faces on the front deleted, then the same places take the four behind them, deleted too (in perspective the faces behind are drawn a little aside, and a click there took a front face beside the hole); the two rims double-clicked (the second with Shift) in an iso view and bridged (B); Done: one body, the cage valid and closed, the kernel's body one shell of genus 2. By hand the hole stays square (rounded by the limit) and the rims have one holding loop: the agent's path places every vertex, a person's drags are coarser; the topology is the same kind.
+- **Suites:**
+  - kernel 1022/1028: 4 skipped as before; the known environmental `actual native Split source…`; and the B9 wall-clock test (40k planar mass in 417 ms against its 400 ms bound) while the studio suite ran beside it — 75 ms alone, where it passes. Load-sensitive as AM4 was.
+  - conformance all, the clamp's case 9.5 s; RB over 206 cases: nothing new, the 8 known TODOs, the clamp's case through every stage;
+  - studio 374/374;
+  - bench all within budget, the new row `subd: the pipe clamp (cold)` 299 ms (budget 600);
+  - lint (0 errors) and type-check clean;
+  - browser flow: full run 123/123 (the three new steps; the clamp through the chat 95 s).
+- **The pole gizmo item (D83; R8's plan: "the pole gizmo from `direct.ts` driven by cage data, not source-text edits"):** nothing left to do. The cage editor's gizmo is the viewport's `TransformGizmo`, the one `direct.ts`' poles use, and it edits the cage's data itself (a session step), never source text.
+- Picks in the flow click a face halfway to its lower-left corner and in an order that keeps each next face below or left of the gizmo's middle: its arrows point up and right from there. The view is framed by its button (F is Fill while a cage is edited).
+- **Follow-up seen, not in this step:** the Selection panel's "Surface area" is the tessellation's (11 007 mm² for the clamp, 0.11% under the exact 11 019.5); the exact area is the kernel's.

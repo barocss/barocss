@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { subdBrep, checkBrep, brepMassProperties, validateCage } from '@barocss/cad';
 import { boxCage } from '../src/app/primitives';
-import { commitDrag, dragged, fullCage, pickCage, previewLevels, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageSession } from '../src/subd/cageEdit';
+import { commitDrag, dragged, fullCage, openRun, pickCage, previewLevels, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageSession } from '../src/subd/cageEdit';
 
 // R8.2 (D81): the cage-editing session — picking, selection with loops, dragging and extruding on a drag, the
 // operations, the session's own undo, the mirror. Every step's cage is valid and the kernel builds it.
@@ -84,4 +84,35 @@ test('PERF3 C16: an extrusion dragged validates its cage once — the same valid
   // Another topology (the session before extruding): validated anew, and right.
   assert.deepEqual(validationOf(s), validateCage(fullCage(s)));
   assert.notEqual(validationOf(s), first);
+});
+
+test('D84 a hole\'s rim by a double-click: on an open edge the loop is the whole rim round the hole, in order (a closed chain); on an edge with faces both sides, the edge loop as before; with Shift, a second rim added', () => {
+  let s = startSession(0, boxCage(30, 20, 16, 3, [0, 0, 0]));
+  const top = s.cage.faces.findIndex(f => f.every(v => s.cage.positions[3 * v + 2] === 16) && f.some(v => Math.abs(s.cage.positions[3 * v]) < 6));
+  const bottom = s.cage.faces.findIndex(f => f.every(v => s.cage.positions[3 * v + 2] === 0) && f.some(v => Math.abs(s.cage.positions[3 * v]) < 6));
+  const [a, b] = s.cage.faces[top];
+  assert.equal(openRun(s.cage, a, b), null);
+  s = runOp(select(select(s, { kind: 'face', f: top }, false), { kind: 'face', f: bottom }, true), 'delete');
+  const t = validationOf(s).boundaryEdges, [x, y] = t[0];
+  const rim = openRun(s.cage, x, y)!;
+  assert.equal(rim.length, 4);
+  for (let i = 0; i < rim.length; i++) assert.equal(rim[i][1], rim[(i + 1) % rim.length][0], 'in order, closed');
+  s = select(s, { kind: 'edge', a: x, b: y }, false, 'loop');
+  assert.equal(s.sel.edges.length, 4);
+  const other = t.find(([p, q]) => !rim.some(([u, v]) => (u === p && v === q) || (u === q && v === p)))!;
+  s = select(s, { kind: 'edge', a: other[0], b: other[1] }, true, 'loop');
+  assert.equal(s.sel.edges.length, 8);
+  // Bridged: a closed cage again (a hole through the box), genus 1.
+  s = runOp(s, 'bridge');
+  assert.equal(validationOf(s).boundaryEdges.length, 0);
+  assert.deepEqual(checkBrep(sound(s)).topology.map(r => r.genus), [1]);
+});
+
+test('D84 a drag of nothing is no step, moved or extruded (a Shift-click on the gizmo once extruded the faces by 0: copies on the faces they came from, which the kernel refuses)', () => {
+  const s0 = startSession(0, boxCage(30, 20, 16, 2, [0, 0, 0]));
+  const s = select(s0, { kind: 'face', f: s0.cage.faces.findIndex(f => f.every(v => s0.cage.positions[3 * v + 2] === 16)) }, false);
+  assert.equal(commitDrag(s, [0, 0, 0], true), s);
+  assert.equal(commitDrag(s, [0, 0, 0], false), s);
+  // (E still extrudes in place, for the gizmo to drag afterwards: a step.)
+  assert.equal(runOp(s, 'extrude').undo.length, 1);
 });

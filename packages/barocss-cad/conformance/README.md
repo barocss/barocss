@@ -32,9 +32,14 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
     "error": { "code": "GEOMETRY", "messageIncludes": "not closed" },
     // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and
     // keep their total volume and area to relTol.
-    "stepRoundTrip": { "relTol": 1e-6 }
+    "stepRoundTrip": { "relTol": 1e-6 },
+    // Optional: a SubD feature's promises (D78/D79) on its cage, as bounds: G1 between faces along smooth edges,
+    // the seams closed, the caps' largest distance from the Catmull–Clark limit, and no degenerate point
+    // (|Su × Sv| against its cap's median) or fold (the turn between neighbouring normals on a 33 × 33 grid) in a cap.
+    "subd": { "feature": "clamp", "g1MaxAngleDeg": 1e-5, "maxGapMM": 1e-12, "capDeviationMaxMM": 0.02, "minJacobianRatio": 0.05, "maxNormalTurnDeg": 15 }
   },
   "oracle": "how the expected values were obtained (closed form, an independent tool, or this kernel)",
+  "notes": "optional: known open items the case shows, with their numbers (not checked)",
   // Optional: a later step changed what this case pins (a refusal it now builds). Kept as the record; not run.
   "supersededBy": { "step": "R7", "why": "…" }
 }

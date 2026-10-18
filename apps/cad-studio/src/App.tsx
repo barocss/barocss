@@ -336,11 +336,12 @@ export function App() {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { pickRef.current({ face: { body: b, face: i }, edge: null, point: null }, false); return true; } }
       return false;
     };
-    // The cage editor's picked faces' mean height and the camera's depth for two points (tests: which face a click took).
+    // The cage editor's session for tests: what is picked (and the picked faces' mean heights: which face a click
+    // took), the cage, its creases, mirror and undo depth (R8.3's browser flow).
     (window as unknown as { __studioCage: () => unknown }).__studioCage = () => {
       const s = cageEdRef.current.session; if (!s) return null;
       const z = s.sel.faces.map(f => s.cage.faces[f].reduce((t, v) => t + s.cage.positions[3 * v + 2], 0) / s.cage.faces[f].length);
-      return { faces: s.sel.faces.length, z, cageFaces: s.cage.faces.length };
+      return { faces: s.sel.faces.length, edges: s.sel.edges.length, vertices: s.sel.vertices.length, z, cageFaces: s.cage.faces.length, creases: s.cage.creases?.length ?? 0, mirror: s.mirror ?? null, undo: s.undo.length, mode: s.mode, sel: s.sel, cage: s.cage };
     };
     // Where a model point is on the page (CSS px), for clicks that must land on a face.
     (window as unknown as { __studioScreenOf: (p: Vec3) => [number, number] | null }).__studioScreenOf = p => {
@@ -1871,7 +1872,7 @@ export function App() {
               <Icon name="warning" small />{ia >= 0 ? bodyName(doc, bodies[ia]) : c.a} ∩ {ib >= 0 ? bodyName(doc, bodies[ib]) : c.b}<span className="muted"> · {fmt(Math.round(c.volume * 10) / 10)} mm³</span></button>); })}
       </aside>}
       {/* (A running command's HUD takes this place at the right.) */}
-      {cageEd.session && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
+      {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
       {!cageEd.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {selection.vertices?.length ? (<>
           <div className="card-title">SELECTION · {selection.vertices.length === 1 ? 'POINT' : `${selection.vertices.length} POINTS`}</div>

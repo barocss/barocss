@@ -2499,6 +2499,271 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- R8.3 (D84): the cage editor by hand, end to end; the owner's pipe clamp by the agent and by hand ----------
+  const cageNow = () => page.evaluate(() => window.__studioCage());
+  // (The view framed by its button: F is Fill while a cage is edited.)
+  const frameAll = () => page.click('.views button[title="Frame all (F)"]');
+  const centreOf = (c, vs) => [0, 1, 2].map(a => vs.reduce((s, v) => s + c.positions[3 * v + a], 0) / vs.length);
+  /** A click where a model point is drawn (Shift held: added to the pick). */
+  const clickModel = async (p, shift = false, dbl = false) => {
+    const q = await page.evaluate(p => window.__studioScreenOf(p), p);
+    if (shift) await page.keyboard.down('Shift');
+    if (dbl) await page.mouse.dblclick(q[0], q[1]); else await page.mouse.click(q[0], q[1]);
+    if (shift) await page.keyboard.up('Shift');
+  };
+  /**
+   * A click on cage face k halfway from its middle to its lower-left corner on the screen (Shift: added): clear of the
+   * gizmo, whose arrows point up and right from the picked faces' middle.
+   */
+  const clickFace = async (c, k, shift = false) => {
+    const q = await page.evaluate(([c, k]) => {
+      const ps = c.faces[k].map(v => window.__studioScreenOf([c.positions[3 * v], c.positions[3 * v + 1], c.positions[3 * v + 2]]));
+      const m = [0, 1].map(a => ps.reduce((t, p) => t + p[a], 0) / ps.length), ll = ps.reduce((b, p) => p[1] - p[0] > b[1] - b[0] ? p : b);
+      return [(m[0] + ll[0]) / 2, (m[1] + ll[1]) / 2];
+    }, [c, k]);
+    if (shift) await page.keyboard.down('Shift');
+    await page.mouse.click(q[0], q[1]);
+    if (shift) await page.keyboard.up('Shift');
+  };
+  /** The gizmo's arrow along `axis` dragged k times its length (Shift held as it starts: extrude first). */
+  const dragArrow = async (axis, k, shift) => {
+    await page.waitForSelector(`[data-gizmo=move${axis}]`, { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const end = n => page.evaluate(([sel, n]) => { const el = document.querySelector(sel), g = k => Number(el.getAttribute(k)); return [g('x1') + (g('x2') - g('x1')) * n, g('y1') + (g('y2') - g('y1')) * n]; }, [`[data-gizmo=move${axis}] line:nth-of-type(2)`, n]);
+    const a0 = await end(0.5), a1 = await end(1);
+    if (shift) await page.keyboard.down('Shift');
+    await page.mouse.move(svg.x + a0[0], svg.y + a0[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + a0[0] + (a1[0] - a0[0]) * k, svg.y + a0[1] + (a1[1] - a0[1]) * k, { steps: 8 }); await page.mouse.up();
+    if (shift) await page.keyboard.up('Shift');
+  };
+  const editCage = async () => { await press(' '); await page.locator('.palette input').fill('edit cage'); await press('Enter'); await page.waitForSelector('[aria-label="Cage editor"]', { timeout: 10000 }); };
+
+  await check('R8.3 the cage editor by hand: a SubD box\'s face extruded (Shift-drag), a loop (L) creased (C), mirrored across X and undone (⌘Z), Done; document undo and redo', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('subd box'); await press('Enter'); await hudReady();
+    await page.locator('.hud .field', { has: page.locator('span:text-is("Quads along a side")') }).locator('input').fill('4'); await hudReady();
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.cage?.faces.length === 96 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(400);
+    await editCage();
+    let c = (await cageNow()).cage;
+    // (The box where the command put it: its middle in x and y.)
+    const mid = [0, 1].map(k => { const xs = c.positions.filter((_, i) => i % 3 === k); return (Math.min(...xs) + Math.max(...xs)) / 2; });
+    // Face mode: a top face (the one at +x, +y of the middle), extruded up by a Shift-drag of the Z arrow.
+    await press('3');
+    const top = c.faces.findIndex(f => { const p = centreOf(c, f); return Math.abs(p[2] - 16) < 1e-9 && Math.abs(p[0] - mid[0] - 3.75) < 1e-9 && Math.abs(p[1] - mid[1] - 2.5) < 1e-9; });
+    assert.ok(top >= 0, 'the top face');
+    await clickModel(centreOf(c, c.faces[top]));
+    await page.waitForFunction(() => window.__studioCage().faces === 1, null, { timeout: 5000 });
+    await dragArrow('Z', 1.5, true);
+    await page.waitForFunction(() => window.__studioCage().cageFaces === 100 && window.__studioCage().undo === 1, null, { timeout: 10000 });
+    c = (await cageNow()).cage;
+    assert.ok(Math.max(...c.positions.filter((_, k) => k % 3 === 2)) > 17, 'the face went up');
+    await page.waitForTimeout(800); await snap('cage-extrude');
+    // Edge mode: a vertical edge of the front side; L puts a loop round the box across it, C creases the new loop.
+    await press('2');
+    const nv = c.positions.length / 3, P = v => [c.positions[3 * v], c.positions[3 * v + 1], c.positions[3 * v + 2]];
+    let edge = null;
+    for (const f of c.faces) for (let i = 0; i < 4 && !edge; i++) { const a = P(f[i]), b = P(f[(i + 1) % 4]); if (Math.abs(a[1] - mid[1] + 10) < 1e-9 && Math.abs(b[1] - mid[1] + 10) < 1e-9 && a[0] === b[0] && Math.abs(a[0] - mid[0] + 7.5) < 1e-9 && Math.min(a[2], b[2]) === 4) edge = [a, b]; }
+    assert.ok(edge, 'the front edge');
+    await clickModel(edge[0].map((x, k) => (x + edge[1][k]) / 2));
+    await page.waitForFunction(() => window.__studioCage().edges === 1, null, { timeout: 5000 });
+    await press('l');
+    await page.waitForFunction(() => window.__studioCage().cageFaces === 116, null, { timeout: 10000 });
+    assert.ok((await cageNow()).cage.positions.length / 3 > nv);
+    await press('c');
+    await page.waitForFunction(() => window.__studioCage().creases === 16, null, { timeout: 10000 });
+    await page.waitForTimeout(800); await snap('cage-loop-crease');
+    // Mirrored across X: the + side kept (the extruded face is on it), the body the half and its image.
+    await page.selectOption('select[aria-label="Mirror"]', 'x');
+    await page.waitForFunction(() => window.__studioCage().mirror === 'x' && window.__studioCage().cageFaces < 116, null, { timeout: 10000 });
+    const half = await cageNow();
+    assert.ok(half.cage.positions.filter((_, k) => k % 3 === 0).every(x => x >= -1e-9), 'the half on + x');
+    await page.waitForTimeout(1200); await snap('cage-mirror');
+    // ⌘Z in the session: the mirror undone (the whole cage again, the loop and crease kept).
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioCage().mirror === null && window.__studioCage().cageFaces === 116 && window.__studioCage().creases === 16, null, { timeout: 5000 });
+    assert.equal((await cageNow()).undo, 3);
+    // Done: one node edit — the document's cage the session's; one ⌘Z of the document puts the box back, ⇧⌘Z again.
+    await page.click('[aria-label="Done editing cage"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Cage editor"]') && window.__studioDoc.nodes[0].cage.faces.length === 116, null, { timeout: 10000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    assert.equal((await doc()).nodes.length, 1);
+    assert.equal((await doc()).nodes[0].cage.creases.length, 16);
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].cage.faces.length === 96 && !window.__studioDoc.nodes[0].cage.creases, null, { timeout: 10000 });
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].cage.faces.length === 116, null, { timeout: 10000 }); await idle();
+    await page.waitForTimeout(600); await snap('cage-done');
+  });
+
+  // (The calls: test/fixtures/subd-pipe-clamp.calls.json; the cage they make: the kernel's conformance case r8-subd-pipe-clamp.)
+  await check('D84 the pipe clamp by the agent through the real chat: its cage-tool calls proposed and accepted; one body, the conformance cage; STEP out and in, the same volume', async () => {
+    const { spawn } = await import('node:child_process'), fs = await import('node:fs'), origin = new URL(url).origin;
+    const { calls } = JSON.parse(fs.readFileSync(join(root, 'test/fixtures/subd-pipe-clamp.calls.json'), 'utf8'));
+    const want = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r8/subd-pipe-clamp.json'), 'utf8'));
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await idle();
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const send = async (calls, ms = 60000) => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: ms });
+      };
+      await send([{ tool: calls[0].tool, args: calls[0].args }]);
+      await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+      // The rest changes the cage's topology: at L2 one proposal of them all, accepted.
+      const t0 = Date.now();
+      await send([{ tool: 'propose', args: { title: 'Pipe clamp', ops: calls.slice(1).map(c => ({ tool: c.tool, args: c.args })) } }], 240000);
+      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
+      await page.locator('[aria-label="Proposal P1"] button', { hasText: /^Accept/ }).click();
+      await page.waitForFunction(n => window.__studioDoc.nodes[0].cage.faces.length === n && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), want.input.partDocument.features[0].cage.faces.length, { timeout: 120000 }); await idle();
+      console.log(`    (the clamp proposed and accepted through the chat in ${((Date.now() - t0) / 1000).toFixed(1)} s)`);
+      assert.deepEqual((await doc()).nodes[0].cage, want.input.partDocument.features[0].cage);
+      await page.click('[aria-label="Close chat"]');
+      await page.locator('.outliner .ol').first().click();
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
+      const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+      assert.ok(Math.abs(vol / want.expect.outputs[0].volumeMM3.value - 1) < 1e-3, `${vol} mm³ shown`);
+      await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
+      await snap('clamp-agent');
+      await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(800);
+      await snap('clamp-agent-front');
+      // STEP out and in again: one body, the same volume.
+      const [download] = await Promise.all([page.waitForEvent('download', { timeout: 120000 }), page.click('[aria-label="Export STEP"]')]);
+      const file = join(out, 'clamp.step'); await download.saveAs(file);
+      assert.match(fs.readFileSync(file, 'utf8').slice(0, 200), /ISO-10303-21/);
+      await page.click('[aria-label="New part"]'); await idle();
+      await page.setInputFiles('input[aria-label="Model file"]', file);
+      await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
+      await page.locator('.outliner .ol').first().click();
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
+      const back = Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+      assert.ok(Math.abs(back / vol - 1) < 1e-4, `${back} mm³ after STEP, ${vol} before`);
+      await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
+      await snap('clamp-step-reopened');
+    } finally { chat.kill(); }
+  });
+
+  await check('D84 the pipe clamp by hand in the cage editor: a SubD tube, a rim loop, the lug Shift-dragged with its step, a hole through both sides, its rims double-clicked and bridged; one body of genus 2', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('subd tube'); await press('Enter'); await hudReady();
+    for (const [label, v] of [['Outer radius', 20], ['Inner radius', 17], ['Length', 40], ['Quads round', 24], ['Quads along', 7], ['Centre X', 0], ['Centre Y', 0], ['At Z', 0]]) await page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input').fill(String(v));
+    await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.cage?.faces.length === 384 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(400);
+    await editCage();
+    let c = (await cageNow()).cage;
+    const P = v => [c.positions[3 * v], c.positions[3 * v + 1], c.positions[3 * v + 2]];
+    // A holding loop near the top rim: across a vertical edge of the front's outer wall in its top row.
+    await press('2');
+    const front = c.faces.map((f, k) => k).filter(k => { const p = centreOf(c, c.faces[k]); return p[1] < -19 && p[2] > 34.3; });
+    const f0 = c.faces[front[0]], e = [0, 1, 2, 3].map(i => [f0[i], f0[(i + 1) % 4]]).find(([a, b]) => Math.abs(P(a)[2] - P(b)[2]) > 1);
+    await clickModel(centreOf(c, e));
+    await page.waitForFunction(() => window.__studioCage().edges === 1, null, { timeout: 5000 });
+    await press('l');
+    await page.waitForFunction(() => window.__studioCage().cageFaces === 408, null, { timeout: 10000 });
+    // The lug: column 0's outer faces in rows 1–5 (the +X side, seen edge on from the front: picked from the top).
+    await press('3');
+    c = (await cageNow()).cage;
+    // (Picked in the Right view, square to the strip.)
+    await page.click('.views button:text-is("Right")'); await frameAll(); await page.waitForTimeout(400);
+    const strip = c.faces.map((f, k) => k).filter(k => { const f = c.faces[k], p = centreOf(c, f); return p[0] > 19 && Math.abs(p[1]) < 1 && p[2] > 40 / 7 && p[2] < 6 * 40 / 7; });
+    assert.equal(strip.length, 5);
+    // (Top to bottom: each next face below the gizmo's middle.)
+    strip.sort((a, b) => centreOf(c, c.faces[b])[2] - centreOf(c, c.faces[a])[2]);
+    for (const [i, k] of strip.entries()) await clickFace(c, k, i > 0);
+    await page.waitForFunction(() => window.__studioCage().faces === 5, null, { timeout: 5000 });
+    await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(400);
+    await dragArrow('X', 1, true);
+    await page.waitForFunction(() => window.__studioCage().undo === 2, null, { timeout: 10000 });
+    await dragArrow('X', 1, true);
+    await page.waitForFunction(() => window.__studioCage().undo === 3, null, { timeout: 10000 });
+    // The step: the lowest face taken out of the pick (Shift-click), the other four out twice more.
+    c = (await cageNow()).cage;
+    const picked = (await cageNow()).sel.faces;
+    const low = picked.reduce((m, k) => centreOf(c, c.faces[k])[2] < centreOf(c, c.faces[m])[2] ? k : m, picked[0]);
+    await page.click('.views button:text-is("Right")'); await frameAll(); await page.waitForTimeout(400);
+    await clickFace(c, low, true);
+    await page.waitForFunction(() => window.__studioCage().faces === 4, null, { timeout: 5000 });
+    await page.click('.views button:text-is("Front")'); await frameAll(); await page.waitForTimeout(400);
+    await dragArrow('X', 1, true);
+    await page.waitForFunction(() => window.__studioCage().undo === 4, null, { timeout: 10000 });
+    await dragArrow('X', 1, true);
+    await page.waitForFunction(() => window.__studioCage().undo === 5, null, { timeout: 10000 });
+    await page.waitForTimeout(800); await snap('clamp-hand-lug');
+    // The hole: on the side facing the front (−Y), the 2 × 2 faces at the second and third levels of the middle
+    // columns deleted; the same clicks then take the faces behind them (+Y), deleted too.
+    c = (await cageNow()).cage;
+    const sideFaces = c.faces.map((f, k) => k).filter(k => { const f = c.faces[k], ys = f.map(v => c.positions[3 * v + 1]); return ys.every(y => y < -2) && centreOf(c, f)[0] > 21; });
+    const xs = [...new Set(sideFaces.map(k => Math.round(centreOf(c, c.faces[k])[0] * 1e6)))].sort((a, b) => a - b), zs = [...new Set(sideFaces.map(k => Math.round(centreOf(c, c.faces[k])[2] * 1e6)))].sort((a, b) => a - b);
+    assert.deepEqual([xs.length, zs.length], [4, 5], `the lug's front side: ${xs.length} levels, ${zs.length} columns`);
+    const block = sideFaces.filter(k => { const p = centreOf(c, c.faces[k]); return [xs[1], xs[2]].includes(Math.round(p[0] * 1e6)) && [zs[2], zs[3]].includes(Math.round(p[2] * 1e6)); });
+    assert.equal(block.length, 4);
+    // (Orthographic: the faces behind the deleted ones fill the same place on the screen, nothing in front of them.
+    // From the top right: each next face left of or below the gizmo's middle; the front view looks along +Y, +X right.)
+    await page.click('.views button:text-is("Ortho")'); await page.waitForTimeout(300);
+    block.sort((a, b) => { const p = centreOf(c, c.faces[a]), q = centreOf(c, c.faces[b]); return q[2] - p[2] || q[0] - p[0]; });
+    for (const side of ['front', 'back']) {
+      if ((await cageNow()).faces) await press('Escape');
+      const now = (await cageNow()).cage;
+      // (The faces at those places now: behind the deleted ones, the other side's.)
+      const at = block.map(k => centreOf(c, c.faces[k])).map(p => now.faces.findIndex(f => { const q = centreOf(now, f); return Math.abs(q[0] - p[0]) < 1e-6 && Math.abs(q[2] - p[2]) < 1e-6 && Math.sign(q[1]) === (side === 'front' ? -1 : 1); }));
+      assert.ok(at.every(k => k >= 0), JSON.stringify(at));
+      for (const [i, k] of at.entries()) await clickFace(now, k, i > 0);
+      await page.waitForFunction(() => window.__studioCage().faces === 4, null, { timeout: 5000 });
+      const ys = await page.evaluate(() => { const s = window.__studioCage(), c = s.cage; return s.sel.faces.map(k => c.faces[k].reduce((t, v) => t + c.positions[3 * v + 1], 0) / 4); });
+      assert.ok(ys.every(y => side === 'front' ? y < 0 : y > 0), `${side}: the faces picked at y ${ys}`);
+      const before = (await cageNow()).cageFaces;
+      await press('Delete');
+      await page.waitForFunction(n => window.__studioCage().cageFaces === n, before - 4, { timeout: 10000 });
+    }
+    await page.click('.views button:text-is("Ortho")');
+    // The two rims, double-clicked (Shift: the second added) in an iso view: an open edge each, where it is clear
+    // of every other edge on the screen; B bridges them.
+    await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(400);
+    await press('2');
+    const rims = await page.evaluate(() => {
+      const c = window.__studioCage().cage, n = c.positions.length / 3, q = [];
+      for (let v = 0; v < n; v++) q.push(window.__studioScreenOf([c.positions[3 * v], c.positions[3 * v + 1], c.positions[3 * v + 2]]));
+      const count = new Map(), all = [];
+      for (const f of c.faces) for (let i = 0; i < f.length; i++) { const a = f[i], b = f[(i + 1) % f.length], k = a < b ? `${a}_${b}` : `${b}_${a}`; if (!count.has(k)) all.push([Math.min(a, b), Math.max(a, b)]); count.set(k, (count.get(k) ?? 0) + 1); }
+      const dist = (p, [a, b]) => { const A = q[a], B = q[b], dx = B[0] - A[0], dy = B[1] - A[1], t = Math.max(0, Math.min(1, ((p[0] - A[0]) * dx + (p[1] - A[1]) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(A[0] + t * dx - p[0], A[1] + t * dy - p[1]); };
+      const best = side => {
+        let out = null, clear = -1;
+        for (const e of all) {
+          if (count.get(`${e[0]}_${e[1]}`) !== 1 || Math.sign(c.positions[3 * e[0] + 1]) !== side) continue;
+          const m = [(q[e[0]][0] + q[e[1]][0]) / 2, (q[e[0]][1] + q[e[1]][1]) / 2], d = Math.min(...all.filter(x => x !== e).map(x => dist(m, x)));
+          if (d > clear) { clear = d; out = m; }
+        }
+        return { at: out, clear };
+      };
+      return [best(-1), best(1)];
+    });
+    assert.ok(rims.every(r => r.clear > 3), JSON.stringify(rims));
+    await page.mouse.dblclick(rims[0].at[0], rims[0].at[1]);
+    await page.waitForFunction(() => window.__studioCage().edges === 8, null, { timeout: 5000 });
+    await page.keyboard.down('Shift'); await page.mouse.dblclick(rims[1].at[0], rims[1].at[1]); await page.keyboard.up('Shift');
+    await page.waitForFunction(() => window.__studioCage().edges === 16, null, { timeout: 5000 });
+    const open = (await cageNow()).cageFaces;
+    await press('b');
+    await page.waitForFunction(n => window.__studioCage().cageFaces === n, open + 8, { timeout: 10000 });
+    await page.waitForTimeout(1500); await snap('clamp-hand-hole');
+    await page.click('[aria-label="Done editing cage"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Cage editor"]'), null, { timeout: 10000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    // One closed body of genus 2 (the kernel's own check of the cage the studio wrote).
+    const made = (await doc()).nodes[0].cage, kernel = await import('../../../packages/barocss-cad/dist/index.js');
+    const v = kernel.validateCage(made); assert.equal(v.valid, true); assert.equal(v.boundaryEdges.length, 0);
+    const r = kernel.checkBrep(kernel.subdBrep(made, { id: 'clamp' }));
+    assert.equal(r.valid, true, r.issues[0]); assert.deepEqual(r.topology.map(t => [t.shells, t.genus]), [[1, 2]]);
+    await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
+    await snap('clamp-hand');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

@@ -144,7 +144,8 @@ function ccStep(cage) {
   const creases = [...crease].flatMap(key => { const e = at.get(`e${key}`); return [[at.get(`v${Math.floor(key / nv)}`), e], [e, at.get(`v${key % nv}`)]]; });
   return { positions, faces, creases };
 }
-function limitVolume(cage, levels) {
+/** The limit mesh's volume, area and centroid (the solid's, by the divergence theorem over its triangles). */
+function limitMeasures(cage, levels) {
   let c = cage; for (let i = 0; i < levels; i++) c = ccStep(c);
   const P = c.positions, nv = P.length / 3, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]];
   const ek = (a, b) => Math.min(a, b) * nv + Math.max(a, b), crease = new Set(c.creases.map(([a, b]) => ek(a, b)));
@@ -161,10 +162,16 @@ function limitVolume(cage, levels) {
     for (const d of diag[v]) { const o = pt(d); for (let i = 0; i < 3; i++) s[i] += o[i]; }
     L.push(s.map(x => x / (n * (n + 5))));
   }
-  let vol = 0;
-  for (const f of c.faces) for (const [i, j, k] of [[0, 1, 2], [0, 2, 3]]) { const a = L[f[i]], b = L[f[j]], d = L[f[k]]; vol += (a[0] * (b[1] * d[2] - b[2] * d[1]) - a[1] * (b[0] * d[2] - b[2] * d[0]) + a[2] * (b[0] * d[1] - b[1] * d[0])) / 6; }
-  return vol;
+  let vol = 0, area = 0; const m = [0, 0, 0];
+  for (const f of c.faces) for (const [i, j, k] of [[0, 1, 2], [0, 2, 3]]) {
+    const a = L[f[i]], b = L[f[j]], d = L[f[k]], v = (a[0] * (b[1] * d[2] - b[2] * d[1]) - a[1] * (b[0] * d[2] - b[2] * d[0]) + a[2] * (b[0] * d[1] - b[1] * d[0])) / 6;
+    vol += v; for (let x = 0; x < 3; x++) m[x] += v * (a[x] + b[x] + d[x]) / 4;
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
+    area += Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]) / 2;
+  }
+  return { volume: vol, area, centroid: m.map(x => x / vol) };
 }
+const limitVolume = (cage, levels) => limitMeasures(cage, levels).volume;
 const extrapolated = (cage, l = 5) => { const a = limitVolume(cage, l), b = limitVolume(cage, l + 1); return b + (b - a) / 3; };
 function prism(n, r = 10, h = 10) {
   const positions = [];
@@ -322,4 +329,18 @@ test('PERF3 C16 (D82): the caps are kept whatever the cage\'s extent — the top
   t0 = performance.now(); const raised = buildSubd({ ...shifted, positions: p }); const warm = performance.now() - t0;
   assert.deepEqual(capsOf(raised), capsOf(first));
   assert.ok(warm < 0.5 * cold, `${warm.toFixed(1)} ms raised against ${cold.toFixed(1)} ms cold: the caps were built again`);
+});
+
+test('D84 (R8.3) the owner\'s acceptance part, a SubD pipe clamp (conformance r8-subd-pipe-clamp, built by the studio\'s agent cage tools): what every SD2 build promises; one solid of genus 2; its volume the independent limit\'s; the tessellation\'s folds no worse than recorded', async () => {
+  const { readFileSync } = await import('node:fs');
+  const cage = JSON.parse(readFileSync(new URL('../conformance/r8/subd-pipe-clamp.json', import.meta.url), 'utf8')).input.partDocument.features[0].cage;
+  const { b, r } = promised(cage, 'clamp', 0.02);
+  assert.deepEqual([r.steps, r.irregularVertices, r.capCount], [1, 20, 88]);
+  assert.deepEqual(checkBrep(b).topology.map(t => [t.shells, t.genus]), [[1, 2]]);
+  // (Refined 3 and 4 times here, for time: the extrapolation is 6e-8 from the 4-and-5 one the case records.)
+  const v = vol(b), want = extrapolated(cage, 3);
+  assert.ok(Math.abs(v / want - 1) < 1e-6, `${v} vs the limit ${want}`);
+  // D79's to-do, open (A5): sliver triangles along the rims' tight holding loops fold up to 88.6° inside exact patches
+  // (the caps' normals turn 3.3° at most, above). Held where it is: no worse.
+  assert.ok(worstFold(tessellateBrep(b, { segmentsPerQuarter: 8 })) < 89, 'a fold worse than recorded');
 });

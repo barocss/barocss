@@ -245,6 +245,23 @@ test('SubD box (SD2, D78): a box cage, its eight corners extraordinary — one b
   assert.deepEqual([node.cage.faces.length, node.cage.positions.length / 3], [24, 26]);
 });
 
+test('SubD tube (D84): a thick-walled tube open at both ends from a regular cage — exact B-spline faces only, a solid ring of genus 1 between the asked radii and length, its first column centred on +X; refused inside out', async () => {
+  const { checkBrep, subdBrep } = await import('@barocss/cad');
+  const tube = make('subd-tube', { r: 20, ri: 17, h: 40, nu: 24, nh: 7, x: 0, y: 0, z: 0 }), full = Math.PI * (20 * 20 - 17 * 17) * 40;
+  // (Its rims round without holding loops: some of the wall's volume lost there.)
+  assert.ok(tube.volumeMM3! < full && tube.volumeMM3! > 0.85 * full, `${tube.volumeMM3} vs ${full}`);
+  const b = tube.mesh.bounds;
+  assert.ok(b.max[0] <= 20 + 1e-6 && b.max[0] > 19.5 && b.min[2] >= -1e-9 && b.max[2] <= 40 + 1e-9, JSON.stringify(b));
+  assert.ok(tube.mesh.faces.every(f => /^n0\.patch\d+$/.test(f.name)), 'regular everywhere: no caps');
+  const cmd = commands.find(c => c.id === 'subd-tube')!, node = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0 }).nodes[0] as Extract<ModelNode, { kind: 'subd' }>;
+  assert.deepEqual([node.cage.faces.length, node.cage.positions.length / 3], [24 * 16, 24 * 16]);
+  // Column 0 (faces 0–15) is centred on +X: its outer faces' normals point along X.
+  const P = node.cage.positions, f0 = node.cage.faces[3], ys = f0.map(v => P[3 * v + 1]);
+  assert.ok(Math.abs(ys[0] + ys[1]) < 1e-9 && f0.every(v => P[3 * v] > 19), JSON.stringify(f0.map(v => [P[3 * v], P[3 * v + 1]])));
+  assert.deepEqual(checkBrep(subdBrep(node.cage)).topology.map(t => [t.shells, t.genus]), [[1, 1]]);
+  assert.throws(() => cmd.build!(ctx, { ...cmd.defaults!(ctx), r: 10, ri: 12 }), /smaller/);
+});
+
 test('SubD caps shown (D79): the box\'s notes give the caps and their deviation from the limit as a share of its size; a half star round a boundary vertex warns past 0.2%; the subd_deviation query reads the same figure, unknown for a cage regular everywhere', async () => {
   const { runCheck } = await import('../src/chat/spec');
   const { withNode } = await import('../src/engine/doc');

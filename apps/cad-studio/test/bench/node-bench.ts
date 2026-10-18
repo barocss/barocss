@@ -130,6 +130,11 @@ const scenarios: Scenario[] = [
     subdBrep(c); let k = 0;
     return () => { const p = [...c.positions]; p[3 * top + 2] += 0.5 * ++k; return subdBrep({ ...c, positions: p }); };
   } },
+  // (D84: the owner's pipe clamp, 718 cage faces, 20 irregular vertices — its cage the conformance case's; cold, each run shifted.)
+  { name: 'subd: the pipe clamp (cold)', budgetMS: 600, runs: 2, setup() {
+    const c = JSON.parse(readFileSync(join(root, '../../packages/barocss-cad/conformance/r8/subd-pipe-clamp.json'), 'utf8')).input.partDocument.features[0].cage as { positions: number[]; faces: number[][] };
+    let k = 0; return () => subdBrep({ ...c, positions: c.positions.map((x, i) => i % 3 ? x : x + 1e-3 * ++k) });
+  } },
   { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   // (PERF3 A5: the D79 split rounds tessellate again only the faces next to a split edge.)
   { name: 'tessellate: SubD body of a ~2k-face cage', budgetMS: 2000, runs: 2, setup() { const b = subdBrep(boxCage(30, 20, 16, 18, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 
 // Every conformance case (conformance/<step>/*.json) against this kernel: see conformance/README.md.
@@ -35,6 +35,16 @@ for (const file of cases) {
       if (want.areaMM2) assert.ok(Math.abs(o.surfaceArea() - want.areaMM2.value) <= want.areaMM2.relTol * want.areaMM2.value, `output ${k} area ${o.surfaceArea()} vs ${want.areaMM2.value}`);
       if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
+    if (c.expect.subd) {
+      // A SubD feature's promises (D78/D79), measured on its cage: G1 and closed seams, the caps near the limit, no
+      // degenerate point or fold in a cap.
+      const want = c.expect.subd, f = c.input.partDocument.features.find(x => x.id === want.feature), r = subdReport(f.cage, { id: f.id });
+      assert.ok(r.g1.maxAngleDeg <= want.g1MaxAngleDeg, `subd G1: normals ${r.g1.maxAngleDeg}° apart`);
+      assert.ok(r.g1.maxGapMM <= want.maxGapMM, `subd seams ${r.g1.maxGapMM} mm apart`);
+      assert.ok(r.deviation.maxMM <= want.capDeviationMaxMM, `subd caps ${r.deviation.maxMM} mm from the limit`);
+      assert.ok(r.caps.minJacobianRatio >= want.minJacobianRatio, `subd |Su × Sv| down to ${r.caps.minJacobianRatio} of its median`);
+      assert.ok(r.caps.maxNormalTurnDeg <= want.maxNormalTurnDeg, `subd cap normals turn ${r.caps.maxNormalTurnDeg}°`);
+    }
     if (c.expect.stepRoundTrip) {
       const back = importStep(exportStep(outputs.map(o => o.brep), { name: c.id })), r = checkBrep(back, { strict: true }), tol = c.expect.stepRoundTrip.relTol;
       assert.equal(r.valid, true, `round trip: ${r.issues[0]}`);
