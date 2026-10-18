@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, checkSpurGearPair, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.1–2 (issue #2167, D53): the involute spur gear's first stage — 20°, no profile shift, external, straight teeth.
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
@@ -79,4 +79,26 @@ test('STEP out and back: the same volume, the faces\' names', () => {
   const back = importStep(exportStep([brep], { name: 'gear' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
   assert.ok(back.faces.some(f => f.name === 'g.flankL#1'));
+});
+
+test('pair checks (R6a.4): at nominal centre distance the teeth just touch over the whole period; with backlash the sweep\'s least clearance is half the normal backlash j·cos αw / 2 (an independent formula); off the nominal centre distance the working pressure angle; interference found and measured', () => {
+  const g1 = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, g2 = { moduleMM: 2, teeth: 40, faceWidthMM: 10 }, d = 20 * Math.PI / 180;
+  const nominal = checkSpurGearPair(g1, g2);
+  close(nominal.centerDistanceMM, 60, 1e-12, 'a'); close(nominal.workingPressureAngleDeg, 20, 1e-12, 'αw'); close(nominal.backlashMM, 0, 1e-12, 'j');
+  assert.deepEqual(nominal.tipClearancesMM.map(x => +x.toFixed(12)), [0.5, 0.5]);
+  close(nominal.idealContactRatio, 1.6351859636, 1e-9, 'εα'); close(nominal.usableContactRatio, nominal.idealContactRatio, 1e-12, 'usable');
+  assert.ok(!nominal.sweep.interference && nominal.sweep.converged && Math.abs(nominal.sweep.minimumClearanceMM) < 1e-5, JSON.stringify(nominal.sweep));
+  // Backlash 0.05 + 0.05 at the reference circle: each side clear by 0.1 cos 20° / 2.
+  const loose = checkSpurGearPair({ ...g1, toothThicknessReductionMM: 0.05 }, { ...g2, toothThicknessReductionMM: 0.05 });
+  close(loose.backlashMM, 0.1, 1e-12, 'j'); close(loose.sweep.minimumClearanceMM, 0.1 * Math.cos(d) / 2, 1e-5, 'clearance');
+  // 0.5 mm farther apart: αw = acos(60 cos 20° / 60.5); the backlash and its clearance follow.
+  const far = checkSpurGearPair(g1, g2, { centerDistanceMM: 60.5 }), aw = Math.acos(60 * Math.cos(d) / 60.5);
+  close(far.workingPressureAngleDeg, aw * 180 / Math.PI, 1e-12, 'αw'); close(far.sweep.minimumClearanceMM, far.backlashMM * Math.cos(aw) / 2, 1e-5, 'far clearance');
+  assert.ok(far.usableContactRatio < nominal.usableContactRatio);
+  // 0.2 mm nearer: the backlash negative, the teeth crossing by half its normal share; a phase error likewise found.
+  const near = checkSpurGearPair(g1, g2, { centerDistanceMM: 59.8 }), awn = Math.acos(60 * Math.cos(d) / 59.8);
+  assert.ok(near.backlashMM < 0 && near.sweep.interference && near.diagnostics.some(x => x.code === 'SELF_INTERSECTION'));
+  close(near.sweep.minimumClearanceMM, near.backlashMM * Math.cos(awn) / 2, 1e-4, 'penetration');
+  assert.ok(checkSpurGearPair({ ...g1, toothThicknessReductionMM: 0.05 }, { ...g2, toothThicknessReductionMM: 0.05 }, { relativePhaseDeg: 1 }).sweep.interference);
+  assert.throws(() => checkSpurGearPair(g1, { ...g2, moduleMM: 3 }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
 });

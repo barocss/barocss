@@ -345,10 +345,10 @@ Owner's words: "기어 넣는건 니가 정해서 전달해줘" (the peer chose 
 
 **Order, all serial.** The per-process DFM tracks replace R13.
 
-R6 (F2) → **R6a** gears → **R6b** enclosure elements → **AM1–AM5** → R7 SD2 → R8 SD3 → R9 decimation → R10a →
-R10 fillet → R11 shell → R12 sheet metal → **FR1–FR4** → **R12b** gears+ → **R12c** machine elements →
+R6 (F2) → **R6a** gears → **LIB1–LIB4** library system → **R6b** enclosure elements → **AM1–AM5** → R7 SD2 → R8
+SD3 → R9 decimation → R10a → R10 fillet → R11 shell → **R11b** DXF writer → R12 sheet metal → **FR1–FR4** → **R12b** gears+ → **R12c** machine elements →
 **RM1–RM6 + RD1–RD3** → **IM1–IM6 + CNC1–CNC6** → R14 drawings (feeds CNC5 PMI) → A5–A8 → **RD4, RM7–RM8,
-AM6–AM7, IM7–IM8, CNC7–CNC8, FR5–FR6, RD5–RD10** → RB5–RB9.
+AM6–AM7, IM7–IM8, CNC7–CNC8, FR5–FR6, RD5–RD10, DWG/SAT import** → RB5–RB9.
 
 **Common rules.**
 - Every element follows the thread pattern:
@@ -518,6 +518,44 @@ gear crank.
 5. O-ring grooves by compression ratio.
 6. Pulleys and timing belts, sprockets and chain, couplings, cams and followers, linkages, hinges.
 7. Standard profiles (2020 extrusion, structural shapes) and connector envelopes (USB-C, etc.).
+
+**Library system (owner, 2026-10-18: "좋아 라이브러리 시스템을 전달하자").** LIB1–LIB4 go right after R6a, before R6b.
+- **Model.** The kernel holds what needs new geometry or maths: B-rep, Booleans, fillet, SubD, gears, threads,
+  springs. Catalogue parts that compose existing features come from loadable libraries.
+  - Reference structure only: the FreeCAD extrusion library (LGPL; not copied).
+  - Parts are built from tables of functional dimensions; every value has a source or is flagged as an estimate;
+    simplified internals say "not for structural calculation"; tests build every part and check fits.
+- LIB1: a declarative library format and loader. Pure data: a manifest, and parts made of a parameter table (source
+  and estimated), a recipe of existing part-model features with a small safe expression language, metadata and named
+  interfaces. Validated on load, with typed refusals.
+- LIB2: interfaces and placement. Named mating interfaces with roles; snapping one onto a face or interface makes real
+  mates; fit checks of the declared pairs are part of the library's own tests.
+- LIB3: insertion and document independence. An inserted part becomes ordinary features carrying `library: {id,
+  version, part, params}`; it opens without the library; with it, it regenerates; versions go through A1.3; estimates
+  are warned on the body.
+- LIB4: a browser panel, built-in, team and user libraries, and agent tools `list_library` / `insert_part`. Agents may
+  author entries as data, validated by LIB1 and LIB2.
+- **Acceptance:** a built-in "T-slot 20 series" library (20×20 to 20×40 with 1–4 open slots, M5 slot nut, angle
+  bracket, end cap) from data; fit tests pass; insert, save and reopen without the library give the same bodies; an
+  agent lists and inserts a part and snaps a nut into a slot.
+- **After it,** R6b, much of R12c and FR are built as library items where they can be (profiles, nuts, brackets, end
+  caps, inserts, standoffs, bearing, motor and connector envelopes, keys, retaining rings). Gears, threads, springs
+  and sheet-metal unfolding stay kernel work.
+
+**DXF and AutoCAD interoperability (owner, 2026-10-18: "acadrust 활용안 그대로 … DXF 쓰기는 R12 앞에, DWG/SAT 가져오기는
+후반에").** acadrust (Rust, MPL-2.0, v0.6, 2026) is not a product dependency: it would need WASM and is young. It is
+read for the formats only, never copied or ported, and may serve as a test-only oracle in tooling (else ezdxf, MIT,
+recorded).
+- **R11b, a DXF writer** (our own code; right before R12).
+  - ASCII DXF AC1015 by default, with an R12 option; $INSUNITS.
+  - Entities: LINE, ARC, CIRCLE, LWPOLYLINE with bulges, SPLINE, TEXT/MTEXT, DIMENSION with its block,
+    INSERT/BLOCK, HATCH, with layers and line types from the drawing.
+  - Sources: drawing sheets; later R12 flat patterns (bend lines on their own layer) and FR4 cut lists.
+  - Tests: an oracle round trip (entity types and counts, coordinates to 1e-9 mm, arcs and bulges, layers, units); a
+    free viewer opening it without warnings (L1 by hand); conformance for a plate drawing and a flat pattern.
+- **Late (after A5–A8, before RB5–RB9), DWG/SAT import.** DWG R2000–R2018+ 2D entities as a drawing or underlay; ACIS
+  SAT/SAB solids into our B-rep through the STEP import's tolerance and validation gate; optionally DWG writing of
+  drawings. Only after an S0 that weighs demand against effort, recorded either way.
 
 **AI scenario ladder.** A new rung, the "2-axis robot arm": joints, reducer, reach check, and a URDF that loads in
 MuJoCo with matching inertia.

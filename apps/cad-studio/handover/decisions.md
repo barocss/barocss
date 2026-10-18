@@ -2005,3 +2005,43 @@ Evidence:
 
 Next: R6a.4, the pair checks — compatibility, centre distance and phase, clearance and interference over the full
 rotation period with refinement until it converges, the contact ratio from the usable flank, and a gear mate.
+
+## D55 — R6a.4a: spur-gear pair checks — compatibility, working geometry, backlash, the usable contact ratio, and a sweep over the full tooth period (2026-10-18, issue #2167)
+
+Decision (`checkSpurGearPair` in `gear.ts`):
+- **Compatibility.** The same module and pressure angle; else MATE_INCOMPATIBLE. Base circles that overlap at the
+  given centre distance are MATE_INCOMPATIBLE too.
+- **Working geometry at the centre distance a′** (nominal a = m(z1 + z2)/2 by default):
+  - α_w = acos(a cos α / a′); working pitch diameters 2a′z/(z1 + z2);
+  - the circumferential backlash at the working pitch circle, p_w − s_w1 − s_w2, with s_w = 2r_w(s/d + inv α −
+    inv α_w): at the nominal distance Δs1 + Δs2, negative when the teeth jam;
+  - the tip clearances a′ − ra1 − rf2 and a′ − ra2 − rf1.
+- **Contact ratio, two of them.** The ideal formula, and the one the usable flanks allow. The second keeps the part
+  of the line of action where each gear's radius lies between the start of its involute flank, max(rb, rf), and its
+  tip; below the ideal, a warning says so.
+- **The sweep.**
+  - Both gears' exact outlines go in: the analytic involute at 150 points a flank, not the fitted flanks, plus the
+    arcs and radial joins.
+  - Gear 2 is set with a tooth space facing gear 1, then turned by `relativePhaseDeg`. Gear 1 turns through one tooth
+    period, since the configuration repeats every pitch, with gear 2 at −z1/z2.
+  - The least clearance comes from 64 samples and from 128, refined by golden section. It is converged when the two
+    agree; otherwise a warning says more samples are needed. A few frames are not taken as proof.
+  - Where the outlines cross: interference (SELF_INTERSECTION), its depth the deepest point of one gear inside the
+    other.
+- **Performance.** The sweep compares only segments near the other gear, with bounding-box pruning and no closures in
+  the loops: 0.5–0.7 s for a clean pair, 4–5 s when interfering.
+
+Evidence — kernel `test/gear.test.mjs` 6/6. Every value is checked against a formula independent of the sweep:
+- **Nominal 20/40:** a 60, α_w 20°, backlash 0, tip clearances 0.5 / 0.5, εα 1.6351859636 = the usable ratio; the
+  sweep touches (|clearance| < 1e-5) over the whole period and converges.
+- **Reductions 0.05 + 0.05:** backlash 0.1; the least clearance 0.0469846 = 0.1·cos 20°/2, half the normal backlash
+  per side, to 1e-5.
+- **a′ = 60.5:** α_w = acos(60 cos 20°/60.5) = 21.262849°; the clearance equals backlash·cos α_w/2 (0.1762392); the
+  usable contact ratio falls (1.394862).
+- **a′ = 59.8:** backlash −0.143255; interference found, its depth −0.0675316 = backlash·cos α_w/2 to 1e-4.
+- **A phase error of 1°** with the 0.1 backlash is found as interference.
+- Module 3 against 2: MATE_INCOMPATIBLE.
+
+Next: R6a.4b — the gear mate in assemblies (ratio −z1/z2, centre distance and phase from the pair), A3 query
+functions (`gear_center_distance`, `gear_backlash`, `gear_contact_ratio`, the interference sweep), and the studio's
+rotation preview.

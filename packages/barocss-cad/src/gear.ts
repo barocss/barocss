@@ -228,3 +228,163 @@ export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { cente
   const eps = (Math.sqrt(a1.ra ** 2 - a1.rb ** 2) + Math.sqrt(a2.ra ** 2 - a2.rb ** 2) - a * Math.sin(alpha)) / (Math.PI * m * Math.cos(alpha));
   return { centerDistanceMM: a, speedRatio: -g1.teeth / g2.teeth, idealContactRatio: eps, backlashMM: (g1.toothThicknessReductionMM ?? 0) + (g2.toothThicknessReductionMM ?? 0) };
 }
+
+/** The pair check's options: the centre distance (default nominal), gear 2 turned off its meshing phase, the sweep. */
+export interface SpurGearPairOptions { readonly centerDistanceMM?: number; readonly relativePhaseDeg?: number; readonly samples?: number }
+export interface SpurGearPairCheck {
+  readonly centerDistanceMM: number; readonly nominalCenterDistanceMM: number;
+  readonly workingPressureAngleDeg: number; readonly workingPitchDiametersMM: readonly [number, number];
+  /** Circumferential backlash at the working pitch circle, p_w − s_w1 − s_w2 (by the formula); negative: the teeth jam. */
+  readonly backlashMM: number;
+  /** a − ra1 − rf2 and a − ra2 − rf1. */
+  readonly tipClearancesMM: readonly [number, number];
+  /** The formula's (ideal tips, flanks down to the base circle), and the path of contact the usable flanks allow. */
+  readonly idealContactRatio: number; readonly usableContactRatio: number;
+  /** One tooth period swept (the configuration repeats), at `samples` then twice as many, the least clearance refined. */
+  readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number };
+  readonly diagnostics: readonly GearDiagnostic[];
+}
+
+/**
+ * The pair checks (R6a.4, issue #2167 §6): the same module and pressure angle (else MATE_INCOMPATIBLE); at the centre
+ * distance a′ the working pressure angle α_w = acos(a cos α / a′), the working pitch circles a′z/(z1 + z2), the
+ * backlash p_w − s_w1 − s_w2 and the tip clearances; the contact ratio from the usable flanks (r ≥ max(rb, rf), r ≤ ra
+ * on each gear along the line of action) beside the ideal formula; and the two gears' exact profiles (the analytic
+ * involute, densely) swept through one tooth period, the least clearance found and refined — interference where they
+ * cross. A few frames are not proof: twice the samples must find the same least clearance (converged).
+ */
+export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions = {}): SpurGearPairCheck {
+  const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
+  if (g1.moduleMM !== g2.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g1.moduleMM} and ${g2.moduleMM} mm do not mesh`);
+  if (a1.alpha !== a2.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  const m = g1.moduleMM, z1 = g1.teeth, z2 = g2.teeth, alpha = a1.alpha, a0 = m * (z1 + z2) / 2, a = options.centerDistanceMM ?? a0;
+  if (!(Number.isFinite(a) && a > 0)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
+  const cw = a0 * Math.cos(alpha) / a;
+  if (!(cw < 1)) throw new GearError('MATE_INCOMPATIBLE', `at ${a} mm the gears' base circles overlap: no working pressure angle`);
+  const alphaW = Math.acos(cw), rw1 = a * z1 / (z1 + z2), rw2 = a * z2 / (z1 + z2);
+  // Thickness at the working circle: s_w = 2 r_w (s/d + inv α − inv α_w); backlash p_w − s_w1 − s_w2.
+  const sw = (g: typeof a1, rw: number) => 2 * rw * (g.psi - inv(alphaW)), pw = 2 * Math.PI * rw1 / z1;
+  const backlash = pw - sw(a1, rw1) - sw(a2, rw2);
+  const tips: [number, number] = [a - a1.ra - a2.rf, a - a2.ra - a1.rf];
+  const ideal = (Math.sqrt(a1.ra ** 2 - a1.rb ** 2) + Math.sqrt(a2.ra ** 2 - a2.rb ** 2) - a * Math.sin(alphaW)) / (Math.PI * m * Math.cos(alpha));
+  // The line of action, by its distance u from T1 (gear 1's base-circle tangent point): r1² = rb1² + u², r2² = rb2² + (L − u)².
+  const L = a * Math.sin(alphaW), lo1 = Math.sqrt(Math.max(0, Math.max(a1.rb, a1.rf) ** 2 - a1.rb ** 2)), hi1 = Math.sqrt(a1.ra ** 2 - a1.rb ** 2);
+  const lo2 = Math.sqrt(Math.max(0, Math.max(a2.rb, a2.rf) ** 2 - a2.rb ** 2)), hi2 = Math.sqrt(a2.ra ** 2 - a2.rb ** 2);
+  const start = Math.max(lo1, L - hi2, 0), end = Math.min(hi1, L - lo2, L), usable = Math.max(0, end - start) / (Math.PI * m * Math.cos(alpha));
+  // The sweep: gear 1 about the origin, gear 2 about (a, 0); gear 2 turned so a tooth space faces gear 1 (its teeth at
+  // π − π/z2 + 2πk/z2), then by the phase given; as gear 1 turns by θ, gear 2 by −θ z1/z2.
+  const P1 = exactProfile(g1, a1), P2 = exactProfile(g2, a2), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, base2 = Math.PI - Math.PI / z2 + phase;
+  const at = (theta: number) => profileClearance(P1, theta, P2, base2 - theta * z1 / z2, a, a1.ra, a2.ra);
+  const period = 2 * Math.PI / z1, N = Math.max(16, options.samples ?? 64);
+  const scan = (n: number) => { let best = { d: Infinity, t: 0 }; for (let i = 0; i < n; i++) { const t = period * i / n, d = at(t); if (d < best.d) best = { d, t }; } return best; };
+  const coarse = scan(N), fine = scan(2 * N), seed = fine.d < coarse.d ? fine : coarse;
+  // Golden section about the least sample.
+  let lo = seed.t - period / N, hi = seed.t + period / N, x1 = hi - 0.618033988749895 * (hi - lo), x2 = lo + 0.618033988749895 * (hi - lo), f1 = at(x1), f2 = at(x2);
+  for (let it = 0; it < 60 && hi - lo > 1e-9; it++) { if (f1 < f2) { hi = x2; x2 = x1; f2 = f1; x1 = hi - 0.618033988749895 * (hi - lo); f1 = at(x1); } else { lo = x1; x1 = x2; f1 = f2; x2 = lo + 0.618033988749895 * (hi - lo); f2 = at(x2); } }
+  const refined = Math.min(seed.d, f1, f2), tAt = f1 < f2 ? x1 : x2;
+  const converged = Math.abs(coarse.d - fine.d) <= Math.max(1e-6 * m, 0.02 * Math.abs(refined));
+  const diagnostics: GearDiagnostic[] = [];
+  if (refined < 0) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross by ${(-refined).toFixed(6)} mm at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1` });
+  if (!converged) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the sweep did not settle (${N} samples: ${coarse.d.toExponential(3)}, ${2 * N}: ${fine.d.toExponential(3)} mm): more samples are needed` });
+  if (usable + 1e-12 < ideal) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the usable flanks give a contact ratio of ${usable.toFixed(4)}, below the ideal ${ideal.toFixed(4)}` });
+  return { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2], backlashMM: backlash, tipClearancesMM: tips,
+    idealContactRatio: ideal, usableContactRatio: usable, sweep: { samples: N, minimumClearanceMM: refined, atDegrees: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimumMM: coarse.d }, diagnostics };
+}
+
+/**
+ * A gear's exact outline for the sweep, as one tooth (from root to root, centred on angle 0): the analytic involute at
+ * 150 points a flank (chords within about 1e-5 m of it), the arcs at 24.
+ */
+function exactProfile(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimensions>): { tooth: Float64Array; z: number } {
+  const r0 = Math.max(g.rb, g.rf), t0 = Math.sqrt(Math.max(0, (r0 / g.rb) ** 2 - 1)), t1 = Math.sqrt((g.ra / g.rb) ** 2 - 1), F = 150, A = 24, z = spec.teeth, step = 2 * Math.PI / z;
+  const psiStart = g.psi - inv(Math.acos(g.rb / r0)), psiTip = g.psi - inv(Math.acos(g.rb / g.ra)), pts: number[] = [];
+  const polar = (r: number, ang: number) => { pts.push(r * Math.cos(ang), r * Math.sin(ang)); };
+  // Half the root arc before the tooth, the left flank, the tip, the right flank, half the root arc after.
+  for (let i = 0; i <= A / 2; i++) polar(g.rf, -step / 2 + (step / 2 - psiStart) * i / (A / 2));
+  if (g.rf < g.rb) polar(g.rb, -g.psi);
+  for (let i = 0; i <= F; i++) { const t = t0 + (t1 - t0) * i / F, r = g.rb * Math.sqrt(1 + t * t); polar(r, -g.psi + t - Math.atan(t)); }
+  for (let i = 1; i < A; i++) polar(g.ra, -psiTip + 2 * psiTip * i / A);
+  for (let i = F; i >= 0; i--) { const t = t0 + (t1 - t0) * i / F, r = g.rb * Math.sqrt(1 + t * t); polar(r, g.psi - t + Math.atan(t)); }
+  if (g.rf < g.rb) polar(g.rf, g.psi);
+  for (let i = 0; i <= A / 2; i++) polar(g.rf, psiStart + (step / 2 - psiStart) * i / (A / 2));
+  return { tooth: Float64Array.from(pts), z };
+}
+/**
+ * The least distance between the two gears' outlines near the mesh (the teeth within three pitches of the line of
+ * centres), negative when they cross (by the deepest point of one inside the other).
+ */
+function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P2: { tooth: Float64Array; z: number }, th2: number, a: number, ra1: number, ra2: number): number {
+  const A = teethNear(P1, th1, 0, 0, 0), B = teethNear(P2, th2, a, 0, Math.PI);
+  // Each side's segments near the other gear (within its tip circle and a little), once.
+  const sa = nearSegments(A, a, 0, ra2 + 1), sb = nearSegments(B, 0, 0, ra1 + 1);
+  let best = Infinity, crossed = false;
+  for (let i = 0; i < sa.length; i += 4) {
+    const ax = sa[i], ay = sa[i + 1], bx = sa[i + 2], by = sa[i + 3];
+    const x0 = Math.min(ax, bx), x1 = Math.max(ax, bx), y0 = Math.min(ay, by), y1 = Math.max(ay, by);
+    for (let j = 0; j < sb.length; j += 4) {
+      const cx = sb[j], cy = sb[j + 1], dx = sb[j + 2], dy = sb[j + 3];
+      // (Boxes farther apart than the best so far: no nearer pair here, and no crossing.)
+      const gx = Math.max(0, Math.min(cx, dx) - x1, x0 - Math.max(cx, dx)), gy = Math.max(0, Math.min(cy, dy) - y1, y0 - Math.max(cy, dy));
+      if (gx * gx + gy * gy > best * best) continue;
+      if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) { crossed = true; best = 0; continue; }
+      best = Math.min(best, segmentDistance(ax, ay, bx, by, cx, cy, dx, dy));
+    }
+  }
+  return crossed ? -depthInside(sa, sb, a, ra1, ra2) : best;
+}
+/** The segments (x0, y0, x1, y1 each) of the tooth runs with an end within `reach` of (cx, cy). */
+function nearSegments(runs: Float64Array[], cx: number, cy: number, reach: number): Float64Array {
+  const out: number[] = [], r2 = reach * reach;
+  for (const p of runs) for (let i = 0; i + 3 < p.length; i += 2) {
+    const ax = p[i] - cx, ay = p[i + 1] - cy, bx = p[i + 2] - cx, by = p[i + 3] - cy;
+    if (ax * ax + ay * ay > r2 && bx * bx + by * by > r2) continue;
+    out.push(p[i], p[i + 1], p[i + 2], p[i + 3]);
+  }
+  return Float64Array.from(out);
+}
+/** The teeth of a gear turned by θ about (cx, cy) whose middles lie within three pitches of the direction `toward`. */
+function teethNear(P: { tooth: Float64Array; z: number }, theta: number, cx: number, cy: number, toward: number): Float64Array[] {
+  const out: Float64Array[] = [], step = 2 * Math.PI / P.z;
+  for (let k = 0; k < P.z; k++) {
+    const ang = theta + step * k; let d = ang - toward; d -= 2 * Math.PI * Math.round(d / (2 * Math.PI));
+    if (Math.abs(d) > 3 * step) continue;
+    const c = Math.cos(ang), s = Math.sin(ang), t = P.tooth, q = new Float64Array(t.length);
+    for (let i = 0; i < t.length; i += 2) { q[i] = cx + c * t[i] - s * t[i + 1]; q[i + 1] = cy + s * t[i] + c * t[i + 1]; }
+    out.push(q);
+  }
+  return out;
+}
+const orient = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => (qx - px) * (ry - py) - (qy - py) * (rx - px);
+function segmentsCross(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): boolean {
+  const d1 = orient(cx, cy, dx, dy, ax, ay), d2 = orient(cx, cy, dx, dy, bx, by), d3 = orient(ax, ay, bx, by, cx, cy), d4 = orient(ax, ay, bx, by, dx, dy);
+  return d1 * d2 < 0 && d3 * d4 < 0;
+}
+function pointSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+  const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey, t = l2 > 0 ? Math.max(0, Math.min(1, ((px - ax) * ex + (py - ay) * ey) / l2)) : 0;
+  return Math.hypot(px - ax - t * ex, py - ay - t * ey);
+}
+function segmentDistance(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): number {
+  if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) return 0;
+  return Math.min(pointSegment(ax, ay, cx, cy, dx, dy), pointSegment(bx, by, cx, cy, dx, dy), pointSegment(cx, cy, ax, ay, bx, by), pointSegment(dx, dy, ax, ay, bx, by));
+}
+/**
+ * How deep the outlines' crossing goes: the largest distance of a point of one side's near segments inside the other
+ * gear — on the left of the other outline's nearest segment (each tooth run goes counter-clockwise round its gear,
+ * its material on the left).
+ */
+function depthInside(sa: Float64Array, sb: Float64Array, a: number, ra1: number, ra2: number): number {
+  let deep = 0;
+  for (const [X, Y, cx, ra] of [[sa, sb, a, ra2], [sb, sa, 0, ra1]] as const) for (let i = 0; i < X.length; i += 2) {
+    const px = X[i], py = X[i + 1];
+    // (Only a point within the other gear's tip circle can be inside it.)
+    if ((px - cx) * (px - cx) + py * py >= ra * ra) continue;
+    let d = Infinity, side = 0;
+    for (let j = 0; j < Y.length; j += 4) {
+      const gx = Math.max(0, Math.min(Y[j], Y[j + 2]) - px, px - Math.max(Y[j], Y[j + 2])), gy = Math.max(0, Math.min(Y[j + 1], Y[j + 3]) - py, py - Math.max(Y[j + 1], Y[j + 3]));
+      if (gx * gx + gy * gy >= d * d) continue;
+      const e = pointSegment(px, py, Y[j], Y[j + 1], Y[j + 2], Y[j + 3]); if (e < d) { d = e; side = orient(Y[j], Y[j + 1], Y[j + 2], Y[j + 3], px, py); }
+    }
+    if (side > 0 && d > deep) deep = d;
+  }
+  return deep;
+}

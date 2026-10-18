@@ -570,7 +570,7 @@ export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } 
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
 export { subdBrep, SubdError, type SubdCage, type SubdOptions } from './subd.js';
 export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './facet-boolean.js';
-export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, GearError, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './gear.js';
+export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, checkSpurGearPair, GearError, type SpurGearPairCheck, type SpurGearPairOptions, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './gear.js';
 export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh-repair.js';
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
