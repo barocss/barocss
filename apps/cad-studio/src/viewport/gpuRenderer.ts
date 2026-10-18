@@ -6,6 +6,7 @@
 // and ground come from the settings instead of the theme's modelling look.
 import { createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
+import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
@@ -29,7 +30,8 @@ const HOVER: Vec3 = [0.62, 0.55, 0.36];
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 /** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number }
+/** `runs` and `painted`: the surface's vertices by face, and what its colours show (a hover repaints only what changed). */
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
 function signature(r: BodyResult): string {
@@ -160,7 +162,7 @@ export class GpuRenderer implements ViewRenderer {
       geometries.push(g);
       edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, visible: this.settings ? this.settings.environment.edges : true });
     }
-    return { result, surface, edges, highlight: null, geometries, sig, state: '' };
+    return { result, surface, edges, highlight: null, geometries, sig, state: '', runs: faceRuns(m.faceOfVertex), painted: null };
   }
 
   /**
@@ -194,14 +196,14 @@ export class GpuRenderer implements ViewRenderer {
 
   /** Face colours: the theme's base, mixed with the accent for hovered (1) and selected (2) faces. */
   private paint(b: Body, faceState: Map<number, number>, own?: Vec3, faces?: Map<number, Vec3>): void {
-    const m = b.result.mesh, n = m.positions.length / 3, colors = new Float32Array(n * 3);
     // (Rendering: the appearance is the material colour, so faces are white unless picked — a face's
     // own colour tints it; modelling: the body's own colour when it has one, a face's own over it.)
     const base: Vec3 = this.settings ? [1, 1, 1] : own ?? this.theme.base;
     const shade = [base, mix(base, ACCENT, 0.2), mix(base, ACCENT, 0.42)], shades = new Map<number, Vec3[]>();
     for (const [f, c] of faces ?? []) shades.set(f, [c, mix(c, ACCENT, 0.2), mix(c, ACCENT, 0.42)]);
-    for (let v = 0; v < n; v++) { const f = m.faceOfVertex[v]; colors.set((shades.get(f) ?? shade)[faceState.get(f) ?? 0], v * 3); }
-    b.surface.geometry.setColors(colors);
+    // (The same colours as last time: only the faces whose hover or selection changed are written.)
+    const key = JSON.stringify([base, faces ? [...faces] : null]);
+    b.painted = paintFaces(b.surface.geometry, b.runs, b.painted, key, faceState, shade, shades);
   }
 
   setState(view: ViewState): void {

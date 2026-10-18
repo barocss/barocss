@@ -70,11 +70,27 @@ export function vertexColors(c: ArrayLike<number> | undefined, vertexCount: numb
   if (!c) return colors;
   const k = c.length === vertexCount * 4 ? 4 : c.length === vertexCount * 3 ? 3 : 0;
   if (!k) throw new RangeError('colors must hold three or four numbers per vertex');
+  // (A run of vertices of one colour, a face's, is converted once: the same bytes, without three powers a vertex.)
+  let r = NaN, g = NaN, b = NaN, R = 0, G = 0, B = 0;
   for (let v = 0; v < vertexCount; v++) {
-    for (let j = 0; j < 3; j++) colors[v * 4 + j] = Math.round(srgbToLinear(Math.min(1, Math.max(0, c[v * k + j]))) * 255);
+    const x = c[v * k], y = c[v * k + 1], z = c[v * k + 2];
+    if (x !== r || y !== g || z !== b) { r = x; g = y; b = z; R = linearByte(x); G = linearByte(y); B = linearByte(z); }
+    colors[v * 4] = R; colors[v * 4 + 1] = G; colors[v * 4 + 2] = B;
     if (k === 4) colors[v * 4 + 3] = Math.round(Math.min(1, Math.max(0, c[v * k + 3])) * 255);
   }
   return colors;
+}
+const linearByte = (x: number) => Math.round(srgbToLinear(Math.min(1, Math.max(0, x))) * 255);
+
+/**
+ * One colour (sRGB, three or four numbers; alpha 1 when three) on vertices `first` … `first + count − 1` of
+ * prepared colours (four bytes a vertex), as `vertexColors` writes it: a face's highlight changed in place.
+ */
+export function fillVertexColors(colors: Uint8Array, first: number, count: number, color: ArrayLike<number>): void {
+  if (color.length !== 3 && color.length !== 4) throw new RangeError('a colour is three or four numbers');
+  if (!(Number.isInteger(first) && Number.isInteger(count) && first >= 0 && count >= 0 && 4 * (first + count) <= colors.length)) throw new RangeError('the range is not within the vertices');
+  const R = linearByte(color[0]), G = linearByte(color[1]), B = linearByte(color[2]), A = color.length === 4 ? Math.round(Math.min(1, Math.max(0, color[3])) * 255) : 255;
+  for (let v = first, end = first + count; v < end; v++) { colors[v * 4] = R; colors[v * 4 + 1] = G; colors[v * 4 + 2] = B; colors[v * 4 + 3] = A; }
 }
 
 /** Area-weighted normals of the triangles around each vertex. */
@@ -110,18 +126,20 @@ function slab(box: ArrayLike<number>, at: number, ox: number, oy: number, oz: nu
   return t0;
 }
 
-/** A bounding volume hierarchy over a geometry's triangles: boxes (min, max per node), children or a run of triangles. */
+/** A bounding volume hierarchy over a geometry's triangles or segments: boxes (min, max per node), children or a run of elements. */
 interface Bvh { box: Float64Array; left: Int32Array; right: Int32Array; start: Int32Array; count: Int32Array; order: Uint32Array }
-const BVH_LEAF = 8, BVH_FROM = 1024;
+const BVH_LEAF = 8, BVH_FROM = 1024, SEGMENT_BVH_FROM = 256;
 const bvhs = new WeakMap<PreparedGeometry, Bvh>();
 function bvhOf(g: PreparedGeometry): Bvh {
   const have = bvhs.get(g); if (have) return have;
-  const P = g.positions, I = g.indices, n = g.elementCount / 3, order = new Uint32Array(n), c = new Float64Array(n * 3), tb = new Float64Array(n * 6);
+  // (Three vertices an element for triangles, two for segments.)
+  const k3 = g.topology === 'lines' ? 2 : 3;
+  const P = g.positions, I = g.indices, n = g.elementCount / k3, order = new Uint32Array(n), c = new Float64Array(n * 3), tb = new Float64Array(n * 6);
   for (let t = 0; t < n; t++) {
     order[t] = t;
     let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
-    for (let k = 0; k < 3; k++) {
-      const v = I ? I[3 * t + k] : 3 * t + k, x = P[3 * v], y = P[3 * v + 1], z = P[3 * v + 2];
+    for (let k = 0; k < k3; k++) {
+      const v = I ? I[k3 * t + k] : k3 * t + k, x = P[3 * v], y = P[3 * v + 1], z = P[3 * v + 2];
       if (x < x0) x0 = x; if (y < y0) y0 = y; if (z < z0) z0 = z; if (x > x1) x1 = x; if (y > y1) y1 = y; if (z > z1) z1 = z;
     }
     tb.set([x0, y0, z0, x1, y1, z1], 6 * t); c[3 * t] = (x0 + x1) / 2; c[3 * t + 1] = (y0 + y1) / 2; c[3 * t + 2] = (z0 + z1) / 2;
@@ -185,6 +203,72 @@ export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3)
     }
   }
   return bestTri < 0 ? null : { triangle: bestTri, t: bestT };
+}
+
+/** The segment of a line geometry drawn nearest a point of the canvas: its index, distance (CSS pixels) and parameter along it in 3D. */
+export interface SegmentHit { segment: number; distance: number; s: number }
+const clipA = new Float64Array(3), clipB = new Float64Array(3);
+const near = { segment: -1, distance: Infinity, s: 0 };
+
+/**
+ * The segment of a line geometry nearest (x, y) on a canvas of cw × ch CSS pixels, through `M` (view-projection
+ * times the mesh's transform), within `radius` and nearer than `earlier` (another mesh's best): ties go to the
+ * lowest segment, as a walk over every segment in order would give. Segments are clipped to the space in front
+ * of the eye. A large geometry is searched through a hierarchy of segment boxes, a node passed over when its
+ * corners all land in front of the eye and their screen rectangle is farther than the best so far.
+ */
+export function nearestSegment(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, radius: number, earlier = Infinity): SegmentHit | null {
+  if (g.topology !== 'lines') return null;
+  near.segment = -1; near.distance = Infinity; near.s = 0;
+  const n = g.elementCount / 2;
+  if (n < SEGMENT_BVH_FROM) for (let sgm = 0; sgm < n; sgm++) testSegment(g, M, sgm, x, y, cw, ch, radius, earlier);
+  else {
+    const h = bvhOf(g), stack = [0];
+    while (stack.length) {
+      const node = stack.pop()!, limit = Math.min(radius, earlier, near.distance);
+      // (A little slack: a segment's projection is inside its box's, up to rounding.)
+      if (rectDistance(h.box, 6 * node, M, x, y, cw, ch) > limit + 1e-6 * (1 + limit)) continue;
+      if (h.left[node] < 0) { for (let i = h.start[node], e = i + h.count[node]; i < e; i++) testSegment(g, M, h.order[i], x, y, cw, ch, radius, earlier); continue; }
+      stack.push(h.left[node], h.right[node]);
+    }
+  }
+  return near.segment < 0 ? null : { segment: near.segment, distance: near.distance, s: near.s };
+}
+/** Pixels from (x, y) to the screen rectangle of a box's eight corners, or 0 when a corner is not in front of the eye. */
+function rectDistance(box: Float64Array, o: number, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number): number {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let c = 0; c < 8; c++) {
+    const px = box[o + (c & 1 ? 3 : 0)], py = box[o + (c & 2 ? 4 : 1)], pz = box[o + (c & 4 ? 5 : 2)];
+    const w = M[3] * px + M[7] * py + M[11] * pz + M[15]; if (w < 1e-6) return 0;
+    const sx = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw, sy = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch;
+    if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+  }
+  const dx = x < x0 ? x0 - x : x > x1 ? x - x1 : 0, dy = y < y0 ? y0 - y : y > y1 ? y - y1 : 0;
+  return Math.hypot(dx, dy);
+}
+/** Clip coordinates (x, y, w) of vertex i through M. */
+function clipOf(out: Float64Array, M: ArrayLike<number>, P: Float32Array, i: number): void {
+  const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2];
+  out[0] = M[0] * px + M[4] * py + M[8] * pz + M[12]; out[1] = M[1] * px + M[5] * py + M[9] * pz + M[13]; out[2] = M[3] * px + M[7] * py + M[11] * pz + M[15];
+}
+/** One segment against the best so far (`near`): the same arithmetic, in the same order, as the viewer's walk had. */
+function testSegment(g: PreparedGeometry, M: ArrayLike<number>, sgm: number, x: number, y: number, cw: number, ch: number, radius: number, earlier: number): void {
+  const P = g.positions, I = g.indices, ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1, a = clipA, b = clipB, eps = 1e-6;
+  clipOf(a, M, P, ia); clipOf(b, M, P, ib);
+  let s0 = 0, s1 = 1;
+  if (a[2] < eps && b[2] < eps) return;
+  // Clip to the space in front of the eye, keeping the 3D parameters of the kept ends.
+  if (a[2] < eps) { const k = (eps - a[2]) / (b[2] - a[2]); for (let j = 0; j < 3; j++) a[j] = a[j] + (b[j] - a[j]) * k; s0 = k; }
+  if (b[2] < eps) { const k = (eps - b[2]) / (a[2] - b[2]); for (let j = 0; j < 3; j++) b[j] = b[j] + (a[j] - b[j]) * k; s1 = 1 - k; }
+  const ax = (a[0] / a[2] * 0.5 + 0.5) * cw, ay = (0.5 - a[1] / a[2] * 0.5) * ch;
+  const dx = (b[0] / b[2] * 0.5 + 0.5) * cw - ax, dy = (0.5 - b[1] / b[2] * 0.5) * ch - ay, l2 = dx * dx + dy * dy;
+  const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+  const dist = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+  if (dist > radius || dist >= earlier) return;
+  if (near.segment >= 0 && (dist > near.distance || (dist === near.distance && sgm > near.segment))) return;
+  // Screen parameter → segment parameter (perspective-correct).
+  const u = (t * a[2]) / ((1 - t) * b[2] + t * a[2] || 1);
+  near.segment = sgm; near.distance = dist; near.s = s0 + (s1 - s0) * u;
 }
 
 /** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */

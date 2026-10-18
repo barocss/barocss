@@ -3564,3 +3564,48 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 - **C16** smaller items: STEP parser sticky regexes; gear sweep cache key; SubD topology recheck, `opposite()`, JSON reuse key, fit allocations and closures; library memo; render_views; per-frame allocations; D25/D22 costs; the Delaunay flips' full passes (A5).
 - **C17** nested functions (about 20 sites).
 - **D20** RB bookkeeping: trend.jsonl rows for D50/D78/D79 and later; refresh todo.json (two graze rows now pass); keep the open items visible (1 nm graze wrong body, helical × helical refused, F2 at 1M positions).
+
+### B7 — a hover rewrote the whole colour buffer
+- **Confirmed:** every change of hover or selection repainted the body from scratch. `paint` made a new `Float32Array` of every vertex's colour with two `Map` lookups a vertex. `setColors` then converted every vertex to linear bytes (three `Math.pow` a vertex) and sent the whole buffer to the GPU. On the 120-hole plate (15 864 vertices, 126 faces) that is **0.44 ms and 62 KiB a hover**; on a 100k-triangle facet body, 1.37 ms and 196 KiB.
+- **Fix:**
+  - `@barocss/gpu`: `Geometry.fillColors(first, count, color)` sets one colour on a vertex range and sends only that range (`writeBuffer` with an offset). It is built on `fillVertexColors`, which writes the bytes `vertexColors` would. `vertexColors` now converts a run of one colour once instead of every vertex (the same bytes; tested against the formula).
+  - Studio, `viewport/facePaint.ts`:
+    - `faceRuns` keeps each face's vertices as runs, worked out once per body.
+    - `paintFaces` takes a key of the colours (base, theme, body and face colours). With the same key as last time, it writes only the faces whose state changed, one `fillColors` per run. A new key, or changes covering more than half the vertices, gives one whole write.
+  - `GpuRenderer.paint` goes through it.
+- **After:**
+
+  | Body | Before, per hover | After, per hover |
+  |---|---|---|
+  | 120-hole plate | 0.44 ms, 62 KiB sent | 0.009 ms, 0.8 KiB |
+  | 100k-triangle facet body (2 faces) | 1.37 ms, 196 KiB | 0.98 ms (one face is most of the body: a whole write, cheaper by the conversion) |
+
+  - New bench `viewport: 10 hovers repainted, 120-hole plate`: 0.05 ms, budget 1 ms (the whole repaint took 4.4 ms for the ten).
+- **Tests:**
+  - `test/facePaint.test.ts`: runs; after each of eight hover and selection steps the bytes equal a whole repaint's, and the vertices written are exactly the changed faces'; a new key paints the whole body once, and so does selecting most of it.
+  - gpu `viewer-core`: a filled range gives the same bytes as a whole conversion.
+  - Studio 356/356; GPU 70/70.
+- **Browser** (WebGPU, `bench:browser` and a pixel check): hover, a second face, moving off to the background, select and Escape show the same pixels as at HEAD. Submits are unchanged (hover 17, 1 per frame).
+- **Defect found while checking it, fixed (same commit series):** moving the pointer from a face straight onto a panel or the toolbar left the face lit. The canvas had no pointer-leave handler, so the last hover stayed until the pointer came back. Now `onPointerLeave` clears the hover, except during a drag. The pixel check passes: a face, then the toolbar, gives the base colour. HEAD showed the same stale hover.
+- **Lint:** the changed files are clean. `tests/viewer-core.test.mjs:128` has an older `no-regex-spaces` error from a test this change does not touch.
+
+### B8 — picking paths without the BVH
+- **Confirmed:**
+  - Face picks (`raycast`, `pick`) already go through the triangle BVH, from 1 024 triangles up.
+  - The edge pick that runs with them on every hover (`pickLine`) walked every segment of every edge mesh. Each segment allocated: two clip arrays, `map` copies when clipped, two closures. On the 120-hole plate (7 692 segments) that is **0.267 ms a pick**.
+  - The vertex snap (`vertexAt`) projects the hovered body's merged edge ends only (hundreds). It is left as it is.
+- **Fix (`@barocss/gpu`, `viewer/geometry.ts`):**
+  - `nearestSegment(g, M, x, y, cw, ch, radius, earlier)`:
+    - The same arithmetic, in the same order, as the walk, with no allocation (module-level scratch).
+    - From 256 segments, a hierarchy of segment boxes, built once per geometry by the triangle BVH's builder (now for either topology).
+    - A node is passed over when its eight corners are all in front of the eye and their screen rectangle is farther than the best so far, with a hair of slack for rounding.
+    - Ties go to the lowest segment, and a mesh only as near as an earlier one loses, as in the walk.
+  - `pickLine` keeps its whole-mesh rectangle test and calls it.
+- **Same answers:**
+  - gpu test: segment, distance and parameter equal to the walk (copied into the test as the reference). It covers 3 eyes × 2 geometries × 400 points, over 1 000 hits. Every fourth point is on a grid vertex where segments tie exactly, and some segments cross the eye's plane. A mesh as near as an earlier one is never chosen.
+  - On the plate, 300 of 300 points are the same.
+- **After:**
+  - The plate's edge pick: 0.267 → 0.014 ms (×19).
+  - Bench `viewport: 100 edge picks, 120-hole plate`: 0.3 ms, budget 1 ms (the walk took about 27 ms).
+  - GPU 72/72.
+- **Left for C17:** `rayTriangles` still makes its `test` closure per call.

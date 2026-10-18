@@ -6,7 +6,7 @@ import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveRe
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, transformBox } from '../dist/viewer/bounds.js';
-import { prepareGeometry, rayTriangles, segmentInstances } from '../dist/viewer/geometry.js';
+import { fillVertexColors, nearestSegment, prepareGeometry, rayTriangles, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 
@@ -184,4 +184,62 @@ test('ray picking on a large mesh (through its hierarchy) finds what a test of e
   // Along an axis (zero direction components), and missing the sheet's box altogether.
   assert.equal(rayTriangles(g, [10.3, 20.6, 50], [0, 0, -1])?.triangle, brute([10.3, 20.6, 50], [0, 0, -1])?.triangle);
   assert.equal(rayTriangles(g, [100, 100, 50], [0, 0, -1]), null);
+});
+
+test('vertex colours: a range filled in place is the bytes a whole conversion gives; a run of one colour converted once is the same as per vertex', () => {
+  const n = 12, c = [];
+  for (let v = 0; v < n; v++) c.push(...(v >= 4 && v < 9 ? [0.9, 0.3, 0.1] : [0.5, 0.5, 0.5]));
+  const whole = vertexColors(c, n), part = vertexColors(Array(3 * n).fill(0.5), n);
+  fillVertexColors(part, 4, 5, [0.9, 0.3, 0.1]);
+  assert.deepEqual(part, whole);
+  const lin = x => Math.round((x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)) * 255);
+  assert.deepEqual([...whole.slice(16, 20)], [lin(0.9), lin(0.3), lin(0.1), 255]);
+  fillVertexColors(part, 0, 1, [1, 1, 1, 0.5]); assert.equal(part[3], 128);
+  assert.throws(() => fillVertexColors(part, 10, 3, [1, 1, 1]), /not within/);
+  assert.throws(() => fillVertexColors(part, 0, 1, [1]), /three or four/);
+});
+
+test('nearest segment: the same segment, distance and parameter as the walk over every segment, on a small and a large geometry, with segments behind the eye; ties to the lowest', () => {
+  // The walk the viewer's pickLine had (before the segment hierarchy), as the reference.
+  const walk = (g, M, x, y, cw, ch, radius) => {
+    const P = g.positions, I = g.indices, clip = i => { const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2]; return [M[0] * px + M[4] * py + M[8] * pz + M[12], M[1] * px + M[5] * py + M[9] * pz + M[13], M[3] * px + M[7] * py + M[11] * pz + M[15]]; };
+    let best = null;
+    for (let sgm = 0; sgm < g.elementCount / 2; sgm++) {
+      const ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1;
+      let a = clip(ia), b = clip(ib), s0 = 0, s1 = 1; const eps = 1e-6;
+      if (a[2] < eps && b[2] < eps) continue;
+      if (a[2] < eps) { const k = (eps - a[2]) / (b[2] - a[2]); a = a.map((v, j) => v + (b[j] - v) * k); s0 = k; }
+      if (b[2] < eps) { const k = (eps - b[2]) / (a[2] - b[2]); b = b.map((v, j) => v + (a[j] - v) * k); s1 = 1 - k; }
+      const sx = c => (c[0] / c[2] * 0.5 + 0.5) * cw, sy = c => (0.5 - c[1] / c[2] * 0.5) * ch;
+      const ax = sx(a), ay = sy(a), dx = sx(b) - ax, dy = sy(b) - ay, l2 = dx * dx + dy * dy;
+      const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+      const dist = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+      if (dist > radius || (best && dist >= best.distance)) continue;
+      const u = (t * a[2]) / ((1 - t) * b[2] + t * a[2] || 1);
+      best = { segment: sgm, distance: dist, s: s0 + (s1 - s0) * u };
+    }
+    return best;
+  };
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // A grid of segments sharing end points (ties at every vertex), and loose random ones, some through the eye's plane.
+  const pos = [], idx = [];
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) pos.push(i * 2 - 24, j * 2 - 24, Math.sin(i + j));
+  for (let i = 0; i <= 24; i++) for (let j = 0; j < 24; j++) { idx.push(i * 25 + j, i * 25 + j + 1); idx.push(j * 25 + i, (j + 1) * 25 + i); }
+  for (let k = 0; k < 200; k++) { const b = pos.length / 3; pos.push(rnd() * 60 - 30, rnd() * 60 - 30, rnd() * 140 - 70, rnd() * 60 - 30, rnd() * 60 - 30, rnd() * 140 - 70); idx.push(b, b + 1); }
+  const big = prepareGeometry({ positions: pos, indices: idx, topology: 'lines' }), small = prepareGeometry({ positions: pos, indices: idx.slice(0, 2 * 40), topology: 'lines' });
+  assert.ok(big.elementCount / 2 >= 256);
+  const cw = 800, ch = 600; let hits = 0, behind = 0;
+  for (const eye of [[0, -10, 60], [5, 3, 30], [0, 0, 2]]) {
+    const M = multiply(perspectiveReversed(Math.PI / 3, cw / ch, 0.1), lookAt(eye, [0, 0, 0], [0, 1, 0]));
+    for (const g of [big, small]) for (let q = 0; q < 400; q++) {
+      // (Every fourth point on a projected grid vertex: exact ties between the segments that meet there.)
+      let x = rnd() * cw, y = rnd() * ch;
+      if (q % 4 === 0) { const v = Math.floor(rnd() * 625), p = transformPoint(M, [pos[3 * v], pos[3 * v + 1], pos[3 * v + 2]]); x = (p[0] * 0.5 + 0.5) * cw; y = (0.5 - p[1] * 0.5) * ch; }
+      const want = walk(g, M, x, y, cw, ch, 12), got = nearestSegment(g, M, x, y, cw, ch, 12);
+      assert.deepEqual(got, want, `eye ${eye} at ${x}, ${y}`);
+      if (want) { hits++; if (want.s > 0 && want.s < 1 && eye[2] === 2) behind++; }
+      if (want) assert.equal(nearestSegment(g, M, x, y, cw, ch, 12, want.distance), null); // another mesh as near wins
+    }
+  }
+  assert.ok(hits > 1000 && behind > 50, `${hits} hits, ${behind} with the eye among the segments`);
 });

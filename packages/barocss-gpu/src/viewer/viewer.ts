@@ -5,7 +5,7 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
@@ -115,6 +115,16 @@ export class Geometry {
     this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
     if (this.gpu?.colors) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
     else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
+    this.owner.requestRender();
+  }
+  /**
+   * One colour (sRGB, three or four numbers) on vertices `first` … `first + count − 1` of a triangle geometry, and only
+   * that range sent to the GPU: a face's highlight changed without re-sending the rest of the colours.
+   */
+  fillColors(first: number, count: number, color: ArrayLike<number>): void {
+    if (this.data.topology !== 'triangles') throw new RangeError('Only triangle geometry has a colour range');
+    fillVertexColors(this.data.colors, first, count, color);
+    if (this.gpu?.colors && count) this.gpu.device.queue.writeBuffer(this.gpu.colors, 4 * first, this.data.colors, 4 * first, 4 * count);
     this.owner.requestRender();
   }
   /** Replace the texture coordinates (two per vertex) of a triangle geometry: a colour map's placement. */
@@ -1195,10 +1205,6 @@ export class Viewer {
     for (const m of this.meshes) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
-      const clip = (i: number) => {
-        const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2];
-        return [M[0] * px + M[4] * py + M[8] * pz + M[12], M[1] * px + M[5] * py + M[9] * pz + M[13], M[3] * px + M[7] * py + M[11] * pz + M[15]];
-      };
       // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
       const bx = g.bounds;
       if (bx) {
@@ -1211,24 +1217,12 @@ export class Viewer {
         }
         if (front && (x < x0 - radius || x > x1 + radius || y < y0 - radius || y > y1 + radius)) continue;
       }
-      for (let sgm = 0; sgm < g.elementCount / 2; sgm++) {
-        const ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1;
-        let a = clip(ia), b = clip(ib), s0 = 0, s1 = 1;
-        const eps = 1e-6;
-        if (a[2] < eps && b[2] < eps) continue;
-        // Clip to the space in front of the eye, keeping the 3D parameters of the kept ends.
-        if (a[2] < eps) { const k = (eps - a[2]) / (b[2] - a[2]); a = a.map((v, j) => v + (b[j] - v) * k); s0 = k; }
-        if (b[2] < eps) { const k = (eps - b[2]) / (a[2] - b[2]); b = b.map((v, j) => v + (a[j] - v) * k); s1 = 1 - k; }
-        const sx = (c: number[]) => (c[0] / c[2] * 0.5 + 0.5) * cw, sy = (c: number[]) => (0.5 - c[1] / c[2] * 0.5) * ch;
-        const ax = sx(a), ay = sy(a), dx = sx(b) - ax, dy = sy(b) - ay, l2 = dx * dx + dy * dy;
-        const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
-        const dist = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
-        if (dist > radius || (best && dist >= best.distance)) continue;
-        // Screen parameter → segment parameter (perspective-correct), then the world point.
-        const u = (t * a[2]) / ((1 - t) * b[2] + t * a[2] || 1), s = s0 + (s1 - s0) * u;
-        const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
-        best = { mesh: m, segment: sgm, edge: g.edges ? g.edges[sgm] : null, point: add(A, scale(sub(B, A), s)), distance: dist };
-      }
+      // (Every segment, or for a large geometry those its segment boxes do not rule out: the same answer, ties to the lowest.)
+      const hit = nearestSegment(g, M, x, y, cw, ch, radius, best ? best.distance : Infinity);
+      if (!hit) continue;
+      const ia = I ? I[2 * hit.segment] : 2 * hit.segment, ib = I ? I[2 * hit.segment + 1] : 2 * hit.segment + 1;
+      const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
+      best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point: add(A, scale(sub(B, A), hit.s)), distance: hit.distance };
     }
     return best;
   }

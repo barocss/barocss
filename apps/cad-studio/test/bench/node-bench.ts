@@ -19,6 +19,9 @@ import { write3mf } from '../../src/print/threemf';
 import { toPartDocument } from '../../src/engine/part';
 import { commands, type Ctx } from '../../src/app/commands';
 import { checkFits, libraryById } from '../../src/library/libraries';
+import { faceRuns, paintFaces, type ColorTarget, type Painted } from '../../src/viewport/facePaint';
+import { fillVertexColors, nearestSegment, prepareGeometry, vertexColors } from '../../../../packages/barocss-gpu/src/viewer/geometry';
+import { lookAt, multiply, perspectiveReversed } from '../../../../packages/barocss-gpu/src/viewer/math';
 
 interface Scenario { name: string; budgetMS: number; runs: number; setup(): () => unknown }
 const D = (features: unknown[]): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features } as unknown as CadPartDocument);
@@ -166,6 +169,30 @@ const scenarios: Scenario[] = [
     const m = torusMesh(20, 6, 100, 100), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
     const tool = evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [20, 0.37], radius: 2 }, { id: 'c', kind: 'extrude', sketch: 's', height: 30, from: -15 }])).outputs[0].brep;
     let k = 0; return () => facetBoolean(breps[k++ % breps.length], tool, 'difference', { id: 'r' });
+  } },
+  // (PERF3 B7: a hover over the 120-hole plate's faces, as the GPU renderer paints it — only the faces whose state
+  // changed, through the viewer geometry's own colour conversion; the upload is not timed here. The whole repaint
+  // it replaces took 0.44 ms a hover, 4.4 ms for these ten.)
+  { name: 'viewport: 10 hovers repainted, 120-hole plate', budgetMS: 1, runs: 20, setup() {
+    let plate = rectanglePart(240, 120, 10);
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) plate = withNode(plate, { kind: 'hole', parent: { node: plate.nodes.length - 1, side: 'solid' }, center: [10 + 20 * i, 6 + 12 * j], radius: 2 });
+    const r = evaluateDoc(plate, 1); if (!r.ok) throw new Error('eval');
+    const m = r.bodies[0].mesh, nv = m.positions.length / 3, runs = faceRuns(m.faceOfVertex), faces = [...runs.byFace.keys()], shade: [number, number, number][] = [[0.74, 0.75, 0.78], [0.77, 0.75, 0.69], [0.81, 0.75, 0.6]];
+    let bytes = vertexColors(undefined, nv);
+    const target: ColorTarget = { setColors(c) { bytes = vertexColors(c, nv); }, fillColors(first, count, c) { fillVertexColors(bytes, first, count, c); } };
+    let p: Painted = paintFaces(target, runs, null, 'k', new Map(), shade, new Map()), k = 0;
+    return () => { for (let i = 0; i < 10; i++) p = paintFaces(target, runs, p, 'k', new Map([[faces[k++ % faces.length], 1]]), shade, new Map()); return p; };
+  } },
+  // (PERF3 B8: the edge pick of a hover, the viewer's pickLine, on the 120-hole plate's 7 692 edge segments seen from
+  // above at an angle: 100 points across the canvas. The walk over every segment it replaces took 27 ms for them.)
+  { name: 'viewport: 100 edge picks, 120-hole plate', budgetMS: 1, runs: 10, setup() {
+    let plate = rectanglePart(240, 120, 10);
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) plate = withNode(plate, { kind: 'hole', parent: { node: plate.nodes.length - 1, side: 'solid' }, center: [10 + 20 * i, 6 + 12 * j], radius: 2 });
+    const r = evaluateDoc(plate, 1); if (!r.ok) throw new Error('eval');
+    const g = prepareGeometry({ positions: r.bodies[0].mesh.edgeLines, topology: 'lines' }), cw = 1400, ch = 860;
+    const M = multiply(perspectiveReversed(Math.PI / 4, cw / ch, 0.1), lookAt([390, -150, 270], [120, 60, 5], [0, 0, 1]));
+    nearestSegment(g, M, 0, 0, cw, ch, 6);
+    return () => { let hits = 0; for (let k = 0; k < 100; k++) if (nearestSegment(g, M, 300 + 8 * k, 200 + 4.5 * k, cw, ch, 6)) hits++; return hits; };
   } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
