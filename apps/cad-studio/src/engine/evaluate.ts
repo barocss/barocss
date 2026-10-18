@@ -189,12 +189,13 @@ export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
 }
 
 /** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */
-export function stepFor(doc: StudioDoc, name: string): { text: string } | { error: string } {
+/** `meshes`: how mesh bodies are written (STEP export option, R3.5: auto, tessellated or planar). */
+export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string } | { error: string } {
   try {
     const breps = snapshotOf(doc).outputs.map(o => o.brep);
     for (const inst of doc.instances ?? []) if (!inst.hidden) breps.push(...evaluateCadPart(toPartDocument(placedDoc(inst))).outputs.map(o => o.brep));
     if (!breps.length) return { error: 'There is no body to export.' };
-    return { text: exportStep(breps, { name }) };
+    return { text: exportStep(breps, { name, ...(meshes ? { meshes } : {}) }) };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 

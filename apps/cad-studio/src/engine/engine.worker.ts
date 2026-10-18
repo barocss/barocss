@@ -3,7 +3,7 @@ import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, s
 import { projectViews } from '../drawing/project';
 import { sectionOf } from '../drawing/section';
 import { WireReceiver, type WireDoc } from './wireDoc';
-import { diagnoseMesh, repairMesh, type MeshRepairSteps } from '@barocss/cad';
+import { diagnoseMesh, repairMesh, stepMeshes, type MeshRepairSteps } from '@barocss/cad';
 
 export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
@@ -12,7 +12,9 @@ export type WorkerRequest =
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
   | { type: 'stl'; id: number; doc: WireDoc; key: string }
-  | { type: 'step'; id: number; doc: WireDoc; name: string }
+  | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
+  /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
+  | { type: 'stepMeshes'; id: number; step: string }
   | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; section?: { y: number } } }
   /** A mesh checked and repaired (M3, D47), off the main thread; a repair posts its stages as it goes. */
   | { type: 'diagnose'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number> }
@@ -24,6 +26,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   if (event.data.type === 'diagnose') {
     const { id, positions, indices } = event.data;
     try { post({ id, diagnosis: diagnoseMesh(positions, indices) }); } catch (e) { post({ id, error: e instanceof Error ? e.message : String(e) }); }
+    return;
+  }
+  if (event.data.type === 'stepMeshes') {
+    const { id, step } = event.data;
+    try { const m = stepMeshes(step); post({ id, meshes: m }, m ? m.flatMap(x => [x.positions.buffer, x.indices.buffer]) : []); } catch (e) { post({ id, error: e instanceof Error ? e.message : String(e) }); }
     return;
   }
   if (event.data.type === 'repair') {
@@ -51,7 +58,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     if (drawing.ok && request.options?.section) drawing.section = sectionOf(request.doc, request.options.section.y);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
-    (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name) });
+    (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name, request.meshes) });
   } else {
     const bytes = stlFor(request.doc, request.key);
     (self as unknown as Worker).postMessage({ id: request.id, bytes }, bytes ? [bytes.buffer] : []);

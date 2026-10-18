@@ -918,6 +918,33 @@ try {
     await page.locator('[role="dialog"][aria-label="Mesh repair"] button', { hasText: 'Cancel' }).click();
   });
 
+  await check('STEP and meshes: asked how mesh bodies go out (tessellated AP242 or planar); a tessellated file reads back; a mesh-only STEP that does not close goes through the repair gate', async () => {
+    const fs = await import('node:fs');
+    // The repaired cup from the last step is a mesh body: Export STEP asks.
+    await page.click('[aria-label="Export STEP"]');
+    await page.waitForSelector('[aria-label="STEP mesh bodies"]', { timeout: 5000 });
+    const [tess] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP mesh bodies"] button', { hasText: 'Tessellated' }).click()]);
+    const text = fs.readFileSync(await tess.path(), 'utf8');
+    assert.match(text, /AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF/); assert.match(text, /TRIANGULATED_FACE/);
+    // Read back: a closed mesh imports as it is.
+    const file = join(out, 'cup-tess.step'); fs.writeFileSync(file, text);
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'import' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    // (The same body: its volume as before, 4022 mm³.)
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    // A mesh-only STEP whose shell does not close: the gate, as for an STL.
+    const open = join(out, 'sheet.step');
+    fs.writeFileSync(open, `ISO-10303-21;\nHEADER;FILE_DESCRIPTION((''),'2;1');FILE_NAME('a.stp','',(''),(''),'','','');FILE_SCHEMA(('AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }'));ENDSEC;\nDATA;\n#1=COORDINATES_LIST('',5,((0.,0.,0.),(10.,0.,0.),(10.,10.,0.),(0.,10.,0.),(5.,5.,8.)));\n#2=TRIANGULATED_FACE('sides',#1,5,(),$,(),((1,2,5),(2,3,5),(3,4,5),(4,1,5)));\n#3=TESSELLATED_SHELL('pyramid',(#2),$);\nENDSEC;\nEND-ISO-10303-21;\n`);
+    await page.setInputFiles('input[aria-label="Model file"]', open);
+    await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: 15000 });
+    assert.match(await page.textContent('[aria-label="Mesh repair"]'), /1 hole/);
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Check the repair' }).click();
+    await page.waitForSelector('[aria-label="Repair report"]', { timeout: 15000 });
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Apply the repair' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && window.__studioDoc.nodes[0].repair?.report.closed, null, { timeout: 15000 });
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());

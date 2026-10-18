@@ -233,7 +233,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
     if (floatersRemoved) {
       const keep: number[] = [], keepFill: number[] = [];
       for (let t = 0; t < T.length / 3; t++) if (!drop[of[t]]) { keep.push(T[3 * t], T[3 * t + 1], T[3 * t + 2]); keepFill.push(fillOf[t]); }
-      T = keep; fillOf.length = 0; fillOf.push(...keepFill);
+      T = keep; fillOf.length = 0; for (const x of keepFill) fillOf.push(x);
     }
   }
   // The used vertices, compacted.

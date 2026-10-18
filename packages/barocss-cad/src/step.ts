@@ -11,6 +11,7 @@ import { tessellateBrep } from './brep-tessellate.js';
 import { dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { brepFromTriangles } from './mesh-brep.js';
+import { weldVertices } from './facet-brep.js';
 
 // ---- export ------------------------------------------------------------------------------------------
 const real = (x: number): string => {
@@ -37,14 +38,36 @@ export interface StepExportOptions {
    * written by default, so a reader can check what it imported; false leaves them out (no mass computed).
    */
   readonly validationProperties?: boolean;
+  /**
+   * How a mesh body (facet faces) is written (R3.5, D48). 'tessellated': AP242 triangulated faces — compact, read by
+   * current systems; 'planar': its triangles as planar B-rep faces (merged where flat) — read by any STEP reader,
+   * but large; 'auto' (default): planar up to MESH_PLANAR_TRIANGLES triangles a body, tessellated above. An open
+   * mesh (a sheet) is always tessellated: it has no planar solid.
+   */
+  readonly meshes?: 'auto' | 'tessellated' | 'planar';
 }
+/**
+ * Mesh bodies up to this many triangles are written as planar faces under 'auto': readable by every STEP reader,
+ * and still small (measured: about 1 kB a triangle as planar faces against 0.05 kB tessellated — 194 MB against
+ * 9.4 MB at 200k — so 5k triangles is some 5 MB planar); larger ones as AP242 tessellated faces.
+ */
+export const MESH_PLANAR_TRIANGLES = 5000;
+/** Planar faces past this many triangles a body are refused: some 250 MB of text, near what one string can hold (1M is past it). */
+export const MESH_PLANAR_LIMIT = 250_000;
+const AP214 = 'AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }', AP242 = 'AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }';
+const facetOnly = (b: Brep) => b.faces.length > 0 && b.faces.every(f => f.surface.kind === 'facets');
+const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind === 'facets' ? f.surface.indices.length / 3 : 0), 0);
 
 /** One STEP file of every solid of the given B-reps (a part's bodies), as one product. */
 export function exportStep(input: Brep | readonly Brep[], options: StepExportOptions = {}): string {
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
-  const breps = (Array.isArray(input) ? input as readonly Brep[] : [input as Brep]).map(planarFacets);
-  const name = options.name ?? breps[0]?.source.id ?? 'part', lines: string[] = [];
+  const given = Array.isArray(input) ? input as readonly Brep[] : [input as Brep], mode = options.meshes ?? 'auto';
+  const tessellate = (b: Brep) => facetOnly(b) && (mode === 'tessellated' || b.bodies.some(x => x.kind === 'sheet') || (mode === 'auto' && facetTriangles(b) > MESH_PLANAR_TRIANGLES));
+  const meshes = given.filter(tessellate);
+  for (const b of given) if (!tessellate(b) && facetOnly(b) && facetTriangles(b) > MESH_PLANAR_LIMIT) throw new BrepError('INPUT', `STEP: a mesh body of ${facetTriangles(b)} triangles is too large for planar faces (at most ${MESH_PLANAR_LIMIT}); write it tessellated (AP242)`);
+  const breps = given.filter(b => !tessellate(b)).map(planarFacets);
+  const name = options.name ?? given[0]?.source.id ?? 'part', lines: string[] = [];
   let next = 1;
   const add_ = (entity: string): string => { const id = `#${next++}`; lines.push(`${id}=${entity};`); return id; };
   const points = new Map<string, string>();
@@ -70,8 +93,33 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(1.E-06),${mm},'distance_accuracy_value','confusion accuracy')`);
   const context = add_(`(GEOMETRIC_REPRESENTATION_CONTEXT(3)GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((${uncertainty}))GLOBAL_UNIT_ASSIGNED_CONTEXT((${mm},${radian},${steradian}))REPRESENTATION_CONTEXT('Context3D','3D Context with UNIT and UNCERTAINTY'))`);
 
-  const solids = breps.flatMap(brep => solidsOf(brep));
-  if (!solids.length) throw new BrepError('INPUT', 'STEP: the B-rep has no solid body');
+  const solids = breps.flatMap(brep => solidsOf(brep)), tessellated = meshes.flatMap(m => tessellatedOf(m));
+  if (!solids.length && !tessellated.length) throw new BrepError('INPUT', 'STEP: the B-rep has no solid body');
+  /**
+   * A mesh body as AP242 tessellated geometry: one coordinate list (its faces' corners, shared ones once), each facet
+   * face a triangulated face (its corners by number into the list, the triangles wound outward), the body a
+   * tessellated solid — or a tessellated shell for an open sheet.
+   */
+  function tessellatedOf(b: Brep): string[] {
+    const faceOf = new Map<string, Brep['faces'][number][]>(); for (const f of b.faces) { const l = faceOf.get(f.shell); if (l) l.push(f); else faceOf.set(f.shell, [f]); }
+    return b.bodies.map(body => {
+      const fs = body.shells.flatMap(sh => faceOf.get(sh) ?? []), all: number[] = [];
+      for (const f of fs) { const P = (f.surface as FacetPatch).positions; for (let i = 0; i < P.length; i++) all.push(P[i]); }
+      let size = 1; for (const x of all) size = Math.max(size, Math.abs(x));
+      const w = weldVertices(all, all.length / 3, 1e-12 * size), coords: string[] = [];
+      for (let v = 0; v < w.P.length / 3; v++) coords.push(`(${real(w.P[3 * v])},${real(w.P[3 * v + 1])},${real(w.P[3 * v + 2])})`);
+      const list = add_(`COORDINATES_LIST('',${coords.length},(${coords.join(',')}))`);
+      let base = 0;
+      const faces = fs.map(f => {
+        const F = f.surface as FacetPatch, nv = F.positions.length / 3, fw = f.sense === 'forward', pn: number[] = [], tris: string[] = [];
+        for (let v = 0; v < nv; v++) pn.push(w.remap[base + v] + 1);
+        for (let t = 0; t < F.indices.length; t += 3) tris.push(`(${F.indices[t] + 1},${(fw ? F.indices[t + 1] : F.indices[t + 2]) + 1},${(fw ? F.indices[t + 2] : F.indices[t + 1]) + 1})`);
+        base += nv;
+        return add_(`TRIANGULATED_FACE(${text(f.name ?? '')},${list},${nv},(),$,(${pn.join(',')}),(${tris.join(',')}))`);
+      });
+      return add_(`${body.kind === 'sheet' ? 'TESSELLATED_SHELL' : 'TESSELLATED_SOLID'}(${text(body.id)},(${faces.join(',')}),$)`);
+    });
+  }
   function solidsOf(brep: Brep): string[] {
   // Vertices and edges.
   const vertexId = new Map<string, string>();
@@ -115,13 +163,17 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   });
   }
   const origin = placement([0, 0, 0], [0, 0, 1], [1, 0, 0]);
-  const representation = add_(`ADVANCED_BREP_SHAPE_REPRESENTATION(${text(name)},(${[...solids, origin].join(',')}),${context})`);
-  add_(`SHAPE_DEFINITION_REPRESENTATION(${shape},${representation})`);
-  if (options.validationProperties !== false) writeValidationProperties(breps, add_, shape, context, mm, name);
+  // (B-rep solids in the advanced B-rep representation; mesh bodies in a tessellated one beside it, related to it.)
+  const advanced = solids.length ? add_(`ADVANCED_BREP_SHAPE_REPRESENTATION(${text(name)},(${[...solids, origin].join(',')}),${context})`) : null;
+  const meshRep = tessellated.length ? add_(`TESSELLATED_SHAPE_REPRESENTATION(${text(name)},(${tessellated.join(',')}),${context})`) : null;
+  add_(`SHAPE_DEFINITION_REPRESENTATION(${shape},${advanced ?? meshRep})`);
+  if (advanced && meshRep) add_(`SHAPE_REPRESENTATION_RELATIONSHIP('','tessellated bodies',${advanced},${meshRep})`);
+  // (The validation properties of every body, mesh bodies too, whichever way they were written.)
+  if (options.validationProperties !== false) writeValidationProperties(given, add_, shape, context, mm, name);
 
   const stamp = options.timestamp ?? new Date().toISOString().slice(0, 19);
   return ['ISO-10303-21;', 'HEADER;', `FILE_DESCRIPTION(('BaroCSS CAD part'),'2;1');`, `FILE_NAME(${text(name + '.step')},${text(stamp)},(''),(''),'BaroCSS CAD','BaroCSS CAD','');`,
-    `FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));`, 'ENDSEC;', 'DATA;', ...lines, 'ENDSEC;', 'END-ISO-10303-21;', ''].join('\n');
+    `FILE_SCHEMA(('${meshRep ? AP242 : AP214}'));`, 'ENDSEC;', 'DATA;', ...lines, 'ENDSEC;', 'END-ISO-10303-21;', ''].join('\n');
 }
 
 /**
@@ -161,7 +213,7 @@ function bsplineSurface(S: Surface, add_: (e: string) => string, point: (p: read
   return add_(`(BOUNDED_SURFACE()B_SPLINE_SURFACE(${S.degreeU},${S.degreeV},(${cps}),.UNSPECIFIED.,.F.,.F.,.F.)B_SPLINE_SURFACE_WITH_KNOTS(${knots})GEOMETRIC_REPRESENTATION_ITEM()RATIONAL_B_SPLINE_SURFACE((${S.weights.map(row => `(${row.map(real).join(',')})`).join(',')}))REPRESENTATION_ITEM('')SURFACE())`);
 }
 
-export { importStep, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';
+export { importStep, stepMeshes, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';
 
 /** A body whose faces are all facets, as the planar B-rep of its triangles (others as they are; mixed refused). */
 function planarFacets(brep: Brep): Brep {

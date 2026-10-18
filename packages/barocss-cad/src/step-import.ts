@@ -15,7 +15,9 @@
 //
 // A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
 // holes across a seam) are refused by name.
-import { BrepError, buildBrep, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, mergeBreps, type Brep } from './brep-core.js';
+import { facetBrepFromTriangles } from './facet-brep.js';
+import { MeshBrepError } from './mesh-brep.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
@@ -338,11 +340,14 @@ export function importStep(source: string, options: { readonly id?: string } = {
   for (const [n, e] of data) {
     if (e.type !== 'MANIFOLD_SOLID_BREP' && e.type !== 'BREP_WITH_VOIDS') continue;
     const shells = [e.args[1], ...(e.type === 'BREP_WITH_VOIDS' ? list(e.args[2]) : [])].map((sv, si) => {
-      const fs = shellFaces(sv).map(fv => faceOf(fv, k++)); faces.push(...fs); return { id: `${id}_sh${n}_${si}`, faces: fs };
+      // (One at a time: a big file's faces spread into one call would overflow the stack.)
+      const fs = shellFaces(sv).map(fv => faceOf(fv, k++)); for (const f of fs) faces.push(f); return { id: `${id}_sh${n}_${si}`, faces: fs };
     });
     bodies.push({ id: `${id}_b${n}`, shells });
   }
-  if (!bodies.length) refuse('no solid (MANIFOLD_SOLID_BREP) in the file');
+  // AP242 tessellated bodies (R3.5): facet faces, beside the B-rep solids (a convergent file holds both).
+  const meshes = tessellatedBreps(data, id);
+  if (!bodies.length) { if (meshes.length) return meshes.length === 1 ? meshes[0] : mergeBreps(meshes, { family: 'step', id }); refuse('no solid (MANIFOLD_SOLID_BREP, TESSELLATED_SOLID) in the file'); }
 
   // Splitting an edge at a fraction: a new vertex, two edges, every use replaced in loop order.
   let fresh = 0;
@@ -506,7 +511,59 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const byEdge = new Map<string, string[]>(); for (const c of brep.coedges) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);
   const base = (eid: string) => [...new Set(byEdge.get(eid))].sort().join('|'), count = new Map<string, number>(), seen = new Map<string, number>();
   for (const e of brep.edges) if (!e.name) count.set(base(e.id), (count.get(base(e.id)) ?? 0) + 1);
-  return { ...brep, edges: brep.edges.map(e => { if (e.name) return e; const b = base(e.id), k = (seen.get(b) ?? 0) + 1; seen.set(b, k); return { ...e, name: count.get(b)! > 1 ? `${b}#${k}` : b }; }) };
+  const analytic: Brep = { ...brep, edges: brep.edges.map(e => { if (e.name) return e; const b = base(e.id), k = (seen.get(b) ?? 0) + 1; seen.set(b, k); return { ...e, name: count.get(b)! > 1 ? `${b}#${k}` : b }; }) };
+  return meshes.length ? mergeBreps([analytic, ...meshes], { family: 'step', id }) : analytic;
+}
+
+/** A STEP file's tessellated solids and shells as triangle meshes: each one's corners, triangles, faces (per triangle) and face names. */
+interface StepMesh { readonly id: string; readonly name: string; readonly positions: Float64Array; readonly indices: Uint32Array; readonly faces: Int32Array; readonly faceNames: readonly string[]; readonly shell: boolean }
+function tessellatedMeshes(data: Map<number, Entity>, id: string): StepMesh[] {
+  const get = (v: Value): Entity => { const e = v && typeof v === 'object' && 'ref' in v ? data.get((v as { ref: number }).ref) : undefined; if (!e) refuse('expected a reference to an instance in the file'); return e!; };
+  const out: StepMesh[] = [];
+  for (const [n, e] of data) {
+    if (e.type !== 'TESSELLATED_SOLID' && e.type !== 'TESSELLATED_SHELL') continue;
+    const positions: number[] = [], indices: number[] = [], faces: number[] = [], names: string[] = [], base = new Map<number, number>();
+    (e.args[1] as Value[]).forEach((fv, k) => {
+      const f = get(fv);
+      if (f.type !== 'TRIANGULATED_FACE') refuse(`${f.type} tessellated faces are not supported yet`);
+      const listRef = (f.args[1] as { ref: number }).ref, coords = get(f.args[1]);
+      if (coords.type !== 'COORDINATES_LIST') refuse(`${coords.type} coordinates are not supported`);
+      let at = base.get(listRef);
+      if (at === undefined) { at = positions.length / 3; base.set(listRef, at); for (const p of coords.args[2] as Value[]) for (const x of p as Value[]) positions.push(x as number); }
+      const pn = (f.args[5] as Value[]).map(x => x as number), count = (coords.args[2] as Value[]).length;
+      for (const t of f.args[6] as Value[]) {
+        const corner = (t as Value[]).map(x => x as number);
+        if (corner.length !== 3) refuse('a triangulated face with a triangle of other than three corners');
+        for (const c of corner) { const j = pn.length ? pn[c - 1] - 1 : c - 1; if (!(j >= 0 && j < count)) refuse('a triangle names a corner the coordinates list does not have'); indices.push(at + j); }
+        faces.push(k);
+      }
+      names.push(typeof f.args[0] === 'string' && f.args[0] ? f.args[0] : `face${k}`);
+    });
+    out.push({ id: `${id}_t${n}`, name: typeof e.args[0] === 'string' && e.args[0] ? e.args[0] : `mesh${n}`, positions: Float64Array.from(positions), indices: Uint32Array.from(indices), faces: Int32Array.from(faces), faceNames: renumbered(names).map(x => x!), shell: e.type === 'TESSELLATED_SHELL' });
+  }
+  return out;
+}
+/**
+ * The tessellated bodies as facet B-reps: each triangulated face's triangles kept to faces of their own, named as in
+ * the file. A tessellated solid that does not close, or a tessellated shell, comes in as an open sheet (said so,
+ * never closed by guessing: the studio offers its repair).
+ */
+function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
+  return tessellatedMeshes(data, id).map(m => {
+    const o = { id: m.id, groups: m.faces, groupName: (g: number) => m.faceNames[g], maximumTriangles: Infinity };
+    if (!m.shell) { try { return facetBrepFromTriangles(m.positions, m.indices, o); } catch (e) { if (!(e instanceof MeshBrepError) || !/not closed/.test(e.message)) throw e; } }
+    return facetBrepFromTriangles(m.positions, m.indices, { ...o, open: true });
+  });
+}
+/**
+ * A STEP file's tessellated meshes — every one when the file holds nothing else (no B-rep solid), else null — for the
+ * studio to check and repair as a mesh (M3) before it becomes a part.
+ */
+export function stepMeshes(source: string): { name: string; positions: Float64Array; indices: Uint32Array }[] | null {
+  const data = parseData(source);
+  for (const e of data.values()) if (e.type === 'MANIFOLD_SOLID_BREP' || e.type === 'BREP_WITH_VOIDS') return null;
+  const meshes = tessellatedMeshes(data, 'step');
+  return meshes.length ? meshes.map(m => ({ name: m.name, positions: m.positions, indices: m.indices })) : null;
 }
 
 /** Names, those that occur more than once numbered in order of occurrence (`name#1`, `name#2`…); missing ones stay missing. */

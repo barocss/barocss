@@ -84,6 +84,14 @@ export class EngineClient {
     });
   }
 
+  /** A STEP file's meshes when it holds nothing else (R3.5), else null. */
+  stepMeshes(step: string): Promise<{ name: string; positions: Float64Array; indices: Uint32Array }[] | null | { error: string }> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => { const d = data as { meshes?: { name: string; positions: Float64Array; indices: Uint32Array }[] | null; error?: string }; resolve(d.error ? { error: d.error } : d.meshes ?? null); });
+      this.worker.postMessage({ type: 'stepMeshes', id, step });
+    });
+  }
   /** What is wrong with a mesh (M3), worked out in the worker. */
   diagnose(positions: ArrayLike<number>, indices: ArrayLike<number>): Promise<MeshDiagnosis | { error: string }> {
     const id = this.next++;
@@ -102,11 +110,11 @@ export class EngineClient {
     });
   }
 
-  step(doc: StudioDoc, name: string): Promise<{ text: string } | { error: string }> {
+  step(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): Promise<{ text: string } | { error: string }> {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { step: { text: string } | { error: string } }).step));
-      this.worker.postMessage({ type: 'step', id, doc: this.wire.pack(doc), name });
+      this.worker.postMessage({ type: 'step', id, doc: this.wire.pack(doc), name, ...(meshes ? { meshes } : {}) });
     });
   }
 

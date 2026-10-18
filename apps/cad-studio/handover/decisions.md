@@ -1447,3 +1447,65 @@ Evidence:
   
   The kit step now passes through the gate (its floater is a finding) and opens as it is.
 - Lint clean.
+
+## D48 — AP242 tessellated STEP: mesh bodies written tessellated or as planar faces; tessellated files read as facet faces; mesh-only files through the repair gate (2026-10-18, R3.5)
+Decided (per the peer's guidance under the delegation):
+- **Export option `meshes`: 'auto' | 'tessellated' | 'planar'.**
+  - **Tessellated (AP242, compact).** Each mesh body is written as one `COORDINATES_LIST` (its faces' corners, shared
+    ones once). Each facet face becomes a `TRIANGULATED_FACE` carrying its own name, with corners by number into the
+    list and triangles wound outward. The body is a `TESSELLATED_SOLID`; an open sheet is a `TESSELLATED_SHELL`.
+    These sit in a `TESSELLATED_SHAPE_REPRESENTATION`. If the file also has B-rep solids, that representation is
+    related to their advanced B-rep one by `SHAPE_REPRESENTATION_RELATIONSHIP`. The schema is then AP242, and AP214
+    stays for files without meshes.
+  - **Planar faces (compatible).** The triangles become planar B-rep faces, merged where flat; any reader takes them.
+  - **Auto** (the default) writes planar up to `MESH_PLANAR_TRIANGLES = 5000` triangles a body and tessellated above.
+    Planar costs about 1 kB a triangle and tessellated about 0.05 kB (measured: 194 MB against 9.4 MB at 200k), so
+    5k triangles is about 5 MB as planar faces. Small meshes stay readable by older CAD, CAM and slicers, and large
+    ones stay writable.
+  - Planar faces are refused past `MESH_PLANAR_LIMIT = 250000` triangles a body: about 250 MB of text, near what one
+    string can hold (1M overflows it). The refusal says to write tessellated.
+  - Validation properties (volume, area, centroid, box) are written in both modes, for mesh bodies too.
+  - **Studio:** Export STEP on a part with mesh bodies asks "Mesh bodies in the STEP file as…" (Auto, Tessellated, or
+    Planar), explains the trade-off, and remembers the answer in this browser.
+- **Import.** `TESSELLATED_SOLID` and `TESSELLATED_SHELL` with their `TRIANGULATED_FACE`s (coordinates lists shared
+  or per face, `pnindex` or direct corners) come in as facet bodies.
+  - Each triangulated face keeps to a face of its own, named as in the file. Repeated names are numbered; a group
+    that splits gets `#n` (the facet builder's new `groupName`).
+  - A mixed file (B-rep solids and tessellated bodies, the convergent case) comes in as both, in one B-rep.
+  - A tessellated solid that does not close, or a tessellated shell, comes in as an open sheet. It is never closed
+    by guessing.
+  - Not yet: `COMPLEX_TRIANGULATED_FACE` and strips/fans (refused by name).
+- **Mesh-only files through the gate.** `stepMeshes(text)` gives a file's meshes when it holds no B-rep solid (scan
+  data, other systems' AP242 exports). On open, the studio reads them in the worker, scales them by the file's unit,
+  and diagnoses them.
+  - Closed and clean, the file imports as before (an import node, its faces' names kept).
+  - Otherwise it opens the repair gate as an STL does, and becomes a mesh node with its repair (D47).
+  - Pending (reversible default): a mixed file whose tessellated body is open imports that body as a sheet. Its
+    repair from the gate would need the import split into a mesh node beside it, which is left for when that comes
+    up.
+- **A fix found on the way.** The STEP reader spread a shell's faces into one `push(...)`, which overflowed the stack
+  past about 100k faces (a big planar mesh file). It now pushes them one at a time. The repair's floater pass had the
+  same spread; fixed too.
+
+Evidence:
+- Kernel `test/step-tessellated.test.mjs` 4/4:
+  - tessellated round trip: an AP242 schema, 3 triangulated faces, no advanced faces; read back valid with the same
+    face names, volume, area and centroid to 1e-9; the validation-property volume agrees;
+  - auto: planar for a small mesh, tessellated for 6240 triangles; planar more than 10× larger; both read back;
+  - mixed plate and mesh ball: 2 bodies, the volume sum to 1e-6; `stepMeshes` gives null;
+  - another system's open quad shell: a sheet with face `top`; `stepMeshes` gives its 2 triangles.
+- Kernel suite 926/927; the one failure is the known environmental test. Studio 296/296.
+- Browser flow 110/110. The new step:
+  - Export STEP on the repaired cup asks; tessellated is AP242 with triangulated faces;
+  - opened again, it is the same 4022 mm³ body;
+  - a mesh-only STEP pyramid without a base goes through the repair gate (1 hole) and becomes a closed mesh node.
+- Lint clean.
+- Organic torus fixtures, Node:
+
+  | Mesh | Tessellated | Planar |
+  |---|---|---|
+  | 200k | 9.4 MB; write 0.2 s, read 0.4 s; volume exact | 194 MB; write 9.6 s, read 10.2 s; 199,712 faces |
+  | 1M | 49.9 MB; write 0.7 s, read 3.2 s; volume exact | past the string limit (now refused, with the reason) |
+
+R3 is done: F0 facet faces (D42), point classification (D43), M1 container (D44–D45), M3 repair (D46–D47), AP242
+tessellated STEP (D48). Next on the roadmap: R4, F1 (facet × plane split and section with an exact planar cap).

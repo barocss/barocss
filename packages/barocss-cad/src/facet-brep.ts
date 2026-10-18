@@ -28,6 +28,11 @@ export interface FacetBrepOptions extends MeshBrepOptions {
    * named `<prefix>.fill<k>.region<f>` — or −1.
    */
   readonly groups?: ArrayLike<number>;
+  /**
+   * Group g's face names, in place of `fill<g>.region<f>`: a STEP file's triangulated faces keep their own names
+   * (AP242, R3.5) — the first face of a group named so, any further one `#n`.
+   */
+  readonly groupName?: (group: number) => string;
 }
 
 const UNSET = 0xffffffff;
@@ -100,7 +105,7 @@ function pieceBrep(id: string, P: Float64Array, I: Uint32Array, G: Int32Array | 
     if (vol < 0) { for (let t = 0; t < nt; t++) { const b = I[3 * t + 1]; I[3 * t + 1] = I[3 * t + 2]; I[3 * t + 2] = b; } across = adjacency(I, nv, false); }
   }
   const region = regions(P, I, across, G, Math.cos((options.creaseDegrees ?? 30) * Math.PI / 180), options.maximumRegions ?? 1000);
-  return assemble(id, P, I, across, region, G, open, prefix);
+  return assemble(id, P, I, across, region, G, open, prefix, options.groupName);
 }
 
 /** Corners on one grid cell of the weld size are one vertex: a hash of the integer cell, checked, no strings. */
@@ -248,7 +253,8 @@ function halve(across: Int32Array, nt: number): Uint32Array {
   return region;
 }
 /** Faces (each edge-connected piece of a region, numbered by first triangle), polyline edges and vertices; built and checked. */
-function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array, G: Int32Array | null, open: boolean, prefix = id): Brep {
+function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Array, region: Uint32Array, G: Int32Array | null, open: boolean, prefix = id, groupName?: (g: number) => string): Brep {
+  const named = new Map<number, number>();
   const nt = I.length / 3, nv = P.length / 3, piece = new Uint32Array(nt).fill(UNSET), queue = new Int32Array(nt);
   let faces = 0;
   for (let s = 0; s < nt; s++) {
@@ -323,8 +329,10 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
     // (The longest boundary is the outer loop: on a facet face, which is "outer" is a convention only.)
     loops.sort((a, b) => b.length - a.length);
     // (A repair's fill patch k keeps its own name: shown as what it is, a guess.)
-    const g = G ? G[tris[f][0]] : -1;
-    inputs.push({ id: `${id}_f${f}`, name: g >= 0 ? `${prefix}.fill${g}.region${f}` : `${prefix}.region${f}`, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
+    const g = G ? G[tris[f][0]] : -1, seen = g >= 0 && groupName ? (named.get(g) ?? 0) + 1 : 0;
+    if (seen) named.set(g, seen);
+    const name = g < 0 ? `${prefix}.region${f}` : groupName ? (seen > 1 ? `${groupName(g)}#${seen}` : groupName(g)) : `${prefix}.fill${g}.region${f}`;
+    inputs.push({ id: `${id}_f${f}`, name, surface: patchOf(`${id}_p${f}`, P, I, tris[f]), sense: 'forward',
       loops: loops.map((l, k) => ({ kind: k === 0 ? 'outer' as const : 'inner' as const, uses: l.uses })) });
   }
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...vertexIds].sort((a, b) => a[0] - b[0]).map(([v, s]) => ({ id: s, point: [P[3 * v], P[3 * v + 1], P[3 * v + 2]] as Point })), edges,

@@ -25,7 +25,7 @@ import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs } from './engine/blobs';
 import { MeshRepairPanel } from './ui/MeshRepairPanel';
-import { DEFAULT_REPAIR, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
+import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import type { BindableField } from './app/editFields';
@@ -1070,6 +1070,20 @@ export function App() {
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
         const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text();
+        // A file of meshes only (AP242 tessellated: scans, other systems' exports) is checked like an STL: closed and
+        // clean it imports as it is (its faces' names kept), else through the repair gate as a mesh (R3.5, D48).
+        setStage('reading the file');
+        const meshes = await engine.stepMeshes(step);
+        setStage(null);
+        if (meshes && !('error' in meshes)) {
+          const k = stepLengthUnit(step).toMM, positions: number[] = [], indices: number[] = [];
+          for (const m of meshes) { const base = positions.length / 3; for (let i = 0; i < m.positions.length; i++) positions.push(m.positions[i] * k); for (let i = 0; i < m.indices.length; i++) indices.push(base + m.indices[i]); }
+          setStage('checking the mesh');
+          const d = await engine.diagnose(positions, indices);
+          setStage(null);
+          if ('error' in d) { if (d.error !== 'stopped') setToast({ title: 'Could not read this mesh', hint: d.error, detail: '' }); return; }
+          if (!d.closed || d.degenerate || d.duplicates || d.selfIntersections) { setRepairAsk({ mode: 'import', name, format: 'STEP', unit: 'mm', positions, indices, diagnosis: d, steps: DEFAULT_REPAIR, result: null }); return; }
+        }
         // Read it before replacing the current part: a file the kernel cannot read keeps the part. Read
         // solid by solid, so that a file holding several opens as that many bodies.
         const read = await engine.part(withNode(emptyDoc(), { kind: 'import', name, step, solids: 2 }), revision.current++);
@@ -1213,9 +1227,14 @@ export function App() {
     setDoc(cur => cur.nodes === opened.nodes || JSON.stringify(cur.nodes) === JSON.stringify(opened.nodes) ? { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) } : cur); setDirty(true);
 
   };
-  const exportStepFile = async () => {
+  /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
+  const [stepAsk, setStepAsk] = useState(false);
+  const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
+    if (!meshes && bodies.some(b => b.family === 'faceted')) { setStepAsk(true); return; }
+    setStepAsk(false);
+    if (meshes) { try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ } }
     // (The evaluated model, with the instances placed beside it now.)
-    const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName);
+    const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName, meshes);
     if ('text' in r) downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step');
     else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
   };
@@ -1575,7 +1594,7 @@ export function App() {
         <button className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>
-        <button className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
+        <button className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></button>
         {!!doc.direct?.objects.some(o => !o.hidden) && <button className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
           try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
           catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
@@ -1989,6 +2008,18 @@ export function App() {
             <button className="ghost" onClick={() => setMeshAsk(null)}>Cancel</button>
           </div></div>
       </div>}
+      {stepAsk && (() => {
+        const last = (() => { try { return localStorage.getItem('studio.stepMeshes'); } catch { return null; } })() ?? 'auto';
+        return <div className="toast card recovery" role="dialog" aria-label="STEP mesh bodies">
+          <Icon name="deployed_code_update" className="accent" />
+          <div><div className="toast-title">Mesh bodies in the STEP file as…</div>
+            <div className="toast-hint">Tessellated (AP242) is compact, but older CAD, CAM and slicer readers may not take it. Planar faces are read by any reader, but large. Auto: planar up to {MESH_PLANAR_TRIANGLES.toLocaleString('en-US')} triangles a body, tessellated above.</div>
+            <div className="row-actions">
+              {(['auto', 'tessellated', 'planar'] as const).map(m => <button key={m} className={m === last ? 'primary' : 'ghost'} onClick={() => void exportStepFile(m)}>{m === 'auto' ? 'Auto' : m === 'tessellated' ? 'Tessellated (AP242, compact)' : 'Planar faces (compatible)'}</button>)}
+              <button className="ghost" onClick={() => setStepAsk(false)}>Cancel</button>
+            </div></div>
+        </div>;
+      })()}
       {repairAsk && <MeshRepairPanel title={repairAsk.mode === 'import' ? `Open ${repairAsk.name}${repairAsk.format ? `.${repairAsk.format.toLowerCase()}` : ''}: it needs repair` : `Repair of ${repairAsk.name}`}
         diagnosis={repairAsk.diagnosis} steps={repairAsk.steps} onSteps={steps => setRepairAsk(a => a && { ...a, steps, result: null })} report={repairAsk.result?.report ?? null} busy={stage !== null}
         onCheck={() => void checkRepair()} onApply={() => void applyRepair()}
@@ -2016,7 +2047,7 @@ export function App() {
             <button className="ghost" onClick={() => setCascade(null)}>Cancel</button>
           </div></div>
       </div>}
-      {toast && !cascade && !recovery && !meshAsk && !repairAsk && <div className="toast card" role="alert">
+      {toast && !cascade && !recovery && !meshAsk && !repairAsk && !stepAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
           {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}</div>
