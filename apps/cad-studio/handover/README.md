@@ -53,6 +53,7 @@ Done:
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
    - A7 (multi-agent v1, the Integrator's op patches against a base revision): design input the same note.
 2. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+   - PCB/ECAD: see `handover/notes/research-pcb-ecad-2026-10-19.md`, not scheduled; deferred by the owner (2026-10-19).
 3. RB5–RB9.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
