@@ -291,3 +291,23 @@ test('D79 display of a SubD box: vertex normals are the surface\'s own (they wer
   assert.ok(worstFold(tessellateBrep(subdBrep(boxCage(30, 20, 16, 6)), { segmentsPerQuarter: 8 })) < 45);
   assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0);
 });
+
+test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage again has the same caps; a vertex moved outside every irregular vertex\'s 2-ring leaves them all, one inside a corner\'s changes that corner\'s only', async () => {
+  const { buildSubd } = await import('../dist/subd.js');
+  const capsOf = b => new Map([...b.caps].map(([f, c]) => [f, JSON.stringify([c.vertex, c.poles, c.deviationMM])]));
+  // (A shift no other test uses: built cold.)
+  const cage = boxCage(30, 20, 16, 6), shifted = { ...cage, positions: cage.positions.map((x, i) => i % 3 === 1 ? x + 0.0123 : x) };
+  const first = capsOf(buildSubd(shifted)), again = capsOf(buildSubd(shifted));
+  assert.equal(first.size, 24); assert.deepEqual(again, first);
+  const at = (p, x, y, z) => { for (let v = 0; v < p.length / 3; v++) if (Math.abs(p[3 * v] - x) < 1e-9 && Math.abs(p[3 * v + 1] - y) < 1e-9 && Math.abs(p[3 * v + 2] - z) < 1e-9) return v; throw new Error('no vertex'); };
+  const moved = (v, dz) => { const p = [...shifted.positions]; p[3 * v + 2] += dz; return { ...shifted, positions: p }; };
+  // The top's centre: three cage edges from every corner.
+  const centre = at(shifted.positions, 0, 0.0123, 16);
+  assert.deepEqual(capsOf(buildSubd(moved(centre, 3))), first);
+  // Next to a top corner (two edges in along the top): in that corner's 2-ring, no other's.
+  // (Cap vertices are the refined cage's: the three changed caps share one, the corner's.)
+  const near = at(shifted.positions, -15 + 10, -10 + 20 / 3 * 2 + 0.0123, 16);
+  const after = capsOf(buildSubd(moved(near, 0.5)));
+  const changed = [...after].filter(([f, s]) => s !== first.get(f)).map(([f]) => JSON.parse(after.get(f))[0]);
+  assert.ok(changed.length === 3 && new Set(changed).size === 1, JSON.stringify(changed));
+});

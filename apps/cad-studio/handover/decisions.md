@@ -3420,3 +3420,41 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
   - `test/evalMemo.test.ts`: equal parts share a key whatever their objects; a changed character, number or parameter changes it; timings.
   - Studio 351/351.
+
+### A4 — SubD builds
+- **Confirmed (profile):** the G1 caps were 97% of a build. Of that:
+  - `limitGrid` 42%. Each face's one-ring was refined three times for the fit's samples and again four times for the deviation's, and `polyMesh` (a `Map` of every half-edge, a throw per rim vertex of a one-ring, `Array.from` on typed arrays) was most of it.
+  - Closest-point solves 40%. Every evaluation allocated, and every solve ended with a line search that tried all 20 halvings after the step had stopped moving (u, v): 1.37 M trials for 70 k solves on the bump cage.
+  - The fit 12%, which walked each sample's dense row once per free direction.
+- **Fix (`subd-sd2.ts`):**
+  - `limitGrids`: one refinement chain gives both levels.
+  - `polyMesh`: half-edges indexed by their start vertex instead of a `Map`; a rim vertex of a lenient mesh is a corner without a throw.
+  - `gridAt`: scratch buffers, the same sums in the same order.
+  - `fitWithin`: walks only a row's nonzero entries, ascending.
+  - **Caps kept by their vertex's 2-ring** (`keptCapsAt`, the last 512). They are worked out on a copy of the 2-ring with its faces in the cage's order: every fan starts and runs as in the cage, so the caps are the same to the bit (checked against the caps before the change on three cages). The copy's content is the key, so an edit outside a vertex's 2-ring reuses its caps, and a build never depends on what was built before.
+- **Bit for bit**, every change above except one leaves the caps as they were. The exception: a solve now stops when a step moves (u, v) by less than 1e-13 instead of halving it 20 times. On the three cages this moves poles by at most 2.3e-8 mm and deviations by at most 6.6e-10 mm (1.4e-7 relative). The G1 conditions hold exactly whatever the sample parameters, and the caps' own deviation from the limit is hundredths of a millimetre. Without the stop the builds below are about 25% slower.
+- **After** (old and new built alternately under the same load):
+
+  | Build | Before | After |
+  |---|---|---|
+  | box cage (6 quads), cold | 149 ms | 66 ms |
+  | ~2k-face cage (box of 18 a side), cold | 190 ms | 103 ms |
+  | 6-a-side box with 4 extruded bumps (24 irregular vertices), cold | 945 ms | 438 ms |
+  | ~2k-face cage, one vertex moved | 183 ms | 24 ms (the caps reused; the rest is the cage's quads) |
+  | bump cage, one vertex moved | 945 ms | 4 ms |
+
+  The SubD box's tessellation is 27 ms, unchanged; that is A5.
+- **Not done:** refining a vertex's whole 2-ring once for all of its faces, instead of each face's one-ring. It would change the sums' order (a different mesh numbers the fans differently), so the caps would differ in the last bits, and the cache already removes the cost for edits.
+- **Tests:**
+  - Kernel `subd.test.mjs` 12/12. The new test: the same cage again gives the same caps; a vertex moved outside every irregular vertex's 2-ring leaves them all; one inside a corner's changes that corner's three caps only.
+  - Kernel suite 1011/1012; the one failure is the known environmental Node-version test.
+  - RB: nothing new; the TODO rows are the known open items.
+  - Studio 351/351.
+- **Benches (`pnpm bench`, budgets about 2× the values above):**
+
+  | Bench | Time | Budget |
+  |---|---|---|
+  | `subd: box cage build (cold)` | 64 ms | 150 ms |
+  | `subd: 6-a-side box, 4 bumps (cold)` | 457 ms | 900 ms |
+  | `subd: ~2k-face cage, one vertex moved` | 22 ms | 60 ms |
+  | `tessellate: SubD box` | 22 ms | 60 ms |

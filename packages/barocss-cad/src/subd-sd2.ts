@@ -59,41 +59,47 @@ export function polyMesh(cage: PolyCage, allowNgons = true, lenient = false): Po
     if (f.length !== 4 && !allowNgons) throw new SubdError('CAPABILITY', `face ${k} has ${f.length} sides`);
     if (f.length > SUBD_MAX_VALENCE) throw new SubdError('CAPABILITY', `face ${k} has ${f.length} sides (at most ${SUBD_MAX_VALENCE})`);
     for (const v of f) if (!Number.isInteger(v) || v < 0 || v >= nv) throw new SubdError('INPUT', `face ${k} names vertex ${v}, not one of the ${nv}`);
-    if (new Set(f).size !== f.length) throw new SubdError('INPUT', `face ${k} repeats a vertex`);
+    for (let i = 1; i < f.length; i++) for (let j = 0; j < i; j++) if (f[i] === f[j]) throw new SubdError('INPUT', `face ${k} repeats a vertex`);
   });
   const start = new Int32Array(F.length + 1);
-  F.forEach((f, k) => { start[k + 1] = start[k] + f.length; });
-  const H = start[F.length], heFace = new Int32Array(H), heSide = new Int32Array(H), half = new Map<number, number>();
-  F.forEach((f, k) => f.forEach((a, s) => {
-    const h = start[k] + s, b = f[(s + 1) % f.length], key = a * nv + b;
-    heFace[h] = k; heSide[h] = s;
-    if (half.has(key)) throw new SubdError('INPUT', `edge ${a}–${b} is used twice the same way: the faces are not wound one way, or more than two faces meet there`);
-    half.set(key, h);
-  }));
+  for (let k = 0; k < F.length; k++) start[k + 1] = start[k] + F[k].length;
+  // Half-edges by their start vertex (CSR), so a twin or a repeat is found among a vertex's few outgoing ones (PERF3
+  // A4: a Map of every half-edge was most of the one-ring meshes' cost).
+  const H = start[F.length], heFace = new Int32Array(H), heSide = new Int32Array(H), heEndV = new Int32Array(H);
+  const outStart = new Int32Array(nv + 1);
+  for (let k = 0; k < F.length; k++) { const f = F[k]; for (let s = 0; s < f.length; s++) { const h = start[k] + s; heFace[h] = k; heSide[h] = s; heEndV[h] = f[(s + 1) % f.length]; outStart[f[s] + 1]++; } }
+  for (let v = 0; v < nv; v++) outStart[v + 1] += outStart[v];
+  const outHe = new Int32Array(H), fill = outStart.slice(0, nv);
+  for (let h = 0; h < H; h++) outHe[fill[F[heFace[h]][heSide[h]]]++] = h;
+  const halfOf = (a: number, b: number) => { for (let i = outStart[a]; i < outStart[a + 1]; i++) if (heEndV[outHe[i]] === b) return outHe[i]; return -1; };
+  for (let v = 0; v < nv; v++) for (let i = outStart[v]; i < outStart[v + 1]; i++) for (let j = outStart[v]; j < i; j++) if (heEndV[outHe[i]] === heEndV[outHe[j]])
+    throw new SubdError('INPUT', `edge ${v}–${heEndV[outHe[i]]} is used twice the same way: the faces are not wound one way, or more than two faces meet there`);
   const twin = new Int32Array(H).fill(-1);
-  F.forEach((f, k) => f.forEach((a, s) => { const h = start[k] + s, t = half.get(f[(s + 1) % f.length] * nv + a); if (t !== undefined) { if (heFace[t] === k) throw new SubdError('INPUT', `face ${k} meets itself`); twin[h] = t; } }));
+  for (let k = 0; k < F.length; k++) { const f = F[k]; for (let s = 0; s < f.length; s++) { const h = start[k] + s, t = halfOf(heEndV[h], f[s]); if (t >= 0) { if (heFace[t] === k) throw new SubdError('INPUT', `face ${k} meets itself`); twin[h] = t; } } }
   const crease = new Set<number>();
   for (const [a, b] of cage.creases ?? []) {
-    if (!half.has(a * nv + b) && !half.has(b * nv + a)) throw new SubdError('INPUT', `crease ${a}–${b} is not an edge of the cage`);
+    if (!(a >= 0 && a < nv && b >= 0 && b < nv) || (halfOf(a, b) < 0 && halfOf(b, a) < 0)) throw new SubdError('INPUT', `crease ${a}–${b} is not an edge of the cage`);
     crease.add(ekey(a, b, nv));
   }
   const sharp = new Uint8Array(H);
-  for (let h = 0; h < H; h++) { const f = F[heFace[h]], s = heSide[h]; if (twin[h] < 0 || crease.has(ekey(f[s], f[(s + 1) % f.length], nv))) sharp[h] = 1; }
+  for (let h = 0; h < H; h++) { const f = F[heFace[h]], s = heSide[h]; if (twin[h] < 0 || (crease.size && crease.has(ekey(f[s], f[(s + 1) % f.length], nv)))) sharp[h] = 1; }
   const m: PolyMesh = { P, nv, F, start, twin, heFace, heSide, sharp, crease, fans: new Array<Fan | null>(nv).fill(null) };
-  // Each vertex's outgoing half-edges, then its fan.
-  const out: number[][] = Array.from({ length: nv }, () => []);
-  for (let h = 0; h < H; h++) out[F[heFace[h]][heSide[h]]].push(h);
-  for (let v = 0; v < nv; v++) if (out[v].length) {
+  // Each vertex's outgoing half-edges (in half-edge order), then its fan.
+  for (let v = 0; v < nv; v++) if (outStart[v + 1] > outStart[v]) {
+    const outs: number[] = new Array(outStart[v + 1] - outStart[v]);
+    for (let i = 0; i < outs.length; i++) outs[i] = outHe[outStart[v] + i];
     // (Lenient, for a one-ring cut out of a cage: a vertex on its rim whose faces there are not one fan is held as a
     // corner — it lies outside the region that is evaluated.)
-    try { m.fans[v] = fanOf(m, v, out[v]); } catch (e) { if (!lenient || !(e instanceof SubdError) || e.code !== 'INPUT') throw e; m.fans[v] = { faces: [], ends: [], sharp: [], closed: false, kind: 'corner', regular: false }; }
+    m.fans[v] = fanOf(m, v, outs, lenient) ?? RIM_CORNER;
   }
   return m;
 }
 const prevHe = (m: PolyMesh, h: number) => { const k = m.heFace[h], n = m.F[k].length; return m.start[k] + (m.heSide[h] + n - 1) % n; };
 const heEnd = (m: PolyMesh, h: number) => { const f = m.F[m.heFace[h]]; return f[(m.heSide[h] + 1) % f.length]; };
 
-function fanOf(m: PolyMesh, v: number, outs: number[]): Fan {
+const RIM_CORNER: Fan = { faces: [], ends: [], sharp: [], closed: false, kind: 'corner', regular: false };
+/** A vertex's fan; null when lenient and its faces are not one fan (a one-ring's rim). */
+function fanOf(m: PolyMesh, v: number, outs: number[], lenient = false): Fan | null {
   // An open fan starts at its boundary edge (a face on its left only); a closed one at a sharp edge when it has one.
   let h0 = outs.find(h => m.twin[h] < 0) ?? -1;
   const closed = h0 < 0;
@@ -108,7 +114,7 @@ function fanOf(m: PolyMesh, v: number, outs: number[]): Fan {
     h = t;
     if (faces.length > outs.length) break;
   }
-  if (faces.length !== outs.length) throw new SubdError('INPUT', `vertex ${v} joins faces that do not form one fan round it (not a manifold)`);
+  if (faces.length !== outs.length) { if (lenient) return null; throw new SubdError('INPUT', `vertex ${v} joins faces that do not form one fan round it (not a manifold)`); }
   if (faces.length > SUBD_MAX_VALENCE) throw new SubdError('CAPABILITY', `vertex ${v} has ${faces.length} faces round it (at most ${SUBD_MAX_VALENCE})`);
   const s = sharp.filter(Boolean).length, K = faces.length;
   // OpenSubdiv: 0 or 1 sharp edges smooth (1: a dart), 2 a crease, 3 or more a corner; a boundary vertex of one face a corner.
@@ -236,6 +242,8 @@ export function bezierNet(m: PolyMesh, face: number, r: number): P3[][] {
 const CAP_TAU = 0.25;
 /** The fit: limit samples on a (2^levels + 1)² grid of each cap, rounds of fitting (each after the first moves the samples' parameters), the pull μ to the start: on the cube cage 0.0105 mm; 0.0116 with one round; 0.0122 with no fit (the least change). */
 const CAP_FIT = { levels: 3, rounds: 4, mu: 1e-6 };
+/** The deviation's grid: 17 × 17 (finer than the fit's), as the report measures. */
+const CAP_DEVIATION_LEVELS = 4;
 const lerp = (a: P3, b: P3, t: number): P3 => [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]), a[2] + t * (b[2] - a[2])];
 /** A cubic's Bézier points split at τ (de Casteljau). */
 function split4(p0: P3, p1: P3, p2: P3, p3: P3, t: number): P3[] {
@@ -273,8 +281,43 @@ const formScale = (a: Form, k: number): Form => ({ idx: [...a.idx], w: a.w.map(x
 /** The caps round every irregular vertex of a quad cage (each quad at most one irregular corner). */
 export function buildCaps(m: PolyMesh, scale: number): Map<number, Cap> {
   const caps = new Map<number, Cap>();
-  for (let v = 0; v < m.nv; v++) { const fan = m.fans[v]; if (fan && !fan.regular) for (const c of capsAt(m, v, fan, scale)) caps.set(c.face, c); }
+  for (let v = 0; v < m.nv; v++) { const fan = m.fans[v]; if (fan && !fan.regular) for (const c of keptCapsAt(m, v, scale)) caps.set(c.face, c); }
   return caps;
+}
+
+// PERF3 A4: a vertex's caps depend on its 2-ring only (the one-rings of its faces: their Bézier nets and limit grids,
+// the G1 angles). Worked out on a copy of that 2-ring with its faces in the cage's order — every fan then starts and
+// runs as in the cage, so the caps are the same to the bit — and kept by that copy's content: an edit elsewhere (a
+// drag, an extrusion, the editor's next step) finds the caps of every vertex it did not reach. The last CAPS_KEPT.
+const CAPS_KEPT = 512;
+const keptCaps = new Map<string, Cap[]>();
+function keptCapsAt(m: PolyMesh, v: number, scale: number): Cap[] {
+  const fan = m.fans[v]!, ring = new Set<number>();
+  for (const f of fan.faces) for (const c of m.F[f.face]) for (const g of m.fans[c]!.faces) ring.add(g.face);
+  const faces = [...ring].sort(ascending), vmap = new Map<number, number>(), positions: number[] = [];
+  const sub: number[][] = [];
+  for (const f of faces) {
+    const F = m.F[f], row: number[] = [];
+    for (const x of F) { let i = vmap.get(x); if (i === undefined) { i = positions.length / 3; vmap.set(x, i); positions.push(m.P[3 * x], m.P[3 * x + 1], m.P[3 * x + 2]); } row.push(i); }
+    sub.push(row);
+  }
+  const creases: [number, number][] = [];
+  if (m.crease.size) {
+    const edges = new Set<number>();
+    for (const f of faces) { const F = m.F[f]; for (let s = 0; s < F.length; s++) edges.add(ekey(F[s], F[(s + 1) % F.length], m.nv)); }
+    for (const key of m.crease) if (edges.has(key)) creases.push([vmap.get(Math.floor(key / m.nv))!, vmap.get(key % m.nv)!]);
+  }
+  const at = vmap.get(v)!, key = JSON.stringify([scale, at, positions, sub, creases]);
+  let local = keptCaps.get(key);
+  if (local) { keptCaps.delete(key); keptCaps.set(key, local); }
+  else {
+    const L = polyMesh({ positions, faces: sub, creases }, true, true);
+    local = capsAt(L, at, L.fans[at]!, scale);
+    keptCaps.set(key, local); if (keptCaps.size > CAPS_KEPT) keptCaps.delete(keptCaps.keys().next().value!);
+  }
+  const out: Cap[] = [];
+  for (const c of local) out.push({ ...c, face: faces[c.face], vertex: v });
+  return out;
 }
 /**
  * Each fan edge's α at the vertex (2 cos θ), or null for an edge with no G1 condition: θ = 2π/n round a smooth vertex
@@ -354,7 +397,9 @@ function capsAt(m: PolyMesh, v: number, fan: Fan, scale: number): Cap[] {
   // Fitted to the surface, not its parametrisation (the limit's at an irregular vertex is not polynomial): each
   // sample's parameters moved to its closest point on the cap just fitted, and fitted again (four rounds).
   const n = x0.length, basis = orthonormalRows(rows, x0, n, scale, v), free = freeDirections(basis.Q, n);
-  const samples = fan.faces.map(f => limitGrid(m, f.face, f.side, CAP_FIT.levels).map(g => ({ u: g.u, v: g.v, p: g.p })));
+  // (Both from one refinement of each face's one-ring: the fit's samples and the finer grid the deviation is measured on.)
+  const limits = fan.faces.map(f => limitGrids(m, f.face, f.side, [CAP_FIT.levels, CAP_DEVIATION_LEVELS]));
+  const samples = limits.map(([fit]) => fit.map(g => ({ u: g.u, v: g.v, p: g.p })));
   const formAt = (k: number, u: number, w: number): Form => {
     const pu = u < tau ? 0 : 1, pv = w < tau ? 0 : 1, bu = bern(pu ? (u - tau) / (1 - tau) : u / tau), bv = bern(pv ? (w - tau) / (1 - tau) : w / tau);
     let form: Form = formConst([0, 0, 0]);
@@ -376,7 +421,7 @@ function capsAt(m: PolyMesh, v: number, fan: Fan, scale: number): Cap[] {
     samples.forEach((list, k) => { const G = gridOf(k, sol); for (const g of list) [g.u, g.v] = closestOnGrid(G, tau, g.p, g.u, g.v); });
   }
   // (Each cap's distance from the limit, sampled finer than the fit (17 × 17, as the report does), after the last fit.)
-  const deviation = fan.faces.map((f, k) => { const G = gridOf(k, sol); let worst = 0; for (const g of limitGrid(m, f.face, f.side, 4)) { const [u, w] = closestOnGrid(G, tau, g.p, g.u, g.v), q = gridEval(G, tau, u, w).p; worst = Math.max(worst, Math.hypot(q[0] - g.p[0], q[1] - g.p[1], q[2] - g.p[2])); } return worst; });
+  const deviation = fan.faces.map((_f, k) => { const G = gridOf(k, sol); let worst = 0; for (const g of limits[k][1]) { const [u, w] = closestOnGrid(G, tau, g.p, g.u, g.v); worst = Math.max(worst, gridDistance(G, tau, g.p, u, w)); } return worst; });
   return fan.faces.map((f, k) => {
     const poles = polesOf(k, sol);
     return { face: f.face, r: f.side, vertex: v, poles, tau, deviationMM: deviation[k], kind: fan.kind };
@@ -431,6 +476,7 @@ function freeDirections(Q: Float64Array[], n: number): Float64Array[] {
   }
   return N;
 }
+const ascending = (a: number, b: number) => a - b;
 function fitWithin(basis: RowBasis, N: Float64Array[], fit: { form: Form; target: P3 }[], x0: P3[], n: number): P3[] {
   const { Q, C } = basis, xp = x0.map(p => [p[0], p[1], p[2]] as P3);
   for (let q = 0; q < Q.length; q++) { const qq = Q[q]; for (let i = 0; i < n; i++) if (qq[i]) for (let d = 0; d < 3; d++) xp[i][d] += qq[i] * C[q][d]; }
@@ -439,10 +485,15 @@ function fitWithin(basis: RowBasis, N: Float64Array[], fit: { form: Form; target
   const mu = CAP_FIT.mu, S = fit.length;
   // MN (samples × D) and the residual at xp, per coordinate.
   const MN = new Float64Array(S * D), r: P3[] = [];
+  // (A sample's row has a few nonzero entries of n: summed over those, ascending, as the dense sum skipping zeros was.)
+  const row = new Float64Array(n), nz: number[] = [];
   for (let s = 0; s < S; s++) {
-    const f = fit[s].form, row = new Float64Array(n), at: P3 = [f.c[0], f.c[1], f.c[2]];
-    for (let a = 0; a < f.idx.length; a++) { row[f.idx[a]] += f.w[a]; for (let d = 0; d < 3; d++) at[d] += f.w[a] * xp[f.idx[a]][d]; }
-    for (let c = 0; c < D; c++) { let dot = 0; const col = N[c]; for (let i = 0; i < n; i++) if (row[i]) dot += row[i] * col[i]; MN[s * D + c] = dot; }
+    const f = fit[s].form, at: P3 = [f.c[0], f.c[1], f.c[2]];
+    for (let a = 0; a < f.idx.length; a++) { const i = f.idx[a]; if (!nz.includes(i)) nz.push(i); row[i] += f.w[a]; for (let d = 0; d < 3; d++) at[d] += f.w[a] * xp[i][d]; }
+    nz.sort(ascending);
+    for (let c = 0; c < D; c++) { let dot = 0; const col = N[c]; for (const i of nz) if (row[i]) dot += row[i] * col[i]; MN[s * D + c] = dot; }
+    for (const i of nz) row[i] = 0;
+    nz.length = 0;
     r.push([fit[s].target[0] - at[0], fit[s].target[1] - at[1], fit[s].target[2] - at[2]]);
   }
   // (MNᵀMN + μI) z = MNᵀ r + μ Nᵀ(x0 − xp), by Cholesky.
@@ -459,31 +510,42 @@ function fitWithin(basis: RowBasis, N: Float64Array[], fit: { form: Form; target
   for (let a = 0; a < D; a++) { const col = N[a]; for (let i = 0; i < n; i++) if (col[i]) for (let d = 0; d < 3; d++) x[i][d] += col[i] * z[a][d]; }
   return x;
 }
-/** A cap's 7 × 7 Bézier grid at (u, v): its point and first partials (the piece each way split at τ). */
-function gridEval(G: P3[][], tau: number, u: number, v: number): { p: P3; du: P3; dv: P3 } {
+// (Scratch for gridAt: the closest-point solves evaluate caps hundreds of thousands of times a build, PERF3 A4.)
+const GP = new Float64Array(3), GU = new Float64Array(3), GV = new Float64Array(3), BU = new Float64Array(4), BV = new Float64Array(4), DU = new Float64Array(4), DV = new Float64Array(4);
+function bernInto(o: Float64Array, s: number) { const t = 1 - s; o[0] = t * t * t; o[1] = 3 * s * t * t; o[2] = 3 * s * s * t; o[3] = s * s * s; }
+function dbernInto(o: Float64Array, s: number) { const t = 1 - s; o[0] = -3 * t * t; o[1] = 3 * t * t - 6 * s * t; o[2] = 6 * s * t - 3 * s * s; o[3] = 3 * s * s; }
+/** A cap's 7 × 7 Bézier grid at (u, v) (the piece each way split at τ): its point into GP, its first partials into GU and GV. */
+function gridAt(G: P3[][], tau: number, u: number, v: number, partials: boolean) {
   const pu = u < tau ? 0 : 1, pv = v < tau ? 0 : 1, su = pu ? (u - tau) / (1 - tau) : u / tau, sv = pv ? (v - tau) / (1 - tau) : v / tau;
-  const ku = 1 / (pu ? 1 - tau : tau), kv = 1 / (pv ? 1 - tau : tau), bu = bern(su), bv = bern(sv), du = dbern(su), dv = dbern(sv);
-  const p: P3 = [0, 0, 0], a: P3 = [0, 0, 0], b: P3 = [0, 0, 0];
+  const ku = 1 / (pu ? 1 - tau : tau), kv = 1 / (pv ? 1 - tau : tau);
+  bernInto(BU, su); bernInto(BV, sv);
+  if (partials) { dbernInto(DU, su); dbernInto(DV, sv); }
+  let p0 = 0, p1 = 0, p2 = 0, a0 = 0, a1 = 0, a2 = 0, b0 = 0, b1 = 0, b2 = 0;
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-    const q = G[3 * pu + i][3 * pv + j], w = bu[i] * bv[j], wu = du[i] * bv[j] * ku, wv = bu[i] * dv[j] * kv;
-    for (let d = 0; d < 3; d++) { p[d] += w * q[d]; a[d] += wu * q[d]; b[d] += wv * q[d]; }
+    const q = G[3 * pu + i][3 * pv + j], w = BU[i] * BV[j];
+    p0 += w * q[0]; p1 += w * q[1]; p2 += w * q[2];
+    if (partials) { const wu = DU[i] * BV[j] * ku, wv = BU[i] * DV[j] * kv; a0 += wu * q[0]; a1 += wu * q[1]; a2 += wu * q[2]; b0 += wv * q[0]; b1 += wv * q[1]; b2 += wv * q[2]; }
   }
-  return { p, du: a, dv: b };
+  GP[0] = p0; GP[1] = p1; GP[2] = p2;
+  if (partials) { GU[0] = a0; GU[1] = a1; GU[2] = a2; GV[0] = b0; GV[1] = b1; GV[2] = b2; }
 }
-const dbern = (s: number) => { const t = 1 - s; return [-3 * t * t, 3 * t * t - 6 * s * t, 6 * s * t - 3 * s * s, 3 * s * s]; };
+function gridDistance(G: P3[][], tau: number, p: readonly number[], u: number, v: number): number { gridAt(G, tau, u, v, false); return Math.hypot(p[0] - GP[0], p[1] - GP[1], p[2] - GP[2]); }
 /** The closest point on a cap's grid to p from (u, v): damped Gauss–Newton within [0, 1]². */
 function closestOnGrid(G: P3[][], tau: number, p: readonly number[], u: number, v: number): [number, number] {
-  const dist = (a: number, b: number) => { const q = gridEval(G, tau, a, b).p; return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
-  let best = dist(u, v);
+  let best = gridDistance(G, tau, p, u, v);
   for (let it = 0; it < 30 && best > 0; it++) {
-    const d = gridEval(G, tau, u, v), r = [p[0] - d.p[0], p[1] - d.p[1], p[2] - d.p[2]], a = d.du, b = d.dv;
-    const aa = a[0] * a[0] + a[1] * a[1] + a[2] * a[2], ab = a[0] * b[0] + a[1] * b[1] + a[2] * b[2], bb = b[0] * b[0] + b[1] * b[1] + b[2] * b[2];
-    const ra = r[0] * a[0] + r[1] * a[1] + r[2] * a[2], rb = r[0] * b[0] + r[1] * b[1] + r[2] * b[2], det = aa * bb - ab * ab;
+    gridAt(G, tau, u, v, true);
+    const r0 = p[0] - GP[0], r1 = p[1] - GP[1], r2 = p[2] - GP[2];
+    const aa = GU[0] * GU[0] + GU[1] * GU[1] + GU[2] * GU[2], ab = GU[0] * GV[0] + GU[1] * GV[1] + GU[2] * GV[2], bb = GV[0] * GV[0] + GV[1] * GV[1] + GV[2] * GV[2];
+    const ra = r0 * GU[0] + r1 * GU[1] + r2 * GU[2], rb = r0 * GV[0] + r1 * GV[1] + r2 * GV[2], det = aa * bb - ab * ab;
     if (!(det > 1e-30)) break;
     const du = (ra * bb - rb * ab) / det, dv = (rb * aa - ra * ab) / det;
     let k = 1, moved = false;
     for (let h = 0; h < 20; h++, k /= 2) {
-      const nu = Math.min(1, Math.max(0, u + k * du)), nv = Math.min(1, Math.max(0, v + k * dv)), dd = dist(nu, nv);
+      const nu = Math.min(1, Math.max(0, u + k * du)), nv = Math.min(1, Math.max(0, v + k * dv));
+      // (A step that no longer moves (u, v) — and every shorter one — finds nothing better: done.)
+      if (Math.abs(nu - u) < 1e-13 && Math.abs(nv - v) < 1e-13) break;
+      const dd = gridDistance(G, tau, p, nu, nv);
       if (dd < best) { best = dd; u = nu; v = nv; moved = true; break; }
     }
     if (!moved) break;
@@ -536,7 +598,10 @@ function choleskySolve(L: Float64Array, D: number, b: number[]): number[] {
  * corner `r`: its one-ring refined `levels` times (its own region exact: a quad's limit depends on its one-ring only),
  * each vertex over the quad taken to its limit position.
  */
-export function limitGrid(m: PolyMesh, face: number, r: number, levels: number): { u: number; v: number; p: P3 }[] {
+export function limitGrid(m: PolyMesh, face: number, r: number, levels: number): LimitSample[] { return limitGrids(m, face, r, [levels])[0]; }
+export interface LimitSample { u: number; v: number; p: P3 }
+/** limitGrid at several levels (ascending) from one refinement of the one-ring (PERF3 A4: the fit's 9 × 9 and the deviation's 17 × 17). */
+export function limitGrids(m: PolyMesh, face: number, r: number, levels: readonly number[]): LimitSample[][] {
   // The one-ring: every face at one of the quad's corners.
   const ring = new Set<number>([face]);
   for (const c of m.F[face]) for (const f of m.fans[c]!.faces) ring.add(f.face);
@@ -550,7 +615,10 @@ export function limitGrid(m: PolyMesh, face: number, r: number, levels: number):
   const P0: [number, number][] = [[0, 0], [1, 0], [1, 1], [0, 1]];
   let params: ([number, number][] | null)[] = faces.map(f => f === face ? m.F[face].map((_, s) => P0[(s - r + 4) % 4]) : null);
   let cage: PolyCage = { positions, faces: sub, creases }, mesh = polyMesh(cage, true, true);
-  for (let l = 0; l < levels; l++) {
+  const out: LimitSample[][] = [];
+  for (let l = 0; ; l++) {
+    if (levels.includes(l)) out.push(gridSamples(mesh, params));
+    if (l === levels[levels.length - 1]) return out;
     const next = refine(mesh), np: ([number, number][] | null)[] = [];
     mesh.F.forEach((f, k) => f.forEach((_, i) => {
       const p = params[k]; if (!p) { np.push(null); return; }
@@ -559,6 +627,8 @@ export function limitGrid(m: PolyMesh, face: number, r: number, levels: number):
     }));
     cage = next.cage; mesh = polyMesh(cage, true, true); params = np;
   }
+}
+function gridSamples(mesh: PolyMesh, params: readonly ([number, number][] | null)[]): LimitSample[] {
   const seen = new Map<number, [number, number]>();
   mesh.F.forEach((f, k) => { const p = params[k]; if (p) f.forEach((v, s) => seen.set(v, p[s])); });
   return [...seen].map(([v, [u, w]]) => ({ u, v: w, p: limitPosition(mesh, v) }));

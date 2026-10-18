@@ -3,7 +3,8 @@
 // regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepMassProperties, evaluateCadPart, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepMassProperties, evaluateCadPart, extrudeFaces, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { boxCage } from '../../src/app/primitives';
 import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
@@ -76,6 +77,17 @@ const scenarios: Scenario[] = [
     let k = 0;
     return () => { const { doc, bodies } = ready[k++ % ready.length]; return checkSpec(doc, bodies, async d => evaluateDoc(d, 1)); };
   } },
+  // (PERF3 A4: SubD builds — cold, each run the cage shifted; a drag, one vertex moved away from every irregular one.)
+  { name: 'subd: box cage build (cold)', budgetMS: 150, runs: 5, setup() { const c = boxCage(30, 20, 16, 1, [0, 0, 0]); let k = 0; return () => subdBrep({ ...c, positions: c.positions.map((x, i) => i % 3 ? x : x + 1e-3 * ++k) }); } },
+  { name: 'subd: 6-a-side box, 4 bumps (cold)', budgetMS: 900, runs: 3, setup() {
+    let c: { positions: readonly number[]; faces: readonly (readonly number[])[] } = boxCage(30, 20, 16, 6, [0, 0, 0]); for (const f of [3, 9, 14, 20]) c = extrudeFaces(c, [f + 180], 2).cage;
+    let k = 0; return () => subdBrep({ ...c, positions: c.positions.map((x, i) => i % 3 ? x : x + 1e-3 * ++k) });
+  } },
+  { name: 'subd: ~2k-face cage, one vertex moved', budgetMS: 60, runs: 5, setup() {
+    const c = boxCage(30, 20, 16, 18, [0, 0, 0]), v = Math.floor(c.positions.length / 6); subdBrep(c); let k = 0;
+    return () => { const p = [...c.positions]; p[3 * v + 2] += 0.01 * ++k; return subdBrep({ ...c, positions: p }); };
+  } },
+  { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 20, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
     const sheet = d.objects[0].id; directDisplay(d); let k = 0;
