@@ -935,6 +935,8 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  * (`exactEdges: false` keeps them fitted).
  */
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
+  // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
+  if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
   for (const br of [a, b]) if (br.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'analytic Boolean: faceted (mesh) faces are not supported yet');
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart } from '../dist/index.js';
+import { loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit } from '../dist/index.js';
 
 // LIB1 (D61): libraries as data — a manifest, parts with sourced (or estimated) parameters, variants, a recipe of
 // part-model features with safe expressions; checked on load; instantiated to features.
@@ -47,7 +47,7 @@ const PLATE = {
       { id: 'f', kind: 'chamfer', target: 'h1', edges: ['p.side0|p.top'], distance: 0.5, when: 'holes > 0 && w >= 60' },
     ],
     outputs: ['f'],
-    interfaces: [{ id: 'top', role: 'mount-face', plane: { origin: [0, 0, { expr: 't' }], normal: [0, 0, 1] } }],
+    interfaces: [{ id: 'top', role: 'mount-face', accepts: ['foot'], frame: { origin: [{ expr: 'w / 2' }, { expr: 'h / 2' }, { expr: 't' }], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'p.top' } }],
   }],
 };
 
@@ -61,10 +61,10 @@ test('loading and instantiating: defaults, variants, values given; derived param
   assert.deepEqual(big.features[2].center, [10, 10]); assert.equal(big.features[2].radius, 2.25); assert.equal(big.features[2].target, 'P1_p');
   assert.deepEqual(big.features[3].edges, ['P1_p.side0|P1_p.top']); assert.equal('when' in big.features[3], false);
   assert.deepEqual(big.outputs, ['P1_f']);
-  assert.deepEqual(big.origin, { library: 'test-plates', version: '1.2.0', part: 'plate', variant: 'B', params: { w: 80, h: 60, t: 5, d: 4.5, holes: 1 } });
+  assert.deepEqual(big.origin, { library: 'test-plates', version: '1.2.0', part: 'plate', variant: 'B', params: {}, values: { w: 80, h: 60, t: 5, d: 4.5, holes: 1 } });
   // (t from the variant row: still the table's estimate; the part's simplified internals said.)
   assert.deepEqual(big.warnings, ['t = 5 mm is an estimate', 'Mounting plate: simplified internals — not for structural calculation']);
-  assert.deepEqual(big.interfaces, [{ id: 'top', role: 'mount-face', plane: { origin: [0, 0, 5], normal: [0, 0, 1] } }]);
+  assert.deepEqual(big.interfaces, [{ id: 'top', role: 'mount-face', accepts: ['foot'], frame: { origin: [40, 30, 5], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'P1_p.top' } }]);
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: big.features };
   const out = evaluateCadPart(doc).output('P1_f');
   // (Less the hole and the 0.5 mm chamfer along the 80 mm edge.)
@@ -110,5 +110,57 @@ test('loading refuses, typed and saying where: format, version, ids, a value wit
   refused(() => loadCadLibrary(part({ recipe: [{ ...P.recipe[0], when: 'w >' }] })), 'EXPRESSION', /ends early/);
   refused(() => loadCadLibrary(part({ recipe: [{ ...P.recipe[0], min: [{ expr: '0', note: 1 }, 0] }] })), 'EXPRESSION', /takes nothing else/);
   refused(() => loadCadLibrary(part({ outputs: ['zz'] })), 'REFERENCE', /outputs/);
-  refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', at: { expr: 'nope' } }] })), 'REFERENCE', /reads nope/);
+  refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', frame: { origin: [0, 0, { expr: 'nope' }], z: [0, 0, 1], x: [1, 0, 0] } }] })), 'REFERENCE', /reads nope/);
+  refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x' }] })), 'FORMAT', /frame must be/);
+  refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', frame: { origin: [0, 0, 0], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'zz.top' } }] })), 'REFERENCE', /zz\.top is not a face/);
+  refused(() => instantiateLibraryPart(loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', frame: { origin: [0, 0, 0], z: [0, 0, 1], x: [1, 0, 1] } }] })), 'plate'), 'RECIPE', /perpendicular/);
+});
+
+/** A block with a pocket on top, and a key that fits it: interfaces on the pocket's floor and the key's bottom. */
+const KEYED = {
+  format: 'barocss-cad-library', version: 1, id: 'test-keys', name: 'Test keys', libraryVersion: '0.1.0', units: 'mm',
+  parts: [
+    { id: 'block', name: 'Block', parameters: { L: { value: 30, source: 'test' }, W: { value: 20, source: 'test' }, H: { value: 10, source: 'test' }, k: { value: 6, source: 'test' }, depth: { value: 4, source: 'test' } },
+      recipe: [
+        { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'L' }, { expr: 'W' }] },
+        { id: 'b', kind: 'extrude', sketch: 's', height: { expr: 'H' } },
+        { id: 'ps', kind: 'sketch', profile: 'rectangle', min: [{ expr: '(L - k) / 2' }, { expr: '(W - k) / 2' }], max: [{ expr: '(L + k) / 2' }, { expr: '(W + k) / 2' }] },
+        { id: 'pk', kind: 'extrude', sketch: 'ps', height: { expr: 'depth + 1' }, from: { expr: 'H - depth' } },
+        { id: 'cut', kind: 'difference', target: 'b', tool: 'pk' }],
+      interfaces: [{ id: 'pocket', role: 'pocket', accepts: ['key'], frame: { origin: [{ expr: 'L / 2' }, { expr: 'W / 2' }, { expr: 'H - depth' }], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'pk.bottom' } }] },
+    { id: 'key', name: 'Key', parameters: { k: { value: 5.8, source: 'test (0.1 mm clearance a side)' }, h: { value: 8, source: 'test' } },
+      recipe: [
+        { id: 's', kind: 'sketch', profile: 'rectangle', min: [{ expr: '-k / 2' }, { expr: '-k / 2' }], max: [{ expr: 'k / 2' }, { expr: 'k / 2' }] },
+        { id: 'key', kind: 'extrude', sketch: 's', height: { expr: 'h' } }],
+      interfaces: [{ id: 'foot', role: 'key', frame: { origin: [0, 0, 0], z: [0, 0, -1], x: [0, 1, 0] }, faces: { plane: 'key.bottom' } }] },
+  ],
+  fits: [
+    { id: 'key-in-pocket', a: { part: 'block', interface: 'pocket' }, b: { part: 'key', interface: 'foot' } },
+    { id: 'key-too-wide', a: { part: 'block', interface: 'pocket' }, b: { part: 'key', params: { k: 6.5 }, interface: 'foot' } },
+  ],
+};
+
+test('LIB2 fits: b placed onto a by interfaces facing each other (an exact rigid placement, offset in a\'s frame); the overlap by the exact Boolean — a key in its pocket overlaps by nothing, a wider key by its excess; declared fits checked on load', () => {
+  const lib = loadCadLibrary(KEYED);
+  const ok = checkLibraryFit(lib, 'key-in-pocket');
+  assert.equal(ok.ok, true); assert.equal(ok.overlapMM3, 0); assert.equal(ok.contact, true);
+  // (Lifted 1 mm off the floor: no overlap, but no contact either — not a fit.)
+  const lifted = checkLibraryFit(lib, { a: KEYED.fits[0].a, b: KEYED.fits[0].b, offset: [0, 0, 1] });
+  assert.deepEqual([lifted.overlapMM3, lifted.contact, lifted.ok], [0, false, false]);
+  // (The key's foot frame: z down, x along +Y; the pocket's: z up, x along +X — the key turned a quarter about Z, its foot on the floor.)
+  const R = ok.placement.rotation; assert.deepEqual(R.map(v => Math.round(v * 1e12) / 1e12 + 0), [0, 1, 0, -1, 0, 0, 0, 0, 1]);
+  const p = ([x, y, z]) => [0, 1, 2].map(i => R[3 * i] * x + R[3 * i + 1] * y + R[3 * i + 2] * z + ok.placement.translation[i]);
+  assert.deepEqual(p([0, 0, 0]).map(v => +v.toFixed(12)), [15, 10, 6]); assert.deepEqual(p([0, 0, 8]).map(v => +v.toFixed(12)), [15, 10, 14]);
+  // (A key 6.5 wide in the 6 mm pocket: 0.25 into each of its four walls, over its 4 mm depth: 6.5² − 6² = 6.25 mm² × 4.)
+  const wide = checkLibraryFit(lib, 'key-too-wide');
+  assert.equal(wide.ok, false); assert.ok(Math.abs(wide.overlapMM3 - 6.25 * 4) < 1e-6, String(wide.overlapMM3));
+  // Moved by an offset: 1 mm along the pocket's x, into one wall by 0.9 over the key's 5.8 × the depth 4.
+  const moved = checkLibraryFit(lib, { a: KEYED.fits[0].a, b: KEYED.fits[0].b, offset: [1, 0, 0] });
+  assert.ok(Math.abs(moved.overlapMM3 - 0.9 * 5.8 * 4) < 1e-6, String(moved.overlapMM3));
+  // Declared fits are checked on load: unknown parts, interfaces, roles that do not accept each other.
+  const bad = fits => () => loadCadLibrary({ ...KEYED, fits });
+  refused(bad([{ id: 'f', a: { part: 'nope', interface: 'x' }, b: KEYED.fits[0].b }]), 'REFERENCE', /no part nope/);
+  refused(bad([{ id: 'f', a: { part: 'block', interface: 'x' }, b: KEYED.fits[0].b }]), 'REFERENCE', /no interface x/);
+  refused(bad([{ id: 'f', a: KEYED.fits[0].b, b: KEYED.fits[0].b }]), 'REFERENCE', /do not accept each other/);
+  refused(bad([KEYED.fits[0], KEYED.fits[0]]), 'FORMAT', /appears twice/);
 });

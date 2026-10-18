@@ -28,8 +28,27 @@ export interface CadLibraryParameter {
 export interface CadLibraryVariant { readonly id: string; readonly name?: string; readonly values: Readonly<Record<string, number>> }
 /** A recipe step: a part-model feature whose numbers may be `{ expr }`, kept only when `when` (an expression) is true. */
 export type CadLibraryRecipeFeature = Readonly<Record<string, unknown>> & { readonly id: string; readonly kind: string; readonly when?: string };
-/** A named mating interface (LIB2 gives them roles and placement); here, its geometry by expressions. */
-export interface CadLibraryInterface { readonly id: string; readonly role: string; readonly [key: string]: unknown }
+/**
+ * A named mating interface (LIB2, D62): its role, the roles it accepts, its frame in the part's own coordinates —
+ * `origin`, `z` (out of the part: the mating face's outward normal, or an axis) and `x` (along it), numbers or
+ * expressions — and the faces mates are made on, by key (`plane`, `side`, `axis`, …) and their part-model names.
+ */
+export interface CadLibraryInterface {
+  readonly id: string; readonly role: string;
+  readonly accepts?: readonly string[];
+  readonly frame: { readonly origin: readonly unknown[]; readonly z: readonly unknown[]; readonly x: readonly unknown[] };
+  readonly faces?: Readonly<Record<string, string>>;
+  /** Present only when this holds (an interface on a slot left closed is not there). */
+  readonly when?: string;
+  readonly description?: string;
+}
+/** One end of a declared fit: a part (its variant and values) and one of its interfaces. */
+export interface CadLibraryFitEnd { readonly part: string; readonly variant?: string; readonly params?: Readonly<Record<string, number>>; readonly interface: string }
+/**
+ * A fit the library declares (LIB2): `b` placed by its interface onto `a`'s — frames facing, x along x — moved by
+ * `offset` (in a's interface frame), and the overlap of the two at most `maxOverlapMM3` (default 1e-6: touching).
+ */
+export interface CadLibraryFit { readonly id: string; readonly a: CadLibraryFitEnd; readonly b: CadLibraryFitEnd; readonly offset?: readonly number[]; readonly maxOverlapMM3?: number; readonly description?: string }
 export interface CadLibraryPart {
   readonly id: string; readonly name: string; readonly category?: string; readonly description?: string;
   readonly parameters: Readonly<Record<string, CadLibraryParameter>>;
@@ -52,9 +71,14 @@ export interface CadLibraryManifest {
   /** Where the data comes from, as a whole; per value in each parameter's `source`. */
   readonly provenance?: string;
   readonly parts: readonly CadLibraryPart[];
+  /** Fits of its parts' interfaces, checked by the library's own tests (`checkLibraryFit`). */
+  readonly fits?: readonly CadLibraryFit[];
 }
-/** What an instance is: the library, its version, the part, the variant and the parameter values used. */
-export interface CadLibraryOrigin { readonly library: string; readonly version: string; readonly part: string; readonly variant?: string; readonly params: Readonly<Record<string, number>> }
+/**
+ * What an instance is: the library, its version, the part, the variant, the values the caller gave (`params`: what is
+ * kept when it is made again — a newer version's defaults and rows apply to the rest) and every value used (`values`).
+ */
+export interface CadLibraryOrigin { readonly library: string; readonly version: string; readonly part: string; readonly variant?: string; readonly params: Readonly<Record<string, number>>; readonly values: Readonly<Record<string, number>> }
 export interface CadLibraryInstance {
   readonly features: CadPartFeature[];
   /** The ids (prefixed) of the features whose bodies are the part. */
@@ -205,7 +229,7 @@ function evaluate(n: Node, values: Readonly<Record<string, number>>, where: stri
 
 // ---- loading -------------------------------------------------------------------------------------------------------
 
-const ID = /^[A-Za-z][A-Za-z0-9_-]*$/, SEMVER = /^\d+\.\d+\.\d+$/;
+const ID = /^[A-Za-z][A-Za-z0-9_-]*$/, VARIANT_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/, SEMVER = /^\d+\.\d+\.\d+$/;
 /** Recipe keys that name other recipe features (renamed with the instance's prefix). */
 const REFERENCE_KEYS = new Set(['sketch', 'target', 'tool', 'gear']);
 /** Recipe keys holding face or edge names, `<feature>.<role>` joined by | or + (their feature ids renamed). */
@@ -238,6 +262,26 @@ export function loadCadLibrary(input: unknown): CadLibrary {
     const loaded = loadPart(p, m.id as string);
     if (parts.has(loaded.part.id)) throw new CadLibraryError('FORMAT', `${m.id}/${loaded.part.id}`, 'a part id appears twice');
     parts.set(loaded.part.id, loaded);
+  }
+  if (m.fits !== undefined) {
+    if (!Array.isArray(m.fits)) throw new CadLibraryError('FORMAT', m.id as string, 'fits must be a list');
+    const seen = new Set<string>();
+    for (const fit of m.fits as unknown[]) {
+      if (!isRecord(fit) || typeof fit.id !== 'string' || !ID.test(fit.id)) throw new CadLibraryError('FORMAT', m.id as string, 'a fit is { id, a, b, offset?, maxOverlapMM3? }');
+      const at = `${m.id}~${fit.id}`;
+      if (seen.has(fit.id)) throw new CadLibraryError('FORMAT', at, 'a fit id appears twice'); seen.add(fit.id);
+      const ends = (['a', 'b'] as const).map(side => {
+        const e = fit[side];
+        if (!isRecord(e) || typeof e.part !== 'string' || typeof e.interface !== 'string') throw new CadLibraryError('FORMAT', `${at}.${side}`, 'an end is { part, variant?, params?, interface }');
+        const lp = parts.get(e.part); if (!lp) throw new CadLibraryError('REFERENCE', `${at}.${side}`, `no part ${e.part}`);
+        const itf = lp.part.interfaces?.find(i => i.id === e.interface); if (!itf) throw new CadLibraryError('REFERENCE', `${at}.${side}`, `${e.part} has no interface ${e.interface}`);
+        if (e.variant !== undefined && !lp.part.variants?.some(v => v.id === e.variant)) throw new CadLibraryError('REFERENCE', `${at}.${side}`, `${e.part} has no variant ${String(e.variant)}`);
+        return itf;
+      });
+      if (!(ends[0].accepts?.includes(ends[1].role) || ends[1].accepts?.includes(ends[0].role))) throw new CadLibraryError('REFERENCE', at, `${ends[0].role} and ${ends[1].role} do not accept each other`);
+      if (fit.offset !== undefined && (!Array.isArray(fit.offset) || fit.offset.length !== 3 || fit.offset.some(x => typeof x !== 'number' || !Number.isFinite(x)))) throw new CadLibraryError('FORMAT', at, 'offset must be three numbers');
+      if (fit.maxOverlapMM3 !== undefined && !(typeof fit.maxOverlapMM3 === 'number' && fit.maxOverlapMM3 >= 0)) throw new CadLibraryError('FORMAT', at, 'maxOverlapMM3 must be a number, 0 or more');
+    }
   }
   return { manifest: m as unknown as CadLibraryManifest, parts };
 }
@@ -280,7 +324,8 @@ function loadPart(p: unknown, lib: string): LoadedPart {
     if (!Array.isArray(p.variants) || p.variants.length > CadLibraryLimits.variants) throw new CadLibraryError('FORMAT', where, `variants must list at most ${CadLibraryLimits.variants}`);
     const seen = new Set<string>();
     for (const v of p.variants as unknown[]) {
-      if (!isRecord(v) || typeof v.id !== 'string' || !ID.test(v.id) || !isRecord(v.values)) throw new CadLibraryError('FORMAT', where, 'a variant is { id, name?, values }');
+      // (A variant may be named by its size: 2020.)
+      if (!isRecord(v) || typeof v.id !== 'string' || !VARIANT_ID.test(v.id) || !isRecord(v.values)) throw new CadLibraryError('FORMAT', where, 'a variant is { id, name?, values }, its id letters, digits, _ and -');
       if (seen.has(v.id)) throw new CadLibraryError('FORMAT', `${where}@${v.id}`, 'a variant id appears twice'); seen.add(v.id);
       for (const [k, x] of Object.entries(v.values)) {
         if (!names.includes(k)) throw new CadLibraryError('REFERENCE', `${where}@${v.id}`, `sets ${k}, which is not a parameter`);
@@ -313,8 +358,17 @@ function loadPart(p: unknown, lib: string): LoadedPart {
     if (!Array.isArray(p.interfaces)) throw new CadLibraryError('FORMAT', where, 'interfaces must be a list');
     const seen = new Set<string>();
     for (const itf of p.interfaces as unknown[]) {
-      if (!isRecord(itf) || typeof itf.id !== 'string' || !ID.test(itf.id) || typeof itf.role !== 'string' || !itf.role) throw new CadLibraryError('FORMAT', where, 'an interface is { id, role, … }');
+      if (!isRecord(itf) || typeof itf.id !== 'string' || !ID.test(itf.id) || typeof itf.role !== 'string' || !itf.role) throw new CadLibraryError('FORMAT', where, 'an interface is { id, role, frame: { origin, z, x }, faces?, accepts? }');
       if (seen.has(itf.id)) throw new CadLibraryError('FORMAT', `${where}.${itf.id}`, 'an interface id appears twice'); seen.add(itf.id);
+      const fr = itf.frame;
+      if (!isRecord(fr) || !(['origin', 'z', 'x'] as const).every(k => Array.isArray(fr[k]) && (fr[k] as unknown[]).length === 3 && (fr[k] as unknown[]).every(c => typeof c === 'number' ? Number.isFinite(c) : isRecord(c) && typeof c.expr === 'string')))
+        throw new CadLibraryError('FORMAT', `${where}.${itf.id}`, 'frame must be { origin, z, x }, each three numbers or { expr }');
+      if (itf.when !== undefined) { const node = parseLibraryExpression(itf.when as string, `${where}.${itf.id}.when`); checkNames(node, names, `${where}.${itf.id}.when`); exprs.set(`itfwhen:${itf.id}`, node); }
+      if (itf.accepts !== undefined && (!Array.isArray(itf.accepts) || itf.accepts.some(r => typeof r !== 'string'))) throw new CadLibraryError('FORMAT', `${where}.${itf.id}`, 'accepts must list roles');
+      if (itf.faces !== undefined) {
+        if (!isRecord(itf.faces)) throw new CadLibraryError('FORMAT', `${where}.${itf.id}`, 'faces must map keys to face names');
+        for (const [k, name] of Object.entries(itf.faces)) if (typeof name !== 'string' || !ids.has(name.split('.')[0])) throw new CadLibraryError('REFERENCE', `${where}.${itf.id}.faces.${k}`, `${String(name)} is not a face of a recipe feature (<feature>.<face>)`);
+      }
       walkRecipe(itf, (value, _key, path) => {
         if (!isRecord(value) || !('expr' in value)) return false;
         const node = parseLibraryExpression(value.expr as string, `${where}.${itf.id}.${path}`); checkNames(node, names, `${where}.${itf.id}.${path}`); exprs.set(`itf:${itf.id}:${path}`, node);
@@ -377,42 +431,46 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
   }
   if (part.simplified) warnings.push(`${part.name}: simplified internals — not for structural calculation`);
   const kept = part.recipe.filter(f => !f.when || evaluateLibraryExpression(exprs.get(`when:${f.id}`)!, values, `${where}:${f.id}.when`) !== 0);
-  const keptIds = new Set(kept.map(f => f.id)), rename = (id: string) => `${prefix}_${id}`;
-  const features: CadPartFeature[] = kept.map(f => {
-    const out = substitute(f, values, exprs, f.id, '', '', where, keptIds, rename) as Record<string, unknown>;
-    delete out.when; out.id = rename(f.id);
-    return out as unknown as CadPartFeature;
-  });
-  // (An output left out by its `when` — an optional finishing step — is the body it would have changed: back along
-  // `target` to a kept feature; a left-out feature that makes a body has none, refused.)
-  const byId = new Map(part.recipe.map(f => [f.id, f]));
-  const outputs = (part.outputs ?? [part.recipe[part.recipe.length - 1].id]).map(o => {
-    let [id, k] = o.split('/');
+  const keptIds = new Set(kept.map(f => f.id)), rename = (id: string) => `${prefix}_${id}`, byId = new Map(part.recipe.map(f => [f.id, f]));
+  // (A reference to a step left out by its `when` — an optional finish or cut — is to the body that step would have
+  // changed: back along its `target` to a kept feature; a left-out step that makes a body has none, refused.)
+  const resolve = (ref: string, at: string): string => {
+    let [id, k] = ref.split('/');
     for (let guard = 0; !keptIds.has(id) && guard < CadLibraryLimits.recipe; guard++) {
       const target = byId.get(id)?.target;
-      if (typeof target !== 'string') throw new CadLibraryError('RECIPE', where, `output ${o} is left out by its when for these values, and changes no other body`);
+      if (typeof target !== 'string') throw new CadLibraryError('RECIPE', at, `${ref} is left out by its when for these values, and changes no other body`);
       [id, k] = target.split('/');
     }
     return k === undefined ? rename(id) : `${rename(id)}/${k}`;
+  };
+  const features: CadPartFeature[] = kept.map(f => {
+    const out = substitute(f, values, exprs, f.id, '', '', where, keptIds, rename, resolve) as Record<string, unknown>;
+    delete out.when; out.id = rename(f.id);
+    return out as unknown as CadPartFeature;
   });
-  const interfaces = (part.interfaces ?? []).map(itf => ({ ...(substituteInterface(itf, values, exprs, where) as Record<string, unknown>), id: itf.id, role: itf.role }) as CadLibraryInterface);
-  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: used }, warnings, interfaces };
+  // (An output left out by its `when` is the body it would have changed, as for references.)
+  const outputs = (part.outputs ?? [part.recipe[part.recipe.length - 1].id]).map(o => resolve(o, `${where} output`));
+  const interfaces = (part.interfaces ?? []).filter(itf => !itf.when || evaluateLibraryExpression(exprs.get(`itfwhen:${itf.id}`)!, values, `${where}.${itf.id}.when`) !== 0).map(itf => {
+    const out = { ...(substituteInterface(itf, values, exprs, where) as Record<string, unknown>), id: itf.id, role: itf.role } as unknown as CadLibraryInterface;
+    const z = out.frame.z as number[], x = out.frame.x as number[], nz = Math.hypot(...z), nx = Math.hypot(...x);
+    if (!(nz > 0 && nx > 0) || Math.abs(z[0] * x[0] + z[1] * x[1] + z[2] * x[2]) > 1e-9 * nz * nx) throw new CadLibraryError('RECIPE', `${where}.${itf.id}`, 'frame z and x must be non-zero and perpendicular');
+    const faces = itf.faces ? Object.fromEntries(Object.entries(itf.faces).map(([k, name]) => { const [id, ...rest] = name.split('.'); return [k, keptIds.has(id) ? [rename(id), ...rest].join('.') : name]; })) : undefined;
+    const kept = { ...out, ...(faces ? { faces } : {}) } as Record<string, unknown>; delete kept.when;
+    return kept as unknown as CadLibraryInterface;
+  });
+  return { features, outputs, origin: { library: lib.manifest.id, version: lib.manifest.libraryVersion, part: part.id, ...(variant ? { variant: variant.id } : {}), params: given, values: used }, warnings, interfaces };
 }
 /** A recipe value with its expressions evaluated and its references renamed. */
-function substitute(value: unknown, values: Readonly<Record<string, number>>, exprs: ReadonlyMap<string, Node>, fid: string, key: string, path: string, where: string, kept: ReadonlySet<string>, rename: (id: string) => string): unknown {
-  if (Array.isArray(value)) return value.map((x, i) => substitute(x, values, exprs, fid, key, `${path}[${i}]`, where, kept, rename));
+function substitute(value: unknown, values: Readonly<Record<string, number>>, exprs: ReadonlyMap<string, Node>, fid: string, key: string, path: string, where: string, kept: ReadonlySet<string>, rename: (id: string) => string, resolve: (ref: string, at: string) => string): unknown {
+  if (Array.isArray(value)) return value.map((x, i) => substitute(x, values, exprs, fid, key, `${path}[${i}]`, where, kept, rename, resolve));
   if (isRecord(value)) {
     if ('expr' in value && path) return evaluateLibraryExpression(exprs.get(`${fid}:${path}`)!, values, `${where}:${fid}.${path}`);
     const out: Record<string, unknown> = {};
-    for (const [k, x] of Object.entries(value)) out[k] = path === '' && k === 'id' ? x : substitute(x, values, exprs, fid, k, path ? `${path}.${k}` : k, where, kept, rename);
+    for (const [k, x] of Object.entries(value)) out[k] = path === '' && k === 'id' ? x : substitute(x, values, exprs, fid, k, path ? `${path}.${k}` : k, where, kept, rename, resolve);
     return out;
   }
   if (typeof value === 'string' && path) {
-    if (REFERENCE_KEYS.has(key)) {
-      const [id, k] = value.split('/');
-      if (!kept.has(id)) throw new CadLibraryError('RECIPE', `${where}:${fid}.${path}`, `${id} is left out by its when for these values`);
-      return k === undefined ? rename(id) : `${rename(id)}/${k}`;
-    }
+    if (REFERENCE_KEYS.has(key)) return resolve(value, `${where}:${fid}.${path}`);
     if (NAME_KEYS.has(key.replace(/\[\d+\]$/, ''))) return value.replace(/(^|[|+])([A-Za-z][A-Za-z0-9_-]*)(?=\.)/g, (m, sep, id) => kept.has(id) ? `${sep}${rename(id)}` : m);
   }
   return value;

@@ -2410,3 +2410,79 @@ Evidence: kernel `test/library.test.mjs` 3/3.
 
 Next: LIB2 — interfaces with roles, placement by snapping one onto a face or interface (real mates), and fit checks of
 declared pairs; with the T-slot 20 series library as the first data.
+
+## D62 — LIB2: interfaces, placement by interfaces, declared fits checked by building them; the T-slot 20 series as data (2026-10-18)
+
+Decision:
+- **An interface:** `{ id, role, accepts?, frame: { origin, z, x }, faces?, when? }` in the part's own coordinates,
+  numbers or expressions.
+  - `z` points out of the part (the mating face's outward normal); `x` runs along it. They must be perpendicular,
+    which instantiation checks.
+  - `faces` names, by key, the faces mates are made on: `plane` (flat, flush) and `axis` (round, on one axis).
+  - `when` makes an interface present only with its feature, e.g. a slot left closed has no slot interface.
+- **`placeByInterfaces(a, b, offset)`** (`library-fit.ts`) is exact: R takes b's (x, y, z) to (x_a, −y_a, −z_a), so
+  the frames face each other, and b's origin goes to a's moved by `offset` in a's frame.
+- **Declared fits** (`fits` in the manifest: two ends of part, variant, values and interface, plus an offset) are
+  checked on load: the parts and interfaces exist, and the roles accept each other.
+- **`checkLibraryFit`** builds both parts, places b, and measures their overlap with the exact Boolean intersection.
+  It also checks contact: b pushed 0.01 mm further into a must overlap. Parts standing apart do not pass. ok when
+  both hold.
+- **Recipe references** to a step left out by its `when` resolve back along its `target`, as outputs do, so optional
+  slot cuts chain.
+- **Variant ids** may begin with a digit (2020).
+- **Fixed in passing:** `booleanAnalytic` silently ran another operation's selection for an unknown operation name
+  ('intersect'). It now refuses (INPUT).
+- **Studio: `snapByInterfaces(doc, a, b, offset)`.**
+  - b, an instance, is placed exactly through a's placement.
+  - Real mates are added on the faces both interfaces name: coincident for `plane`, concentric for `axis`. The solver
+    keeps b where it was placed; the remaining freedom (sliding along the slot) stays free.
+  - Refused: roles that do not mate, the base part as b, a grounded b, an unknown interface.
+- **The built-in "T-slot 20 series"** (`apps/cad-studio/src/library/builtin/tslot-20.json`, 0.1.0) is written for
+  BaroCSS from the shape of a typical B-type slot-6 system. No supplier data was copied.
+  - Every cross-section value is flagged an estimate, to verify against a datasheet. The license is "CC0-1.0,
+    legal review before release".
+  - **Profile** (20×20 with 1–4 open slots, 20×40 with six): 45°-tapered undercut slots, which leave diagonal webs,
+    and a core bore. Simplified internals. Interfaces: each slot's lip underside, both ends, two faces.
+  - **Slot nut M5:** trapezoidal, 0.2 mm clearance, tap-drill hole.
+  - **End cap 20×20** and an **angle bracket** with clearance holes.
+  - Fits: a nut in a 20×20 and in a 20×40 slot, a cap on the end, a bracket on the top face.
+
+Evidence:
+- **Kernel** `test/library.test.mjs` 4/4 (+1). A key in its pocket (0.1 mm clearance a side):
+  - the placement exact, R a quarter turn about Z, the foot on the floor; overlap 0 with contact;
+  - a 6.5 mm key overlaps by 6.25 × 4 = 25 mm³;
+  - 1 mm along the pocket overlaps by 0.9 × 5.8 × 4;
+  - lifted 1 mm: no overlap, no contact, not ok;
+  - fit declarations refused on load: an unknown part, an unknown interface, roles that do not accept each other, a
+    duplicate.
+- **Studio** `test/library.test.ts`:
+  - every T-slot part builds valid in each variant (slot interfaces 4, 1 and 6), its estimates said;
+  - the four declared fits: overlap 0, contact, 20–80 ms each;
+  - a nut snapped 30 mm along the top slot sits with its top at the lip underside (y 8.2, upright), with one
+    coincident mate on `lib1_t1x.side1`/`lib1_n.side5`;
+  - solved again, it stays; the rail moved up 100, the nut follows to 108.2;
+  - refusals.
+
+## D63 — LIB3: a library part as a node — its features kept with the document, regenerated from the library (2026-10-18)
+
+Decision:
+- **Node `library`:** `{ name, library: origin, prefix, features, outputs, interfaces, warnings }`.
+  - The features are ordinary part-model features as the library made them, ids prefixed `lib<k>`, unique in the
+    document. The node's own feature passes the output on under the node's id, so its body is keyed as any other.
+  - The document opens and evaluates without the library.
+- **Origin:** `params` holds the values the caller gave; `values` holds every value used. Regenerating
+  (`regenerateLibraryNode`, when the library is there) keeps the given values and the variant, and takes everything
+  else — the row, defaults, estimates — from the library as it is now, at its version.
+- **Face names hold:** the same prefix and recipe give the same names, so mates and references survive. A changed
+  recipe goes through A1.3's re-match like any edit.
+- **Notes on the body:** "From <library> <version>: <part> (<variant>)", then the warnings (each estimate used,
+  simplified internals).
+- **Insertion:** into a part's own tree (`insertLibraryPart`), or as a new assembly instance holding the part
+  (`libraryInstance`).
+
+Evidence (`test/library.test.ts`):
+- A 250 mm 20×20 profile: origin and name; the notes from the library, the wo estimate and the caveat.
+- Saved, its library id changed to one not installed, and read back: the same volume and faces; not regenerated.
+- A copy of the library at 0.2.0 with a 6.0 opening: regenerated at 0.2.0 with L 250 kept and wo 6.0. The volume
+  gains exactly 4 slots × the section difference (43.58 → 42.85 mm²) × 250. The interface face names are unchanged.
+- Studio 309/309.
