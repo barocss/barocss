@@ -132,6 +132,8 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .ol-swatch { width: 9px; height: 9px; flex: none; border-radius: 3px; background: #b9bdc4; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
 .ol-name-edit { flex: 1; min-width: 0; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg); color: var(--text); font: 400 12px var(--sans); }
 .hidden-obj .ol { opacity: 0.5; }
+/* Bodies from before the change, while it evaluates (or after it failed): dimmed, not interactive. */
+.ol-row.stale .ol { opacity: 0.45; font-style: italic; cursor: default; }
 .kv-input { width: 132px; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid #4a4d53; background: var(--bg); color: var(--text); font: 400 12px var(--sans); }
 .swatches { display: inline-flex; flex-wrap: wrap; gap: 3px; justify-content: flex-end; max-width: 150px; }
 .swatch { position: relative; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 4px; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }

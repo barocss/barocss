@@ -3056,6 +3056,36 @@ Browser evidence (added at the peer's review):
   - The engine gives 9,737 mm³ in Node, as D52 recorded.
   - The step now waits for the ring's own bounds (50 × …) before reading the volume; its volume check is unchanged.
   - Rerun after step 99: passes. The full flow was not rerun after the fix.
-- **TODO (studio, not fixed here):** the body panel pairs the new document's names with the previous evaluation's bodies until the new one arrives. It should show nothing, or "evaluating", in between.
+- The body panel paired the new document's names with the previous evaluation's bodies until the new one arrived. Fixed in D77.
 
 Next: R7 (SD2).
+
+## D77 — Stale evaluation results never shown under the new document (2026-10-18)
+
+Found by the AM5 browser flow; fixed at the peer's review (contained defect, fixed now).
+
+The fault: the studio kept the last evaluation's bodies while a new document evaluated (a 30k-triangle mesh takes
+about a second). The body panel named them from the new document. A box's 16,384 mm³ showed as "Mesh ring".
+
+Decision (`src/App.tsx`):
+- **Each body list is tagged with the evaluated document it was computed for** (`bodiesFor`, by identity).
+  - A command's preview bodies, set at once on Apply, are claimed by the document that commit produces. So the step back to old bodies stays avoided (D-preview) without a stale tag.
+  - Fresh means `bodiesFor === evaluated`.
+- **While stale:**
+  - The outliner's count reads "evaluating…" (or "not up to date" after a failed evaluation).
+  - The bodies are listed dimmed, not interactive, named from the document they were computed for.
+  - A selected body's card says it is evaluating and shows no name or values.
+  - The part summary (mass, centre, bounds) and a proposal's volume change are hidden.
+  - The requirement checks do not run.
+  - The chat's selection context is empty.
+  - STL and 3MF export refuse with "still evaluating".
+  - STEP, drawings and the chat evaluate the document themselves, and so were already current.
+- The viewport keeps drawing the old bodies until the new ones land: that is geometry with its own face names, not paired with the new document.
+
+Evidence:
+- Browser flow step 100 is now a test of this:
+  - a box is made; the ring file is opened, and the first outliner row is clicked at once;
+  - a MutationObserver checks every DOM change until the ring is current.
+- Against the previous `App.tsx` it fails with "props: Mesh ring with 16384 mm³" (several times). With the fix it passes, and the evaluating state was seen.
+- Full browser flow 118/118; studio 337/337; lint 0 errors.
+

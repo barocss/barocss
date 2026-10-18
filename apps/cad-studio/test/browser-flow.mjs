@@ -2328,11 +2328,32 @@ try {
     const part = join(out, 'ring-hole.bcad');
     fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {},
       nodes: [{ id: 'n0', kind: 'mesh', name: 'ring', unit: 'mm', positions: P, indices: I, representation: 'facets' }, { id: 'n1', kind: 'hole', parent: { node: 0, side: 'solid' }, center: [20, 0.37], radius: 2 }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', part);
-    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'hole' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    // While the ring evaluates, the panel must never show the box before it under the ring's name (it once showed
+    // 16,384 mm³, a 32 × 32 × 16 box, as "Mesh ring", its row clicked while the ring evaluated). Watched on every DOM change.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    // (The ring's own body: its bounds, not the previous part's body still shown while the 30k mesh evaluates.)
-    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Bounds 50 × /.test(document.querySelector('.props')?.textContent ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.evaluate(() => {
+      const seen = window.__staleWatch = { evaluating: 0, bad: [] };
+      const look = () => {
+        const props = document.querySelector('.props'), name = props?.querySelector('input[aria-label="Name"]')?.value ?? '', text = props?.textContent ?? '';
+        const vol = Number(/Volume\s*([\d,]+) mm³/.exec(text)?.[1]?.replace(/,/g, '') ?? NaN);
+        if (/evaluating…/.test(document.querySelector('.outliner .card-title')?.textContent ?? '')) seen.evaluating++;
+        if (/Mesh ring/.test(name) && Number.isFinite(vol) && !(vol < 9870 && vol > 9600)) seen.bad.push(`props: ${name} with ${vol} mm³`);
+        for (const row of document.querySelectorAll('.outliner .ol-row.stale')) if (/Mesh ring/.test(row.textContent ?? '')) seen.bad.push('a stale row named Mesh ring');
+      };
+      window.__staleObs = new MutationObserver(look); window.__staleObs.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
+    });
+    await page.setInputFiles('input[aria-label="Model file"]', part);
+    // (The document is the ring now; its body may not be: the first row clicked at once, as a person might.)
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'hole', null, { timeout: 60000 });
+    await page.locator('.outliner .ol').first().click({ timeout: 5000 }).catch(() => { /* no row yet */ });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const watch = await page.evaluate(() => { window.__staleObs.disconnect(); return window.__staleWatch; });
+    assert.deepEqual(watch.bad, []); assert.ok(watch.evaluating > 0, 'the evaluating state was seen while the ring evaluated');
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
     const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
     const ring = 2 * Math.PI * Math.PI * 20 * 25;
     assert.ok(vol < ring && vol > ring - 2 * Math.PI * 4 * 10, `${vol}`);

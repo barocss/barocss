@@ -689,6 +689,7 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | AM3 — printability rules | (see git log) | Wall, hole, horizontal hole, gap, cavity, bed fit, overhang, warp and tip, each with status, value, limit and source; unknown and n/a said (D74). |
 | AM4 — print orientation | (see git log) | Fibonacci and face-down candidates, normalised terms with the profile's weights, support by rays through a triangle tree, deterministic top three; `orient_for_print`; cavities by B-rep shells (D75). |
 | AM5 — 3MF export | (see git log) | Own ZIP and CRC-32, CompressionStream deflate; welded objects, base materials, face colours (base or colour group), Production UUIDs, items turned and set on the bed by the print direction; Export 3MF button (D76). |
+| Stale results | (see git log) | Bodies tagged with the document they were computed for; while stale, no names, values, checks or exports paired with the new document (D77). |
 
 Checks at the end:
 
