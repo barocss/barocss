@@ -561,8 +561,23 @@ export const emptyCadPart = (): CadPartDocument => ({ format: 'barocss-cad-part'
 
 function deepFreeze<T>(v: T): T { if (v && typeof v === 'object' && !ArrayBuffer.isView(v) && !Object.isFrozen(v)) { Object.freeze(v); for (const x of Object.values(v)) deepFreeze(x); } return v; }
 /** The feature with parameters replaced by their values (the reuse key). */
+/**
+ * Long texts (an imported STEP file) stand in the reuse keys as an exact id from a map of the last few, compared by
+ * content — not written out again into every key (a 30 MB file was 70–90 ms an evaluation; PERF3 C16). An id is never
+ * given to another text; a text fallen out of the map gets a new one (a miss, not a wrong reuse).
+ */
+const LONG_TEXT = 1 << 16, TEXTS_KEPT = 8, textIds = new Map<string, number>();
+let nextTextId = 1;
+function textKey(t: string): string {
+  let id = textIds.get(t);
+  if (id === undefined) { id = nextTextId++; if (textIds.size >= TEXTS_KEPT) textIds.delete(textIds.keys().next().value!); }
+  else textIds.delete(t);
+  textIds.set(t, id);
+  return `\u0000text#${id}:${t.length}`;
+}
 function resolvedDefinition(f: unknown, parameters: Readonly<Record<string, number>>): unknown {
   if (isMeshArray(f)) return hashOfArray(f);
+  if (typeof f === 'string' && f.length > LONG_TEXT) return textKey(f);
   if (Array.isArray(f)) return f.map(x => resolvedDefinition(x, parameters));
   if (isRecord(f)) { if (typeof f.parameter === 'string' && Object.keys(f).length === 1) return parameters[f.parameter]; return Object.fromEntries(Object.entries(f).filter(([k]) => k !== 'id').map(([k, v]) => [k, resolvedDefinition(v, parameters)])); }
   return f;

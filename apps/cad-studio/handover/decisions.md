@@ -3882,3 +3882,31 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 - **Tests:**
   - Kernel `subd.test.mjs`: the top's centre raised (a new extent) reuses every cap, under half a cold build. It fails on the code before (89 against 175 ms).
   - Kernel 1018/1019 (the known Node-version test); conformance 67/67.
+
+**Kernel: the quadrature run twice, an import's text in every key, the STEP tokens**
+- **Mass and area.** `brepSurfaceArea` ran the same two-pass quadrature (`quadrature(brep, 8)`) as `brepMassProperties`, and a STEP export's validation properties ask for both. `quadrature` is now kept per B-rep and step in a WeakMap.
+
+  | | Before | After |
+  |---|---|---|
+  | 16-hole plate, mass and area | 779 ms | 468 ms |
+  | 16-hole plate, STEP export | 732 ms | 512 ms |
+  | fillet box, mass and area | 853 ms | 478 ms |
+  | fillet box, STEP export | 890 ms | 552 ms |
+
+  Values and the exported text are identical (hashed).
+- **An import's text in the reuse key.** The part model's per-feature key (`resolvedDefinition`) wrote an imported STEP text out whole, on every evaluation: 27 ms an edit beside a 10.4 MB import (about 80 ms at 30 MB). Texts over 64 KB now stand as an exact id from a map of the last 8 texts. A Map compares the text by content, so an id is never shared; a text fallen out of the map only misses. After: 1 ms.
+- **STEP tokens.** `parseData` matched each token with a `^` expression on a fresh `slice` of the rest of the text, tested white space with `/\s/` a character, and built strings a character at a time. Now:
+  - sticky expressions at the reader's place;
+  - white space by its code (`/\s/` only past ASCII);
+  - strings by `indexOf`;
+  - the comment pass skipped when there is no comment.
+
+  | Read | Before | After |
+  |---|---|---|
+  | tessellated 10.4 MB, `stepMeshes` | 175 ms | 141 ms |
+  | tessellated 10.4 MB, `importStep` | 355 ms | 307 ms |
+  | planar 13.6 MB, `stepMeshes` | 240 ms | 178 ms |
+  | planar 13.6 MB, `importStep` | 713 ms | 657 ms |
+
+  `importStep` and `stepMeshes` outputs are identical (hashed) on a B-rep plate, an odd text (comments, a doubled quote, a non-breaking space), a planar mesh and a tessellated one.
+- **Tests:** kernel `perf3-c16.test.mjs` (3): mass and area share one run with the same values; an edit beside a long import reuses it, and another text is read anew; odd tokens and an unterminated string. Kernel 1018/1019 before these; conformance 67/67; RB no NEW.

@@ -48,7 +48,20 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
  * The integrals over the exact surfaces (ten volume integrals and the area), extrapolated from q and 2q a
  * quarter when any face was integrated over its tessellation; null when a face cannot be integrated so.
  */
+/**
+ * The quadrature's integrals, kept per B-rep and step (PERF3 C16): mass properties and surface area read the same
+ * run — a STEP export's validation properties ask for both — and a B-rep is a value. Read only by the callers.
+ */
+const quadratures = new WeakMap<Brep, Map<number, number[] | null>>();
 function quadrature(brep: Brep, q: number): number[] | null {
+  let byQ = quadratures.get(brep);
+  if (!byQ) { byQ = new Map(); quadratures.set(brep, byQ); }
+  if (byQ.has(q)) return byQ.get(q)!;
+  const out = quadratureOf(brep, q);
+  byQ.set(q, out);
+  return out;
+}
+function quadratureOf(brep: Brep, q: number): number[] | null {
   try {
     // (Integrated without the tessellation, the result does not depend on q: no second pass.)
     const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;

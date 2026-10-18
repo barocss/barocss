@@ -27,38 +27,51 @@ type Value = number | string | { ref: number } | { enum: string } | null | '*' |
 interface Entity { type: string; args: Value[]; parts?: { type: string; args: Value[] }[] }
 const refuse = (detail: string): never => { throw new BrepError('INPUT', 'STEP: ' + detail); };
 
+// (Tokens matched where the reader stands — sticky, without a copy of the rest of the text — and white space told by
+// its code, the regular expression only past ASCII: the same tokens as before, about a quarter faster; PERF3 C16.)
+const REF = /\d+/y, ENUM = /\.([A-Z0-9_]+)\./y, NUM = /[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/y, WORD = /[A-Z_][A-Z0-9_]*/y, HEAD = /#(\d+)\s*=\s*/y;
+const sticky = (re: RegExp, s: string, at: number): RegExpExecArray | null => { re.lastIndex = at; return re.exec(s); };
+/** Whether a character is white space as /\s/ has it. */
+function space(s: string, i: number): boolean {
+  const c = s.charCodeAt(i);
+  return c === 32 || (c >= 9 && c <= 13) || (c > 127 && (c === 0xa0 || /\s/.test(s[i])));
+}
 /** The DATA section's instances: simple ones and complex ones (as their partial entities). */
 function parseData(source: string): Map<number, Entity> {
-  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.includes('/*') ? source.replace(/\/\*[\s\S]*?\*\//g, '') : source);
   if (!data) refuse('no DATA section');
   const s = data![1], out = new Map<number, Entity>();
   let i = 0;
-  const ws = () => { while (i < s.length && /\s/.test(s[i])) i++; };
+  const ws = () => { while (i < s.length && space(s, i)) i++; };
   const value = (): Value => {
     ws();
     const c = s[i];
     if (c === '(') { i++; const list: Value[] = []; ws(); if (s[i] === ')') { i++; return list; } for (;;) { list.push(value()); ws(); if (s[i] === ',') { i++; continue; } if (s[i] === ')') { i++; return list; } refuse(`bad list near ${s.slice(i, i + 20)}`); } }
-    if (c === "'") { let t = ''; i++; for (;;) { if (i >= s.length) refuse('unterminated string'); if (s[i] === "'") { if (s[i + 1] === "'") { t += "'"; i += 2; continue; } i++; return t; } t += s[i++]; } }
-    if (c === '#') { i++; const m = /^\d+/.exec(s.slice(i))!; i += m[0].length; return { ref: Number(m[0]) }; }
-    if (c === '.') { const m = /^\.([A-Z0-9_]+)\./.exec(s.slice(i)); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
+    if (c === "'") {
+      // (A quote doubled is one quote.)
+      let t = ''; i++;
+      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return t; }
+    }
+    if (c === '#') { i++; const m = sticky(REF, s, i)!; i += m[0].length; return { ref: Number(m[0]) }; }
+    if (c === '.') { const m = sticky(ENUM, s, i); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
     if (c === '$') { i++; return null; }
     if (c === '*') { i++; return '*'; }
-    const num = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/.exec(s.slice(i));
+    const num = sticky(NUM, s, i);
     if (num) { i += num[0].length; return Number(num[0]); }
-    const word = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i));
+    const word = sticky(WORD, s, i);
     if (word) { i += word[0].length; ws(); const args = value(); return { type: word[0], args: args as Value[] }; } // a typed parameter (LENGTH_MEASURE(…))
     return refuse(`unexpected ${s.slice(i, i + 20)}`);
   };
   while (i < s.length) {
     ws(); if (i >= s.length) break;
-    const head = /^#(\d+)\s*=\s*/.exec(s.slice(i)); if (!head) refuse(`expected an instance near ${s.slice(i, i + 30)}`);
+    const head = sticky(HEAD, s, i); if (!head) refuse(`expected an instance near ${s.slice(i, i + 30)}`);
     i += head![0].length; ws();
     if (s[i] === '(') {
       i++; const parts: { type: string; args: Value[] }[] = [];
-      for (;;) { ws(); if (s[i] === ')') { i++; break; } const w = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i)); if (!w) refuse('bad complex instance'); i += w![0].length; parts.push({ type: w![0], args: value() as Value[] }); }
+      for (;;) { ws(); if (s[i] === ')') { i++; break; } const w = sticky(WORD, s, i); if (!w) refuse('bad complex instance'); i += w![0].length; parts.push({ type: w![0], args: value() as Value[] }); }
       out.set(Number(head![1]), { type: 'COMPLEX', args: [], parts });
     } else {
-      const w = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i)); if (!w) refuse('expected an entity name');
+      const w = sticky(WORD, s, i); if (!w) refuse('expected an entity name');
       i += w![0].length; out.set(Number(head![1]), { type: w![0], args: value() as Value[] });
     }
     ws(); if (s[i] === ';') i++;
