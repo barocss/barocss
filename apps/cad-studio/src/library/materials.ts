@@ -38,7 +38,7 @@ export function checkMaterials(d: MaterialsData): string[] {
     for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
   }
   // (Printing processes carry every printing threshold; printers name a known process, a positive build volume and layer.)
-  const AM = ['minWallUnsupported', 'maxOverhangDeg', 'maxBridgeMM', 'minHoleMM', 'fitGap', 'escapeHoleMM', 'escapeHoles', 'horizontalHoleMM'];
+  const AM = ['minWallUnsupported', 'maxOverhangDeg', 'maxBridgeMM', 'minHoleMM', 'fitGap', 'escapeHoleMM', 'escapeHoles', 'horizontalHoleMM', 'warpLrefMM'];
   for (const p of d.profiles) if (p.additive) for (const k of AM) if (!p.thresholds[k]) problems.push(`${p.id}: no ${k}`);
   const pids = new Set(d.profiles.map(p => p.id)), prn = new Set<string>();
   for (const pr of d.printers ?? []) {

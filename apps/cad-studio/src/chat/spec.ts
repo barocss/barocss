@@ -15,6 +15,7 @@ import { checkPlacedSpurGears, checkPlacedSpurRack, instantiateLibraryPart } fro
 import { libraryById } from '../library/libraries';
 import { holeAlignment } from '../library/alignment';
 import { overhangOf } from '../print/overhang';
+import { printability } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { faceTableOf } from '../assembly/faces';
 
@@ -38,7 +39,9 @@ export type Query =
   /** R6b.2: the largest offset (mm) of the standoffs' screw axes from a board's holes (`board`: base or a part id). */
   | { fn: 'hole_alignment'; board: string; features?: string[] }
   /** AM2: the area (mm²) overhanging past the printing process's limit, built along `direction` (default +Z); `body` one body. */
-  | { fn: 'overhang_area'; body?: string; direction?: [number, number, number] };
+  | { fn: 'overhang_area'; body?: string; direction?: [number, number, number] }
+  /** AM3: one printability rule's value (wall, hole, gap, cavity, bed-fit, overhang, warp, tip …); unknown or n/a, said. */
+  | { fn: 'print_rule'; rule: string; direction?: [number, number, number] };
 /** `==`: value ± tol; `<=` / `>=`: against value (tol allowed); `between`: min … max. */
 export interface Predicate { op: '==' | '<=' | '>=' | 'between'; query: Query; value?: number; tol?: number; min?: number; max?: number; unit?: string }
 export interface Requirement {
@@ -143,6 +146,13 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
+    case 'print_rule': {
+      const report = await printability(doc, bodies, evaluate, q.direction ? { direction: q.direction } : {});
+      const r = report.rules.find(x => x.id === q.rule);
+      if (!r) return { unknown: `no rule ${q.rule} (rules: ${report.rules.map(x => x.id).join(', ')})` };
+      if (r.status === 'unknown' || r.status === 'n/a' || r.value === undefined) return { unknown: `${q.rule}: ${r.status === 'n/a' ? 'not applicable — ' : ''}${r.why ?? r.message}` };
+      return { x: r.value, ...(r.entities ? { entities: [...r.entities] } : {}), hint: `${r.status}: ${r.message}${r.limit !== undefined ? ` (limit ${r.limit}${r.unit ? ` ${r.unit}` : ''}, ${r.source})` : ''}` };
+    }
     case 'overhang_area': {
       const profile = processProfile(doc.process);
       if (!profile?.additive) return { unknown: profile ? `${profile.label} is not printing: no overhang limit` : 'no printing process is chosen' };
@@ -223,7 +233,7 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 
-const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area'];
+const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area', 'print_rule'];
 /** Why a requirement cannot be kept (malformed), or null. */
 export function checkRequirement(r: unknown): string | null {
   if (typeof r !== 'object' || r === null) return 'a requirement is an object';

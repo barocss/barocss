@@ -9,6 +9,7 @@ import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, sol
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
 import { faceTableOf } from '../assembly/faces';
+import { printability } from '../print/rules';
 import { UNLICENSED } from '../library/sharing';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -84,7 +85,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -215,6 +216,12 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       return { doc: r.doc, isError: false, changed: true, summary: `added ${r.node.name} to the body on ${args.face}`,
         content: json({ ok: true, added: r.node.name, feature: r.doc.nodes.length - 1, ...(r.node.context ? { context: r.node.context } : {}), warnings: r.node.warnings }) };
     }
+    case 'check_printability': {
+      // (AM3: the rules for the part's printing process, printer and orientation — read only.)
+      const dir = vec3(args.direction);
+      const report = await printability(doc, state.bodies, evaluate, dir ? { direction: dir } : {});
+      return { doc, content: json(report), isError: false, changed: false, summary: `printability: ${report.rules.filter(r => r.status === 'fail').length} failing, ${report.rules.filter(r => r.status === 'warn').length} warned` };
+    }
     case 'snap_part': {
       const end = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.interface === 'string' ? { part: v.part, interface: v.interface } : null;
       const a = end(args.a), b = end(args.b), offset = args.offset === undefined ? [0, 0, 0] : vec3(args.offset);
@@ -286,6 +293,11 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'add_library_part',
     description: 'Adds a library part (a screw boss, a standoff …) to a body of the part as one step: its base put on a flat face at a point (facing out of it), united with the body. Its rules are checked against the wall measured there (or "context": {wall}) — warnings with margins, a rule that cannot be met refused; refused too when its base is not all on the body. Changes the part: at L2 it is a proposal unless the part is empty.',
     input_schema: { type: 'object', properties: { library: { type: 'string' }, part: { type: 'string' }, variant: { type: 'string' }, params: { type: 'object', additionalProperties: { type: 'number' } }, face: { type: 'string' }, point: xyz, x_direction: xyz, context: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['library', 'part', 'face', 'point'], additionalProperties: false },
+  },
+  {
+    name: 'check_printability',
+    description: 'Printability of the part for its printing process and printer (doc settings) as it lies (direction: the build direction, else the chosen one): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping — each pass, warn, fail, unknown (why) or n/a, with values, limits and their sources.',
+    input_schema: { type: 'object', properties: { direction: xyz }, additionalProperties: false },
   },
   {
     name: 'snap_part',

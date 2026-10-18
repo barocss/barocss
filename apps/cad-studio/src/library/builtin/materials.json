@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.5.0",
+ "libraryVersion": "0.6.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -585,6 +585,18 @@
      "unit": "mm",
      "source": "P-FDM",
      "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 100,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "tipRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
     }
    },
    "additive": true
@@ -694,6 +706,18 @@
      "unit": "mm",
      "source": "P-SLA",
      "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 150,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "tipRatio": {
+     "value": 6,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
     }
    },
    "additive": true
@@ -803,6 +827,12 @@
      "unit": "mm",
      "source": "P-SLS",
      "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 200,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
     }
    },
    "additive": true
@@ -912,6 +942,12 @@
      "unit": "mm",
      "source": "P-MJF",
      "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 200,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
     }
    },
    "additive": true

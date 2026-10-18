@@ -36,6 +36,7 @@ function full(): StudioDoc {
     libraries: [{ library: { format: 'barocss-cad-library', version: 1, id: 'mine', name: 'Mine', libraryVersion: '1.0.0', units: 'mm', parts: [{ id: 'p', name: 'P', parameters: { w: { value: 5, source: 'test' } }, recipe: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'w' }, 5] }, { id: 'b', kind: 'extrude', sketch: 's', height: 5 }] }] }, authoredBy: 'agent', confirmed: false }],
     process: 'injection',
     printer: 'fdm-256',
+    print: { direction: [0, 0, 1] },
   };
   return values as StudioDoc;
 }

@@ -2915,3 +2915,45 @@ Evidence (`test/printing.test.ts` 3/3):
 - The browser flow shows the overhang look with FDM. Studio tests pass; lint 0 errors.
 
 Next: AM3, printability rule checks.
+
+## D74 — AM3: printability rules (2026-10-18)
+
+Decision (`src/print/rules.ts`; with the peer's notes):
+- **`printability(doc, bodies, evaluate, { direction? })`** reports each rule as pass, warn (recommended, not met),
+  fail (feasible, not met), unknown (with why) or n/a, with value, limit, unit and the limit's source id.
+  - The direction is given, else the document's `print.direction` (a new field, AM4 fills it).
+  - Without a printing process every rule is unknown, said.
+- **The rules:**
+  - **wall:** the thinnest wall vs minWall (feasible) and minWallRec (recommended).
+  - **hole:** the smallest inner cylinder from the exact face table vs minHoleMM (feasible: it closes up).
+  - **horizontal-hole:** holes whose axes lie across the build direction, wider than `horizontalHoleMM` (FDM 6, SLA
+    10), sag at their tops: a teardrop or support (recommended). Unknown without an orientation.
+  - **gap:** bodies printed together — overlapping fails (they print as one); a clearance under `fitGap` warns (they
+    may fuse). n/a for one body.
+  - **cavity:** enclosed voids (the display mesh's surface pieces inside the outer one). For powder and resin,
+    feasible: give `escapeHoles` holes of at least `escapeHoleMM`. For FDM, filled or infill: no drain needed.
+  - **bed-fit:** the part's extents across the bed (either way round) and its height within the printer's build volume
+    (feasible). Unknown without a printer.
+  - **overhang:** AM2's area past the limit (recommended: supports).
+  - **warp** (corner lift, the peer's form): warp = warpRisk × (longest footprint extent / Lref) × (bed contact /
+    footprint box). A heuristic, sourced by the profile's new `warpLrefMM` (FDM 100, SLA 150, SLS/MJF 200); warned
+    above 0.5. Unknown when a body's material is not set or has no warp risk.
+  - **tip** (lifting or tipping): height / √(bed contact) against the profile's new `tipRatio` (FDM 4, SLA 6); n/a for
+    powder (the part lies in powder). With nothing flat on the bed: a brim, a raft or another orientation.
+- **A3 `print_rule { rule, direction? }`** gives a rule's value; unknown or n/a, said. **Agent tool
+  `check_printability`** is read only.
+- **Limits, said:** wall thickness, cavities and curved contact areas come from the display mesh (chord error). The
+  cavity test is by boxes: a separate piece fully inside another's box would count. The warp form is a heuristic.
+
+Evidence (`test/printing.test.ts` 5/5):
+- An ABS plate 60 × 40 × 2 flat on FDM 256³: every rule passes; warp 0.8 × 0.6 × 1 = 0.48 (P-FDM).
+- A 100 mm plate: 0.8, warned. A 300 mm plate: off the bed (300/256).
+- No orientation: bed-fit, overhang, warp, tip and horizontal-hole unknown, said. Moulding: all unknown.
+- A block with a Ø1 hole: fails the hole rule (Ø2). Its Ø8 hole along X: warned built up Z, passing built along X.
+- A Ø4 × 40 pin: tip ≈ 40/√(4π) within 1% (its round foot's display area), warned.
+- A closed box with a void: SLS fails ("traps powder: give it 2 escape holes of at least Ø5 mm"), tip n/a; FDM
+  passes.
+- Two blocks 0.1 apart: the gap warned; as a requirement ≥ 0.3, it fails with 0.1.
+- Studio 330/330; lint 0 errors.
+
+Next: AM4, the orientation search.

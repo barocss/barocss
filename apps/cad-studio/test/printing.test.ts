@@ -68,3 +68,62 @@ test('AM2 overhang_area as a requirement: FDM measures it; powder (SLS) has no l
   const sls = await run('sls'); assert.deepEqual([sls.status, sls.measured], ['pass', 0]);
   assert.equal((await run('injection')).status, 'unknown'); assert.equal((await run()).status, 'unknown');
 });
+
+import { printability, cavitiesOf } from '../src/print/rules';
+import { withLook } from '../src/app/bodies';
+
+const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
+const report = async (doc: StudioDoc, direction?: [number, number, number]) => { const r = await printability(doc, bodiesOf(doc), evaluate, direction ? { direction } : {}); return Object.fromEntries(r.rules.map(x => [x.id, x])); };
+const printed = (doc: StudioDoc, process = 'fdm', printer: string | undefined = 'fdm-256', material = 'abs') => { const d = { ...doc, process, ...(printer ? { printer } : {}) }; return withLook(d, bodiesOf(d)[0], { material }); };
+
+test('AM3 printability on an ABS plate printed flat (FDM 256³): every rule passes; warp is the heuristic warpRisk × (60/100) × 1 = 0.48; a 100 mm plate 0.8 — warned; 300 mm long — off the bed; no orientation — the orientation\'s rules unknown, said; moulding — all unknown', async () => {
+  let r = await report(printed(rectanglePart(60, 40, 2)), [0, 0, 1]);
+  for (const id of ['wall', 'wall-rec', 'hole', 'horizontal-hole', 'cavity', 'bed-fit', 'overhang', 'warp', 'tip']) assert.equal(r[id].status, 'pass', `${id}: ${JSON.stringify(r[id])}`);
+  assert.equal(r.gap.status, 'n/a');
+  assert.ok(Math.abs(r.warp.value! - 0.8 * 0.6 * 1) < 1e-9); assert.equal(r.warp.source, 'P-FDM');
+  r = await report(printed(rectanglePart(100, 40, 2)), [0, 0, 1]);
+  assert.deepEqual([r.warp.status, +r.warp.value!.toFixed(9)], ['warn', 0.8]);
+  r = await report(printed(rectanglePart(300, 40, 2)), [0, 0, 1]);
+  assert.equal(r['bed-fit'].status, 'fail'); assert.ok(Math.abs(r['bed-fit'].value! - 300 / 256) < 1e-9);
+  r = await report(printed(rectanglePart(60, 40, 2)));
+  for (const id of ['bed-fit', 'overhang', 'warp', 'tip', 'horizontal-hole']) assert.equal(r[id].status, 'unknown', id);
+  assert.match(r.warp.why!, /no orientation/);
+  r = await report({ ...rectanglePart(60, 40, 2), process: 'injection' });
+  assert.ok(Object.values(r).every(x => x.status === 'unknown' && /Injection moulding is not printing/.test(x.why!)));
+});
+
+test('AM3 rules that fail or warn: a hole too small to print open; a horizontal hole over 6 mm sags (warned) — built along its axis it does not; a tall pin tips; an enclosed cavity traps powder (SLS fails) where FDM fills it; SLS does not tip (n/a); bodies 0.1 mm apart may fuse; the gap rule as a requirement', async () => {
+  // A 40 × 20 × 10 block with a Ø1 hole down and a Ø8 hole along X.
+  const block = raw([
+    { id: 'lib1_s', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'lib1_b', kind: 'extrude', sketch: 'lib1_s', height: 10 },
+    { id: 'lib1_h', kind: 'hole', target: 'lib1_b', center: [5, 10], radius: 0.5 },
+    { id: 'lib1_x', kind: 'hole', target: 'lib1_h', axis: 'x', side: 'min', center: [10, 5], radius: 4 }], 'lib1_x');
+  let r = await report(printed(block), [0, 0, 1]);
+  assert.equal(r.hole.status, 'fail'); assert.ok(Math.abs(r.hole.value! - 1) < 1e-9);
+  assert.equal(r['horizontal-hole'].status, 'warn'); assert.ok(Math.abs(r['horizontal-hole'].value! - 8) < 1e-9);
+  r = await report(printed(block), [1, 0, 0]);
+  assert.equal(r['horizontal-hole'].status, 'pass');
+  // A pin Ø4 × 40 standing: 40 / √(4π) = 11.3, past 4.
+  const pin = raw([{ id: 'lib1_c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }, { id: 'lib1_p', kind: 'extrude', sketch: 'lib1_c', height: 40 }], 'lib1_p');
+  r = await report(printed(pin), [0, 0, 1]);
+  // (Its round foot's area is the display mesh's — a polygon in the circle — to the chord error: within 1%.)
+  assert.equal(r.tip.status, 'warn'); assert.ok(Math.abs(r.tip.value! / (40 / Math.sqrt(4 * Math.PI)) - 1) < 0.01, String(r.tip.value));
+  // A closed box with a void inside.
+  const hollow = raw([
+    { id: 'lib1_o', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 30] }, { id: 'lib1_ob', kind: 'extrude', sketch: 'lib1_o', height: 30 },
+    { id: 'lib1_i', kind: 'sketch', profile: 'rectangle', min: [5, 5], max: [25, 25] }, { id: 'lib1_ib', kind: 'extrude', sketch: 'lib1_i', height: 20, from: 5 },
+    { id: 'lib1_v', kind: 'difference', target: 'lib1_ob', tool: 'lib1_ib' }], 'lib1_v');
+  assert.equal(cavitiesOf(bodiesOf(hollow)[0].mesh), 1);
+  r = await report(printed(hollow, 'sls', 'sls-300', 'pa12'), [0, 0, 1]);
+  assert.deepEqual([r.cavity.status, r.cavity.value], ['fail', 1]); assert.match(r.cavity.message, /traps powder: give it 2 escape holes of at least Ø5 mm/);
+  assert.equal(r.tip.status, 'n/a');
+  r = await report(printed(hollow), [0, 0, 1]);
+  assert.equal(r.cavity.status, 'pass');
+  // Two blocks 0.1 apart, printed together.
+  let two = withNode(rectanglePart(20, 20, 5), { kind: 'sketch', profile: 'rectangle', min: [20.1, 0], max: [40, 20] });
+  two = withNode(two, { kind: 'extrude', sketch: 2, height: 5 });
+  r = await report(printed(two), [0, 0, 1]);
+  assert.deepEqual([r.gap.status, r.gap.value], ['warn', 0.1]);
+  const d = printed(two), q = await runCheck(d, bodiesOf(d), evaluate as never, { op: '>=', query: { fn: 'print_rule', rule: 'gap', direction: [0, 0, 1] }, value: 0.3 });
+  assert.deepEqual([q.status, q.measured], ['fail', 0.1]);
+});
