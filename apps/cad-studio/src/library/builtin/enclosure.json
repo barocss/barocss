@@ -3,7 +3,7 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.5.0",
+ "libraryVersion": "0.6.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
@@ -1956,6 +1956,530 @@
     "enclosure",
     "groove",
     "lid"
+   ]
+  },
+  {
+   "id": "slot-vent",
+   "name": "Slot vent",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "A row of straight slots cut through a wall, centred on the point picked.",
+   "parameters": {
+    "n": {
+     "value": 6,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 200,
+     "source": "free: the slots"
+    },
+    "sl": {
+     "value": 12,
+     "unit": "mm",
+     "min": 1,
+     "max": 500,
+     "source": "free: a slot's length"
+    },
+    "sw": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.3,
+     "max": 50,
+     "source": "free: a slot's width"
+    },
+    "p": {
+     "value": 3.5,
+     "unit": "mm",
+     "min": 0.5,
+     "max": 100,
+     "source": "free: the slots' pitch"
+    },
+    "cutDepth": {
+     "value": 3,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the wall's thickness where it is cut, and half a millimetre (set when the part is added to a body)"
+    },
+    "span": {
+     "value": {
+      "expr": "(n - 1) * p + sw"
+     },
+     "unit": "mm",
+     "description": "the row's length"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "minWallRec": {
+     "unit": "mm",
+     "description": "the process's thinnest recommended wall",
+     "from": [
+      "profile.minWallRec"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "web",
+     "expr": "p - sw >= minWall",
+     "value": "p - sw",
+     "level": "feasible",
+     "message": "the web between slots is thinner than the process can make"
+    },
+    {
+     "id": "web-rec",
+     "expr": "p - sw >= minWallRec",
+     "value": "p - sw",
+     "level": "recommended",
+     "message": "the web between slots is thinner than the process recommends"
+    }
+   ],
+   "reports": [
+    {
+     "id": "openArea",
+     "value": "n * sl * sw",
+     "unit": "mm²",
+     "message": "the open area"
+    },
+    {
+     "id": "openRatio",
+     "value": "n * sw / span",
+     "unit": "ratio",
+     "message": "the open area over the vent's footprint (its row's length × the slot length)"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-span / 2"
+      },
+      {
+       "expr": "-sl / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "-span / 2 + sw"
+      },
+      {
+       "expr": "sl / 2"
+      }
+     ]
+    },
+    {
+     "id": "x",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "row",
+     "kind": "linear-pattern",
+     "target": "x",
+     "axis": "x",
+     "spacing": {
+      "expr": "p"
+     },
+     "count": {
+      "expr": "n"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the vent's centre on the face, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "vent",
+    "slots"
+   ]
+  },
+  {
+   "id": "hex-grille",
+   "name": "Hex grille",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "Hexagonal openings in staggered rows cut through a wall, centred on the point picked.",
+   "parameters": {
+    "nx": {
+     "value": 5,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 100,
+     "source": "free: openings in a row"
+    },
+    "ny": {
+     "value": 4,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 100,
+     "source": "free: rows"
+    },
+    "s": {
+     "value": 4,
+     "unit": "mm",
+     "min": 0.5,
+     "max": 50,
+     "source": "free: an opening's size across its flats"
+    },
+    "wb": {
+     "value": 1.2,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 20,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for vents (written for this library); size them by their checks",
+     "description": "the web between openings"
+    },
+    "cutDepth": {
+     "value": 3,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the wall's thickness where it is cut, and half a millimetre (set when the part is added to a body)"
+    },
+    "px": {
+     "value": {
+      "expr": "s + wb"
+     },
+     "unit": "mm",
+     "description": "the pitch along a row"
+    },
+    "dy": {
+     "value": {
+      "expr": "(s + wb) * sqrt(3) / 2"
+     },
+     "unit": "mm",
+     "description": "the pitch between rows"
+    },
+    "w0": {
+     "value": {
+      "expr": "(nx - 1) * px + (ny >= 2 ? px / 2 : 0)"
+     },
+     "unit": "mm",
+     "description": "the centres' spread along a row"
+    },
+    "h0": {
+     "value": {
+      "expr": "(ny - 1) * dy"
+     },
+     "unit": "mm",
+     "description": "the centres' spread across the rows"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "minWallRec": {
+     "unit": "mm",
+     "description": "the process's thinnest recommended wall",
+     "from": [
+      "profile.minWallRec"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "web",
+     "expr": "wb >= minWall",
+     "value": "wb",
+     "level": "feasible",
+     "message": "the web between openings is thinner than the process can make"
+    },
+    {
+     "id": "web-rec",
+     "expr": "wb >= minWallRec",
+     "value": "wb",
+     "level": "recommended",
+     "message": "the web between openings is thinner than the process recommends"
+    }
+   ],
+   "reports": [
+    {
+     "id": "openings",
+     "value": "nx * ny",
+     "unit": "count",
+     "message": "the openings"
+    },
+    {
+     "id": "openArea",
+     "value": "nx * ny * sqrt(3) / 2 * s ^ 2",
+     "unit": "mm²",
+     "message": "the open area"
+    },
+    {
+     "id": "openRatio",
+     "value": "s ^ 2 / (s + wb) ^ 2",
+     "unit": "ratio",
+     "message": "the open area over the grille's area, for its lattice"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "ha",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.0"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.866025403784438"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.0"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -0.5"
+       }
+      ]
+     ]
+    },
+    {
+     "id": "hax",
+     "kind": "extrude",
+     "sketch": "ha",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "ra",
+     "kind": "linear-pattern",
+     "target": "hax",
+     "axis": "x",
+     "spacing": {
+      "expr": "px"
+     },
+     "count": {
+      "expr": "nx"
+     }
+    },
+    {
+     "id": "ga",
+     "kind": "linear-pattern",
+     "target": "ra",
+     "axis": "y",
+     "spacing": {
+      "expr": "2 * dy"
+     },
+     "count": {
+      "expr": "ceil(ny / 2)"
+     }
+    },
+    {
+     "id": "hb",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.0"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.866025403784438"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.0"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -0.5"
+       }
+      ]
+     ],
+     "when": "ny >= 2"
+    },
+    {
+     "id": "hbx",
+     "kind": "extrude",
+     "sketch": "hb",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1,
+     "when": "ny >= 2"
+    },
+    {
+     "id": "rb",
+     "kind": "linear-pattern",
+     "target": "hbx",
+     "axis": "x",
+     "spacing": {
+      "expr": "px"
+     },
+     "count": {
+      "expr": "nx"
+     },
+     "when": "ny >= 2"
+    },
+    {
+     "id": "gb",
+     "kind": "linear-pattern",
+     "target": "rb",
+     "axis": "y",
+     "spacing": {
+      "expr": "2 * dy"
+     },
+     "count": {
+      "expr": "floor(ny / 2)"
+     },
+     "when": "ny >= 2"
+    },
+    {
+     "id": "grille",
+     "kind": "union",
+     "target": "ga",
+     "tool": "gb",
+     "when": "ny >= 2"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the grille's centre on the face, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "vent",
+    "grille",
+    "hex"
    ]
   }
  ],

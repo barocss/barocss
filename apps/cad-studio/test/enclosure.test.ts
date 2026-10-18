@@ -273,3 +273,33 @@ test('R6b.4 enclosure halves: the base (lip round the inside of its rim) and the
   // A lip leaving too thin a rim (2 − 1.6 = 0.4 under 0.6): refused.
   assert.throws(() => instantiateLibraryPart(lib, 'enclosure-base', { params: { lt: 1.6 }, context: ctx }), (e: Error) => /rim: the rim beside the lip is thinner than the process can make \(0\.4\)/.test(e.message));
 });
+
+test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no further); the material taken exactly the openings; the open ratio reported; webs against the process (refused under its minimum, warned under its recommendation); in a box\'s side wall the far wall untouched', async () => {
+  const { emptyDoc } = await import('../src/engine/doc');
+  const { insertLibraryPart } = await import('../src/library/libraries');
+  const plate2 = { ...rectanglePart(60, 40, 2), process: 'injection' };
+  const before = bodies(plate2)[0].volumeMM3!;
+  const vent = addLibraryPartToBody(plate2, 'enclosure', 'slot-vent', {}, top(2, 30, 20)) as { doc: StudioDoc; node: LibraryNode };
+  assert.ok(!('error' in vent), JSON.stringify(vent));
+  assert.equal(vent.node.library.params.cutDepth, 2.5);
+  assert.ok(Math.abs(before - bodies(vent.doc)[0].volumeMM3! - 6 * 12 * 1.5 * 2) < 1e-6);
+  const lib = libraryById('enclosure')!, ctx = { minWall: 0.6, minWallRec: 1.0 };
+  const slots = instantiateLibraryPart(lib, 'slot-vent', { context: ctx });
+  assert.ok(Math.abs(slots.reports.find(r => r.id === 'openRatio')!.value! - 9 / 19) < 1e-12);
+  const hex = addLibraryPartToBody(plate2, 'enclosure', 'hex-grille', {}, top(2, 30, 20)) as { doc: StudioDoc; node: LibraryNode };
+  assert.ok(!('error' in hex), JSON.stringify(hex));
+  // (20 hexagons 4 across their flats, √3/2 · 16 each, 2 deep.)
+  assert.ok(Math.abs(before - bodies(hex.doc)[0].volumeMM3! - 20 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
+  assert.ok(Math.abs(instantiateLibraryPart(lib, 'hex-grille', { context: ctx }).reports.find(r => r.id === 'openRatio')!.value! - 16 / 5.2 ** 2) < 1e-12);
+  // One row: no staggered rows.
+  const row = addLibraryPartToBody(plate2, 'enclosure', 'hex-grille', { params: { ny: 1 } }, top(2, 30, 20)) as { doc: StudioDoc };
+  assert.ok(Math.abs(before - bodies(row.doc)[0].volumeMM3! - 5 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
+  // Webs: 0.5 refused, 0.8 warned under moulding.
+  assert.throws(() => instantiateLibraryPart(lib, 'hex-grille', { params: { wb: 0.5 }, context: ctx }), (e: Error) => /web: the web between openings is thinner than the process can make \(0\.5\)/.test(e.message));
+  assert.ok(instantiateLibraryPart(lib, 'hex-grille', { params: { wb: 0.8 }, context: ctx }).warnings.some(w => /^web-rec: .* \(0\.8\)$/.test(w)));
+  // In the side wall of an enclosure base: the slots through its 2 mm wall only.
+  const box = insertLibraryPart(emptyDoc(), 'enclosure', 'enclosure-base'), b = bodies(box)[0];
+  const side = addLibraryPartToBody(box, 'enclosure', 'slot-vent', {}, { body: b.ref!, face: 'lib1_ob.side0', point: [40, 0, 10], normal: [0, -1, 0], xDir: [1, 0, 0] }) as { doc: StudioDoc };
+  assert.ok(!('error' in side), JSON.stringify(side));
+  assert.ok(Math.abs(b.volumeMM3! - bodies(side.doc)[0].volumeMM3! - 6 * 12 * 1.5 * 2) < 1e-6, 'only the near wall cut');
+});

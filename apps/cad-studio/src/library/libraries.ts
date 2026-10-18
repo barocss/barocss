@@ -250,8 +250,12 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
     try { const v = instantiateLibraryPart(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(options.params ? { params: options.params } : {}) }).origin.values; if (typeof v.Lh === 'number') reach = Math.min(inward, v.Lh); if (typeof v.dh === 'number') from = v.dh / 2; } catch { /* refused below, with why */ }
     const a = aroundAt(target.mesh, at.point, n, reach / 2, from); if (a !== null) context.around = +a.toFixed(6);
   }
+  // (A cut through a wall — a part with `cutDepth` — goes as deep as the wall is there, and half a millimetre: not
+  // through to whatever lies beyond it.)
+  const params = { ...options.params };
+  if (libPart?.parameters.cutDepth && params.cutDepth === undefined) { if (inward === null) return { error: `${libPart.name}: the wall's thickness there could not be measured; give cutDepth` }; params.cutDepth = +(inward + 0.5).toFixed(6); }
   let node: LibraryNode;
-  try { node = libraryNode(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(options.params ? { params: options.params } : {}), context }, freshPrefix(doc)); }
+  try { node = libraryNode(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(Object.keys(params).length ? { params } : {}), context }, freshPrefix(doc)); }
   catch (cause) { return { error: cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause) }; }
   const base = node.interfaces.find(i => i.id === (options.interface ?? 'base'));
   if (!base) return { error: `${part} has no interface ${options.interface ?? 'base'} to stand on` };

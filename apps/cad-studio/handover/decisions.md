@@ -2795,3 +2795,25 @@ Evidence (`test/enclosure.test.ts` 12/12):
 - Studio 323/323.
 
 Next: R6b.5 vents and grilles, then R6b.6 the living hinge.
+
+## D70 — R6b.5: vents and grilles — slots and staggered hexagons cut as deep as the wall (2026-10-18)
+
+Decision ("Enclosure elements" 0.6.0):
+- **Slot vent:** n slots, sl × sw, pitch p, centred on the point. One slot is cut and patterned along the row.
+- **Hex grille:** nx × ny openings s across their flats, with webs wb, in staggered rows (pitch s + wb, rows
+  (s + wb)·√3/2 apart). Odd rows are a second pattern, left out by `when` for a single row.
+- **Depth:** a cut with a `cutDepth` parameter goes as deep as the wall measured at the point, plus 0.5 mm. It does
+  not go through to what lies beyond, such as a box's far wall. Unmeasurable: refused, asking for cutDepth.
+- **Rules:** web ≥ the process's minWall (feasible) and ≥ its minWallRec (recommended).
+- **Reports:**
+  - the open area;
+  - the open ratio: n·sw/span for slots; s²/(s + wb)² over the lattice for hexagons;
+  - the openings.
+
+Evidence (`test/enclosure.test.ts` 13/13):
+- On a 2 mm plate (cutDepth 2.5): the material taken equals exactly 6 × 12 × 1.5 × 2 for the slots, and 20 and 5
+  hexagons × (√3/2)·16 × 2 for the grilles.
+- Open ratios 9/19 and 16/5.2².
+- Webs: 0.5 refused, 0.8 warned under moulding.
+- In an enclosure base's side wall, only the near wall is cut.
+- Studio tests pass.
