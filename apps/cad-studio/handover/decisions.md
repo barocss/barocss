@@ -1648,5 +1648,14 @@ Evidence:
 
   Two cap loops; one body a side.
 
+RB found that its STEP round-trip stage marked mesh bodies WRONG on topology. These were R3's `mesh-filled`, a
+regression from R3.5 that the R3.5 run missed, and the new R4 cases.
+- Cause: `auto` export writes a small mesh as planar faces, and each polyline edge's segments become edges of their
+  own. Volume, area and centroid matched; only the counts changed.
+- Fix: the stage now takes mesh bodies out tessellated (AP242, faces kept) and checks topology there. The planar
+  fallback is held to volume, area and centroid only.
+- Result: tessellated round trips keep every case's topology, with the volume exact. Full RB after: 932 rows, 0 NEW,
+  the 7 known TODO.
+
 Still with the planar path (explode, 16k): Booleans and holes against mesh bodies. That is F2, next on the facet
 track.

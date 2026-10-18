@@ -112,16 +112,21 @@ export function runCase(cad, file, started) {
       return open ? { status: 'INVALID', detail: `${open} edges not used exactly twice` } : {};
     });
     // STEP out and back in: volume, area and centroid to 1e-6, the same topology (L1 round trip). (The volume
-    // to 1e-12 mm³ at least: a sliver's volume is known absolutely, D25.)
+    // to 1e-12 mm³ at least: a sliver's volume is known absolutely, D25.) A mesh body goes out tessellated (AP242,
+    // its faces kept) for the topology; its planar fallback for older readers (D48) writes each polyline edge's
+    // segments as edges of their own, so it is held to the same volume, area and centroid only (D50).
     if (report && mass) stage(`roundtrip${suffix}`, () => {
-      const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00' })), m = cad.brepMassProperties(back, 1);
-      const a0 = cad.brepSurfaceArea(brep), a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), size = sizeOf(brep);
+      const faceted = brep.faces.some(cad.isFacetFace), size = sizeOf(brep), a0 = cad.brepSurfaceArea(brep);
       const counts = x => JSON.stringify(x.topology.map(t => [t.vertices, t.edges, t.faces, t.shells, t.genus]));
-      if (!r.valid) return { status: 'INVALID', detail: `re-imported: ${r.issues[0]}` };
-      if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(1e-6 * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume ${mass.volumeMM3} → ${m.volumeMM3}` };
-      if (Math.abs(a1 - a0) > 1e-6 * a0) return { status: 'WRONG', detail: `area ${a0} → ${a1}` };
-      if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > 1e-6 * size) return { status: 'WRONG', detail: `centroid ${mass.centroidMM} → ${m.centroidMM}` };
-      if (counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology ${counts(report)} → ${counts(r)}` };
+      for (const meshes of faceted ? ['tessellated', 'planar'] : [undefined]) {
+        const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00', ...(meshes ? { meshes } : {}) })), m = cad.brepMassProperties(back, 1);
+        const a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), how = meshes ? ` (${meshes})` : '';
+        if (!r.valid) return { status: 'INVALID', detail: `re-imported${how}: ${r.issues[0]}` };
+        if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(1e-6 * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volumeMM3} → ${m.volumeMM3}` };
+        if (Math.abs(a1 - a0) > 1e-6 * a0) return { status: 'WRONG', detail: `area${how} ${a0} → ${a1}` };
+        if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > 1e-6 * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroidMM} → ${m.centroidMM}` };
+        if (meshes !== 'planar' && counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology${how} ${counts(report)} → ${counts(r)}` };
+      }
       return {};
     });
     // An incoming STEP's own validation properties (CAx-IF) against what was read.
