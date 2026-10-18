@@ -635,6 +635,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
     return [r6(d.c[0] + r * Math.cos(t)), r6(d.c[1] + r * Math.sin(t))];
   };
+  /** The pointer left the canvas (for a panel or the toolbar, say): what it hovered is no longer hovered. */
+  const onPointerLeave = () => {
+    const r = renderer.current, prev = hover.current;
+    if (!r || drag.current.mode || (!prev.face && !prev.edge && !prev.vertex)) return;
+    hover.current = { face: null, edge: null, vertex: null }; r.setState(viewState()); request();
+  };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
@@ -943,7 +949,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     <div className="viewport" data-renderer={backend ?? undefined}
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
-      <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+      <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
         onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
