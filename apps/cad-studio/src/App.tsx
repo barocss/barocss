@@ -205,7 +205,8 @@ export function App() {
   // The pointer's model point, shown in the status bar by its own component (a move re-renders only it).
   const cursorSink = useRef<((p: Vec3 | null) => void) | null>(null);
   const onCursor = useCallback((p: Vec3 | null) => cursorSink.current?.(p), []);
-  const [toast, setToast] = useState<FriendlyError | null>(null);
+  // (`action`: one button on the toast, e.g. Undo after the agent applied a change directly, D41.)
+  const [toast, setToast] = useState<(FriendlyError & { action?: { label: string; run(): void } }) | null>(null);
   // References an opened file stores that could not be told (engine/references.ts), and the candidates on show.
   const [refProblems, setRefProblems] = useState<RefProblem[]>([]);
   const [refChoices, setRefChoices] = useState<{ index: number; names: string[] } | null>(null);
@@ -815,6 +816,8 @@ export function App() {
     if (!undo.length) return; const last = undo[undo.length - 1];
     setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
   }, [undo, doc, marker, cancel]);
+  // (The latest undo, for a toast made before the change it takes back was committed.)
+  const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
@@ -1956,7 +1959,13 @@ export function App() {
 
       {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
-        onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
+        onPreview={setPreviewBodies} onCommit={(next, sel) => {
+          chatSelection.current = sel ?? null;
+          // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
+          const direct = JSON.stringify(next.nodes) !== JSON.stringify(doc.nodes) || JSON.stringify(next.parameters) !== JSON.stringify(doc.parameters), what = direct ? describeChange(doc, next) : '';
+          commit(next);
+          if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
+        }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} /></Suspense>}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
@@ -2051,7 +2060,8 @@ export function App() {
       {toast && !cascade && !recovery && !meshAsk && !repairAsk && !stepAsk && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />
         <div><div className="toast-title">{toast.title}</div><div className="toast-hint">{toast.hint}</div>
-          {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}</div>
+          {toast.detail && <details><summary>Details</summary><code>{toast.detail}</code></details>}
+          {toast.action && <div className="row-actions"><button className="ghost" onClick={toast.action.run}>{toast.action.label}</button></div>}</div>
         <button className="tool" aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></button>
       </div>}
     </div>

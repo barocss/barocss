@@ -37,7 +37,7 @@ export interface ChatPanelProps {
 /** What each autonomy level lets the agent do (D41). */
 const AUTONOMY_TIPS = [
   'L1 · Propose only: every change is a proposal you accept',
-  'L2 · Edit: the agent changes the part; you accept its proposals',
+  'L2 · Values: the agent edits values of one feature or parameters directly; anything more is a proposal you accept',
   'L3 · Edit and accept low or medium risk proposals changing no hard requirement',
   'L4 · Edit and accept proposals breaking no hard requirement',
 ];

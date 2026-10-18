@@ -93,6 +93,8 @@ test('size caps (D49): past stepBytes only when the excess is tessellated, never
   // The same excess outside the meshes (a B-rep file that size) is refused, saying how much.
   const brepish = step.replace('DATA;', `DATA;\n/*${' '.repeat(CadPartLimits.stepBytes)}*/`);
   assert.throws(() => part(brepish), /larger than 32 MiB outside its meshes \(32\.0 MiB\)/);
-  // Past 64 MiB, a mesh too: refused, pointing to the .bcad file.
-  assert.throws(() => part(step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(CadPartLimits.stepTessellatedBytes)}`)), /larger than 64 MiB; a mesh that large opens from a \.bcad file/);
+  // Past 64 MiB it still reads (the owner's 128 MiB, D49); past 128 MiB, a mesh too is refused, pointing to the .bcad file.
+  assert.equal(CadPartLimits.stepTessellatedBytes, 128 << 20);
+  assert.equal(part(step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(65 << 20)}`)).outputs.length, 1);
+  assert.throws(() => part(step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(CadPartLimits.stepTessellatedBytes)}`)), /larger than 128 MiB; a mesh that large opens from a \.bcad file/);
 });

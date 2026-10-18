@@ -16,6 +16,8 @@ const { createServer } = await import('vite');
 const out = resolve(process.argv[2] ?? join(tmpdir(), 'cad-studio-flow'));
 mkdirSync(out, { recursive: true });
 
+// (The chat server's port, read when the config loads: the L2 step starts the real one there, other chat steps mock it.)
+process.env.CAD_STUDIO_CHAT_PORT ??= '52091';
 const server = await createServer({ root, configFile: join(root, 'vite.config.ts'), server: { port: 52031, strictPort: false }, logLevel: 'error' });
 await server.listen();
 const renderer = process.env.FLOW_RENDERER ?? 'webgpu';
@@ -933,15 +935,19 @@ try {
     // (The same body: its volume as before, 4022 mm³.)
     await page.locator('.outliner .ol').first().click();
     await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
-    // Size caps (D49): past 32 MiB in its meshes it still opens; past 64 MiB it is refused, pointing to .bcad (the
-    // coordinates list padded with spaces; in memory below Playwright's 50 MB, else a file removed once read).
+    // Size caps (D49): past 32 MiB in its meshes it still opens, and past 64 MiB (the owner's 128 MiB); past 128 MiB
+    // it is refused, pointing to .bcad (the coordinates list padded with spaces; in memory below Playwright's 50 MB,
+    // else a file removed once read).
     const padded = n => ({ name: 'cup-big.step', mimeType: 'model/step', buffer: Buffer.from(text.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(n)}`)) });
     await page.setInputFiles('input[aria-label="Model file"]', padded(33 << 20));
     await page.waitForFunction(() => /Import cup-big/.test(document.querySelector('.outliner')?.textContent ?? '') && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 });
-    const huge = join(out, 'cup-huge.step'); fs.writeFileSync(huge, padded(65 << 20).buffer);
-    await page.setInputFiles('input[aria-label="Model file"]', huge); fs.unlinkSync(huge);
-    await page.waitForFunction(() => /larger than 64 MiB; a mesh that large opens from a \.bcad file/.test(document.body.innerText), null, { timeout: 60000 });
-    assert.match(await outliner(), /Import cup-big/);
+    for (const [n, name] of [[65 << 20, 'cup-large'], [129 << 20, 'cup-huge']]) {
+      const big = join(out, `${name}.step`); fs.writeFileSync(big, padded(n).buffer);
+      await page.setInputFiles('input[aria-label="Model file"]', big); fs.unlinkSync(big);
+      if (name === 'cup-large') await page.waitForFunction(() => /Import cup-large/.test(document.querySelector('.outliner')?.textContent ?? '') && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 });
+    }
+    await page.waitForFunction(() => /larger than 128 MiB; a mesh that large opens from a \.bcad file/.test(document.body.innerText), null, { timeout: 60000 });
+    assert.match(await outliner(), /Import cup-large/);
     // A mesh-only STEP whose shell does not close: the gate, as for an STL.
     const open = join(out, 'sheet.step');
     fs.writeFileSync(open, `ISO-10303-21;\nHEADER;FILE_DESCRIPTION((''),'2;1');FILE_NAME('a.stp','',(''),(''),'','','');FILE_SCHEMA(('AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }'));ENDSEC;\nDATA;\n#1=COORDINATES_LIST('',5,((0.,0.,0.),(10.,0.,0.),(10.,10.,0.),(0.,10.,0.),(5.,5.,8.)));\n#2=TRIANGULATED_FACE('sides',#1,5,(),$,(),((1,2,5),(2,3,5),(3,4,5),(4,1,5)));\n#3=TESSELLATED_SHELL('pyramid',(#2),$);\nENDSEC;\nEND-ISO-10303-21;\n`);
@@ -2230,6 +2236,41 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 5000 });
     const fresh = await doc();
     assert.deepEqual([fresh.history, fresh.proposals, fresh.bodies, fresh.requirements], [undefined, undefined, undefined, undefined]);
+  });
+
+  await check('autonomy L2 (the owner\'s option b) through the real chat server and tool server: a value edit applies with an undo toast; a two-feature change is refused, then proposed', async () => {
+    // A scripted stand-in for the claude CLI makes the calls; the gate is the tool server's own (D41).
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      assert.equal(await page.inputValue('[aria-label="Autonomy"]'), '2');
+      const send = async calls => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      };
+      // A value of one feature: applied directly, said so with an undo.
+      const h0 = (await doc()).nodes[1].height;
+      await send([{ tool: 'edit_feature', args: { index: 1, values: { h: h0 + 4 } } }]);
+      await page.waitForFunction(h => window.__studioDoc.nodes[1]?.height === h, h0 + 4, { timeout: 20000 }).catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${JSON.stringify((await doc()).nodes)} ${await page.locator('.chat-panel, .chat').first().innerText().catch(() => '')}`); });
+      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
+      await snap('l2-applied');
+      await page.click('.toast button:text-is("Undo")');
+      await page.waitForFunction(h => window.__studioDoc.nodes[1]?.height === h, h0, { timeout: 10000 });
+      // Two features in one change: refused (needs_proposal), the part unchanged; proposed, it waits for the user.
+      const hole = { tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d: 6, x: 10, y: 10 } } }, taller = { tool: 'edit_feature', args: { index: 1, values: { h: h0 + 4 } } };
+      await send([{ tool: 'apply_ops', args: { ops: [taller, hole] } }, { tool: 'propose', args: { title: 'Taller, with a hole', ops: [taller, hole] } }]);
+      assert.match(await page.locator('.chat-tool').nth(-2).innerText(), /L2|propos/i);
+      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
+      assert.deepEqual((await doc()).nodes.map(n => n.kind), ['sketch', 'extrude']);
+      await snap('l2-proposed');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
   });
 
   await check('face colour: the top of a box coloured on its own, kept by the face name; cleared again', async () => {

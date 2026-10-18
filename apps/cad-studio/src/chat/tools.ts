@@ -28,7 +28,8 @@ export { resolveNames, type NameSelection };
 /** The part as the chat turn has built it so far. */
 /** `images`: traces of the images attached in this conversation (image 1 first). */
 /** `policy`: what the tools remember across a session's checks (chat/spec.ts). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions }
+/** `turnBase`: the part as the turn found it (the L2 gate weighs the turn's changes against it, D41). */
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -269,6 +270,12 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
     const needs = approvalOf(state.doc, out.state.doc);
     if (needs.length) return { ...fail(state, `This changes the ${needs.join(', ')}: propose it (propose) instead — this kind of change always needs the user's approval.`, { code: 'needs_approval', approval: needs, kept: 'the part is unchanged' }), state };
   }
+  // (Autonomy L2, the owner's option b: the turn's changes so far apply directly only when they edit values of one
+  // feature or of parameters and keep every hard requirement passing; anything else is a proposal, D41.)
+  if (!out.isError && out.changed && autonomy() === 2 && state.turnBase && changesPart(name, input) && name !== 'propose') {
+    const why = await proposalNeededAtL2(state.turnBase, out.state, evaluate);
+    if (why) return { ...fail(state, `At autonomy L2 ${why}: propose it (propose) instead, and the user accepts it. Value edits of one feature or of parameters that keep every hard requirement passing apply directly.`, { code: 'needs_proposal', kept: 'the part is unchanged' }), state };
+  }
   // (A refused call leaves the state as it was: the very same object, uncounted.)
   if (out.isError) return { ...out, state };
   return { ...out, state: { ...out.state, policy: out.state.policy ?? policy } };
@@ -304,7 +311,9 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
 
 /**
  * How far an agent may go on its own (D41), set per turn by the studio (`CAD_AUTONOMY`):
- * L1 proposes only; L2 (default) changes the part, the user accepts proposals; L3 also accepts its own
+ * L1 proposes only; L2 (default; the owner's option b) applies value edits of one feature or of parameters that keep
+ * every hard requirement passing, and proposes anything else (more features, adding, deleting or moving features,
+ * what a feature is built on), the user accepting proposals; L3 also changes the part and accepts its own
  * proposals of low or medium risk changing no hard requirement; L4 any that breaks no hard requirement.
  * A proposal with approval reasons (an assembly, mates, a drawing, a locked part) is always the user's.
  */
@@ -318,6 +327,51 @@ function changesPart(name: string, input: unknown): boolean {
   if (name === 'set_requirements' || name === 'accept_proposal') return false;
   if (name === 'apply_ops' && isObj(input) && input.dryRun === true) return false;
   return MUTATORS.has(name) || ASSEMBLY_CHANGES.has(name);
+}
+/** Fields that say what a feature is built on or how it is made (references, choices, counts), not its values. */
+const STRUCTURAL = new Set(['kind', 'parent', 'left', 'right', 'tool', 'sketch', 'node', 'side', 'edges', 'faces', 'open', 'made', 'blob', 'positions', 'indices', 'repair', 'pieces', 'solids', 'count', 'suppressed', 'representation', 'op', 'axis', 'plane', 'toward']);
+const dimLike = (x: unknown) => typeof x === 'number' || (isObj(x) && Object.keys(x).length === 1 && typeof x.parameter === 'string');
+/** Whether `b` differs from `a` only in values (numbers, or a value bound to a parameter) outside the structural fields. */
+function valuesOnly(a: unknown, b: unknown, key = ''): boolean {
+  if (a === b) return true;
+  if (STRUCTURAL.has(key)) return JSON.stringify(a) === JSON.stringify(b);
+  if (dimLike(a) && dimLike(b)) return true;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => valuesOnly(x, b[i], key));
+  if (isObj(a) && isObj(b)) {
+    const ka = Object.keys(a).filter(k => !NODE_MARKS.has(k)), kb = Object.keys(b).filter(k => !NODE_MARKS.has(k));
+    return ka.length === kb.length && ka.every(k => k in b && valuesOnly(a[k], b[k], k));
+  }
+  return false;
+}
+/** What the studio keeps on a node about its references (not the feature). */
+const NODE_MARKS = new Set(['sigs', 'rematched', 'held']);
+/** The hard requirements passing on each turn's base, worked out once. */
+const basePassing = new WeakMap<StudioDoc, Promise<Set<string>>>();
+/**
+ * Why the turn's changes (from `base` to `cur`) need a proposal at L2, or null when they apply directly: values of
+ * one feature, or parameter values, with every hard requirement that passed at the turn's start still passing.
+ */
+async function proposalNeededAtL2(base: StudioDoc, cur: ChatState, evaluate: Evaluate): Promise<string | null> {
+  const d = treeDiff(base, cur.doc), what = [d.added.length ? `adds ${d.added.length}` : '', d.deleted.length ? `deletes ${d.deleted.length}` : '', d.moved.length ? `moves ${d.moved.length}` : ''].filter(Boolean);
+  if (what.length) return `this turn ${what.join(', ')} feature${d.added.length + d.deleted.length + d.moved.length > 1 ? 's' : ''}`;
+  // (A sketch is part of the feature built from it: a box's width and height are one feature's values.)
+  const nodes = cur.doc.nodes, index = new Map(nodes.map((_, i) => [featureId(nodes, i), i])), consumer = new Map<number, number>();
+  nodes.forEach((n, j) => { const r = n as { sketch?: unknown; sections?: { sketch?: unknown }[] }; for (const k of [r.sketch, ...(r.sections ?? []).map(x => x.sketch)]) if (typeof k === 'number' && !consumer.has(k)) consumer.set(k, j); });
+  const owners = new Set(d.changed.map(c => { const i = index.get(c.id)!; return nodes[i]?.kind === 'sketch' && consumer.has(i) ? consumer.get(i)! : i; }));
+  if (owners.size > 1) return `this turn changes ${owners.size} features (${d.changed.map(c => c.label).join(', ')})`;
+  if (d.parameters && Object.values(d.parameters).some(p => p.before === undefined || p.after === undefined)) return 'this turn adds or removes parameters';
+  const before = new Map(base.nodes.map((n, i) => [featureId(base.nodes, i), n]));
+  for (const c of d.changed) if (!valuesOnly(before.get(c.id), nodes[index.get(c.id)!])) return `this changes ${c.label} beyond its values (what it is built on, its kind or options)`;
+  const hard = (cur.doc.requirements ?? []).filter(r => r.hard);
+  if (!hard.length) return null;
+  let passing = basePassing.get(base);
+  if (!passing) {
+    passing = (async () => { const r = await evaluate(base); const c = await checkSpec(base, r?.ok ? r.bodies : [], evaluate); return new Set([...c.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id)); })();
+    basePassing.set(base, passing);
+  }
+  const was = await passing, now = await checkSpec(cur.doc, cur.bodies, evaluate);
+  const broken = hard.filter(r => was.has(r.id) && now.outcomes.get(r.id)?.status !== 'pass').map(r => r.id);
+  return broken.length ? `this leaves hard requirement${broken.length > 1 ? 's' : ''} ${broken.join(', ')} failing` : null;
 }
 /** Why an agent may not accept this proposal at this autonomy, or null (D41). */
 export function agentMayNotAccept(p: Proposal, level: number): string | null {
@@ -1025,7 +1079,7 @@ export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD 
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
-Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L2 (the default) change values of one feature or of parameters directly — anything more in a turn (several features; adding, deleting or moving features; what a feature is built on) you propose; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 

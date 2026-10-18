@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { acceptProposal, agentMayNotAccept, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
+import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
 import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
 import { modelHash } from '../src/chat/spec';
 import { readStudioDoc } from '../src/engine/migrate';
@@ -140,6 +140,23 @@ for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
   test(`conformance ${c.id}: ${c.about}`, async () => {
     const read = readStudioDoc(JSON.stringify(c.input.file)); assert.ok('doc' in read);
     const s = await stateOf(read.doc);
+    if (c.input.l2) {
+      // (Each turn from the file's part; a call applied carries on, a refused one leaves the part as it was.)
+      const was = process.env.CAD_AUTONOMY;
+      try {
+        process.env.CAD_AUTONOMY = String(c.expect.level);
+        for (const turn of c.input.l2.turns) {
+          let st: ChatState = { ...s, turnBase: s.doc };
+          for (const call of turn) {
+            const r = await runTool(st, call.tool, call.args, evaluate);
+            if (call.expect === 'applied') { assert.ok(!r.isError, r.content); st = r.state; continue; }
+            const e = parse(r.content);
+            assert.ok(r.isError); assert.equal(e.code, call.expect); assert.match(e.error, new RegExp(call.why)); assert.equal(r.state, st);
+          }
+        }
+      } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
+      return;
+    }
     if (c.input.direct) {
       const was = process.env.CAD_AUTONOMY;
       try {
@@ -257,4 +274,42 @@ test('autonomy: L1 only proposes; L2 leaves proposals to the user; L3 accepts lo
   assert.match(agentMayNotAccept({ ...base, risk: risk('low', { approval: ['drawing'] }) }, 4)!, /always needs the user/);
   assert.match(agentMayNotAccept({ ...base, risk: risk('medium'), rebased: { original: 'a', from: 'a', at: 't', risk_was: risk('low') } }, 4)!, /rebased and its risk rose/);
   assert.equal(agentMayNotAccept({ ...base, risk: risk('low'), rebased: { original: 'a', from: 'a', at: 't', risk_was: risk('medium') } }, 3), null);
+});
+
+test('autonomy L2, the owner\'s option b (D41): values of one feature or of parameters apply directly; more features, a new feature, a reference change or a broken hard requirement in the turn become a proposal', async () => {
+  // The turn's base: a 40 × 20 × 8 box with a Ø6 hole, and R1 (40 long, hard) passing.
+  const made = await dispatchTool(await stateOf(rectanglePart(40, 20, 8)), HOLE.tool, HOLE.args, evaluate);
+  const s0: ChatState = { ...made.state, doc: { ...made.state.doc, requirements: [R1] as StudioDoc['requirements'] } };
+  const turn: ChatState = { ...s0, turnBase: s0.doc };
+  const was = process.env.CAD_AUTONOMY;
+  try {
+    process.env.CAD_AUTONOMY = '2';
+    // A value of one feature (the hole's diameter): applied.
+    const dia = await runTool(turn, 'edit_feature', { index: 2, values: { dia: 8 } }, evaluate);
+    assert.ok(!dia.isError, dia.content); assert.equal((dia.state.doc.nodes[2] as { radius: number }).radius, 4);
+    // The same feature again in the turn: still one feature.
+    const again = await runTool(dia.state, 'edit_feature', { index: 2, values: { dia: 7 } }, evaluate);
+    assert.ok(!again.isError, again.content);
+    // A second feature in the same turn (the box's height): the turn now touches two, so a proposal.
+    const second = await runTool(again.state, 'edit_feature', { index: 1, values: { h: 10 } }, evaluate), e2 = parse(second.content);
+    assert.ok(second.isError); assert.equal(e2.code, 'needs_proposal'); assert.match(e2.error, /changes 2 features/);
+    assert.equal(second.state, again.state, 'the part is unchanged');
+    // The box alone: its sketch and its extrude are one feature (width and height together) — applied.
+    const box = await runTool(turn, 'edit_feature', { index: 1, values: { h: 10, d: 25 } }, evaluate);
+    assert.ok(!box.isError, box.content);
+    // Unless it breaks a hard requirement that passed at the turn's start (R1: 40 long).
+    const wide = await runTool(turn, 'edit_feature', { index: 1, values: { w: 50 } }, evaluate);
+    assert.ok(wide.isError); assert.match(parse(wide.content).error, /hard requirement R1 failing/);
+    // A new feature, or two edits in one batch: proposals.
+    const hole = await runTool(turn, HOLE.tool, { ...HOLE.args, values: { d: 4, x: 30, y: 10 } }, evaluate);
+    assert.ok(hole.isError); assert.match(parse(hole.content).error, /adds 1 feature/);
+    const batch = await runTool(turn, 'apply_ops', { ops: [{ tool: 'edit_feature', args: { index: 2, values: { dia: 5 } } }, { tool: 'edit_feature', args: { index: 1, values: { h: 9 } } }] }, evaluate);
+    assert.ok(batch.isError); assert.match(parse(batch.content).error, /changes 2 features/);
+    // Proposing it is how: the part unchanged, the proposal open for the user.
+    const prop = await runTool(turn, 'propose', { title: 'another hole', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 4, x: 30, y: 10 } } }] }, evaluate);
+    assert.ok(!prop.isError, prop.content); assert.equal(prop.state.doc.nodes.length, 3);
+    // L3 changes the part as before.
+    process.env.CAD_AUTONOMY = '3';
+    assert.ok(!(await runTool(turn, HOLE.tool, { ...HOLE.args, values: { d: 4, x: 30, y: 10 } }, evaluate)).isError);
+  } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
 });

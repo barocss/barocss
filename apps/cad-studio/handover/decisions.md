@@ -922,7 +922,8 @@ Decided:
 - **Autonomy levels.** Set in the chat header (L1–L4, kept per browser). They are sent with each turn
   (`autonomy` → `CAD_AUTONOMY`) and stated to the agent in the turn's note.
   - L1: propose only. Part-changing tools are refused (requirements and dry runs allowed).
-  - L2 (default, today's behaviour): the agent changes the part; the user accepts proposals.
+  - L2 (default): the agent changes the part; the user accepts proposals. **Owner decided option (b), 2026-10-18 — see
+    "L2 is option (b)" below.**
   - L3: the agent also accepts proposals of low or medium risk that change no hard requirement.
   - L4: the agent accepts any proposal that breaks no hard requirement (newly failing).
   - At every level, a proposal with `approval` reasons (an assembly, mates, a drawing, a locked part) is the user's.
@@ -979,6 +980,42 @@ Evidence: studio 287/287 after the override (285 before it); browser flow 106/10
 
 A4 is closed: transactions (D39), proposals and history (D40), rebase, partial accept, autonomy and chips (D41).
 Next on the roadmap: R3.
+
+**L2 is option (b): the owner decided it (2026-10-18).** It applies on the tool server to each call that changes the
+part, against the part as the turn found it (`turnBase`), so a run of small calls cannot add up past it.
+- **What applies directly.**
+  - Value edits of one feature (numbers, or a value bound to a parameter) and parameter values. A sketch counts as part
+    of the feature built from it, so a box's width and height are one feature's values.
+  - Only while every hard requirement that passed at the turn's start still passes.
+- **What becomes a proposal.** Everything else in the turn is refused with `code: 'needs_proposal'` and the part left
+  as it was; the agent proposes it instead. That covers:
+  - a second feature;
+  - a new, deleted or moved feature;
+  - a change to what a feature is built on, its kind or options (`parent`, `tool`, `sketch`, `edges`, `count`, `axis`
+    …);
+  - a parameter added or removed;
+  - a hard requirement broken.
+- **Unchanged.** L1, L3 and L4; the always-approval kinds (assembly, mates, drawing, locked part) at every level.
+- **What the studio shows.** A turn that changed the part's features or parameters shows "Applied by the agent: …"
+  with an **Undo** button, which takes the turn back. The L2 tooltip, the turn note and the system prompt say the
+  rule.
+- **Evidence.**
+  - Studio `proposals.test.ts`, the L2 test:
+    - a hole's diameter twice in a turn applies;
+    - the box's height after that is refused ("changes 2 features");
+    - the box's height and depth together apply;
+    - a width that breaks R1 is refused;
+    - a new hole is refused ("adds 1 feature"), and so is a two-edit batch;
+    - propose works, and L3 builds as before.
+  - Conformance `conformance/a4/l2-values-or-proposal.json` holds the same rules in five turns.
+  - The MCP test checks that the default L2 refuses a model's first box with `needs_proposal`; the scripted build runs
+    at L4.
+  - Browser flow, a new step through the real chat server and the real tool server (`test/fixtures/scripted-claude.mjs`
+    stands in for the CLI and makes the calls):
+    - a height edit applies, the toast's Undo restores it;
+    - `apply_ops` with the height and a hole is refused at L2, then `propose` gives P1 (1 added, 1 changed, low risk);
+      the part stays a sketch and an extrude.
+  - Found and fixed on the way: the toast's Undo first ran a stale undo. It now runs the latest one.
 
 ## D42 — Facet faces (F0): mesh regions as typed arrays, polyline edges, exact mass; small meshes through the planar path until F2 (2026-10-18, R3.1)
 Decided:
@@ -1574,6 +1611,26 @@ Evidence:
   - the cup padded to 33 MiB opens as an import body;
   - padded to 65 MiB, it shows the refusal, and the part is unchanged.
   - A full run before this step's extension had no other failure; the mesh steps were rerun after it.
+
+**Owner decided 128 MiB (2026-10-18), with the B-rep portion at 32 MiB and the 2M triangle cap unchanged.** Re-measured
+at that size with a 2M-triangle export (101.6 MB). Node figures are fresh processes reading the file:
+
+| Path | 2M, 101.6 MB |
+|---|---|
+| importStep | 7.6 s, 1527 MB peak RSS (base 375 with the text loaded) |
+| stepMeshes | 1.9 s, 1348 MB |
+| Part import | 7.6 s, 1659 MB |
+| Whole gate in one process | 14.4 s, 2380 MB |
+| Studio in Chrome, Open STEP | opens in 11.2 s; renderer process peak 3057 MB (base 366) |
+| The same for the 1M file | 5.0 s, 1912 MB |
+
+- The Chrome row is a closed, clean mesh, so stepMeshes → diagnose → import, then display. The renderer process holds
+  the page, its worker and the uploaded mesh.
+- It works in practice; nothing failed. This machine has headroom; a 4 GB browser tab limit would be near at the cap.
+- The refusal now reads "larger than 128 MiB; a mesh that large opens from a .bcad file".
+- Tests:
+  - kernel: 65 MiB opens, past 128 MiB refused;
+  - browser flow: the cup padded to 33 MiB and to 65 MiB opens, to 129 MiB is refused, and the part stays.
 
 ## D50 — F1: a facet body split by a plane on its own triangles, each side closed by an exact planar cap; oblique splits of planar bodies fixed (2026-10-18, R4)
 

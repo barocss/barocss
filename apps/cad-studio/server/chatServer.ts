@@ -249,7 +249,7 @@ export function stateNote(doc: StudioDoc, level = 2): string {
 /** What each autonomy level lets the agent do (D41), as told to it each turn. */
 const AUTONOMY: Record<number, string> = {
   1: 'propose every change (propose); the user accepts it.',
-  2: 'change the part; the user accepts proposals.',
+  2: 'change values of one feature or of parameters directly (every hard requirement still passing); propose anything more in this turn (several features, adding, deleting or moving features, what a feature is built on); the user accepts proposals.',
   3: 'change the part, and accept your own proposals of low or medium risk that change no hard requirement.',
   4: 'change the part, and accept proposals that break no hard requirement.',
 };

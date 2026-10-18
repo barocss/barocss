@@ -20,7 +20,7 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
   const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
   for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
   const first = await evaluate(saved.doc);
-  let state: ChatState = { doc: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
+  let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
   let changed = saved.changed;
   const save = () => {
     const tmp = `${statePath}.tmp`;

@@ -218,12 +218,12 @@ export interface CadPartSnapshot {
  * threads. The part document's own text stays at `fileBytes`. `stepTessellatedBytes`: a file whose excess over
  * `stepBytes` is tessellated meshes (AP242: the studio's own mesh exports, scans) — see `stepSizeProblem`.
  */
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 64 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
 /**
  * Why a STEP file is too large to read, or null: its text past `stepTessellatedBytes`, or what is not tessellated in
  * it (B-rep records and the rest) past `stepBytes` (D49). Tessellated records take about 13 times their text while
- * read into a part (a 50 MB file of a million triangles: 680 MB) and a mesh that size is held as arrays after; a mesh
- * larger still opens from a .bcad file. A scan, no parse: checked before a file is read (the studio's worker too).
+ * read into a part (a 50 MB file of a million triangles: 680 MB; the owner's 128 MiB, D49, holds a 2M-triangle file) and a
+ * mesh that size is held as arrays after; a mesh larger still opens from a .bcad file. A scan, no parse: checked before a file is read (the studio's worker too).
  */
 export function stepSizeProblem(text: string): string | null {
   const MiB = (n: number) => `${n / 2 ** 20} MiB`;

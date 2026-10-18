@@ -98,8 +98,15 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
 });
 
 test('a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole', async () => {
+  // At the default L2 a turn's new feature is a proposal (D41, option b); this model runs at L4.
+  const l2Path = join(scratch(), 'state-l2.json');
+  writeFileSync(l2Path, JSON.stringify({ doc: emptyDoc(), changed: false }));
+  const l2 = mcpClient(l2Path), refused = await l2.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  assert.ok(refused.isError); assert.equal(refused.json.code, 'needs_proposal');
+  await l2.close();
   const statePath = join(scratch(), 'state.json');
   writeFileSync(statePath, JSON.stringify({ doc: emptyDoc(), changed: false }));
+  const level = process.env.CAD_AUTONOMY; process.env.CAD_AUTONOMY = '4';
   const mcp = mcpClient(statePath);
   const init = await mcp.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } });
   assert.deepEqual(init.result.capabilities, { tools: {} });
@@ -122,6 +129,7 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   const round = fillet.json.bodies[0].faces.filter((f: any) => f.radius === 2).map((f: any) => f.name);
   assert.ok(!(await mcp.call('select', { faces: round })).isError);
   await mcp.close();
+  if (level === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = level;
   // The state file holds what the turn built, for the chat server to hand back.
   const saved = JSON.parse(readFileSync(statePath, 'utf8'));
   assert.equal(saved.changed, true); assert.equal(saved.selection.faces.length, 4);
