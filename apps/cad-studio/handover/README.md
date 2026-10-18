@@ -438,7 +438,7 @@ Checks at the end:
 
 | Suite | Result |
 |---|---|
-| kernel | 926/927 (the known environmental demo-spawn test) |
+| kernel | 927/928 (the known environmental demo-spawn test) |
 | studio | 296/296 |
 | browser flow | 110/110 |
 | RB and props | 0 NEW |
@@ -455,6 +455,13 @@ Pending decisions (reversible defaults taken):
   - (c) L2 proposes everything.
 
   The peer recommends (b). Kept at (a) until the owner decides.
+- **For the owner: STEP size caps, 32 MiB B-rep / 64 MiB tessellated (D49).**
+  - What is not tessellated stays at 32 MiB. A file whose excess is meshes may reach 64 MiB: our 1M export is
+    49.9 MB.
+  - Measured: 1M imports at 885 MB peak; the whole studio gate in one process at 1.28 GB.
+  - 128 MiB (the peer's example) would reach about 1.8 GB on import and about 3 GB through the gate.
+  - Larger meshes, up to the 2M triangle cap, open from .bcad.
+  - Recommendation: keep 64 MiB. Raise it only together with streaming the STEP reader.
 
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).

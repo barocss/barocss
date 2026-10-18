@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { exportStep, importStep, stepMeshes, stepValidationProperties, facetBrepFromTriangles, brepMassProperties, brepSurfaceArea, checkBrep, evaluateCadPart, MESH_PLANAR_TRIANGLES } from '../dist/index.js';
+import { exportStep, importStep, stepMeshes, stepValidationProperties, facetBrepFromTriangles, brepMassProperties, brepSurfaceArea, checkBrep, evaluateCadPart, MESH_PLANAR_TRIANGLES, CadPartLimits, stepTessellatedChars } from '../dist/index.js';
 
 // AP242 tessellated STEP (R3.5): mesh bodies written as triangulated faces (or planar faces, for older readers) and
 // read back as facet faces with their names; mixed files with B-rep solids beside them.
@@ -80,4 +80,19 @@ END-ISO-10303-21;
   assert.deepEqual(b.faces.map(f => f.name), ['top']);
   const meshes = stepMeshes(quad);
   assert.deepEqual([meshes.length, meshes[0].name, meshes[0].indices.length], [1, 'scan', 6]);
+});
+
+test('size caps (D49): past stepBytes only when the excess is tessellated, never past stepTessellatedBytes — each refused before it is read', () => {
+  const { P, I } = sphere(10, 24, 12), step = exportStep([facetBrepFromTriangles(P, I, { id: 'ball' })], { meshes: 'tessellated' });
+  assert.ok(stepTessellatedChars(step) > 0.8 * step.length, `${stepTessellatedChars(step)} of ${step.length}`);
+  const part = text => evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'i', kind: 'import', step: text }] });
+  // A mesh file past 32 MiB (its coordinates list padded with spaces, which STEP allows between tokens) reads.
+  const big = step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(CadPartLimits.stepBytes)}`);
+  assert.ok(big.length > CadPartLimits.stepBytes);
+  assert.ok(Math.abs(part(big).output('i').massProperties(1000).volumeMM3 - part(step).output('i').massProperties(1000).volumeMM3) < 1e-9);
+  // The same excess outside the meshes (a B-rep file that size) is refused, saying how much.
+  const brepish = step.replace('DATA;', `DATA;\n/*${' '.repeat(CadPartLimits.stepBytes)}*/`);
+  assert.throws(() => part(brepish), /larger than 32 MiB outside its meshes \(32\.0 MiB\)/);
+  // Past 64 MiB, a mesh too: refused, pointing to the .bcad file.
+  assert.throws(() => part(step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(CadPartLimits.stepTessellatedBytes)}`)), /larger than 64 MiB; a mesh that large opens from a \.bcad file/);
 });

@@ -23,7 +23,7 @@ import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
-import { exportStep, importStep } from './step.js';
+import { exportStep, importStep, stepTessellatedChars } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { selfIntersections } from './mesh-repair.js';
@@ -214,9 +214,23 @@ export interface CadPartSnapshot {
  * `stepBytes`: an imported STEP file's text. A STEP file is read whole, and a solid of many faces holds
  * about 17 times its text in memory while it is built (a 19 MB faceted M8 bolt: about 320 MB): 32 MiB keeps
  * that near half a gigabyte, within a browser worker, and holds the studio's own exports of modelled
- * threads. The part document's own text stays at `fileBytes`.
+ * threads. The part document's own text stays at `fileBytes`. `stepTessellatedBytes`: a file whose excess over
+ * `stepBytes` is tessellated meshes (AP242: the studio's own mesh exports, scans) — see `stepSizeProblem`.
  */
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 64 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000 });
+/**
+ * Why a STEP file is too large to read, or null: its text past `stepTessellatedBytes`, or what is not tessellated in
+ * it (B-rep records and the rest) past `stepBytes` (D49). Tessellated records take about 13 times their text while
+ * read into a part (a 50 MB file of a million triangles: 680 MB) and a mesh that size is held as arrays after; a mesh
+ * larger still opens from a .bcad file. A scan, no parse: checked before a file is read (the studio's worker too).
+ */
+export function stepSizeProblem(text: string): string | null {
+  const MiB = (n: number) => `${n / 2 ** 20} MiB`;
+  if (text.length > CadPartLimits.stepTessellatedBytes) return `the STEP file is larger than ${MiB(CadPartLimits.stepTessellatedBytes)}; a mesh that large opens from a .bcad file (its arrays kept as binary)`;
+  if (text.length <= CadPartLimits.stepBytes) return null;
+  const other = text.length - stepTessellatedChars(text);
+  return other > CadPartLimits.stepBytes ? `the STEP file is larger than ${MiB(CadPartLimits.stepBytes)} outside its meshes (${(other / 2 ** 20).toFixed(1)} MiB); only tessellated meshes may take it up to ${MiB(CadPartLimits.stepTessellatedBytes)}` : null;
+}
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
@@ -707,11 +721,14 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
-      if ((f.step as string).length > CadPartLimits.stepBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.stepBytes} bytes`);
+      const tooLarge = stepSizeProblem(f.step as string); if (tooLarge) fail('INPUT', tooLarge);
       return () => {
         let brep: Brep;
         try { brep = importStep(f.step as string, { id: at }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported/.test(cause.message) ? 'CAPABILITY' : 'INPUT', cause.message.replace(/^B-rep: STEP: /, '')); throw cause; }
+        let triangles = 0;
+        for (const x of brep!.faces) if (isFacetFace(x)) triangles += (x.surface as FacetPatch).indices.length / 3;
+        if (triangles > CadPartLimits.meshTriangles) fail('INPUT', `the STEP file's meshes hold ${triangles.toLocaleString('en-US')} triangles, more than ${CadPartLimits.meshTriangles.toLocaleString('en-US')}`);
         // Names in this part: the feature id before each face name (an edge's two names alike).
         const named = { ...brep!, faces: brep!.faces.map((x, i) => x.name ? x : { ...x, name: `face${i}` }) };
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));

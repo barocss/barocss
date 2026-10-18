@@ -1075,7 +1075,8 @@ export function App() {
         setStage('reading the file');
         const meshes = await engine.stepMeshes(step);
         setStage(null);
-        if (meshes && !('error' in meshes)) {
+        if (meshes && 'error' in meshes) { if (meshes.error !== 'stopped') setToast({ title: 'Could not open this file', hint: `${meshes.error[0].toUpperCase()}${meshes.error.slice(1)}. Your part is unchanged.`, detail: meshes.error }); return; }
+        if (meshes) {
           const k = stepLengthUnit(step).toMM, positions: number[] = [], indices: number[] = [];
           for (const m of meshes) { const base = positions.length / 3; for (let i = 0; i < m.positions.length; i++) positions.push(m.positions[i] * k); for (let i = 0; i < m.indices.length; i++) indices.push(base + m.indices[i]); }
           setStage('checking the mesh');

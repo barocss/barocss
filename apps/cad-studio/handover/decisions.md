@@ -1509,3 +1509,68 @@ Evidence:
 
 R3 is done: F0 facet faces (D42), point classification (D43), M1 container (D44–D45), M3 repair (D46–D47), AP242
 tessellated STEP (D48). Next on the roadmap: R4, F1 (facet × plane split and section with an exact planar cap).
+
+## D49 — STEP size caps: 32 MiB of B-rep, 64 MiB when the rest is tessellated meshes (2026-10-18, R3.5 follow-up)
+
+The peer found that our own 1M-triangle tessellated export (49.9 MB) could not be opened again. The import feature
+refused any STEP text past `CadPartLimits.stepBytes` (32 MiB), and the studio's Open STEP of a closed, clean mesh
+file goes through that feature. Only an unclean mesh file went the other way, through the repair gate as a mesh
+node, and that path had no cap at all.
+
+Measured on the organic torus fixtures, exported tessellated, in Node 22. Peak RSS is sampled every 5 ms.
+
+| File | importStep | Part import (+ names) | Studio gate in one process (stepMeshes → diagnose → part → mass) |
+|---|---|---|---|
+| 200k, 9.4 MB | 0.5 s, 283 MB | 0.5 s, 405 MB | 1.1 s, 408 MB |
+| 1M, 49.9 MB | 3.2 s, 803 MB (base 207) | 3.3 s, 885 MB | 6.1 s, 1284 MB |
+| 2M, 101.6 MB | 6.7 s, +316 MB over a 1.19 GB base | 7.0 s, 1825 MB | not run (est. about 2.5 GB) |
+
+The 2M file was built in memory: the disk was full. Its base therefore includes the generator; its peak is the
+number to read.
+
+A tessellated file costs about 13× its text while read into a part. The 32 MiB note for B-rep files gives about 17×.
+
+Decision (a reversible default; the owner's call is pending, see the README):
+- **The rule.**
+  - `CadPartLimits.stepTessellatedBytes = 64 MiB` caps the whole text.
+  - What is not tessellated must still fit `stepBytes` (32 MiB).
+  - So B-rep files keep their cap, and a mixed file may exceed 32 MiB only by its meshes.
+- **How "tessellated" is measured.**
+  - `stepTessellatedChars(text)` is a scan with no parse.
+  - It counts the characters from each `COORDINATES_LIST(` or `TRIANGULATED_FACE(` (COMPLEX_ alike) to the next
+    `;`.
+  - A `;` inside a quoted name cuts the count short, never long.
+  - Our files score 0.9997.
+- **Where it applies.** `stepSizeProblem(text)` returns the reason or null. It is checked:
+  - before the part import reads the file;
+  - in the studio worker, before `stepMeshes` parses it.
+  - The worker also skips that parse when the file has no tessellated record. Before this, a B-rep file was parsed
+    twice on Open STEP.
+- **What the studio shows.** The worker's refusal is shown directly: "Could not open this file: The STEP file is
+  larger than 64 MiB; a mesh that large opens from a .bcad file …". The open part is unchanged.
+- **The triangle cap applies to STEP too.** After a read, the facet triangles are counted against `meshTriangles`
+  (2M). Before, STEP meshes came in with no triangle limit.
+- **Why 64 MiB and not the suggested 128 MiB.**
+  - The peer's bar was about 1–1.5 GB in the worker. The whole gate peaks at 1.28 GB at 49.9 MB, and scales about
+    linearly.
+  - At 64 MiB: about 1.1 GB for the part import, and about 1.65 GB for the gate in one process. In the browser, the
+    gate is split across the main thread and the worker.
+  - At 128 MiB: about 1.8 GB for the import alone, and about 3 GB for the gate.
+  - 64 MiB holds our 1M export with 34% to spare, for writers whose numbers run longer.
+  - Meshes from 1.3M up to the 2M triangle cap open from the .bcad container: 17 MB for 1M, binary arrays, 3.4 s in
+    the browser (D44).
+
+Not done: an import node keeps its STEP text in the document. It crosses to the worker once (nodes go by id), but it
+is saved in the .bcad file as JSON text, and the chat sends it with the document. Recorded as a TODO: keep an import
+node's text as a blob, like the mesh arrays.
+
+Evidence:
+- Kernel `test/step-tessellated.test.mjs` 5/5. The new test checks three cases:
+  - a mesh file padded past 32 MiB inside its coordinates list reads, with the same volume;
+  - the same padding outside the meshes is refused: "larger than 32 MiB outside its meshes (32.0 MiB)";
+  - past 64 MiB it is refused, pointing to .bcad.
+- Kernel suite 927/928; the one failure is the known environmental test. Studio 296/296. Type-check and lint clean.
+- Browser flow, STEP and meshes step:
+  - the cup padded to 33 MiB opens as an import body;
+  - padded to 65 MiB, it shows the refusal, and the part is unchanged.
+  - A full run before this step's extension had no other failure; the mesh steps were rerun after it.

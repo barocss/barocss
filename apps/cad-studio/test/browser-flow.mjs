@@ -933,6 +933,15 @@ try {
     // (The same body: its volume as before, 4022 mm³.)
     await page.locator('.outliner .ol').first().click();
     await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    // Size caps (D49): past 32 MiB in its meshes it still opens; past 64 MiB it is refused, pointing to .bcad (the
+    // coordinates list padded with spaces; in memory below Playwright's 50 MB, else a file removed once read).
+    const padded = n => ({ name: 'cup-big.step', mimeType: 'model/step', buffer: Buffer.from(text.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(n)}`)) });
+    await page.setInputFiles('input[aria-label="Model file"]', padded(33 << 20));
+    await page.waitForFunction(() => /Import cup-big/.test(document.querySelector('.outliner')?.textContent ?? '') && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 });
+    const huge = join(out, 'cup-huge.step'); fs.writeFileSync(huge, padded(65 << 20).buffer);
+    await page.setInputFiles('input[aria-label="Model file"]', huge); fs.unlinkSync(huge);
+    await page.waitForFunction(() => /larger than 64 MiB; a mesh that large opens from a \.bcad file/.test(document.body.innerText), null, { timeout: 60000 });
+    assert.match(await outliner(), /Import cup-big/);
     // A mesh-only STEP whose shell does not close: the gate, as for an STL.
     const open = join(out, 'sheet.step');
     fs.writeFileSync(open, `ISO-10303-21;\nHEADER;FILE_DESCRIPTION((''),'2;1');FILE_NAME('a.stp','',(''),(''),'','','');FILE_SCHEMA(('AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }'));ENDSEC;\nDATA;\n#1=COORDINATES_LIST('',5,((0.,0.,0.),(10.,0.,0.),(10.,10.,0.),(0.,10.,0.),(5.,5.,8.)));\n#2=TRIANGULATED_FACE('sides',#1,5,(),$,(),((1,2,5),(2,3,5),(3,4,5),(4,1,5)));\n#3=TESSELLATED_SHELL('pyramid',(#2),$);\nENDSEC;\nEND-ISO-10303-21;\n`);

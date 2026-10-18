@@ -565,6 +565,24 @@ export function stepMeshes(source: string): { name: string; positions: Float64Ar
   const meshes = tessellatedMeshes(data, 'step');
   return meshes.length ? meshes.map(m => ({ name: m.name, positions: m.positions, indices: m.indices })) : null;
 }
+const TESSELLATED_RECORDS = ['COORDINATES_LIST(', 'TRIANGULATED_FACE('];
+/**
+ * How many of a STEP file's characters hold tessellated geometry (its COORDINATES_LIST and TRIANGULATED_FACE records,
+ * COMPLEX_TRIANGULATED_FACE alike), found by a scan without parsing: the import's size caps tell a mesh file from a
+ * B-rep one by it (D49). A record runs from its keyword to the next ';' — a ';' in a quoted name ends it early, so
+ * it is counted short, never long.
+ */
+export function stepTessellatedChars(source: string): number {
+  let total = 0;
+  for (const word of TESSELLATED_RECORDS) {
+    for (let at = source.indexOf(word); at >= 0; at = source.indexOf(word, at)) {
+      const end = source.indexOf(';', at);
+      if (end < 0) { total += source.length - at; break; }
+      total += end - at; at = end;
+    }
+  }
+  return total;
+}
 
 /** Names, those that occur more than once numbered in order of occurrence (`name#1`, `name#2`…); missing ones stay missing. */
 function renumbered(names: readonly (string | undefined)[]): (string | undefined)[] {

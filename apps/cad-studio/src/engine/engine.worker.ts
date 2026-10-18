@@ -3,7 +3,7 @@ import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, s
 import { projectViews } from '../drawing/project';
 import { sectionOf } from '../drawing/section';
 import { WireReceiver, type WireDoc } from './wireDoc';
-import { diagnoseMesh, repairMesh, stepMeshes, type MeshRepairSteps } from '@barocss/cad';
+import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
 
 export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
@@ -30,6 +30,10 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   if (event.data.type === 'stepMeshes') {
     const { id, step } = event.data;
+    // Too large: refused unread (D49); no tessellated record: not a mesh file, and not parsed twice.
+    const tooLarge = stepSizeProblem(step);
+    if (tooLarge) { post({ id, error: tooLarge }); return; }
+    if (!stepTessellatedChars(step)) { post({ id, meshes: null }); return; }
     try { const m = stepMeshes(step); post({ id, meshes: m }, m ? m.flatMap(x => [x.positions.buffer, x.indices.buffer]) : []); } catch (e) { post({ id, error: e instanceof Error ? e.message : String(e) }); }
     return;
   }

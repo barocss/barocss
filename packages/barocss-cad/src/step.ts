@@ -213,7 +213,7 @@ function bsplineSurface(S: Surface, add_: (e: string) => string, point: (p: read
   return add_(`(BOUNDED_SURFACE()B_SPLINE_SURFACE(${S.degreeU},${S.degreeV},(${cps}),.UNSPECIFIED.,.F.,.F.,.F.)B_SPLINE_SURFACE_WITH_KNOTS(${knots})GEOMETRIC_REPRESENTATION_ITEM()RATIONAL_B_SPLINE_SURFACE((${S.weights.map(row => `(${row.map(real).join(',')})`).join(',')}))REPRESENTATION_ITEM('')SURFACE())`);
 }
 
-export { importStep, stepMeshes, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';
+export { importStep, stepMeshes, stepTessellatedChars, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step-import.js';
 
 /** A body whose faces are all facets, as the planar B-rep of its triangles (others as they are; mixed refused). */
 function planarFacets(brep: Brep): Brep {
