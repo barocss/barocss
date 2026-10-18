@@ -622,7 +622,7 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | D41 — L2 is option (b) (owner) | `737d64196` `1b9049a66` | Value edits of one feature apply with an Undo toast; the rest is a proposal; the first build on an empty part applies. Tested through the real chat and tool servers. |
 | R4 — F1 facet × plane split and section | `d571d6f2d` `c2e79c1b9` | Any size, exact planar cap; 1M in 2.0 s. Oblique splits of planar bodies had always failed: fixed. RB round trip of meshes checked tessellated. |
 | R5 — SD1 SubD cage | `235c6a422` `80defded1` | Regular cages exact (Catmull–Clark step agrees to 1e-12); creases, boundaries, corners; SubD torus command; batched patch mass 3.9 → 0.22 s at 20k quads. |
-| R6 — F2 mesh × exact Booleans | (this commit) | Mesh near the tool alone through the exact Boolean, tool faces exact; holes on 30k meshes in 0.64 s; mixed bodies go on; mass of mixed bodies fixed; weld across cell boundaries fixed. Dense symmetric cases refused (analytic Boolean limit, TODO). |
+| R6 — F2 mesh × exact Booleans | `5f3a01486` | Mesh near the tool alone through the exact Boolean, tool faces exact; holes on 30k meshes in 0.64 s; mixed bodies go on; mass of mixed bodies fixed; weld across cell boundaries fixed. Dense symmetric cases refused (analytic Boolean limit, TODO). |
 
 Checks at the end:
 
