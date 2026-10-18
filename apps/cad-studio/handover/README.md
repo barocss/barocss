@@ -33,10 +33,11 @@ Done:
 - **PERF3 B9** (D82 § B9): mesh bodies' mass and area exactly from their triangles and loops, once per B-rep (`polyhedralIntegrals`); 40k planar mesh 355/651 → 70/73 ms, 200k facets 17 → 6 ms.
 - **PERF3 B10** (D82 § B10): F2's exact Boolean skips a probe's second search where the first face misses it; axis-plane splits put cut points exactly on the plane (caps 156 faces → 4); F2 hole 20k 586 → 460 ms, 80k 1 192 → 872 ms.
 - **PERF3 B11** (D82 § B11): mesh repair's edge adjacency and self-intersection grid in typed arrays (the same order), a plane-side rejection before the crossing test; 200k diagnose + repair 1 255 → 677 ms, results identical; `report.flipped` counts a triangle once (it double-counted).
+- **PERF3 B12** (D82 § B12): worker replies send only meshes the client lacks (tokens per slot, `meshWire.ts`); face-table key without the whole JSON; a snapshot slot per purpose; clash probes ask volumes only; an edit beside a 200k mesh: worker 33 → 2 ms, 5.3 MiB → 0 sent.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **B12–B13**: worker reply payload, memory.
+   - **B13**: memory (uv, undo sharing, blob eviction, recovery writes, transferable mesh posts).
    - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).

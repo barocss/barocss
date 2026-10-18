@@ -2,6 +2,7 @@
 // part's own coordinates, from the kernel's B-rep (not the display mesh, which is single precision).
 import { evaluateCadPart, faceGeometry, type Brep } from '@barocss/cad';
 import { toPartDocument } from '../engine/part';
+import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
 import { BASE, clean, type FaceTable, type Vec3 } from './mates';
 
@@ -54,7 +55,8 @@ export function faceTableFrom(outputs: readonly { readonly brep: { readonly face
 }
 
 /** What a part's faces depend on: its nodes and parameters. */
-export const faceKey = (doc: StudioDoc) => JSON.stringify([doc.nodes, doc.parameters]);
+/** The key face tables are kept by: the part's nodes and parameters (each node's text kept per node object, long arrays by their digest). */
+export const faceKey = (doc: StudioDoc) => contentKey(doc);
 
 // Face tables by part content (reading them evaluates the part), shared by mates, the chat's assembly tools,
 // stored references' signatures (engine/references.ts), the requirement checks and the print rules.

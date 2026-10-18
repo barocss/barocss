@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
-import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, stepFor, stlFor } from './evaluate';
+import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, shareMeshes, stepFor, stlFor, type PartSlot } from './evaluate';
+import { MeshSender } from './meshWire';
 import { projectViews } from '../drawing/project';
 import { sectionOf } from '../drawing/section';
 import { WireReceiver, type WireDoc } from './wireDoc';
@@ -7,7 +8,9 @@ import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedC
 
 export type WorkerRequest =
   | { type: 'evaluate'; id: number; doc: WireDoc; revision: number }
-  | { type: 'part'; id: number; doc: WireDoc; revision: number }
+  | { type: 'part'; id: number; doc: WireDoc; revision: number; slot?: PartSlot }
+  /** A part's bodies' volumes, no meshes (a clash probe, PERF3 B12). */
+  | { type: 'volumes'; id: number; doc: WireDoc }
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
@@ -20,7 +23,9 @@ export type WorkerRequest =
   | { type: 'diagnose'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number> }
   | { type: 'repair'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number>; steps: MeshRepairSteps };
 
-const wire = new WireReceiver();
+const wire = new WireReceiver(), meshesOut = new MeshSender();
+// (The kept meshes are handed out as they are; the sender copies only what the client does not hold.)
+shareMeshes(true);
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const post = (data: unknown, transfer: Transferable[] = []) => (self as unknown as Worker).postMessage(data, transfer);
   if (event.data.type === 'diagnose') {
@@ -49,13 +54,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const doc = wire.unpack(event.data.doc), base = event.data.type === 'placed' ? wire.unpack(event.data.base) : null;
   const request = { ...event.data, doc };
   if (request.type === 'evaluate' || request.type === 'part' || request.type === 'placed' || request.type === 'preview' || request.type === 'section') {
-    const result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
-    const transfer: Transferable[] = [];
-    if (result.ok) for (const body of result.bodies) {
-      const m = body.mesh;
-      transfer.push(m.positions.buffer, m.normals.buffer, m.faceOfVertex.buffer, m.indices.buffer, m.edgeLines.buffer, m.edgeOfSegment.buffer);
-    }
-    (self as unknown as Worker).postMessage({ id: request.id, result }, transfer);
+    const result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision, 8, request.slot) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
+    const out = meshesOut.pack(replySlot(request), result);
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result }, out.transfer);
+  } else if (request.type === 'volumes') {
+    (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {
     const r = brepsFor(request.doc);
     const drawing = 'error' in r ? { ok: false as const, error: r.error } : projectViews(r.breps, r.prefixes, request.options);
@@ -68,3 +71,5 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     (self as unknown as Worker).postMessage({ id: request.id, bytes }, bytes ? [bytes.buffer] : []);
   }
 };
+/** Which reply slot a request's meshes are kept in (the client names the same: EngineClient.slotOf). */
+function replySlot(r: { type: string; slot?: string }): string { return r.type === 'part' ? `part:${r.slot ?? 'part'}` : r.type; }

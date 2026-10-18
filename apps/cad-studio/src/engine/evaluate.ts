@@ -49,12 +49,17 @@ let last: CadPartSnapshot | null = null;
 
 // Unchanged features keep their B-rep objects from one evaluation to the next: their tessellation (per
 // quality) and mass properties are worked out once. The meshes handed out are copies (the worker
-// transfers their buffers away).
+// transfers their buffers away) — unless the worker shares them (PERF3 B12): it then copies only the meshes
+// it has not sent in that slot's last reply, and names the others by a token.
 const meshes = new WeakMap<Brep, Map<number, DisplayMesh>>();
+let sharing = false;
+/** The kept meshes handed out as they are (the worker's MeshSender copies what it sends); off: a copy each time. */
+export function shareMeshes(on: boolean): void { sharing = on; }
 const masses = new WeakMap<Brep, ReturnType<CadPartSnapshot['outputs'][number]['massProperties']> | null>();
 function meshOf(brep: Brep, revision: number, quality: number): DisplayMesh {
   let byQuality = meshes.get(brep); if (!byQuality) meshes.set(brep, byQuality = new Map());
   let m = byQuality.get(quality); if (!m) byQuality.set(quality, m = bodyMesh(brep, revision, quality));
+  if (sharing) return m;
   return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };
 }
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
@@ -106,19 +111,34 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
   }
 }
 
+/**
+ * What another part's evaluation is for: each purpose keeps its own last snapshot (PERF3 B12), so a requirement
+ * check, a reference check, an agent's proposal or a file read in between does not throw away what the others reuse.
+ */
+export type PartSlot = 'part' | 'check' | 'refs' | 'agent' | 'read' | 'probe';
 /** Another part's bodies on their own (instances: not through the main part's cache). */
-// The last placed part: the next one (another copy of the same part, placed elsewhere) reuses its features.
-let lastPart: CadPartSnapshot | null = null;
-export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+const lastParts = new Map<PartSlot, CadPartSnapshot>();
+export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot: PartSlot = 'part'): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(doc), snapshot = lastPart ? lastPart.withDocument(part) : evaluateCadPart(part); lastPart = snapshot;
+    const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
     return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
+}
+/** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
+export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
+  try {
+    const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
+    return { ok: true, volumes: snapshot.outputs.map(o => {
+      let m = masses.get(o.brep);
+      if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
+      return { key: bodyKeyOf(o.id, doc.nodes), volumeMM3: m ? m.volumeMM3 : null };
+    }) };
+  } catch (cause) { return { ok: false, error: friendly(cause instanceof Error ? cause.message : String(cause)) }; }
 }
 
 /**
@@ -131,7 +151,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): Eva
 export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(placed), snapshot = lastPart ? lastPart.withDocument(part) : evaluateCadPart(part); lastPart = snapshot;
+    const part = toPartDocument(placed), snapshot = lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part); lastPlaced = snapshot;
     const basePart = toPartDocument(base), origin = lastBase ? lastBase.withDocument(basePart) : evaluateCadPart(basePart); lastBase = origin;
     const bodies = snapshot.outputs.map((o, i) => {
       const at = origin.outputs[i];
@@ -143,7 +163,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
 }
-let lastBase: CadPartSnapshot | null = null;
+let lastBase: CadPartSnapshot | null = null, lastPlaced: CadPartSnapshot | null = null;
 /**
  * Whether a placed body is the part's body at the origin moved by the placement: the same faces and edges
  * by name, in order — but for the numbers of repeated names (`x#2`), which an upright body's turn about Z
@@ -186,7 +206,8 @@ function moveAll(a: Float32Array, m: readonly number[], t: readonly number[] | n
   }
 }
 function placeBody(b: BodyResult, m: readonly number[], t: readonly number[]): BodyResult {
-  const src = b.mesh, positions = src.positions, normals = src.normals, edgeLines = src.edgeLines;
+  // (Moved in place: a copy first when the kept mesh itself was handed out.)
+  const src = b.mesh, positions = sharing ? src.positions.slice() : src.positions, normals = sharing ? src.normals.slice() : src.normals, edgeLines = sharing ? src.edgeLines.slice() : src.edgeLines;
   moveAll(positions, m, t); moveAll(normals, m, null); moveAll(edgeLines, m, t);
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < positions.length; i += 3) for (let k = 0; k < 3; k++) { const v = positions[i + k]; if (v < min[k]) min[k] = v; if (v > max[k]) max[k] = v; }

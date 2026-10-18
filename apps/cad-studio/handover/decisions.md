@@ -3730,3 +3730,38 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - Kernel 1016/1017 (the known Node-version test); `mesh-repair.test.mjs` 10/10.
   - Conformance 67/67; RB no NEW row.
   - Studio 356/356, with the mesh repair corpus.
+
+### B12 — the worker's replies
+- **Confirmed:**
+  - **Every mesh, every reply.** Every evaluation reply carried every body's display mesh: six typed arrays copied out of the kept tessellation (`meshOf`), then transferred. That held even when the body was the same B-rep as in the last reply: a 200k-triangle mesh body beside a plate being edited was 5.31 MiB copied and sent per edit.
+  - **The face-table key.** That edit also cost the worker 33 ms, of which 30 ms was `rememberFaceTable`'s key: `faceKey` was `JSON.stringify([nodes, parameters])`, which writes out the mesh node's 200k-triangle arrays on every evaluation. It runs in the worker and on the main thread (and in faceClient).
+  - **One `part` snapshot for everything.** The worker's single `part` snapshot (`lastPart`) was shared by:
+    - requirement checks,
+    - reference checks,
+    - an agent's proposals and the chat previews,
+    - file reads,
+    - clash probes,
+    - placed instances.
+
+    Each one in between threw away what the others had reused.
+  - **Clash probes.** They evaluated each overlapping pair's intersection with full meshes, and read only its volume.
+- **Fix:**
+  - **`engine/meshWire.ts`:** `MeshSender` in the worker and `MeshReceiver` on the client.
+    - Each kind of request is a slot: `evaluate`, `preview`, `section`, `placed`, `part:<purpose>`.
+    - A body whose kept mesh was in that slot's last reply goes back as its token alone, with no copy and nothing sent. A new mesh is a copy with a token, its buffers transferred. One mesh twice in a reply is sent once.
+    - Both sides keep exactly the slot's last reply, in the order posted. Stale replies are unpacked too, and a refusal empties the slot.
+    - A token the client does not hold is an error result ("Evaluation lost"), never a guess. `restart` clears both sides.
+    - The worker hands out the kept meshes as they are (`shareMeshes(true)`, only there). `placeBody` copies before it moves one. The main thread was checked to write into no received mesh array.
+  - **`faceKey`** is the evaluation memo's per-node key (`contentKey`): each node's text kept per node object, long arrays by length and digest.
+  - **Snapshot slots per purpose:** `evaluatePart(…, slot)` with `PartSlot` = `part`, `check`, `refs`, `agent`, `read`, `probe`. `evaluatePlaced` has its own.
+  - **App callers:** checks `check`, references `refs`, proposals and chat `agent`, mesh and STEP reads `read`.
+  - **Clash probes** use the new `volumes` request: volumes only, no mesh made or sent.
+- **After (the worker's side of one edit beside the 200k mesh):** 33 ms and 5.31 MiB → **2 ms and 0 MiB**. Only the edited plate's mesh goes, a few KiB.
+  - Bench `worker: an edit beside a 200k mesh body`: 1.9 ms, budget 5 ms; it fails if the unchanged mesh is sent.
+- **Browser flow:** 119/119 with the worker path (WebGPU).
+- **Tests:** `test/meshWire.test.ts` (3):
+  - the protocol: tokens, slots apart, the last reply only, a refusal, a receiver out of step;
+  - the worker's path in-process, packed and unpacked, against a plain evaluation, array for array. The same part again sends nothing; a larger hole sends only the plate.
+  - volumes equal to the full evaluation's, and slots taking turns.
+- Studio 359/359.
+- **Not done:** signature-only replies for the reference checks. The evaluation memo (`kept`) is shared by every evaluate function, so a reply without meshes could be handed to a caller that reads them (a requirement's wall thickness). Unchanged prefix meshes now go back as tokens anyway.

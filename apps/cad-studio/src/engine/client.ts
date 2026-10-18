@@ -1,5 +1,6 @@
 import { rememberFaceTable } from '../assembly/faces';
-import type { EvalResult } from './evaluate';
+import type { EvalResult, PartSlot } from './evaluate';
+import { MeshReceiver, type WireResult } from './meshWire';
 import type { StudioDoc } from './doc';
 import type { DrawingResult } from '../drawing/project';
 import { WireSender } from './wireDoc';
@@ -18,13 +19,23 @@ export class EngineClient {
   private latestEval = 0;
   /** Every request's document goes through this, in the order the worker receives them. */
   private wire = new WireSender();
+  /** Replies' meshes by slot (the worker sends only those it has not sent there last time, PERF3 B12), and each evaluation's slot. */
+  private meshesIn = new MeshReceiver();
+  private slots = new Map<number, string>();
 
   constructor() { this.start(); }
   private start() {
     this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string }>) => {
+    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult }>) => {
       if (event.data.progress !== undefined) { this.progress.get(event.data.id)?.(event.data.progress); return; }
       this.progress.delete(event.data.id);
+      // (Every evaluation reply, stale ones too, in the order posted: the held meshes follow the worker's.)
+      const slot = this.slots.get(event.data.id);
+      if (slot !== undefined && event.data.result) {
+        this.slots.delete(event.data.id);
+        try { (event.data as { result: EvalResult }).result = this.meshesIn.unpack(slot, event.data.result); }
+        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, ms: 0 }; }
+      }
       const resolve = this.pending.get(event.data.id);
       this.pending.delete(event.data.id);
       resolve?.(event.data);
@@ -40,7 +51,7 @@ export class EngineClient {
     const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped' };
     this.progress.clear();
     for (const resolve of this.pending.values()) resolve(cancelled);
-    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender();
+    this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear();
     this.start();
   }
 
@@ -48,6 +59,7 @@ export class EngineClient {
     const id = this.next++; this.latestEval = id;
     return new Promise(resolve => {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(id === this.latestEval ? r : null); });
+      this.slots.set(id, 'evaluate');
       this.worker.postMessage({ type: 'evaluate', id, doc: this.wire.pack(doc), revision });
     });
   }
@@ -57,6 +69,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.slots.set(id, 'preview');
       this.worker.postMessage({ type: 'preview', id, doc: this.wire.pack(doc), revision });
     });
   }
@@ -66,16 +79,30 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.slots.set(id, 'section');
       this.worker.postMessage({ type: 'section', id, doc: this.wire.pack(doc), revision });
     });
   }
 
-  /** Another part on its own (an instance): never dropped as stale. */
-  part(doc: StudioDoc, revision: number): Promise<EvalResult> {
+  /**
+   * Another part on its own (an instance, or a check's, an agent's or a reference's version of this one): never
+   * dropped as stale. `slot`: what it is for — each keeps its own last snapshot in the worker (PERF3 B12).
+   */
+  part(doc: StudioDoc, revision: number, slot: PartSlot = 'part'): Promise<EvalResult> {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(r); });
-      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision });
+      this.slots.set(id, `part:${slot}`);
+      this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision, slot });
+    });
+  }
+
+  /** A part's bodies' volumes only, no meshes (a clash probe's intersection). */
+  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: unknown }> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volumeMM3: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
+      this.worker.postMessage({ type: 'volumes', id, doc: this.wire.pack(doc) });
     });
   }
 
@@ -84,6 +111,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.slots.set(id, 'placed');
       this.worker.postMessage({ type: 'placed', id, doc: this.wire.pack(doc), base: this.wire.pack(base), place, revision });
     });
   }

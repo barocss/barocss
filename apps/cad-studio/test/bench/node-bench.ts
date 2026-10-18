@@ -6,7 +6,9 @@ import { join } from 'node:path';
 import { brepFromTriangles, diagnoseMesh, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
 import { organicTorus } from './mesh-fixtures';
-import { evaluateDoc } from '../../src/engine/evaluate';
+import { evaluateDoc, shareMeshes } from '../../src/engine/evaluate';
+import { MeshSender } from '../../src/engine/meshWire';
+import { emptyDoc as emptyStudioDoc } from '../../src/engine/doc';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
 import { projectViews } from '../../src/drawing/project';
@@ -218,6 +220,17 @@ const scenarios: Scenario[] = [
     for (let t = 0; t < f.indices.length / 3; t++) { if (t % 997 === 5) continue; const a = f.indices[3 * t], b = f.indices[3 * t + 1], c = f.indices[3 * t + 2]; if (t % 1500 < 40) I.push(a, c, b); else I.push(a, b, c); }
     const P: number[] = [], J: number[] = []; for (let k = 0; k < I.length; k++) { const v = I[k]; P.push(f.positions[3 * v], f.positions[3 * v + 1], f.positions[3 * v + 2]); J.push(k); }
     return () => [diagnoseMesh(P, J), repairMesh(P, J)];
+  } },
+  // (PERF3 B12: the worker's side of an edit beside a 200k-triangle mesh body — the evaluation and its reply, the
+  // unchanged mesh named by its token. Before: 33 ms (the face table keyed by the whole part's JSON) and 5.3 MiB sent.)
+  { name: 'worker: an edit beside a 200k mesh body', budgetMS: 5, runs: 5, setup() {
+    const f = organicTorus(316, 316), send = new MeshSender();
+    const base = withNode(emptyStudioDoc(), { kind: 'mesh', name: 'scan', unit: 'mm', positions: Array.from(f.positions), indices: Array.from(f.indices), representation: 'facets' } as never);
+    const at = (w: number) => { const d = withNode(base, { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [100 + w, 30] }); return withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: 5 }); };
+    // (Sharing on only while it runs, as in the worker: the other benches take copies.)
+    const step = (w: number, k: number) => { shareMeshes(true); try { return send.pack('evaluate', evaluateDoc(at(w), k)); } finally { shareMeshes(false); } };
+    step(30, 0); let k = 0;
+    return () => { const out = step(30 + ++k * 1e-3, k); if (out.transfer.reduce((n: number, b) => n + (b as ArrayBuffer).byteLength, 0) > 1 << 16) throw new Error('the unchanged mesh was sent'); return out; };
   } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');

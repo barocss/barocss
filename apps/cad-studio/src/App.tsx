@@ -963,8 +963,9 @@ export function App() {
       const A = list[i].mesh.bounds, B = list[j].mesh.bounds;
       if ([0, 1, 2].some(k => A.max[k] <= B.min[k] + 1e-6 || B.max[k] <= A.min[k] + 1e-6)) continue;
       const probe = withNode(evaluated, { kind: 'intersect', left: refOf(list[i]), right: refOf(list[j]) });
-      const r = await engine.part(probe, revision.current++);
-      const v = r.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
+      // (Only the intersection's volume: no mesh made or sent.)
+      const r = await engine.volumes(probe);
+      const v = r.ok ? r.volumes.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
       if (v > 1e-6) found.push({ a: list[i].key, b: list[j].key, volume: v });
     }
     setClashes(found);
@@ -1054,7 +1055,7 @@ export function App() {
     const node = { ...base, ...(repair ? { repair } : {}), ...(crossings ? { crossings: { count: crossings, at: o.diagnosis.selfIntersectionAt.map(p => [...p] as [number, number, number]) } } : {}) };
     // Read before replacing the current part: a mesh that does not build keeps the part. Read piece by piece, so a
     // file of several closed pieces (a kit, separate eyes) opens as that many bodies (D42).
-    const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++);
+    const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++, 'read');
     if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
     const pieces = read.bodies.length, next = withNode(emptyDoc(), { ...node, ...(pieces > 1 ? { pieces } : {}) });
     setRepairAsk(null); replaceDoc(next); setFileName(o.name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
@@ -1127,7 +1128,7 @@ export function App() {
         }
         // Read it before replacing the current part: a file the kernel cannot read keeps the part. Read
         // solid by solid, so that a file holding several opens as that many bodies.
-        const read = await engine.part(withNode(emptyDoc(), { kind: 'import', name, step, solids: 2 }), revision.current++);
+        const read = await engine.part(withNode(emptyDoc(), { kind: 'import', name, step, solids: 2 }), revision.current++, 'read');
         if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
         let next = withNode(emptyDoc(), { kind: 'import', name, step, ...(read.bodies.length > 1 ? { solids: read.bodies.length } : {}) });
         // In other units than millimetres: each solid scaled about the origin to its true size.
@@ -1183,7 +1184,7 @@ export function App() {
     const t = setTimeout(() => {
       setSpecRunning(true);
       // (The evaluated model follows model edits only: the requirements are the document's own.)
-      void checkSpec({ ...evaluated, requirements: doc.requirements }, bodies, d => engine.part(d, revision.current++)).then(r => {
+      void checkSpec({ ...evaluated, requirements: doc.requirements }, bodies, d => engine.part(d, revision.current++, 'check')).then(r => {
         if (!live) return;
         const broke = (doc.requirements ?? []).filter(q => q.hard && specPassed.current.has(q.id) && r.outcomes.get(q.id)?.status === 'fail').map(q => q.id);
         specPassed.current = new Set([...r.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id));
@@ -1198,7 +1199,7 @@ export function App() {
   // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
   const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
   const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
-  const partEval = (d: StudioDoc) => engine.part(d, revision.current++);
+  const partEval = (d: StudioDoc) => engine.part(d, revision.current++, 'agent');
   useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
   // (Only wanted to show an open proposal stale.)
   const hashNow = useMemo(() => doc.proposals?.some(p => p.status === 'open') ? modelHash(doc) : '', [doc]);
@@ -1254,16 +1255,16 @@ export function App() {
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const settleRef = async (index: number, to?: string) => {
-    const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++), to);
+    const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to);
     setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null);
     pushUndo(); setDoc(next); setDirty(true);
   };
-  const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++)) });
+  const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs')) });
   // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
   // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
   const verifyOpened = async (opened: StudioDoc) => {
-    const r = await engine.part(opened, revision.current++); if (!r?.ok) return;
-    const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++));
+    const r = await engine.part(opened, revision.current++, 'refs'); if (!r?.ok) return;
+    const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++, 'refs'));
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
     setDoc(cur => cur.nodes === opened.nodes || JSON.stringify(cur.nodes) === JSON.stringify(opened.nodes) ? { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) } : cur); setDirty(true);
@@ -2018,7 +2019,7 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
-      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++).then(r => r.ok ? r.bodies : null)}
+      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel) => {
           chatSelection.current = sel ?? null;

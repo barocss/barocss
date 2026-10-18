@@ -51,6 +51,8 @@ function shortened(_k: string, v: unknown): unknown {
 }
 const nodeKeys = new WeakMap<ModelNode, string>();
 function nodeKey(n: ModelNode): string { let k = nodeKeys.get(n); if (k === undefined) { k = JSON.stringify(n, shortened); nodeKeys.set(n, k); } return k; }
+/** A part's nodes and parameters as a key, without writing out its long texts and arrays again (face tables, PERF3 B12). */
+export function contentKey(doc: StudioDoc): string { return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify(doc.parameters ?? null)}`; }
 /** What an evaluation of the document reads, as a key. */
 export function evaluationKey(doc: StudioDoc): string {
   const part = evaluatedPart(doc);
