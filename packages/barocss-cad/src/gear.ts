@@ -414,7 +414,7 @@ export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: S
   const epsB = Math.min(g1.faceWidthMM, g2.faceWidthMM) * Math.abs(Math.sin(d1.beta)) / (Math.PI * d1.mn);
   return epsB === kept.axialContactRatio ? kept : { ...kept, axialContactRatio: epsB, totalContactRatio: kept.usableContactRatio + epsB };
 }
-function withoutWidth(g: SpurGearSpec): Partial<SpurGearSpec> { const rest: Partial<SpurGearSpec> = { ...g }; delete rest.faceWidthMM; return rest; }
+function withoutWidth(g: SpurGearSpec): Omit<SpurGearSpec, 'faceWidthMM'> { const { faceWidthMM, ...rest } = g; void faceWidthMM; return rest; }
 const pairCache = new Map<string, SpurGearPairCheck>();
 function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions): SpurGearPairCheck {
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
