@@ -260,7 +260,7 @@ function draftOf(ctx: Ctx): { body: BodyResult; faces: string[]; extrude: number
   if (faces.some(f => f.kind !== 'plane' || Math.abs(f.normal[2]) > 1e-6)) return 'A draft takes flat side faces, square to Z (the pull).';
   const names = faces.flatMap(f => f.name.split('+'));
   // Every side of the extrusion that is the body (nothing after it): that extrusion's own draft.
-  const top = refOf(body).node, ex = ctx.doc.nodes[top], sides = body.mesh.faces.filter(f => new RegExp(`^${featureId(ctx.doc.nodes, top)}\\.side\\d+$`).test(f.name)).map(f => f.name);
+  const top = refOf(body).node, ex = ctx.doc.nodes[top], sides = body.mesh.faces.filter(f => new RegExp(`^${featureId(ctx.doc.nodes, top)}\\.side(\\d+|\\[[A-Za-z0-9_-]+\\])$`).test(f.name)).map(f => f.name);
   if (ex?.kind === 'extrude' && !ex.draft && sides.length && sides.length === names.length && sides.every(n => names.includes(n))) return { body, faces: names, extrude: top };
   return { body, faces: names, extrude: null };
 }

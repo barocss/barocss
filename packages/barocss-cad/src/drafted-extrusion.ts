@@ -5,6 +5,7 @@
 // point. Joints between a line and an arc (or two arcs) that are not tangent are refused (yet), as is
 // a draft steep enough to collapse a wall.
 import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep } from './brep-core.js';
+import { sideName } from './side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { dot } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
@@ -16,6 +17,8 @@ export interface DraftedExtrusionInput {
   readonly draftDegrees: number;
   /** Face names: `${tag}.side{i}`, `${tag}.top`, `${tag}.bottom` (as an upright extrusion's). */
   readonly tag: string;
+  /** The sketch's segment tags (R10a, D86): sides named `${tag}.side[t]` instead of by position. */
+  readonly sideTags?: readonly string[];
   readonly id?: string;
 }
 
@@ -57,7 +60,7 @@ export function draftedExtrusion(input: DraftedExtrusionInput): Brep {
   const { z0, z1, tag } = input, id = input.id ?? tag, theta = input.draftDegrees * Math.PI / 180;
   if (!(Math.abs(input.draftDegrees) < 89)) fail('the draft angle must be below 89°');
   if (!(z1 > z0)) fail('the extrusion needs a positive height');
-  const built = buildProfileLoop(input.profile, { maximumSegments: 1024 }).segments;
+  const loop0 = buildProfileLoop(input.profile, { maximumSegments: 1024 }), built = loop0.segments;
   // A single circle becomes two halves, so every edge has two vertices.
   const bottom: ProfileSegment[] = built.length > 1 ? [...built] : (() => {
     const arc = built[0]; if (arc.kind !== 'arc') fail('a profile needs at least two segments');
@@ -84,7 +87,9 @@ export function draftedExtrusion(input: DraftedExtrusionInput): Brep {
     : [...uses].reverse().map(u => ({ edge: u.edge, sense: (u.sense === 'forward' ? 'reversed' : 'forward') as Use['sense'] }));
   const senseFor = (surface: Surface, outward: Point): 'forward' | 'reversed' => dot(surfaceNormalAtCentre(surface), outward) >= 0 ? 'forward' : 'reversed';
   const faces: { id: string; name: string; surface: Surface; sense: 'forward' | 'reversed'; loops: { kind: 'outer'; uses: Use[] }[] }[] = [];
-  const names = built.length > 1 ? bottom.map((_, i) => `${tag}.side${i}`) : [`${tag}.side0#1`, `${tag}.side0#2`];
+  // (Tagged: by the authored segment, a clockwise loop having been reversed; a circle's halves both its one tag.)
+  const tags = input.sideTags, authored = (i: number) => loop0.reversed ? built.length - 1 - i : i;
+  const names = built.length > 1 ? bottom.map((_, i) => tags ? sideName(tag, authored(i), tags) : `${tag}.side${i}`) : [`${tags ? sideName(tag, 0, tags) : `${tag}.side0`}#1`, `${tags ? sideName(tag, 0, tags) : `${tag}.side0`}#2`];
   for (let i = 0; i < n; i++) {
     const s = bottom[i], b = bc[i], t = tc[i];
     // Outward: to the right of the profile's travel, at the wall's middle.

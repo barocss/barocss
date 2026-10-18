@@ -1,0 +1,100 @@
+{
+  "id": "r10a-tagged-revolve",
+  "step": "R10a",
+  "decisions": [
+    "D86"
+  ],
+  "about": "A tagged rectangle section (its sides out of order: d first) turned a full turn about Y: the four faces named by their tags, whichever way the section runs.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              15,
+              0
+            ],
+            [
+              15,
+              10
+            ],
+            [
+              5,
+              10
+            ],
+            [
+              5,
+              0
+            ]
+          ],
+          "sideTags": {
+            "outer": [
+              "d",
+              "c",
+              "b",
+              "a"
+            ]
+          }
+        },
+        {
+          "id": "r",
+          "kind": "revolve",
+          "sketch": "s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6283.185307179587,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            5,
+            0
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "r.side[a]",
+          "r.side[b]",
+          "r.side[c]",
+          "r.side[d]"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: an annulus of radii 5 and 15, 10 high."
+}

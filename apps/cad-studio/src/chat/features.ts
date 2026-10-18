@@ -38,7 +38,7 @@ const PROFILE: Record<string, Spec> = {
   polygon: { points: 'points' },
   loop: { segments: 'loop' },
 };
-const ON_PLANE: Spec = { 'plane?': 'plane', 'regions?': 'loops', 'holes?': 'loops' };
+const ON_PLANE: Spec = { 'plane?': 'plane', 'regions?': 'loops', 'holes?': 'loops', 'sideTags?': 'any' };
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 /** A body reference as the agent writes it (`node` an index), with the body's key (by its stable id). */

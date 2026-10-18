@@ -4,6 +4,7 @@ import type { LoopSegment, SketchNode, SketchOutline } from '../engine/doc';
 import type { SketchShape } from '../viewport/Viewport';
 import type { P2 } from './profile';
 import type { Polygon } from './rules';
+import { loopOf } from './loops';
 
 const pt = (p: readonly unknown[]): P2 => [Number(p[0]), Number(p[1])];
 
@@ -48,10 +49,29 @@ export function mainShape(node: SketchNode): SketchShape | null {
   }
 }
 
-/** The shapes of a sketch node: the main profile, then its other regions and holes. */
-export function sketchShapes(node: SketchNode): { shape: SketchShape | null; done: SketchShape[] } {
+/**
+ * The shapes of a sketch node: the main profile, then its other regions and holes — each with its sides' ids (R10a,
+ * D86): the node's `sideTags`, or, for a node from before them, new ones in the order its loops run, with `positional`
+ * saying which positional wall name (`side<k>`, `region<r>.side<k>`, `hole<h>.side<k>`) each id takes over.
+ */
+export function sketchShapes(node: SketchNode): { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> } {
   // Circles the outline keeps come back on it, not beside it.
-  const attached = node.outline?.circles ?? [], same = (s: SketchShape) => s.kind === 'circle' && attached.some(c => Math.hypot(c.c[0] - s.c[0], c.c[1] - s.c[1]) < 1e-6 && Math.abs(c.r - s.r) < 1e-6);
-  const done = [...(node.regions ?? []), ...(node.holes ?? [])].map(loopShape).filter((s): s is SketchShape => !!s && !same(s));
-  return { shape: mainShape(node), done: [...done, ...((node.construction ?? []) as SketchShape[])] };
+  const attached = node.outline?.circles ?? [], sameCircle = (s: SketchShape | null, c: { c: [number, number]; r: number }) => !!s && s.kind === 'circle' && Math.hypot(c.c[0] - s.c[0], c.c[1] - s.c[1]) < 1e-6 && Math.abs(c.r - s.r) < 1e-6;
+  const tags = node.sideTags, positional: Record<string, string> = {};
+  let k = 1;
+  for (const t of [...(tags?.outer ?? []), ...(tags?.regions ?? []).flat(), ...(tags?.holes ?? []).flat()]) { const m = /^e(\d+)$/.exec(t); if (m) k = Math.max(k, Number(m[1]) + 1); }
+  const idsFor = (n: number, given: string[] | undefined, name: (i: number) => string) => {
+    if (given?.length === n) return [...given];
+    const out = Array.from({ length: n }, () => `e${k++}`);
+    out.forEach((t, i) => { positional[name(i)] = `side[${t}]`; });
+    return out;
+  };
+  const main = mainShape(node), outer = idsFor(loopOf(node).length, tags?.outer, i => `side${i}`);
+  const regions = (node.regions ?? []).map((l, r) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.regions?.[r], i => `region${r}.side${i}`) }));
+  const holes = (node.holes ?? []).map((l, h) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.holes?.[h], i => `hole${h}.side${i}`) }));
+  const loops = [...regions, ...holes];
+  let shape: SketchShape | null = main && { ...main, ids: outer };
+  if (shape?.kind === 'polygon' && attached.length) shape = { ...shape, circleIds: attached.map(c => loops.find(x => sameCircle(x.s, c))?.ids[0] ?? `e${k++}`) };
+  const done = loops.filter(x => !!x.s && !attached.some(c => sameCircle(x.s, c))).map(x => ({ ...x.s!, ids: x.ids }) as SketchShape);
+  return { shape, done: [...done, ...((node.construction ?? []) as SketchShape[])], ...(Object.keys(positional).length && !tags ? { positional } : {}) };
 }

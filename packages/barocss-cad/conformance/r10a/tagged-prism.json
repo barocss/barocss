@@ -1,0 +1,118 @@
+{
+  "id": "r10a-tagged-prism",
+  "step": "R10a",
+  "decisions": [
+    "D86"
+  ],
+  "about": "A polygon sketch with its sides tagged (sideTags: four outer, one hole) extruded: every wall named side[<tag>] — the outer sides and the hole's alike — the caps top and bottom.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ],
+          "holes": [
+            [
+              {
+                "kind": "arc",
+                "start": [
+                  7,
+                  5
+                ],
+                "center": [
+                  5,
+                  5
+                ],
+                "direction": "ccw"
+              }
+            ]
+          ],
+          "sideTags": {
+            "outer": [
+              "a",
+              "b",
+              "c",
+              "d"
+            ],
+            "holes": [
+              [
+                "h"
+              ]
+            ]
+          }
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 937.1681469282041,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            10.335221877086532,
+            5,
+            2.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side[a]",
+          "e.side[b]",
+          "e.side[c]",
+          "e.side[d]",
+          "e.side[h]",
+          "e.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the 20 × 10 × 5 prism less the Ø4 hole; the centroid from the two (the hole off centre)."
+}

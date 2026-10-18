@@ -6,6 +6,7 @@
 // spheres, cone tips, discs) and run along it (axis segments bound no wall; the caps of a partial turn
 // share them), but not touch or cross it anywhere else.
 import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep } from './brep-core.js';
+import { sideName } from './side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { evaluateCurve, curveDomain } from './math.js';
 import { add, dot, scale, sub, unit } from './vec3.js';
@@ -18,6 +19,8 @@ export interface RevolveInput {
   readonly axis: { readonly origin: XY; readonly direction: XY };
   /** 0 < angle ≤ 360; positive turns the profile from the sketch plane towards +Z. */
   readonly angleDegrees: number;
+  /** The sketch's segment tags (R10a, D86): sides named `${id}.side[t]` instead of by position. */
+  readonly sideTags?: readonly string[];
 }
 
 /** Unit circle arc from 0 through `sweep` (≤ 2π) as rational quadratic control points (x, y) and weights. */
@@ -40,7 +43,9 @@ export function revolveProfile(input: RevolveInput): Brep {
   const [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
   if (!(dl > 0)) throw new BrepError('INPUT', 'revolve: the axis needs a direction');
   const d: Point = [dx / dl, dy / dl, 0], s: Point = [-d[1], d[0], 0], z: Point = [0, 0, 1], A0: Point = [input.axis.origin[0], input.axis.origin[1], 0];
-  const built = buildProfileLoop(input.profile, { maximumSegments: 1024 }).segments;
+  const loop0 = buildProfileLoop(input.profile, { maximumSegments: 1024 }), built = loop0.segments;
+  // (Tagged sides by the authored segment, a clockwise loop having been reversed; a circle's two halves its one tag.)
+  const tags = input.sideTags, sideOf = (i: number) => tags ? sideName(id, built.length > 1 ? (loop0.reversed ? built.length - 1 - i : i) : 0, tags) : `${id}.side${i}`;
   // A single closed arc (a circle) becomes two halves, so every profile edge has two vertices.
   const loop: ProfileSegment[] = built.length > 1 ? [...built] : (() => {
     const arc = built[0]; if (arc.kind !== 'arc') throw new BrepError('GEOMETRY', 'revolve: a profile needs at least two segments');
@@ -129,7 +134,7 @@ export function revolveProfile(input: RevolveInput): Brep {
       // A pole end has no arc edge: the loop passes through the pole vertex.
       const uses = orient(([{ edge: pid(k, i), sense: 'forward' }, pole[(i + 1) % n] ? null : { edge: aid(k, (i + 1) % n), sense: 'forward' }, { edge: pid(k + 1, i), sense: 'reversed' }, pole[i] ? null : { edge: aid(k, i), sense: 'reversed' }] as const)
         .filter(u => u !== null).map(u => ({ edge: u!.edge, sense: u!.sense as 'forward' | 'reversed' })), outward);
-      faces.push({ id: `${id}_f${i}_${k}`, name: parts > 1 ? `${id}.side${i}#${k + 1}` : `${id}.side${i}`, surface, sense: senseFor(surface, outward), loops: [{ kind: 'outer', uses }] });
+      faces.push({ id: `${id}_f${i}_${k}`, name: tags && built.length === 1 ? `${sideOf(i)}#${i * parts + k + 1}` : parts > 1 ? `${sideOf(i)}#${k + 1}` : sideOf(i), surface, sense: senseFor(surface, outward), loops: [{ kind: 'outer', uses }] });
     }
   });
   if (!full) for (const [k, name] of [[0, 'start'], [parts, 'end']] as const) {

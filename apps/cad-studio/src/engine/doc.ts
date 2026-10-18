@@ -31,7 +31,12 @@ export interface BodyLook { name?: string; color?: string; hidden?: boolean; mat
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }
 /** `construction`: reference shapes drawn in the sketch (the sketcher's own form), not part of the profile. */
-type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[] };
+/**
+ * `sideTags` (R10a, D86): the sketch's own side ids, one a side of its outer loop, of each region and of each hole (the
+ * kernel's `sideTags`): the walls a body makes of it are named `side[<id>]` and keep their names as it is edited.
+ * Left out (sketches written before), the walls are named by position (`side<k>`), as they were (D16).
+ */
+type OnPlane = { plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)

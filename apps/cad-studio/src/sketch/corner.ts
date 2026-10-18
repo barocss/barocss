@@ -31,6 +31,9 @@ export function roundCorner(s: Polygon, i: number, r: number): { shape: Polygon 
   const nb = [...bulges.slice(0, i), bulge, ...bulges.slice(i)];
   const out: Polygon = { ...s, points, bulges: nb };
   delete out.fromRectangle;
+  // (Ids, R10a: the edges either side keep theirs — the one leaving the corner now from B; the arc's is given with the
+  // sketch's others, unique in it: withIds.)
+  if (s.ids?.length === s.points.length) out.ids = [...s.ids.slice(0, i), '', ...s.ids.slice(i)];
   const remap = <T,>(rec: Record<number, T> | undefined, drop: number[]) => rec && Object.fromEntries(Object.entries(rec).filter(([k]) => !drop.includes(+k)).map(([k, v]) => [seg(+k), v]));
   out.lengths = remap(s.lengths, [prev, i]);
   out.radii = { ...remap(s.radii, []), [i]: r };

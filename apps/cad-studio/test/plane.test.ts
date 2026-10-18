@@ -81,7 +81,9 @@ test('several closed shapes make one profile: shapes inside another are holes, t
   // An island inside a hole and open shapes.
   assert.ok('error' in profileOf([plate, windowHole, { kind: 'circle', c: [15, 20], r: 2 }]));
   assert.ok('error' in profileOf([{ kind: 'polygon', points: [[0, 0], [5, 0]], closed: false }]));
-  assert.deepEqual(profileOf([plate]), { node: { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] } });
+  // (Its sides' ids as tags, R10a: a rectangle's from its lowest corner.)
+  assert.deepEqual(profileOf([plate]), { node: { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], sideTags: { outer: ['e1', 'e2', 'e3', 'e4'] } } });
+  assert.deepEqual(node.sideTags, { outer: ['e1', 'e2', 'e3', 'e4'], regions: [['e10']], holes: [['e5', 'e6', 'e7', 'e8'], ['e9']] });
 });
 
 test('coordinate planes read as their views, and offsets move along the normal', () => {

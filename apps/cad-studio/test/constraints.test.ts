@@ -309,7 +309,8 @@ test('a finished sketch node comes back as its shapes: the kept outline with its
   const r = profileOf([{ kind: 'rectangle', a: [0, 0], b: [40, 20] }, { kind: 'circle', c: [20, 10], r: 4 }, { kind: 'circle', c: [60, 10], r: 5 }]);
   assert.ok('node' in r);
   const shapes = sketchShapes(r.node);
-  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20] });
+  // (Each side with its id, R10a: the node's sideTags.)
+  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20], ids: ['e1', 'e2', 'e3', 'e4'] });
   assert.deepEqual(shapes.done.map(d => d.kind), ['circle', 'circle']);
   // And profiles again to the same node.
   assert.deepEqual(profileOf([shapes.shape!, ...shapes.done]), r);

@@ -2,7 +2,7 @@ import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useS
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from './engine/doc';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from './engine/doc';
-import { bodyKeyFor, bodyNodeOf, cutAfter, nextSerial } from './engine/ids';
+import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from './engine/ids';
 import { MATERIALS } from './app/materials';
 import { checkSpec, expectedOf, modelHash, type Outcome } from './chat/spec';
 import { rejectProposal, stripHistory, type Proposal } from './chat/proposals';
@@ -52,6 +52,7 @@ import { extendAt, joinOpen, splitAt, trimAt } from './sketch/trim';
 import { clipMesh } from './engine/clip';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
+import { renameToTagged } from './sketch/entityIds';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
@@ -765,9 +766,9 @@ export function App() {
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
     const node = doc.nodes[index]; if (node?.kind !== 'sketch') return;
-    const { shape, done } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
+    const { shape, done, positional } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: null, editNode: index }, 'select'));
+    setSketch(startPicking({ plane, tool: 'select', shape, done, base: null, editNode: index, ...(positional ? { positional } : {}) }, 'select'));
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   };
   const finishSketch = useCallback(() => {
@@ -782,7 +783,9 @@ export function App() {
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = isDefaultPlane(sketch.plane) ? node : { ...node, plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } } as SketchNode;
     if (sketch.editNode !== undefined) {
-      const at = sketch.editNode, next = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? placedNode : n)) };
+      const at = sketch.editNode, edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? placedNode : n)) };
+      // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
+      const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
       engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
       return;
     }

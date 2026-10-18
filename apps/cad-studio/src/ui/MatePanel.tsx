@@ -13,8 +13,9 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
   const origin = /^origin:(xy|xz|yz)$/.exec(name);
   if (origin) return `${origin[1].toUpperCase()} plane`;
   const tail = name.split('|')[0].split('.').pop() ?? name;
-  const side = /^side(\d+)$/.exec(tail);
-  return side ? `Side face ${Number(side[1]) + 1}` : tail === 'top' ? 'Top face' : tail === 'bottom' ? 'Bottom face' : tail;
+  // (A side by position, `side2`, or by its sketch edge's id, `side[e3]`: R10a.)
+  const side = /^side(\d+)$/.exec(tail), tagged = /^side\[([A-Za-z0-9_-]+)\]$/.exec(tail);
+  return side ? `Side face ${Number(side[1]) + 1}` : tagged ? `Side face ${tagged[1]}` : tail === 'top' ? 'Top face' : tail === 'bottom' ? 'Bottom face' : tail;
 }
 
 /** Mates: the list (pick one to edit or delete it), and "Add mate": a face that stays, then a face on the part to move. */

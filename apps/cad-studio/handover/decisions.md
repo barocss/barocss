@@ -4159,3 +4159,68 @@ The roadmap's line: "our own QEM decimation, attribute-aware, with a reported er
   - lint (0 errors) and type-check clean;
   - browser flow: full run 124/124.
 - **Pending decision (reversible default):** the meaning of "attribute-aware" above (boundaries, groups and regions, creases; no UV or normal attributes, since none are read). Taken for meshes as they come in today; when OBJ normals or UVs are read, they join the quadric as attribute terms.
+
+## D86 — R10a: stable sketch-entity side names (2026-10-18)
+
+D31's plan, taken up as R10a, with the coordinating session's research note (`handover/notes/research-sketch-solver-2026-10-18.md` §3 S2) as design input: stable ids for a sketch's lines, arcs and circles; constraints carried by them; a versioned node so saved documents keep resolving.
+- **Kernel: `sideTags` on the sketch feature** `{ outer, regions?, holes? }`:
+  - one tag for each side of the outer loop (a rectangle's 4, a circle's 1, a polygon's points, a loop's segments), of each region loop and of each hole loop;
+  - a tag is letters, digits, `_` or `-` (1 to 32), so it never meets the name parsers' `.`, `|`, `+`; tags are unique in the sketch;
+  - refused with `INPUT` when it is the wrong count, a tag twice, or not a tag.
+  - With tags, every wall a body makes of the sketch is `<feature>.side[<tag>]`, whatever loop it is in. The prefix `region<r>.`/`hole<h>.` falls away, since tags are unique.
+  - **Every side-naming generator honours them** (D31's five, plus the shell's section ring):
+    - upright extrude (`prismaticFromProfile`: outer, regions and holes);
+    - drafted extrude;
+    - revolve (a full-turn circle: its halves and parts all `side[t]#k`);
+    - loft: each side by the source segment of the first section it runs from, and several from one segment (arcs split into ≤ 90° spans, pieces halved to match counts) numbered `#k`;
+    - sweep: each straight and bend piece, `.s<k>.side[t]`;
+    - the revolved and swept shell's `sectionRing`: the names it opens faces by.
+    - Each maps the built loop back to the authored segment, a clockwise loop being reversed (`side-names.ts` `sideName`).
+  - Without tags nothing changes: `side<k>`, `region<r>.side<k>`, `hole<h>.side<k>` (D16: documents written before keep their names).
+- **Studio: sides with ids** (`src/sketch/entityIds.ts`):
+  - Every sketcher shape carries `ids`, one a side, of the form `e<k>`, unique in the sketch. A rectangle's and a slot's run in the shape's own corner order, a circle has one, and a polygon has one a point (point i's is segment i's). A polygon's attached circles carry `circleIds`.
+  - `withIds` gives missing ids after the highest, deterministically. `profileOf` writes them on the node as `sideTags`, matched to the node's loops by their segments' ends (a polygon saved as a rectangle runs from its lowest corner, whichever corner it was drawn from).
+  - **Edits keep them:**
+    - Split (K): the piece's first part keeps its id, the new point's piece gets a new one, and every other id stays.
+    - The outline's constraints and dimensions are carried through by the ids (`carryPolygon`: lengths, radii, tangents, equal radii, concentric, H/V, rules), where before every one was dropped. The split piece's own length or radius goes.
+    - Round corner: both edges keep theirs, and the arc gets a new one.
+    - Trim, extend and join: ids inherited by where each piece starts.
+    - Offset: new shapes, new ids.
+  - **Reopen:** a node with `sideTags` gives its shapes back their ids. A node from before (no tags) gives its shapes new ids in the order its sides were numbered, and remembers which positional name each id takes over (`side2` → `side[e3]`).
+  - On Finish, the features built straight on it (extrude, revolve) have their references renamed once, exactly. That covers later features' edge and face names, looks' face colours and mates, as a string or an object key, alone, in `a|b` or in `a+b`, with any `#k`.
+    - Only ids the sketch still has are renamed; a side removed in the edit goes to the re-match (D28) as before.
+    - Loft and sweep pieces (positional pieces, not segments) also go to the re-match as before.
+- **Versioning (D16 pattern):** a sketch node with `sideTags` is the new form; without, the old.
+  - Sketches written by commands (primitives, fasteners, profiles, the library, the agent's `add_features`) stay as they were: their walls are `side<k>` until the sketch is edited in the sketcher, which gives it ids and renames as above.
+  - So no existing document, test or library file changes its names: the box command's `n1.side0|n1.top` is still that.
+  - `sideTags` is structural for autonomy (D41): changing it renames.
+- **Names consumers:**
+  - selectors' role family (`role: "side"` matches `side3` and `side[e3]`);
+  - the mate panel's label ("Side face e3");
+  - Draft's all-sides check;
+  - the agent's tool docs (`side[e3]`, "stay as the sketch is edited");
+  - `features.ts` accepts `sideTags` on a sketch.
+- **S2, what was taken and what was not:**
+  - Taken: stable ids for edges (lines, arcs) and circles; constraints carried by those ids through every renumbering edit; the versioned node.
+    - The constraints are still stored by position in the outline, in the same order as its ids. That is the solver's input as before. An id-keyed store would change every rule's form (S1's native residuals would rewrite them anyway).
+  - Not taken: multi-entity sketches with loops derived from the graph. Today a sketch is one outline plus circles and separate shapes; nothing in R10a needed more.
+  - S1 and S3–S6 (native residuals, decomposition, sparse algebra, drag, diagnosis): none was needed.
+- **Tests:**
+  - kernel `side-tags.test` 2/2: every generator; a clockwise loop by its authored order; holes; a revolved circle; a vertex inserted keeps the others; a fillet on a tagged edge; untagged unchanged; the refusals.
+  - conformance `r10a/` 3/3: a tagged prism with a hole; the same with a vertex inserted (every name kept, `side[x]` added); a tagged revolve with its section out of order. Closed-form volumes and centroids.
+  - studio `sketchIds.test` 4/4:
+    - ids and tags;
+    - a vertex inserted by the sketcher's split: the fillet needs no re-match, and a kept length carried;
+    - a rectangle drawn from its top-right corner; a rounded corner; a trim;
+    - a sketch from before reopened and renamed (fillet edge, face colour), then reopened again with its ids.
+  - `constraints.test` and `plane.test` expect the ids and tags now.
+  - browser flow `R10a`: a quad drawn by hand, extruded, a corner filleted by its name; reopened, an edge split with K; Finish keeps the fillet's edge, nothing re-matched, the other four walls' names kept.
+- **Suites:**
+  - kernel 1037/1042: 4 skipped (env-gated) and the known environmental Split test;
+  - conformance all, `r10a/` 3/3; RB nothing new;
+  - studio 381/381; bench all within budget; lint (0 errors) and type-check clean;
+  - browser flow 125/125. The full run's three chat steps first failed with EADDRINUSE: another tool's vite dev server held the flow's default chat port 52091. Rerun with `CAD_STUDIO_CHAT_PORT=52191`, they pass (README §0, How to run).
+- **Pending decisions (reversible defaults):**
+  - Command-made sketches stay positional until edited in the sketcher.
+  - The ids read `e<k>`.
+  - Constraints are stored by index alongside the ids.

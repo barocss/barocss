@@ -2796,6 +2796,45 @@ try {
     await page.waitForFunction(k => window.__studioDoc.nodes.length === k, before, { timeout: 15000 }); await idle();
   });
 
+  await check('R10a a sketch drawn by hand names its walls by its edges\' ids: a corner filleted, the sketch reopened and an edge split (K) — the fillet keeps its edge, nothing re-matched, every other wall\'s name kept', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let d = await doc();
+    const tags = d.nodes[0].sideTags.outer, wall = k => `n1.side[${tags[k]}]`;
+    assert.deepEqual(tags, ['e1', 'e2', 'e3', 'e4']);
+    // The corner between the first two edges, filleted by its name.
+    const corner = `${wall(0)}|${wall(1)}`;
+    assert.ok(await page.evaluate(n => window.__studioPickEdge(n) || window.__studioPickEdge(n.split('|').reverse().join('|')), corner), corner);
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('3'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
+    d = await doc(); const edges = d.nodes.at(-1).edges;
+    assert.equal(edges.length, 1); assert.deepEqual(edges[0].split('|').sort(), corner.split('|').sort());
+    // Reopened: the Split tool puts a point in the middle of the edge opposite (the third), and Finish.
+    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    await page.click('[aria-label="Edit sketch"]');
+    await page.waitForSelector('.sk-panel', { timeout: 5000 });
+    const P = d.nodes[0].points.map(p => p.map(Number)), mid = [(P[2][0] + P[3][0]) / 2, (P[2][1] + P[3][1]) / 2, 0];
+    await press('k');
+    const q = await page.evaluate(p => window.__studioScreenOf(p), mid);
+    await page.mouse.move(q[0] - 3, q[1]); await page.mouse.move(q[0], q[1]);
+    await page.waitForSelector('.vp-overlay .sk-split', { state: 'attached', timeout: 5000 });
+    await page.mouse.click(q[0], q[1]);
+    await page.waitForTimeout(300); await snap('r10a-split');
+    await page.evaluate(() => document.activeElement?.blur()); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].sideTags?.outer.length === 5, null, { timeout: 15000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    d = await doc();
+    assert.deepEqual(d.nodes[0].sideTags.outer, ['e1', 'e2', 'e3', 'e5', 'e4'], 'the new piece after e3 has e5');
+    assert.deepEqual(d.nodes.at(-1).edges, edges, 'the fillet keeps its edge'); assert.equal(d.nodes.at(-1).rematched, undefined, 'nothing re-matched');
+    for (const k of [0, 1, 2, 3]) assert.ok(await page.evaluate(n => window.__studioSelectFace(n), wall(k)), wall(k));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10a-after');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

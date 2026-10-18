@@ -36,6 +36,7 @@ import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { buildSubd, subdSummary, SubdError, type SubdSummary } from './subd.js';
 import { decimateMesh, type DecimateReport } from './mesh-decimate.js';
+import { SIDE_TAG, type SideTags } from './side-names.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
@@ -67,7 +68,14 @@ export interface CadPartSketchPlane { readonly origin: CadPartPoint3; readonly n
  * `regions`: more closed loops of material beside the profile; `holes`: closed loops cut from them (a
  * plate with windows, two bosses at once). Only straight extrudes take them.
  */
-type Placed = { readonly plane?: CadPartSketchPlane; readonly regions?: readonly (readonly CadPartLoopSegment[])[]; readonly holes?: readonly (readonly CadPartLoopSegment[])[] };
+/**
+ * `sideTags` (R10a, D86): a stable id for each side of the outer loop (a rectangle's 4, a circle's 1, a polygon's points,
+ * a loop's segments), of each region loop and of each hole loop — letters, digits, `_`, `-`, unique in the sketch.
+ * With them every wall a body makes of the sketch is named `<id>.side[<tag>]` (a vertex inserted or a segment removed
+ * leaves the others' names); without, by position as before (`side<i>`, `region<r>.side<i>`, `hole<h>.side<i>`).
+ */
+type Placed = { readonly plane?: CadPartSketchPlane; readonly regions?: readonly (readonly CadPartLoopSegment[])[]; readonly holes?: readonly (readonly CadPartLoopSegment[])[]; readonly sideTags?: CadPartSideTags };
+export type CadPartSideTags = SideTags;
 export type CadPartFeature = Base & (
   | ({ readonly kind: 'sketch'; readonly profile: 'rectangle'; readonly min: CadPartPoint2; readonly max: CadPartPoint2 } & Placed)
   | ({ readonly kind: 'sketch'; readonly profile: 'circle'; readonly center: CadPartPoint2; readonly radius: CadPartDim } & Placed)
@@ -308,7 +316,7 @@ interface Part {
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
   readonly revolved?: RevolveInput;
-  readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
+  readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[]; readonly sideTags?: readonly string[] };
   /** A generated gear's report (R6a), and where it stands (its spec, centre, face plane, turn). */
   readonly gear?: SpurGearReport;
   readonly gearPlace?: GearPlacement;
@@ -331,7 +339,7 @@ const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
-type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
+type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 /** A B-rep of several bodies as one B-rep per body (each with its own shells, faces, loops, edges and vertices). */
 function splitBodies(b: Brep): Brep[] {
@@ -516,7 +524,9 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
           if (!Array.isArray(list) || list.length > CadPartLimits.edges) fail('INPUT', `${key} must list up to 64 loops`);
           return { [key]: (list as unknown[]).map((segments, i) => sketchOuter({ profile: 'loop', segments }, xy, dim, (code, detail) => fail(code, `${key}[${i}]: ${detail}`))) };
         };
-        const sketch: Result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}), ...loops('regions'), ...loops('holes') };
+        const drawn = { outer: sketchOuter(f, xy, dim, fail), ...loops('regions'), ...loops('holes') } as { outer: ProfileSegmentInput[]; regions?: ProfileSegmentInput[][]; holes?: ProfileSegmentInput[][] };
+        const tags = f.sideTags === undefined ? undefined : sideTagsOf(f.sideTags, drawn, fail);
+        const sketch: Result = { kind: 'sketch', ...drawn, ...(frame ? { frame } : {}), ...(tags ? { tags } : {}) };
         // (The same sketch as before is the same object, so what is built on it can be reused.)
         const key = 'sketch:' + JSON.stringify(sketch);
         result = lookup(key, []) ?? sketch;
@@ -659,6 +669,28 @@ function sketchOuter(f: Record<string, unknown>, xy: Tools['xy'], dim: Tools['di
   return fail('INPUT', 'sketch profile must be rectangle, circle, polygon or loop');
 }
 
+/** A sketch's `sideTags` checked against its loops: one tag a side, each a name, none twice (R10a, D86). */
+function sideTagsOf(v: unknown, drawn: { outer: readonly unknown[]; regions?: readonly (readonly unknown[])[]; holes?: readonly (readonly unknown[])[] }, fail: Tools['fail']): SideTags {
+  if (!isRecord(v)) return fail('INPUT', 'sideTags must be { outer, regions?, holes? }');
+  const seen = new Set<string>();
+  const list = (x: unknown, n: number, what: string): string[] => {
+    if (!Array.isArray(x) || x.length !== n) fail('INPUT', `sideTags.${what} must give ${n} tag${n === 1 ? '' : 's'}, one a side`);
+    for (const t of x as unknown[]) {
+      if (typeof t !== 'string' || !SIDE_TAG.test(t)) fail('INPUT', `sideTags.${what}: ${JSON.stringify(t)} is not a tag (letters, digits, _ or -, 1 to 32)`);
+      if (seen.has(t as string)) fail('INPUT', `sideTags: ${t as string} is given twice`);
+      seen.add(t as string);
+    }
+    return [...x as string[]];
+  };
+  const lists = (key: 'regions' | 'holes') => {
+    const loops = drawn[key] ?? [], x = v[key];
+    if (x === undefined) { if (loops.length) fail('INPUT', `sideTags.${key} must tag the ${loops.length} ${key === 'regions' ? 'region' : 'hole'} loop${loops.length === 1 ? '' : 's'}`); return {}; }
+    if (!Array.isArray(x) || x.length !== loops.length) fail('INPUT', `sideTags.${key} must give one list a loop (${loops.length})`);
+    return { [key]: loops.map((l, i) => list((x as unknown[])[i], l.length, `${key}[${i}]`)) };
+  };
+  return { outer: list(v.outer, drawn.outer.length, 'outer'), ...lists('regions'), ...lists('holes') };
+}
+
 // ---- operations ---------------------------------------------------------------------------------------
 function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () => Result {
   const { dim, xy, xyz, integer, axisOf, solids, ref, fail, at } = t;
@@ -670,16 +702,16 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
       const h = dim(f.height as CadPartDim, 'height'), from = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from');
       if (h === 0) fail('PARAMETER', 'height must not be zero');
-      const { outer, frame, regions, holes } = sketch as Extract<Result, { kind: 'sketch' }>;
+      const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
       const draft = f.draft === undefined ? 0 : f.draft as unknown;
       if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
-      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
+      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
       if (regions?.length || holes?.length) fail('CAPABILITY', 'a drafted extrude takes one loop (no regions or holes) yet');
       // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
       // away from the sketch plane either way).
       return placed(frame, () => {
         let brep: Brep;
-        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at }); }
+        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at, ...(tags ? { sideTags: tags.outer } : {}) }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : 'PARAMETER', cause.message.replace(/^B-rep: drafted extrusion: /, '')); throw cause; }
         return one({ kind: 'brep', brep: transformBrep(brep!, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, h > 0 ? 1 : -1], offset: [0, 0, from] }) });
       });
@@ -694,7 +726,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y' && !free)) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" | [dx, dy] }');
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
       if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
-      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg };
+      const rtags = (sketch as Extract<Result, { kind: 'sketch' }>).tags;
+      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg, ...(rtags ? { sideTags: rtags.outer } : {}) };
       return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
@@ -797,8 +830,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
         return fail('INPUT', `path[${i}].kind must be straight or bend`);
       });
-      const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
-      return placed(frame, () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps } }] }; });
+      const { outer, frame, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+      return placed(frame, () => { const { brep, mass } = sweepBrep(outer, steps, at, fail, undefined, tags?.outer); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps, ...(tags ? { sideTags: tags.outer } : {}) } }] }; });
     }
     case 'loft': {
       const list = f.sections as unknown;
@@ -808,15 +841,15 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const sketch = ref(sec.sketch, 'sketch').result;
         if (sketch.kind !== 'sketch') fail('REFERENCE', `${sec.sketch} is not a sketch`);
         if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', 'loft sections are sketches of one loop (no regions or holes) yet');
-        const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
-        return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame };
+        const { outer, frame, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+        return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame, tags };
       });
       // The sections stack along one sketch plane's normal.
       const frame = sections[0].frame;
       if (sections.some(x => JSON.stringify(x.frame) !== JSON.stringify(frame))) fail('INPUT', 'loft sections must be sketched on the same plane');
       sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
       if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
-      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
+      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true, ...(sections[0].tags ? { sideTags: sections[0].tags.outer } : {}) }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
@@ -1333,7 +1366,7 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
  * plane, a radius to its side), each placed where the last one ended; the pieces meet in whole
  * cross-sections and are joined.
  */
-function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => SolidMassProperties } {
   // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
   const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
   const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
@@ -1346,7 +1379,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   steps.forEach((st, k) => {
     const tag = `${at}_s${k}`;
     if (st.kind === 'straight') {
-      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag });
+      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag, ...(sideTags ? { sideTags: { outer: sideTags } } : {}) });
       masses.push({ local: d => prismaticMassProperties(prism, d), axes: [x, y, z], offset: o });
       pieces.push(place(brepFromPrismatic(prism, { id: tag }), k));
       o = add(o, scale(z, st.length));
@@ -1356,7 +1389,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
     const side = st.toward, sx = side === 'x' ? 1 : side === '-x' ? -1 : 0, sy = side === 'y' ? 1 : side === '-y' ? -1 : 0;
     const origin: XY = [sx * st.radius, sy * st.radius], direction: XY = sx ? [0, 1] : [1, 0];
     let turned: Brep;
-    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle }); }
+    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle, ...(sideTags ? { sideTags } : {}) }); }
     catch (cause) { if (cause instanceof BrepError && /axis/.test(cause.message)) fail('PARAMETER', `bend ${k}: the profile reaches the bend's axis (use a radius larger than the profile's reach towards ${side})`); throw cause; }
     pieces.push(place(turned!, k));
     const input = { id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle };
@@ -1468,11 +1501,13 @@ const profileOfRing = (ring: readonly CurveSegment2[]): ProfileSegmentInput[] =>
 });
 /** A profile's segments as a tagged section ring (`side<i>`, as the body's faces are named), and the loop. */
 type LineArc = Extract<CurveSegment2, { kind: 'line' } | { kind: 'arc' }>;
-function sectionRing(profile: readonly ProfileSegmentInput[]): LineArc[] {
-  const built = buildProfileLoop(profile, { maximumSegments: 1024 }).segments;
+function sectionRing(profile: readonly ProfileSegmentInput[], sideTags?: readonly string[]): LineArc[] {
+  const loop0 = buildProfileLoop(profile, { maximumSegments: 1024 }), built = loop0.segments;
+  // (Tagged: `side[t]`, by the authored segment, as revolve names them; a circle's halves both its one tag.)
+  const tagOf = (i: number) => sideTags ? `side[${sideTags[built.length > 1 ? (loop0.reversed ? built.length - 1 - i : i) : 0]}]` : `side${i}`;
   // A single circle is two halves (side0, side1), as the revolved body has it.
   const loop = built.length > 1 ? built : (() => { const a = built[0] as Extract<typeof built[number], { kind: 'arc' }>; return [{ ...a, sweep: a.sweep / 2 }, { ...a, startAngle: a.startAngle + a.sweep / 2, sweep: a.sweep / 2 }]; })();
-  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: `side${i}` } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: `side${i}` });
+  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: tagOf(i) } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: tagOf(i) });
 }
 const ringsOfRegions = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
 /** Each body of a B-rep on its own: its shells, faces, loops, coedges, edges and vertices. */
@@ -1494,7 +1529,7 @@ const renamed = (b: Brep, from: string, to: string) => transformBrep(b, { matrix
  */
 function shellRevolved(part: Part, input: RevolveInput, t: number, open: string[], at: string, fail: Tools['fail']): Part {
   if (input.angleDegrees !== 360) fail('CAPABILITY', 'shell works on bodies turned a full turn yet (this one stops at its start and end faces)');
-  const id = input.id!, ring = sectionRing(input.profile), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
+  const id = input.id!, ring = sectionRing(input.profile, input.sideTags), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
   const openTags = new Set(open.map(n => { const tag = n.startsWith(id + '.') ? n.slice(id.length + 1).replace(/#\d+$/, '') : ''; if (!tags.has(tag)) fail('SELECTION', `no face named ${n} to open; faces: ${[...tags].map(x => `${id}.${x}`).slice(0, 12).join(', ')}`); return tag; }));
   // The axis, its side the profile is on, and the mirror across it.
   const [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy), d: XY = [dx / dl, dy / dl], A = input.axis.origin, nrm: XY = [-d[1], d[0]];
@@ -1534,7 +1569,7 @@ function shellSwept(part: Part, swept: NonNullable<Part['swept']>, t: number, op
   const names = new Set(brep.faces.map(f => f.name ?? '')), startName = [`${at}`].length ? [...names].find(n => /\.s0\.(bottom|start)$/.test(n)) : undefined, endName = [...names].find(n => new RegExp(`\\.s${last}\\.(top|end)$`).test(n));
   for (const n of open) if (n !== startName && n !== endName) fail(names.has(n) ? 'CAPABILITY' : 'SELECTION', names.has(n) ? `only a swept body's end faces can be opened yet (${startName}, ${endName})` : `no face named ${n} to open; faces: ${[startName, endName].join(', ')}`);
   const openStart = !!startName && open.includes(startName), openEnd = !!endName && open.includes(endName);
-  const ring = sectionRing(swept.profile), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
+  const ring = sectionRing(swept.profile, swept.sideTags), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
   const inner = erodeSection([{ outer: ring, holes: [] }], t, () => false, () => 'wall', tol);
   if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
   if (inner.length > 1 || inner[0].holes.length) fail('CAPABILITY', 'shell of a swept body whose hollow section falls apart is not supported yet');

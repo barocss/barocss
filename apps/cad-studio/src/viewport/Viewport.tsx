@@ -42,9 +42,18 @@ export type SketchShape = (
       /** Drawn with the Rectangle tool: saved as a rectangle again while it still is one (see sketch/loops.ts). */
       fromRectangle?: true;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
-      circles?: { c: [number, number]; r: number }[] }
+      circles?: { c: [number, number]; r: number }[];
+      /** The attached circles' side ids (R10a, D86), one a circle. */
+      circleIds?: string[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number }
-) & { construction?: true };
+) & {
+  construction?: true;
+  /**
+   * Its sides' ids (R10a, D86; sketch/entityIds.ts): a rectangle's four and a slot's four in the order its sketch
+   * node's loop runs them, a circle's one, a polygon's one a point (point i's is segment i's).
+   */
+  ids?: string[];
+};
 
 /** What a sketch plane is placed from: the face it was started on or a coordinate plane, moved by `offset` along its normal. */
 export interface SketchAnchor { kind: 'face' | PlaneKind; offset: number; /** Degrees tipped about the plane's X axis (before the offset). */ angle?: number; face?: { plane: SketchPlane; base: { node: number; side: string } | null; /** The face's own outline and holes as sketch shapes (to use, or to snap to). */ outline?: SketchShape[] } }
@@ -53,6 +62,11 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   picked?: SketchPick[]; editDim?: string | null;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
+  /**
+   * A reopened sketch from before R10a (no side ids): its walls' positional names to the ids its shapes took in that
+   * order (`side2` → `side[e3]`), so Finish names the later features' references by them (D86).
+   */
+  positional?: Record<string, string>;
   /** New shapes are drawn as construction (references) while this is on (X). */
   construct?: boolean;
   /** Construction shapes hidden (not drawn, not snapped to); they stay with the sketch. */

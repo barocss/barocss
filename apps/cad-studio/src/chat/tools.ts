@@ -341,7 +341,7 @@ function changesPart(name: string, input: unknown): boolean {
   return MUTATORS.has(name) || ASSEMBLY_CHANGES.has(name);
 }
 /** Fields that say what a feature is built on or how it is made (references, choices, counts), not its values. */
-const STRUCTURAL = new Set(['kind', 'parent', 'left', 'right', 'tool', 'sketch', 'node', 'side', 'edges', 'faces', 'open', 'made', 'blob', 'positions', 'indices', 'repair', 'pieces', 'solids', 'count', 'suppressed', 'representation', 'op', 'axis', 'plane', 'toward']);
+const STRUCTURAL = new Set(['sideTags', 'kind', 'parent', 'left', 'right', 'tool', 'sketch', 'node', 'side', 'edges', 'faces', 'open', 'made', 'blob', 'positions', 'indices', 'repair', 'pieces', 'solids', 'count', 'suppressed', 'representation', 'op', 'axis', 'plane', 'toward']);
 const dimLike = (x: unknown) => typeof x === 'number' || (isObj(x) && Object.keys(x).length === 1 && typeof x.parameter === 'string');
 /** Whether `b` differs from `a` only in values (numbers, or a value bound to a parameter) outside the structural fields. */
 function valuesOnly(a: unknown, b: unknown, key = ''): boolean {
@@ -902,7 +902,7 @@ export const isMutator = (name: string) => MUTATORS.has(name);
 
 const nameList = { type: 'array', items: { type: 'string' } };
 /** A face or edge: its name, or a selector (A1.2) that resolves to it (the result reports the name). */
-const SELECTOR = 'or a selector: a feature\'s face by role {"feature": index or id, "role": "top" | "bottom" | "side2" | "side" (one of its sides) | "cut" …}, the flat face facing a direction {"normal": [0, 0, 1], "pick": "max" | "min"}, either with "on": a body key and "all": true for every face that fits; an edge {"between": [face, face]}';
+const SELECTOR = 'or a selector: a feature\'s face by role {"feature": index or id, "role": "top" | "bottom" | "side2" (by position) or "side[e3]" (a sketch drawn in the sketcher: by its edge\'s id) | "side" (one of its sides) | "cut" …}, the flat face facing a direction {"normal": [0, 0, 1], "pick": "max" | "min"}, either with "on": a body key and "all": true for every face that fits; an edge {"between": [face, face]}';
 const selectorList = (what: string) => ({ type: 'array', items: { anyOf: [{ type: 'string' }, { type: 'object' }] }, description: `${what}: names, ${SELECTOR}.` });
 const oneSelector = (what: string) => ({ anyOf: [{ type: 'string' }, { type: 'object' }], description: `${what}: a name, ${SELECTOR}.` });
 const commandDoc = CHAT_COMMANDS.map(id => {
@@ -914,7 +914,7 @@ const commandDoc = CHAT_COMMANDS.map(id => {
 const PART_TOOLS: ToolDefinition[] = [
   {
     name: 'get_part_summary',
-    description: 'The current part: every feature node by index (sketch outlines abbreviated), parameters, and each visible body with volume and bounds, and its faces and edges by persistent name (e.g. face "n1.top", edge "n1.side0|n1.side1"). On a big part, faces and edges are listed for the one body named in "body". Call it before referring to faces or edges you have not seen in a result.',
+    description: 'The current part: every feature node by index (sketch outlines abbreviated), parameters, and each visible body with volume and bounds, and its faces and edges by persistent name (e.g. face "n1.top", edge "n1.side0|n1.side1"; a sketch drawn in the sketcher names its walls by its edges\' ids, "n2.side[e3]", which stay as the sketch is edited). On a big part, faces and edges are listed for the one body named in "body". Call it before referring to faces or edges you have not seen in a result.',
     input_schema: { type: 'object', properties: { body: { type: 'string', description: 'A body key (e.g. "b27") to list the faces and edges of.' }, page: { type: 'integer', description: 'The page of that body\'s faces and edges (60 a page, from 1).' } }, additionalProperties: false },
   },
   {

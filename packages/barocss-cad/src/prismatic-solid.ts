@@ -26,6 +26,7 @@ import {
 import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Curve, Point, Surface } from './types.js';
+import { sideName, type SideTags } from './side-names.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
 /** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
@@ -68,16 +69,17 @@ const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(
  * walls are named `tag.side<i>` (i: the authored segment) and `tag.hole<h>.side<i>`, caps `tag.top`
  * and `tag.bottom`.
  */
-export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string }): PrismaticSolid {
-  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag;
+export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string; readonly sideTags?: SideTags }): PrismaticSolid {
+  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag, tags = input.sideTags;
   // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
-  const loop = (segments: readonly ProfileSegmentInput[], prefix: string) => {
+  const loop = (segments: readonly ProfileSegmentInput[], prefix: string, own?: readonly string[]) => {
     const built = buildProfileLoop(segments, budget), n = built.segments.length;
-    return built.segments.map((s, k) => toCurve2(s, tag === undefined ? undefined : `${prefix}.side${built.reversed ? n - 1 - k : k}`));
+    return built.segments.map((s, k) => toCurve2(s, tag === undefined ? undefined : sideName(prefix, built.reversed ? n - 1 - k : k, own)));
   };
-  // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}`.
-  const outers = [loop(input.outer, String(tag)), ...(input.regions ?? []).map((r, i) => loop(r, `${tag}.region${i}`))];
-  const holes = (input.holes ?? []).map((h, i) => loop(h, `${tag}.hole${i}`));
+  // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}` — with tags,
+  // every wall is `${tag}.side[t]`, its segment's tag (unique in the sketch).
+  const outers = [loop(input.outer, String(tag), tags?.outer), ...(input.regions ?? []).map((r, i) => loop(r, tags ? String(tag) : `${tag}.region${i}`, tags?.regions?.[i]))];
+  const holes = (input.holes ?? []).map((h, i) => loop(h, tags ? String(tag) : `${tag}.hole${i}`, tags?.holes?.[i]));
   // The outer boundaries minus the holes (holes may touch or cross them; the difference is exact either way).
   const tol = curveTolerance([...outers, ...holes]), regions = booleanCurveRegions(outers, holes, 'difference', tol);
   const caps = tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];

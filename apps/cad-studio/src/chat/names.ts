@@ -49,7 +49,7 @@ export function resolveFace(nodes: readonly ModelNode[], bodies: readonly BodyRe
     const id = typeof sel.feature === 'number' ? featureId(nodes, sel.feature) : String(sel.feature), role = sel.role;
     if (typeof sel.feature === 'number' ? !nodes[sel.feature] : nodeIndexOf(nodes, id) < 0) return `no feature ${JSON.stringify(sel.feature)}`;
     const parts = [...new Set(shown.flatMap(b => b.mesh.faces.flatMap(f => f.name.split('+').filter(p => p.startsWith(`${id}.`)))))];
-    const exact = parts.filter(p => baseOf(p, id) === role), family = /^[a-z]+$/i.test(role) ? parts.filter(p => new RegExp(`^${role}\\d+$`).test(baseOf(p, id))) : [];
+    const exact = parts.filter(p => baseOf(p, id) === role), family = /^[a-z]+$/i.test(role) ? parts.filter(p => new RegExp(`^${role}(\\d+|\\[[A-Za-z0-9_-]+\\])$`).test(baseOf(p, id))) : [];
     found = exact.length ? exact : family;
     if (!found.length) return `feature ${id} has no face "${role}"${parts.length ? ` (its faces: ${parts.join(', ')})` : ' (it has no faces on the shown bodies)'}`;
   } else if (Array.isArray(sel.normal) && sel.normal.length === 3 && sel.normal.every(x => typeof x === 'number' && Number.isFinite(x))) {

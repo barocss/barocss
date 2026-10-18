@@ -4,6 +4,7 @@ import type { SketchShape } from '../viewport/Viewport';
 import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
+import { sideTagsFor, withIds } from './entityIds';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -129,13 +130,13 @@ export function loopOf(n: SketchNode): DocSegment[] {
  * the first region is the main profile. A shape inside a hole (an island) is refused for now.
  */
 export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: string } {
-  // (Construction shapes are references: they make no part of the profile.)
-  let shapes = all.filter(s => !s.construction);
+  // (Construction shapes are references: they make no part of the profile. Every side has its id, R10a.)
+  let shapes = withIds(all).filter(s => !s.construction);
   // An outline's attached circles are shapes of the profile beside it (holes inside it, regions outside).
-  shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c): SketchShape => ({ kind: 'circle', c: c.c, r: c.r }))] : [s]);
+  shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c, i): SketchShape => ({ kind: 'circle', c: c.c, r: c.r, ...(s.circleIds?.[i] ? { ids: [s.circleIds[i]] } : {}) }))] : [s]);
   const closed = shapes.map(s => ({ s, node: shapeNode(s) })).filter((x): x is { s: SketchShape; node: SketchNode } => !!x.node);
   if (!closed.length) return { error: 'Draw a closed rectangle, circle, slot or outline on the sketch plane.' };
-  if (closed.length === 1) return { node: closed[0].node };
+  if (closed.length === 1) return { node: tagged(closed[0].node, closed[0].s, [], []) };
   const rings = closed.map(x => shapeOutline(x.s));
   // Overlapping shapes would silently become a cut or a bump depending on where each starts: refuse them.
   for (let i = 0; i < rings.length; i++) for (let j = i + 1; j < rings.length; j++)
@@ -148,5 +149,11 @@ export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: s
   const outers = closed.filter((_, i) => depth[i] === 0), holes = closed.filter((_, i) => depth[i] === 1);
   if (!outers.length) return { error: 'Every shape lies inside another: draw the outer shape so it encloses the others.' };
   const [main, ...rest] = outers;
-  return { node: { ...main.node, ...(rest.length ? { regions: rest.map(x => loopOf(x.node)) } : {}), ...(holes.length ? { holes: holes.map(x => loopOf(x.node)) } : {}) } as SketchNode };
+  const node = { ...main.node, ...(rest.length ? { regions: rest.map(x => loopOf(x.node)) } : {}), ...(holes.length ? { holes: holes.map(x => loopOf(x.node)) } : {}) } as SketchNode;
+  return { node: tagged(node, main.s, rest.map(x => x.s), holes.map(x => x.s)) };
+}
+/** The node with its sides' tags (R10a, D86), from the shapes that make it. */
+function tagged(node: SketchNode, main: SketchShape, regions: SketchShape[], holes: SketchShape[]): SketchNode {
+  const tags = sideTagsFor(node, main, regions, holes, loopOf);
+  return tags ? { ...node, sideTags: tags } : node;
 }

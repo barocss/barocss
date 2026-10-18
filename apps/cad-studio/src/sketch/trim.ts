@@ -5,6 +5,7 @@
 // trims: the rectangle's edge inside the circle, then the circle's arc inside the rectangle.
 import type { SketchShape } from '../viewport/Viewport';
 import { arcOf } from './profile';
+import { carryPolygon, inheritIds, nextIdOf, withIds } from './entityIds';
 
 type P2 = [number, number];
 type Poly = { points: P2[]; bulges: number[]; closed: boolean };
@@ -137,7 +138,8 @@ export function trimAt(shapes: SketchShape[], p: P2, tol: number): { shapes: Ske
       if (tail.length >= 2) made.push(open(tail, tb));
     }
   }
-  return { shapes: joinOpen([...rest.slice(0, si), ...made, ...rest.slice(si), ...loose]) };
+  // (The pieces left keep their sides' ids by where they start, R10a.)
+  return { shapes: inheritIds(shapes, joinOpen([...rest.slice(0, si), ...made, ...rest.slice(si), ...loose])) };
 }
 
 /** Open outlines (of one kind, drawn or construction) meeting end to end joined; closed up when they meet themselves. */
@@ -226,7 +228,7 @@ export function extendAt(shapes: SketchShape[], p: P2, tol: number): { shapes: S
   else { points = [end, ...points.slice(1)]; if (r.s.kind === 'arc') bulges[0] = arcBulge(r.s, Math.abs((r.ext as Extract<Piece, { kind: 'arc' }>).sw) * r.t); }
   // (Kept edge lengths and the like no longer hold.)
   const next: SketchShape = { kind: 'polygon', points, bulges, closed: false, ...(sh.construction ? { construction: true as const } : {}) };
-  return { shapes: joinOpen(shapes.map((x, i) => i === r.shape ? next : x)) };
+  return { shapes: inheritIds(shapes, joinOpen(shapes.map((x, i) => i === r.shape ? next : x))) };
 }
 
 /** Splitting: the piece nearest `p` (within `tol`) gets a point there — two pieces where it was one. */
@@ -240,19 +242,24 @@ function splitTarget(shapes: SketchShape[], p: P2, tol: number) {
 export function splitPreview(shapes: SketchShape[], p: P2, tol: number): P2 | null {
   const t = splitTarget(shapes, p, tol); return t ? pt(t.s, t.t) : null;
 }
-export function splitAt(shapes: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
+export function splitAt(input: SketchShape[], p: P2, tol: number): { shapes: SketchShape[] } | { error: string } {
+  // (Every side with its id first: the split keeps them, R10a.)
+  const shapes = withIds(input);
   const T = splitTarget(shapes, p, tol);
   if (!T) return { error: 'Click on a line, arc or circle of the sketch to split it there.' };
-  const { shape: si, piece: pi, s, t } = T, shape = shapes[si], flag = shape.construction ? { construction: true as const } : {};
+  const { shape: si, piece: pi, s, t } = T, shape = shapes[si], flag = shape.construction ? { construction: true as const } : {}, fresh = `e${nextIdOf(shapes)}`;
   const at2 = pt(s, t);
   if (shape.kind === 'circle') {
-    // A circle: two half circles meeting at the point and opposite it.
+    // A circle: two half circles meeting at the point and opposite it (the first keeps the circle's id).
     const opp: P2 = [r6(2 * shape.c[0] - at2[0]), r6(2 * shape.c[1] - at2[1])];
-    return { shapes: shapes.map((x, i) => i === si ? { kind: 'polygon', points: [at2, opp], bulges: [1, 1], closed: true, ...flag } : x) };
+    return { shapes: shapes.map((x, i) => i === si ? { kind: 'polygon', points: [at2, opp], bulges: [1, 1], closed: true, ids: [shape.ids![0], fresh], ...flag } : x) };
   }
   if (t < 1e-6 || t > 1 - 1e-6) return { error: 'That is already a point of the outline: split a piece away from its ends.' };
-  const P = polyOf(shape)!, points = [...P.points], bulges = [...P.bulges];
-  points.splice(pi + 1, 0, at2); bulges.splice(pi, 1, partBulge(s, 0, t), partBulge(s, t, 1));
-  const next: SketchShape = { kind: 'polygon', points, bulges, closed: P.closed, ...flag };
+  const P = polyOf(shape)!, points = [...P.points], bulges = [...P.bulges], ids = [...shape.ids!];
+  // The piece's first part keeps its id; the second, from the new point, has a new one. Every other side keeps its id,
+  // and an outline's constraints and dimensions on them stay (the split piece's own length or radius goes).
+  points.splice(pi + 1, 0, at2); bulges.splice(pi, 1, partBulge(s, 0, t), partBulge(s, t, 1)); ids.splice(pi + 1, 0, fresh);
+  let next: SketchShape = { kind: 'polygon', points, bulges, closed: P.closed, ids, ...flag };
+  if (shape.kind === 'polygon') next = carryPolygon(shape, next, points.map((_, j) => j <= pi ? j : j === pi + 1 ? -1 : j - 1));
   return { shapes: shapes.map((x, i) => i === si ? next : x) };
 }
