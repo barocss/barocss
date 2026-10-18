@@ -2351,3 +2351,62 @@ Evidence (`test/gear-helical.test.mjs`, the new fifth test):
 - **RB:** exit 0. The three helical seeds are OK at every stage; the crossing pair is the recorded WRONG TODO.
 
 Next: LIB1–LIB4, the library system.
+
+## D61 — LIB1: part libraries as data — the format, a safe expression language, the loader and instantiation (2026-10-18)
+
+Decision (`packages/barocss-cad/src/library.ts`; owner's library system, after R6a):
+- **The manifest:** `{ format: 'barocss-cad-library', version: 1, id, name, libraryVersion (major.minor.patch),
+  units: 'mm', license?, provenance?, parts }`. Limits: 500 parts, 200 parameters, 200 variants, 200 recipe
+  features, 500-character expressions, depth 32.
+- **A part:** `{ id, name, category?, parameters, variants?, recipe, outputs?, interfaces?, simplified?, tags? }`.
+  - **Parameters:** `{ value: number | { expr }, unit?, min?, max?, integer?, source? | estimate: true }`.
+    - A value given outright needs its source, or says it is an estimate; there is no third way.
+    - Derived values are expressions over other parameters, ordered by their dependencies; a cycle is refused,
+      naming it.
+  - **Variants** are rows of the table: they set given parameters only, never derived ones.
+  - **The recipe** is existing part-model features. Any value may be `{ expr }`; `when` keeps a feature only when it
+    holds.
+    - References (`sketch`, `target`, `tool`, `gear`) must name earlier features; face and edge names in `edges`,
+      `faces` and `open` are renamed with them.
+  - **Outputs** default to the last feature. An output left out by its `when` (an optional finish) is the body it
+    would have changed, back along `target`. A left-out maker is refused.
+  - **Interfaces:** `{ id, role, … }` with expressions, evaluated for LIB2.
+- **The expression language** is parsed by our own recursive descent into plain records and evaluated by a switch.
+  Nothing is ever run as code.
+  - Numbers, parameter names, + − * / %, ^ (right-associative), unary − and !, comparisons, && || (short-circuit),
+    c ? a : b, parentheses.
+  - Functions: min, max (two or more), round, floor, ceil, abs, sqrt, sin, cos, tan, atan2 (degrees); `pi`.
+  - Anything else is refused: unknown functions, strings, member access, a name that is not a parameter (own
+    properties only: `toString` is not one), a non-finite result.
+- **Loading checks everything before any use.** Typed refusals (`CadLibraryError`: FORMAT, VERSION, PARAMETER,
+  EXPRESSION, REFERENCE, RECIPE) say where, e.g. `test-plates/plate:s.max[1]: reads height, which is not a
+  parameter`.
+- **`instantiateLibraryPart(lib, part, { variant?, params?, prefix? })`:**
+  - Values come from the defaults, then the variant row, then the values given — given parameters only, within
+    their limits, whole when `integer`.
+  - Features are kept by `when` and their expressions replaced by numbers; ids and references are prefixed
+    `<prefix>_`.
+  - Returns the features, outputs, `origin { library, version, part, variant?, params }` for LIB3, the evaluated
+    interfaces, and warnings:
+    - every estimate used, unless the caller gave that value;
+    - "simplified internals — not for structural calculation".
+- **Placement of the data:** library data lives outside the kernel; built-in libraries come with the studio (LIB4).
+  The FreeCAD extrusion library is a structural reference only, not copied.
+
+Evidence: kernel `test/library.test.mjs` 3/3.
+- **The language:** precedence, associativity, logic and short-circuit, functions in degrees, pi. Injection-shaped
+  input (`constructor.constructor(...)`, `alert(1)`, strings) and malformed input are refused; so are unknown names,
+  including `toString`, and division by zero.
+- **A test library (a plate in two sizes):**
+  - variant B gives 80 × 60 × 5 with a chamfer kept by `when`; prefixed ids, references and edge names; origin;
+    warnings;
+  - the features evaluate, the volume equal to the plate less the hole and the 0.5 mm chamfer to 1e-6;
+  - defaults with t given: no estimate warning, the chamfer left out, the output falling back to the hole;
+  - instantiation refusals: an unknown part or variant, a value out of range or not whole, a derived parameter set,
+    an unknown parameter, a bad prefix.
+- **Load refusals:** JSON, format, version, ids, a value without a source, `pi` as a name, a cycle, a variant setting
+  a derived or unknown parameter, an expression reading a non-parameter (with its path), a forward reference, a
+  duplicate id, an empty recipe, a malformed `when` and `{ expr }`, bad outputs, an interface expression.
+
+Next: LIB2 — interfaces with roles, placement by snapping one onto a face or interface (real mates), and fit checks of
+declared pairs; with the T-slot 20 series library as the first data.

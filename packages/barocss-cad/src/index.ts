@@ -625,3 +625,4 @@ export type { FaceGeometry } from './analytic-boolean.js';
 /** General marching intersection of two parametric patches (used inside the analytic Booleans). */
 export { intersectPatches, chainCurve, SurfaceIntersectionError } from './surface-intersection.js';
 export type { Patch, IntersectionChain } from './surface-intersection.js';
+export { loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, expressionNames, CadLibraryError, CadLibraryLimits, type CadLibrary, type CadLibraryManifest, type CadLibraryPart, type CadLibraryParameter, type CadLibraryVariant, type CadLibraryRecipeFeature, type CadLibraryInterface, type CadLibraryInstance, type CadLibraryOrigin, type CadLibraryErrorCode } from './library.js';
