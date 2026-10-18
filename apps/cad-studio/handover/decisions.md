@@ -3910,3 +3910,23 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
   `importStep` and `stepMeshes` outputs are identical (hashed) on a B-rep plate, an odd text (comments, a doubled quote, a non-breaking space), a planar mesh and a tessellated one.
 - **Tests:** kernel `perf3-c16.test.mjs` (3): mass and area share one run with the same values; an edit beside a long import reuses it, and another text is read anew; odd tokens and an unterminated string. Kernel 1018/1019 before these; conformance 67/67; RB no NEW.
+
+**Studio: the cage editor's frames, render_views, library fits**
+- **Cage overlay (`CageMarks`).** Every frame rebuilt eight Sets of string keys from the selection and the validation, which change with the overlay, not from frame to frame. Every frame also wrote each vertex's coordinates out about four times. Now:
+  - the edges' kinds, the vertices' kinds and sizes, and the tinted faces are prepared once per overlay (WeakMap);
+  - a frame projects, writes each vertex's text once, and joins the same paths.
+
+  The rendered element tree is identical (60 frames on the 2k-face cage, two modes, a selection, a crease, the poles: JSON hashed). 3.61 → 1.48 ms a frame.
+- **Cage validation.** `validationOf` validated the whole cage (4.4 ms on 2k faces) on every frame of an extrusion's drag, and again for Done. It reads only faces, creases and the vertex count, and an extrusion's topology does not change while it is dragged. It now keeps the last result and reuses it when the full cage's faces, creases and vertex count are equal, compared face by face. Test (`cageEdit.test.ts`): five drag steps share one validation, equal to a fresh one, under half its time; another topology is validated anew.
+- **render_views.**
+  - Each face's name is split out once, not at every pixel it covers.
+  - The four hidden-line projections are kept for the last B-reps: a highlight-only call reuses them, since the highlight changes only the fill.
+  - The cache key is the evaluation memo's per-node key, not the whole document's JSON (a STEP import's text included).
+
+  Outputs are byte-identical (16-hole plate: first, two highlights, a section). A highlight call takes 215–263 → 83–106 ms. The section path is left: its probe evaluation (with mass) is most of it, and evaluating it as a preview would change mesh limits.
+- **Library fits.** Each fit end was built cold, though the T-slot library builds its profile three times. Ends are now kept per library (WeakMap; a library is a value once loaded) by part, variant, values, interface and prefix; a failed build is not kept. Results are identical. A first run barely changes (215 → 209 ms: the overlap Booleans dominate). A repeated check (the share check, `add_library`) goes 131 → 74 ms on tslot-20 and 27 → 12 ms on the enclosure.
+- **Per-frame allocations** in the viewer and renderer: measured by the review agent at microseconds a frame (`packFrame` 1.6 µs, the key Map and sort for 50 meshes 6.3 µs). Hoisting them is GC hygiene with no measurable gain; left. The site list is in the coordination notes folder, `c16-review-findings.md`.
+- **Not done:**
+  - **Cold SubD cap fits.** `limitGrids`' meshes per level, `closestOnGrid`'s layout, `formAt`'s copies: 38 + 14 + 7 ms per cold build. Each is a restructuring of numeric code to keep bit-identical; with C17's nested functions, or later.
+  - **Delaunay flips.** A worklist would change cocircular diagonals (A5): left.
+- Studio 364/364; kernel library tests 6/6; browser flow 119/119.

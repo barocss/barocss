@@ -37,11 +37,11 @@ Done:
 - **PERF3 B13** (D82 § B13): recovery copy from per-node JSON (an edit beside a 200k inline mesh 36 → 0.8 ms; past the storage limit not tried); parameter rename copy-on-write; STEP meshes posted as typed arrays; STL weld 165 → 27 ms; uv and blob eviction measured, left (TODO).
 - **PERF3 C14** (D82 § C14): the outline's mask search only in the outlined meshes' screen box (pixel-identical); its GPU cost at DPR 2 2.1–3.6 → 0.9–1.1 ms a frame; `bench:browser` orbit with a body outlined.
 - **PERF3 C15** (D82 § C15): measured, no change — a 60-step handle drag in a production build: App re-renders 0.25 ms a move (1.6 ms script a move in all); the dev server's 16 ms a move is React's development JSX.
-- **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths.; SubD — the caps kept whatever the cage's extent (a top-raising drag 109–162 → 35–69 ms), the topology read from the mesh, `opposite()` counted
+- **PERF3 C16** (D82 § C16, in parts): gears — the interfering report 5.8 → 1.17 s (stop at the first crossing, each point once, searches seeded; the same results), the sweep kept across face widths.; SubD — the caps kept whatever the cage's extent (a top-raising drag 109–162 → 35–69 ms), the topology read from the mesh, `opposite()` counted; kernel — mass and area share one quadrature (plate STEP export 732 → 512 ms), an import's text out of the reuse keys (10 MB: 27 → 1 ms an edit), STEP tokens sticky; studio — cage overlay 3.6 → 1.5 ms a frame and its validation once a drag, render_views highlight 215–263 → 83–106 ms, library fit ends kept. Open items in `c16-review-findings.md` (notes folder)
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **C16–C17**: small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
+   - **C17**: nested functions on hot paths (the list in the notes folder's `c16-review-findings.md`); the AM4 wall-clock test given headroom or moved.
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
 2. Rest of **R8.2**:

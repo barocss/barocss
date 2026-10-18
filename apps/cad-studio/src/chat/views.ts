@@ -8,6 +8,7 @@ import { projectBrepHiddenLines, type Brep, type BrepProjection, type ProjectedC
 import { withNode, type StudioDoc } from '../engine/doc';
 import { partBreps, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { bodyKeyFor } from '../engine/ids';
+import { contentKey } from '../engine/evalMemo';
 import { refOf } from '../app/bodyRef';
 import { VIEWS } from '../drawing/views';
 import { VIEW_IDS, type ViewId } from '../drawing/types';
@@ -122,8 +123,22 @@ const cache = new Map<string, ViewsResult>();
  * The part's 2 × 2 sheet of views: `highlight` names faces to fill red (and ring their labels), `section` cuts
  * the part across an axis first (the kept side, its cut faces showing). Cached by model and options.
  */
+/**
+ * The views' hidden-line projections, kept for the last bodies (the same B-rep objects: the part unchanged, a
+ * highlight or another label asked) — the projections do not depend on the highlight; PERF3 C16.
+ */
+let lastProjections: { breps: readonly Brep[]; byView: Map<ViewId, BrepProjection> } | null = null;
+function projectionOf(breps: readonly Brep[], id: ViewId): BrepProjection {
+  const last = lastProjections;
+  if (!last || last.breps.length !== breps.length || last.breps.some((b, i) => b !== breps[i])) lastProjections = { breps: [...breps], byView: new Map() };
+  const byView = lastProjections!.byView;
+  let pr = byView.get(id);
+  if (!pr) { pr = projectBrepHiddenLines(breps, VIEWS[id]); byView.set(id, pr); }
+  return pr;
+}
 export async function renderViews(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: (doc: StudioDoc) => Promise<EvalResult | null>, options: { highlight?: readonly string[]; section?: { axis: 'x' | 'y' | 'z'; at: number } } = {}): Promise<ViewsResult | string> {
-  const key = JSON.stringify([doc.nodes, doc.parameters, options]);
+  // (The model by its nodes' kept texts — not the whole document written out, a STEP import's text and all; PERF3 C16.)
+  const key = `${contentKey(doc)}\u0003${JSON.stringify(options)}`;
   const hit = cache.get(key); if (hit) return hit;
   let shown: readonly BodyResult[] = bodies, model = doc;
   if (options.section) {
@@ -141,13 +156,15 @@ export async function renderViews(doc: StudioDoc, bodies: readonly BodyResult[],
   }
   if (!shown.length) return 'there is no body to show';
   const keys = new Set(shown.map(b => b.key)), breps: Brep[] = partBreps(model).filter(b => keys.has(b.key)).map(b => b.brep);
-  const hot = new Set(options.highlight ?? []), faceName = (bi: number, fi: number) => shown[bi].mesh.faces[fi]?.name.split('+')[0] ?? '';
+  const hot = new Set(options.highlight ?? []);
   const faceBase: number[] = []; let nFaces = 0; for (const b of shown) { faceBase.push(nFaces); nFaces += b.mesh.faces.length; }
-  const owner = new Int32Array(nFaces); shown.forEach((b, bi) => { for (let f = 0; f < b.mesh.faces.length; f++) owner[faceBase[bi] + f] = bi; });
+  // (Each face's name and whether it is highlighted, once — not split out of its full name at every pixel it covers.)
+  const names: string[] = new Array(nFaces), hotFace = new Uint8Array(nFaces);
+  shown.forEach((b, bi) => { for (let f = 0; f < b.mesh.faces.length; f++) { const name = b.mesh.faces[f]?.name.split('+')[0] ?? ''; names[faceBase[bi] + f] = name; hotFace[faceBase[bi] + f] = hot.has(name) ? 1 : 0; } });
   img = new Uint8ClampedArray(W * H * 4).fill(255);
   const numbers = new Map<string, number>(), out: ViewsResult['views'] = {};
   VIEW_IDS.forEach((id: ViewId, v) => {
-    const pr: BrepProjection = projectBrepHiddenLines(breps, VIEWS[id]), ox = (v % 2) * CELL, oy = Math.floor(v / 2) * CELL;
+    const pr: BrepProjection = projectionOf(breps, id), ox = (v % 2) * CELL, oy = Math.floor(v / 2) * CELL;
     const sx = (CELL - 2 * MARGIN) / Math.max(1e-9, pr.max[0] - pr.min[0]), sy = (CELL - 2 * MARGIN) / Math.max(1e-9, pr.max[1] - pr.min[1]), s = Math.min(sx, sy);
     const cx = MARGIN + ((CELL - 2 * MARGIN) - (pr.max[0] - pr.min[0]) * s) / 2, cy = MARGIN + ((CELL - 2 * MARGIN) - (pr.max[1] - pr.min[1]) * s) / 2;
     const X = (x: number) => cx + (x - pr.min[0]) * s, Y = (y: number) => CELL - cy - (y - pr.min[1]) * s;
@@ -166,8 +183,7 @@ export async function renderViews(doc: StudioDoc, bodies: readonly BodyResult[],
     for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++) {
       const f = ids[y * CELL + x]; if (f < 0) continue;
       count[f]++;
-      const name = faceName(owner[f], f - faceBase[owner[f]]);
-      if (hot.has(name)) blend(ox + x, oy + y, 255, 205, 205, 1); else blend(ox + x, oy + y, 236, 238, 242, 1);
+      if (hotFace[f]) blend(ox + x, oy + y, 255, 205, 205, 1); else blend(ox + x, oy + y, 236, 238, 242, 1);
     }
     // Edges: hidden first (thin, dashed), visible over them.
     for (const pass of [false, true]) for (const e of pr.edges) for (const piece of e.pieces) {
@@ -190,7 +206,7 @@ export async function renderViews(doc: StudioDoc, bodies: readonly BodyResult[],
     const visible: string[] = [];
     for (let f = 0; f < nFaces; f++) {
       if (count[f] < 1) continue;
-      const name = faceName(owner[f], f - faceBase[owner[f]]); if (!visible.includes(name)) visible.push(name);
+      const name = names[f]; if (!visible.includes(name)) visible.push(name);
       if (count[f] < LABEL_MIN_PIXELS || at[f] < 0) continue;
       if (!numbers.has(name)) numbers.set(name, numbers.size + 1);
       label(ox + at[f] % CELL, oy + Math.floor(at[f] / CELL), numbers.get(name)!, hot.has(name));

@@ -72,3 +72,16 @@ test('the preview: as fine as stays quick (level 2 for the box of 6 a side, 1 fo
   assert.equal(smooth.indices.length / 3, 2 * b6.faces.length * 16);
   assert.equal(validateCage(b18).valid, true);
 });
+
+test('PERF3 C16: an extrusion dragged validates its cage once — the same validation every step, equal to one worked out afresh, and topology changes still seen', () => {
+  let s = startSession(0, boxCage(30, 20, 16, 18, [0, 0, 0]));
+  s = { ...select({ ...s, mode: 'face' }, { kind: 'face', f: 7 }, false) };
+  const steps = [1, 2, 3, 4, 5].map(k => ({ ...s, ...dragged(s, [0, 0, 0.5 * k], true) }));
+  const t0 = performance.now(), first = validationOf(steps[0]), cold = performance.now() - t0;
+  let warm = 0;
+  for (const st of steps.slice(1)) { const t1 = performance.now(), v = validationOf(st); warm = Math.max(warm, performance.now() - t1); assert.equal(v, first); assert.deepEqual(v, validateCage(fullCage(st))); }
+  assert.ok(warm < 0.5 * cold, `${warm.toFixed(2)} ms a step against ${cold.toFixed(2)} ms`);
+  // Another topology (the session before extruding): validated anew, and right.
+  assert.deepEqual(validationOf(s), validateCage(fullCage(s)));
+  assert.notEqual(validationOf(s), first);
+});

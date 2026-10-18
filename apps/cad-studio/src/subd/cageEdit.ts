@@ -204,7 +204,26 @@ export const boundaryOf = (s: CageSession) => boundaryLoop(s.cage, s.sel.edges);
 // ---- What is drawn ----------------------------------------------------------------------------------------------------
 
 /** The validation of the cage the kernel builds, for the overlay. */
-export const validationOf = (s: CageSession): CageValidation => validateCage(fullCage(s));
+/**
+ * The cage's validation — a matter of its faces, creases and vertex count only (no position) — kept for the last
+ * cage: a move, and every step of an extrusion's drag (its topology fixed while it is dragged), reads it again rather
+ * than validating a 2k-face cage per frame (4.4 ms; PERF3 C16). The cage compared face by face.
+ */
+let lastValidation: { faces: readonly (readonly number[])[]; creases: readonly (readonly number[])[]; nv: number; v: CageValidation } | null = null;
+export function validationOf(s: CageSession): CageValidation {
+  const c = fullCage(s), nv = c.positions.length / 3, creases = c.creases ?? [];
+  const last = lastValidation;
+  if (last && last.nv === nv && sameLists(last.faces, c.faces) && sameLists(last.creases, creases)) return last.v;
+  const v = validateCage(c);
+  lastValidation = { faces: c.faces, creases, nv, v };
+  return v;
+}
+function sameLists(a: readonly (readonly number[])[], b: readonly (readonly number[])[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) { const x = a[i], y = b[i]; if (x === y) continue; if (x.length !== y.length) return false; for (let j = 0; j < x.length; j++) if (x[j] !== y[j]) return false; }
+  return true;
+}
 /** Refinement levels for the preview: as fine as stays quick (≈ 20 000 triangles; the exact body follows on release). */
 export function previewLevels(c: StudioCage): number { let l = 1; while (l < 3 && 2 * c.faces.length * 4 ** (l + 1) <= 20000) l++; return l; }
 /** The limit surface's quick preview (Smooth), or the cage itself (Box), as triangles. */

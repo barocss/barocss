@@ -29,8 +29,21 @@ export function placeByInterfaces(a: CadLibraryInterface, b: CadLibraryInterface
   return { rotation: R, translation: t };
 }
 
+/**
+ * One end built, kept per library by what it asks (PERF3 C16): a library's fits build the same parts again — the
+ * T-slot one builds its profile three times — and a loaded library is a value. A build that fails is not kept.
+ */
+type Built = { breps: Brep[]; itf: CadLibraryInterface; warnings: readonly string[]; values: Readonly<Record<string, number>> };
+const builds = new WeakMap<CadLibrary, Map<string, Built>>();
+function build(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): Built {
+  let byKey = builds.get(lib); if (!byKey) { byKey = new Map(); builds.set(lib, byKey); }
+  const key = JSON.stringify([end.part, end.variant ?? null, end.params ?? null, end.interface, prefix]);
+  let out = byKey.get(key);
+  if (!out) { out = buildEnd(lib, end, prefix); byKey.set(key, out); }
+  return out;
+}
 /** One end built: its bodies (the part's outputs) and its interface. */
-function build(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): { breps: Brep[]; itf: CadLibraryInterface; warnings: readonly string[]; values: Readonly<Record<string, number>> } {
+function buildEnd(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): Built {
   const inst = instantiateLibraryPart(lib, end.part, { ...(end.variant ? { variant: end.variant } : {}), ...(end.params ? { params: end.params } : {}), prefix });
   const itf = inst.interfaces.find(i => i.id === end.interface);
   if (!itf) throw new CadLibraryError('REFERENCE', `${lib.manifest.id}/${end.part}`, `interface ${end.interface} is not there for these values`);
