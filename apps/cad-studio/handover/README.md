@@ -31,10 +31,11 @@ Done:
 - **PERF3 B7** (D82 § B7): hover repaints only the faces whose state changed (`fillColors` ranges); plate hover 0.44 → 0.009 ms, 62 → 0.8 KiB; the hover now clears when the pointer leaves the canvas.
 - **PERF3 B8** (D82 § B8): edge picks through a segment hierarchy (`nearestSegment`, the same answers as the walk); 120-hole plate 0.267 → 0.014 ms a pick.
 - **PERF3 B9** (D82 § B9): mesh bodies' mass and area exactly from their triangles and loops, once per B-rep (`polyhedralIntegrals`); 40k planar mesh 355/651 → 70/73 ms, 200k facets 17 → 6 ms.
+- **PERF3 B10** (D82 § B10): F2's exact Boolean skips a probe's second search where the first face misses it; axis-plane splits put cut points exactly on the plane (caps 156 faces → 4); F2 hole 20k 586 → 460 ms, 80k 1 192 → 872 ms.
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **B10–B13**: F2 rebuild, mesh repair adjacency, worker reply payload, memory.
+   - **B11–B13**: mesh repair adjacency, worker reply payload, memory.
    - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).

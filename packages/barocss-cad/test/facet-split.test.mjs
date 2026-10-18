@@ -97,3 +97,17 @@ test('oblique split of planar and curved bodies (D50): the tool is two tetrahedr
   const holed = evaluateCadPart(D([...box, { id: 'h', kind: 'hole', target: 'b', center: [5, 5], radius: 2, depth: 20 }, { id: 'o', kind: 'split', target: 'h', normal: [1, 0, 1], at: 9 }]));
   assert.ok(Math.abs(holed.outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0) - (1000 - 40 * Math.PI)) < 1e-6);
 });
+
+test('PERF3 B10: a plane square to an axis puts the cut points exactly on it (the section loops and both caps\' corners have its coordinate to the bit); an oblique plane interpolates as before', () => {
+  const { P, I } = torus(20, 5, 37, 23), b = facetBrepFromTriangles(P, I, { id: 'm' });
+  for (const [normal, at, k] of [[[0, 0, 1], 0.731, 2], [[1, 0, 0], 17.3, 0], [[0, -1, 0], -2.17, 1]]) {
+    const r = splitFacetBrep(b, { normal, offset: at, at: 'c' }), c = normal[k] * at;
+    assert.ok(r.loops.length && r.loops.every(l => l.every(p => p[k] === c)), `${normal}: the loops off the plane`);
+    for (const side of [r.below, r.above]) {
+      const cap = side.faces.filter(f => /^c\./.test(f.name ?? ''));
+      assert.ok(cap.length, `${normal}: a cap`);
+      for (const f of cap) for (let i = k; i < f.surface.positions.length; i += 3) assert.equal(f.surface.positions[i], c);
+    }
+    assert.ok(Math.abs(vol(r.below) + vol(r.above) - vol(b)) <= 1e-9 * vol(b));
+  }
+});

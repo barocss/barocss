@@ -72,13 +72,16 @@ export function splitSoup(soup: TriangleSoup, normal: Point | readonly number[],
   }
   // Positions: the soup's, then one cut point per crossed edge (by its unordered vertex pair).
   const extra: number[] = [], cuts = new Map<number, number>(), onPlane: number[] = [];
+  // (A plane square to an axis: a cut point's coordinate along it is the plane's exactly, so the points on the plane
+  // are exactly coplanar — its cap triangles then join into one planar face, PERF3 B10 — not a few ulps off it.)
+  const axis = n[0] === 1 || n[0] === -1 ? 0 : n[1] === 1 || n[1] === -1 ? 1 : n[2] === 1 || n[2] === -1 ? 2 : -1, at = axis < 0 ? 0 : d * (n as readonly number[])[axis];
   for (let v = 0; v < nv0; v++) if (dist[v] === 0) onPlane.push(v);
   const cutOf = (a: number, b: number): number => {
     if (dist[a] === 0) return a; if (dist[b] === 0) return b;
     const lo = a < b ? a : b, hi = a < b ? b : a, key = lo * nv0 + hi, known = cuts.get(key);
     if (known !== undefined) return known;
     const t = dist[lo] / (dist[lo] - dist[hi]), id = nv0 + extra.length / 3;
-    for (let k = 0; k < 3; k++) extra.push(S[3 * lo + k] + t * (S[3 * hi + k] - S[3 * lo + k]));
+    for (let k = 0; k < 3; k++) extra.push(k === axis ? at : S[3 * lo + k] + t * (S[3 * hi + k] - S[3 * lo + k]));
     cuts.set(key, id); return id;
   };
   const tris: [number[], number[]] = [[], []], groups: [number[], number[]] = [[], []];

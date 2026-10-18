@@ -175,8 +175,14 @@ const scenarios: Scenario[] = [
     const m = torusMesh(20, 5, 400, 250), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
     let k = 0; return () => splitFacetBrep(breps[k++ % breps.length], { normal: [0, 0, 1], offset: 1, at: 'c' });
   } },
-  { name: 'facet: F2 hole, 20k triangles', budgetMS: 1100, runs: 3, setup() {
+  { name: 'facet: F2 hole, 20k triangles', budgetMS: 900, runs: 3, setup() {
     const m = torusMesh(20, 6, 100, 100), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
+    const tool = evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [20, 0.37], radius: 2 }, { id: 'c', kind: 'extrude', sketch: 's', height: 30, from: -15 }])).outputs[0].brep;
+    let k = 0; return () => facetBoolean(breps[k++ % breps.length], tool, 'difference', { id: 'r' });
+  } },
+  // (PERF3 B10: the same hole in a finer mesh: the near region 1 107 triangles instead of 357.)
+  { name: 'facet: F2 hole, 80k triangles', budgetMS: 1800, runs: 2, setup() {
+    const m = torusMesh(20, 6, 200, 200), breps = Array.from({ length: 4 }, (_, k) => facetBrepFromTriangles(m.positions, m.indices, { id: `m${k}` }));
     const tool = evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [20, 0.37], radius: 2 }, { id: 'c', kind: 'extrude', sketch: 's', height: 30, from: -15 }])).outputs[0].brep;
     let k = 0; return () => facetBoolean(breps[k++ % breps.length], tool, 'difference', { id: 'r' });
   } },

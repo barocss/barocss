@@ -437,19 +437,22 @@ class Refused extends BrepError { constructor(detail: string) { super('GEOMETRY'
 
 function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
   const addCut = (k: Curve3) => { fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
+  // (Each probe on fa first: where it misses fa, fb's search — on a cylinder, its seam scan — is skipped; the overlap is empty either way.)
   const lineCuts = (p: P3, d: P3) => {
-    for (const [lo, hi] of overlaps(intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol), intervals(fb, { kind: 'line', p, d, lo: -span, hi: span }, tol)))
+    const ia = intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol); if (!ia.length) return;
+    for (const [lo, hi] of overlaps(ia, intervals(fb, { kind: 'line', p, d, lo: -span, hi: span }, tol)))
       if ((hi - lo) * len(d) > tol) addCut({ kind: 'line', p: add(p, scale(d, lo)), q: add(p, scale(d, hi)) });
   };
   const circleCuts = (c: P3, n: P3, e1: P3, r: number, lo: number) => {
-    const k = { kind: 'circle' as const, c, n, e1, r, lo };
-    for (const [a, b] of overlaps(intervals(fa, k, tol), intervals(fb, k, tol))) if ((b - a) * r > tol) {
+    const k = { kind: 'circle' as const, c, n, e1, r, lo }, ia = intervals(fa, k, tol); if (!ia.length) return;
+    for (const [a, b] of overlaps(ia, intervals(fb, k, tol))) if ((b - a) * r > tol) {
       const e2 = cross(n, e1), u = unit(add(scale(e1, Math.cos(a)), scale(e2, Math.sin(a))));
       addCut({ kind: 'arc', c, n, r, u, sweep: b - a });
     }
   };
   const paramCuts = (at: (t: number) => P3, lo: number, hi: number) => {
-    for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo, hi }, tol), intervals(fb, { kind: 'param', at, lo, hi }, tol)))
+    const ia = intervals(fa, { kind: 'param', at, lo, hi }, tol); if (!ia.length) return;
+    for (const [a, b] of overlaps(ia, intervals(fb, { kind: 'param', at, lo, hi }, tol)))
       if (len(sub(at(b), at(a))) > tol || b - a > 1e-6 * (hi - lo)) addCut({ kind: 'param', at, t0: a, t1: b });
   };
   const same = (g: GFace, into: GFace) => { for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) into.cuts.push(curve2(into, curve3Of(g, seg), tol)); };
@@ -539,7 +542,10 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       return out.filter(([a, b]) => b - a > 1e-9 * Math.max(1, hi - lo));
     };
     const piece = (at: (t: number) => P3, lo: number, hi: number, make: (a: number, b: number) => Curve3) => {
-      for (const [l, h] of onPatches(at, lo, hi)) for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true), intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true))) if (len(sub(at(b), at(a))) > tol || b - a > 1e-6) addCut(make(a, b));
+      for (const [l, h] of onPatches(at, lo, hi)) {
+        const ia = intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true); if (!ia.length) continue;
+        for (const [a, b] of overlaps(ia, intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true))) if (len(sub(at(b), at(a))) > tol || b - a > 1e-6) addCut(make(a, b));
+      }
     };
     const arcAround = (centre: P3, n: P3, e1: P3, r: number) => {
       if (r <= tol) return;

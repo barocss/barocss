@@ -3649,3 +3649,49 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - RB: no NEW row, the TODO rows the known ones.
   - Studio 356/356.
   - Benches `mass: 200k-triangle facet body (cold)` 6.25 ms (budget 15) and `mass and area: 40k-triangle planar mesh (cold)` 76 ms (budget 160).
+
+### B10 — F2 rebuild costs
+- **Confirmed** (the F2 hole bench: a Ø4 hole through a torus mesh), stage by stage, 20k / 180k triangles:
+
+  | Stage | 20k | 180k |
+  |---|---|---|
+  | soup | 6 | 34 |
+  | self-crossing check | 30–40 | 130 |
+  | box split | 15 | 66 |
+  | near part as planar faces | 29 | 104 |
+  | **exact Boolean** | **420–540** | **1 300–1 400** |
+  | the soup again, T-junctions, facet faces, names | about 60 | about 280 |
+
+  - The exact Boolean dominates, and grows with the triangles near the tool: 357 at 20k, 1 107 at 80k, 2 249 at 180k.
+  - Inside it at 20k:
+    - face-pair cuts: 145 ms over 288 pairs;
+    - pieces: 120 ms;
+    - merging coplanar pieces: 115 ms (459 → 120);
+    - stitching: 55 ms.
+  - Two causes, both confirmed:
+    - **Cuts:** each probe curve (the plane's ellipse on the cylinder, say) was searched on both faces before their overlap was taken. On the cylinder that is a 256-step seam scan and a boundary crossing, even where the curve misses the planar face entirely, which is most pairs.
+    - **Caps:** the box split's cut points are interpolated, so they land a few ulps off the cap plane. `brepFromTriangles` joins only exactly coplanar triangles, so the caps' 1 025 triangles reached the Boolean as 156 faces (3 009 as 284 at 180k). Every one was a piece to classify, merge back by a region union, and stitch.
+- **Fix:**
+  - `cutPair` (`analytic-boolean.ts`): each probe on the first face; where it misses, the second face's search is skipped. The overlap of nothing is nothing, so the cuts are the same.
+  - `splitSoup` (`facet-split.ts`): on a plane square to an axis (every F2 box plane, and an F1 split along x, y or z), a cut point's coordinate along that axis is the plane's exactly, and the other two are interpolated as before. The caps are then exactly flat: 4 cap faces instead of 156 (20k) or 284 (180k). An oblique plane is unchanged.
+- **After:**
+
+  | Case | Before | After |
+  |---|---|---|
+  | `facetBoolean`, 20k | 586 ms | 460 ms |
+  | `facetBoolean`, 80k | 1 192 ms | 872 ms |
+  | `facetBoolean`, 180k | 1 900 ms (stages) | 1 530 ms |
+  | Inside the Boolean at 20k: cuts | 145 | 80 |
+  | Inside the Boolean at 20k: merging | 115 | 57 |
+  | Benches `facet: F2 hole, 20k triangles` | 522–601 ms | 424 ms (budget 1 100 → 900) |
+
+  - New bench `facet: F2 hole, 80k triangles`: 827 ms (budget 1 800).
+  - The volumes are equal to every printed digit: 14 044.918930113969 and 14 058.897223463451 before and after.
+- **Tests:**
+  - Kernel: `facet-split.test.mjs` adds a test that a split square to x, y or z puts the section loops and both caps' corners on the plane to the bit, and that the volumes add up. It fails on the code before.
+  - Kernel 1014/1015 (the known Node-version test); conformance 67/67; RB no NEW row.
+  - Studio 356/356.
+- **Not done, measured:**
+  - The rest is the exact Boolean's work per near face (pieces, regions on the cylinder's arrangement, merging the mesh's coplanar quads back, stitching) and the rebuild of the whole facet body (about 280 ms at 180k).
+  - Narrowing the near region (a prism round the tool instead of a box), carrying the self-crossing check over to an F2 result, or rebuilding only the near faces would each change what the Boolean sees or builds. They go with F3.
+- **Also seen:** at 400 × 250 (200k), the same hole is refused, typed, as "not a manifold solid (… the inputs touch along an edge or at a vertex)". This is the known F2-at-fine-meshes item, unchanged by this step.
