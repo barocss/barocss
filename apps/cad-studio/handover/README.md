@@ -34,10 +34,10 @@ Done:
 - **PERF3 B10** (D82 § B10): F2's exact Boolean skips a probe's second search where the first face misses it; axis-plane splits put cut points exactly on the plane (caps 156 faces → 4); F2 hole 20k 586 → 460 ms, 80k 1 192 → 872 ms.
 - **PERF3 B11** (D82 § B11): mesh repair's edge adjacency and self-intersection grid in typed arrays (the same order), a plane-side rejection before the crossing test; 200k diagnose + repair 1 255 → 677 ms, results identical; `report.flipped` counts a triangle once (it double-counted).
 - **PERF3 B12** (D82 § B12): worker replies send only meshes the client lacks (tokens per slot, `meshWire.ts`); face-table key without the whole JSON; a snapshot slot per purpose; clash probes ask volumes only; an edit beside a 200k mesh: worker 33 → 2 ms, 5.3 MiB → 0 sent.
+- **PERF3 B13** (D82 § B13): recovery copy from per-node JSON (an edit beside a 200k inline mesh 36 → 0.8 ms; past the storage limit not tried); parameter rename copy-on-write; STEP meshes posted as typed arrays; STL weld 165 → 27 ms; uv and blob eviction measured, left (TODO).
 
 **Next, in this order:**
 1. PERF3, as the peer listed it (D82 has the item list):
-   - **B13**: memory (uv, undo sharing, blob eviction, recovery writes, transferable mesh posts).
    - **C14–C17**: outline, App re-renders while dragging, small items (STEP sticky regexes, gear sweep key, SubD topology recheck/`opposite()`/fit closures, library memo, render_views, per-frame allocations, D25/D22), nested functions (~20 sites).
    - Also for C16: `surfaceTriangles`' Delaunay flips run full passes; a worklist would change cocircular diagonals (D82 A5).
    - **D20**: RB bookkeeping. Add trend.jsonl rows for D50/D78/D79 and later, and refresh todo.json (some graze rows now pass).
@@ -97,6 +97,7 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - D79 boundary slivers: concave folds of 14–38° remain at cap boundaries (box3 18°, box6 38°; they were 51° and 180°).
 - 3MF: opening it in a slicer (PrusaSlicer or Bambu) is pending for the owner.
 - εγ: pending (the coordinating session's open item).
+- Blob eviction (PERF3 B13, not done): the blob store keeps every mesh blob of the session, in the studio and the worker. Safe eviction needs every holder — document, undo/redo, proposals, a pending repair, the chat's states, and the worker wire's sender (it assumes the worker keeps what it sent).
 - Kernel suite: one environmental failure, `actual native Split source…`, which pins Node 22.23.3.
 
 ### How to run

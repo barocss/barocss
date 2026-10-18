@@ -8,12 +8,36 @@ import { Icon } from './atoms';
 const NAME = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
 const without = <T,>(o: Record<string, T>, key: string): Record<string, T> => Object.fromEntries(Object.entries(o).filter(([k]) => k !== key));
 
-/** The nodes with every reference to `from` made `to` (a name, or a number: the reference dropped). */
+/**
+ * The nodes with every reference to `from` made `to` (a name, or a number: the reference dropped). Copied only
+ * along the way to a reference (PERF3 B13): a node without one is the same object, so undo, the worker's wire and
+ * the evaluation memo still see it unchanged — and a mesh's or a STEP file's data is not written out and read back.
+ */
 export function renameParameter(nodes: readonly ModelNode[], from: string, to: string | number): ModelNode[] {
-  return JSON.parse(JSON.stringify(nodes), (_k, v) => v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && v.parameter === from ? (typeof to === 'number' ? to : { parameter: to }) : v) as ModelNode[];
+  return nodes.map(n => renamed(n, from, to) as ModelNode);
 }
-/** How many features use a parameter. */
-export const parameterUses = (nodes: readonly ModelNode[], name: string) => nodes.filter(n => JSON.stringify(n).includes(`{"parameter":${JSON.stringify(name)}}`)).length;
+const isReference = (v: unknown, name: string): boolean => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && (v as { parameter?: unknown }).parameter === name;
+function renamed(v: unknown, from: string, to: string | number): unknown {
+  if (!v || typeof v !== 'object') return v;
+  if (isReference(v, from)) return typeof to === 'number' ? to : { parameter: to };
+  if (Array.isArray(v)) {
+    let out: unknown[] | null = null;
+    for (let i = 0; i < v.length; i++) { const x = v[i]; if (!x || typeof x !== 'object') continue; const y = renamed(x, from, to); if (y !== x) (out ??= v.slice())[i] = y; }
+    return out ?? v;
+  }
+  let out: Record<string, unknown> | null = null;
+  for (const [k, x] of Object.entries(v)) { if (!x || typeof x !== 'object') continue; const y = renamed(x, from, to); if (y !== x) (out ??= { ...(v as Record<string, unknown>) })[k] = y; }
+  return out ?? v;
+}
+function uses(v: unknown, name: string): boolean {
+  if (!v || typeof v !== 'object') return false;
+  if (isReference(v, name)) return true;
+  if (Array.isArray(v)) { for (const x of v) if (x && typeof x === 'object' && uses(x, name)) return true; return false; }
+  for (const x of Object.values(v)) if (x && typeof x === 'object' && uses(x, name)) return true;
+  return false;
+}
+/** How many features use a parameter (a walk of each node: no JSON of a mesh's or a file's data). */
+export const parameterUses = (nodes: readonly ModelNode[], name: string) => nodes.filter(n => uses(n, name)).length;
 
 export function ParametersPanel({ doc, onChange, onError, onClose }: {
   doc: StudioDoc; onChange(next: Pick<StudioDoc, 'parameters' | 'nodes' | 'configurations'>): void; onError(message: string): void; onClose(): void;

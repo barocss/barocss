@@ -1118,8 +1118,10 @@ export function App() {
         setStage(null);
         if (meshes && 'error' in meshes) { if (meshes.error !== 'stopped') setToast({ title: 'Could not open this file', hint: `${meshes.error[0].toUpperCase()}${meshes.error.slice(1)}. Your part is unchanged.`, detail: meshes.error }); return; }
         if (meshes) {
-          const k = stepLengthUnit(step).toMM, positions: number[] = [], indices: number[] = [];
-          for (const m of meshes) { const base = positions.length / 3; for (let i = 0; i < m.positions.length; i++) positions.push(m.positions[i] * k); for (let i = 0; i < m.indices.length; i++) indices.push(base + m.indices[i]); }
+          // (Typed arrays, not number lists: posted to the worker by copying bytes, not element by element; PERF3 B13.)
+          const k = stepLengthUnit(step).toMM, positions = new Float64Array(meshes.reduce((n, m) => n + m.positions.length, 0)), indices = new Uint32Array(meshes.reduce((n, m) => n + m.indices.length, 0));
+          let pv = 0, pi = 0;
+          for (const m of meshes) { const base = pv / 3; for (let i = 0; i < m.positions.length; i++) positions[pv++] = m.positions[i] * k; for (let i = 0; i < m.indices.length; i++) indices[pi++] = base + m.indices[i]; }
           setStage('checking the mesh');
           const d = await engine.diagnose(positions, indices);
           setStage(null);

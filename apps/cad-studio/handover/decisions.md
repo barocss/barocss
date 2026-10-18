@@ -3765,3 +3765,30 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - volumes equal to the full evaluation's, and slots taking turns.
 - Studio 359/359.
 - **Not done:** signature-only replies for the reference checks. The evaluation memo (`kept`) is shared by every evaluate function, so a reply without meshes could be handed to a caller that reads them (a requirement's wall thickness). Unchanged prefix meshes now go back as tokens anyway.
+
+### B13 — memory: what an edit writes out and copies
+- **Confirmed and changed:**
+  - **Recovery writes.** 800 ms after every change, `writeRecovery` wrote the whole document out as one JSON for local storage. A document with an inline mesh (older files, before blobs) or an imported STEP text is written out in full every time. A 200k-triangle inline mesh is 8.8 M characters and 36 ms per edit, and a copy that size never fits local storage (about 5 MiB): it failed after the cost, every edit.
+    - Now `recoveryText` keeps each node's JSON per node object and joins them. The text is exactly the old text (tested), and a copy past `RECOVERY_LIMIT` is not tried.
+    - As before, a copy that cannot be written leaves the stored one as it was.
+    - After an edit beside the 200k mesh: 36 ms → 0.76 ms with no limit, and nothing when over it.
+  - **Undo sharing.** Renaming or removing a parameter deep-copied every node through JSON (`renameParameter`). Every node became a new object, so undo held two full copies (a mesh's or a STEP file's data included), and the worker's wire and the evaluation memo saw the whole part as changed. `parameterUses` wrote out every node per parameter on every render of the panel.
+    - The rename is now copy-on-write: only the nodes along the way to a reference are copied.
+    - The count is a read-only walk.
+    - Both are tested against the old functions: the same result, untouched nodes the same objects.
+  - **Mesh posts.** A STEP file's meshes were gathered into number lists before the worker's check. Posting those clones element by element, and twice the memory of typed arrays. They are now typed arrays, posted as bytes.
+  - **Opening an STL.** `meshInMM`, the weld to mm, made three arrays and a text key a corner, with closures inside the loop: 165 ms for 200k triangles.
+    - Now the rounded coordinates are hashed into buckets and compared exactly: the same vertices in the same order, the size as before (a NaN corner makes it NaN, as `Math.min` did).
+    - Tested against the old weld (repeated and near corners, −0, NaN, single precision, three units).
+    - 165 → 27 ms.
+- **Benches:**
+
+  | Bench | Time | Budget |
+  |---|---|---|
+  | `mesh: open a 200k-triangle STL (weld to mm)` | 27 ms | 60 |
+  | `recovery: an edit beside a 200k inline mesh` | 0.76 ms | 2 |
+
+- **Tests:** `test/memory.test.ts` (3). Studio 362/362; browser flow 119/119.
+- **Measured, not changed:**
+  - **uv:** every body's geometry has texture coordinates, 8 bytes a vertex, even without a colour map. The viewer's pipelines read the attribute, so leaving it out needs a second vertex layout in `@barocss/gpu`. For a 200k-triangle body that is under 1 MiB. Left.
+  - **Blob eviction:** the blob store keeps every mesh blob of the session, in the studio and in the worker (by design, D45/M1). Evicting safely needs every holder known: the document, undo and redo, proposals, a repair waiting, the chat's states, and the worker's wire, whose sender believes the worker still has what it sent once. That is a design change. Recorded as a TODO in README §0 with that list.

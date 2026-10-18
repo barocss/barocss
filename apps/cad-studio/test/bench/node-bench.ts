@@ -3,11 +3,13 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepFromTriangles, diagnoseMesh, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepFromTriangles, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
 import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc, shareMeshes } from '../../src/engine/evaluate';
 import { MeshSender } from '../../src/engine/meshWire';
+import { meshInMM } from '../../src/engine/meshImport';
+import { recoveryText } from '../../src/app/recovery';
 import { emptyDoc as emptyStudioDoc } from '../../src/engine/doc';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
@@ -231,6 +233,18 @@ const scenarios: Scenario[] = [
     const step = (w: number, k: number) => { shareMeshes(true); try { return send.pack('evaluate', evaluateDoc(at(w), k)); } finally { shareMeshes(false); } };
     step(30, 0); let k = 0;
     return () => { const out = step(30 + ++k * 1e-3, k); if (out.transfer.reduce((n: number, b) => n + (b as ArrayBuffer).byteLength, 0) > 1 << 16) throw new Error('the unchanged mesh was sent'); return out; };
+  } },
+  // (PERF3 B13: an STL of 200k triangles welded to mm as it opens (before: 165 ms, a text key a corner); the recovery
+  // copy after an edit beside a 200k-triangle inline mesh (before: the whole 8.8 M-character JSON, 36 ms, every edit).)
+  { name: 'mesh: open a 200k-triangle STL (weld to mm)', budgetMS: 60, runs: 3, setup() {
+    const f = organicTorus(316, 316), soup = readStl(encodeBinaryStl(f.positions, f.indices, 'x'));
+    return () => meshInMM({ positions: soup, indices: null, float32: true }, 'mm');
+  } },
+  { name: 'recovery: an edit beside a 200k inline mesh', budgetMS: 2, runs: 10, setup() {
+    const f = organicTorus(316, 316), mesh = { kind: 'mesh', name: 'm', unit: 'mm', positions: Array.from(f.positions), indices: Array.from(f.indices) };
+    const doc = (w: number) => ({ format: 'barocss-cad-model', version: 3, nodes: [mesh, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [w, 10] }] } as unknown as StudioDoc);
+    recoveryText('f', 0, doc(10), Infinity); let k = 0;
+    return () => recoveryText('f', ++k, doc(10 + k), Infinity);
   } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');
