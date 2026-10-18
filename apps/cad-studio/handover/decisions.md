@@ -3819,3 +3819,14 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - gpu `viewer-core`: the rectangle holds every projected point of the box; a corner behind the eye gives none; the block's last four floats.
   - GPU 73/73; browser flow 119/119.
 - **Left:** the mask pass's redraw of the opaque meshes. Testing against the main pass's depth instead needs the mask multisampled like it (with MSAA on), which would change the outline's edge.
+
+### C15 — App re-renders during drags: measured, no change
+- **Measured:** a feature handle dragged 60 steps over 2 s (the starter plate's hole centre). Main-thread time from CDP `Performance.getMetrics`, plus a CPU profile.
+
+  | Build | Script | Of it |
+  |---|---|---|
+  | Dev server | 968 ms (16 ms a move) | 781 ms self in React's development `jsxDEV` (element owner stacks); `App` 704 ms inclusive, its toolbar buttons 295 ms |
+  | Production build, two runs | 86–106 ms (about 1.6 ms a move) | `App` 15 ms over the whole drag (0.25 ms a move); `Viewport` 15 ms; the frame's draw 17 ms; layout 35 ms; one `focus()` of 21 ms when the drag opens the feature's HUD (once) |
+
+- **Decision: no code change.** In production the re-renders are a quarter of a millisecond a move, inside a 16.7 ms frame. Memoising App's toolbar and panels would put stale closures at risk for no measurable gain. The dev-server number is React's development build, which users do not run. Note that the browser flow and `bench:browser` run on the dev server, so frame CPU there reads high for this reason.
+- **The script:** `cdp-drag.mjs` in the session notes folder. It needs a vite URL and PW_DIR; `PROD=<dir>` builds and previews production, and `NOMIN=1` keeps names.
