@@ -1822,3 +1822,80 @@ Evidence:
   | 16 | 11,316, 8.9° | 8,192, 7.1° |
 
   In line with the analytic torus.
+
+## D52 — F2: Booleans of a mesh body with an exact body, the mesh near the tool alone through the exact Boolean, the tool's faces kept exact (2026-10-18, R6)
+
+Before, a Boolean or hole on a mesh body went through F0's explode: the whole mesh became the planar per-triangle
+B-rep, and it was refused past 16,000 triangles.
+
+Decision (`facetBoolean` in `facet-boolean.ts`; the part model's `boolean()` takes it whenever one side has mesh faces
+and the other none — union and intersection either way round, difference with the mesh first):
+- **Only the mesh near the tool takes part.**
+  - The mesh is clipped, as a triangle soup, to a box round the tool by F1's split (`splitSoup`, refactored out of
+    `splitFacetBrep`). The box is a tenth of the tool's smallest extent larger. Each step caps the part kept; the
+    parts cut away stay triangles, with no body built.
+  - That near part becomes planar faces (`brepFromTriangles` with groups) and goes through the exact analytic Boolean
+    with the tool: planes, cylinders, spheres, cones and B-spline faces, as it handles today.
+- **One soup again.**
+  - The near result is tessellated (32 segments a quarter) and joined to the cut-away triangles, the caps dropped.
+  - T-junctions along the cut lines are mended: the cuts run one after another, so a piece cut away early lacks the
+    corners later cuts add on its line. They lie exactly on it, so each triangle is split there.
+  - The soup becomes a facet body. Every face is grouped by its source through tokens, so mesh faces keep their
+    names. Crease splitting is off, so a far face is never renamed.
+- **The tool's faces get their exact surfaces back.**
+  - The sense is chosen by a vote of the five largest triangles.
+  - The rim, where an exact face meets the mesh, is a polyline whose corners lie on both. Its edges carry the
+    chords' sagitta as their tolerance: L²κ/8 from three corners in a row, which needs no projection (a pole stalls
+    one). A single-chord edge takes its midpoint's measured distance, at most half the chord.
+- **Mixed bodies go on.** A body holding both kinds goes into further F2 Booleans and F1 splits through the same soup,
+  its exact faces tessellated and given back.
+- **Refusals.** A mesh that crosses itself is refused as before (D46), checked once per body; 1.06 s at 1M. A sheet is
+  GEOMETRY. More than 16,000 triangles near the tool (5,000 in a preview) is CAPABILITY, saying how many.
+- **Mesh × mesh stays on F0's planar path until F3.** D3's fallback was to be removed when F2 landed; it is kept for
+  this case only. Removing it would take away small STL-with-STL Booleans that work today. The refusal now says "of
+  two large meshes arrive with F3".
+- **Mass of mixed bodies.** Facet faces used tetrahedra from the centre, exact faces the field F·N. Summed over a
+  closed surface they agree; face by face they do not, so a mixed body's volume was off by percent. Beside exact
+  faces, facet faces now take the same field, exact on each triangle (the degree-8 rule). All-facet bodies keep the
+  tetrahedra.
+- **STEP of a mixed body.** It goes out as a mesh body, tessellated (AP242), its exact faces sampled at 64 segments a
+  quarter and named. `planar` is refused for it: a sampled face can hold slivers no planar reader takes. RB's round
+  trip holds such bodies to 1e-3 and does not compare topology.
+- **Found on the way and fixed:**
+  - `weldVertices` looked only in a corner's own grid cell, so two corners a hair apart across a cell boundary stayed
+    two. It now also looks in the neighbouring cells on the near side, and welds only within the weld distance.
+  - `adjacency` used a Map over all half-edges. It now uses a per-vertex typed list, at 1M about twice as fast.
+
+Not done, and why:
+- **A robustness limit of the exact analytic Boolean on dense planar faces.**
+  - On a 25,600-triangle torus, a cylinder of radius 2 centred on the y = 0 or x = 0 symmetry plane fails "not a
+    manifold solid". So does a radius-2 hole at (0.3, 0.2) through a 25k sphere near its pole.
+  - It is the analytic Boolean itself: called directly on the exploded torus, it fails the same way, while 0.37 mm
+    off-centre it succeeds, and radius 1.5 passes everywhere tried.
+  - The failures sit on the rim where it crosses mesh edges in the tool's symmetry plane. Two things were tried
+    without effect and not kept: turning the cylinder's seam off the plane, and a tie rule moving mesh vertices off
+    the tool's surfaces.
+  - F2 refuses these as GEOMETRY with the Boolean's message. TODO (RB5): the analytic Boolean with thousands of small,
+    nearly coplanar planar faces.
+- **At 1M triangles,** 5 of 8 hole positions succeed (median 4.9 s); the other 3 fail as above. 200k: 8/8, median
+  1.2 s. 20k: 8/8, median 0.41 s.
+
+Evidence:
+- **Kernel `test/facet-boolean.test.mjs` 4/4:**
+  - facet cube with a through hole, blind hole, boss, sphere bite and sphere ∩: volumes to 1e-9 (the bite 7e-6, its
+    planar mesh faces bounded by the sampled rim);
+  - exact tool faces, mesh names kept; the rim tolerance is the sagitta for 32 segments a quarter;
+  - part model on a 25,600-triangle torus: a hole, a second hole on the mixed result (4 exact walls), a split of it
+    (sum to 1e-6), a union with a box; box − mesh is F3 CAPABILITY;
+  - refusals (near count, sheet);
+  - mixed STEP round trip within the sampling.
+- **`facet-brep.test.mjs` updated:** holes on 6,240 and 25,280-triangle spheres, previewed and committed; mesh −
+  mesh past 16k refused naming F3.
+- **Conformance `conformance/r6/`, 4 cases:** facet cube hole (8000 − 180π mm³, centroid (10, 10, 10), genus 1),
+  blind hole (8000 − 72π), boss (8000 + 45π), sphere intersection (36π), all to 1e-9. R3's fillet refusal now reads
+  "is not supported yet".
+- **Suites.** Kernel 955/956 (the known environmental test). RB on the conformance set: 256/256 OK. Studio 300/300.
+- **Browser flow,** a new step: a 30,000-triangle ring with a hole opens from a part file in 640 ms, volume 9737 of
+  9860 mm³. The stop-a-long-Boolean step now unites two meshes, still F0's path, since a hole is no longer slow.
+  - A full run was 113/114. The new step read the properties panel before it changed, so it now waits for the ring;
+    it was rerun with its neighbours.

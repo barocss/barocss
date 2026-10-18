@@ -116,16 +116,18 @@ export function runCase(cad, file, started) {
     // its faces kept) for the topology; its planar fallback for older readers (D48) writes each polyline edge's
     // segments as edges of their own, so it is held to the same volume, area and centroid only (D50).
     if (report && mass) stage(`roundtrip${suffix}`, () => {
-      const faceted = brep.faces.some(cad.isFacetFace), size = sizeOf(brep), a0 = cad.brepSurfaceArea(brep);
+      // (A body mixing mesh and exact faces, F2, goes out as a mesh body, its exact faces sampled: held to the
+      // sampling, 1e-3, its topology not compared — D52.)
+      const faceted = brep.faces.some(cad.isFacetFace), mixed = faceted && !brep.faces.every(cad.isFacetFace), size = sizeOf(brep), a0 = cad.brepSurfaceArea(brep), rel = mixed ? 1e-3 : 1e-6;
       const counts = x => JSON.stringify(x.topology.map(t => [t.vertices, t.edges, t.faces, t.shells, t.genus]));
-      for (const meshes of faceted ? ['tessellated', 'planar'] : [undefined]) {
+      for (const meshes of mixed ? ['tessellated'] : faceted ? ['tessellated', 'planar'] : [undefined]) {
         const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00', ...(meshes ? { meshes } : {}) })), m = cad.brepMassProperties(back, 1);
         const a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), how = meshes ? ` (${meshes})` : '';
         if (!r.valid) return { status: 'INVALID', detail: `re-imported${how}: ${r.issues[0]}` };
-        if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(1e-6 * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volumeMM3} → ${m.volumeMM3}` };
-        if (Math.abs(a1 - a0) > 1e-6 * a0) return { status: 'WRONG', detail: `area${how} ${a0} → ${a1}` };
-        if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > 1e-6 * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroidMM} → ${m.centroidMM}` };
-        if (meshes !== 'planar' && counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology${how} ${counts(report)} → ${counts(r)}` };
+        if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(rel * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volumeMM3} → ${m.volumeMM3}` };
+        if (Math.abs(a1 - a0) > rel * a0) return { status: 'WRONG', detail: `area${how} ${a0} → ${a1}` };
+        if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > rel * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroidMM} → ${m.centroidMM}` };
+        if (meshes !== 'planar' && !mixed && counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology${how} ${counts(report)} → ${counts(r)}` };
       }
       return {};
     });

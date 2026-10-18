@@ -108,23 +108,44 @@ function pieceBrep(id: string, P: Float64Array, I: Uint32Array, G: Int32Array | 
   return assemble(id, P, I, across, region, G, open, prefix, options.groupName);
 }
 
-/** Corners on one grid cell of the weld size are one vertex: a hash of the integer cell, checked, no strings. */
+/**
+ * Corners on one grid cell of the weld size are one vertex: a hash of the integer cell, checked, no strings. A corner
+ * whose own cell is empty joins one within the weld in a neighbouring cell (those across its nearer side on each
+ * axis: a corner is within half a cell of them), so that two corners a hair apart either side of a cell's boundary
+ * are one too.
+ */
 export function weldVertices(positions: ArrayLike<number>, n: number, weld: number): { P: Float64Array; remap: Uint32Array } {
   let cap = 16; while (cap < 2 * n) cap *= 2;
   const table = new Int32Array(cap).fill(-1), cells = new Float64Array(3 * n), out = new Float64Array(3 * n), remap = new Uint32Array(n);
   let m = 0;
   for (let v = 0; v < n; v++) {
     const x = positions[3 * v], y = positions[3 * v + 1], z = positions[3 * v + 2];
-    const cx = Math.round(x / weld), cy = Math.round(y / weld), cz = Math.round(z / weld);
-    let h = (Math.imul(cx | 0, 73856093) ^ Math.imul(cy | 0, 19349663) ^ Math.imul(cz | 0, 83492791) ^ Math.imul((cx / 4294967296) | 0, 2654435761)) & (cap - 1);
-    for (;;) {
-      const k = table[h];
-      if (k < 0) { table[h] = m; cells[3 * m] = cx; cells[3 * m + 1] = cy; cells[3 * m + 2] = cz; out[3 * m] = x; out[3 * m + 1] = y; out[3 * m + 2] = z; remap[v] = m++; break; }
-      if (cells[3 * k] === cx && cells[3 * k + 1] === cy && cells[3 * k + 2] === cz) { remap[v] = k; break; }
-      h = (h + 1) & (cap - 1);
+    const fx = x / weld, fy = y / weld, fz = z / weld, cx = Math.round(fx), cy = Math.round(fy), cz = Math.round(fz);
+    let k = cellHolder(table, cells, cap, cx, cy, cz);
+    if (k < 0) {
+      // (Its own cell empty: a corner within the weld in a neighbouring cell, else its own new one.)
+      const sx = fx < cx ? -1 : 1, sy = fy < cy ? -1 : 1, sz = fz < cz ? -1 : 1;
+      for (let c = 1; c < 8 && k < 0; c++) {
+        const h = cellHolder(table, cells, cap, cx + (c & 1 ? sx : 0), cy + (c & 2 ? sy : 0), cz + (c & 4 ? sz : 0));
+        if (h >= 0 && Math.hypot(out[3 * h] - x, out[3 * h + 1] - y, out[3 * h + 2] - z) <= weld) k = h;
+      }
+      if (k < 0) {
+        let h = cellHash(cx, cy, cz, cap); while (table[h] >= 0) h = (h + 1) & (cap - 1);
+        table[h] = m; cells[3 * m] = cx; cells[3 * m + 1] = cy; cells[3 * m + 2] = cz; out[3 * m] = x; out[3 * m + 1] = y; out[3 * m + 2] = z; k = m++;
+      }
     }
+    remap[v] = k;
   }
   return { P: out.slice(0, 3 * m), remap };
+}
+const cellHash = (cx: number, cy: number, cz: number, cap: number) => (Math.imul(cx | 0, 73856093) ^ Math.imul(cy | 0, 19349663) ^ Math.imul(cz | 0, 83492791) ^ Math.imul((cx / 4294967296) | 0, 2654435761)) & (cap - 1);
+/** The corner holding cell (cx, cy, cz), or −1. */
+function cellHolder(table: Int32Array, cells: Float64Array, cap: number, cx: number, cy: number, cz: number): number {
+  for (let h = cellHash(cx, cy, cz, cap); ; h = (h + 1) & (cap - 1)) {
+    const k = table[h];
+    if (k < 0) return -1;
+    if (cells[3 * k] === cx && cells[3 * k + 1] === cy && cells[3 * k + 2] === cz) return k;
+  }
 }
 
 /**
@@ -132,16 +153,19 @@ export function weldVertices(positions: ArrayLike<number>, n: number, weld: numb
  * Refused unless every edge has exactly two triangles running it opposite ways.
  */
 function adjacency(I: Uint32Array, nv: number, allowOpen = false): Int32Array {
-  const nt = I.length / 3, across = new Int32Array(3 * nt).fill(-1), seen = new Map<number, number>();
-  for (let h = 0; h < 3 * nt; h++) {
-    const t = (h / 3) | 0, a = I[h], b = I[3 * t + (h % 3 + 1) % 3], key = a * nv + b;
-    if (seen.has(key)) throw new MeshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles');
-    seen.set(key, h);
-  }
+  // (Each vertex's outgoing half-edges in one typed list; a twin found among its far end's few: no map, no keys.)
+  const nh = I.length, across = new Int32Array(nh).fill(-1), start = new Int32Array(nv + 1), list = new Int32Array(nh);
+  for (let h = 0; h < nh; h++) start[I[h] + 1]++;
+  for (let v = 0; v < nv; v++) start[v + 1] += start[v];
+  const fill = start.slice(0, nv);
+  for (let h = 0; h < nh; h++) list[fill[I[h]]++] = h;
   let open = 0;
-  for (let h = 0; h < 3 * nt; h++) {
-    const t = (h / 3) | 0, a = I[h], b = I[3 * t + (h % 3 + 1) % 3], back = seen.get(b * nv + a);
-    if (back === undefined) open++; else across[h] = back;
+  for (let h = 0; h < nh; h++) {
+    const a = I[h], b = I[h - h % 3 + (h % 3 + 1) % 3];
+    for (let k = start[a]; k < start[a + 1]; k++) { const g = list[k]; if (g !== h && I[g - g % 3 + (g % 3 + 1) % 3] === b) throw new MeshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles'); }
+    let back = -1;
+    for (let k = start[b]; k < start[b + 1]; k++) { const g = list[k]; if (I[g - g % 3 + (g % 3 + 1) % 3] === a) { back = g; break; } }
+    if (back < 0) open++; else across[h] = back;
   }
   if (open && !allowOpen) throw new MeshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
   return across;

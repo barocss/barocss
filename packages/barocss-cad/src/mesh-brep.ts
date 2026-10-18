@@ -18,6 +18,10 @@ export interface MeshBrepOptions {
   readonly weldMM?: number;
   /** At most this many triangles (default 200 000). */
   readonly maximumTriangles?: number;
+  /** Per input triangle, a group: coplanar triangles join into one face only within a group (brepFromTriangles). */
+  readonly groups?: ArrayLike<number>;
+  /** Group g's faces' name, in place of `<id>.facet<k>`: the first face so, any further one `#k` (brepFromTriangles). */
+  readonly groupName?: (group: number) => string;
 }
 
 /** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep. */
@@ -35,13 +39,13 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
     remap[v] = k;
   }
   // Triangles, without the degenerate ones (a repeated corner or no area).
-  const tris: [number, number, number][] = [], normals: Point[] = [];
+  const tris: [number, number, number][] = [], normals: Point[] = [], group: number[] = [];
   for (let t = 0; t < count; t++) {
     const a = remap[indices ? indices[3 * t] : 3 * t], b = remap[indices ? indices[3 * t + 1] : 3 * t + 1], c = remap[indices ? indices[3 * t + 2] : 3 * t + 2];
     if (a === b || b === c || a === c) continue;
     const nrm = cross(sub(points[b], points[a]), sub(points[c], points[a])), l = Math.hypot(...nrm);
     if (!(l > weld * weld)) continue;
-    tris.push([a, b, c]); normals.push([nrm[0] / l, nrm[1] / l, nrm[2] / l]);
+    tris.push([a, b, c]); normals.push([nrm[0] / l, nrm[1] / l, nrm[2] / l]); group.push(options.groups ? options.groups[t] ?? -1 : -1);
   }
   if (tris.length < 4) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
   // Closed and consistently wound: each directed edge once, its reverse once.
@@ -64,7 +68,7 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
       const [a, b, c] = tris[members[i]];
       for (const [p, q] of [[a, b], [b, c], [c, a]]) {
         const t = directed.get(ek(q, p))!;
-        if (face[t] >= 0 || 1 - dot(normals[t], nrm) > flat || !tris[t].every(v => Math.abs(dot(nrm, points[v]) - d0) <= onPlane)) continue;
+        if (face[t] >= 0 || group[t] !== group[s] || 1 - dot(normals[t], nrm) > flat || !tris[t].every(v => Math.abs(dot(nrm, points[v]) - d0) <= onPlane)) continue;
         // (Merged only when exactly in the seed's plane: an exact Boolean checks a face's corners exactly.)
         if (!tris[t].every(v => coplanar(points[tris[s][0]], points[tris[s][1]], points[tris[s][2]], points[v]))) continue;
         face[t] = g; members.push(t);
@@ -74,7 +78,12 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
   }
   // Edges: one per pair of vertices between two different faces; each face's boundary chained into loops.
   const edgeId = new Map<string, string>(), edges: { id: string; curve: ReturnType<typeof lineCurve>; vertices: readonly [string, string] }[] = [];
-  const vid = (v: number) => `v${v}`, used = new Set<number>();
+  const vid = (v: number) => `v${v}`, used = new Set<number>(), named = new Map<string, number>();
+  const nameOf = (g: number) => {
+    if (!options.groupName || group[groups[g][0]] < 0) return `${id}.facet${g}`;
+    const base = options.groupName(group[groups[g][0]]), k = named.get(base) ?? 0; named.set(base, k + 1);
+    return k ? `${base}#${k + 1}` : base;
+  };
   const faces: BrepFaceInput[] = groups.map((members, g) => {
     const out = new Map<number, number[]>();
     for (const t of members) { const [a, b, c] = tris[t]; for (const [p, q] of [[a, b], [b, c], [c, a]]) if (face[directed.get(ek(q, p))!] !== g) { const list = out.get(p); if (list) list.push(q); else out.set(p, [q]); } }
@@ -96,7 +105,7 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
       if (!e) { e = `${id}_e${edges.length}`; edgeId.set(key, e); edges.push({ id: e, curve: lineCurve(e, points[lo], points[hi]), vertices: [vid(lo), vid(hi)] }); }
       return { edge: e, sense: (p === lo ? 'forward' : 'reversed') as 'forward' | 'reversed' };
     };
-    return { id: `${id}_f${g}`, name: `${id}.facet${g}`, surface: planeSurface(`${id}_p${g}`, nrm, loops.flat().map(v => points[v])), sense: 'forward',
+    return { id: `${id}_f${g}`, name: nameOf(g), surface: planeSurface(`${id}_p${g}`, nrm, loops.flat().map(v => points[v])), sense: 'forward',
       loops: loops.map((l, k) => ({ kind: k === 0 ? 'outer' as const : 'inner' as const, uses: l.map((v, i) => use(v, l[(i + 1) % l.length])) })) };
   });
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...used].sort((a, b) => a - b).map(v => ({ id: vid(v), point: points[v] })), edges,

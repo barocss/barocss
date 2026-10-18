@@ -331,11 +331,196 @@ An S0-style feasibility checkpoint before each large step (R10, R11, R12).
     trimming; failures diagnosed per face.
 12. **R12 — sheet metal**: base flange from a sketch, edge flange, bend (radius, K-factor), reliefs, flat
     pattern, DXF export of it, bend table data in the part.
-13. **R13 — automatic verification and DFM checks** for AI loops: minimum wall thickness, tool access and
+13. **R13 — automatic verification and DFM checks** (owner, 2026-10-18: replaced by the per-process tracks AM, IM
+    and CNC below; kept as history) for AI loops: minimum wall thickness, tool access and
     moulding draft, hole/thread standards, intended versus actual dimensions; machine-readable reports in
     the existing diagnostic codes.
 14. **R14 — automatic drawings**: view selection and layout, dimensions from feature intent, GD&T and
     tolerance suggestions.
+
+### Standard elements, manufacturing and robot tracks (owner, 2026-10-18, relayed by the peer)
+
+Owner's words: "기어 넣는건 니가 정해서 전달해줘" (the peer chose the place); "그러자" (standard elements);
+"제조·로봇 트랙 배치안 그대로 엔진 리뷰 세션에 전달해줘" (manufacturing and robots).
+
+**Order, all serial.** The per-process DFM tracks replace R13.
+
+R6 (F2) → **R6a** gears → **R6b** enclosure elements → **AM1–AM5** → R7 SD2 → R8 SD3 → R9 decimation → R10a →
+R10 fillet → R11 shell → R12 sheet metal → **FR1–FR4** → **R12b** gears+ → **R12c** machine elements →
+**RM1–RM6 + RD1–RD3** → **IM1–IM6 + CNC1–CNC6** → R14 drawings (feeds CNC5 PMI) → A5–A8 → **RD4, RM7–RM8,
+AM6–AM7, IM7–IM8, CNC7–CNC8, FR5–FR6, RD5–RD10** → RB5–RB9.
+
+**Common rules.**
+- Every element follows the thread pattern:
+  - a parametric generator;
+  - meaningful face names;
+  - mates and A3 check queries;
+  - conformance fixtures with independent values;
+  - typed refusals, with no silent approximation;
+  - an S0 feasibility check before each larger item;
+  - a decision record per sub-step.
+- **Data.**
+  - Standard dimension tables, and manufacturer or process data, are written by us with provenance; every value
+    cites its source ID.
+  - Never ISO or catalogue text, and never bundled vendor STEP or catalogue files. Flag the data for legal review
+    before release.
+  - Process rules are data in a process profile: a recommended level that warns, and a feasible level that errors.
+- **Implementation.**
+  - Our own only. TetGen, Gmsh, OpenCAMLib, KDL, V-HACD and CoACD may be read for reference, never linked or ported.
+  - Robot joints, kinematics and sizing live in the studio and kernel, not in @barocss/physics (8 joints, ±90°, no
+    certified loads; adding it to cad-studio is an Integration manifest change).
+  - Units convert (mm·g·kg·mm²·deg ↔ m·kg·kg·m²·rad) at exactly one documented boundary.
+  - Checks are A3 query functions, so agents get structured margins.
+
+**R6a — gears.** Follows owner issue [#2167](https://github.com/barocss/barocss/issues/2167), whose terms take
+precedence. The first brief also stands: reuse the helical machinery and the batched patch mass, and unblock RB9's
+gear crank.
+- **Stages:**
+  - R6a.1, the MVP: an external, parallel-axis, straight-tooth involute spur gear at 20° and x = 0.
+  - R6a.2: solid, bore and identity.
+  - R6a.3: feature, UI, persistence and export.
+  - R6a.4: pair checks.
+  - R6a.5: profile shift and rack, then helical.
+  - Last: tool-generated (trochoid) roots and manufacturing validation.
+  - Until a stage lands, its input is refused with a diagnostic (x ≠ 0, other kinds); never approximated silently.
+- **Root.** A root transition that is not tool-generated is marked schematic: `rootPolicy`,
+  `ROOT_TRANSITION_UNVALIDATED`, `manufacturingValidated: false`. The involute is never extended below the base
+  circle.
+- **Contract fields.**
+  - `toothThicknessReductionMM` per gear, at the reference circle.
+  - Pair backlash = Δs1 + Δs2 at nominal centre distance. A changed centre distance recomputes the working pressure
+    angle and the pitch circles.
+  - `profileToleranceMM`, the involute fit error, apart from the render chord. It reports the measured maximum
+    deviation from X(t) = rb(cos t + t sin t), Y(t) = rb(sin t − t cos t).
+  - Over the segment, pole or time budget: `PROFILE_BUDGET_EXCEEDED`; never a looser tolerance or fewer teeth.
+- **Diagnostics:** INVALID_INPUT, UNSUPPORTED_PROFILE_SHIFT, UNSUPPORTED_GEAR_KIND, PROFILE_BUDGET_EXCEEDED,
+  SELF_INTERSECTION, ROOT_TRANSITION_UNVALIDATED, BORE_INTERSECTION, MATE_INCOMPATIBLE. A bore into the root or
+  past a minimum rim margin is refused, with a rim value that does not claim strength.
+- **Pair checks (R6a.4):**
+  - the same module, pressure angle and system;
+  - parallel axes, with face widths overlapping;
+  - relative phase;
+  - clearance and interference over the full rotation period, refined until converged;
+  - contact ratio from the usable flank segment, apart from the ideal formula.
+- **Oracle** (m 2, α 20°, x 0, z1 20, z2 40):
+  - d = 40, db ≈ 37.5877048314, da = 44, df = 35 mm;
+  - a = 60 mm, ratio −0.5;
+  - ideal εα ≈ 1.6351859636.
+  - Formula provenance: the KHK technical references cited in the issue, as textbook formulas.
+- **Identity.** A change of tooth count changes topology; stale references go through A1.3's re-match or refusal.
+- **First brief, kept where #2167 does not override:**
+  - Face names `.flank#k`, `.tip`, `.root`, `.face0/1`, `.bore`.
+  - Volume against a polygon-integrated exact profile; a STEP round trip; an RB seed.
+  - A gear mate (ratio −z1/z2); A3 queries `gear_center_distance`, `gear_backlash` and `gear_contact_ratio`, plus
+    swept interference.
+  - A rotation preview; a Gear command and agent tool docs.
+- **Not adopted:** the external solidcore.
+
+**R6b — enclosure and 3D-printing elements** (AI scenarios 8, 9 and 13), each its own sub-step and decision record:
+1. Screw boss with ribs and gussets, from fastener size. Checks: wall uniformity, and sink risk (rib ≤ 0.6 t).
+2. Heat-set inserts and PCB standoffs (hole tables with provenance). Checks: fit, and alignment with a reference PCB
+   STEP's hole pattern.
+3. Cantilever snap-fit. Check: ε = 1.5·t·y/L² ≤ the material limit. An assumed material gives "unknown".
+4. Enclosure lip and groove, and the split between the two halves. Checks: clearance and interference.
+5. Vents and grilles (slots and hexes). Checks: minimum web and open-area ratio.
+6. Living hinge: thickness and material (PP).
+7. **Material library** (shared): density, E, yield, allowable strain and process suitability, with provenance. It
+   ends assumed-material mass and strain wherever a material is set.
+
+**AM — 3D printing** (sources: Xometry, Formlabs, Protolabs, Prusa, Bambu, the 3MF spec):
+- AM1: process and printer profiles (FDM, SLA, SLS, MJF): wall, overhang, bridge, hole, fit gaps, escape holes,
+  shrink and warp.
+- AM2: overhang map per face and triangle, −n·b > sin θ against the build direction; bed faces excluded.
+- AM3: rule checks: wall, hole, inter-body gap, enclosed cavity without a drain, bed fit.
+- AM4: orientation search over Fibonacci directions and hull normals, scored on support area, height and contact.
+  Support volume by downward rays through a BVH. Under 2 s at 100k triangles.
+- AM5: 3MF export (items, transforms, base materials, colour groups, Production UUIDs), opening in PrusaSlicer and
+  Bambu with the same pose and colours.
+- Later: AM6 split with dowel or plug connectors; AM7 SDF voxel hollowing with drains, then lattices.
+
+**FR — weldments and frames:**
+- FR1: profiles (rectangular tube, angle, channel, 2020-class T-slot).
+- FR2: members along 3D sketch segments, with alignment and roll.
+- FR3: corners (miter, butt, coped, none) with per-corner override, an ordered trim for joints of 3+ members, and trim
+  to a plane or body.
+- FR4: cut list (profile, material, long-point length, angles, quantity, mass), identical members grouped, a drawing
+  table.
+- Later: FR5 T-slot hardware; FR6 gussets, end caps, weld metadata and symbols, stock nesting.
+
+**RM — robot kinematics** (onshape-to-robot conventions; URDF and MJCF specs; Lynch and Park PoE; Buss DLS):
+- RM1: mate graph to joint tree with a chosen base link.
+  - Joints: revolute, continuous, prismatic, fixed; cylindrical and ball mates as chains of dummy links.
+  - Limits, effort and velocity.
+  - A redundant mate is reported as a loop, never dropped (today's solver refuses loops, mates.ts:192).
+- RM2: FK over a general joint tree, and a joint-slider preview. Planar 2R to 1e-9.
+- RM3: link-frame inertia about the CoM, I_L = R·I·Rᵀ, checked against an analytic rotated off-origin cuboid; SPD
+  and the triangle inequality.
+- RM4: URDF export (child frame at the joint, meshes in the link frame, convex-hull collision, mm→m).
+  - Accept: check_urdf passes.
+  - Accept: MuJoCo/PyBullet mass, CoM and principal inertia within 1e-6.
+  - Accept: FK equals MuJoCo xpos. MuJoCo is an external test tool only.
+- RM5: MJCF export with the same checks; a 6R arm hangs under gravity stably.
+- RM6: sampled collision sweep with a conservative-advancement bound (|Δp| ≤ Σ|Δqᵢ|·rᵢ), using the exact interference
+  with a prefilter.
+- Later:
+  - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag.
+  - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality).
+  - RM9 SDF/USD, CCD, workspace map.
+
+**RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
+- RD1: static gravity torques; planar 2R and 3R closed forms to 1e-9.
+- RD2: RNEA, trapezoid and S-curve profiles, RMS and peak torque. RNEA = M(q)q̈ + C + G over 100 random states.
+- RD3: motor and reducer envelopes written from datasheets, and a selection solver:
+  - τ_m = τ/(Nη) + J_m·N·q̈;
+  - RMS ≤ continuous, peak ≤ peak;
+  - the torque–speed envelope;
+  - Harmonic Drive cube-mean torque and life;
+  - inertia ratio ≤ 10.
+  - It reproduces a published worked example.
+- Later:
+  - RD4 beam FEA and modal (cantilever δ, σ, f1–f3 within 0.5%).
+  - RD5 our own tet mesher.
+  - RD6 tet4 with Jacobi-PCG on workers.
+  - RD7 tet10 (NAFEMS LE10 within 3% of 5.38 MPa, LE1 within 2% of 92.7 MPa).
+  - RD8 solid modal.
+  - RD9 harness v1.
+  - RD10 an agent sizes a 3-DoF arm with every margin above zero (L3 evidence).
+
+**IM — injection moulding and casting** (Protolabs, Fictiv, Stratasys, LyondellBasell, Dynacast, Engineers Edge):
+- IM1: process rule (material wall range and shrink, pull direction, finish to minimum draft).
+- IM2: draft field on curved faces, with steep and straddle classification (isocline n·d = 0).
+- IM3: undercuts by ±d ray visibility.
+- IM4: wall uniformity, rib ≤ 0.6 t, boss rules, inside radius ≥ 0.5 t, sink risk.
+- IM5: parting line from silhouette loops, straddle-face split, manual override.
+- IM6: quote package.
+- Later: IM7 shut-offs, parting surface, core and cavity, side cores; IM8 casting presets, allowances, section and
+  solidification checks.
+
+**CNC — machining** (Hubs, Protolabs, Fictiv, DFMXpress, Fusion inspect tools, CAx-IF PMI v4.1):
+- CNC1: process profile (metal or plastic, ISO 2768 class), with warn and error levels.
+- CNC2: standard holes and threads (clearance, tap drill, thread depth, runout, counterbores, cosmetic threads,
+  callouts).
+- CNC3: concave radius against tool radius, pocket depth, walls, hole depth, text stroke.
+- CNC4: six-direction ray accessibility, undercut flag, greedy setup count, envelope.
+- CNC5: drawing and PMI minimum: views, hole callouts, datums, tolerance note, material, Ra; AP242 semantic PMI that
+  survives a round trip.
+- CNC6: turning: axisymmetry, grooves, thread relief, L/D.
+- Later: CNC7 feature recognition and stock export; CNC8 an optional 2.5D CAM preview marked "not for production"; no
+  production G-code.
+
+**R12b — internal, bevel and worm gears.**
+
+**R12c — machine and power-transmission elements**, in order:
+1. Springs via the helical sweep (rate k = Gd⁴/(8D³n), solid height, stress).
+2. Fits and tolerances (ISO 286-style classes) as attributes feeding clearance checks.
+3. Shafts: steps, keys and keyways, retaining rings and grooves, pins and dowels.
+4. Bearing envelopes with housing and shaft seats.
+5. O-ring grooves by compression ratio.
+6. Pulleys and timing belts, sprockets and chain, couplings, cams and followers, linkages, hinges.
+7. Standard profiles (2020 extrusion, structural shapes) and connector envelopes (USB-C, etc.).
+
+**AI scenario ladder.** A new rung, the "2-axis robot arm": joints, reducer, reach check, and a URDF that loads in
+MuJoCo with matching inertia.
 
 R1 results (2026-10-18, `f5d237c9f`; `pnpm bench:mesh`, `pnpm bench:mesh --facets`; audit in
 [`f0-audit.md`](f0-audit.md)):
@@ -436,15 +621,16 @@ Cylinder − turned-box fix (2026-10-18; D25, owner: before A1):
 | D49 — STEP size caps | `daa9b0989` `737d64196` | 32 MiB outside meshes; tessellated up to 128 MiB (owner); 2M opens in the studio in 11.2 s, renderer peak 3.06 GB. |
 | D41 — L2 is option (b) (owner) | `737d64196` `1b9049a66` | Value edits of one feature apply with an Undo toast; the rest is a proposal; the first build on an empty part applies. Tested through the real chat and tool servers. |
 | R4 — F1 facet × plane split and section | `d571d6f2d` `c2e79c1b9` | Any size, exact planar cap; 1M in 2.0 s. Oblique splits of planar bodies had always failed: fixed. RB round trip of meshes checked tessellated. |
-| R5 — SD1 SubD cage | `235c6a422` | Regular cages exact (Catmull–Clark step agrees to 1e-12); creases, boundaries, corners; SubD torus command. |
+| R5 — SD1 SubD cage | `235c6a422` `80defded1` | Regular cages exact (Catmull–Clark step agrees to 1e-12); creases, boundaries, corners; SubD torus command; batched patch mass 3.9 → 0.22 s at 20k quads. |
+| R6 — F2 mesh × exact Booleans | (this commit) | Mesh near the tool alone through the exact Boolean, tool faces exact; holes on 30k meshes in 0.64 s; mixed bodies go on; mass of mixed bodies fixed; weld across cell boundaries fixed. Dense symmetric cases refused (analytic Boolean limit, TODO). |
 
 Checks at the end:
 
 | Suite | Result |
 |---|---|
-| kernel | 947/948 (the known environmental demo-spawn test) |
+| kernel | 955/956 (the known environmental demo-spawn test) |
 | studio | 300/300 |
-| browser flow | 113/113 |
+| browser flow | 114 steps: a full run 113/114; the one failure read the panel before it changed, fixed and rerun with its neighbours |
 | RB and props | 0 NEW |
 | bench | within budget |
 
@@ -457,9 +643,9 @@ else a proposal, the first build on an empty part applied directly (D41); STEP c
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
 
-Next: R6, F2 (R5 done: D51; R4 done: D50; R3 done: D42–D49).
+Next: R6a, gears per #2167 (R6 done: D52; R5 done: D51; R4 done: D50; R3 done: D42–D49).
 
-**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → R6 … R14 → **A5–A8** → **RB5–RB9**.
+**Current order (owner, 2026-10-18, all serial):** R1 ✓ → R2/B0 ✓ → RB1 ✓ → RB2 ✓ → RB3 ✓ → all-edge fillet corner ✓ (D22: a validator false positive at poles; geometry and names unchanged) → RB4 ✓ → cylinder − turned-box fix ✓ (D25) → **A1** (A1.1 stable feature ids ✓, A1.1b body keys by id ✓ D26; A1.2 selectors ✓ D27; A1.3 re-match on edit ✓ D28, A1.3b persisted signatures ✓ D29, A1.3c references shown and settled ✓ D30; A1.4 sketch-entity side names deferred, D31) → **A2** (A2.1 facts and inspect ✓ D32; A2.2 analysis tools ✓ D33, A2.3 render_views ✓ D34, A2.4 response format ✓ D35) → **A3** (A3.1 requirements and check_spec ✓ D36; A3.2 mutation check and iteration policy ✓ D37, A3.3 requirements panel ✓ D38) → **A4** (A4.1 transactions and field registry ✓ D39; A4.2 proposals and history ✓ D40; A4.3 rebase, partial accept, autonomy, chips ✓ D41) → **R3** (R3.1 facet faces ✓ D42; R3.2 BVH containment ✓ D43; R3.3 M1 binary blob ✓ D44–D45 (cap 2M); R3.4 M3 repair ✓ D46–D47; R3.5 AP242 tessellated ✓ D48; STEP size caps D49) → **R4** (F1 facet × plane split and section ✓ D50; oblique split of planar bodies fixed) → **R5** (SD1 SubD cage node, regular regions exact ✓ D51) → **R6** (F2 mesh × exact Booleans ✓ D52) → R6a → R6b → AM1–AM5 → R7 … (the full order: "Standard elements, manufacturing and robot tracks" above) → **A5–A8** → **RB5–RB9**.
 
 **Robustness benchmark track (RB).** Every case is classified as OK, REFUSED (a typed reason, acceptable),
 INVALID (fails L0), WRONG (valid but fails a metamorphic or oracle check), CRASH (uncaught exception or NaN),

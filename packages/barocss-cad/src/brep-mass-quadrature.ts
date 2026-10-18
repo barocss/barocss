@@ -14,6 +14,7 @@ import { curveD1Evaluator, type CurveD1Result } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 import { facetIntegrals } from './facet-patch.js';
+import type { FacetPatch } from './types.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -127,10 +128,13 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
   const I = Array(11).fill(0) as number[], rest = new Set<string>();
   setCentre(brep);
+  // (A body of facet faces alone: tetrahedra from the centre. Beside other faces (F2) the facet faces take the
+  // same field as they do, F·N per triangle: the two agree only summed over a closed surface.)
+  const mixed = brep.faces.some(f => f.surface.kind === 'facets') && brep.faces.some(f => f.surface.kind !== 'facets');
   for (const face of brep.faces) {
     const sign = face.sense === 'forward' ? 1 : -1;
-    // (A facet face: tetrahedra from the centre over its triangles — exact, no tessellation.)
-    if (face.surface.kind === 'facets') { facetIntegrals(face.surface, sign, centre, I); continue; }
+    // (A facet face: exact, no tessellation.)
+    if (face.surface.kind === 'facets') { if (mixed) facetFieldIntegrals(face.surface, sign, I); else facetIntegrals(face.surface, sign, centre, I); continue; }
     const plane = planar(face.surface);
     if (plane) { planarIntegrals(brep, face, [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], plane.origin, maps).forEach((x, k) => { I[k] += x; }); continue; }
     if (wholePatch(face, maps)) { patchIntegrals(face, I); continue; }
@@ -215,6 +219,21 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed) };
 }
 
+/** A facet patch's ten integrals and area by the faces' common field F·N, the triangle rule exact for it (degree 4). */
+const fieldPoint: Point = [0, 0, 0], fieldNormal: Point = [0, 0, 0];
+function facetFieldIntegrals(f: FacetPatch, sign: 1 | -1, I: number[]): void {
+  const P = f.positions, X = f.indices;
+  for (let t = 0; t < X.length; t += 3) {
+    const a = 3 * X[t], b = 3 * X[t + 1], c = 3 * X[t + 2];
+    const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    fieldNormal[0] = sign * (uy * vz - uz * vy) / 2; fieldNormal[1] = sign * (uz * vx - ux * vz) / 2; fieldNormal[2] = sign * (ux * vy - uy * vx) / 2;
+    for (const [wa, wb, wc, w] of RULE) {
+      fieldPoint[0] = wa * P[a] + wb * P[b] + wc * P[c]; fieldPoint[1] = wa * P[a + 1] + wb * P[b + 1] + wc * P[c + 1]; fieldPoint[2] = wa * P[a + 2] + wb * P[b + 2] + wc * P[c + 2];
+      accumulate(I, fieldPoint, fieldNormal, w);
+    }
+    I[10] += Math.hypot(fieldNormal[0], fieldNormal[1], fieldNormal[2]);
+  }
+}
 /** A face's vector area ∫ n dA (outward) from its boundary alone: ½∮ x × dx along each coedge's exact curve. */
 function boundaryVectorArea(face: BrepFace, maps: Maps, moments: Map<Curve, Point>): Point {
   const out: Point = [0, 0, 0];

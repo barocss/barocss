@@ -27,6 +27,7 @@ import { exportStep, importStep, stepTessellatedChars } from './step.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { splitFacetBrep, type FacetSplitResult } from './facet-split.js';
+import { facetBoolean, FacetBooleanError, splitMixedBrep } from './facet-boolean.js';
 import { selfIntersections } from './mesh-repair.js';
 import { threadSolid } from './thread-solid.js';
 import { sweepSolid } from './sweep-solid.js';
@@ -279,7 +280,8 @@ const representation = (s: Solid): CadPartOutput['representation'] => s.kind ===
  * planar per-triangle B-rep when it has at most this many triangles, refused with CAPABILITY above it. Committed
  * evaluations take up to this many: about 5 s at the worst, a hole (its cylinder takes the analytic path) through
  * a 16k-triangle mesh in the studio's whole evaluation (4.8 s; 18k 5.1–5.4 s, 20k 6.1 s; a polyhedral union with a
- * box is faster, 3.2 s at 20k in R2). Removed in the step that lands F2.
+ * box is faster, 3.2 s at 20k in R2). Since F1 (D50) and F2 (D52) only a Boolean of two meshes takes it (F3); F2
+ * holds the same number for the mesh near an exact tool, the share its exact Boolean takes.
  */
 export const FACET_EXPLODE_TRIANGLES = 16000;
 /** A preview's limit (CadPartEvaluationOptions.facetExplodeTriangles): about a second, so a preview stays live. */
@@ -293,7 +295,7 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
   let count = 0; for (const f of b.faces) count += (f.surface as FacetPatch).indices.length / 3;
   if (count > facetLimit) throw new CadPartError('CAPABILITY', at, count <= FACET_EXPLODE_TRIANGLES
     ? `${what} on meshes over ${facetLimit} triangles are not previewed (this mesh has ${count}): apply to run it (up to ${FACET_EXPLODE_TRIANGLES})`
-    : `${what} on large meshes arrive with F1/F2 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
+    : `${what} of two large meshes arrive with F3 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
   // Every face's triangles, wound outward, into one planar mesh solid.
   const positions: number[] = [], indices: number[] = [];
   for (const f of b.faces) {
@@ -752,7 +754,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
       const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
       return () => {
-        if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'draft on mesh faces arrives with F1/F2');
+        if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'draft on mesh faces is not supported yet (general draft and offset arrive with R11)');
         const brep = brepOf(target[0], at), box = bounds(target[0].solid), zN = neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
         // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
         const lift = 1e-6 * R;
@@ -960,13 +962,20 @@ function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: b
   const base = `${at}_cut.facet0`, cap = `${at}.cut.${below ? 'top' : 'bottom'}`;
   return { kind: 'brep', brep: transformBrep(tool, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, name => name.split('|').map(q => q === base ? cap : q.replace(`${at}_cut.facet`, `${at}.cut.side`)).join('|')) };
 }
+/** F2: a body with mesh faces and an exact body, `op`; refusals typed. */
+function facetWith(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
+  const B = b.kind === 'upright' ? brepFromPrismatic(b.solid, { id: at + '_tool' }) : b.brep;
+  try { return { kind: 'brep', brep: facetBoolean((a as Extract<Solid, { kind: 'brep' }>).brep, B, op, { id: at, nearTriangles: facetLimit }) }; }
+  catch (cause) { if (cause instanceof FacetBooleanError) throw new CadPartError(cause.code, at, cause.message); if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+}
 /** A body of mesh faces only (F0): split on its own triangles (F1), any size. */
-const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.every(isFacetFace);
+const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.some(isFacetFace);
 /** F1 (R4, D50): a facet body cut by n·p = d, below then above, each closed by an exact planar cap. */
 function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   let r: FacetSplitResult;
-  try { r = splitFacetBrep((s as Extract<Solid, { kind: 'brep' }>).brep, { normal: n, offset: d, at }); }
-  catch (cause) { if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+  const brep = (s as Extract<Solid, { kind: 'brep' }>).brep;
+  try { r = brep.faces.every(isFacetFace) ? splitFacetBrep(brep, { normal: n, offset: d, at }) : { ...splitMixedBrep(brep, n, d, at), loops: [] }; }
+  catch (cause) { if (cause instanceof BrepError || cause instanceof FacetBooleanError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
   if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
@@ -985,6 +994,11 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
     if (check) checkLumps({ kind: 'upright', solid }, at);
     return { kind: 'upright', solid };
   }
+  // F2 (R6, D52): a mesh body with an exact one — the mesh near the tool through the exact Boolean, any size; union
+  // and intersection either way round. (Mesh with mesh, F3, still through F0's planar path, D3.)
+  const meshy = (s: Solid) => s.kind === 'brep' && s.brep.faces.some(isFacetFace);
+  if (meshy(a) && !meshy(b)) return facetWith(a, b, op, at);
+  if (meshy(b) && !meshy(a) && op !== 'difference') return facetWith(b, a, op, at);
   // (F0: a facet body, small enough, goes through the planar path; else refused, see FACET_EXPLODE_TRIANGLES.)
   if (a.kind === 'brep' && a.brep.faces.some(isFacetFace)) a = { kind: 'brep', brep: explodeFacets(a.brep, at, 'Booleans') };
   if (b.kind === 'brep' && b.brep.faces.some(isFacetFace)) b = { kind: 'brep', brep: explodeFacets(b.brep, at, 'Booleans') };
@@ -1362,7 +1376,7 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
   // tool (finishBrepEdges).
   const brep = brepOf(part, 'target'), byName = new Map(brep.edges.map(e => [e.name, e]));
   // (F0: a mesh body's region edges cannot be rounded yet; its names would not survive the planar path.)
-  if (brep.faces.some(isFacetFace)) fail('CAPABILITY', `${kind} on mesh faces arrives with F1/F2`);
+  if (brep.faces.some(isFacetFace)) fail('CAPABILITY', `${kind} on mesh faces is not supported yet (general fillet and chamfer arrive with R10)`);
   const vertical: { x: number; y: number; z0: number; z1: number; name: string }[] = [], wedges: Brep['edges'][number][] = [], general: string[] = [];
   for (const name of names) {
     const e = byName.get(name);

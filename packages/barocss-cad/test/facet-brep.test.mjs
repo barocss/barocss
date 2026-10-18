@@ -117,19 +117,22 @@ test('part model: a mesh node with representation facets is faceted; old nodes s
   const planar = evaluateCadPart(D([mesh()])).output('m');
   assert.equal(planar.representation, 'planar');
   assert.ok(planar.brep.faces.every(f => /^m\.facet\d+$/.test(f.name)));
-  // A hole through a small facet body: through the planar path, the volume exact.
+  // A hole through a small facet body (F2, D52: the mesh near the tool through the exact Boolean): the volume exact.
   const hole = evaluateCadPart(D([mesh('facets'), { id: 'h', kind: 'hole', target: 'm', center: [10, 5], radius: 2 }])).output('h');
   assert.ok(Math.abs(hole.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
+  assert.equal(hole.representation, 'faceted'); assert.ok(hole.brep.faces.some(f => f.surface.kind !== 'facets' && /^h\./.test(f.name)), 'the hole wall exact');
   // Fillets on mesh faces are refused with CAPABILITY.
-  assert.throws(() => evaluateCadPart(D([mesh('facets'), { id: 'f', kind: 'fillet', target: 'm', edges: ['x'], radius: 1 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /mesh faces arrives with F1\/F2/.test(e.message));
-  // A 6240-triangle mesh: a hole is made when committed (up to 16000), not previewed (over 5000).
+  assert.throws(() => evaluateCadPart(D([mesh('facets'), { id: 'f', kind: 'fillet', target: 'm', edges: ['x'], radius: 1 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /fillet on mesh faces is not supported yet/.test(e.message));
+  // A 6240-triangle mesh: a hole previewed and committed alike (F2 takes only the mesh near the tool).
   const big = sphere(10, 80, 40), drilled = D([mesh('facets', big.positions, big.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }]);
   assert.ok(big.indices.length / 3 > FACET_PREVIEW_TRIANGLES && big.indices.length / 3 <= FACET_EXPLODE_TRIANGLES);
   assert.ok(evaluateCadPart(drilled).output('h').massProperties(1).volumeMM3 < meshVolume(big.positions, big.indices));
-  assert.throws(() => evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /not previewed \(this mesh has 6240\): apply to run it \(up to 16000\)/.test(e.message));
-  // Over 16000: refused, naming what is missing.
-  const huge = sphere(10, 160, 80);
-  assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /Booleans on large meshes arrive with F1\/F2 \(this mesh has 25280 triangles; up to 16000/.test(e.message));
+  assert.ok(evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }).output('h').validate().valid);
+  // Over F0's 16000: drilled too.
+  const huge = sphere(10, 160, 80), through = evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0.3, 0.2], radius: 1.5 }])).output('h');
+  assert.ok(through.validate().valid && through.massProperties(1).volumeMM3 < meshVolume(huge.positions, huge.indices));
+  // A Boolean of two meshes is still F0's planar path (F3): over 16000, refused naming what is missing.
+  assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { ...mesh('facets'), id: 'n' }, { id: 'd', kind: 'difference', target: 'n', tool: 'm' }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /of two large meshes arrive with F3 \(this mesh has 25280 triangles; up to 16000/.test(e.message));
 });
 
 test('STEP: a facet body goes out as its triangles (planar faces), and reads back with the same volume', () => {

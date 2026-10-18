@@ -4,7 +4,7 @@
   "decisions": [
     "D42"
   ],
-  "about": "A fillet on a facet body is refused with CAPABILITY until F1/F2.",
+  "about": "A fillet on a facet body is refused with CAPABILITY (general fillets on mesh faces arrive with R10).",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -96,7 +96,7 @@
   "expect": {
     "error": {
       "code": "CAPABILITY",
-      "messageIncludes": "fillet on mesh faces arrives with F1/F2"
+      "messageIncludes": "fillet on mesh faces is not supported yet"
     }
   }
 }

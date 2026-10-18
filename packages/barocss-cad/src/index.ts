@@ -569,6 +569,7 @@ export { facetArea, facetPlane, facetVectorArea } from './facet-patch.js';
 export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './facet-bvh.js';
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
 export { subdBrep, SubdError, type SubdCage, type SubdOptions } from './subd.js';
+export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './facet-boolean.js';
 export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh-repair.js';
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';

@@ -4,6 +4,7 @@
 // B-spline curves, in millimetres with the product structure other systems expect. Face names travel
 // as the faces' names. importStep (step-import.ts) reads these files back exactly, and the analytic
 // entities other systems write.
+import { facetedCopy } from './facet-boolean.js';
 import { BrepError, type Brep } from './brep-core.js';
 import { faceGeometry } from './analytic-boolean.js';
 import { brepMassProperties, brepSurfaceArea } from './solid-mass.js';
@@ -62,8 +63,15 @@ const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind
 export function exportStep(input: Brep | readonly Brep[], options: StepExportOptions = {}): string {
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
-  const given = Array.isArray(input) ? input as readonly Brep[] : [input as Brep], mode = options.meshes ?? 'auto';
-  const tessellate = (b: Brep) => facetOnly(b) && (mode === 'tessellated' || b.bodies.some(x => x.kind === 'sheet') || (mode === 'auto' && facetTriangles(b) > MESH_PLANAR_TRIANGLES));
+  // (A body mixing mesh and exact faces, F2, goes out as a mesh body, tessellated: its exact faces sampled at 64
+  // segments a quarter. Not as planar faces: a sampled exact face can hold slivers no planar reader takes, D52.)
+  const mode = options.meshes ?? 'auto', mixed = new Set<Brep>();
+  const given = (Array.isArray(input) ? input as readonly Brep[] : [input as Brep]).map(b => {
+    if (!b.faces.some(f => f.surface.kind === 'facets') || facetOnly(b)) return b;
+    if (mode === 'planar') throw new BrepError('INPUT', 'STEP: a body with mesh and exact faces goes out tessellated (AP242) only');
+    const copy = facetedCopy(b, 64); mixed.add(copy); return copy;
+  });
+  const tessellate = (b: Brep) => facetOnly(b) && (mode === 'tessellated' || mixed.has(b) || b.bodies.some(x => x.kind === 'sheet') || (mode === 'auto' && facetTriangles(b) > MESH_PLANAR_TRIANGLES));
   const meshes = given.filter(tessellate);
   for (const b of given) if (!tessellate(b) && facetOnly(b) && facetTriangles(b) > MESH_PLANAR_LIMIT) throw new BrepError('INPUT', `STEP: a mesh body of ${facetTriangles(b)} triangles is too large for planar faces (at most ${MESH_PLANAR_LIMIT}); write it tessellated (AP242)`);
   const breps = given.filter(b => !tessellate(b)).map(planarFacets);

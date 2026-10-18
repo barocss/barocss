@@ -35,18 +35,42 @@ export function splitFacetBrep(brep: Brep, options: FacetSplitOptions): FacetSpl
   if (!brep.faces.length || !brep.faces.every(isFacetFace)) throw new BrepError('INPUT', 'facet split: the body must be all mesh faces');
   const nn = Math.hypot(options.normal[0], options.normal[1], options.normal[2]);
   if (!(nn > 0) || !Number.isFinite(options.offset)) throw new BrepError('INPUT', 'facet split: the plane needs a normal and a finite offset');
-  const n: Point = [options.normal[0] / nn, options.normal[1] / nn, options.normal[2] / nn], d = options.offset / nn;
-  const s = soup(brep);
-  // The weld the side meshes are built with, and the tie distance: twice it, so that a cut point is never within
-  // the weld of a vertex off the plane (it lies on the plane; that vertex is farther than the tie from it).
-  const weld = Math.max(1e-9, s.size * 1e-6), tie = 2 * weld, nv0 = s.P.length / 3;
+  const s = soup(brep), cap = s.names.length;
+  // The weld the side meshes are built with (the tie distance is twice it: see splitSoup).
+  const weld = Math.max(1e-9, s.size * 1e-6);
+  const r = splitSoup(s, options.normal, options.offset, { weld, cap: s.open ? 'none' : 'both', capGroup: cap });
+  const out: (Brep | null)[] = [];
+  for (let k = 0; k < 2; k++) out.push(r.tris[k].length ? sideBrep(r.P, r.tris[k], r.groups[k], s, `${options.at}${k ? '_above' : '_below'}`, (g: number) => g === cap ? `${options.at}.cut.${k ? 'bottom' : 'top'}` : s.names[g], weld) : null);
+  return { below: out[0], above: out[1], loops: r.loops };
+}
+
+/** Triangles (outward) over positions, each with a group. */
+export interface TriangleSoup { readonly P: ArrayLike<number>; readonly I: ArrayLike<number>; readonly G: ArrayLike<number> }
+export interface SoupSplit {
+  /** The positions: the soup's (those within the tie moved onto the plane), then the cut points. */
+  readonly P: Float64Array;
+  /** Below and above: their triangles (vertex numbers, three each) and groups, the caps asked for included. */
+  readonly tris: [number[], number[]]; readonly groups: [number[], number[]];
+  /** The section's loops (the below side's cap's), when it was capped. */
+  readonly loops: Point[][];
+}
+/**
+ * A welded triangle soup split by the plane n·p = d (F1's core, D50): each vertex's side once (within twice the
+ * weld it is on the plane, moved onto it, counted above; a triangle wholly on it to the side it faces away from),
+ * each crossed edge cut once, each side asked for closed by its exact planar cap (in group `capGroup`).
+ */
+export function splitSoup(soup: TriangleSoup, normal: Point | readonly number[], offset: number, options: { readonly weld: number; readonly cap: 'both' | 'below' | 'above' | 'none'; readonly capGroup: number }): SoupSplit {
+  const nn = Math.hypot(normal[0], normal[1], normal[2]), n: Point = [normal[0] / nn, normal[1] / nn, normal[2] / nn], d = offset / nn;
+  // (The tie is twice the weld the sides are built with, so that a cut point is never within the weld of a vertex
+  // off the plane: it lies on the plane; that vertex is farther than the tie from it.)
+  const S = Float64Array.from(soup.P), tie = 2 * options.weld, nv0 = S.length / 3;
   const side = new Int8Array(nv0), dist = new Float64Array(nv0);
   for (let v = 0; v < nv0; v++) {
-    let h = n[0] * s.P[3 * v] + n[1] * s.P[3 * v + 1] + n[2] * s.P[3 * v + 2] - d;
-    if (Math.abs(h) <= tie) { s.P[3 * v] -= h * n[0]; s.P[3 * v + 1] -= h * n[1]; s.P[3 * v + 2] -= h * n[2]; h = 0; }
+    let h = n[0] * S[3 * v] + n[1] * S[3 * v + 1] + n[2] * S[3 * v + 2] - d;
+    if (Math.abs(h) <= tie) { S[3 * v] -= h * n[0]; S[3 * v + 1] -= h * n[1]; S[3 * v + 2] -= h * n[2]; h = 0; }
     dist[v] = h; side[v] = h < 0 ? 0 : 1;
   }
-  // Positions: the body's, then one cut point per crossed edge (by its unordered vertex pair).
+  // Positions: the soup's, then one cut point per crossed edge (by its unordered vertex pair).
   const extra: number[] = [], cuts = new Map<number, number>(), onPlane: number[] = [];
   for (let v = 0; v < nv0; v++) if (dist[v] === 0) onPlane.push(v);
   const cutOf = (a: number, b: number): number => {
@@ -54,35 +78,38 @@ export function splitFacetBrep(brep: Brep, options: FacetSplitOptions): FacetSpl
     const lo = a < b ? a : b, hi = a < b ? b : a, key = lo * nv0 + hi, known = cuts.get(key);
     if (known !== undefined) return known;
     const t = dist[lo] / (dist[lo] - dist[hi]), id = nv0 + extra.length / 3;
-    for (let k = 0; k < 3; k++) extra.push(s.P[3 * lo + k] + t * (s.P[3 * hi + k] - s.P[3 * lo + k]));
+    for (let k = 0; k < 3; k++) extra.push(S[3 * lo + k] + t * (S[3 * hi + k] - S[3 * lo + k]));
     cuts.set(key, id); return id;
   };
   const tris: [number[], number[]] = [[], []], groups: [number[], number[]] = [[], []];
-  const poly: [number[], number[]] = [[], []];
-  for (let t = 0; t < s.I.length; t += 3) {
-    const a = s.I[t], b = s.I[t + 1], c = s.I[t + 2], g = s.G[t / 3];
+  const poly: [number[], number[]] = [[], []], I = soup.I, G = soup.G;
+  for (let t = 0; t < I.length; t += 3) {
+    const a = I[t], b = I[t + 1], c = I[t + 2], g = G[t / 3];
     // A triangle in the plane: on the side it faces away from (a step's face at the cut stays with its material).
-    if (dist[a] === 0 && dist[b] === 0 && dist[c] === 0) { const k = facing(s.P, a, b, c, n) > 0 ? 0 : 1; tris[k].push(a, b, c); groups[k].push(g); continue; }
+    if (dist[a] === 0 && dist[b] === 0 && dist[c] === 0) { const k = facing(S, a, b, c, n) > 0 ? 0 : 1; tris[k].push(a, b, c); groups[k].push(g); continue; }
     if (side[a] === side[b] && side[b] === side[c]) { tris[side[a]].push(a, b, c); groups[side[a]].push(g); continue; }
     poly[0].length = 0; poly[1].length = 0;
     clipEdge(a, b, side, poly, cutOf); clipEdge(b, c, side, poly, cutOf); clipEdge(c, a, side, poly, cutOf);
     for (let k = 0; k < 2; k++) fan(poly[k], tris[k], groups[k], g);
   }
-  const P = new Float64Array(s.P.length + extra.length); P.set(s.P); P.set(extra, s.P.length);
+  const P = new Float64Array(S.length + extra.length); P.set(S); P.set(extra, S.length);
   const plane = new Uint8Array(P.length / 3);
   for (const v of onPlane) plane[v] = 1;
   for (let v = nv0; v < plane.length; v++) plane[v] = 1;
-  const cap = s.names.length, loops: Point[][] = [], out: (Brep | null)[] = [];
+  const loops: Point[][] = [];
   for (let k = 0; k < 2; k++) {
-    if (!tris[k].length) { out.push(null); continue; }
-    if (!s.open) {
-      const found = capOf(P, tris[k], plane, n, k === 0);
-      for (const tri of found.triangles) { tris[k].push(...tri); groups[k].push(cap); }
-      if (k === 0) loops.push(...found.loops);
-    }
-    out.push(sideBrep(P, tris[k], groups[k], s, `${options.at}${k ? '_above' : '_below'}`, (g: number) => g === cap ? `${options.at}.cut.${k ? 'bottom' : 'top'}` : s.names[g], weld));
+    if (!tris[k].length || !(options.cap === 'both' || options.cap === (k ? 'above' : 'below'))) continue;
+    const found = capOf(P, tris[k], plane, n, k === 0);
+    for (const tri of found.triangles) { tris[k].push(...tri); groups[k].push(options.capGroup); }
+    if (k === 0) loops.push(...found.loops);
   }
-  return { below: out[0], above: out[1], loops };
+  return { P, tris, groups, loops };
+}
+
+/** The soup of a facet body: its faces' triangles (outward), welded, each grouped by its face; and the faces' names. */
+export function facetSoup(brep: Brep): TriangleSoup & { names: string[] } {
+  const s = soup(brep);
+  return { P: s.P, I: s.I, G: s.G, names: s.names };
 }
 
 function soup(brep: Brep): Soup {

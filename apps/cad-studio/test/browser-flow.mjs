@@ -848,10 +848,12 @@ try {
     assert.equal((await doc()).nodes[0].pieces, 2);
     assert.match(await page.locator('.toast').innerText(), /2 pieces, each a body of its own[\s\S]*1 of the pieces is tiny/);
     const before = await doc();
-    // A part file with a hole through a 15.9k-triangle sphere (under the 16k limit): seconds; stopped, the open is taken back.
-    const big = sphere(10, 112, 72, [0, 0, 0]), part = join(out, 'big-hole.bcad');
-    fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {},
-      nodes: [{ id: 'n0', kind: 'mesh', name: 'ball', unit: 'mm', positions: big.P, indices: big.I, representation: 'facets' }, { id: 'n1', kind: 'hole', parent: { node: 0, side: 'solid' }, center: [0, 0], radius: 2 }] }));
+    // A part file uniting two meshes, one a 15.9k-triangle sphere (a Boolean of two meshes: F0's planar path, under its
+    // 16k limit): seconds; stopped, the open is taken back.
+    const big = sphere(10, 112, 72, [0, 0, 0]), small = sphere(4, 24, 12, [9, 0, 0]), part = join(out, 'big-union.bcad');
+    fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 3, outputs: {},
+      nodes: [{ id: 'n0', kind: 'mesh', name: 'ball', unit: 'mm', positions: big.P, indices: big.I, representation: 'facets' }, { id: 'n1', kind: 'mesh', name: 'bump', unit: 'mm', positions: small.P, indices: small.I, representation: 'facets' },
+        { id: 'n2', kind: 'union', left: { node: 0, side: 'solid' }, right: { node: 1, side: 'solid' } }] }));
     await page.setInputFiles('input[aria-label="Model file"]', part);
     await page.waitForSelector('[aria-label="Cancel the computation"]', { timeout: 15000 });
     await page.click('[aria-label="Cancel the computation"]');
@@ -1899,7 +1901,7 @@ try {
     await page.waitForSelector('[aria-label="Mesh units"]');
     await page.click('[aria-label="Mesh units"] button:text-is("Open")');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
-    assert.match(await page.evaluate(() => document.body.innerText), /Splits and sections work at any size/);
+    assert.match(await page.evaluate(() => document.body.innerText), /Splits, sections, holes and Booleans with modelled bodies work at any size/);
     await idle();
     await page.locator('.outliner .ol').first().click();
     await press(' '); await page.locator('.palette input').fill('split'); await press('Enter'); await hudReady();
@@ -2280,6 +2282,26 @@ try {
       await snap('l2-proposed');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
+  });
+
+  await check('F2: a hole through a 30k-triangle mesh, its wall exact — opened from a part file, the mesh near the hole alone through the exact Boolean', async () => {
+    const fs = await import('node:fs');
+    const n = 150, m = 100, P = [], I = [];
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; P.push((20 + 5 * Math.cos(v)) * Math.cos(u), (20 + 5 * Math.cos(v)) * Math.sin(u), 5 * Math.sin(v)); }
+    const at = (i, j) => (i % n) * m + (j % m);
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) I.push(at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j), at(i + 1, j + 1), at(i, j + 1));
+    const part = join(out, 'ring-hole.bcad');
+    fs.writeFileSync(part, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {},
+      nodes: [{ id: 'n0', kind: 'mesh', name: 'ring', unit: 'mm', positions: P, indices: I, representation: 'facets' }, { id: 'n1', kind: 'hole', parent: { node: 0, side: 'solid' }, center: [20, 0.37], radius: 2 }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', part);
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'hole' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props input')?.value ?? '') && /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    const ring = 2 * Math.PI * Math.PI * 20 * 25;
+    assert.ok(vol < ring && vol > ring - 2 * Math.PI * 4 * 10, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('mesh-hole');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
