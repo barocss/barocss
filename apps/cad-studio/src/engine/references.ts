@@ -21,7 +21,7 @@
 import type { FaceTable, MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { bodyKeyFor } from './ids';
-import { prefixDoc, type StudioDoc } from './doc';
+import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
 import { matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
@@ -54,11 +54,31 @@ export interface Ref {
 type Named = { sigs?: Record<string, Sig>; rematched?: Record<string, string> };
 type Pointed = { sig?: Sig; was?: string };
 
-/** The document (a copy, which the references' setters change) and its stored references. */
-export function referencesOf(source: StudioDoc): { doc: StudioDoc; refs: Ref[] } {
-  const doc = structuredClone(source), refs: Ref[] = [];
+/** The list of names a feature references (its key), or null. */
+function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
+  const key = node.kind === 'fillet' || node.kind === 'chamfer' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' ? 'faces' : null;
+  return key && 'parent' in node ? key : null;
+}
+/**
+ * The document with a copy of every object the references' setters change — a referencing feature and its list,
+ * mate sides, dimension points, body looks — and the rest shared (PERF3 A6: a deep copy of the whole document,
+ * an imported STEP text and all, on every check; every node then new to the engine's wire and memo).
+ */
+function writable(d: StudioDoc): StudioDoc {
+  const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
+  if (d.mates) out.mates = d.mates.map(m => ({ ...m, a: { ...m.a }, b: { ...m.b } }));
+  if (d.drawing?.dimensions) out.drawing = { ...d.drawing, dimensions: d.drawing.dimensions.map(x => 'a' in x ? { ...x, a: { ...x.a }, b: { ...x.b } } as typeof x : { ...x }) };
+  if (d.bodies) { const bodies: NonNullable<StudioDoc['bodies']> = {}; for (const [k, look] of Object.entries(d.bodies)) bodies[k] = { ...look }; out.bodies = bodies; }
+  return out;
+}
+/**
+ * The document and its stored references: a copy the references' setters change, or (`readOnly`, for reading
+ * them only) the document itself, whose setters must then not be called.
+ */
+export function referencesOf(source: StudioDoc, readOnly = false): { doc: StudioDoc; refs: Ref[] } {
+  const doc = readOnly ? source : writable(source), refs: Ref[] = [];
   doc.nodes.forEach((node, k) => {
-    const key = node.kind === 'fillet' || node.kind === 'chamfer' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' ? 'faces' : null;
+    const key = refKey(node);
     if (!key || !('parent' in node)) return;
     const n = node as unknown as Record<string, unknown> & Named, list = n[key] as string[];
     list.forEach((name, i) => refs.push({
@@ -210,7 +230,7 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
 export interface Marked { index: number; where: string; node: number | null; edge: boolean; was: string; now: string }
 /** The references marked re-matched (substituted by a match, not yet confirmed). */
 export function markedReferences(doc: StudioDoc): Marked[] {
-  return referencesOf(doc).refs.flatMap((r, index) => r.rematched ? [{ index, where: r.where, node: r.node, edge: r.edge, was: r.was ?? r.name, now: r.name }] : []);
+  return referencesOf(doc, true).refs.flatMap((r, index) => r.rematched ? [{ index, where: r.where, node: r.node, edge: r.edge, was: r.was ?? r.name, now: r.name }] : []);
 }
 /**
  * Reference `index` confirmed (as it is, or as `to`, another of its candidates): its mark gone, its signature

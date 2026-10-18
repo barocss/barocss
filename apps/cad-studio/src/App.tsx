@@ -1200,7 +1200,8 @@ export function App() {
   const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   const partEval = (d: StudioDoc) => engine.part(d, revision.current++);
   useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
-  const hashNow = useMemo(() => modelHash(doc), [doc]);
+  // (Only wanted to show an open proposal stale.)
+  const hashNow = useMemo(() => doc.proposals?.some(p => p.status === 'open') ? modelHash(doc) : '', [doc]);
   const showProposal = async (p: Proposal, from: StudioDoc = doc) => {
     if (ghost?.id === p.id && from === doc) { setGhost(null); setPreviewBodies(null); return; }
     if (active || sketch || marker !== null) return;

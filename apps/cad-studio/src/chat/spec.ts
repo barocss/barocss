@@ -74,10 +74,17 @@ type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 const r4 = (v: number) => Math.round(v * 1e4) / 1e4;
 /** A short hash of the model (its features, parameters and looks): a report says which model it is about. */
 export function modelHash(doc: StudioDoc): string {
+  // (Kept by the objects it reads — an edit makes new nodes; a selection, a view or a proposal keeps them — so the
+  // checks, the proposals' staleness and the history share one walk of the document per edit, PERF3 A6.)
+  const have = hashes.get(doc.nodes);
+  if (have && have.parameters === doc.parameters && have.bodies === doc.bodies) return have.hash;
   const s = JSON.stringify([doc.nodes, doc.parameters, doc.bodies]); let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
-  return h.toString(16).padStart(8, '0');
+  const hash = h.toString(16).padStart(8, '0');
+  hashes.set(doc.nodes, { parameters: doc.parameters, bodies: doc.bodies, hash });
+  return hash;
 }
+const hashes = new WeakMap<object, { parameters: unknown; bodies: unknown; hash: string }>();
 export const expectedOf = (p: Predicate) => (p.op === '==' ? `${p.value} ± ${p.tol ?? 0}` : p.op === 'between' ? `${p.min} … ${p.max}` : `${p.op} ${p.value}${p.tol ? ` (± ${p.tol})` : ''}`) + (p.unit ? ` ${p.unit}` : '');
 /** Whether `x` meets the predicate, and by how much it misses (signed: positive over). */
 export function meets(x: number, p: Predicate): { ok: boolean; delta: number } {

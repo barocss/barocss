@@ -3486,3 +3486,19 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - RB: nothing new.
   - Studio 351/351.
   - Bench `tessellate: SubD body of a ~2k-face cage`: 1 007 ms, budget 2 000 ms.
+
+### A6 — copies and hashes on every change
+- **Confirmed:**
+  - `referencesOf` deep-copied the whole document (`structuredClone`), including an imported STEP text: 7.4 ms with a 30 MB import. Every node became a new object, so the worker wire and the evaluation memo saw them all as new.
+  - `markedReferences`, run on every change, only reads.
+  - `modelHash` (JSON plus FNV over nodes, parameters and bodies: 98 ms with a 30 MB import) ran on every change for `hashNow`, again in every `checkSpec`, and in proposals.
+- **Fix:**
+  - `referencesOf` copies only what its setters change (`writable`): a referencing feature and its list, mate sides, dimension points and body looks. The rest is shared.
+  - `referencesOf(doc, true)` is a read-only walk, used by `markedReferences`.
+  - `modelHash` keeps its value: it is persisted in proposal bases and history. It is kept per `doc.nodes` array with the same parameters and bodies objects, so one walk serves an edit.
+  - `hashNow` is worked out only while a proposal is open.
+- **Test:** `test/referencesCopy.test.ts`:
+  - the setters on a deep-frozen document change only the copy, and untouched nodes stay the same objects;
+  - the read-only walk returns the document itself;
+  - `modelHash` matches the whole walk's value.
+- Studio 353/353.
