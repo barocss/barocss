@@ -26,6 +26,8 @@ const SPECS: Record<string, Spec> = {
   difference: { parent: 'ref', tool: 'ref' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
+  // (R9, D85: a mesh body simplified; its keep and bounds are values.)
+  decimate: { parent: 'ref', 'ratio?': 'num', 'triangles?': 'count', 'maxError?': 'num', 'featureAngle?': 'num' },
   chamfer: { parent: 'ref', edges: 'names1', distance: 'dim' },
   fillet: { parent: 'ref', edges: 'names1', radius: 'dim' },
   hole: { parent: 'ref', center: 'dim2', radius: 'dim', 'axis?': 'enum:x|y|z', 'side?': 'enum:min|max', 'depth?': 'dim' },

@@ -35,6 +35,7 @@ import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { buildSubd, subdSummary, SubdError, type SubdSummary } from './subd.js';
+import { decimateMesh, type DecimateReport } from './mesh-decimate.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
@@ -203,6 +204,14 @@ export type CadPartFeature = Base & (
    * order of its B-rep's bodies; refused for a body in one piece.
    */
   | { readonly kind: 'separate'; readonly target: string }
+  /**
+   * R9 (M4, D85): a mesh body (facet faces) simplified by edge collapse under the quadric error metric — to
+   * `triangles`, or a `ratio` of its triangles, no collapse past `maxError` mm (its quadric bound). Its faces keep
+   * their regions and names: the regions' boundaries (where the mesh's creases are) and open edges are kept as lines,
+   * and with `featureAngle` (degrees) any edge sharper than it too — left out, none (a scan's noise is no crease). The
+   * output's `decimate` reports the counts and the measured distance both ways.
+   */
+  | { readonly kind: 'decimate'; readonly target: string; readonly triangles?: number; readonly ratio?: number; readonly maxError?: CadPartDim; readonly featureAngle?: number }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -249,6 +258,8 @@ export interface CadPartOutput {
   readonly rackPlacement?: RackPlacement;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
+  /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
+  readonly decimate?: DecimateReport;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -305,6 +316,7 @@ interface Part {
   readonly rack?: SpurRackReport;
   readonly rackPlace?: RackPlacement;
   readonly subd?: SubdSummary;
+  readonly decimate?: DecimateReport;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -1059,6 +1071,28 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
       return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
     }
+    case 'decimate': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('REFERENCE', 'decimate one part at a time (name it as id/k)');
+      const ratio = f.ratio === undefined ? undefined : f.ratio as unknown, triangles = f.triangles === undefined ? undefined : f.triangles as unknown;
+      if (ratio !== undefined && !(typeof ratio === 'number' && ratio > 0 && ratio < 1)) fail('INPUT', 'ratio must be a share of the triangles between 0 and 1');
+      if (triangles !== undefined && !(Number.isInteger(triangles) && (triangles as number) >= 4)) fail('INPUT', 'triangles must be a whole number, 4 or more');
+      const maxError = f.maxError === undefined ? undefined : dim(f.maxError as CadPartDim, 'maxError', true);
+      if (ratio === undefined && triangles === undefined && maxError === undefined) fail('INPUT', 'say how far: triangles, ratio or maxError');
+      const angle = f.featureAngle === undefined ? 180 : f.featureAngle as unknown;
+      if (!(typeof angle === 'number' && angle > 0 && angle <= 180)) fail('INPUT', 'featureAngle must be degrees between 0 and 180');
+      return () => {
+        const s = target[0].solid;
+        if (!facetBody(s) || s.kind !== 'brep' || !s.brep.faces.every(isFacetFace)) fail('CAPABILITY', 'decimate takes a mesh body (facet faces); a body of exact faces is not a mesh');
+        const brep = (s as { brep: Brep }).brep, mesh = facetTriangles(brep), sheet = brep.bodies.some(b => b.kind === 'sheet');
+        const r = decimateMesh(mesh.positions, mesh.indices, { ...(triangles !== undefined ? { targetTriangles: triangles as number } : {}), ...(ratio !== undefined ? { ratio: ratio as number } : {}), ...(maxError !== undefined ? { maxErrorMM: maxError } : {}), featureDegrees: angle as number, groups: mesh.groups });
+        try {
+          // (Each source face's triangles a group of its own, named as that face: its references keep resolving.)
+          const out = facetBrepFromTriangles(r.positions, r.indices, { id: at, maximumTriangles: CadPartLimits.meshTriangles, groups: r.groups!, groupName: g => mesh.names[g], creaseDegrees: 180, ...(sheet ? { open: true } : {}) });
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: out }, decimate: r.report }] };
+        } catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
     case 'separate': {
       const target = solids(f.target, 'target');
       if (target.length !== 1) fail('REFERENCE', 'separate one part at a time (name it as id/k)');
@@ -1140,6 +1174,29 @@ function facetWith(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersectio
 }
 /** A body of mesh faces only (F0): split on its own triangles (F1), any size. */
 const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.some(isFacetFace);
+/**
+ * A facet body's triangles as one welded mesh (its faces share their boundary points exactly), each triangle's group
+ * its face, and the faces' names (without a `#k`: a face split again keeps its source's name, numbered).
+ */
+function facetTriangles(brep: Brep): { positions: Float64Array; indices: Uint32Array; groups: Int32Array; names: string[] } {
+  let nv = 0, nt = 0;
+  for (const f of brep.faces) { const p = f.surface as FacetPatch; nv += p.positions.length / 3; nt += p.indices.length / 3; }
+  const P = new Float64Array(3 * nv), I = new Uint32Array(3 * nt), G = new Int32Array(nt), names: string[] = [];
+  let ov = 0, ot = 0;
+  brep.faces.forEach((f, g) => {
+    const p = f.surface as FacetPatch, fw = f.sense === 'forward', X = p.indices;
+    P.set(p.positions, 3 * ov);
+    // (Wound outward: a reversed face's triangles turned.)
+    for (let k = 0; k < X.length; k += 3) { I[3 * ot + k] = X[k] + ov; I[3 * ot + k + 1] = (fw ? X[k + 1] : X[k + 2]) + ov; I[3 * ot + k + 2] = (fw ? X[k + 2] : X[k + 1]) + ov; }
+    G.fill(g, ot, ot + p.indices.length / 3);
+    names.push((f.name ?? f.id).replace(/#\d+$/, ''));
+    ov += p.positions.length / 3; ot += p.indices.length / 3;
+  });
+  let size = 1; for (let k = 0; k < P.length; k++) size = Math.max(size, Math.abs(P[k]));
+  const { P: welded, remap } = weldVertices(P, nv, 1e-9 * size);
+  for (let k = 0; k < I.length; k++) I[k] = remap[I[k]];
+  return { positions: welded, indices: I, groups: G, names };
+}
 /** F1 (R4, D50): a facet body cut by n·p = d, below then above, each closed by an exact planar cap. */
 function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   let r: FacetSplitResult;
@@ -1690,7 +1747,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

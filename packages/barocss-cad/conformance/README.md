@@ -27,7 +27,8 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "topology": [{ "shells": 1, "genus": 0 }],    // per body: closed shells and genus (Euler–Poincaré)
       "faceNames": ["s.surface0", "..."],           // optional: distinct face names, "#k" numbering removed, sorted
       "faceNamePattern": "^m\\.facet\\d+$",         // optional instead: every face name matches
-      "tessellation": { "segmentsPerQuarter": 8, "watertight": true }  // optional: every edge in exactly two triangles, by exact position
+      "tessellation": { "segmentsPerQuarter": 8, "watertight": true },  // optional: every edge in exactly two triangles, by exact position
+      "decimate": { "trianglesAtMost": 12, "hausdorffMMAtMost": 1e-9 }  // optional: a decimated mesh's report (R9): its triangles, its measured distance both ways
     }],
     "error": { "code": "GEOMETRY", "messageIncludes": "not closed" },
     // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and

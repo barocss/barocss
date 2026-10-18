@@ -568,6 +568,8 @@ export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type Face
 export { facetArea, facetPlane, facetVectorArea } from './facet-patch.js';
 export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './facet-bvh.js';
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
+export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateResult } from './mesh-decimate.js';
+export { meshDistance, type MeshDistance } from './mesh-distance.js';
 export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './subd.js';
 export { subdReport, type SubdReport, type SubdReportOptions } from './subd-report.js';
 export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, subdPreviewMesh, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './subd-cage.js';

@@ -4091,3 +4091,71 @@ R8.3 as D83's default took it (the person's end-to-end cage edit in the browser 
 - **The pole gizmo item (D83; R8's plan: "the pole gizmo from `direct.ts` driven by cage data, not source-text edits"):** nothing left to do. The cage editor's gizmo is the viewport's `TransformGizmo`, the one `direct.ts`' poles use, and it edits the cage's data itself (a session step), never source text.
 - Picks in the flow click a face halfway to its lower-left corner and in an order that keeps each next face below or left of the gizmo's middle: its arrows point up and right from there. The view is framed by its button (F is Fill while a cage is edited).
 - **Follow-up seen, not in this step:** the Selection panel's "Surface area" is the tessellation's (11 007 mm² for the clamp, 0.11% under the exact 11 019.5); the exact area is the kernel's.
+
+## D85 — R9 (M4): our own QEM decimation, attribute-aware, with a measured error (2026-10-18)
+
+The roadmap's line: "our own QEM decimation, attribute-aware, with a reported error". There was no spec beyond it, so this record sets what each word means here.
+- **Kernel `decimateMesh`** (`src/mesh-decimate.ts`; own TypeScript, typed arrays, no dependency):
+  - Edge collapse under the quadric error metric (Garland & Heckbert 1997). Plane quadrics are unweighted, so a collapse's cost is a sum of squared distances (mm²); its square root bounds the distance to every plane it gathered.
+  - Placement: the quadric's minimum when its 3 × 3 part is well conditioned and within two edge lengths of the edge, else the better of the ends and the middle.
+  - Each vertex's cheapest collapse sits in an indexed min-heap (ties by vertex number: the result is deterministic).
+  - After a collapse: the merged vertex is priced again; a neighbour whose cheapest collapse involved the merged pair is refreshed; any other neighbour is offered its collapse with the merged vertex if cheaper. A price gone stale is re-queued at pop time, not made.
+- **"Attribute-aware": what the mesh says is kept.** Meshes here carry no normals, UVs or colours (STL, OBJ positions, facet patches). What they do carry:
+  - open boundaries;
+  - per-triangle groups: a repair's fill patches, and in the `decimate` feature each source face (region);
+  - creases (a dihedral past `featureDegrees`; default 40° for the kernel call; the feature's default is none, its regions carry the creases).
+  - Those are feature lines:
+    - a feature vertex slides only along its line (both ends on lines, the edge itself a feature), placed on the edge segment (the quadric's least along it), so a line keeps to where it ran;
+    - a vertex off the lines collapses onto a feature vertex (placed there);
+    - corners and ends never move: three or more feature edges, one, or two turning past the angle (a sheet's corner, a patch's);
+    - penalty planes (weight 100) through each open or creased feature edge, square to its triangles;
+    - a group seam where the surface is smooth (under 20°) gets no penalty. It still only slides along itself, but straightens as cheaply as the surface lets it. Found in the browser: a torus' halving seam (D42) stayed a jagged band of small triangles.
+  - Every triangle keeps its winding and its group.
+- **Never a fold or a broken manifold:**
+  - the link condition: the neighbours common to both ends equal the shared triangles;
+  - two valence-3 vertices sharing two triangles are refused (a tetrahedron's edge);
+  - no triangle may turn more than 75° in one collapse or flatten;
+  - no triangle may face away from the surface its corners stand for. Each vertex carries the area-weighted normal sum of the original triangles it replaces, merged as it merges.
+    - The first try compared a triangle with its own starting normal. On a noisy sphere that let folds through near jagged feature lines: a starting triangle can be tilted 60°.
+  - Refusals are counted in the report.
+- **"Reported error": measured, not estimated.** `meshDistance` (`src/mesh-distance.ts`) takes each sample of one mesh (vertices and triangle centres) to the nearest point of the other's surface. It uses a hierarchy of its triangles (median splits along the longest axis, leaves of up to 4) and a branch-and-bound search, nearer child first.
+  - The report gives the distance both ways, the Hausdorff (the larger), the RMS and the sample count. These are samples, not a bound: a surface point between samples may be further.
+  - It also gives the counts, why it stopped (`target`, `error`: the quadric bound reached, `exhausted`: nothing left it may collapse), the largest quadric bound made, the refusals and the time.
+- **Part feature `decimate`** `{ target, triangles? | ratio? | maxError?, featureAngle? }`:
+  - Only on a mesh body (facet faces), refused otherwise (`CAPABILITY`). Its triangles are gathered wound outward and welded; each face is a group.
+  - The result goes through `facetBrepFromTriangles` with `groups` and `groupName`, each face named as its source face with `creaseDegrees` 180. The faces keep their names, so A1 references and selectors keep resolving across a decimation.
+  - The output carries `decimate` (the report).
+- **Studio:**
+  - a `decimate` node (`{ parent, ratio?, triangles?, maxError?, featureAngle? }`); the label "Simplify mesh to 25%";
+  - a "Simplify mesh" command (modify; a mesh body selected), with fields Keep % (25), Max error (0: none) and Crease angle (0: regions only);
+  - its icon: a block whose top is fine triangles near and two coarse ones, in the accent, far;
+  - the edit fields Keep %, Max error and Crease angle (so `edit_feature`, and at autonomy L2 a value edit); `features.ts` spec;
+  - the report as the body's notes: "Simplified: 10,000 → 1,000 triangles (stopped at the asked count)", "Measured distance from the original: at most … (… to it, … back; RMS …, over … points)", and the refused collapses;
+  - `run_command decimate` (bodies, keep, maxError, crease).
+- **Numbers** (Node 22, Apple M-series; decimation without the measurement, then the measurement both ways):
+
+  | Mesh | Triangles | Decimate | Measured Hausdorff (RMS) | Measure |
+  |---|---|---|---|---|
+  | icosphere r 10 | 20 480 → 2 048 | 85 ms | 0.029 mm | 2 × 25 ms |
+  | icosphere r 10 | 327 680 → 32 768 | 1.2 s | 0.0022 mm | 2 × 0.3 s |
+  | organic torus 200k (bench fixture) | 199 712 → 19 970 | 0.84 s | 0.072 mm (0.012) | 0.46 s |
+  | organic torus 1M | 999 698 → 99 968 | 4.8 s | 0.014 mm (0.002) | 1.6 s |
+  | scan sphere 200k (jittered; creases off) | 201 612 → 20 160 | 1.46 s | 0.29 mm (0.062) | 0.6 s |
+  | gridded box 1 200 | → 12 | 18 ms | 2.5e-15 mm | |
+
+  - meshoptimizer's 1M → 100k in 0.4 s (noted in §4) stays a reference; we are about twelve times slower in TypeScript with the feature, fold and manifold checks. Profiled after three rounds (feature scans in one pass, a cached feature degree, kept unit normals, partial re-pricing, no allocation in the loops): 2.3 s → 1.2 s on the 328k sphere. Most of what is left is pricing and the feature scans.
+  - On a noisy scan the 40° crease angle reads noise as creases and stops early (the 200k scan sphere at 94k, "exhausted"). The feature therefore takes its creases from its regions.
+- **Tests:**
+  - kernel `mesh-decimate.test` 7/7: the gridded box to its 12 (corners exact, volume 1000); the sphere to 10% and 2% (closed, wound, within 0.05 and 0.25 mm, the report's distances equal to `meshDistance`'s, deterministic); a noisy sphere (as a scan every triangle facing out; with creases nothing past 95°); a group patch kept (square and area); an open sheet (flat: two triangles; wavy: its boundary on the square); the error bound; the feature (names kept, refusals);
+  - conformance `r9/decimate-grid-box` (exact) and `r9/decimate-sphere` (within 0.4 mm both ways, volume 3%, area 1%), with a new optional `expect.outputs[].decimate` (`trianglesAtMost`, `hausdorffMMAtMost`);
+  - studio `decimate.test` 3/3: the command (offered for a mesh body only), names and volume, notes, label, saved and read back; `run_command`; `edit_feature` Keep at L2;
+  - bench rows `mesh: decimate 200k organic to 10%` (budget 1 700 ms) and `mesh: distance both ways, 200k and its 10%` (1 000 ms);
+  - browser flow `R9 Simplify mesh`: a 10 000-triangle lumpy torus STL opened, simplified to 10% from the palette, the notes in its panel, undone.
+- **Suites:**
+  - kernel 1032/1037: 4 skipped (`modeling-offset`'s trapped cases, run only with `CAD_MODEL_OFFSET_ADMISSION_TRAP=1`) and the known environmental `actual native Split source…`;
+  - conformance all, with `r9/` 2/2; RB: nothing new, the 8 known TODOs, both `r9/` cases through every stage;
+  - studio 377/377 (`chat.test`'s schema test gives `decimate` a mesh body, as `gear-mesh` a gear);
+  - bench all within budget (decimate 845 ms, distance 368 ms);
+  - lint (0 errors) and type-check clean;
+  - browser flow: full run 124/124.
+- **Pending decision (reversible default):** the meaning of "attribute-aware" above (boundaries, groups and regions, creases; no UV or normal attributes, since none are read). Taken for meshes as they come in today; when OBJ normals or UVs are read, they join the quadric as attribute terms.

@@ -71,7 +71,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -270,6 +270,19 @@ function subdNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['subd']>): 
   const out: { text: string; warning?: boolean }[] = [{ text: `Caps: G1 at ${s.irregularVertices} irregular ${s.irregularVertices === 1 ? 'vertex' : 'vertices'} (${s.caps} caps, ${s.steps} Catmull–Clark step${s.steps === 1 ? '' : 's'}); max deviation from the limit surface ${+s.maxDeviationMM.toPrecision(2)} mm (${pct(s.maxDeviationMM)})` }];
   if (s.creaseDeviationMM > SUBD_CREASE_WARN * s.sizeMM) out.push({ text: `At crease, corner or boundary vertices the caps are ${+s.creaseDeviationMM.toPrecision(2)} mm from the limit (${pct(s.creaseDeviationMM)}, past 0.2%): the limit's edges there are not evenly spread and the caps use even angles (to do: the limit's own characteristic map)`, warning: true });
   return out;
+}
+/**
+ * A simplified mesh's report as lines for its panel (R9, D85): the triangles before and after and why it stopped, and
+ * the distance measured both ways — a measurement over the meshes' vertices and triangle centres, not a bound.
+ */
+function decimateNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['decimate']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => `${+x.toPrecision(2)} mm`, count = (x: number) => x.toLocaleString('en-US'), d = r.distance;
+  const why = r.stoppedBy === 'target' ? 'the asked count' : r.stoppedBy === 'error' ? 'the error bound' : 'as far as its regions’ boundaries and open edges let it';
+  return [
+    { text: `Simplified: ${count(r.trianglesBefore)} → ${count(r.trianglesAfter)} triangles (stopped at ${why})` },
+    ...(d ? [{ text: `Measured distance from the original: at most ${mm(d.hausdorffMM)} (${mm(d.toResultMaxMM)} to it, ${mm(d.toOriginalMaxMM)} back; RMS ${mm(d.rmsMM)}, over ${count(d.samples)} points)` }] : []),
+    ...(r.refused.flip + r.refused.topology ? [{ text: `${count(r.refused.flip + r.refused.topology)} collapses refused: they would fold a triangle or break the surface` }] : []),
+  ];
 }
 /** A gear's report as lines for the body's panel (R6a, D54). */
 function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): { text: string; warning?: boolean }[] {

@@ -66,6 +66,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   chamfer: { selection: 'edges: [edges of one body]', values: { distance: 'chamfer distance' } },
   draft: { selection: 'faces: [side faces of one body, square to Z, not touching each other — or every side of an extruded body]', values: { deg: 'draft angle in degrees (positive: the top leans in), below 45' } },
   fillet: { selection: 'edges: [edges of one body]', values: { radius: 'fillet radius' } },
+  decimate: { selection: 'bodies: [one mesh body] (an imported STL, OBJ or scan: facet faces)', values: { keep: 'per cent of the triangles to keep (1–99)', maxError: 'mm: no collapse past it (0: none)', crease: 'degrees: also keep edges sharper than this (0: only the regions\u2019 boundaries and open edges)' } },
   shell: { selection: 'faces to open (all of one body), or bodies: [one body] for a closed hollow', values: { t: 'wall thickness' } },
   move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ', ax: 'to X (the box corner; the HUD keeps it with ΔX — give one of the two)', ay: 'to Y', az: 'to Z' } },
   rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z', angle: 'degrees', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },

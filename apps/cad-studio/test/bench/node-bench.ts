@@ -3,7 +3,7 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepFromTriangles, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepFromTriangles, decimateMesh, meshDistance, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
 import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc, shareMeshes } from '../../src/engine/evaluate';
@@ -248,6 +248,12 @@ const scenarios: Scenario[] = [
   } },
   // (PERF3 B13: an STL of 200k triangles welded to mm as it opens (before: 165 ms, a text key a corner); the recovery
   // copy after an edit beside a 200k-triangle inline mesh (before: the whole 8.8 M-character JSON, 36 ms, every edit).)
+  // (R9, D85: decimation of the 200k organic torus to a tenth, cold; the distance measured both ways after it.)
+  { name: 'mesh: decimate 200k organic to 10%', budgetMS: 1700, runs: 2, setup() { const f = organicTorus(316, 316); return () => decimateMesh(f.positions, f.indices, { ratio: 0.1, measure: false }); } },
+  { name: 'mesh: distance both ways, 200k and its 10%', budgetMS: 1000, runs: 2, setup() {
+    const f = organicTorus(316, 316), r = decimateMesh(f.positions, f.indices, { ratio: 0.1, measure: false });
+    return () => [meshDistance(f.positions, f.indices, r.positions, r.indices), meshDistance(r.positions, r.indices, f.positions, f.indices)];
+  } },
   { name: 'mesh: open a 200k-triangle STL (weld to mm)', budgetMS: 60, runs: 3, setup() {
     const f = organicTorus(316, 316), soup = readStl(encodeBinaryStl(f.positions, f.indices, 'x'));
     return () => meshInMM({ positions: soup, indices: null, float32: true }, 'mm');

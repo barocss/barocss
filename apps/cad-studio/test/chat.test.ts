@@ -62,9 +62,12 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
   // A meshing gear takes a spur gear selected.
   const geared = await stateOf(withNode(emptyDoc(), { kind: 'gear', module: 2, teeth: 20, faceWidth: 10, center: [0, 0], generator: 'spur-gear@0' }));
+  // Simplify mesh takes a mesh body (facet faces): a box of 12 triangles.
+  const meshed = await stateOf(withNode(emptyDoc(), { kind: 'mesh', name: 'cube', unit: 'mm', representation: 'facets', positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10],
+    indices: [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7] }));
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe'].includes(id);
-    const ctx: Ctx = id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
+    const ctx: Ctx = id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);

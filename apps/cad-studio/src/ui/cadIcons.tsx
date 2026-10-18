@@ -161,6 +161,14 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-pattern-circular': <>{ghost('M12 4.5a7.5 7.5 0 1 1-.01 0')}<circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
     {[0, 90, 180, 270].map((a, k) => { const r = a * Math.PI / 180, x = 12 + 7.5 * Math.sin(r), y = 12 - 7.5 * Math.cos(r); return <rect key={a} x={f1(x - 2.3)} y={f1(y - 2.3)} width="4.6" height="4.6" rx="1" className={k === 0 ? 'ac' : undefined} style={k ? tone(0.2) : acTone} strokeOpacity={k ? 0.6 : 1} />; })}</>,
   // A block cut in two by a plane between the halves.
+  // (A block whose top is fine triangles on its near half and two coarse ones, in the accent, on the far half.)
+  'cad-decimate': (() => {
+    const top = (x: number, y: number): V3 => [x, y, 1], fine: string[] = [];
+    for (let k = 1; k < 4; k++) fine.push(isoPath([top(k / 8, 0), top(k / 8, 1)], false));
+    for (let k = 1; k < 4; k++) fine.push(isoPath([top(0, k / 4), top(0.5, k / 4)], false));
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) fine.push(isoPath([top(i / 8, j / 4), top((i + 1) / 8, (j + 1) / 4)], false));
+    return <>{block(0, 0, 0, 1, 1, 1)}{fine.map((p, k) => ghost(p, k))}{ac(isoPath([top(0.5, 0), top(0.5, 1)], false), 'm')}{ac(isoPath([top(0.5, 0), top(1, 1)], false), 'c')}</>;
+  })(),
   'cad-split': <>{block(0, 0, 0, 1, 0.42, 1)}{face(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]), 0, true)}{ac(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]))}{block(0, 0.58, 0, 1, 1, 1)}</>,
   // Two blocks overlapping, the overlap lit.
   'cad-interference': <><g transform="translate(-3.4 -1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g><g transform="translate(3.4 1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g>{face('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z', 0, true)}{ac('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z')}</>,

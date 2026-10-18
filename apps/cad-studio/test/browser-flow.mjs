@@ -2764,6 +2764,38 @@ try {
     await snap('clamp-hand');
   });
 
+  await check('R9 Simplify mesh: a lumpy 10 000-triangle torus STL opened, simplified to 10% from the palette — the report in its panel (the counts, the distance measured both ways), its faces\' names kept; undone', async () => {
+    const fs = await import('node:fs'), { encodeBinaryStl } = await import('../../../packages/barocss-cad/dist/index.js');
+    const n = 100, m = 50, P = [], I = [];
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) {
+      const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m, r = 8 * (1 + 0.15 * Math.sin(3 * u) * Math.cos(2 * v));
+      P.push((25 + r * Math.cos(v)) * Math.cos(u), (25 + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v));
+    }
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const a = i * m + j, b = ((i + 1) % n) * m + j, c = ((i + 1) % n) * m + (j + 1) % m, d = i * m + (j + 1) % m; I.push(a, b, c, a, c, d); }
+    const file = join(out, 'lumpy-torus.stl');
+    fs.writeFileSync(file, encodeBinaryStl(P, I, 'lumpy'));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Mesh units"]');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = await page.evaluate(() => window.__studioDoc.nodes.length);
+    await page.locator('.outliner .ol').first().click();
+    await press(' '); await page.locator('.palette input').fill('simplify mesh'); await press('Enter'); await hudReady();
+    await page.locator('.hud .field', { has: page.locator('span:text-is("Keep %")') }).locator('input').fill('10'); await hudReady();
+    await press('Enter');
+    await page.waitForFunction(k => window.__studioDoc.nodes.length === k + 1 && window.__studioDoc.nodes[k].kind === 'decimate', before, { timeout: 30000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /Simplified: 10,000 → 1,000 triangles/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props');
+    assert.match(props, /Measured distance from the original: at most [\d.]+ mm/);
+    assert.match(await page.textContent('.history'), /Simplify mesh to 10%/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(600);
+    await snap('decimate-torus');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(k => window.__studioDoc.nodes.length === k, before, { timeout: 15000 }); await idle();
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

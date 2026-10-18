@@ -33,6 +33,11 @@ for (const file of cases) {
       if (want.faceNames) assert.deepEqual([...new Set(names)].sort(), want.faceNames, `output ${k} face names`);
       if (want.faceNamePattern) assert.ok(names.every(n => new RegExp(want.faceNamePattern).test(n)), `output ${k} face names match ${want.faceNamePattern}`);
       if (want.areaMM2) assert.ok(Math.abs(o.surfaceArea() - want.areaMM2.value) <= want.areaMM2.relTol * want.areaMM2.value, `output ${k} area ${o.surfaceArea()} vs ${want.areaMM2.value}`);
+      if (want.decimate) {
+        // A decimated mesh's report (R9, D85): no more triangles than said, the measured distance both ways within its bound.
+        assert.ok(o.decimate && o.decimate.trianglesAfter <= want.decimate.trianglesAtMost, `output ${k} decimated to ${o.decimate?.trianglesAfter} triangles`);
+        assert.ok(o.decimate.distance.hausdorffMM <= want.decimate.hausdorffMMAtMost, `output ${k} ${o.decimate.distance.hausdorffMM} mm from the original`);
+      }
       if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
     if (c.expect.subd) {

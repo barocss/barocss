@@ -431,6 +431,18 @@ const allCommands: Command[] = [
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: edges.flatMap(e => e.names), radius: Number(v.radius) });
     },
   },
+  // (R9, D85: a mesh body simplified; its faces keep their regions and names, its report in the body's notes.)
+  {
+    id: 'decimate', label: 'Simplify mesh', icon: 'cad-decimate', hint: 'Fewer triangles on a mesh body (an STL, a scan): edge collapses that keep its regions\u2019 boundaries and open edges, the distance from the original measured', group: 'modify', keywords: 'decimate reduce simplify triangles polygons lod mesh scan stl qem',
+    available: ctx => { const b = selectedBodies(ctx.selection); return b.length === 1 && ctx.bodies[b[0]]?.family === 'faceted' ? ok : no('Select one mesh body (an imported STL, OBJ or scan).'); },
+    fields: () => [{ key: 'keep', label: 'Keep %', kind: 'count', min: 1, max: 99 }, { key: 'maxError', label: 'Max error (0: none)', kind: 'mm', min: 0 }, { key: 'crease', label: 'Crease angle (0: regions only)', kind: 'deg', min: 0, max: 180 }],
+    defaults: () => ({ keep: 25, maxError: 0, crease: 0 }),
+    build: (ctx, v) => {
+      const body = ctx.bodies[selectedBodies(ctx.selection)[0]], keep = Math.round(Number(v.keep)), maxError = Number(v.maxError), crease = Number(v.crease);
+      if (!(keep >= 1 && keep <= 99)) throw new Error('Keep between 1 and 99% of the triangles.');
+      return withNode(ctx.doc, { kind: 'decimate', parent: refOf(body), ratio: keep / 100, ...(maxError > 0 ? { maxError } : {}), ...(crease > 0 ? { featureAngle: crease } : {}) });
+    },
+  },
   {
     id: 'shell', label: 'Shell', icon: 'cad-shell', hint: 'Hollow a body, leaving the picked faces open', group: 'modify', keywords: 'hollow wall thickness case enclosure',
     available: ctx => selectedBodies(ctx.selection).length === 1 ? ok : no('Select the faces to open (Shift-click for more), or a body to hollow closed.'),

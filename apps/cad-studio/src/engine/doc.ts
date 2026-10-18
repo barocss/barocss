@@ -150,6 +150,12 @@ type ModelNodeBase = SketchNode
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }
+  /**
+   * A mesh body simplified (R9, D85): to `ratio` of its triangles (or `triangles`), no collapse past `maxError` mm; its
+   * faces keep their regions and names, its regions' boundaries and open edges kept as lines (and, with `featureAngle`,
+   * edges sharper than it). The kernel's `decimate` feature; its report in the body's notes.
+   */
+  | { kind: 'decimate'; parent: BodyRef; ratio?: number; triangles?: number; maxError?: number; featureAngle?: number }
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern;
     /** A 90° countersink: its diameter at the face (the kernel cuts it with the hole). */ countersink?: number;
@@ -489,6 +495,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';
+    case 'decimate': return `Simplify mesh ${node.triangles !== undefined ? `to ${node.triangles.toLocaleString('en-US')} triangles` : node.ratio !== undefined ? `to ${+(100 * node.ratio).toPrecision(3)}%` : `within ${fmt(node.maxError ?? 0)} mm`}`;
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
     case 'mesh': return `Mesh ${node.name}`;

@@ -106,7 +106,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
-  const number = (key: string, label: string, unit: 'mm' | '°' | undefined, get: (n: ModelNode) => number, set: (n: ModelNode, v: number) => ModelNode) =>
+  const number = (key: string, label: string, unit: 'mm' | '°' | '%' | undefined, get: (n: ModelNode) => number, set: (n: ModelNode, v: number) => ModelNode) =>
     out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), get: n => get(self(n)), set: (n, v) => replace(n, i, set(self(n), v)) });
   switch (node.kind) {
     case 'extrude':
@@ -188,6 +188,15 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;
+    case 'decimate': {
+      // (R9, D85: the keep as a per cent of the triangles; a bound or crease angle of 0 is none.)
+      type D = Extract<ModelNode, { kind: 'decimate' }>;
+      const without = (n: D, k: 'maxError' | 'featureAngle') => { const o = { ...n }; delete o[k]; return o; };
+      number('keep', 'Keep', '%', n => +(100 * ((n as D).ratio ?? 0.25)).toPrecision(6), (n, v) => ({ ...(n as D), ratio: v / 100 }));
+      number('maxError', 'Max error', 'mm', n => (n as D).maxError ?? 0, (n, v) => v > 0 ? { ...(n as D), maxError: v } : without(n as D, 'maxError'));
+      number('crease', 'Crease angle', '°', n => (n as D).featureAngle ?? 0, (n, v) => v > 0 ? { ...(n as D), featureAngle: v } : without(n as D, 'featureAngle'));
+      break;
+    }
     case 'shell': number('t', 'Wall', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'translate': [0, 1, 2].forEach(k => number('o' + k, 'Δ' + 'XYZ'[k], 'mm', n => num((n as typeof node).offset[k]), (n, v) => { const o = [...(n as typeof node).offset] as [Dim, Dim, Dim]; o[k] = v; return { ...(n as typeof node), offset: o }; })); break;
     case 'rotate':
