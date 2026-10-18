@@ -230,7 +230,12 @@ export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { cente
 }
 
 /** The pair check's options: the centre distance (default nominal), gear 2 turned off its meshing phase, the sweep. */
-export interface SpurGearPairOptions { readonly centerDistanceMM?: number; readonly relativePhaseDeg?: number; readonly samples?: number }
+/**
+ * The pair check's options: the centre distance (default nominal), gear 2 turned off its meshing phase, the sweep's
+ * samples, and `mode` — 'report' (default: the least clearance refined, the depth of a crossing, the convergence
+ * check) or 'verdict' (pass or fail: the sweep stops at the first sample whose teeth cross, no depth, one scan).
+ */
+export interface SpurGearPairOptions { readonly centerDistanceMM?: number; readonly relativePhaseDeg?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
 export interface SpurGearPairCheck {
   readonly centerDistanceMM: number; readonly nominalCenterDistanceMM: number;
   readonly workingPressureAngleDeg: number; readonly workingPitchDiametersMM: readonly [number, number];
@@ -254,6 +259,16 @@ export interface SpurGearPairCheck {
  * cross. A few frames are not proof: twice the samples must find the same least clearance (converged).
  */
 export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions = {}): SpurGearPairCheck {
+  // (The same pair, distance, phase and sweep again: the result kept — panels and checks ask often.)
+  const key = JSON.stringify([g1, g2, options.centerDistanceMM ?? null, options.relativePhaseDeg ?? 0, options.samples ?? 64, options.mode ?? 'report']);
+  const kept = pairCache.get(key);
+  if (kept) { pairCache.delete(key); pairCache.set(key, kept); return kept; }
+  const out = pairCheck(g1, g2, options);
+  pairCache.set(key, out); if (pairCache.size > 64) pairCache.delete(pairCache.keys().next().value!);
+  return out;
+}
+const pairCache = new Map<string, SpurGearPairCheck>();
+function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions): SpurGearPairCheck {
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
   if (g1.moduleMM !== g2.moduleMM) throw new GearError('MATE_INCOMPATIBLE', `modules ${g1.moduleMM} and ${g2.moduleMM} mm do not mesh`);
   if (a1.alpha !== a2.alpha) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
@@ -274,8 +289,17 @@ export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: S
   // The sweep: gear 1 about the origin, gear 2 about (a, 0); gear 2 turned so a tooth space faces gear 1 (its teeth at
   // π − π/z2 + 2πk/z2), then by the phase given; as gear 1 turns by θ, gear 2 by −θ z1/z2.
   const P1 = exactProfile(g1, a1), P2 = exactProfile(g2, a2), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, base2 = Math.PI - Math.PI / z2 + phase;
-  const at = (theta: number) => profileClearance(P1, theta, P2, base2 - theta * z1 / z2, a, a1.ra, a2.ra);
+  const verdict = options.mode === 'verdict';
+  const at = (theta: number) => profileClearance(P1, theta, P2, base2 - theta * z1 / z2, a, a1.ra, a2.ra, verdict);
   const period = 2 * Math.PI / z1, N = Math.max(16, options.samples ?? 64);
+  if (verdict) {
+    // Pass or fail: one scan, stopping at the first crossing.
+    let least = Infinity, tAt = 0;
+    for (let i = 0; i < N; i++) { const t = period * i / N, d = at(t); if (d < least) { least = d; tAt = t; } if (d < 0) break; }
+    const crossed = least < 0, diagnostics: GearDiagnostic[] = crossed ? [{ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1 (the depth: a report)` }] : [];
+    return { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2], backlashMM: backlash, tipClearancesMM: tips,
+      idealContactRatio: ideal, usableContactRatio: usable, sweep: { samples: N, minimumClearanceMM: crossed ? -0 : least, atDegrees: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimumMM: least }, diagnostics };
+  }
   const scan = (n: number) => { let best = { d: Infinity, t: 0 }; for (let i = 0; i < n; i++) { const t = period * i / n, d = at(t); if (d < best.d) best = { d, t }; } return best; };
   const coarse = scan(N), fine = scan(2 * N), seed = fine.d < coarse.d ? fine : coarse;
   // Golden section about the least sample.
@@ -313,7 +337,7 @@ function exactProfile(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimension
  * The least distance between the two gears' outlines near the mesh (the teeth within three pitches of the line of
  * centres), negative when they cross (by the deepest point of one inside the other).
  */
-function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P2: { tooth: Float64Array; z: number }, th2: number, a: number, ra1: number, ra2: number): number {
+function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P2: { tooth: Float64Array; z: number }, th2: number, a: number, ra1: number, ra2: number, verdict = false): number {
   const A = teethNear(P1, th1, 0, 0, 0), B = teethNear(P2, th2, a, 0, Math.PI);
   // Each side's segments near the other gear (within its tip circle and a little), once.
   const sa = nearSegments(A, a, 0, ra2 + 1), sb = nearSegments(B, 0, 0, ra1 + 1);
@@ -326,7 +350,7 @@ function profileClearance(P1: { tooth: Float64Array; z: number }, th1: number, P
       // (Boxes farther apart than the best so far: no nearer pair here, and no crossing.)
       const gx = Math.max(0, Math.min(cx, dx) - x1, x0 - Math.max(cx, dx)), gy = Math.max(0, Math.min(cy, dy) - y1, y0 - Math.max(cy, dy));
       if (gx * gx + gy * gy > best * best) continue;
-      if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) { crossed = true; best = 0; continue; }
+      if (segmentsCross(ax, ay, bx, by, cx, cy, dx, dy)) { if (verdict) return -1; crossed = true; best = 0; continue; }
       best = Math.min(best, segmentDistance(ax, ay, bx, by, cx, cy, dx, dy));
     }
   }

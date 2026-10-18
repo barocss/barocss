@@ -102,3 +102,14 @@ test('pair checks (R6a.4): at nominal centre distance the teeth just touch over 
   assert.ok(checkSpurGearPair({ ...g1, toothThicknessReductionMM: 0.05 }, { ...g2, toothThicknessReductionMM: 0.05 }, { relativePhaseDeg: 1 }).sweep.interference);
   assert.throws(() => checkSpurGearPair(g1, { ...g2, moduleMM: 3 }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
 });
+
+test('pair check verdict mode (pass or fail, stopping at the first crossing) agrees with the report; repeated checks come from the cache', () => {
+  const g1 = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, g2 = { moduleMM: 2, teeth: 40, faceWidthMM: 10 };
+  for (const o of [{}, { centerDistanceMM: 59.8 }, { centerDistanceMM: 60.5 }]) {
+    const report = checkSpurGearPair(g1, g2, o), verdict = checkSpurGearPair(g1, g2, { ...o, mode: 'verdict' });
+    assert.equal(verdict.sweep.interference, report.sweep.interference, JSON.stringify(o));
+    assert.equal(verdict.backlashMM, report.backlashMM);
+  }
+  const first = checkSpurGearPair(g1, g2, { centerDistanceMM: 59.9, mode: 'verdict' });
+  assert.equal(checkSpurGearPair(g1, g2, { centerDistanceMM: 59.9, mode: 'verdict' }), first, 'the same object: cached');
+});
