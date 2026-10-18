@@ -4,7 +4,7 @@
   "decisions": [
     "D41"
   ],
-  "about": "Autonomy L2 is the owner's option b: within one turn, value edits of one feature (a box's sketch and extrude are one) apply directly while every hard requirement that passed still passes; a second feature, a new feature, two edits in one batch, or a value breaking R1 is refused as needs_proposal, the part unchanged.",
+  "about": "Autonomy L2 is the owner's option b: within one turn, value edits of one feature (a box's sketch and extrude are one) apply directly while every hard requirement that passed still passes; a second feature, a new feature, two edits in one batch, or a value breaking R1 is refused as needs_proposal, the part unchanged. The owner's exception: a turn starting on an empty part builds it directly (a box and a hole); the next turn, from that part, adding a feature is refused as needs_proposal.",
   "input": {
     "file": {
       "format": "barocss-cad-model",
@@ -176,7 +176,65 @@
             "expect": "needs_proposal",
             "why": "changes 2 features"
           }
-        ]
+        ],
+        {
+          "start": "empty",
+          "calls": [
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "box",
+                "values": {
+                  "w": 40,
+                  "d": 20,
+                  "h": 8,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "expect": "applied"
+            },
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "hole",
+                "faces": [
+                  "n1.top"
+                ],
+                "values": {
+                  "d": 6,
+                  "x": 10,
+                  "y": 10
+                }
+              },
+              "expect": "applied"
+            }
+          ],
+          "nodes": 3
+        },
+        {
+          "start": "previous",
+          "calls": [
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "hole",
+                "faces": [
+                  "n1.top"
+                ],
+                "values": {
+                  "d": 4,
+                  "x": 30,
+                  "y": 10
+                }
+              },
+              "expect": "needs_proposal",
+              "why": "adds 1 feature"
+            }
+          ],
+          "nodes": 3
+        }
       ]
     }
   },

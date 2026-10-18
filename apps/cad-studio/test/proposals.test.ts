@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
 import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
 import { modelHash } from '../src/chat/spec';
@@ -145,14 +145,19 @@ for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
       const was = process.env.CAD_AUTONOMY;
       try {
         process.env.CAD_AUTONOMY = String(c.expect.level);
+        // (A turn starts from the file's part, an empty part, or where the turn before left it.)
+        let previous = s;
         for (const turn of c.input.l2.turns) {
-          let st: ChatState = { ...s, turnBase: s.doc };
-          for (const call of turn) {
+          const start = Array.isArray(turn) ? s : turn.start === 'empty' ? { doc: emptyDoc(), bodies: [] } : turn.start === 'previous' ? previous : s;
+          let st: ChatState = { ...start, turnBase: start.doc };
+          for (const call of Array.isArray(turn) ? turn : turn.calls) {
             const r = await runTool(st, call.tool, call.args, evaluate);
             if (call.expect === 'applied') { assert.ok(!r.isError, r.content); st = r.state; continue; }
             const e = parse(r.content);
             assert.ok(r.isError); assert.equal(e.code, call.expect); assert.match(e.error, new RegExp(call.why)); assert.equal(r.state, st);
           }
+          if (!Array.isArray(turn) && turn.nodes !== undefined) assert.equal(st.doc.nodes.length, turn.nodes);
+          previous = st;
         }
       } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
       return;
@@ -308,6 +313,15 @@ test('autonomy L2, the owner\'s option b (D41): values of one feature or of para
     // Proposing it is how: the part unchanged, the proposal open for the user.
     const prop = await runTool(turn, 'propose', { title: 'another hole', ops: [{ ...HOLE, args: { ...HOLE.args, values: { d: 4, x: 30, y: 10 } } }] }, evaluate);
     assert.ok(!prop.isError, prop.content); assert.equal(prop.state.doc.nodes.length, 3);
+    // The owner's exception: a turn starting on an empty part builds it directly, as many features as it takes.
+    const blank: ChatState = { doc: emptyDoc(), bodies: [] };
+    const firstBox = await runTool({ ...blank, turnBase: blank.doc }, 'run_command', { command: 'box', values: { w: 40, d: 20, h: 8, x: 0, y: 0, z: 0 } }, evaluate);
+    assert.ok(!firstBox.isError, firstBox.content);
+    const more = await runTool(firstBox.state, HOLE.tool, HOLE.args, evaluate);
+    assert.ok(!more.isError, more.content); assert.equal(more.state.doc.nodes.length, 3);
+    // The next turn starts from that part: a new feature is a proposal again.
+    const next = await runTool({ ...more.state, turnBase: more.state.doc }, HOLE.tool, { ...HOLE.args, values: { d: 4, x: 30, y: 10 } }, evaluate);
+    assert.ok(next.isError); assert.equal(parse(next.content).code, 'needs_proposal');
     // L3 changes the part as before.
     process.env.CAD_AUTONOMY = '3';
     assert.ok(!(await runTool(turn, HOLE.tool, { ...HOLE.args, values: { d: 4, x: 30, y: 10 } }, evaluate)).isError);

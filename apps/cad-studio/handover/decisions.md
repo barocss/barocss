@@ -996,6 +996,18 @@ part, against the part as the turn found it (`turnBase`), so a run of small call
   - a parameter added or removed;
   - a hard requirement broken.
 - **Unchanged.** L1, L3 and L4; the always-approval kinds (assembly, mates, drawing, locked part) at every level.
+- **Owner: the first build on an empty part applies at L2 (2026-10-18).** A turn whose `turnBase` has no features
+  makes the part's features and parameters directly, as many calls as the turn takes. Each call is still checked and
+  refused as usual; the always-approval kinds (assembly, mates, drawing, locked part) are still proposals. The next
+  turn starts from that part, and the L2 rule applies there. The studio shows the same "Applied by the agent" toast;
+  its Undo takes the whole first build back (the chat commits once per turn).
+  - Tests:
+    - the MCP test's default L2 builds a box and a hole on an empty part, and the next session's hole is
+      `needs_proposal`;
+    - the L2 test has a first build and a next turn refused;
+    - conformance `a4/l2-values-or-proposal` gains an empty-part turn (box and hole applied, 3 nodes) and a
+      following turn whose hole is `needs_proposal`;
+    - the browser step builds an empty part through the chat, one Undo leaves no features, and it builds again.
 - **What the studio shows.** A turn that changed the part's features or parameters shows "Applied by the agent: …"
   with an **Undo** button, which takes the turn back. The L2 tooltip, the turn note and the system prompt say the
   rule.

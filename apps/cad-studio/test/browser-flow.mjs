@@ -2238,14 +2238,13 @@ try {
     assert.deepEqual([fresh.history, fresh.proposals, fresh.bodies, fresh.requirements], [undefined, undefined, undefined, undefined]);
   });
 
-  await check('autonomy L2 (the owner\'s option b) through the real chat server and tool server: a value edit applies with an undo toast; a two-feature change is refused, then proposed', async () => {
+  await check('autonomy L2 (the owner\'s option b) through the real chat server and tool server: the first build of an empty part applies (one Undo takes it back); a value edit applies with an undo toast; a two-feature change is refused, then proposed', async () => {
     // A scripted stand-in for the claude CLI makes the calls; the gate is the tool server's own (D41).
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
-      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
-      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+      await page.click('[aria-label="New part"]'); await idle();
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       assert.equal(await page.inputValue('[aria-label="Autonomy"]'), '2');
@@ -2254,6 +2253,16 @@ try {
         await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
         await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       };
+      // The owner's exception: on an empty part the first turn builds directly (a box and a hole); one Undo takes the
+      // whole build back.
+      const firstBox = { tool: 'run_command', args: { command: 'box', values: { w: 32, d: 32, h: 16, x: 0, y: 0, z: 0 } } };
+      await send([firstBox, { tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d: 4, x: 8, y: 8 } } }]);
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 20000 });
+      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
+      await page.click('.toast button:text-is("Undo")');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 10000 });
+      await send([firstBox]);
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
       // A value of one feature: applied directly, said so with an undo.
       const h0 = (await doc()).nodes[1].height;
       await send([{ tool: 'edit_feature', args: { index: 1, values: { h: h0 + 4 } } }]);

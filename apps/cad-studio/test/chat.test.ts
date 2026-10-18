@@ -98,12 +98,18 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
 });
 
 test('a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole', async () => {
-  // At the default L2 a turn's new feature is a proposal (D41, option b); this model runs at L4.
+  // At the default L2 (D41, option b) the first build on an empty part applies, the whole turn; the next turn's new
+  // feature is a proposal. (This model runs at L4.)
   const l2Path = join(scratch(), 'state-l2.json');
   writeFileSync(l2Path, JSON.stringify({ doc: emptyDoc(), changed: false }));
-  const l2 = mcpClient(l2Path), refused = await l2.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  const first = mcpClient(l2Path), built = await first.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  assert.ok(!built.isError, JSON.stringify(built.json));
+  assert.ok(!(await first.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } })).isError, 'still the first turn');
+  await first.close();
+  const second = mcpClient(l2Path), refused = await second.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 6 } });
   assert.ok(refused.isError); assert.equal(refused.json.code, 'needs_proposal');
-  await l2.close();
+  await second.close();
+  assert.equal(JSON.parse(readFileSync(l2Path, 'utf8')).doc.nodes.length, 3);
   const statePath = join(scratch(), 'state.json');
   writeFileSync(statePath, JSON.stringify({ doc: emptyDoc(), changed: false }));
   const level = process.env.CAD_AUTONOMY; process.env.CAD_AUTONOMY = '4';

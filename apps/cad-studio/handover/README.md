@@ -448,7 +448,7 @@ Pending decisions (reversible defaults taken):
 - A placed part with a source file counts as locked (D40).
 
 Decided by the owner (2026-10-18): L2 is option (b), value edits of one feature applied directly and everything
-else a proposal (D41); STEP caps 32 MiB B-rep / 128 MiB tessellated (D49).
+else a proposal, the first build on an empty part applied directly (D41); STEP caps 32 MiB B-rep / 128 MiB tessellated (D49).
 
 Settled by the peer's override: changes to assemblies, mates, drawings and locked parts go through proposals at
 every level (D41). Deferred with plans: R10a (D31), RB5's first item (D25), a two-colour added/removed material overlay for proposals (D40).
