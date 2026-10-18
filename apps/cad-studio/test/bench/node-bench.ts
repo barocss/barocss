@@ -3,8 +3,9 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepFromTriangles, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepFromTriangles, diagnoseMesh, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '../../src/app/primitives';
+import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc } from '../../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../../src/engine/doc';
 import { directDisplay, emptyDirect, importSource, movePole } from '../../src/engine/direct';
@@ -209,6 +210,14 @@ const scenarios: Scenario[] = [
     const M = multiply(perspectiveReversed(Math.PI / 4, cw / ch, 0.1), lookAt([390, -150, 270], [120, 60, 5], [0, 0, 1]));
     nearestSegment(g, M, 0, 0, cw, ch, 6);
     return () => { let hits = 0; for (let k = 0; k < 100; k++) if (nearestSegment(g, M, 300 + 8 * k, 200 + 4.5 * k, cw, ch, 6)) hits++; return hits; };
+  } },
+  // (PERF3 B11: an STL-like soup of 200k triangles with 190 holes and turned patches, diagnosed then repaired.
+  // Before: 1 241 ms.)
+  { name: 'mesh: diagnose and repair, 200k soup', budgetMS: 1300, runs: 2, setup() {
+    const f = organicTorus(316, 316), I: number[] = [];
+    for (let t = 0; t < f.indices.length / 3; t++) { if (t % 997 === 5) continue; const a = f.indices[3 * t], b = f.indices[3 * t + 1], c = f.indices[3 * t + 2]; if (t % 1500 < 40) I.push(a, c, b); else I.push(a, b, c); }
+    const P: number[] = [], J: number[] = []; for (let k = 0; k < I.length; k++) { const v = I[k]; P.push(f.positions[3 * v], f.positions[3 * v + 1], f.positions[3 * v + 2]); J.push(k); }
+    return () => [diagnoseMesh(P, J), repairMesh(P, J)];
   } },
   { name: 'direct: pole-drag step (warped sheet)', budgetMS: 10, runs: 20, setup() {
     let d = importSource(emptyDirect(), readFileSync(join(root, 'test/fixtures/warp.barocad'), 'utf8'), 'warp');

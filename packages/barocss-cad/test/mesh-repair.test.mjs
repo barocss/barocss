@@ -89,6 +89,14 @@ test('flipped triangles turned back; a mesh wound inside out turned outward; bot
   assert.ok(Math.abs(volumeOf(o.positions, o.indices) - 1000) < 1e-9);
 });
 
+test('PERF3 B11: a triangle turned by both passes counts once — the first triangle among the flipped ones (the orient pass then turns all the others, the outward pass all of them back): 3 turned, not 3 + the rest twice', () => {
+  const { P, I } = gridBox(), f = I.slice();
+  for (const t of [0, 9, 20]) { const x = f[3 * t + 1]; f[3 * t + 1] = f[3 * t + 2]; f[3 * t + 2] = x; }
+  const r = repairMesh(P, f);
+  assert.equal(r.report.flipped, 3); assert.ok(r.report.closed);
+  assert.ok(Math.abs(volumeOf(r.positions, r.indices) - 1000) < 1e-9);
+});
+
 test('a fin on an edge (three triangles there) dropped; degenerate and duplicate triangles dropped; all counted', () => {
   const { P, I } = gridBox(), apex = P.length / 3, Q = [...P, 3, 3, 9];
   const J = [...I, I[0], I[1], apex, I[1], I[0], apex];

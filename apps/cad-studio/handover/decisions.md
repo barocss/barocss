@@ -3695,3 +3695,38 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - The rest is the exact Boolean's work per near face (pieces, regions on the cylinder's arrangement, merging the mesh's coplanar quads back, stitching) and the rebuild of the whole facet body (about 280 ms at 180k).
   - Narrowing the near region (a prism round the tool instead of a box), carrying the self-crossing check over to an F2 result, or rebuilding only the near faces would each change what the Boolean sees or builds. They go with F3.
 - **Also seen:** at 400 × 250 (200k), the same hole is refused, typed, as "not a manifold solid (… the inputs touch along an edge or at a vertex)". This is the known F2-at-fine-meshes item, unchanged by this step.
+
+### B11 — mesh repair adjacency
+- **Confirmed (200k-triangle STL-like soup, 190 holes, turned patches):**
+  - diagnose and repair together took 1 241 ms. Of that:
+    - the final check, 300 ms;
+    - orient, 136–183 ms;
+    - fins and floaters, about 90 ms each;
+    - diagnose, 370 ms.
+  - The profile:
+    - **`edgeSides`** built a `Map` of arrays, one per edge, keyed lo·nv + hi. It was built five times in a repair (fins, orient, holes, floaters, check) and once in diagnose: 433 ms across them.
+    - **`selfIntersections`** (in diagnose and in the check): a `Map` of arrays for its grid cells. Its narrow phase ran six segment-through-triangle tests for every pair of nearby triangles that share no corner: 420 ms in `segmentThrough`.
+- **Fix (`mesh-repair.ts`):**
+  - **`edgeSides`** now uses typed arrays. Half-edges are bucketed by their lower vertex, each matched to the first one with the same upper vertex in its bucket. The edges are numbered in the order of their first half-edge, which is the order the map gave, with each edge's half-edges ascending. Every consumer walks the groups the way it walked the map.
+  - **`selfIntersections`:**
+    - The cells are typed runs: entries sorted by cell with two stable 16-bit counting passes, each cell taken at its first entry. These are the same pairs in the same order, so the first 64 crossing points are the same too.
+    - A pair is passed over when one triangle lies clear on one side of the other's plane: every corner farther than a millionth of the two boxes' size, the same side. Then no edge of either passes through the other, so the strict test cannot count it. A millionth is far beyond the test's own 1e-9 and rounding.
+- **The same results:** `diagnoseMesh` and `repairMesh` outputs were hashed whole, old code against new, and are identical:
+  - every bench fixture (organic 2k–200k, scan 200k, the six broken ones);
+  - the 200k soup;
+  - two tori through each other, with 2 614 crossings.
+- **Defect found while measuring, fixed:** `report.flipped` counted every turn of either pass. When the orient pass starts from a triangle inside a turned patch, it turns all the others, and the outward pass turns them all back. On the 200k soup, about 5 300 triangles were wrong and the report said "393 667 triangles turned"; the panel shows that number. Now a triangle counts once, if it ends the other way round from how it came and is kept. New test: three turned triangles, the first among them; the code before reported 109.
+- **After:**
+
+  | | Before | After |
+  |---|---|---|
+  | organic-200k, diagnose + repair | 1 255 ms | 677 ms |
+  | scan-200k | 1 442 ms | 830 ms |
+  | 200k soup | 1 241 ms | 829 ms |
+  | two crossing tori | 48 ms | 29 ms |
+
+  - Bench `mesh: diagnose and repair, 200k soup`: 639 ms, budget 1 300.
+- **Checks:**
+  - Kernel 1016/1017 (the known Node-version test); `mesh-repair.test.mjs` 10/10.
+  - Conformance 67/67; RB no NEW row.
+  - Studio 356/356, with the mesh repair corpus.

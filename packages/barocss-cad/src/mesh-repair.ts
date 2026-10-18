@@ -94,20 +94,42 @@ function prepare(positions: ArrayLike<number>, indices: ArrayLike<number> | null
   }
   return { P: Array.from(P), T, nv };
 }
-/** Sides of each undirected edge (half-edge ids 3t + k), keyed lo·nv + hi. */
-function edgeSides(T: number[], nv: number): Map<number, number[]> {
-  const sides = new Map<number, number[]>();
-  for (let h = 0; h < T.length; h++) {
-    const a = T[h], b = T[h - h % 3 + (h % 3 + 1) % 3], key = Math.min(a, b) * nv + Math.max(a, b), list = sides.get(key);
-    if (list) list.push(h); else sides.set(key, [h]);
+/**
+ * The sides of each undirected edge (half-edge ids 3t + k), in typed arrays: edge g's half-edges are
+ * half[start[g]] … half[start[g + 1] − 1], ascending, and the edges come in the order their first half-edge
+ * does (the order a map keyed by the edge, filled half-edge by half-edge, would give).
+ */
+interface Sides { readonly half: Int32Array; readonly start: Int32Array; readonly count: number }
+function edgeSides(T: number[], nv: number): Sides {
+  const H = T.length, lo = new Int32Array(H), hi = new Int32Array(H), at = new Int32Array(nv + 1);
+  for (let h = 0; h < H; h++) { const a = T[h], b = T[h - h % 3 + (h % 3 + 1) % 3]; lo[h] = a < b ? a : b; hi[h] = a < b ? b : a; at[lo[h] + 1]++; }
+  for (let v = 0; v < nv; v++) at[v + 1] += at[v];
+  // Half-edges bucketed by their lower vertex (ascending within a bucket); each one's first equal half-edge found
+  // in its bucket, the half-edges of an edge numbered as one group, groups in their first half-edge's order.
+  const byLo = new Int32Array(H), fill = at.slice(0, nv), head = new Int32Array(H);
+  for (let h = 0; h < H; h++) byLo[fill[lo[h]]++] = h;
+  for (let v = 0; v < nv; v++) for (let i = at[v]; i < at[v + 1]; i++) {
+    const h = byLo[i]; let first = h;
+    for (let j = at[v]; j < i; j++) { const o = byLo[j]; if (hi[o] === hi[h]) { first = head[o]; break; } }
+    head[h] = first;
   }
-  return sides;
+  const group = new Int32Array(H), size: number[] = [];
+  for (let h = 0; h < H; h++) { if (head[h] === h) { group[h] = size.length; size.push(1); } else size[group[h] = group[head[h]]]++; }
+  const count = size.length, start = new Int32Array(count + 1), half = new Int32Array(H);
+  for (let g = 0; g < count; g++) start[g + 1] = start[g] + size[g];
+  const next = start.slice(0, count);
+  for (let h = 0; h < H; h++) half[next[group[h]]++] = h;
+  return { half, start, count };
+}
+/** Across each two-sided edge: the other half-edge. */
+function acrossOf(sides: Sides, across: Int32Array): void {
+  for (let g = 0; g < sides.count; g++) if (sides.start[g + 1] - sides.start[g] === 2) { const a = sides.half[sides.start[g]], b = sides.half[sides.start[g] + 1]; across[a] = b; across[b] = a; }
 }
 const from = (T: number[], h: number) => T[h], to = (T: number[], h: number) => T[h - h % 3 + (h % 3 + 1) % 3];
 /** Pieces through two-triangle edges: each triangle's piece. */
-function pieces(T: number[], sides: Map<number, number[]>): { of: Int32Array; count: number } {
+function pieces(T: number[], sides: Sides): { of: Int32Array; count: number } {
   const nt = T.length / 3, of = new Int32Array(nt).fill(-1), across = new Int32Array(T.length).fill(-1), queue = new Int32Array(nt);
-  for (const list of sides.values()) if (list.length === 2) { across[list[0]] = list[1]; across[list[1]] = list[0]; }
+  acrossOf(sides, across);
   let count = 0;
   for (let s = 0; s < nt; s++) {
     if (of[s] >= 0) continue;
@@ -123,9 +145,9 @@ function volumesOf(P: number[], T: number[], of: Int32Array, count: number): num
   return v;
 }
 /** Hole loops (in fill order: the rim's edges run backwards), from the edges with one triangle. */
-function holeLoops(T: number[], sides: Map<number, number[]>): number[][] {
-  const out = new Map<number, number[]>();
-  for (const list of sides.values()) if (list.length === 1) { const h = list[0], a = to(T, h), b = from(T, h); const l = out.get(a); if (l) l.push(b); else out.set(a, [b]); }
+function holeLoops(T: number[], sides: Sides): number[][] {
+  const out = new Map<number, number[]>(), { half, start } = sides;
+  for (let g = 0; g < sides.count; g++) if (start[g + 1] - start[g] === 1) { const h = half[start[g]], a = to(T, h), b = from(T, h); const l = out.get(a); if (l) l.push(b); else out.set(a, [b]); }
   const loops: number[][] = [];
   for (const start of [...out.keys()].sort((x, y) => x - y)) {
     while (out.get(start)?.length) {
@@ -145,7 +167,7 @@ export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const counts = { welded: 0, degenerate: 0, duplicates: 0 }, m = prepare(positions, indices, { weldMM: options.weldMM }, counts);
   const sides = edgeSides(m.T, m.nv), { of, count } = pieces(m.T, sides);
   let nonManifold = 0, inconsistent = 0;
-  for (const list of sides.values()) { if (list.length > 2) nonManifold++; else if (list.length === 2 && from(m.T, list[0]) === from(m.T, list[1])) inconsistent++; }
+  for (let g = 0; g < sides.count; g++) { const s0 = sides.start[g], n = sides.start[g + 1] - s0; if (n > 2) nonManifold++; else if (n === 2 && from(m.T, sides.half[s0]) === from(m.T, sides.half[s0 + 1])) inconsistent++; }
   const loops = holeLoops(m.T, sides), vols = volumesOf(m.P, m.T, of, count).map(Math.abs), largest = Math.max(0, ...vols);
   const crossing = selfIntersections(Float64Array.from(m.P), Uint32Array.from(m.T));
   return {
@@ -174,23 +196,26 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
     progress?.('fins');
     const sides = edgeSides(T, m.nv), { of, count } = pieces(T, sides), vols = volumesOf(P, T, of, count), size = new Float64Array(count), open = new Uint8Array(count), fin = new Uint8Array(count);
     for (let t = 0; t < T.length / 3; t++) size[of[t]]++;
-    for (const list of sides.values()) if (list.length === 1) open[of[(list[0] / 3) | 0]] = 1;
+    const { half, start } = sides;
+    for (let g = 0; g < sides.count; g++) if (start[g + 1] - start[g] === 1) open[of[(half[start[g]] / 3) | 0]] = 1;
     let span = 1; for (const x of P) span = Math.max(span, Math.abs(x));
-    for (const list of sides.values()) {
-      if (list.length <= 2) continue;
-      let keep = -1; for (const h of list) { const k = of[(h / 3) | 0]; if (keep < 0 || size[k] > size[keep]) keep = k; }
-      for (const h of list) { const k = of[(h / 3) | 0]; if (k !== keep && (open[k] || Math.abs(vols[k]) <= 1e-9 * span ** 3)) fin[k] = 1; }
+    for (let g = 0; g < sides.count; g++) {
+      if (start[g + 1] - start[g] <= 2) continue;
+      let keep = -1; for (let i = start[g]; i < start[g + 1]; i++) { const k = of[(half[i] / 3) | 0]; if (keep < 0 || size[k] > size[keep]) keep = k; }
+      for (let i = start[g]; i < start[g + 1]; i++) { const k = of[(half[i] / 3) | 0]; if (k !== keep && (open[k] || Math.abs(vols[k]) <= 1e-9 * span ** 3)) fin[k] = 1; }
     }
     const keep: number[] = [];
     for (let t = 0; t < T.length / 3; t++) { if (fin[of[t]]) finTriangles++; else keep.push(T[3 * t], T[3 * t + 1], T[3 * t + 2]); }
     for (let k = 0; k < count; k++) if (fin[k]) finsRemoved++;
     T = keep;
   }
+  // Which mesh triangles have been turned (the fill's, added later, are never counted).
+  const turned = new Uint8Array(T.length / 3);
   // Orient: across each two-triangle edge the neighbour runs it the other way (breadth first), then each piece outward.
   if (s.orient) {
     progress?.('orient');
     const sides = edgeSides(T, m.nv), nt = T.length / 3, flip = new Int8Array(nt).fill(-1), queue = new Int32Array(nt), across = new Int32Array(T.length).fill(-1);
-    for (const list of sides.values()) if (list.length === 2) { across[list[0]] = list[1]; across[list[1]] = list[0]; }
+    acrossOf(sides, across);
     for (let s0 = 0; s0 < nt; s0++) {
       if (flip[s0] >= 0) continue;
       let head = 0, tail = 0; queue[tail++] = s0; flip[s0] = 0;
@@ -204,7 +229,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
         }
       }
     }
-    for (let t = 0; t < nt; t++) if (flip[t]) { const b = T[3 * t + 1]; T[3 * t + 1] = T[3 * t + 2]; T[3 * t + 2] = b; flipped++; }
+    for (let t = 0; t < nt; t++) if (flip[t]) { const b = T[3 * t + 1]; T[3 * t + 1] = T[3 * t + 2]; T[3 * t + 2] = b; turned[t] = 1; }
   }
   // Fill holes.
   const fillOf: number[] = new Array<number>(T.length / 3).fill(-1);
@@ -226,10 +251,13 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   progress?.('floaters');
   {
     const sides = edgeSides(T, m.nv), { of, count } = pieces(T, sides), vols = volumesOf(P, T, of, count), open = new Uint8Array(count);
-    for (const list of sides.values()) if (list.length !== 2) for (const h of list) open[of[(h / 3) | 0]] = 1;
-    if (s.orient) for (let t = 0; t < T.length / 3; t++) if (!open[of[t]] && vols[of[t]] < 0) { const b = T[3 * t + 1]; T[3 * t + 1] = T[3 * t + 2]; T[3 * t + 2] = b; if (fillOf[t] < 0) flipped++; }
+    for (let g = 0; g < sides.count; g++) if (sides.start[g + 1] - sides.start[g] !== 2) for (let i = sides.start[g]; i < sides.start[g + 1]; i++) open[of[(sides.half[i] / 3) | 0]] = 1;
+    if (s.orient) for (let t = 0; t < T.length / 3; t++) if (!open[of[t]] && vols[of[t]] < 0) { const b = T[3 * t + 1]; T[3 * t + 1] = T[3 * t + 2]; T[3 * t + 2] = b; if (fillOf[t] < 0) turned[t] ^= 1; }
     const largest = Math.max(0, ...vols.map(Math.abs)), drop = new Uint8Array(count);
     if (s.floaters) for (let k = 0; k < count; k++) if (!open[k] && Math.abs(vols[k]) < s.floaters.minFraction * largest) { drop[k] = 1; floatersRemoved++; floaterVolume += Math.abs(vols[k]); }
+    // (Turned: a mesh triangle that ends the other way round from how it came, counted once — the orient pass and the
+    // outward pass can turn one twice — and only when it is kept.)
+    for (let t = 0; t < T.length / 3; t++) if (fillOf[t] < 0 && turned[t] && !drop[of[t]]) flipped++;
     if (floatersRemoved) {
       const keep: number[] = [], keepFill: number[] = [];
       for (let t = 0; t < T.length / 3; t++) if (!drop[of[t]]) { keep.push(T[3 * t], T[3 * t + 1], T[3 * t + 2]); keepFill.push(fillOf[t]); }
@@ -243,7 +271,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   progress?.('check');
   const outList = Array.from(outT), finalSides = edgeSides(outList, outP.length / 3);
   let nonManifoldLeft = 0, openEdges = 0, wrong = 0;
-  for (const list of finalSides.values()) { if (list.length > 2) nonManifoldLeft++; else if (list.length === 1) openEdges++; else if (from(outList, list[0]) === from(outList, list[1])) wrong++; }
+  for (let g = 0; g < finalSides.count; g++) { const s0 = finalSides.start[g], n = finalSides.start[g + 1] - s0; if (n > 2) nonManifoldLeft++; else if (n === 1) openEdges++; else if (from(outList, finalSides.half[s0]) === from(outList, finalSides.half[s0 + 1])) wrong++; }
   const positionsOut = Float64Array.from(outP);
   return {
     positions: positionsOut, indices: outT, fill: Int32Array.from(fillOf),
@@ -381,25 +409,76 @@ export function selfIntersections(P: Float64Array, I: Uint32Array): { count: num
   }
   const cell = Math.max(1e-12, 2 * edge / (3 * nt)), n = [0, 1, 2].map(k => Math.max(1, Math.min(1024, Math.ceil((hi[k] - lo[k]) / cell) + 1)));
   const at0 = (x: number, k: number) => Math.min(n[k] - 1, Math.max(0, Math.floor((x - lo[k]) / cell)));
-  const cells = new Map<number, number[]>();
-  for (let t = 0; t < nt; t++) {
+  // Cells as typed runs: an entry (triangle, cell) per cell a box covers, in the order a map keyed by the cell would
+  // be filled; the entries sorted by cell (two stable 16-bit passes), then the cells taken in the order of their first
+  // entry, each cell's triangles ascending — the same pairs, in the same order, as that map.
+  let E = 0;
+  for (let t = 0; t < nt; t++) E += (at0(box[6 * t + 3], 0) - at0(box[6 * t], 0) + 1) * (at0(box[6 * t + 4], 1) - at0(box[6 * t + 1], 1) + 1) * (at0(box[6 * t + 5], 2) - at0(box[6 * t + 2], 2) + 1);
+  const keyOf = new Int32Array(E), triOf = new Int32Array(E);
+  for (let t = 0, e = 0; t < nt; t++) {
     const x0 = at0(box[6 * t], 0), y0 = at0(box[6 * t + 1], 1), z0 = at0(box[6 * t + 2], 2), x1 = at0(box[6 * t + 3], 0), y1 = at0(box[6 * t + 4], 1), z1 = at0(box[6 * t + 5], 2);
-    for (let z = z0; z <= z1; z++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const key = x + n[0] * (y + n[1] * z), l = cells.get(key); if (l) l.push(t); else cells.set(key, [t]); }
+    for (let z = z0; z <= z1; z++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { keyOf[e] = x + n[0] * (y + n[1] * z); triOf[e++] = t; }
   }
+  const order = radixByKey(keyOf), firstOf = new Int32Array(E).fill(-1), runEnd = new Int32Array(E);
+  // (Runs of one key in the sorted order; each run indexed by its first entry, which is its earliest.)
+  for (let i = 0; i < E;) { let k = i + 1; while (k < E && keyOf[order[k]] === keyOf[order[i]]) k++; firstOf[order[i]] = i; runEnd[i] = k; i = k; }
+  const planes = trianglePlanes(P, I, nt);
   let count = 0; const at: Point[] = [];
-  for (const [key, list] of cells) {
-    const cx = key % n[0], cy = Math.floor(key / n[0]) % n[1], cz = Math.floor(key / (n[0] * n[1]));
-    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
-      const a = list[i], b = list[j];
+  for (let e = 0; e < E; e++) {
+    const r0 = firstOf[e]; if (r0 < 0) continue;
+    const r1 = runEnd[r0], key = keyOf[e], cx = key % n[0], cy = Math.floor(key / n[0]) % n[1], cz = Math.floor(key / (n[0] * n[1]));
+    for (let i = r0; i < r1; i++) for (let j = i + 1; j < r1; j++) {
+      const a = triOf[order[i]], b = triOf[order[j]];
       if (box[6 * b] > box[6 * a + 3] || box[6 * a] > box[6 * b + 3] || box[6 * b + 1] > box[6 * a + 4] || box[6 * a + 1] > box[6 * b + 4] || box[6 * b + 2] > box[6 * a + 5] || box[6 * a + 2] > box[6 * b + 5]) continue;
       // (Only in the first cell the two boxes share: each pair once.)
       if (at0(Math.max(box[6 * a], box[6 * b]), 0) !== cx || at0(Math.max(box[6 * a + 1], box[6 * b + 1]), 1) !== cy || at0(Math.max(box[6 * a + 2], box[6 * b + 2]), 2) !== cz) continue;
-      if (shareCorner(I, a, b) || !trianglesCross(P, I, a, b)) continue;
+      if (shareCorner(I, a, b) || apart(planes, box, P, I, a, b) || apart(planes, box, P, I, b, a) || !trianglesCross(P, I, a, b)) continue;
       count++;
       if (at.length < 64) { const p: Point = [0, 0, 0]; for (let j2 = 0; j2 < 3; j2++) for (let k = 0; k < 3; k++) p[k] += (P[3 * I[3 * a + j2] + k] + P[3 * I[3 * b + j2] + k]) / 6; at.push(p); }
     }
   }
   return { count, at };
+}
+/** Entry indices ordered by their key (non-negative, below 2³¹), stably: two counting passes of 16 bits. */
+function radixByKey(key: Int32Array): Int32Array {
+  const E = key.length, tmp = new Int32Array(E), out = new Int32Array(E), count = new Int32Array(65537);
+  for (let e = 0; e < E; e++) count[(key[e] & 0xffff) + 1]++;
+  for (let k = 0; k < 65536; k++) count[k + 1] += count[k];
+  for (let e = 0; e < E; e++) tmp[count[key[e] & 0xffff]++] = e;
+  count.fill(0);
+  for (let e = 0; e < E; e++) count[(key[e] >>> 16) + 1]++;
+  for (let k = 0; k < 65536; k++) count[k + 1] += count[k];
+  for (let i = 0; i < E; i++) { const e = tmp[i]; out[count[key[e] >>> 16]++] = e; }
+  return out;
+}
+/** Each triangle's plane: its normal (b − a) × (c − a) and that normal's length. */
+function trianglePlanes(P: Float64Array, I: Uint32Array, nt: number): Float64Array {
+  const out = new Float64Array(4 * nt);
+  for (let t = 0; t < nt; t++) {
+    const a = 3 * I[3 * t], b = 3 * I[3 * t + 1], c = 3 * I[3 * t + 2];
+    const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    out[4 * t] = nx; out[4 * t + 1] = ny; out[4 * t + 2] = nz; out[4 * t + 3] = Math.hypot(nx, ny, nz);
+  }
+  return out;
+}
+/**
+ * Whether b lies clear on one side of a's plane: its corners all farther than a millionth of the two boxes'
+ * size from it, the same side. Then no edge of either passes through the other (an edge of b would cross the
+ * plane; one of a, in the plane, would meet b there), so the strict test cannot find a crossing — far beyond its
+ * own tolerances (1e-9 of an edge) and rounding.
+ */
+function apart(planes: Float64Array, box: Float64Array, P: Float64Array, I: Uint32Array, a: number, b: number): boolean {
+  const nx = planes[4 * a], ny = planes[4 * a + 1], nz = planes[4 * a + 2], o = 3 * I[3 * a];
+  let size = 0; for (let k = 0; k < 3; k++) size = Math.max(size, box[6 * a + 3 + k] - box[6 * a + k], box[6 * b + 3 + k] - box[6 * b + k]);
+  const margin = 1e-6 * planes[4 * a + 3] * size;
+  if (!(margin > 0)) return false;
+  let above = 0, below = 0;
+  for (let j = 0; j < 3; j++) {
+    const v = 3 * I[3 * b + j], d = nx * (P[v] - P[o]) + ny * (P[v + 1] - P[o + 1]) + nz * (P[v + 2] - P[o + 2]);
+    if (d > margin) above++; else if (d < -margin) below++; else return false;
+  }
+  return above === 3 || below === 3;
 }
 function shareCorner(I: Uint32Array, a: number, b: number): boolean {
   for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (I[3 * a + i] === I[3 * b + j]) return true;
