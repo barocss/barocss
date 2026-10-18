@@ -1,7 +1,9 @@
 // The studio's chat tools as an MCP server (stdio, newline-delimited JSON-RPC) for the `claude` CLI.
 // The part lives in a state file the chat server writes before the turn and reads after each tool call:
 // {doc, selection?, changed}. Tools run in Node on the same engine as the studio (src/chat/tools.ts).
-import { readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { registerLibrary } from '../src/library/libraries';
 import { createInterface } from 'node:readline';
 import { evaluateDoc } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
@@ -57,4 +59,11 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
   await queue;
 }
 
-if (process.env.CAD_CHAT_STATE) void serveMcp(process.env.CAD_CHAT_STATE);
+/** The team's libraries (LIB4, D64) from its folder, so the agent's insert_part finds them too; one that does not load is skipped. */
+export function registerTeamLibraries(dir: string | undefined): number {
+  if (!dir) return 0;
+  let n = 0;
+  try { for (const name of readdirSync(dir).filter(x => x.endsWith('.json') && !x.endsWith('.check.json'))) { try { registerLibrary(JSON.parse(readFileSync(join(dir, name), 'utf8')), 'team'); n++; } catch { /* skipped */ } } } catch { /* no folder */ }
+  return n;
+}
+if (process.env.CAD_CHAT_STATE) { registerTeamLibraries(process.env.CAD_TEAM_LIBRARIES); void serveMcp(process.env.CAD_CHAT_STATE); }

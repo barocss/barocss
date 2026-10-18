@@ -7,6 +7,8 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, tablesFor } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import type { ToolDefinition } from './api';
+import { addDocLibrary, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
+import { UNLICENSED } from '../library/sharing';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -81,7 +83,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -162,6 +164,50 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       return changed(doc, { ...doc, instances: r.instances, mates: list }, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(mate, list.indexOf(mate))} (${mate.id}): ${mate.b.part}.${mate.b.face} to ${mate.a.part}.${mate.a.face}`, state.bodies, evaluate,
         { mate: mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation_deg: moved.rotation.map(r3) }, freedom_left: r.freedom[moved.id] });
     }
+    case 'list_library': {
+      // (LIB4: what the libraries hold — read only.)
+      registerDocLibraries(doc);
+      const only = typeof args.library === 'string' ? args.library : null, list = libraries().filter(e => !only || e.library.manifest.id === only);
+      if (only && !list.length) return fail(doc, `No library "${only}"; libraries: ${libraries().map(e => e.library.manifest.id).join(', ')}.`);
+      const out = list.map(({ library: { manifest: m }, source, license, estimates, authoredBy, confirmed }) => ({
+        id: m.id, name: m.name, version: m.libraryVersion, source, license: license ?? UNLICENSED, estimates, ...(authoredBy === 'agent' ? { authored_by: 'agent', confirmed } : {}), ...(m.provenance ? { provenance: m.provenance } : {}),
+        parts: m.parts.map(p => ({ id: p.id, name: p.name, ...(p.category ? { category: p.category } : {}), ...(p.simplified ? { simplified: true } : {}),
+          ...(p.variants?.length ? { variants: p.variants.map(v => ({ id: v.id, ...(v.name ? { name: v.name } : {}) })) } : {}),
+          parameters: Object.fromEntries(Object.entries(p.parameters).filter(([, q]) => typeof q.value === 'number').map(([k, q]) => [k, { value: q.value, ...(q.unit ? { unit: q.unit } : {}), ...(q.min !== undefined ? { min: q.min } : {}), ...(q.max !== undefined ? { max: q.max } : {}), ...(q.estimate ? { estimate: true } : {}), ...(q.description ? { about: q.description } : {}) }])),
+          interfaces: (p.interfaces ?? []).map(i => ({ id: i.id, role: i.role, ...(i.accepts ? { accepts: i.accepts } : {}), ...(i.when ? { when: i.when } : {}) })) })),
+        ...(m.fits?.length ? { fits: m.fits.map(f => ({ id: f.id, a: f.a, b: f.b, ...(f.offset ? { offset: f.offset } : {}) })) } : {}),
+      }));
+      return { doc, content: json({ libraries: out, note: 'insert_part {library, part, variant?, params?} adds one as a new placed part; snap_part {a: {part, interface}, b: {part, interface}, offset?} places b onto a by their interfaces with real mates' }), isError: false, changed: false, summary: `${out.length} librar${out.length === 1 ? 'y' : 'ies'}` };
+    }
+    case 'insert_part': {
+      if (typeof args.library !== 'string' || typeof args.part !== 'string') return fail(doc, '"library" and "part" are required (list_library lists them).');
+      const params = args.params === undefined ? undefined : isObj(args.params) && Object.values(args.params).every(v => typeof v === 'number') ? args.params as Record<string, number> : null;
+      if (params === null) return fail(doc, '"params" maps parameter names to numbers.');
+      try {
+        const r = libraryInstance(doc, args.library, args.part, { ...(typeof args.variant === 'string' ? { variant: args.variant } : {}), ...(params ? { params } : {}), ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}), ...(vec3(args.position) ? { position: vec3(args.position)! } : {}), ...(vec3(args.rotation) ? { rotation: vec3(args.rotation)! } : {}) });
+        const inst = r.doc.instances!.find(i => i.id === r.id)!, node = inst.doc.nodes[0] as Extract<StudioDoc['nodes'][number], { kind: 'library' }>;
+        return changed(doc, r.doc, `inserted ${r.id} "${inst.name}" from ${args.library}`, state.bodies, evaluate,
+          { part: r.id, interfaces: node.interfaces.map(i => ({ id: i.id, role: i.role, ...(i.accepts ? { accepts: i.accepts } : {}) })), ...(node.warnings.length ? { warnings: node.warnings } : {}) });
+      } catch (cause) { return fail(doc, cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause)); }
+    }
+    case 'add_library': {
+      // (An agent's library: data, checked as any; kept with the document, marked until a person confirms it.)
+      if (!isObj(args.library)) return fail(doc, '"library" is the library\'s JSON: {format: "barocss-cad-library", version: 1, id, name, libraryVersion, units: "mm", license, parts, fits?}.');
+      try {
+        const r = addDocLibrary(doc, args.library, 'agent');
+        return { doc: r.doc, isError: false, changed: true, summary: `added library ${String(args.library.id)} (${r.check.ok ? 'checked' : `${r.check.problems.length} problems`})`,
+          content: json({ ok: true, library: args.library.id, check: r.check, license: r.license ?? UNLICENSED, estimates: r.estimates, authored_by: 'agent', note: 'kept with this document, marked as an agent\'s until a person confirms it; insert its parts with insert_part' }) };
+      } catch (cause) { return fail(doc, cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause)); }
+    }
+    case 'snap_part': {
+      const end = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.interface === 'string' ? { part: v.part, interface: v.interface } : null;
+      const a = end(args.a), b = end(args.b), offset = args.offset === undefined ? [0, 0, 0] : vec3(args.offset);
+      if (!a || !b) return fail(doc, '"a" and "b" are {part, interface}: b moves onto a (list_library and insert_part give the interfaces).');
+      if (!offset) return fail(doc, '"offset" is [x, y, z] in a\'s interface frame (x along it).');
+      const r = snapByInterfaces(doc, a, b, offset);
+      if ('error' in r) return fail(doc, r.error);
+      return changed(doc, r.doc, `snapped ${b.part}.${b.interface} onto ${a.part}.${a.interface}`, state.bodies, evaluate, { mates: r.mates.map(m => ({ id: m.id, kind: m.kind, a: m.a, b: m.b })) });
+    }
     case 'delete_mate': {
       if (!mates.some(m => m.id === args.id)) return fail(doc, `No mate "${String(args.id)}"; mates: ${mates.map(m => m.id).join(', ') || 'none'}.`);
       return changed(doc, { ...doc, mates: mates.filter(m => m.id !== args.id) }, `deleted mate ${String(args.id)} (its part stays where it is)`, state.bodies, evaluate);
@@ -171,6 +217,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
 }
 
 const ref = { type: 'object', properties: { part: { type: 'string' }, face: { type: 'string' } }, required: ['part', 'face'], additionalProperties: false };
+const end = { type: 'object', properties: { part: { type: 'string' }, interface: { type: 'string' } }, required: ['part', 'interface'], additionalProperties: false };
 const xyz = { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 };
 
 export const ASSEMBLY_TOOLS: ToolDefinition[] = [
@@ -203,6 +250,26 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'edit_mate',
     description: 'Changes a mate\'s distance, angle or flip, re-solving; refused (unchanged) when it cannot be met.',
     input_schema: { type: 'object', properties: { id: { type: 'string' }, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['id'], additionalProperties: false },
+  },
+  {
+    name: 'list_library',
+    description: 'The part libraries (built-in, team, user): each part with its variants, parameters (value, unit, limits; estimate: not from a source), interfaces (role, the roles they accept) and the library\'s declared fits. Library parts are data: catalogue parts made of ordinary features.',
+    input_schema: { type: 'object', properties: { library: { type: 'string', description: 'One library\'s id; all when left out.' } }, additionalProperties: false },
+  },
+  {
+    name: 'insert_part',
+    description: 'Inserts a library part as a new placed part (an instance): its features kept with the document, so it opens without the library. Its estimates and caveats come back as warnings. Place it with snap_part (by interfaces), mates or place_part.',
+    input_schema: { type: 'object', properties: { library: { type: 'string' }, part: { type: 'string' }, variant: { type: 'string' }, params: { type: 'object', additionalProperties: { type: 'number' } }, name: { type: 'string' }, position: xyz, rotation: xyz }, required: ['library', 'part'], additionalProperties: false },
+  },
+  {
+    name: 'add_library',
+    description: 'Adds a part library written as data (a manifest of parts: parameters each with a source or estimate: true, variants, a recipe of ordinary part-model features with {expr} values and `when`, interfaces with frames, declared fits). Checked at once: it loads, every part builds valid in every variant, its fits touch without overlapping. Kept with the document, marked as written by an agent until a person confirms it. No imported models (STEP, meshes) in a library.',
+    input_schema: { type: 'object', properties: { library: { type: 'object' } }, required: ['library'], additionalProperties: false },
+  },
+  {
+    name: 'snap_part',
+    description: 'Snaps part b onto part a by their library interfaces: placed exactly (b\'s interface facing a\'s, moved by offset along a\'s interface frame: x along it — a slot\'s length — then y, z) and held by real mates on the interfaces\' faces (flat flush, round on one axis), leaving free what they leave free (a nut slides along its slot). The roles must accept each other.',
+    input_schema: { type: 'object', properties: { a: end, b: end, offset: xyz }, required: ['a', 'b'], additionalProperties: false },
   },
   {
     name: 'delete_mate',

@@ -14,11 +14,13 @@ const listening = () => new Promise<boolean>(done => {
   const socket = connect(chatPort, '127.0.0.1'), end = (up: boolean) => { socket.destroy(); done(up); };
   socket.once('connect', () => end(true)); socket.once('error', () => end(false)); socket.setTimeout(500, () => end(false));
 });
+// (So too the team libraries' list, LIB4: none without the chat server.)
 const chatOff: Connect.NextHandleFunction = (req, res, next) => {
-  if (req.url?.split('?')[0] !== '/api/chat/status') return next();
+  const path = req.url?.split('?')[0];
+  if (path !== '/api/chat/status' && !(path === '/api/chat/libraries' && req.method === 'GET')) return next();
   void listening().then(up => {
     if (up) return next();
-    res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ enabled: false }));
+    res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(path === '/api/chat/status' ? { enabled: false } : { libraries: [], note: 'No chat server: no team libraries.' }));
   });
 };
 const chatStatusOff: Plugin = { name: 'cad-studio-chat-status-off', configureServer: s => { s.middlewares.use(chatOff); }, configurePreviewServer: s => { s.middlewares.use(chatOff); } };

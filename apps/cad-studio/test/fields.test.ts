@@ -33,6 +33,7 @@ function full(): StudioDoc {
     proposals: [{ id: 'P1', title: 'thicker', status: 'rejected', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', base: '00000000', ops: [], summary: 'no change',
       risk: { level: 'low', features_touched: 0, references_broken: 0, hard_requirements_changed: [], approval: [] } }],
     history: [{ id: 'h1', at: '2026-10-18T00:00:00Z', kind: 'prompt', by: { agent: 'chat' }, prompt: 'a plate' }],
+    libraries: [{ library: { format: 'barocss-cad-library', version: 1, id: 'mine', name: 'Mine', libraryVersion: '1.0.0', units: 'mm', parts: [{ id: 'p', name: 'P', parameters: { w: { value: 5, source: 'test' } }, recipe: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ expr: 'w' }, 5] }, { id: 'b', kind: 'extrude', sketch: 's', height: 5 }] }] }, authoredBy: 'agent', confirmed: false }],
   };
   return values as StudioDoc;
 }

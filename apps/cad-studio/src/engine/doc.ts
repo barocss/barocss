@@ -169,7 +169,7 @@ import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from '../chat/spec';
-import type { CadLibraryInterface, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
+import type { CadLibraryInterface, CadLibraryManifest, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
 import type { HistoryEntry, Proposal } from '../chat/proposals';
 
 /**
@@ -187,6 +187,11 @@ export interface StudioDoc {
   nextId?: number;
   units: 'mm';
   parameters: Record<string, number>;
+  /**
+   * Libraries written for this document (LIB4, D64), by an agent or a person: data, checked on load like any other;
+   * an agent's stays marked until a person confirms it (and only then may it be shared with the team).
+   */
+  libraries?: { library: CadLibraryManifest; authoredBy: 'agent' | 'person'; confirmed?: boolean }[];
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**
@@ -290,7 +295,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements', 'proposals', 'history'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements', 'proposals', 'history', 'libraries'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

@@ -7,27 +7,100 @@ import { checkLibraryFit, instantiateLibraryPart, loadCadLibrary, placeByInterfa
 import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import tslot20 from './builtin/tslot-20.json';
+import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
-export interface LibraryEntry { readonly library: CadLibrary; readonly source: LibrarySource }
+/**
+ * A loaded library and what is known of it (LIB4, D64): its licence (null: unlicensed, private use only), how many of
+ * its values are estimates, who wrote it (an agent's stays marked until a person confirms it), and the check it last
+ * passed or failed before sharing.
+ */
+export interface LibraryEntry {
+  readonly library: CadLibrary; readonly source: LibrarySource; readonly license: string | null; readonly estimates: number;
+  readonly authoredBy: 'person' | 'agent'; readonly confirmed: boolean; readonly check?: LibraryCheck;
+}
 
 const registry = new Map<string, LibraryEntry>();
-/** Adds (or replaces) a library: checked on load, refused with its typed error. */
-export function registerLibrary(json: unknown, source: LibrarySource): CadLibrary {
+/** Adds (or replaces) a library: checked on load, refused with its typed error; a built-in's id is not taken over. */
+export function registerLibrary(json: unknown, source: LibrarySource, meta: { authoredBy?: 'person' | 'agent'; confirmed?: boolean; check?: LibraryCheck } = {}): CadLibrary {
   const library = loadCadLibrary(json);
   const kept = registry.get(library.manifest.id);
   if (kept && kept.source === 'built-in' && source !== 'built-in') throw new Error(`${library.manifest.id} is a built-in library: give yours another id`);
-  registry.set(library.manifest.id, { library, source });
+  const authoredBy = meta.authoredBy ?? 'person';
+  registry.set(library.manifest.id, { library, source, license: licenseOf(library), estimates: estimateCount(library), authoredBy, confirmed: authoredBy === 'person' || meta.confirmed === true, ...(meta.check ? { check: meta.check } : {}) });
+  if (source === 'user') saveUserLibraries();
   return library;
+}
+export const libraryEntry = (id: string): LibraryEntry | undefined => registry.get(id);
+/** A person confirms an agent's library (it may then be shared, when its check passes). */
+export function confirmLibrary(id: string): boolean {
+  const e = registry.get(id); if (!e || e.authoredBy !== 'agent') return false;
+  registry.set(id, { ...e, confirmed: true }); if (e.source === 'user') saveUserLibraries(); return true;
+}
+/** The check before sharing, run and kept with the entry. */
+export function checkLibrary(id: string): LibraryCheck | null {
+  const e = registry.get(id); if (!e) return null;
+  const check = checkLibraryForSharing(e.library.manifest);
+  registry.set(id, { ...e, check }); return check;
+}
+/** Why it may not go to the team now (null: it may), its check run first. */
+export function shareRefusal(id: string): string | null {
+  const e = registry.get(id); if (!e) return `No library ${id}`;
+  if (e.source === 'built-in') return `${id} is built in: every studio has it`;
+  return sharingRefusal(e.library, e, checkLibrary(id)!);
+}
+
+// The user's own libraries, kept in this browser (a convenience: they are files the user has besides).
+const USER_KEY = 'barocss-cad-user-libraries';
+function saveUserLibraries(): void {
+  try { globalThis.localStorage?.setItem(USER_KEY, JSON.stringify([...registry.values()].filter(e => e.source === 'user').map(e => ({ library: e.library.manifest, authoredBy: e.authoredBy, confirmed: e.confirmed })))); } catch { /* storage unavailable */ }
+}
+/** The user's libraries kept in this browser, loaded again (each refused one skipped, said in the result). */
+export function loadUserLibraries(): string[] {
+  const problems: string[] = [];
+  let kept: { library: unknown; authoredBy?: 'person' | 'agent'; confirmed?: boolean }[] = [];
+  try { kept = JSON.parse(globalThis.localStorage?.getItem(USER_KEY) ?? '[]'); } catch { return problems; }
+  for (const k of Array.isArray(kept) ? kept : []) { try { registerLibrary(k.library, 'user', { authoredBy: k.authoredBy, confirmed: k.confirmed }); } catch (cause) { problems.push(cause instanceof Error ? cause.message : String(cause)); } }
+  return problems;
 }
 registerLibrary(tslot20, 'built-in');
 export const libraries = (): LibraryEntry[] => [...registry.values()];
 export const libraryById = (id: string): CadLibrary | undefined => registry.get(id)?.library;
 /** Removes a team or user library (built-ins stay). */
-export function unregisterLibrary(id: string): boolean { const e = registry.get(id); if (!e || e.source === 'built-in') return false; return registry.delete(id); }
+export function unregisterLibrary(id: string): boolean { const e = registry.get(id); if (!e || e.source === 'built-in') return false; registry.delete(id); if (e.source === 'user') saveUserLibraries(); return true; }
 
 type LibraryNode = Extract<ModelNode, { kind: 'library' }>;
+
+/**
+ * The document's own libraries (an agent's or a person's, D64) registered as user libraries so its parts can be
+ * inserted; a refused one is skipped and said. (A library of the same id already registered from elsewhere stays.)
+ */
+export function registerDocLibraries(doc: StudioDoc): string[] {
+  const problems: string[] = [];
+  for (const d of doc.libraries ?? []) {
+    const kept = registry.get(d.library.id);
+    if (kept && kept.source !== 'user') continue;
+    if (kept && JSON.stringify(kept.library.manifest) === JSON.stringify(d.library) && kept.confirmed === (d.authoredBy === 'person' || !!d.confirmed)) continue;
+    try { registerLibrary(d.library, 'user', { authoredBy: d.authoredBy, confirmed: d.confirmed }); } catch (cause) { problems.push(cause instanceof Error ? cause.message : String(cause)); }
+  }
+  return problems;
+}
+/** The document with a library of its own added (an agent's: marked, unconfirmed), its check run; refused when it does not load. */
+export function addDocLibrary(doc: StudioDoc, json: unknown, authoredBy: 'agent' | 'person'): { doc: StudioDoc; check: LibraryCheck; license: string | null; estimates: number } {
+  const lib = loadCadLibrary(json), manifest = lib.manifest;
+  const kept = registry.get(manifest.id);
+  if (kept && kept.source !== 'user') throw new Error(`${manifest.id} is a ${kept.source} library: give this one another id`);
+  const check = checkLibraryForSharing(manifest);
+  const libs = [...(doc.libraries ?? []).filter(l => l.library.id !== manifest.id), { library: manifest, authoredBy, ...(authoredBy === 'agent' ? { confirmed: false } : {}) }];
+  registerLibrary(manifest, 'user', { authoredBy, check });
+  return { doc: { ...doc, libraries: libs }, check, license: licenseOf(lib), estimates: estimateCount(lib) };
+}
+/** A person confirms the document's agent-written library. */
+export function confirmDocLibrary(doc: StudioDoc, id: string): StudioDoc {
+  confirmLibrary(id);
+  return { ...doc, libraries: (doc.libraries ?? []).map(l => l.library.id === id ? { ...l, confirmed: true } : l) };
+}
 
 /** A prefix for a new library node's features, unused in the document. */
 function freshPrefix(doc: StudioDoc): string {
@@ -43,12 +116,14 @@ export function libraryNode(lib: CadLibrary, part: string, options: { variant?: 
 }
 /** The document with a library part added to its own feature tree. */
 export function insertLibraryPart(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number> } = {}): StudioDoc {
+  registerDocLibraries(doc);
   const lib = libraryById(libraryId);
   if (!lib) throw new Error(`No library ${libraryId} (libraries: ${libraries().map(e => e.library.manifest.id).join(', ')})`);
   return withNode(doc, libraryNode(lib, part, options, freshPrefix(doc)));
 }
 /** A new assembly instance holding one library part. */
 export function libraryInstance(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number>; name?: string; position?: Vec3; rotation?: Vec3 } = {}): { doc: StudioDoc; id: string } {
+  registerDocLibraries(doc);
   const instances = doc.instances ?? [];
   let n = 1; while (instances.some(i => i.id === `p${n}`)) n++;
   const id = `p${n}`, partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);

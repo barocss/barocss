@@ -106,7 +106,7 @@ function features(doc: StudioDoc) {
 }
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
-const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']);
+const BATCHABLE = new Set(['set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part']);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
 const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer']);
@@ -327,7 +327,8 @@ export function autonomy(): 1 | 2 | 3 | 4 {
   const n = typeof process !== 'undefined' ? Number(process.env?.CAD_AUTONOMY) : NaN;
   return n === 1 || n === 3 || n === 4 ? n : 2;
 }
-const ASSEMBLY_CHANGES = new Set(['add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']);
+// (add_library changes no model: it adds data to the document, marked as the agent's until a person confirms it.)
+const ASSEMBLY_CHANGES = new Set(['add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part']);
 /** Whether a call changes the part (requirements are the brief, not the part; a dry run changes nothing). */
 function changesPart(name: string, input: unknown): boolean {
   if (name === 'set_requirements' || name === 'accept_proposal') return false;

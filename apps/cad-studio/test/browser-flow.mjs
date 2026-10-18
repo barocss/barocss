@@ -2366,6 +2366,25 @@ try {
     await snap('helical-pair');
   });
 
+  await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]');
+    await page.waitForSelector('[aria-label="Library tslot-20"]', { timeout: 10000 });
+    assert.match(await page.textContent('[aria-label="Licence of tslot-20"]'), /CC0-1\.0.*· \d+ estimates/);
+    await page.click('[aria-label="Library tslot-20"] [aria-label="Insert profile"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'library' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.match(await page.textContent('.history'), /T-slot profile 20 20×20/);
+    await page.click('[aria-label="Library tslot-20"] [aria-label="Place slot-nut-m5"]');
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && window.__studioDoc.instances[0].doc.nodes[0]?.kind === 'library', null, { timeout: 30000 }); await idle();
+    await page.click('[aria-label="Close library"]');
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /From tslot-20 0\.1\.0: profile \(2020\)/.test(n.textContent ?? '')), null, { timeout: 15000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /is an estimate/.test(t)) && notes.some(t => /not for structural calculation/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('library-tslot');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

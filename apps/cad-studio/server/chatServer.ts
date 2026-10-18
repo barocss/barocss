@@ -4,7 +4,9 @@
 //   text {delta} · tool {name, input, summary, isError} · state {doc} · done {doc?, selection?, session, end, error?}
 // The CLI uses its own sign-in; nothing secret reaches the browser. Start it with `pnpm chat`.
 import { spawn as nodeSpawn, type ChildProcess } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { loadCadLibrary } from '@barocss/cad';
+import { checkLibraryForSharing, sharingRefusal } from '../src/library/sharing';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -37,6 +39,8 @@ export interface ChatServerOptions {
   workDir?: string;
   /** Origins allowed to use the server (default: the studio's dev and preview servers, plus CAD_STUDIO_CHAT_ORIGINS). */
   origins?: string[];
+  /** The team's library folder (LIB4, D64; default CAD_STUDIO_TEAM_LIBRARIES; none: no team libraries). */
+  teamLibraries?: string;
 }
 
 /** The studio's own origins: the Vite dev server (52020) and preview server (4173), on 127.0.0.1 and localhost. */
@@ -151,6 +155,7 @@ export function createChatServer(options: ChatServerOptions) {
     }
     s.at = now; return s;
   };
+  const teamDir = options.teamLibraries ?? process.env.CAD_STUDIO_TEAM_LIBRARIES ?? null;
   const origins = options.origins ?? [...DEFAULT_ORIGINS, ...(process.env.CAD_STUDIO_CHAT_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean)];
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? '').split('?')[0].replace(/^\/api\/chat/, '') || '/';
@@ -158,6 +163,30 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method === 'GET' && path === '/status') {
       const v = await claudeVersion();
       return sendJson(res, 200, v ? { enabled: true, model, via: v } : { enabled: false, model, reason: `The \`${claude}\` command was not found. Install Claude Code and sign in (claude auth login), then restart the chat server.` });
+    }
+    // The team's libraries (LIB4, D64): each `<id>.json` with its sharing check `<id>.check.json` beside it. Shared only
+    // when this server's own run of the check passes, the library is licensed, and an agent's has been confirmed.
+    if (path === '/libraries') {
+      if (!teamDir) return sendJson(res, req.method === 'GET' ? 200 : 404, req.method === 'GET' ? { libraries: [], note: 'No team library folder (set CAD_STUDIO_TEAM_LIBRARIES).' } : { error: 'No team library folder (set CAD_STUDIO_TEAM_LIBRARIES).' });
+      if (req.method === 'GET') {
+        const out: unknown[] = [];
+        for (const name of readdirSync(teamDir).filter(n => n.endsWith('.json') && !n.endsWith('.check.json')).sort()) {
+          try { const library = JSON.parse(readFileSync(join(teamDir, name), 'utf8')), checkPath = join(teamDir, name.replace(/\.json$/, '.check.json')); out.push({ library, ...(existsSync(checkPath) ? { check: JSON.parse(readFileSync(checkPath, 'utf8')) } : {}) }); }
+          catch { out.push({ file: name, error: 'not readable JSON' }); }
+        }
+        return sendJson(res, 200, { libraries: out });
+      }
+      if (req.method !== 'POST') return sendJson(res, 404, { error: 'Not found.' });
+      if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the library as application/json.' });
+      let body: { library?: unknown; authoredBy?: unknown; confirmed?: unknown };
+      try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
+      const check = checkLibraryForSharing(body.library);
+      if (check.library === '?') return sendJson(res, 400, { error: check.problems[0], check });
+      const why = sharingRefusal(loadCadLibrary(body.library), { authoredBy: body.authoredBy === 'agent' ? 'agent' : 'person', confirmed: body.confirmed === true }, check);
+      if (why) return sendJson(res, 422, { error: why, check });
+      writeFileSync(join(teamDir, `${check.library}.json`), JSON.stringify(body.library, null, 1));
+      writeFileSync(join(teamDir, `${check.library}.check.json`), JSON.stringify(check, null, 1));
+      return sendJson(res, 200, { shared: check.library, check });
     }
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
@@ -192,7 +221,7 @@ export function createChatServer(options: ChatServerOptions) {
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level) } } } });
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 

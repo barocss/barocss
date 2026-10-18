@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { CAD_KERNEL_VERSION, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit } from '../dist/index.js';
 
 // LIB1 (D61): libraries as data — a manifest, parts with sourced (or estimated) parameters, variants, a recipe of
 // part-model features with safe expressions; checked on load; instantiated to features.
@@ -110,6 +111,10 @@ test('loading refuses, typed and saying where: format, version, ids, a value wit
   refused(() => loadCadLibrary(part({ recipe: [{ ...P.recipe[0], when: 'w >' }] })), 'EXPRESSION', /ends early/);
   refused(() => loadCadLibrary(part({ recipe: [{ ...P.recipe[0], min: [{ expr: '0', note: 1 }, 0] }] })), 'EXPRESSION', /takes nothing else/);
   refused(() => loadCadLibrary(part({ outputs: ['zz'] })), 'REFERENCE', /outputs/);
+  // (Another model's geometry is never a library part: a STEP import or a mesh stays in the user's own document.)
+  refused(() => loadCadLibrary(part({ recipe: [{ id: 'x', kind: 'import', step: 'ISO-10303-21;' }] })), 'RECIPE', /import carries another model's geometry/);
+  refused(() => loadCadLibrary(part({ recipe: [{ id: 'x', kind: 'mesh', positions: [0, 0, 0], indices: [0, 0, 0] }] })), 'RECIPE', /mesh carries/);
+  assert.equal(CAD_KERNEL_VERSION, JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
   refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', frame: { origin: [0, 0, { expr: 'nope' }], z: [0, 0, 1], x: [1, 0, 0] } }] })), 'REFERENCE', /reads nope/);
   refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x' }] })), 'FORMAT', /frame must be/);
   refused(() => loadCadLibrary(part({ interfaces: [{ id: 'a', role: 'x', frame: { origin: [0, 0, 0], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'zz.top' } }] })), 'REFERENCE', /zz\.top is not a face/);

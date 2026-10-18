@@ -90,6 +90,14 @@ export interface CadLibraryInstance {
   readonly interfaces: readonly CadLibraryInterface[];
 }
 
+/** This kernel's version, recorded with a library's sharing check (kept equal to package.json's by a test). */
+export const CAD_KERNEL_VERSION = '0.0.0-experimental';
+/**
+ * Recipe kinds that carry another model's geometry (a STEP file, a mesh, sewn surfaces): never part of a library — a
+ * model downloaded from elsewhere stays an import in the user's own document, not a shared catalogue part (peer, LIB4).
+ */
+export const LIBRARY_REFUSED_KINDS: ReadonlySet<string> = new Set(['import', 'mesh', 'sew']);
+
 /** Limits of what a library may hold (data, not a program). */
 export const CadLibraryLimits = { parts: 500, parameters: 200, variants: 200, recipe: 200, expression: 500, depth: 32, idLength: 64 } as const;
 
@@ -341,6 +349,7 @@ function loadPart(p: unknown, lib: string): LoadedPart {
     if (!isRecord(f) || typeof f.id !== 'string' || !ID.test(f.id) || typeof f.kind !== 'string') throw new CadLibraryError('RECIPE', `${where}#${i}`, 'a recipe feature is { id, kind, … }');
     const at = `${where}:${f.id}`;
     if (ids.has(f.id)) throw new CadLibraryError('RECIPE', at, 'a feature id appears twice');
+    if (LIBRARY_REFUSED_KINDS.has(f.kind)) throw new CadLibraryError('RECIPE', at, `${f.kind} carries another model's geometry: a library part is made of its own features (import the file into your document instead)`);
     if (f.when !== undefined) { const node = parseLibraryExpression(f.when as string, `${at}.when`); checkNames(node, names, `${at}.when`); exprs.set(`when:${f.id}`, node); }
     walkRecipe(f, (value, key, path) => {
       if (isRecord(value) && 'expr' in value) {
@@ -427,7 +436,8 @@ export function instantiateLibraryPart(lib: CadLibrary, partId: string, options:
     values[name] = v;
     if (!isRecord(q.value)) used[name] = v;
     // (An estimate the caller replaced with a value of their own is theirs.)
-    if (q.estimate && !(name in given)) warnings.push(`${name} = ${v}${q.unit && q.unit !== 'count' ? ` ${q.unit}` : ''} is an estimate${q.source ? ` (${q.source})` : ''}`);
+    // (Its source is in the library, listed with it: the warning says only that it is one.)
+    if (q.estimate && !(name in given)) warnings.push(`${name} = ${v}${q.unit && q.unit !== 'count' ? ` ${q.unit}` : ''} is an estimate${q.description ? ` (${q.description})` : ''}`);
   }
   if (part.simplified) warnings.push(`${part.name}: simplified internals — not for structural calculation`);
   const kept = part.recipe.filter(f => !f.when || evaluateLibraryExpression(exprs.get(`when:${f.id}`)!, values, `${where}:${f.id}.when`) !== 0);

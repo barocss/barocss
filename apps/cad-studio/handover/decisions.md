@@ -2486,3 +2486,73 @@ Evidence (`test/library.test.ts`):
 - A copy of the library at 0.2.0 with a 6.0 opening: regenerated at 0.2.0 with L 250 kept and wo 6.0. The volume
   gains exactly 4 slots × the section difference (43.58 → 42.85 mm²) × 250. The interface face names are unchanged.
 - Studio 309/309.
+
+## D64 — LIB4: the library panel, team and user libraries under the data rules, agent tools; the acceptance flow (2026-10-18)
+
+Decision. The data rules are the peer's, from what community model sites teach (mixed formats, unclear licences):
+- **Licence.** A team or user library without `license` still loads, but as "unlicensed — private use only". It is
+  never shared. The panel and `list_library` show each library's licence.
+- **Provenance:** LIB1's rule holds (every given value sourced or flagged an estimate). Each library's estimate count
+  is shown.
+- **The check before sharing** (`src/library/sharing.ts`, kernel only, so the studio and the chat server run the
+  same one):
+  - the library loads, every part builds valid in every variant, and its declared fits pass;
+  - the result (ok, problems, time, kernel version, library and version, parts built, fits) is kept beside it;
+  - `CAD_KERNEL_VERSION` is held equal to package.json's by a test.
+- **No third-party models in libraries.** Recipes may not use `import`, `mesh` or `sew` (LIB1 refuses them, RECIPE). A
+  downloaded STEP or STL stays an import in the user's own document.
+- **Agent-written libraries:** `add_library` checks the library at once and keeps it in the document
+  (`StudioDoc.libraries`, carried like every field) marked `authoredBy: 'agent'`, unconfirmed. It is shared only after
+  a person confirms it. Adding one changes no model, so it applies at any autonomy level.
+- **The team folder** is the chat server's `CAD_STUDIO_TEAM_LIBRARIES`.
+  - `GET /api/chat/libraries` lists `<id>.json` with `<id>.check.json`.
+  - `POST` writes both only when the server's own run of the check passes, the library is licensed, and an agent's
+    library is confirmed. Otherwise 422 with why.
+  - The agent's MCP process registers the same folder, so `insert_part` finds team libraries.
+  - Without the chat server, the dev server answers the GET with an empty list instead of a proxy error.
+- **User libraries** are added from a JSON file and kept in this browser (localStorage: a convenience; the files are
+  the user's).
+- **The panel** (toolbar "Library"): built-in, team and yours, each with licence, estimates, the agent mark with
+  Confirm, and its parts with a variant choice. Insert puts the part into this part; Place makes it a new placed part.
+  Yours can be shared with the team.
+- **Agent tools:**
+  - `list_library` (parts, variants, parameters with estimates, interfaces and roles, fits, licence);
+  - `insert_part` (as a new placed part; estimates warned);
+  - `snap_part` (by interfaces, real mates);
+  - `add_library`.
+  - Insertions and snaps change the assembly, so at every level the agent proposes them and the user accepts (D41).
+- Estimate warnings say the value and that it is an estimate; the source stays with the library, where
+  `list_library` gives it.
+
+Evidence (`test/library-tools.test.ts`, `test/library.test.ts`):
+- **Acceptance through the agent's own path:**
+  - it lists the T-slot library (CC0, estimates, parts, variants, slot interfaces);
+  - inserting directly is refused, `needs_approval`;
+  - it proposes inserting a 200 mm rail and a nut and snapping the nut into the top slot 40 mm along (approval:
+    assembly and mates), and the user accepts;
+  - one coincident mate holds the nut, its top at the lip underside (y 8.2, its origin at 35);
+  - a nut onto an end is refused, saying why;
+  - saved and reopened: the same volumes and the mate.
+- **The agent's spacer library:**
+  - checked at once (2 variants built, 0 fits), licence CC0, 1 estimate, kept in the document as the agent's,
+    unconfirmed; its part inserts;
+  - not shared before a person confirms it, then shareable;
+  - unlicensed: private use only, refused;
+  - a library whose bore is wider than the tube fails its check;
+  - a library with a STEP import is refused.
+- **Team folder over HTTP:**
+  - refused for unconfirmed, unlicensed and failing libraries (422);
+  - accepted when confirmed, writing the library and its check (ok, kernel 0.0.0-experimental, version, 2 built,
+    time);
+  - listed back;
+  - the agent's process registers the folder.
+- The insertion and its properties: licence and estimates shown; a 20×20 profile inserted, "From tslot-20 0.1.0:
+  profile (2020)" with its estimates and caveat; a nut placed as a part.
+- Kernel library 4/4 (with the refused kinds and the version); studio 311/311; lint 0 errors.
+- Browser flow: a new "Library" step, the T-slot profile on screen with its slots.
+
+The library system's acceptance (README): the T-slot 20 series from data ✓; fits pass ✓; insert, save and reopen
+without the library give the same bodies ✓; an agent lists, inserts and snaps a nut into a slot ✓.
+
+Next: R6b, enclosure elements, built as library items where they can be (owner: "after it, R6b, much of R12c and FR
+are built as library items").

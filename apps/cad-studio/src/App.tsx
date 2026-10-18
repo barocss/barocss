@@ -28,6 +28,8 @@ import { MeshRepairPanel } from './ui/MeshRepairPanel';
 import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
+import { LibraryPanel } from './ui/LibraryPanel';
+import { loadUserLibraries } from './library/libraries';
 import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
 import { TooltipLayer } from './ui/Tooltip';
@@ -259,6 +261,9 @@ export function App() {
   const [templatesOpen, setTemplatesOpen] = useState(false), [templateName, setTemplateName] = useState('');
   /** The Parameters panel. */
   const [paramsOpen, setParamsOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  // (The user's own libraries kept in this browser, once.)
+  useEffect(() => { loadUserLibraries(); }, []);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
@@ -1594,6 +1599,7 @@ export function App() {
             <div className="tpl-row add"><input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
               <button className="ghost small" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</button></div>
           </div>}</span>
+        <button className={'tool' + (libraryOpen ? ' on' : '')} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></button>
         <button className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>
         <button className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>
@@ -1724,6 +1730,7 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
+      {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
