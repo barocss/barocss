@@ -303,3 +303,25 @@ test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no f
   assert.ok(!('error' in side), JSON.stringify(side));
   assert.ok(Math.abs(b.volumeMM3! - bodies(side.doc)[0].volumeMM3! - 6 * 12 * 1.5 * 2) < 1e-6, 'only the near wall cut');
 });
+
+test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — the material taken exactly; its thickness and strain against PP\'s living-hinge values; ABS is not a living-hinge material (unknown, said); FDM warned; a short land strained past PP\'s value warned; a hinge as thick as the plate refused', async () => {
+  const { withLook } = await import('../src/app/bodies');
+  const pl = { ...rectanglePart(60, 40, 2), process: 'injection' }, b0 = bodies(pl)[0];
+  const at = { ...top(2, 30, 20), xDir: [1, 0, 0] as [number, number, number] };
+  const hinge = (material: string, doc: StudioDoc = pl, params: Record<string, number> = {}) => addLibraryPartToBody(withLook(doc, b0, { material }), 'enclosure', 'living-hinge', { params }, at);
+  const pp = hinge('pp') as { doc: StudioDoc; node: LibraryNode };
+  assert.ok(!('error' in pp), JSON.stringify(pp));
+  assert.equal(pp.node.library.params.wallT, 2);
+  // (1.5 land × 40 span × 1.7 deep.)
+  assert.ok(Math.abs(b0.volumeMM3! - bodies(pp.doc)[0].volumeMM3! - 1.5 * 40 * 1.7) < 1e-6);
+  assert.ok(!pp.node.warnings.some(w => /^(thickness|strain|process)/.test(w)), pp.node.warnings.join(' | '));
+  const abs = hinge('abs') as { node: LibraryNode };
+  assert.ok(abs.node.warnings.includes('context hingeStrain: ABS is not a living-hinge material') && abs.node.warnings.some(w => /^strain: unknown/.test(w)), abs.node.warnings.join(' | '));
+  const fdm = hinge('pp', { ...pl, process: 'fdm' }) as { node: LibraryNode };
+  assert.ok(fdm.node.warnings.some(w => /^process: a printed living hinge is weak/.test(w)));
+  // (A 0.5 land: ε = 0.3 π / 1 = 0.942, past 0.5.)
+  const short = hinge('pp', pl, { Lh: 0.5 }) as { node: LibraryNode };
+  assert.ok(short.node.warnings.some(w => w.startsWith('strain:') && /\(1\.88/.test(w)), short.node.warnings.join(' | '));
+  assert.ok((hinge('pp', pl, { th: 0.8 }) as { node: LibraryNode }).node.warnings.some(w => /^thickness: .* \(0\.8\)$/.test(w)));
+  assert.match((hinge('pp', pl, { th: 1.9 }) as { error: string }).error, /thins: the hinge is not thinner than the plate/);
+});

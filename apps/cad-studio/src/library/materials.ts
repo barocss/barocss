@@ -10,6 +10,8 @@ export interface MaterialData {
   readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
   /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
   readonly friction: number;
+  /** A living-hinge material's (polypropylene's) allowable strain and thickness range; others have none. */
+  readonly livingHingeStrain?: number; readonly livingHingeTMin?: number; readonly livingHingeTMax?: number;
   readonly wallMM?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
   readonly estimate: boolean; readonly sources: Readonly<Record<string, string>>;
 }
@@ -54,7 +56,8 @@ export function materialContext(path: string, material: MaterialData | undefined
       return w ? { value: w[field === 'wallMin' ? 0 : 1], source: material.sources.wallMM } : { unknown: `${material.label} has no wall range for ${profile.label}` };
     }
     const v = (material as unknown as Record<string, unknown>)[field];
-    return typeof v === 'number' ? { value: v, source: material.sources[field] ?? '?' } : { unknown: `materials have no ${field}` };
+    if (typeof v === 'number') return { value: v, source: material.sources[field] ?? '?' };
+    return { unknown: field.startsWith('livingHinge') ? `${material.label} is not a living-hinge material` : `materials have no ${field}` };
   }
   // (How the part lies in the printer arrives with AM2/AM4: until then, unknown.)
   if (scope === 'print') return { unknown: 'the print orientation is not known yet (it arrives with AM2/AM4)' };

@@ -3,7 +3,7 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.6.0",
+ "libraryVersion": "0.7.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
@@ -2480,6 +2480,185 @@
     "vent",
     "grille",
     "hex"
+   ]
+  },
+  {
+   "id": "living-hinge",
+   "name": "Living hinge",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "A groove across a plate leaving a thin band that bends: its thickness and strain checked against the material (a living-hinge material: polypropylene).",
+   "parameters": {
+    "Lh": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 20,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a moulded living hinge (written for this library)",
+     "description": "the hinge's land (its length across the bend)"
+    },
+    "th": {
+     "value": 0.3,
+     "unit": "mm",
+     "min": 0.05,
+     "max": 5,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a moulded living hinge (written for this library)",
+     "description": "the hinge's thickness"
+    },
+    "span": {
+     "value": 40,
+     "unit": "mm",
+     "min": 1,
+     "max": 2000,
+     "source": "free: the hinge's length along its axis"
+    },
+    "theta": {
+     "value": 180,
+     "unit": "deg",
+     "min": 1,
+     "max": 360,
+     "source": "free: the angle it folds through"
+    },
+    "wallT": {
+     "value": 2,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the plate's thickness where it is cut (set when the part is added to a body)"
+    },
+    "eps": {
+     "value": {
+      "expr": "th * theta * pi / 180 / (2 * Lh)"
+     },
+     "unit": "ratio",
+     "description": "its surface strain folded through theta, its land bent to an arc"
+    }
+   },
+   "context": {
+    "hingeStrain": {
+     "unit": "ratio",
+     "description": "the material's allowable strain for a living hinge",
+     "from": [
+      "material.livingHingeStrain"
+     ]
+    },
+    "tMin": {
+     "unit": "mm",
+     "description": "the material's thinnest living hinge",
+     "from": [
+      "material.livingHingeTMin"
+     ]
+    },
+    "tMax": {
+     "unit": "mm",
+     "description": "the material's thickest living hinge",
+     "from": [
+      "material.livingHingeTMax"
+     ]
+    },
+    "isFdm": {
+     "unit": "flag",
+     "description": "whether the process lays it in layers (FDM)",
+     "from": [
+      "profile.isFdm"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "thins",
+     "expr": "th <= wallT - 0.2",
+     "value": "wallT - th",
+     "level": "feasible",
+     "message": "the hinge is not thinner than the plate it is cut in"
+    },
+    {
+     "id": "thickness",
+     "expr": "th >= tMin && th <= tMax",
+     "value": "th",
+     "level": "recommended",
+     "message": "the hinge's thickness is outside the material's range for living hinges"
+    },
+    {
+     "id": "strain",
+     "expr": "eps <= hingeStrain",
+     "value": "eps / hingeStrain",
+     "level": "recommended",
+     "message": "folded through its angle, the hinge is strained past the material's living-hinge strain"
+    },
+    {
+     "id": "process",
+     "expr": "isFdm == 0",
+     "level": "recommended",
+     "message": "a printed living hinge is weak across its layers: mould it, or make it as a separate pin hinge"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-Lh / 2"
+      },
+      {
+       "expr": "-span / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "Lh / 2"
+      },
+      {
+       "expr": "span / 2"
+      }
+     ]
+    },
+    {
+     "id": "g",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "wallT - th + 1"
+     },
+     "from": -1
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the groove's middle on the face, its land along x, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "hinge",
+    "living hinge",
+    "pp"
    ]
   }
  ],

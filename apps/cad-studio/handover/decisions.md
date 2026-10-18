@@ -2817,3 +2817,37 @@ Evidence (`test/enclosure.test.ts` 13/13):
 - Webs: 0.5 refused, 0.8 warned under moulding.
 - In an enclosure base's side wall, only the near wall is cut.
 - Studio tests pass.
+
+## D71 — R6b.6: the living hinge; R6b closed (2026-10-18)
+
+Decision:
+- **Living hinge** ("Enclosure elements" 0.7.0), a cut across a plate: a groove of land Lh along the bend and span
+  along its axis, as deep as leaves `th`.
+  - The plate's thickness `wallT` is measured where it goes, as `cutDepth` is.
+  - Surface strain folded through θ, the land bent to an arc: ε = th·θ/(2·Lh).
+- **Rules:**
+  - feasible: it thins the plate (th ≤ wallT − 0.2);
+  - recommended:
+    - the thickness within the material's living-hinge range;
+    - ε within its living-hinge strain;
+    - not printed in layers (FDM), or else mould it or use a pin hinge.
+- **Materials 0.4.0:** polypropylene alone carries `livingHingeStrain`, `livingHingeTMin` and `livingHingeTMax`
+  (estimates, S-TYP). For any other material the context says "<material> is not a living-hinge material" and the
+  rules reading it are unknown.
+
+Evidence (`test/enclosure.test.ts` 14/14):
+- On a PP plate 2 thick: wallT measured as 2, the material taken equals exactly 1.5 × 40 × 1.7, no rule warned.
+- ABS: unknown, said.
+- FDM: warned.
+- A 0.5 land: ε 0.942, warned (1.88 of PP's).
+- A 0.8 hinge: thickness warned.
+- A 1.9 hinge in a 2 plate: refused.
+- Studio tests pass; lint 0 errors.
+
+**R6b is closed:** R6b.1–R6b.7 (D65–D71), every element a library item with process- and material-driven rules,
+built and checked from data.
+- Pending:
+  - the general split of an arbitrary body with a following lip (R11 offsets);
+  - the print orientation for the FDM rules (AM2/AM4).
+
+Next in the roadmap: AM1–AM5.

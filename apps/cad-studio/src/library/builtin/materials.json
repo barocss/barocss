@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.3.0",
+ "libraryVersion": "0.4.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -283,7 +283,10 @@
     "allowableStrain": "S-TYP",
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
-    "friction": "S-TYP"
+    "friction": "S-TYP",
+    "livingHingeStrain": "S-TYP",
+    "livingHingeTMin": "S-TYP",
+    "livingHingeTMax": "S-TYP"
    },
    "wallMM": {
     "injection": [
@@ -291,7 +294,10 @@
      3.8
     ]
    },
-   "friction": 0.35
+   "friction": 0.35,
+   "livingHingeStrain": 0.5,
+   "livingHingeTMin": 0.2,
+   "livingHingeTMax": 0.5
   },
   {
    "id": "petg",

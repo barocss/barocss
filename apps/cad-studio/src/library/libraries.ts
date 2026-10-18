@@ -254,6 +254,8 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   // through to whatever lies beyond it.)
   const params = { ...options.params };
   if (libPart?.parameters.cutDepth && params.cutDepth === undefined) { if (inward === null) return { error: `${libPart.name}: the wall's thickness there could not be measured; give cutDepth` }; params.cutDepth = +(inward + 0.5).toFixed(6); }
+  // (So a part that thins a wall — `wallT` — takes the wall's thickness measured there.)
+  if (libPart?.parameters.wallT && params.wallT === undefined) { if (inward === null) return { error: `${libPart.name}: the wall's thickness there could not be measured; give wallT` }; params.wallT = +inward.toFixed(6); }
   let node: LibraryNode;
   try { node = libraryNode(lib, part, { ...(options.variant ? { variant: options.variant } : {}), ...(Object.keys(params).length ? { params } : {}), context }, freshPrefix(doc)); }
   catch (cause) { return { error: cause instanceof Error ? cause.message.replace(/^library: /, '') : String(cause) }; }
