@@ -3236,3 +3236,57 @@ Evidence:
   - studio 339/339;
   - full browser flow 119/119;
   - lint clean.
+
+## D80 — R8.1 SD3: the cage's topology and edits as pure functions (2026-10-18)
+
+Decision (`packages/barocss-cad/src/subd-cage.ts`, exported from `@barocss/cad`). At the peer's note they live in the kernel, not the studio: the studio's editor, the agent tools (R8.2) and headless use share one implementation. Each function takes a cage `{positions, faces, creases?}` and gives a new one, or refuses with SubdError INPUT.
+- **Topology:** half-edges, edges with their faces, each vertex's faces and neighbours.
+- **Validation (for the overlay):**
+  - non-manifold edges (three faces, or a side used twice the same way);
+  - non-manifold vertices (faces not one fan, found by walking face to face);
+  - poles (inside valence ≠ 4, boundary ≠ 3 or 2);
+  - n-gons, boundary edges, darts, unused vertices.
+  - Valid means no non-manifold edge or vertex and no unused vertex.
+- **Selection:**
+  - **Edge loop:** straight across each valence-4 vertex of four quads, stopping at a pole, a boundary or the start.
+  - **Edge ring:** across each quad to its opposite edge, oriented alike, stopping at a non-quad, a boundary or the start.
+  - A selection's vertices, from vertices, edges and faces.
+- **Edits:**
+  - **move;**
+  - **extrude faces as one region:** the region's vertices are copied along its normal (the mean of its faces' Newell normals), with a side quad on every border edge, wound to meet both sides as twins;
+  - **extrude boundary edges:** a quad out along a delta, shared along a chain;
+  - **insert an edge loop** across a ring at t: each quad split in two; a face at a ring's open end takes the point and becomes an n-gon (R7 builds it); creases on ring edges stay creased on both halves;
+  - **delete faces**, then **compact** (unused vertices dropped and renumbered; creases kept where their edges remain);
+  - **fill a hole** with one face run against the boundary (an n-gon);
+  - **bridge** two boundary loops or chains of equal length: quads meet both as twins, at the offset with the shortest bridge;
+  - **weld** a group, or pairs within a tolerance (all at once): faces losing a side keep the rest, faces under 3 sides go, and it is refused if the result is not a manifold;
+  - **creases** on and off.
+- **Mirror:** one plane through the origin across X, Y or Z.
+  - The half's vertices on the plane are shared and the rest copied with faces wound back; creases are copied. A face in the plane is refused.
+  - `keepOnPlane` puts on-plane vertices back after a move.
+  - The studio will keep the half and the axis on the node and send the kernel the full cage (R8.2).
+
+Evidence (`test/subd-cage.test.mjs` 5/5). Every edit's result is a valid cage and a valid kernel body.
+- Validation:
+  - the cube: valid, 8 poles of valence 3;
+  - a 3 × 2 sheet: 10 boundary edges;
+  - a bowtie, a doubled face, an unused vertex and two darts flagged.
+- Selection:
+  - a torus loop closed at 8 edges; a ring round the tube of 6;
+  - a grid row loop open to the boundary at 4; a grid ring of 4.
+- Extrude and insert:
+  - the cube's top extruded 5 mm: 10 faces, the copies at z 15, taller;
+  - a sheet's boundary chain extruded;
+  - an edge loop round the cube (10 faces) and across a torus (54);
+  - a ring ending at a grid's boundary.
+- Delete, fill, bridge, weld, crease:
+  - the cube's top deleted (5 faces, 4 boundary edges) and filled: the cube's volume to 1e-12;
+  - two open boxes bridged: one closed body, genus 0, 14 faces;
+  - an edge's ends welded: 7 vertices;
+  - two sheets welded by distance: 6 vertices;
+  - every edge creased: 1000 mm³ exactly.
+- Mirror:
+  - a half box mirrored is the same body as the whole 2 × 1 × 1 box cage: volume to 1e-12, centroid on the plane;
+  - a move kept on the plane;
+  - a face in the plane refused.
+- Refusals: mismatched bridge, an open fill, not an edge.

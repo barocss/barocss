@@ -570,6 +570,7 @@ export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } 
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
 export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './subd.js';
 export { subdReport, type SubdReport, type SubdReportOptions } from './subd-report.js';
+export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, keepOnPlane, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './subd-cage.js';
 export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './facet-boolean.js';
 export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, GearError, type PlacedSpurGear, type PlacedSpurGearPairCheck, type SpurGearPairCheck, type SpurGearPairOptions, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './gear.js';
 export { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, type PlacedSpurRack, type PlacedSpurRackCheck, type SpurRackSpec, type SpurRackReport, type SpurRackPairOptions, type SpurRackPairCheck } from './gear-rack.js';
