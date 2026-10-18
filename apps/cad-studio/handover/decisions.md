@@ -2996,3 +2996,55 @@ Evidence (`test/printing.test.ts` 8/8):
 - Studio 333/333; lint 0 errors.
 
 Next: AM5, 3MF export.
+
+## D76 — AM5: 3MF export (2026-10-18)
+
+Decision (`src/io/zip.ts`, `src/print/threemf.ts`, `src/print/export3mf.ts`; with the peer's notes):
+- **Own package writer:**
+  - The ZIP and CRC-32 are our own code. UTF-8 names; entries stored, or raw-deflated when that is smaller.
+  - The deflate is the web-standard CompressionStream, 'deflate-raw' or zlib with its header and trailer stripped.
+  - No ZIP64: past 4 GiB, or past 65 535 entries, it is refused.
+  - The PNG encoder (`chat/views.ts`) now shares the same CRC-32 and deflate.
+- **The model:** `[Content_Types].xml`, `_rels/.rels`, `3D/3dmodel.model`.
+  - The model is in millimetres, with Title, Application and (when dated) CreationDate metadata.
+  - Objects:
+    - each visible body (and each shown instance's, already in place) is one object;
+    - vertices are welded at bit-identical 32-bit points (the display mesh repeats them per face; the B-rep tessellation shares edge points, so welding closes it);
+    - triangles that collapse are dropped and counted;
+    - coordinates are written as the shortest decimal that reads back as the same float.
+  - **Base materials:** one per (material, colour) — the material's label, the body's colour or the default grey.
+  - **Face colours:**
+    - by default, further base materials (core 3MF: every reader);
+    - optionally, a Materials-extension colour group, and then `requiredextensions="m"`, because a reader that ignores the group would leave dangling references.
+  - **Production extension:** UUIDs on every object, the build and every item. They are random by default; the caller may supply its own.
+  - **Build items:** one per object.
+    - With an AM4 print direction, every item is turned by the shortest rotation that brings the direction to +Z.
+    - The lowest point is set at z 0, centred on the chosen printer's bed (else x and y are left as modelled).
+    - The same transform goes on every item, so assemblies keep their layout.
+  - Stats: objects, items, triangles, vertices in and out, dropped triangles, open and repeated directed edges, model XML bytes, package bytes, ms. Open or repeated edges are reported (and toasted), not refused.
+- **Studio:** an Export 3MF button beside STL.
+- **Refusals, said:** nothing visible, no item, an item naming a missing object, a transform that is not 12 finite numbers.
+
+Evidence (`test/threemf.test.ts` 4/4; read back by an independent reader — Node's zlib for inflate and CRC-32, the test's own ZIP and XML scan — and by Python's zipfile (`testzip`) and ElementTree):
+- 20 × 10 × 5 ABS box:
+  - the three parts and their content types and relationship;
+  - welded to 8 vertices and 12 triangles, no open or repeated edges;
+  - volume read back exactly 1000 mm³;
+  - base material ABS #CC3333;
+  - 3 UUIDs;
+  - the same inputs give the same bytes;
+  - Python reads 8, 12, millimeter.
+- Top face green: 2 triangles point at a second base material; as a colour group, `requiredextensions="m"` and 2 `pid="2" p1="0"`.
+- One object built twice (a quarter turn and 50 mm along X): extents 40–50 × 0–20, volume 1000.
+- Refusals as said.
+- Standing on its end (+X up) on the 256 mm FDM bed: z from 0 to 20, centred at (128, 128), volume 1000.
+- The rotation onto +Z: exact and orthonormal for six directions.
+- 200 344 triangles: model XML 13.93 MB, 3MF 2.17 MB (15.5%), written in 377–420 ms. Coordinates read back as the same 32-bit floats. Closed.
+- Studio 337/337; lint 0 errors.
+
+Not done, said:
+- No slicer on this machine (PrusaSlicer, Bambu, Orca, Cura absent): opening in a slicer is left to be checked by hand.
+- The Export 3MF button was type-checked, not clicked in a browser.
+- No thumbnail is written yet.
+
+Next: R7 (SD2).

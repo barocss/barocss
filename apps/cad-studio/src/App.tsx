@@ -67,6 +67,8 @@ import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/te
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from './app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
+import { write3mf } from './print/threemf';
+import { threeMfModelOf } from './print/export3mf';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
@@ -1264,6 +1266,17 @@ export function App() {
     setToast({ title: `STL written: ${bodies.length} file${bodies.length === 1 ? '' : 's'}`, hint: `Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}`, detail: '' });
   };
 
+  /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
+  const exportThreeMf = async () => {
+    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ doc: i.doc, bodies: instanceBodies.get(i.id)!.bodies, name: i.name }))];
+    const model = threeMfModelOf(doc, parts, fileName);
+    const r = typeof model === 'string' ? { error: model } : await write3mf(model);
+    if ('error' in r) { setToast({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
+    downloadBytes(r.bytes, `${fileName}.3mf`, 'model/3mf');
+    const s = r.stats, open = s.openEdges + s.repeatedEdges;
+    setToast({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
+  };
+
   // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames. The listener is
   // added once and calls the newest handler (set each render), so a key pressed right after a click sees
   // that click's selection, not the one before it (effects run only after the frame is painted).
@@ -1610,6 +1623,7 @@ export function App() {
         <button className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>
+        <button className="tool" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></button>
         <button className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></button>
         {!!doc.direct?.objects.some(o => !o.hidden) && <button className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
           try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
