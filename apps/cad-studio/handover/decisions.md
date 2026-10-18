@@ -3395,3 +3395,28 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - Deferring the guard, facts and description to the batch end would save about 3 ms of that 104.
   - Caching `checkSpec` by model hash: after A1 a check is about 1 ms on this part and 22 ms on the 16-hole plate, and a proposal runs two of them.
 - Studio 348/348 (343 before): new tests for evaluation counts (2), the pump and resharing (2), and the server's version rule (1).
+- **The memo's key (peer's review of dfae081e1):** whole-part JSON on every lookup cost too much on large parts.
+
+  | Part | Whole JSON per lookup |
+  |---|---|
+  | 5 MB STEP import | 12 ms |
+  | 30 MB STEP import | 69 ms |
+  | 200k-triangle inline mesh | 53 ms |
+  | 2k-face cage | 0.6 ms |
+  | 20 plain nodes | ≈ 0 ms |
+
+  A batch looks up about one part per op and per reference, so this brought back the whole-document JSON that PERF2 had removed.
+  - **Now `evaluationKey`:**
+    - each node's text is kept per node object;
+    - texts over 64 KB stand in as an exact id from a map of the last 8 texts (content-compared, never reused);
+    - number arrays over 4 096 entries stand in as their length plus two 32-bit FNV-1a hashes of their doubles, kept per array.
+  - **After:**
+
+    | Part | Same nodes | Nodes made again | Read again from JSON |
+    |---|---|---|---|
+    | 30 MB import | 0.00 ms | 0.01 ms | 4.0 ms |
+    | 200k-triangle mesh | 0.00 ms | | 4.2 ms |
+    | 2k cage | | | 0.47 ms |
+
+  - `test/evalMemo.test.ts`: equal parts share a key whatever their objects; a changed character, number or parameter changes it; timings.
+  - Studio 351/351.
