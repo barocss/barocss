@@ -1860,6 +1860,7 @@ export function App() {
               </>; })()}
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
+            {b.notes?.map((n, k) => <div key={k} className={'hint' + (n.warning ? ' warn' : ' muted')} aria-label="Generator note">{n.warning && <Icon name="warning" small />} {n.text}</div>)}
             <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}

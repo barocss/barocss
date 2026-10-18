@@ -146,6 +146,15 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       break;
     case 'fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
+    case 'gear': {
+      const g = (n: ModelNode) => n as typeof node;
+      number('m', 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+      number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
+      number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
+      number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
+      number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      break;
+    }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;

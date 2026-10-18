@@ -24,6 +24,8 @@ export interface BodyResult {
   inertia?: number[][];
   /** A body in several separate pieces (a cut right through it): how many. */
   pieces?: number;
+  /** What a generator says of the body (a gear: its dimensions, its flank fit, its schematic root). */
+  notes?: { text: string; warning?: boolean }[];
 }
 export type EvalResult =
   | { ok: true; revision: number; bodies: BodyResult[]; ms: number }
@@ -48,7 +50,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
-  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}) };
+  return { ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: gearNotes(o.gear) } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
@@ -216,4 +218,14 @@ export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } 
     for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of evaluateCadPart(toPartDocument(placedDoc(inst))).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+}
+
+/** A gear's report as lines for the body's panel (R6a, D54). */
+function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): { text: string; warning?: boolean }[] {
+  const d = g.dimensions, mm = (x: number) => +x.toFixed(4);
+  return [
+    { text: `Reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)}, root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)} mm; tooth ${mm(d.toothThicknessMM)} mm at the reference circle` },
+    { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
+    ...g.diagnostics.map(x => ({ text: x.code === 'ROOT_TRANSITION_UNVALIDATED' ? 'Schematic root: not the cutting tool\'s, not validated for manufacturing' : x.message, warning: x.severity === 'warning' })),
+  ];
 }

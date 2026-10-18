@@ -2304,6 +2304,21 @@ try {
     await snap('mesh-hole');
   });
 
+  await check('Spur gear (R6a, issue #2167): from the palette — m 2, 20 teeth; its notes give the dimensions, the flank fit and the schematic root\'s warning', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spur gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'gear' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    assert.match(await page.textContent('.history'), /Spur gear m2 z20/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /Reference Ø40, tip Ø44, root Ø35/.test(t)) && notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('spur-gear');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

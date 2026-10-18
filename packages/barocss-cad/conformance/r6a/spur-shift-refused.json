@@ -1,0 +1,33 @@
+{
+  "id": "r6a-spur-shift-refused",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D54"
+  ],
+  "about": "A profile shift is refused with its code (UNSUPPORTED_PROFILE_SHIFT), never approximated: shifted profiles arrive with R6a.5.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "profileShift": 0.3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "UNSUPPORTED_PROFILE_SHIFT"
+    }
+  }
+}

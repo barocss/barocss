@@ -1963,3 +1963,45 @@ Evidence — kernel `test/gear.test.mjs` 5/5:
 
 Next: R6a.3 — the part feature (persisted with its generator version), the studio's Gear command, export, and
 conformance fixtures from the issue's values.
+
+## D54 — R6a.3: the spur gear as a part feature and a studio command, persisted with its generator version, its report in the body's panel (2026-10-18, issue #2167)
+
+Decision:
+- **Kernel feature `spur-gear`.**
+  - Fields: module, teeth, faceWidth, bore, thicknessReduction, center, from, profileTolerance, pressureAngle,
+    profileShift, and `generator: 'spur-gear@0'`. A generator version the kernel does not know is CAPABILITY.
+  - Gear codes map to the part model's: INVALID_INPUT → INPUT; the UNSUPPORTED codes and PROFILE_BUDGET_EXCEEDED →
+    CAPABILITY; SELF_INTERSECTION and BORE_INTERSECTION → GEOMETRY. The gear's own code stays in the message
+    (`[UNSUPPORTED_PROFILE_SHIFT] …`).
+  - The output carries the gear's report as `output.gear`: dimensions, the measured flank deviation and the
+    diagnostics.
+- **Studio `gear` node and command.**
+  - The node holds the parameters and `generator`. The "Spur gear" command (module, teeth 18–200, face width, bore,
+    position) has its own generated icon and chat command docs.
+  - The feature editor edits module, teeth, face width, bore and "thinner by" (the thickness reduction).
+  - The body's panel shows the report as notes: reference, tip, root and base diameters and the tooth thickness; the
+    flank fit (deviation, pieces, the tolerance asked); and the warning "Schematic root: not the cutting tool's, not
+    validated for manufacturing".
+- **Identity.** A changed tooth count changes the topology: faces `.tip#k` and others come and go. References to them
+  go through A1.3's re-match or refusal like any feature's; nothing is reassigned silently.
+- **Export.** STEP keeps the B-spline flanks exact (the round trip in RB).
+
+Evidence:
+- **Conformance `conformance/r6a/`, 5 cases:**
+  - the issue's z 20 gear and its z 40 mate with a bore, off-centre. Each volume is the exact profile's area (Green's
+    theorem over the analytic involute, apart from the generator) × width, minus the bore, to 1e-5 (the flank fit);
+    the centroid on the axis at mid-width; genus 0 / 1; base face names; STEP round trip.
+  - refused: a profile shift (UNSUPPORTED_PROFILE_SHIFT), an undercut z 12 (naming x = 0.298), a bore into the rim
+    (BORE_INTERSECTION).
+- **RB seeds** in `robustness/corpus/parts/`: gear m2 z20; m3 z18 with a bore; m0.5 z200 with a bore; m2 z40 with a
+  keyway cut (a Boolean through the B-spline flanks). Every stage OK: evaluate, validate, mass, tessellate, round
+  trip.
+- **Studio test** (primitives): the command's node; the volume equal to the exact profile less the bore, to 0.05 mm³;
+  20 tips, 20 left flanks; the notes with the warning; edited to 30 teeth, 30 tips; z 12 refused naming x = 0.298.
+  Studio 301/301.
+- **Browser flow,** a new step: "spur gear" from the palette gives one body "Spur gear m2 z20". Its notes show
+  "Reference Ø40, tip Ø44, root Ø35" and the schematic-root warning; the top view shows the 20 teeth and the bore.
+- Kernel 965/966 (the known environmental test). Lint clean.
+
+Next: R6a.4, the pair checks — compatibility, centre distance and phase, clearance and interference over the full
+rotation period with refinement until it converges, the contact ratio from the usable flank, and a gear mate.

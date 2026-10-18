@@ -51,6 +51,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   sphere: { selection: 'none', values: { r: 'radius', x: 'centre X', y: 'centre Y', z: 'Z it stands on (its bottom)' } },
   cone: { selection: 'none', values: { r: 'base radius', rt: 'top radius (0: a point)', h: 'height', x: 'centre X', y: 'centre Y', z: 'base Z' } },
   torus: { selection: 'none', values: { R: 'ring radius (axis to tube centre)', r: 'tube radius', x: 'centre X', y: 'centre Y', z: 'Z it lies on' } },
+  gear: { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 18–200 (fewer would be undercut without a profile shift)', b: 'face width (mm)', bore: 'bore diameter (0: none), leaving a rim of at least one module below the root', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
   'subd-torus': { selection: 'none', values: { R: 'ring radius (axis to tube centre)', r: 'tube radius', nu: 'quads round the ring (4–64)', nv: 'quads round the tube (4–32)', x: 'centre X', y: 'centre Y', z: 'Z it lies on' } },
   tube: { selection: 'none', values: { r: 'outer radius', ri: 'inner radius', h: 'length', x: 'centre X', y: 'centre Y', z: 'base Z' } },
   wedge: { selection: 'none', values: { w: 'width X (high end at x)', d: 'depth Y', h: 'height Z', x: 'corner X', y: 'corner Y', z: 'base Z' } },

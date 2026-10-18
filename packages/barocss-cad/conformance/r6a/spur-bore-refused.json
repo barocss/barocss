@@ -1,0 +1,33 @@
+{
+  "id": "r6a-spur-bore-refused",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D54"
+  ],
+  "about": "A bore leaving less than the 1·m rim below the root circle is refused (BORE_INTERSECTION), giving the largest allowed.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "bore": 34
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "BORE_INTERSECTION"
+    }
+  }
+}

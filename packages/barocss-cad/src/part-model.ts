@@ -35,6 +35,7 @@ import { validateCurve, validateSurface } from './math.js';
 import { thickenSolid } from './thicken-solid.js';
 import { sewSolid, SewError } from './sew-solid.js';
 import { subdBrep, SubdError } from './subd.js';
+import { spurGear, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -160,6 +161,14 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'subd'; readonly cage: { readonly positions: readonly number[] | Float64Array; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] } }
   | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
+  /**
+   * R6a (issue #2167, D53–D54): an involute spur gear on the XY plane, about `center`, from z `from` through
+   * `faceWidth` — 20°, no profile shift in this stage (other input refused with its code). Faces `<id>.flankL#k`,
+   * `.flankR#k`, `.tip#k`, `.root#k`, `.rootL#k`/`.rootR#k`, `.face0`/`.face1`, `.bore#1/2`; its report (dimensions,
+   * the measured flank deviation, the schematic root's warning) is the output's `gear`. `generator` records the
+   * version that made it.
+   */
+  | { readonly kind: 'spur-gear'; readonly module: CadPartDim; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly generator?: 'spur-gear@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -205,6 +214,8 @@ export interface CadPartOutput {
   validate(): BrepCheckReport;
   /** The surface area (mm²) over the exact surfaces (brepSurfaceArea). */
   surfaceArea(): number;
+  /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
+  readonly gear?: SpurGearReport;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -254,7 +265,11 @@ interface Part {
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
   readonly revolved?: RevolveInput;
   readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
+  /** A generated gear's report (R6a). */
+  readonly gear?: SpurGearReport;
 }
+/** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
+const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
@@ -846,6 +861,20 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         try {
           return one({ kind: 'brep', brep: sweepSolid({ id: at, outer: loopPoints(sk.outer), holes: (sk.holes ?? []).map(loopPoints), xAxis: [m[0], m[3], m[6]], yAxis: [m[1], m[4], m[7]], path: curve }) });
         } catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
+    case 'spur-gear': {
+      if (f.generator !== undefined && f.generator !== 'spur-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), c = f.center === undefined ? [0, 0] as XY : xy(f.center as CadPartPoint2, 'center');
+      const z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      const spec: SpurGearSpec = { moduleMM: m, teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      return () => {
+        let made: ReturnType<typeof spurGear>;
+        try { made = spurGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const brep = c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report }] };
       };
     }
     case 'thread': {
@@ -1520,7 +1549,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

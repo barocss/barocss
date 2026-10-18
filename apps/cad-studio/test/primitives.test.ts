@@ -104,3 +104,22 @@ test('SubD torus (SD1, D51): a subd node from a regular cage — a smooth ring n
   assert.ok(r.bodies[0].mesh.faces.every(f => /^n0\.patch\d+$/.test(f.name)), r.bodies[0].mesh.faces.map(f => f.name).join(' '));
   assert.throws(() => cmd.build!(ctx, { ...cmd.defaults!(ctx), R: 5, r: 6 }), /smaller/);
 });
+
+test('Spur gear (R6a, issue #2167, D54): a gear node from the command — the volume of the exact profile, faces named per tooth, its report as notes (the schematic root said); edited to more teeth', () => {
+  const cmd = commands.find(c => c.id === 'gear')!, doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 });
+  const node = doc.nodes[0] as Extract<ModelNode, { kind: 'gear' }>;
+  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.bore, node.generator], ['gear', 2, 20, 10, 8, 'spur-gear@0']);
+  const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint);
+  const g = r.bodies[0];
+  // (The m 2 z 20 profile's exact area, 1226.1057 mm², × 10, less the Ø8 bore.)
+  assert.ok(Math.abs(g.volumeMM3! - (12261.057 - Math.PI * 16 * 10)) < 0.05, String(g.volumeMM3));
+  // (The display names faces by their base names: 20 tips, 20 left flanks.)
+  assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 20); assert.equal(g.mesh.faces.filter(f => f.name === 'n0.flankL').length, 20);
+  assert.ok(g.notes?.some(n => /Reference Ø40, tip Ø44, root Ø35/.test(n.text)), JSON.stringify(g.notes));
+  assert.ok(g.notes?.some(n => n.warning && /Schematic root: not the cutting tool's, not validated for manufacturing/.test(n.text)));
+  const more = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 30 }] }, 2); assert.ok(more.ok);
+  assert.ok(more.ok && more.bodies[0].mesh.faces.filter(f => f.name === 'n0.tip').length === 30, 'thirty tips');
+  // Refusals in the studio's words, the part unchanged.
+  const bad = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12 }] }, 3);
+  assert.ok(!bad.ok && /x = 0\.298/.test(bad.error.detail + bad.error.hint), JSON.stringify(!bad.ok && bad.error));
+});
