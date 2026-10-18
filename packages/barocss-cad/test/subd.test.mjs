@@ -311,3 +311,15 @@ test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage agai
   const changed = [...after].filter(([f, s]) => s !== first.get(f)).map(([f]) => JSON.parse(after.get(f))[0]);
   assert.ok(changed.length === 3 && new Set(changed).size === 1, JSON.stringify(changed));
 });
+
+test('PERF3 C16 (D82): the caps are kept whatever the cage\'s extent — the top\'s centre raised above the rest (a new extent) reuses every cap: the build far under a cold one, the caps the same', async () => {
+  const { buildSubd } = await import('../dist/subd.js');
+  const capsOf = b => new Map([...b.caps].map(([f, c]) => [f, JSON.stringify([c.vertex, c.poles, c.deviationMM])]));
+  const cage = boxCage(30, 20, 16, 6), shifted = { ...cage, positions: cage.positions.map((x, i) => i % 3 === 0 ? x + 0.0456 : x) };
+  let t0 = performance.now(); const first = buildSubd(shifted); const cold = performance.now() - t0;
+  let centre = 0; for (let v = 0; v < shifted.positions.length / 3; v++) if (Math.abs(shifted.positions[3 * v] - 0.0456) < 1e-9 && Math.abs(shifted.positions[3 * v + 1]) < 1e-9 && Math.abs(shifted.positions[3 * v + 2] - 16) < 1e-9) centre = v;
+  const p = [...shifted.positions]; p[3 * centre + 2] += 4;
+  t0 = performance.now(); const raised = buildSubd({ ...shifted, positions: p }); const warm = performance.now() - t0;
+  assert.deepEqual(capsOf(raised), capsOf(first));
+  assert.ok(warm < 0.5 * cold, `${warm.toFixed(1)} ms raised against ${cold.toFixed(1)} ms cold: the caps were built again`);
+});

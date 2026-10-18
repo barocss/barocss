@@ -3860,3 +3860,25 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
   - The benches now vary the phase by a billionth of a degree a run (the face width is no longer in the key).
 - **Test** (kernel `gear.test.mjs`): another width gives the same sweep with its own ratios (equal to the nominal formula's), kept (under 5 ms); a width out of range is still refused when the pair is kept. Gear tests 10/10; conformance 67/67; studio 362/362.
+
+**SubD: the caps' key, the topology built twice, `opposite()`** (found by a read-only review agent, confirmed and measured here)
+- **The caps' key held the size.** `keptCapsAt`'s key began with `scale`, the whole refined cage's extent. Any edit that moved the cage's highest or lowest point changed every key, so every cap was built again. On the ~2k-face cage, raising a top vertex took 109–162 ms against 22–38 ms for an inner one.
+  - The size is read only by the G1 rows' tolerance check (`orthonormalRows`). The poles and deviations do not depend on it.
+  - The key now leaves it out. Each dependent condition's miss and norm are kept with the caps, in the order they were met, and checked again at the size asked: the same refusal, at the same condition, with the same message.
+- **The SD2 topology was built twice.** `buildSubd` made `polyMesh` of the refined quads and then `topology()` of the same quads, which rebuilt half-edges, twins and sharp edges with a `Map`. The mesh's own (start 4k, twin, sharp, P, F) are the same, and it has made every check, so `topoOf(mesh)` reads them. The SD1 path does the same from the fan mesh and still runs `checkVertices` (kept rather than argued away).
+- **`opposite()`** scanned every face per crease vertex. It is now counted per vertex in `checkVertices`' own pass. `topology()` is gone.
+- **The same results:** builds hashed whole, old code against new, identical.
+  - SD2: ~2k-face cage cold, three top-raised and three inner moves, the bump cage, the bump cage ×3 (another scale), the SubD box.
+  - SD1: the 64 × 32 torus, the torus with 64 crease edges, the torus wound inward.
+- **After:**
+
+  | Build | Before | After |
+  |---|---|---|
+  | ~2k cage, top raised | 109–162 ms | 35–69 ms |
+  | Bench `subd: ~2k-face cage, its top raised (new extent)` (new) | | 19.8 ms (budget 60) |
+  | ~2k cage, one inner vertex moved | | 19.3 ms (it was 24) |
+  | SD1 torus pair | 25 ms | 21 ms |
+
+- **Tests:**
+  - Kernel `subd.test.mjs`: the top's centre raised (a new extent) reuses every cap, under half a cold build. It fails on the code before (89 against 175 ms).
+  - Kernel 1018/1019 (the known Node-version test); conformance 67/67.

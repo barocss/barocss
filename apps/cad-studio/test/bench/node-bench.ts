@@ -123,6 +123,13 @@ const scenarios: Scenario[] = [
     const c = boxCage(30, 20, 16, 18, [0, 0, 0]), v = Math.floor(c.positions.length / 6); subdBrep(c); let k = 0;
     return () => { const p = [...c.positions]; p[3 * v + 2] += 0.01 * ++k; return subdBrep({ ...c, positions: p }); };
   } },
+  // (PERF3 C16: the drag that raises the cage's highest vertex — a new extent, which made every cap be built again.)
+  { name: 'subd: ~2k-face cage, its top raised (new extent)', budgetMS: 60, runs: 5, setup() {
+    const c = boxCage(30, 20, 16, 18, [0, 0, 0]); let top = 0;
+    for (let i = 0; i < c.positions.length / 3; i++) if (c.positions[3 * i + 2] > c.positions[3 * top + 2] || (c.positions[3 * i + 2] === c.positions[3 * top + 2] && Math.abs(c.positions[3 * i]) + Math.abs(c.positions[3 * i + 1]) < Math.abs(c.positions[3 * top]) + Math.abs(c.positions[3 * top + 1]))) top = i;
+    subdBrep(c); let k = 0;
+    return () => { const p = [...c.positions]; p[3 * top + 2] += 0.5 * ++k; return subdBrep({ ...c, positions: p }); };
+  } },
   { name: 'tessellate: SubD box', budgetMS: 60, runs: 5, setup() { const b = subdBrep(boxCage(30, 20, 16, 1, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },
   // (PERF3 A5: the D79 split rounds tessellate again only the faces next to a split edge.)
   { name: 'tessellate: SubD body of a ~2k-face cage', budgetMS: 2000, runs: 2, setup() { const b = subdBrep(boxCage(30, 20, 16, 18, [0, 0, 0])); return () => tessellateBrep(b, { segmentsPerQuarter: 8 }); } },

@@ -70,18 +70,22 @@ export function buildSubd(cage: SubdCage, options: SubdOptions = {}): SubdBuild 
   const first = polyMesh(cage);
   if (first.F.every(f => f.length === 4) && first.fans.every(f => !f || f.regular)) {
     // SD1: regular everywhere, the cage is the B-spline net.
-    let t = topology(cage), quads = cage;
+    // (Its topology read from the mesh just made, which checked the cage; the vertices checked as before.)
+    let t = topoOf(first), quads = cage;
+    checkVertices(t);
     // (A closed cage wound inward is turned outward: each face's corners the other way round.)
-    if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...cage, faces: cage.faces.map(f => [...f].reverse()) }; t = topology(quads); }
+    if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...cage, faces: cage.faces.map(f => [...f].reverse()) }; t = topoOf(polyMesh(quads)); checkVertices(t); }
     const blocks = packBlocks(t, new Map()), sharpEdges = new Set<string>(), runs = new Map<string, EdgeRun[]>();
     return { brep: assemble(id, t, blocks, null, sharpEdges, runs), steps: 0, caps: new Map(), mesh: null, labels: null, sharpEdges, runs, cells: cellsOf(blocks), quads };
   }
   // SD2: one Catmull–Clark step; a second when a quad would hold two irregular corners.
   let r = refine(first), steps = 1, mesh = polyMesh(r.cage);
   if (twoIrregular(mesh) || options.steps === 2) { r = refine(mesh, r.labels); steps = 2; mesh = polyMesh(r.cage); }
+  // (The refined cage is all quads: its mesh already holds the topology — twins, sharp edges, positions — and has made
+  // every check of the cage, so it is read from there rather than built again; PERF3 C16.)
   let quads: SubdCage = r.cage;
-  let t = topology(quads, false);
-  if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...quads, faces: quads.faces.map(f => [...f].reverse()) }; t = topology(quads, false); mesh = polyMesh(quads); }
+  let t = topoOf(mesh);
+  if (!t.across.some(x => x < 0) && cageVolume(t) < 0) { quads = { ...quads, faces: quads.faces.map(f => [...f].reverse()) }; mesh = polyMesh(quads); t = topoOf(mesh); }
   let lo = Infinity, hi = -Infinity; for (let i = 0; i < t.P.length; i++) { lo = Math.min(lo, t.P[i]); hi = Math.max(hi, t.P[i]); }
   const caps = buildCaps(mesh, hi - lo), blocks = packBlocks(t, caps), sharpEdges = new Set<string>(), runs = new Map<string, EdgeRun[]>();
   return { brep: assemble(id, t, blocks, r.labels, sharpEdges, runs), steps, caps, mesh, labels: r.labels, sharpEdges, runs, cells: cellsOf(blocks), quads };
@@ -90,38 +94,8 @@ const cellsOf = (blocks: Block[]) => blocks.map(b => b.grid.flatMap((row, j) => 
 /** Whether some quad has two irregular corners. */
 function twoIrregular(m: PolyMesh): boolean { return m.F.some(f => f.filter(v => !m.fans[v]!.regular).length > 1); }
 
-function topology(cage: SubdCage, check = true): Topo {
-  const P = Float64Array.from(cage.positions), nv = P.length / 3;
-  if (!Number.isInteger(nv) || nv < 4) throw new SubdError('INPUT', 'the cage needs x, y, z for at least four vertices');
-  for (let i = 0; i < P.length; i++) if (!Number.isFinite(P[i])) throw new SubdError('INPUT', 'a cage position is not a finite number');
-  const F = cage.faces.map(f => [...f]);
-  if (!F.length) throw new SubdError('INPUT', 'the cage has no faces');
-  F.forEach((f, k) => {
-    if (f.length !== 4) throw new SubdError('CAPABILITY', `face ${k} has ${f.length} sides (SD1 takes quads; SD2 the rest)`);
-    for (const v of f) if (!Number.isInteger(v) || v < 0 || v >= nv) throw new SubdError('INPUT', `face ${k} names vertex ${v}, not one of the ${nv}`);
-    if (new Set(f).size !== 4) throw new SubdError('INPUT', `face ${k} repeats a vertex`);
-  });
-  // Half-edges: face k side s runs F[k][s] → F[k][s+1]; its twin runs the other way in the neighbour.
-  const half = new Map<number, number>();
-  F.forEach((f, k) => f.forEach((a, s) => {
-    const b = f[(s + 1) % 4], key = a * nv + b;
-    if (half.has(key)) throw new SubdError('INPUT', `edge ${a}–${b} is used twice the same way: the faces are not wound one way, or more than two faces meet there`);
-    half.set(key, 4 * k + s);
-  }));
-  const across = new Int32Array(4 * F.length).fill(-1);
-  F.forEach((f, k) => f.forEach((a, s) => { const twin = half.get(f[(s + 1) % 4] * nv + a); if (twin !== undefined) { if (twin >> 2 === k) throw new SubdError('INPUT', `face ${k} meets itself`); across[4 * k + s] = twin; } }));
-  const creases = new Set<number>();
-  for (const c of cage.creases ?? []) {
-    const [a, b] = c;
-    if (!half.has(a * nv + b) && !half.has(b * nv + a)) throw new SubdError('INPUT', `crease ${a}–${b} is not an edge of the cage`);
-    creases.add(Math.min(a, b) * nv + Math.max(a, b));
-  }
-  const sharp = new Uint8Array(4 * F.length);
-  F.forEach((f, k) => f.forEach((a, s) => { const b = f[(s + 1) % 4]; if (across[4 * k + s] < 0 || creases.has(Math.min(a, b) * nv + Math.max(a, b))) sharp[4 * k + s] = 1; }));
-  const t: Topo = { nv, F, across, sharp, P };
-  if (check) checkVertices(t);
-  return t;
-}
+/** An all-quad mesh's topology: its half-edge 4k + s is face k's side s (the mesh checked the cage: windings, twins, creases). */
+function topoOf(m: PolyMesh): Topo { return { nv: m.nv, F: m.F, across: m.twin, sharp: m.sharp, P: m.P }; }
 
 /**
  * Every vertex regular: inside, four edges and no sharp one (smooth), or exactly two sharp ones opposite (a crease
@@ -130,6 +104,8 @@ function topology(cage: SubdCage, check = true): Topo {
  */
 function checkVertices(t: Topo): void {
   const edges = new Map<number, Set<number>>(), sharpAt = new Map<number, Set<number>>(), boundary = new Map<number, number>(), facesAt = new Map<number, number>();
+  // (Per vertex, the faces at it with exactly one sharp side at it: a crease line straight through has all four so.)
+  const oneAt = new Map<number, number>();
   const add = (m: Map<number, Set<number>>, v: number, e: number) => { const s = m.get(v); if (s) s.add(e); else m.set(v, new Set([e])); };
   t.F.forEach((f, k) => f.forEach((a, s) => {
     const b = f[(s + 1) % 4], e = Math.min(a, b) * t.nv + Math.max(a, b);
@@ -137,6 +113,7 @@ function checkVertices(t: Topo): void {
     if (t.sharp[4 * k + s]) { add(sharpAt, a, e); add(sharpAt, b, e); }
     if (t.across[4 * k + s] < 0) { boundary.set(a, (boundary.get(a) ?? 0) + 1); boundary.set(b, (boundary.get(b) ?? 0) + 1); }
     facesAt.set(a, (facesAt.get(a) ?? 0) + 1);
+    if (t.sharp[4 * k + s] + t.sharp[4 * k + (s + 3) % 4] === 1) oneAt.set(a, (oneAt.get(a) ?? 0) + 1);
   }));
   for (const [v, es] of edges) {
     const valence = es.size, sh = sharpAt.get(v)?.size ?? 0, open = (boundary.get(v) ?? 0) > 0, faces = facesAt.get(v) ?? 0;
@@ -148,21 +125,9 @@ function checkVertices(t: Topo): void {
     if (valence !== 4) throw new SubdError('CAPABILITY', `vertex ${v} has ${valence} edges (extraordinary: SD2's)`);
     if (sh === 0) continue;
     if (sh === 1) throw new SubdError('CAPABILITY', `vertex ${v} ends a crease inside the surface (a dart: SD2's)`);
-    if (sh === 2 && opposite(t, v)) continue;
+    if (sh === 2 && faces === 4 && oneAt.get(v) === 4) continue;
     throw new SubdError('CAPABILITY', `vertex ${v} has ${sh} sharp edges that do not run straight through it: only a crease line through it, or every edge sharp (a corner), is regular yet`);
   }
-}
-/** Whether the two sharp edges at a valence-4 vertex are opposite (a face between them on each side). */
-function opposite(t: Topo, v: number): boolean {
-  // Each face at v with a sharp side at v: a crease line straight through has every face at v holding exactly one.
-  let faces = 0, one = 0;
-  t.F.forEach((f, k) => {
-    const s = f.indexOf(v); if (s < 0) return;
-    faces++;
-    const n = t.sharp[4 * k + s] + t.sharp[4 * k + (s + 3) % 4];
-    if (n === 1) one++;
-  });
-  return faces === 4 && one === 4;
 }
 
 /** A face placed in a frame: its corners c0..c3 are F[face][(r + k) % 4], u along c0 → c1, v along c0 → c3. */

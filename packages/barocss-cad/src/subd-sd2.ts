@@ -290,7 +290,12 @@ export function buildCaps(m: PolyMesh, scale: number): Map<number, Cap> {
 // runs as in the cage, so the caps are the same to the bit — and kept by that copy's content: an edit elsewhere (a
 // drag, an extrusion, the editor's next step) finds the caps of every vertex it did not reach. The last CAPS_KEPT.
 const CAPS_KEPT = 512;
-const keptCaps = new Map<string, Cap[]>();
+// (The caps do not depend on the cage's size, only whether they exist does: a G1 condition left dependent must be met
+// to the tolerance of the size. So the key leaves the size out — a drag that moves the cage's extreme vertex still
+// finds every cap it did not reach, PERF3 C16 — and each dependent condition's miss and norm, in the order they were
+// met, are kept with the caps and checked again at the size asked: the same refusal, at the same condition.)
+const keptCaps = new Map<string, { caps: Cap[]; checks: number[] }>();
+let checksOut: number[] | null = null;
 function keptCapsAt(m: PolyMesh, v: number, scale: number): Cap[] {
   const fan = m.fans[v]!, ring = new Set<number>();
   for (const f of fan.faces) for (const c of m.F[f.face]) for (const g of m.fans[c]!.faces) ring.add(g.face);
@@ -307,16 +312,20 @@ function keptCapsAt(m: PolyMesh, v: number, scale: number): Cap[] {
     for (const f of faces) { const F = m.F[f]; for (let s = 0; s < F.length; s++) edges.add(ekey(F[s], F[(s + 1) % F.length], m.nv)); }
     for (const key of m.crease) if (edges.has(key)) creases.push([vmap.get(Math.floor(key / m.nv))!, vmap.get(key % m.nv)!]);
   }
-  const at = vmap.get(v)!, key = JSON.stringify([scale, at, positions, sub, creases]);
+  const at = vmap.get(v)!, key = JSON.stringify([at, positions, sub, creases]);
   let local = keptCaps.get(key);
-  if (local) { keptCaps.delete(key); keptCaps.set(key, local); }
-  else {
-    const L = polyMesh({ positions, faces: sub, creases }, true, true);
-    local = capsAt(L, at, L.fans[at]!, scale);
+  if (local) {
+    keptCaps.delete(key); keptCaps.set(key, local);
+    const tol = 1e-9 * Math.max(scale, 1e-9), c = local.checks;
+    for (let i = 0; i < c.length; i += 2) if (c[i] > tol * c[i + 1]) throw missedCondition(at, c[i]);
+  } else {
+    const L = polyMesh({ positions, faces: sub, creases }, true, true), checks: number[] = [];
+    checksOut = checks;
+    try { local = { caps: capsAt(L, at, L.fans[at]!, scale), checks }; } finally { checksOut = null; }
     keptCaps.set(key, local); if (keptCaps.size > CAPS_KEPT) keptCaps.delete(keptCaps.keys().next().value!);
   }
   const out: Cap[] = [];
-  for (const c of local) out.push({ ...c, face: faces[c.face], vertex: v });
+  for (const c of local.caps) out.push({ ...c, face: faces[c.face], vertex: v });
   return out;
 }
 /**
@@ -432,6 +441,7 @@ const bern2 = (s: number) => { const t = 1 - s; return [t * t, 2 * s * t, s * s]
 /** The rows made orthonormal (q) with what each asks of the change from x0 (c): x0 + Σ q·c meets them all. */
 interface RowBasis { readonly Q: Float64Array[]; readonly C: P3[] }
 /** Modified Gram–Schmidt (twice) over the rows; a dependent row must be met already (within 1e-9 of the cage's size). */
+const missedCondition = (v: number, miss: number) => new SubdError('CAPABILITY', `the G1 cap at vertex ${v} has no solution (a condition missed by ${miss.toExponential(2)} mm)`);
 function orthonormalRows(rows: Form[], x0: P3[], n: number, scale: number, v: number): RowBasis {
   const Q: Float64Array[] = [], C: P3[] = [], tol = 1e-9 * Math.max(scale, 1e-9);
   for (const r of rows) {
@@ -450,7 +460,8 @@ function orthonormalRows(rows: Form[], x0: P3[], n: number, scale: number, v: nu
     const norm = Math.sqrt(a.reduce((s, x) => s + x * x, 0));
     if (norm <= 1e-10 * Math.max(norm0, 1)) {
       const miss = Math.hypot(rhs[0], rhs[1], rhs[2]);
-      if (miss > tol * Math.max(norm0, 1)) throw new SubdError('CAPABILITY', `the G1 cap at vertex ${v} has no solution (a condition missed by ${miss.toExponential(2)} mm)`);
+      checksOut?.push(miss, Math.max(norm0, 1));
+      if (miss > tol * Math.max(norm0, 1)) throw missedCondition(v, miss);
       continue;
     }
     for (let i = 0; i < n; i++) a[i] /= norm;
