@@ -278,6 +278,12 @@ export interface ViewerOptions {
   autoResize?: boolean;
   /** GPU errors the browser reports outside any check (default: console.error). */
   onError?: (message: string) => void;
+  /**
+   * Host-driven frames: the viewer asks the host for a frame (a mesh, light or size changed) instead of scheduling its
+   * own, and the host calls render() once in its own animation frame. An application that renders the viewer in its
+   * frame loop then draws one frame per animation frame, not its own and the viewer's (PERF3 A2).
+   */
+  onRequestRender?: () => void;
 }
 
 export interface PickHit {
@@ -766,7 +772,9 @@ export class Viewer {
 
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
-    if (this.scheduled || this.disposed) return;
+    if (this.disposed) return;
+    if (this.options.onRequestRender) { this.options.onRequestRender(); return; }
+    if (this.scheduled) return;
     const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => number }).requestAnimationFrame;
     const run = () => { this.scheduled = 0; this.render(); };
     this.scheduled = raf ? raf(run) : (setTimeout(run, 0) as unknown as number);

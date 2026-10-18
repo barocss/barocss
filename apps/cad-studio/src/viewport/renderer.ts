@@ -28,6 +28,8 @@ export interface ViewState {
 export type ThemeName = 'dark' | 'light';
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
+  /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
+  setRequestHost?(request: () => void): void;
   aoEnabled: boolean;
   /** While the camera moves: ambient occlusion is left out (it comes back, unchanged, when the camera stops). */
   interacting: boolean;

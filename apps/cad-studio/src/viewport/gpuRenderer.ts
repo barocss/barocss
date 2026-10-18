@@ -71,13 +71,20 @@ export class GpuRenderer implements ViewRenderer {
   private instanceFaces: readonly { id: string; body: number; face: number }[] = [];
   private view: ViewState | null = null;
 
+  private host: { request: () => void } = { request: () => {} };
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
+  /** Where the viewer's frame requests go: the viewport's request (one draw per animation frame). */
+  setRequestHost(request: () => void): void { this.host.request = request; }
 
   /** A renderer on the canvas, or an error when WebGPU is not available (the caller falls back). */
   static async create(canvas: HTMLCanvasElement): Promise<GpuRenderer> {
-    const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio() });
+    // (Host-driven frames: the viewer's own requests go to the viewport's frame loop, which draws once per animation
+    // frame; the viewer scheduling its own as well drew every change twice, PERF3 A2.)
+    const host = { request: () => {} };
+    const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio(), onRequestRender: () => host.request() });
     viewer.outlineWidth = 2;
     const r = new GpuRenderer(canvas, viewer);
+    r.host = host;
     r.setTheme('dark');
     return r;
   }

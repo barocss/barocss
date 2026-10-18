@@ -295,7 +295,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     let live = true, observer: ResizeObserver | null = null;
     const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
       if (!live) { r.dispose?.(); return; }
-      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current;
+      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.setRequestHost?.(() => requestRef.current());
       observer = new ResizeObserver(request); observer.observe(canvas.current!);
       setBackend(name);
     };

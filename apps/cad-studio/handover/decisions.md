@@ -3352,3 +3352,21 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   - Wall thickness kept per mesh.
 - **After: 22 ms** (×185). The new bench `check_spec: 8 requirements after an edit` has a budget of 50 ms.
 - Studio 343/343.
+
+### A2 — two draws per state change
+- **Confirmed:**
+  - GpuRenderer's mesh setters call the viewer's `requestRender`, which schedules its own animation frame and draws.
+  - The viewport then asks for its frame, and its `render()` draws again in the same frame. The viewer's `render()` cancels only a draw still pending, and by then the viewer's had already run.
+- **Fix:** a viewer option `onRequestRender` (`@barocss/gpu`): host-driven frames.
+  - The viewer hands its requests to the host. GpuRenderer routes them to the viewport's request (`setRequestHost`), which draws once per animation frame.
+  - Viewers without the option schedule their own frames as before.
+- **Bench (`bench:browser`):** now counts submits by animation frame (timestamp shared by every callback of one frame), and has two new scenarios: a face clicked from idle, and the selection cleared. Every scenario's budget is one submit per frame.
+
+  | Scenario | Before | After |
+  |---|---|---|
+  | hover, 60 moves | 34 submits, 2 per frame | 17, 1 |
+  | face clicked | 2 in one frame | 1 per frame |
+  | Escape | 2 in one frame | 1 |
+  | orbit, 60 steps | 61, 2 in one frame | 60, 1 |
+
+- GPU package 70/70.
