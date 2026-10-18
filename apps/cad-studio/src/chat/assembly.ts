@@ -10,6 +10,8 @@ import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
 import { faceTableOf } from '../assembly/faces';
 import { printability } from '../print/rules';
+import { orientPart, type OrientationScore } from '../print/orient';
+import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -85,7 +87,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -222,6 +224,15 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       const report = await printability(doc, state.bodies, evaluate, dir ? { direction: dir } : {});
       return { doc, content: json(report), isError: false, changed: false, summary: `printability: ${report.rules.filter(r => r.status === 'fail').length} failing, ${report.rules.filter(r => r.status === 'warn').length} warned` };
     }
+    case 'orient_for_print': {
+      // (AM4: which way up — the best of a fixed candidate set, deterministic; applied unless apply is false.)
+      const r = orientPart(doc, state.bodies, faceTableOf(doc), processProfile(doc.process));
+      if (typeof r === 'string') return fail(doc, r);
+      const round = (o: OrientationScore) => ({ direction: o.direction.map(v => +v.toFixed(6)), score: +o.score.toFixed(6), terms: Object.fromEntries(Object.entries(o.terms).map(([k, v]) => [k, +v.toFixed(6)])), support_mm3: +(o.supportMM3 ?? 0).toFixed(3), overhang_mm2: +o.overhangMM2.toFixed(3), height_mm: +o.heightMM.toFixed(3), contact_mm2: +o.contactMM2.toFixed(3) });
+      const out = { best: round(r.best), top: r.top.map(round), candidates: r.candidates, weights: r.weights, ms: Math.round(r.ms) };
+      if (args.apply === false) return { doc, content: json(out), isError: false, changed: false, summary: 'orientation scored' };
+      return { doc: { ...doc, print: { direction: r.best.direction.map(v => v + 0) as [number, number, number] } }, content: json({ ...out, applied: true }), isError: false, changed: true, summary: `oriented for printing: up ${out.best.direction.join(', ')}` };
+    }
     case 'snap_part': {
       const end = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.interface === 'string' ? { part: v.part, interface: v.interface } : null;
       const a = end(args.a), b = end(args.b), offset = args.offset === undefined ? [0, 0, 0] : vec3(args.offset);
@@ -298,6 +309,11 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'check_printability',
     description: 'Printability of the part for its printing process and printer (doc settings) as it lies (direction: the build direction, else the chosen one): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping — each pass, warn, fail, unknown (why) or n/a, with values, limits and their sources.',
     input_schema: { type: 'object', properties: { direction: xyz }, additionalProperties: false },
+  },
+  {
+    name: 'orient_for_print',
+    description: 'Chooses which way up to print (the build direction) for the part\'s printing process: a fixed set of candidates scored on support volume, overhang, height and bed contact (normalised, the process\'s weights), deterministic. Returns the best and the top three with their terms; applies the best (doc print direction) unless apply is false. The printability rules then read it.',
+    input_schema: { type: 'object', properties: { apply: { type: 'boolean' } }, additionalProperties: false },
   },
   {
     name: 'snap_part',

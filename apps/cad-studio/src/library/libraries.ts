@@ -240,7 +240,12 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
     const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.') || f.startsWith('print.'));
     if (!paths.length) continue;
     let why = '';
-    for (const path of paths) { const r = materialContext(path, material, profile); if ('value' in r) { context[k] = r.value; break; } why = r.unknown; }
+    for (const path of paths) {
+      // (Bending in the print plane, AM4: the part stands on the face along its normal — its length — so it bends in the
+      // layers when that lies within 15° of the bed's plane.)
+      if (path === 'print.bendInPlane' && doc.print) { const d = doc.print.direction, l = Math.hypot(d[0], d[1], d[2]); context[k] = Math.abs((n[0] * d[0] + n[1] * d[1] + n[2] * d[2]) / l) < Math.cos(75 * Math.PI / 180) ? 1 : 0; break; }
+      const r = materialContext(path, material, profile); if ('value' in r) { context[k] = r.value; break; } why = r.unknown;
+    }
     if (context[k] === undefined) unresolved.push(`${k}: ${why}`);
   }
   if ('around' in declared && context.around === undefined && inward !== null) {

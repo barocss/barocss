@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.6.0",
+ "libraryVersion": "0.7.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -13,7 +13,8 @@
   "P-SLA": "BaroCSS rule of thumb for resin (SLA) printing, written for this table: verify with your printer and resin",
   "P-SLS": "BaroCSS rule of thumb for powder-bed polymer sintering (SLS), written for this table: verify with your service or printer",
   "P-MJF": "BaroCSS rule of thumb for multi-jet fusion (MJF), written for this table: verify with your service or printer",
-  "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's"
+  "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's",
+  "P-ORI": "BaroCSS heuristic for scoring print orientations, written for this table (weights of normalised terms): a default to adjust"
  },
  "materials": [
   {
@@ -597,6 +598,30 @@
      "unit": "ratio",
      "source": "P-FDM",
      "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
     }
    },
    "additive": true
@@ -718,6 +743,30 @@
      "unit": "ratio",
      "source": "P-SLA",
      "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
     }
    },
    "additive": true
@@ -833,6 +882,30 @@
      "unit": "mm",
      "source": "P-SLS",
      "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
     }
    },
    "additive": true
@@ -948,6 +1021,30 @@
      "unit": "mm",
      "source": "P-MJF",
      "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
     }
    },
    "additive": true

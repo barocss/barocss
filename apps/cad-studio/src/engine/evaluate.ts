@@ -26,6 +26,8 @@ export interface BodyResult {
   pieces?: number;
   /** What a generator says of the body (a gear: its dimensions, its flank fit, its schematic root). */
   notes?: { text: string; warning?: boolean }[];
+  /** Enclosed voids, exactly: the B-rep's inner shells (a solid's shells past its first; AM3 cavities). */
+  innerShells?: number;
   /** A spur gear as made: its spec and where it stands (the gear queries, A3; a meshing gear's other gear with it). */
   gear?: GearPlacement;
   /** A rack as made: its spec and where it stands (and the gear it meshes with). */
@@ -57,7 +59,8 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}) };
+  const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}) };
 }
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {

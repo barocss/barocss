@@ -2957,3 +2957,42 @@ Evidence (`test/printing.test.ts` 5/5):
 - Studio 330/330; lint 0 errors.
 
 Next: AM4, the orientation search.
+
+## D75 — AM4: print orientation search (2026-10-18)
+
+Decision (`src/print/orient.ts`; with the peer's notes):
+- **Candidates:** 64 fixed Fibonacci-sphere directions, then the large planar faces set down on the bed (their exact
+  normals' opposites from the face table, faces ≥ 1% of the area, at most 32, by area then name), duplicates dropped.
+- **Score, lower better, of normalised terms**, each reported per candidate:
+  w_s·support / (area·diag) + w_o·overhang / area + w_h·height / diag − w_c·contact / area.
+  - The weights sit in each printing profile (`orientWSupport` 2, `orientWOverhang` 1, `orientWHeight` 0.5,
+    `orientWContact` 0.5), source id `P-ORI`: a BaroCSS heuristic, a default to adjust.
+  - Overhang and bed contact are AM2's (exact planar normals; curved faces by triangles, said approximate).
+  - Support volume only for the eight best by the cheaper terms: a ray straight down from each overhanging triangle
+    through a bounding-volume tree of the display mesh (median split, typed arrays, an iterative slab test and
+    Möller–Trumbore, no closures in the loop), to what is below it or the bed.
+- **Deterministic:** by score, then the lower height, then the candidate's index. The top three are reported with
+  their terms, the weights and the time.
+- **`orientPart`** takes the largest body and the profile's limit and weights; refused (said) without a printing
+  process. **Agent tool `orient_for_print { apply? }`** writes the best direction to `doc.print.direction` (−0
+  cleaned); `apply: false` only scores.
+- **The print plane for library checks:** `print.bendInPlane` (the snap hook's FDM rule) now resolves from
+  `doc.print`: the part bends in the layers when its normal lies within 15° of the bed's plane.
+- **Cavities (the peer's note on AM3):** counted by the B-rep's inner shells where the body has them; the display
+  mesh's pieces only for facet bodies, the method said per body in the rule's `why`.
+- **Limits, said:** support is a ray-sampled estimate from triangle centroids (not a slicer's support); the candidate
+  set is fixed, not a continuous optimum.
+
+Evidence (`test/printing.test.ts` 8/8):
+- A T (stem 10 × 10 × 20, bar 40 × 10 × 5): best lies on its flat side — height 10, contact 400 mm², overhang 0,
+  support 0. Upright its bar overhangs 300 mm²; upside down 0. The same answer twice; top three ordered, terms finite,
+  the profile's weights.
+- A 60 × 40 × 2 plate: flat (±Z).
+- The ray tree against a brute force over every triangle: 200 rays, identical hits.
+- 99 904 triangles, 64 candidates: 590–650 ms (limit 2 s).
+- The snap hook on an FDM plate: printed up +Z it is warned (bending across the layers); up +X not.
+- `orient_for_print`: dry run unchanged, applied direction equals the reported best, refused with no process.
+- The hollow box's cavity counted by B-rep shells.
+- Studio 333/333; lint 0 errors.
+
+Next: AM5, 3MF export.

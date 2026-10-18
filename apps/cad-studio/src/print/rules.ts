@@ -84,10 +84,12 @@ export async function printability(doc: StudioDoc, bodies: readonly BodyResult[]
     if (overlap) rules.push({ id: 'gap', level: 'feasible', status: 'fail', message: 'bodies overlap: they print as one', value: -(overlap.overlap_mm3 ?? 0), unit: 'mm³' });
     else rules.push(rule('gap', 'recommended', !close || close.clearance_mm! >= t('fitGap').value, 'the least gap between bodies printed together, against the gap that does not fuse', close?.clearance_mm ?? Infinity, t('fitGap').value, 'mm', t('fitGap').source));
   }
-  // Enclosed cavities: powder and resin stay trapped without escape holes.
-  const cav = bodies.reduce((n, x) => n + cavitiesOf(x.mesh), 0), needs = t('escapeHoles').value;
-  rules.push(needs > 0 ? rule('cavity', 'feasible', cav === 0, `an enclosed cavity traps ${profile.id === 'sla' ? 'resin' : 'powder'}: give it ${needs} escape holes of at least Ø${t('escapeHoleMM').value} mm`, cav, 0, 'count', t('escapeHoles').source)
-    : { id: 'cavity', level: 'recommended', status: 'pass', message: cav ? `${cav} enclosed cavities (filled or left as infill: nothing to drain)` : 'no enclosed cavity', value: cav });
+  // Enclosed cavities: powder and resin stay trapped without escape holes. Exactly, the B-rep's inner shells; the
+  // display mesh's enclosed pieces only where a body has no shells to count (said which).
+  const methods: string[] = [];
+  const cav = bodies.reduce((n, x) => { if (x.innerShells !== undefined) { methods.push(`${x.key}: B-rep shells`); return n + x.innerShells; } methods.push(`${x.key}: display-mesh pieces`); return n + cavitiesOf(x.mesh); }, 0), needs = t('escapeHoles').value;
+  rules.push({ ...(needs > 0 ? rule('cavity', 'feasible', cav === 0, `an enclosed cavity traps ${profile.id === 'sla' ? 'resin' : 'powder'}: give it ${needs} escape holes of at least Ø${t('escapeHoleMM').value} mm`, cav, 0, 'count', t('escapeHoles').source)
+    : { id: 'cavity', level: 'recommended' as const, status: 'pass' as const, message: cav ? `${cav} enclosed cavities (filled or left as infill: nothing to drain)` : 'no enclosed cavity', value: cav }), why: `counted by ${methods.join('; ')}` });
   // Orientation's rules: bed fit, overhang, warp, tip.
   if (!b) for (const id of ['bed-fit', 'overhang', 'warp', 'tip']) rules.push({ id, level: 'recommended', status: id === 'tip' && !t('tipRatio') ? 'n/a' : 'unknown', message: id, why: id === 'tip' && !t('tipRatio') ? `${profile.label} does not tip: the part lies in powder` : noOrientation });
   else {
