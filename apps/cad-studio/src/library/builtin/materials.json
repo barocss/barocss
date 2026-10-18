@@ -1,0 +1,507 @@
+{
+ "format": "barocss-materials",
+ "version": 1,
+ "id": "barocss-materials",
+ "libraryVersion": "0.1.0",
+ "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
+ "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
+ "sources": {
+  "S-TYP": "BaroCSS typical value for the material family, written for this table (not a grade's datasheet, not a standard's table): verify against your grade's datasheet",
+  "S-DENS": "BaroCSS typical density for the family, written for this table (the studio's earlier density list, kept)",
+  "P-INJ": "BaroCSS rule of thumb for injection moulding, written for this table (not a moulder's or a standard's text): verify with your moulder",
+  "P-FDM": "BaroCSS rule of thumb for FDM printing with a 0.4 mm nozzle, written for this table: verify with your printer and slicer",
+  "P-SLA": "BaroCSS rule of thumb for resin (SLA) printing, written for this table: verify with your printer and resin"
+ },
+ "materials": [
+  {
+   "id": "al6061",
+   "label": "Aluminium 6061",
+   "family": "metal",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 68900,
+   "yieldMPa": 276,
+   "allowableStrain": 0.004,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   }
+  },
+  {
+   "id": "steel",
+   "label": "Steel (mild)",
+   "family": "metal",
+   "densityGPerCm3": 7.85,
+   "elasticModulusMPa": 200000,
+   "yieldMPa": 250,
+   "allowableStrain": 0.0012,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   }
+  },
+  {
+   "id": "ss304",
+   "label": "Stainless 304",
+   "family": "metal",
+   "densityGPerCm3": 8.0,
+   "elasticModulusMPa": 193000,
+   "yieldMPa": 215,
+   "allowableStrain": 0.0011,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   }
+  },
+  {
+   "id": "brass",
+   "label": "Brass",
+   "family": "metal",
+   "densityGPerCm3": 8.5,
+   "elasticModulusMPa": 100000,
+   "yieldMPa": 200,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   }
+  },
+  {
+   "id": "ti64",
+   "label": "Titanium Ti-6Al-4V",
+   "family": "metal",
+   "densityGPerCm3": 4.43,
+   "elasticModulusMPa": 113800,
+   "yieldMPa": 880,
+   "allowableStrain": 0.0077,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   }
+  },
+  {
+   "id": "abs",
+   "label": "ABS",
+   "family": "polymer",
+   "densityGPerCm3": 1.04,
+   "elasticModulusMPa": 2200,
+   "yieldMPa": 40,
+   "allowableStrain": 0.025,
+   "shrink": 0.005,
+   "processes": [
+    "injection",
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "injection": [
+     1.2,
+     3.5
+    ],
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   }
+  },
+  {
+   "id": "pla",
+   "label": "PLA",
+   "family": "polymer",
+   "densityGPerCm3": 1.24,
+   "elasticModulusMPa": 3500,
+   "yieldMPa": 55,
+   "allowableStrain": 0.015,
+   "shrink": 0.003,
+   "processes": [
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   }
+  },
+  {
+   "id": "pa12",
+   "label": "Nylon PA12",
+   "family": "polymer",
+   "densityGPerCm3": 1.01,
+   "elasticModulusMPa": 1700,
+   "yieldMPa": 45,
+   "allowableStrain": 0.04,
+   "shrink": 0.01,
+   "processes": [
+    "injection",
+    "sla"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "injection": [
+     0.8,
+     3.0
+    ],
+    "sla": [
+     0.8,
+     4.0
+    ]
+   }
+  },
+  {
+   "id": "pc",
+   "label": "Polycarbonate",
+   "family": "polymer",
+   "densityGPerCm3": 1.2,
+   "elasticModulusMPa": 2400,
+   "yieldMPa": 62,
+   "allowableStrain": 0.04,
+   "shrink": 0.006,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "injection": [
+     1.0,
+     3.8
+    ]
+   }
+  },
+  {
+   "id": "pp",
+   "label": "Polypropylene",
+   "family": "polymer",
+   "densityGPerCm3": 0.9,
+   "elasticModulusMPa": 1500,
+   "yieldMPa": 30,
+   "allowableStrain": 0.06,
+   "shrink": 0.015,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "injection": [
+     0.8,
+     3.8
+    ]
+   }
+  },
+  {
+   "id": "petg",
+   "label": "PETG",
+   "family": "polymer",
+   "densityGPerCm3": 1.27,
+   "elasticModulusMPa": 2100,
+   "yieldMPa": 50,
+   "allowableStrain": 0.03,
+   "shrink": 0.003,
+   "processes": [
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   }
+  },
+  {
+   "id": "pom",
+   "label": "Acetal (POM)",
+   "family": "polymer",
+   "densityGPerCm3": 1.41,
+   "elasticModulusMPa": 2800,
+   "yieldMPa": 65,
+   "allowableStrain": 0.04,
+   "shrink": 0.02,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "injection": [
+     0.8,
+     3.0
+    ]
+   }
+  },
+  {
+   "id": "resin",
+   "label": "Standard resin (SLA)",
+   "family": "polymer",
+   "densityGPerCm3": 1.18,
+   "elasticModulusMPa": 2500,
+   "yieldMPa": 50,
+   "allowableStrain": 0.01,
+   "shrink": 0.002,
+   "processes": [
+    "sla"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP"
+   },
+   "wallMM": {
+    "sla": [
+     0.6,
+     4.0
+    ]
+   }
+  }
+ ],
+ "profiles": [
+  {
+   "id": "injection",
+   "label": "Injection moulding",
+   "thresholds": {
+    "ribRec": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a rib's thickness over the wall it stands on, recommended at most"
+    },
+    "ribMax": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.6,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the thinnest wall that fills"
+    },
+    "draftRecDeg": {
+     "value": 1.0,
+     "unit": "deg",
+     "source": "P-INJ",
+     "description": "draft on walls along the pull, recommended at least"
+    }
+   }
+  },
+  {
+   "id": "fdm",
+   "label": "FDM printing",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a rib's thickness over the wall: no sink in printing, kept at the wall"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall recommended (three perimeters)"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall that prints (two perimeters)"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-FDM",
+     "description": "no draft needed"
+    }
+   }
+  },
+  {
+   "id": "sla",
+   "label": "Resin printing (SLA)",
+   "thresholds": {
+    "ribRec": {
+     "value": 0.8,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 1.5,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 1.5,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-SLA",
+     "description": "no draft needed"
+    }
+   }
+  }
+ ]
+}

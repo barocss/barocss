@@ -2371,6 +2371,8 @@ try {
     await page.click('[aria-label="Library"]');
     await page.waitForSelector('[aria-label="Library tslot-20"]', { timeout: 10000 });
     assert.match(await page.textContent('[aria-label="Licence of tslot-20"]'), /CC0-1\.0.*· \d+ estimates/);
+    await page.selectOption('[aria-label="Process"]', 'fdm');
+    await page.waitForFunction(() => window.__studioDoc.process === 'fdm', null, { timeout: 5000 });
     await page.click('[aria-label="Library tslot-20"] [aria-label="Insert profile"]');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'library' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     assert.match(await page.textContent('.history'), /T-slot profile 20 20×20/);

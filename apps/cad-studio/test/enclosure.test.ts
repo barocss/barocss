@@ -9,7 +9,7 @@ import { loadCadLibrary, instantiateLibraryPart } from '@barocss/cad';
 // base, united with it; its checks read the wall measured there.
 type LibraryNode = Extract<ModelNode, { kind: 'library' }>;
 const bodies = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : `${r.error.title} ${r.error.hint}`); return r.ok ? r.bodies : []; };
-const plate = (t: number) => rectanglePart(60, 40, t);
+const plate = (t: number, process: string | null = 'injection') => ({ ...rectanglePart(60, 40, t), ...(process ? { process } : {}) });
 const top = (t: number, x: number, y: number) => ({ body: { node: 1, side: 'solid' as const }, face: 'n1.top', point: [x, y, t] as [number, number, number], normal: [0, 0, 1] as [number, number, number] });
 
 test('the screw boss: M2–M5 with and without gussets build valid; without gussets its volume the closed form; its rules read the wall', () => {
@@ -29,7 +29,7 @@ test('added to a body as one step: on the top face — the wall measured there (
   const r = addLibraryPartToBody(plate(2.5), 'enclosure', 'screw-boss', { variant: 'M3' }, top(2.5, 20, 20));
   assert.ok(!('error' in r), JSON.stringify(r));
   const doc = (r as { doc: StudioDoc }).doc, node = (r as { node: LibraryNode }).node;
-  assert.deepEqual(node.context, { wall: 2.5 }); assert.deepEqual(node.addTo, { node: 1, side: 'solid' }); assert.equal(node.on!.face, 'n1.top');
+  assert.deepEqual(node.context, { wall: 2.5, bossWallMax: 1, bossWallMin: 0.6, ribMax: 1, ribRec: 0.6 }); assert.deepEqual(node.addTo, { node: 1, side: 'solid' }); assert.equal(node.on!.face, 'n1.top');
   assert.ok(!node.warnings.some(w => /^(boss|rib|engagement)/.test(w)), node.warnings.join(' | '));
   const b = bodies(doc);
   assert.equal(b.length, 1, 'one body: the boss is part of the plate');
@@ -38,11 +38,11 @@ test('added to a body as one step: on the top face — the wall measured there (
   assert.ok(Math.abs(b[0].mesh.bounds.max[2] - 10.5) < 1e-6);
   // A thin wall: warned with the margins, the wall measured.
   const thin = addLibraryPartToBody(plate(1.2), 'enclosure', 'screw-boss', { variant: 'M3' }, top(1.2, 20, 20)) as { node: LibraryNode };
-  assert.deepEqual(thin.node.context, { wall: 1.2 });
+  assert.deepEqual(thin.node.context, { wall: 1.2, bossWallMax: 1, bossWallMin: 0.6, ribMax: 1, ribRec: 0.6 });
   assert.ok(thin.node.warnings.some(w => /^boss-wall-thick: .* \(1\.625\)$/.test(w)) && thin.node.warnings.some(w => /^rib-sink: .* \(0\.833333\)$/.test(w)), thin.node.warnings.join(' | '));
   // A wall thinner than the gussets: refused (feasible).
   const tooThin = addLibraryPartToBody(plate(0.8), 'enclosure', 'screw-boss', { variant: 'M3' }, top(0.8, 20, 20));
-  assert.match((tooThin as { error: string }).error, /rib-wall: a gusset thicker than the wall it stands on \(1\.25\)/);
+  assert.match((tooThin as { error: string }).error, /rib-wall: a gusset thicker than the process allows against the wall it stands on \(1\.25\)/);
   // Half off the plate: refused, never added half on.
   const off = addLibraryPartToBody(plate(2.5), 'enclosure', 'screw-boss', { variant: 'M3' }, top(2.5, 1, 20));
   assert.match((off as { error: string }).error, /base is not all on the body: \d+ of \d+ points of its footprint fall off it/);
@@ -56,7 +56,7 @@ test('added to a body as one step: on the top face — the wall measured there (
   // No wall measured (the ray leaves nothing): the wall rules unknown, said.
   assert.equal(thicknessAt(bodies(plate(2.5))[0].mesh, [100, 100, 2.5], [0, 0, 1]), null);
   const lib = loadCadLibrary(libraryById('enclosure')!.manifest), i = instantiateLibraryPart(lib, 'screw-boss', { variant: 'M3' });
-  assert.ok(i.warnings.some(w => /^boss-wall-thin: unknown — needs wall/.test(w)));
+  assert.ok(i.warnings.some(w => /^boss-wall-thin: unknown — needs bossWallMin \(.*\), wall \(the nominal wall/.test(w)), i.warnings.join(' | '));
 });
 
 test('the agent tool add_library_part: on a plate\'s top face by its name and a point, the wall measured, warnings returned; a face that is not flat refused', async () => {
@@ -66,7 +66,7 @@ test('the agent tool add_library_part: on a plate\'s top face by its name and a 
   const r = await dispatchTool(s, 'add_library_part', { library: 'enclosure', part: 'screw-boss', variant: 'M3', face: 'n1.top', point: [20, 20, 2.5] }, evaluate);
   assert.ok(!r.isError, r.content);
   const out = JSON.parse(r.content);
-  assert.deepEqual([out.added, out.context], ['Screw boss M3', { wall: 2.5 }]);
+  assert.deepEqual([out.added, out.context], ['Screw boss M3', { wall: 2.5, bossWallMax: 1, bossWallMin: 0.6, ribMax: 1, ribRec: 0.6 }]);
   assert.equal(bodies(r.state.doc).length, 1);
   const bad = await dispatchTool(s, 'add_library_part', { library: 'enclosure', part: 'screw-boss', face: 'n1.nope', point: [0, 0, 0] }, evaluate);
   assert.ok(bad.isError); assert.match(JSON.parse(bad.content).error, /not a flat face/);
@@ -114,7 +114,7 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
     ...holes.map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: k ? `h${k - 1}` : 'pcb', center: [x, y], radius: 1.6 }))] as never }).output('h3').brep;
   const step = exportStep([board], { name: 'pcb' });
   const place = (shift = 0) => {
-    let doc = rectanglePart(70, 60, 2);
+    let doc: StudioDoc = { ...rectanglePart(70, 60, 2), process: 'injection' };
     for (const [k, [x, y]] of holes.entries()) {
       const leaf = bodies(doc)[0].ref!;
       const r = addLibraryPartToBody(doc, 'enclosure', 'pcb-standoff', { variant: 'M2.5', params: { h: 6 } }, { body: leaf, face: 'n1.top', point: [x + 6 + (k === 1 ? shift : 0), y + 6, 2], normal: [0, 0, 1] });
@@ -130,4 +130,38 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
   assert.deepEqual([bad.status, bad.measured], ['fail', 0.3]); assert.match(bad.hint!, /off .* by 0\.3 mm/);
   const none = await runCheck(doc, b, ev as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p9' }, value: 0.05 });
   assert.equal(none.status, 'unknown'); assert.match(none.why!, /no part p9/);
+});
+
+test('R6b.7 materials and process profiles: the data checked (every value sourced, the densities as before); the boss\'s thresholds from the process — FDM allows what moulding warns, no process leaves them unknown, said; a material value read from the body\'s material, unknown while it is assumed', async () => {
+  const { MATERIALS_DATA, checkMaterials, materialData } = await import('../src/library/materials');
+  const { MATERIALS } = await import('../src/app/materials');
+  const { registerLibrary } = await import('../src/library/libraries');
+  const { withLook } = await import('../src/app/bodies');
+  assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
+  assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.gPerCm3]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
+  assert.ok(MATERIALS_DATA.materials.every(m => m.estimate && Object.keys(m.sources).length >= 5));
+  assert.deepEqual(MATERIALS_DATA.profiles.map(p => p.id), ['injection', 'fdm', 'sla']);
+  // The same M3 boss on a 1.2 mm wall: moulding warns (sink, a thick boss wall); FDM does not; no process: unknown.
+  const on = (process: string | null) => addLibraryPartToBody(plate(1.2, process), 'enclosure', 'screw-boss', { variant: 'M3' }, top(1.2, 20, 20)) as { node: LibraryNode };
+  const w = (n: LibraryNode) => n.warnings.filter(x => /^(boss|rib|context)/.test(x));
+  assert.deepEqual(w(on('injection').node).map(x => x.split(':')[0]), ['boss-wall-thick', 'rib-sink']);
+  assert.deepEqual(w(on('fdm').node), []);
+  const none = w(on(null).node);
+  assert.ok(none.includes('rib-sink: unknown — needs ribRec (the process\'s recommended rib-to-wall ratio)') && none.includes('context ribRec: no process is chosen'), none.join(' | '));
+  // A material value through the context: a test part reading the body's allowable strain.
+  registerLibrary({ format: 'barocss-cad-library', version: 1, id: 'test-strain', name: 'Strain', libraryVersion: '1.0.0', units: 'mm', license: 'CC0-1.0',
+    parts: [{ id: 'tab', name: 'Tab', parameters: { s: { value: 0.02, source: 'test' } }, operation: 'add',
+      context: { eps: { unit: 'ratio', description: 'the material\'s allowable strain', from: ['material.allowableStrain'] } },
+      checks: [{ id: 'strain', expr: 's <= eps', value: 's / eps', level: 'recommended', message: 'strained past the material' }],
+      recipe: [{ id: 'q', kind: 'sketch', profile: 'rectangle', min: [-2, -2], max: [2, 2] }, { id: 't', kind: 'extrude', sketch: 'q', height: 3 }],
+      interfaces: [{ id: 'base', role: 'boss-base', accepts: ['body-face'], frame: { origin: [0, 0, 0], z: [0, 0, -1], x: [1, 0, 0] } }] }] }, 'user');
+  const doc = plate(2.5), b0 = bodies(doc)[0];
+  const assumed = addLibraryPartToBody(doc, 'test-strain', 'tab', {}, top(2.5, 20, 20)) as { node: LibraryNode };
+  assert.ok(assumed.node.warnings.includes('context eps: the body\'s material is not set'), assumed.node.warnings.join(' | '));
+  for (const [id, pass] of [['abs', true], ['pla', false]] as const) {
+    const set = withLook(doc, b0, { material: id });
+    const r = addLibraryPartToBody(set, 'test-strain', 'tab', {}, top(2.5, 20, 20)) as { node: LibraryNode };
+    assert.equal(r.node.context!.eps, materialData(id)!.allowableStrain);
+    assert.equal(r.node.warnings.some(x => x.startsWith('strain:')), !pass, `${id}: ${r.node.warnings.join(' | ')}`);
+  }
 });

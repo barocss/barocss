@@ -12,6 +12,8 @@ import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } fr
 import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
+import { materialContext, materialData, processProfile } from './materials';
+import { lookOf } from '../app/bodies';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -230,6 +232,17 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   const side = perpendicular(n), at0 = rim ? [at.point[0] + rim * side[0], at.point[1] + rim * side[1], at.point[2] + rim * side[2]] : at.point;
   const inward = thicknessAt(target.mesh, at0, n);
   for (const k of ['wall', 'depth'] as const) if (k in declared && context[k] === undefined && inward !== null) context[k] = +inward.toFixed(6);
+  // (Material and process values: the body's material — set, not assumed — and the document's process.)
+  const unresolved: string[] = [];
+  const material = materialData(lookOf(doc, target).material), profile = processProfile(doc.process);
+  for (const [k, c] of Object.entries(declared)) {
+    if (context[k] !== undefined) continue;
+    const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.'));
+    if (!paths.length) continue;
+    let why = '';
+    for (const path of paths) { const r = materialContext(path, material, profile); if ('value' in r) { context[k] = r.value; break; } why = r.unknown; }
+    if (context[k] === undefined) unresolved.push(`${k}: ${why}`);
+  }
   if ('around' in declared && context.around === undefined && inward !== null) {
     // (Halfway down the part's own depth `Lh` when it has one — an insert's hole — else halfway through the body.)
     // (From the hole's own radius `dh`/2 out, when it has one: a pilot hole already there is inside it.)
@@ -259,7 +272,7 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   }
   if (!feet) return { error: `${node.name}'s base does not lie on the face (its ${base.id} interface is off it)` };
   if (off.length) return { error: `${node.name}'s base is not all on the body: ${off.length} of ${feet} points of its footprint fall off it — move it inward` };
-  const added: LibraryNode = { ...node, placement, addTo: at.body, on: { face: at.face, point: [...at.point] as Vec3 }, ...(cut ? { cut: true } : {}) };
+  const added: LibraryNode = { ...node, warnings: [...node.warnings, ...unresolved.map(u => `context ${u}`)], placement, addTo: at.body, on: { face: at.face, point: [...at.point] as Vec3 }, ...(cut ? { cut: true } : {}) };
   const next = withNode(doc, added), after = evaluateDoc(next, 1);
   if (!after.ok) return { error: `${node.name} could not be ${cut ? 'cut from' : 'united with'} the body: ${after.error.title} — ${after.error.hint}` };
   return { doc: next, node: added };

@@ -3,10 +3,10 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.2.0",
+ "libraryVersion": "0.3.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
- "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing).",
+ "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
  "parts": [
   {
    "id": "screw-boss",
@@ -123,36 +123,64 @@
       "min_wall",
       "given"
      ]
+    },
+    "ribRec": {
+     "unit": "ratio",
+     "description": "the process's recommended rib-to-wall ratio",
+     "from": [
+      "profile.ribRec"
+     ]
+    },
+    "ribMax": {
+     "unit": "ratio",
+     "description": "the process's largest rib-to-wall ratio",
+     "from": [
+      "profile.ribMax"
+     ]
+    },
+    "bossWallMin": {
+     "unit": "ratio",
+     "description": "the process's least boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMin"
+     ]
+    },
+    "bossWallMax": {
+     "unit": "ratio",
+     "description": "the process's largest boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMax"
+     ]
     }
    },
    "checks": [
     {
      "id": "boss-wall-thin",
-     "expr": "(OD - dp) / 2 >= 0.6 * wall",
+     "expr": "(OD - dp) / 2 >= bossWallMin * wall",
      "value": "(OD - dp) / 2 / wall",
      "level": "recommended",
-     "message": "the boss wall is thinner than 0.6 of the nominal wall (weak, hard to fill)"
+     "message": "the boss wall is thinner than the process recommends against the nominal wall (weak, hard to fill)"
     },
     {
      "id": "boss-wall-thick",
-     "expr": "(OD - dp) / 2 <= 1.0 * wall",
+     "expr": "(OD - dp) / 2 <= bossWallMax * wall",
      "value": "(OD - dp) / 2 / wall",
      "level": "recommended",
-     "message": "the boss wall is thicker than the nominal wall (sink marks, voids)"
+     "message": "the boss wall is thicker than the process recommends against the nominal wall (sink marks, voids)"
     },
     {
      "id": "rib-sink",
-     "expr": "ribs == 0 || rt <= 0.6 * wall",
+     "expr": "ribs == 0 || rt <= ribRec * wall",
      "value": "rt / wall",
      "level": "recommended",
-     "message": "a gusset thicker than 0.6 of the wall risks sink marks"
+     "message": "a gusset thicker than the process recommends against the wall (sink marks)"
     },
     {
      "id": "rib-wall",
-     "expr": "ribs == 0 || rt <= wall",
+     "expr": "ribs == 0 || rt <= ribMax * wall",
      "value": "rt / wall",
      "level": "feasible",
-     "message": "a gusset thicker than the wall it stands on"
+     "message": "a gusset thicker than the process allows against the wall it stands on"
     },
     {
      "id": "engagement",
@@ -799,15 +827,22 @@
       "min_wall",
       "given"
      ]
+    },
+    "bossWallMax": {
+     "unit": "ratio",
+     "description": "the process's largest boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMax"
+     ]
     }
    },
    "checks": [
     {
      "id": "standoff-wall",
-     "expr": "(OD - dp) / 2 <= 1.0 * wall",
+     "expr": "(OD - dp) / 2 <= bossWallMax * wall",
      "value": "(OD - dp) / 2 / wall",
      "level": "recommended",
-     "message": "the standoff's wall is thicker than the nominal wall (sink marks)"
+     "message": "the standoff's wall is thicker than the process recommends against the nominal wall (sink marks)"
     },
     {
      "id": "engagement",

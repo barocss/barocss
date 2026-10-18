@@ -2660,3 +2660,45 @@ Evidence (`test/enclosure.test.ts` 6/6):
 
 Next: R6b.7, the material library and process profiles (moved up, peer). Then R6b.3 snap-fits, whose strain checks
 read them.
+
+## D67 — R6b.7: the material library and process profiles, read by library checks (moved up before R6b.3, peer) (2026-10-18)
+
+Decision:
+- **`src/library/builtin/materials.json`** (barocss-materials 0.1.0, CC0, legal review before release): 13 materials.
+  - The studio's eight, their densities unchanged, plus PC, PP, PETG, POM and a standard SLA resin.
+  - Each has density, elastic modulus, yield, allowable strain (a snap-fit's), shrink, a wall range per process it
+    suits, and its processes.
+  - Every value names a source id: S-TYP, S-DENS, P-INJ, P-FDM, P-SLA, each a BaroCSS-written typical value or rule
+    of thumb (no datasheet, catalogue or standard text). Every material is flagged an estimate.
+- **Process profiles** (injection, FDM, SLA): thresholds with a value, unit, source id and description — ribRec,
+  ribMax, bossWallMin, bossWallMax, minWallRec, minWall, draftRecDeg.
+  - Moulding is strict on ribs (0.6 recommended, 1.0 at most). FDM allows a rib as thick as the wall (1.0 / 2.0) and
+    needs no draft. SLA sits between.
+- **`checkMaterials`:** every number finite (density, modulus and yield above 0), every field sourced by a known id,
+  wall ranges ordered, every threshold's source known.
+- The studio's material list (mass) now comes from this library.
+- **`StudioDoc.process`** is the profile the part is made by, chosen in the Library panel ("Not chosen (rules
+  unknown)" by default) and carried like every document field.
+- **Library context reads them:** `from: ['material.<field>']` (also `material.wallMin`/`wallMax` for the process)
+  and `['profile.<threshold>']`.
+  - Material values come from the body's material only when set: an assumed (default) material is no value.
+  - What cannot be resolved is said on the part as "context <name>: <why>" ("the body's material is not set", "no
+    process is chosen"), and the checks reading it are unknown.
+- **The enclosure library 0.3.0:** the boss and standoff rules take their thresholds from the process instead of
+  fixed numbers.
+
+Evidence (`test/enclosure.test.ts` 7/7):
+- The data checks clean; the eight densities are as before; every material is sourced.
+- **The same M3 boss on a 1.2 mm wall:**
+  - moulding warns boss-wall-thick and rib-sink;
+  - FDM warns neither;
+  - no process: the rules unknown, "context ribRec: no process is chosen".
+- **A test part reading `material.allowableStrain`:**
+  - unknown while the body's material is assumed;
+  - on ABS 0.025, met;
+  - on PLA 0.015, warned.
+- The earlier boss and insert tests run under injection, with the thresholds in their context.
+- Studio 318/318. The browser Library step chooses FDM.
+
+Next: R6b.3, the cantilever snap-fit (ε = 1.5·t·y/L² against the material's allowable strain, through this
+library).

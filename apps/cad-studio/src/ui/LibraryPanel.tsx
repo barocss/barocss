@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { StudioDoc } from '../engine/doc';
 import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '../library/libraries';
 import { UNLICENSED } from '../library/sharing';
+import { MATERIALS_DATA } from '../library/materials';
 import { Icon } from './atoms';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];
@@ -49,6 +50,9 @@ export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioD
   const all = libraries();
   return <aside className="card props library-panel" aria-label="Library panel">
     <div className="card-title">LIBRARY <button className="tool tiny" aria-label="Close library" onClick={onClose}><Icon name="close" small /></button></div>
+    {/* The process the part is made by: its rules' thresholds for the parts' checks (R6b.7). */}
+    <label className="kv"><span>Process</span><select aria-label="Process" value={doc.process ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.process = ev.target.value; else delete next.process; onCommit(next); }}>
+      <option value="">Not chosen (rules unknown)</option>{MATERIALS_DATA.profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>
