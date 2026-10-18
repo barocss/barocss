@@ -3836,7 +3836,9 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
   | Production build, two runs | 86–106 ms (about 1.6 ms a move) | `App` 15 ms over the whole drag (0.25 ms a move); `Viewport` 15 ms; the frame's draw 17 ms; layout 35 ms; one `focus()` of 21 ms when the drag opens the feature's HUD (once) |
 
 - **Decision: no code change.** In production the re-renders are a quarter of a millisecond a move, inside a 16.7 ms frame. Memoising App's toolbar and panels would put stale closures at risk for no measurable gain. The dev-server number is React's development build, which users do not run. Note that the browser flow and `bench:browser` run on the dev server, so frame CPU there reads high for this reason.
-- **The script:** `cdp-drag.mjs` in the session notes folder. It needs a vite URL and PW_DIR; `PROD=<dir>` builds and previews production, and `NOMIN=1` keeps names.
+- **The script:** `test/tools/cdp-drag.mjs`. Run it from `apps/cad-studio`:
+  `VITE_URL=$(node --input-type=module -e "console.log(import.meta.resolve('vite'))") PW_DIR=… node test/tools/cdp-drag.mjs "$PWD" <out-dir>`
+  `PROD=<dir>` builds and previews production, and `NOMIN=1` keeps names.
 
 ### C16 — small items
 **Gears: the interfering report, and the sweep's key**
@@ -3925,14 +3927,14 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 
   Outputs are byte-identical (16-hole plate: first, two highlights, a section). A highlight call takes 215–263 → 83–106 ms. The section path is left: its probe evaluation (with mass) is most of it, and evaluating it as a preview would change mesh limits.
 - **Library fits.** Each fit end was built cold, though the T-slot library builds its profile three times. Ends are now kept per library (WeakMap; a library is a value once loaded) by part, variant, values, interface and prefix; a failed build is not kept. Results are identical. A first run barely changes (215 → 209 ms: the overlap Booleans dominate). A repeated check (the share check, `add_library`) goes 131 → 74 ms on tslot-20 and 27 → 12 ms on the enclosure.
-- **Per-frame allocations** in the viewer and renderer: measured by the review agent at microseconds a frame (`packFrame` 1.6 µs, the key Map and sort for 50 meshes 6.3 µs). Hoisting them is GC hygiene with no measurable gain; left. The site list is in the coordination notes folder, `c16-review-findings.md`.
+- **Per-frame allocations** in the viewer and renderer: measured by the review agent at microseconds a frame (`packFrame` 1.6 µs, the key Map and sort for 50 meshes 6.3 µs). Hoisting them is GC hygiene with no measurable gain; left. The site list is in `handover/notes/c16-review-findings.md`.
 - **Not done:**
   - **Cold SubD cap fits.** `limitGrids`' meshes per level, `closestOnGrid`'s layout, `formAt`'s copies: 38 + 14 + 7 ms per cold build. Each is a restructuring of numeric code to keep bit-identical; with C17's nested functions, or later.
   - **Delaunay flips.** A worklist would change cocircular diagonals (A5): left.
 - Studio 364/364; kernel library tests 6/6; browser flow 119/119.
 
 ### C17 — functions made inside hot paths
-Sites from the review agent's list (`c16-review-findings.md`), each hoisted to module level or written out, with the same arithmetic in the same order.
+Sites from the review agent's list (`handover/notes/c16-review-findings.md`), each hoisted to module level or written out, with the same arithmetic in the same order.
 
 | Where | How often | Change |
 |---|---|---|
@@ -3957,7 +3959,7 @@ Sites from the review agent's list (`c16-review-findings.md`), each hoisted to m
   - 2 000 rays at 40k: 28.0 → 25.7 ms.
   - The per-frame sites are microseconds; the change is the rule.
 - **The AM4 wall-clock test** (`printing.test.ts`, 100k triangles oriented) had a 2 s bound and failed once under parallel load (about 0.6 s alone). It now has a 6 s bound with a comment; the measure is the bench row `print: orientation search, 100k triangles` (budget 1.2 s). The README TODO is removed.
-- **Left:** the cap fit's numeric helpers (`fanOf`, `refine`, `limitGrids`, `capsAt`'s `formAt`/`gridOf`/`polesOf`) and `cageTopology`'s template keys, listed in the notes. These are per vertex or face of a cold SubD build, where keeping the caps bit-identical needs care. They go with a cold-build pass, as do the viewer's per-frame object allocations (GC only).
+- **Left:** the cap fit's numeric helpers (`fanOf`, `refine`, `limitGrids`, `capsAt`'s `formAt`/`gridOf`/`polesOf`) and `cageTopology`'s template keys, listed in `handover/notes/c16-review-findings.md`. These are per vertex or face of a cold SubD build, where keeping the caps bit-identical needs care. They go with a cold-build pass, as do the viewer's per-frame object allocations (GC only).
 - GPU 73/73; studio 364/364; kernel SubD 18/18; browser flow 119/119; `bench:browser` within budget.
 
 ### D20 — RB bookkeeping
