@@ -2,7 +2,7 @@
 // lived buffers and every pipeline it needs, renders on demand (one frame per animation frame at most),
 // follows the canvas size and pixel ratio, and recreates its device and re-uploads the scene when the
 // device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
-import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, transformBox, unionBox, type Box3 } from './bounds.js';
+import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { prepareGeometry, rayTriangles, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type GeometryInput, type PreparedGeometry } from './geometry.js';
@@ -977,6 +977,18 @@ export class Viewer {
     return colors;
   }
 
+  /**
+   * Where the outlines can be this frame (device pixels): the outlined meshes' screen box, widened by the outline's
+   * reach and a pixel, or null (anywhere) when one reaches behind the eye. The output pass searches the mask only there.
+   */
+  private outlineRect(vp: Mat4): number[] | null {
+    const boxes: Box3[] = [];
+    for (const m of this.meshes) if (m.outlineSlot && m.visible && m.geometry.topology === 'triangles') { const b = m.bounds; if (!b) return null; boxes.push(b); }
+    const r = boxes.length ? screenRect(vp, boxes, this.canvas.width, this.canvas.height) : null;
+    if (!r) return null;
+    const reach = Math.ceil(this.outlineWidth * this.pixelRatio + 0.5) + 2;
+    return [r[0] - reach, r[1] - reach, r[2] + reach, r[3] + reach];
+  }
   private draw(capture: Buffer | null): void {
     this.frameBox = null; this.frameBox = { box: this.sceneBounds() };
     try { this.drawFrame(capture); } finally { this.frameBox = null; }
@@ -995,7 +1007,7 @@ export class Viewer {
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
-    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame())));
+    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlines.length ? this.outlineRect(vp) : null)));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)

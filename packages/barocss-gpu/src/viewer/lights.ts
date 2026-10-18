@@ -113,7 +113,8 @@ export type Background = { top: Vec3; bottom: Vec3 } | null;
 export interface OcclusionFrame { inverseProjection: Mat4; radius: number; pixelsPerUnit: number; perspective: boolean }
 
 /** The output block (see Output in shaders.ts): outline colours are sRGB, the width in device pixels. */
-export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null): ArrayBuffer {
+/** `outlineRect`: where outlines can be (pixels x0, y0, x1, y1), or null for anywhere. */
+export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null, outlineRect: readonly number[] | null = null): ArrayBuffer {
   const b = new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
   f[0] = env.exposure ?? 1;
   u[1] = env.toneMapping === 'aces' ? 1 : 0;
@@ -126,5 +127,6 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
     f.set(ao.inverseProjection, o + 8);
     f.set([ao.radius, env.ambientOcclusion.strength ?? 1, ao.pixelsPerUnit, ao.perspective ? 1 : -1], o + 24);
   }
+  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 28);
   return b;
 }

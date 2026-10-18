@@ -13,7 +13,7 @@ const { createServer } = await import('vite');
 const server = await createServer({ root, configFile: join(root, 'vite.config.ts'), server: { port: 52041, strictPort: false }, logLevel: 'error' });
 await server.listen();
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
 // Counted from the page's start: queue submits, and the CPU time of each animation-frame callback.
 await page.addInitScript(() => {
   // (`perFrame`: submits by the animation frame's timestamp — every callback of one frame shares it — so two draws in
@@ -50,6 +50,13 @@ try {
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
   });
+  // (PERF3 C14: the same orbit with the plate picked whole — its selection outline drawn every frame.)
+  await page.locator('.outliner .ol-row', { hasText: 'Extrude 8' }).first().click(); await page.waitForTimeout(300);
+  await measure('orbit: 60 steps, body outlined', { submits: 64, avgFrameMS: 2, perFrame: 1 }, async () => {
+    await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
+    await page.mouse.up({ button: 'left' });
+  });
 } finally { await browser.close(); await server.close(); }
 for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(34)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  GPU ${String(r.gpuMS).padStart(5)} ms/submit  wall ${r.wallMS} ms`);
-process.exit(rows.length === 4 && rows.every(r => r.ok) ? 0 : 1);
+process.exit(rows.length === 5 && rows.every(r => r.ok) ? 0 : 1);

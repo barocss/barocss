@@ -309,7 +309,7 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
  * sRGB encoding for the canvas.
  */
 export const MAX_OUTLINES = 8;
-export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16;
+export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 16;
 export const outputWGSL = (multisampled: boolean): string => /* wgsl */ `
 struct Output {
   exposure: f32, toneMapping: u32, outlineWidth: f32, outlines: u32,
@@ -320,6 +320,8 @@ struct Output {
   // unit view depth (perspective) or per world unit (orthographic, w < 0).
   invProj: mat4x4f,
   ao: vec4f,
+  // Where an outline can be (pixels: x0, y0, x1, y1): the outlined meshes' screen box and the outline's reach.
+  outlineRect: vec4f,
 }
 @group(0) @binding(0) var scene: texture_2d<f32>;
 @group(0) @binding(1) var<uniform> output: Output;
@@ -397,8 +399,10 @@ fn occlusion(p: vec2i, d: f32) -> f32 {
     a = s.a + a * (1.0 - s.a);
     c = select(vec3f(0.0), c / a, a > 0.0);
   }
-  if (output.outlines > 0u) {
+  let fp = vec2f(f32(p.x), f32(p.y));
+  if (output.outlines > 0u && all(fp >= output.outlineRect.xy) && all(fp <= output.outlineRect.zw)) {
     // Outside an outlined region, within the outline width of it: full colour, fading over the last pixel.
+    // (Only near the outlined meshes: elsewhere no mask pixel is within reach, the search would find none.)
     let here = textureLoad(mask, p, 0).r;
     let msize = vec2i(textureDimensions(mask));
     let r = i32(ceil(output.outlineWidth + 0.5));

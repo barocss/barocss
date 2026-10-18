@@ -57,3 +57,19 @@ export function boxInFrustum(planes: Float64Array, b: Box3): boolean {
   }
   return true;
 }
+
+/**
+ * The screen rectangle (pixels of a w × h target, y down: x0, y0, x1, y1) the boxes' corners project to through
+ * the view-projection, or null when a corner is not in front of the eye (the rectangle is then unbounded).
+ */
+export function screenRect(viewProjection: Mat4, boxes: readonly Box3[], w: number, h: number): [number, number, number, number] | null {
+  const m = viewProjection;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const b of boxes) for (let i = 0; i < 8; i++) {
+    const x = i & 1 ? b.max[0] : b.min[0], y = i & 2 ? b.max[1] : b.min[1], z = i & 4 ? b.max[2] : b.min[2];
+    const cw = m[3] * x + m[7] * y + m[11] * z + m[15]; if (!(cw > 1e-9)) return null;
+    const sx = ((m[0] * x + m[4] * y + m[8] * z + m[12]) / cw * 0.5 + 0.5) * w, sy = (0.5 - (m[1] * x + m[5] * y + m[9] * z + m[13]) / cw * 0.5) * h;
+    if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+  }
+  return [x0, y0, x1, y1];
+}

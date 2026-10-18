@@ -3792,3 +3792,30 @@ The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리
 - **Measured, not changed:**
   - **uv:** every body's geometry has texture coordinates, 8 bytes a vertex, even without a colour map. The viewer's pipelines read the attribute, so leaving it out needs a second vertex layout in `@barocss/gpu`. For a 200k-triangle body that is under 1 MiB. Left.
   - **Blob eviction:** the blob store keeps every mesh blob of the session, in the studio and in the worker (by design, D45/M1). Evicting safely needs every holder known: the document, undo and redo, proposals, a repair waiting, the chat's states, and the worker's wire, whose sender believes the worker still has what it sent once. That is a design change. Recorded as a TODO in README §0 with that list.
+
+### C14 — the selection outline
+- **Confirmed** (`bench:browser`, a new scenario: the plate picked whole from the outliner, then orbited 60 steps):
+
+  | DPR | Without the outline | With it | Its cost |
+  |---|---|---|---|
+  | 1 | 3.4–4.2 ms GPU a frame | 4.7–5.0 ms | 0.8–1.3 ms |
+  | 2 | 5.3–5.9 ms | 8.0–8.9 ms | 2.1–3.6 ms |
+
+  - Two parts:
+    - the mask pass draws every opaque mesh again (to hide what is behind);
+    - the output pass searched a (2r + 1)² square of the mask for **every pixel of the screen**: r = 3 at DPR 1 and 5 at DPR 2, so 121 texture reads a pixel over 5 M pixels.
+- **Fix (`@barocss/gpu`):** the output block carries `outlineRect`, the outlined meshes' screen box (`screenRect` of their world boxes) widened by the outline's reach and two pixels. The shader searches only inside it.
+  - Outside, no mask pixel is within reach, so the search found nothing there before either: the result is the same.
+  - A box with a corner behind the eye leaves the rectangle unbounded, as before.
+- **After:**
+
+  | DPR | Outline's cost |
+  |---|---|
+  | 1 | 0.6–0.8 ms |
+  | 2 | 0.9–1.1 ms (the rest is the mask pass) |
+
+  - The canvas with the outline is pixel-identical to HEAD's at DPR 1 and 2 (screenshots compared).
+- **Tests:**
+  - gpu `viewer-core`: the rectangle holds every projected point of the box; a corner behind the eye gives none; the block's last four floats.
+  - GPU 73/73; browser flow 119/119.
+- **Left:** the mask pass's redraw of the opaque meshes. Testing against the main pass's depth instead needs the mask multisampled like it (with MSAA on), which would change the outline's edge.

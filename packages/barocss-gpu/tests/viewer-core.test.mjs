@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveReversed, rotation, transformPoint, translation } from '../dist/viewer/math.js';
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
-import { boxInFrustum, frustumPlanes, transformBox } from '../dist/viewer/bounds.js';
+import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
 import { fillVertexColors, nearestSegment, prepareGeometry, rayTriangles, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
@@ -242,4 +242,20 @@ test('nearest segment: the same segment, distance and parameter as the walk over
     }
   }
   assert.ok(hits > 1000 && behind > 50, `${hits} hits, ${behind} with the eye among the segments`);
+});
+
+test('outline reach: a box\'s screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it last', () => {
+  const vp = multiply(perspectiveReversed(Math.PI / 3, 1.5, 0.1), lookAt([30, -40, 25], [0, 0, 0], [0, 0, 1])), w = 1200, h = 800;
+  const box = { min: [-5, -3, 0], max: [8, 4, 6] }, r = screenRect(vp, [box], w, h);
+  assert.ok(r && r[0] < r[2] && r[1] < r[3]);
+  for (let i = 0; i < 200; i++) {
+    const p = [0, 1, 2].map(k => box.min[k] + (box.max[k] - box.min[k]) * ((i * [0.618, 0.414, 0.732][k]) % 1)), c = [0, 1, 2, 3].map(q => vp[q] * p[0] + vp[4 + q] * p[1] + vp[8 + q] * p[2] + vp[12 + q]);
+    const sx = (c[0] / c[3] * 0.5 + 0.5) * w, sy = (0.5 - c[1] / c[3] * 0.5) * h;
+    assert.ok(sx >= r[0] - 1e-9 && sx <= r[2] + 1e-9 && sy >= r[1] - 1e-9 && sy <= r[3] + 1e-9, `point ${i}`);
+  }
+  // The eye inside the box: a corner behind it.
+  assert.equal(screenRect(vp, [{ min: [20, -50, 0], max: [40, -30, 30] }], w, h), null);
+  const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
+  assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
+  assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
 });
