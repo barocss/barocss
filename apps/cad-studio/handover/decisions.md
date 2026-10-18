@@ -2765,3 +2765,33 @@ Evidence:
 - Studio 322/322; kernel 991/992 (the known environmental test); lint 0 errors.
 
 Next: R6b.4, enclosure lip and groove and the split between halves.
+
+## D69 — R6b.4: enclosure halves with lip and groove, their fit checked for interference and contact (2026-10-18)
+
+Decision:
+- **Rectangular enclosure halves as library parts** ("Enclosure elements" 0.5.0).
+  - **Base:** open at the split `hs`, floor `w`, a lip of thickness lt and height lh round the inside of its rim.
+  - **Lid:** height Hl, closed top, a groove lt + c wide and lh + c deep round the inside of its rim.
+  - Both share L, W, w, lt, lh and c. Their `rim` interfaces (roles enclosure-rim and enclosure-lid-rim) snap the lid
+    onto the base with one coincident mate.
+- **Rules,** with thresholds from the process profile (materials 0.3.0 adds `fitClearance`: injection 0.1, FDM 0.2,
+  SLA 0.1):
+  - feasible: the base's rim beside the lip ≥ minWall; the lip ≥ minWall; the lid's wall beside the groove ≥ minWall;
+    the lid deep enough for its groove and top;
+  - recommended: the clearance ≥ the process's fitClearance.
+- **The declared fit `lid-on-base`:** overlap and contact, plus the fit's own rules over both halves — the same box
+  and wall, and the groove at least as wide and deep as the lip (side and top clearance as values).
+- **Limit, recorded:** splitting an arbitrary user body into halves with a lip that follows its outline needs an
+  offset of its section. It is pending (with R11 shell offsets) and is not done here.
+
+Evidence (`test/enclosure.test.ts` 12/12):
+- The volumes equal the closed forms exactly (17568 and 11375.168 mm³).
+- The fit: overlap 0, contact, the rules met, a side clearance of 0.2.
+- A lid with a 0.7 lip-band groove (0.9 wide for a 1.0 lip) overlaps by exactly the 0.1 ring × 2 (50.32 mm³) and
+  fails its rule.
+- Snapped in an assembly: the lid at z 20 with one coincident mate.
+- A clearance of 0.15 is met for moulding and short for FDM.
+- A 1.6 lip leaves a 0.4 rim: refused.
+- Studio 323/323.
+
+Next: R6b.5 vents and grilles, then R6b.6 the living hinge.

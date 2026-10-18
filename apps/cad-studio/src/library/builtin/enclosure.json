@@ -3,7 +3,7 @@
  "version": 1,
  "id": "enclosure",
  "name": "Enclosure elements",
- "libraryVersion": "0.4.0",
+ "libraryVersion": "0.5.0",
  "units": "mm",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
@@ -1431,6 +1431,532 @@
     "snap-fit",
     "catch"
    ]
+  },
+  {
+   "id": "enclosure-base",
+   "name": "Enclosure base",
+   "category": "enclosure",
+   "description": "The lower half of a rectangular enclosure, open at its split, with a lip round the inside of its rim for the lid's groove.",
+   "parameters": {
+    "L": {
+     "value": 80,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside length"
+    },
+    "W": {
+     "value": 50,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside width"
+    },
+    "w": {
+     "value": 2.0,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the wall"
+    },
+    "lt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's thickness (the inner part of the wall)"
+    },
+    "lh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's height"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "min": 0,
+     "max": 2,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the clearance round the lip, in the groove"
+    },
+    "hs": {
+     "value": 20,
+     "unit": "mm",
+     "min": 2,
+     "max": 1000,
+     "source": "free: the split's height (the base's)"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "fitClearance": {
+     "unit": "mm",
+     "description": "the process's recommended clearance for a sliding fit",
+     "from": [
+      "profile.fitClearance"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "rim",
+     "expr": "w - lt >= minWall",
+     "value": "w - lt",
+     "level": "feasible",
+     "message": "the rim beside the lip is thinner than the process can make"
+    },
+    {
+     "id": "lip",
+     "expr": "lt >= minWall",
+     "value": "lt",
+     "level": "feasible",
+     "message": "the lip is thinner than the process can make"
+    },
+    {
+     "id": "floor",
+     "expr": "hs > w + 0.5",
+     "value": "hs - w",
+     "level": "feasible",
+     "message": "the base is no taller than its floor"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "so",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      {
+       "expr": "L"
+      },
+      {
+       "expr": "W"
+      }
+     ]
+    },
+    {
+     "id": "ob",
+     "kind": "extrude",
+     "sketch": "so",
+     "height": {
+      "expr": "hs"
+     }
+    },
+    {
+     "id": "si",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w"
+      },
+      {
+       "expr": "w"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w"
+      },
+      {
+       "expr": "W - w"
+      }
+     ]
+    },
+    {
+     "id": "ci",
+     "kind": "extrude",
+     "sketch": "si",
+     "height": {
+      "expr": "hs"
+     },
+     "from": {
+      "expr": "w"
+     }
+    },
+    {
+     "id": "shell",
+     "kind": "difference",
+     "target": "ob",
+     "tool": "ci"
+    },
+    {
+     "id": "ls",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w - lt"
+      },
+      {
+       "expr": "w - lt"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w + lt"
+      },
+      {
+       "expr": "W - w + lt"
+      }
+     ],
+     "holes": [
+      [
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "w"
+         },
+         {
+          "expr": "w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "L - w"
+         },
+         {
+          "expr": "w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "L - w"
+         },
+         {
+          "expr": "W - w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "w"
+         },
+         {
+          "expr": "W - w"
+         }
+        ]
+       }
+      ]
+     ]
+    },
+    {
+     "id": "lip",
+     "kind": "extrude",
+     "sketch": "ls",
+     "height": {
+      "expr": "lh"
+     },
+     "from": {
+      "expr": "hs"
+     }
+    },
+    {
+     "id": "base",
+     "kind": "union",
+     "target": "shell",
+     "tool": "lip"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "rim",
+     "role": "enclosure-rim",
+     "accepts": [
+      "enclosure-lid-rim"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "L / 2"
+       },
+       {
+        "expr": "W / 2"
+       },
+       {
+        "expr": "hs"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "ob.top"
+     },
+     "description": "its rim at the split, the lip standing on its inner part"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "lip",
+    "box"
+   ]
+  },
+  {
+   "id": "enclosure-lid",
+   "name": "Enclosure lid",
+   "category": "enclosure",
+   "description": "The upper half of a rectangular enclosure, closed at its top, with a groove round the inside of its rim taking the base's lip.",
+   "parameters": {
+    "L": {
+     "value": 80,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside length"
+    },
+    "W": {
+     "value": 50,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside width"
+    },
+    "w": {
+     "value": 2.0,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the wall"
+    },
+    "lt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's thickness (the inner part of the wall)"
+    },
+    "lh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's height"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "min": 0,
+     "max": 2,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the clearance round the lip, in the groove"
+    },
+    "Hl": {
+     "value": 10,
+     "unit": "mm",
+     "min": 2,
+     "max": 1000,
+     "source": "free: the lid's height (from the split)"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "fitClearance": {
+     "unit": "mm",
+     "description": "the process's recommended clearance for a sliding fit",
+     "from": [
+      "profile.fitClearance"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "rim",
+     "expr": "w - lt - c >= minWall",
+     "value": "w - lt - c",
+     "level": "feasible",
+     "message": "the lid's wall beside the groove is thinner than the process can make"
+    },
+    {
+     "id": "clearance",
+     "expr": "c >= fitClearance",
+     "value": "c",
+     "level": "recommended",
+     "message": "less clearance round the lip than the process recommends (it may bind)"
+    },
+    {
+     "id": "ceiling",
+     "expr": "Hl >= lh + c + w + 0.5",
+     "value": "Hl - (lh + c + w)",
+     "level": "feasible",
+     "message": "the lid is too shallow for its groove and its top"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "so",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      {
+       "expr": "L"
+      },
+      {
+       "expr": "W"
+      }
+     ]
+    },
+    {
+     "id": "lo",
+     "kind": "extrude",
+     "sketch": "so",
+     "height": {
+      "expr": "Hl"
+     }
+    },
+    {
+     "id": "si",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w"
+      },
+      {
+       "expr": "w"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w"
+      },
+      {
+       "expr": "W - w"
+      }
+     ]
+    },
+    {
+     "id": "lc",
+     "kind": "extrude",
+     "sketch": "si",
+     "height": {
+      "expr": "Hl - w + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "shell",
+     "kind": "difference",
+     "target": "lo",
+     "tool": "lc"
+    },
+    {
+     "id": "gs",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w - lt - c"
+      },
+      {
+       "expr": "w - lt - c"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w + lt + c"
+      },
+      {
+       "expr": "W - w + lt + c"
+      }
+     ]
+    },
+    {
+     "id": "gx",
+     "kind": "extrude",
+     "sketch": "gs",
+     "height": {
+      "expr": "lh + c + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "lid",
+     "kind": "difference",
+     "target": "shell",
+     "tool": "gx"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "rim",
+     "role": "enclosure-lid-rim",
+     "accepts": [
+      "enclosure-rim"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "L / 2"
+       },
+       {
+        "expr": "W / 2"
+       },
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "lo.bottom"
+     },
+     "description": "its rim, the groove inside it"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "groove",
+    "lid"
+   ]
   }
  ],
  "fits": [
@@ -1488,6 +2014,36 @@
      "expr": "abs(a_e - b_y) <= a_c",
      "value": "a_e - b_y",
      "message": "the ledge stands off as far as the hook's undercut, within the clearance"
+    }
+   ]
+  },
+  {
+   "id": "lid-on-base",
+   "a": {
+    "part": "enclosure-base",
+    "interface": "rim"
+   },
+   "b": {
+    "part": "enclosure-lid",
+    "interface": "rim"
+   },
+   "checks": [
+    {
+     "id": "same-box",
+     "expr": "a_L == b_L && a_W == b_W && a_w == b_w",
+     "message": "the lid is the base's size and wall"
+    },
+    {
+     "id": "lip-side",
+     "expr": "b_lt + b_c - a_lt >= 0",
+     "value": "b_lt + b_c - a_lt",
+     "message": "the groove is at least as wide as the lip (its side clearance)"
+    },
+    {
+     "id": "lip-top",
+     "expr": "b_lh + b_c - a_lh >= 0",
+     "value": "b_lh + b_c - a_lh",
+     "message": "the groove is at least as deep as the lip (its top clearance)"
     }
    ]
   }

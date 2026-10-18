@@ -2,7 +2,7 @@
  "format": "barocss-materials",
  "version": 1,
  "id": "barocss-materials",
- "libraryVersion": "0.2.0",
+ "libraryVersion": "0.3.0",
  "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
  "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
  "sources": {
@@ -436,6 +436,12 @@
      "unit": "flag",
      "source": "P-INJ",
      "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the clearance recommended for a sliding fit between two parts"
     }
    }
   },
@@ -490,6 +496,12 @@
      "unit": "flag",
      "source": "P-FDM",
      "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the clearance recommended for a sliding fit between two parts"
     }
    }
   },
@@ -544,6 +556,12 @@
      "unit": "flag",
      "source": "P-SLA",
      "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the clearance recommended for a sliding fit between two parts"
     }
    }
   }

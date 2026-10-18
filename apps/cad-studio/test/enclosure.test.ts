@@ -239,3 +239,37 @@ test('R6b.3 the hook latched under its ledge (a declared fit): no overlap, in co
   assert.deepEqual([shallow.overlapMM3, shallow.contact, shallow.ok], [0, true, false]);
   assert.deepEqual([shallow.checks.find(c => c.id === 'engagement')!.pass, shallow.checks.find(c => c.id === 'engagement')!.value], [false, -0.25]);
 });
+
+test('R6b.4 enclosure halves: the base (lip round the inside of its rim) and the lid (groove) build, their volumes the closed forms; the lid snapped onto the base by their rims; the declared fit clear and touching — a lip wider than the groove overlaps by exactly its excess ring; the clearance against the process (FDM wants more); a rim too thin refused', async () => {
+  const { checkLibraryFit } = await import('@barocss/cad');
+  const { emptyDoc } = await import('../src/engine/doc');
+  const { libraryInstance, snapByInterfaces } = await import('../src/library/libraries');
+  const lib = libraryById('enclosure')!, ctx = { minWall: 0.6, fitClearance: 0.1 };
+  const L = 80, W = 50, w = 2, lt = 1, lh = 2, c = 0.2, hs = 20, Hl = 10, inner = (L - 2 * w) * (W - 2 * w);
+  const { insertLibraryPart } = await import('../src/library/libraries');
+  const build = (part: string) => bodies(insertLibraryPart(emptyDoc(), 'enclosure', part))[0].volumeMM3!;
+  assert.ok(Math.abs(build('enclosure-base') - (L * W * hs - inner * (hs - w) + ((L - 2 * w + 2 * lt) * (W - 2 * w + 2 * lt) - inner) * lh)) < 1e-6);
+  assert.ok(Math.abs(build('enclosure-lid') - (L * W * Hl - inner * (Hl - w) - ((L - 2 * w + 2 * (lt + c)) * (W - 2 * w + 2 * (lt + c)) - inner) * (lh + c))) < 1e-6);
+  // The declared fit: clear, touching on the rim, its rules met.
+  const fit = checkLibraryFit(lib, 'lid-on-base');
+  assert.deepEqual([fit.ok, fit.overlapMM3, fit.contact, fit.checks.map(x => x.pass)], [true, 0, true, [true, true, true]]);
+  assert.ok(Math.abs(fit.checks.find(x => x.id === 'lip-side')!.value! - 0.2) < 1e-12);
+  // A lid whose groove (0.7 + 0.2) is narrower than the 1 mm lip: they overlap by the 0.1 ring, 2 high.
+  const def = lib.manifest.fits!.find(f => f.id === 'lid-on-base')!;
+  const tight = checkLibraryFit(lib, { ...def, b: { ...def.b, params: { lt: 0.7 } } });
+  const ring = (L - 2 * w + 2) * (W - 2 * w + 2) - (L - 2 * w + 1.8) * (W - 2 * w + 1.8);
+  assert.equal(tight.ok, false); assert.ok(Math.abs(tight.overlapMM3 - ring * lh) < 1e-6, `${tight.overlapMM3} vs ${ring * lh}`);
+  assert.equal(tight.checks.find(x => x.id === 'lip-side')!.pass, false);
+  // In an assembly: the lid snapped onto the base's rim — one coincident mate on the rims, the lid on top.
+  let doc = emptyDoc();
+  ({ doc } = libraryInstance(doc, 'enclosure', 'enclosure-base', { name: 'Base' }));
+  ({ doc } = libraryInstance(doc, 'enclosure', 'enclosure-lid', { name: 'Lid', position: [0, 0, 100] }));
+  const snapped = snapByInterfaces(doc, { part: 'p1', interface: 'rim' }, { part: 'p2', interface: 'rim' }) as { doc: StudioDoc; mates: { kind: string }[] };
+  assert.deepEqual(snapped.mates.map(m => m.kind), ['coincident']);
+  assert.deepEqual(snapped.doc.instances!.find(i => i.id === 'p2')!.position.map(v => +v.toFixed(9)), [0, 0, 20]);
+  // The clearance against the process: 0.15 fine for moulding, short for FDM (0.2).
+  assert.equal(instantiateLibraryPart(lib, 'enclosure-lid', { params: { c: 0.15 }, context: ctx }).checks.find(x => x.id === 'clearance')!.pass, true);
+  assert.equal(instantiateLibraryPart(lib, 'enclosure-lid', { params: { c: 0.15 }, context: { minWall: 0.8, fitClearance: 0.2 } }).checks.find(x => x.id === 'clearance')!.pass, false);
+  // A lip leaving too thin a rim (2 − 1.6 = 0.4 under 0.6): refused.
+  assert.throws(() => instantiateLibraryPart(lib, 'enclosure-base', { params: { lt: 1.6 }, context: ctx }), (e: Error) => /rim: the rim beside the lip is thinner than the process can make \(0\.4\)/.test(e.message));
+});
