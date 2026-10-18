@@ -4252,3 +4252,60 @@ The method's risk is the Boolean meeting a tool tangent to a curved face: along 
   - **Fixtures:** each class's volume in closed form (as here); name stability across a radius change; RB4's fillet properties extended.
   - R10.2 (marched spines, contact trimming), R10.3 (vertex blends), R10.4 (overflow) and R10.5 (variable radius) stay as the note orders them.
 - **Not decided here:** whether the pipe-clamp lug's B-rep version (the note's §5) is R10.1's acceptance part. It needs R10.1(a) for the blend and R10.3 for the lug's own corners; taken as a later fixture, not R10.1's.
+
+## D88 — R10.1: translational and coaxial fillets in closed form, typed refusals, the true face reach (2026-10-19)
+
+R10.1 as D87's verdict and the research note (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) give it, on the method fillets already use (a rolling-ball tool, one analytic Boolean). Fillets only; chamfers of the new pairs are refused for now.
+
+- **The section solver** (`packages/barocss-cad/src/fillet-section.ts`, new): a fillet's cross-section where both faces are lines or circles in the section.
+  - The ball's centre is where the two curves, offset by r towards the corner, meet: line/line, line/circle and circle/circle, exactly. Of the meetings, the nearest whose contacts lie ahead of the edge on both faces.
+  - The contacts are the centre's feet on the curves.
+  - The tool: the region between the faces and the fillet arc, grown by g outside the corner along the faces' own outward offsets (exact lines and concentric arcs, so the growth stays on the faces' far side however they curve). g shrinks where a circle would shrink past half its radius.
+  - The profile's last segment is the fillet arc, tagged `f`; the tool's faces are named from the tags (`<id>.face` and `<id>.tool`), not by a marker.
+- **(a) Translational** (`translationalTool`): a straight edge between planes along it and cylinders whose axis runs along it. Solved in the section square to the edge and extruded, with the runs past the ends of a straight tool. New pairs: plane × cylinder along a ruling (a rod on a plate, a groove's rim, a D shaft's flat) and parallel cylinder × cylinder.
+- **(b) Coaxial** (`coaxialTool`): a circular edge between surfaces of revolution about the circle's axis (planes square to it, cylinders, and cones, spheres and tori through `revolutionOf`). Solved in the meridian and revolved, as `arcTool` does. New pairs include cylinder × cone, cone × plane, plane × cone (concave), cylinder × sphere, and any coaxial pair of these.
+  - A face of revolution's outward side comes from the parametric normal at its patch's middle.
+  - A curved edge's tangent chain now also crosses a seam between halves of its faces when the normals there agree. A revolve's rim halves share no face, so before this one half was filleted alone. One half selected now rounds the whole circle, as one closed tool.
+  - Only the profile turns, so the axis check is the profile's least ρ, an arc's leftmost point included, not the ball's.
+- **Unchanged paths:** plane/plane edges (`straightTool`, `cornerProfile`) and plane × square cylinder (`arcTool`) keep their geometry and names. The corner blends, mitres and chain logic are as before.
+- **Typed refusals:** `B-rep: <SELECTION|PARAMETER|CAPABILITY>: [<code>] …`, mapped to the part error as before. The studio's `engine/errors.ts` gives each a hint.
+  - `TANGENT_FACES` (SELECTION): faces meeting tangentially, e.g. a round's own tangent edge.
+  - `RADIUS_EXCEEDS_FACE` (PARAMETER): a contact past a face's true reach. Also the plane/plane wall check and the wedge chamfer, whose wording "too large for walls" is kept.
+  - `RADIUS_EXCEEDS_CURVATURE` (PARAMETER): a ball that does not fit inside a face's circle (r ≥ ρ), or no ball touching both faces.
+  - `NOT_ANALYTIC_PAIR` (CAPABILITY): neither translational nor coaxial; general fillets are R10.2.
+- **The true reach** replaces `faceReach`'s farthest control point, an upper bound (the defect D87 confirmed). It is the face's least extent across the edge over the edge's length, in the face's own measure: a line's distance along w, a circle's angle.
+  - **Which boundary edges count:** those beside the edge (along it within its length, or its sweep), except:
+    - those touching the edge's ends;
+    - those lying where the edge ends (the body ends there, not the face);
+    - for a finish that removes material, another loop's convex edges (a hole's rim: the cut runs into the void, as part-model's "brep-core step 7" chamfer beside a hole requires).
+  - A boss's foot limits it; for a finish that adds material, every boundary does.
+  - Across a smooth edge (a seam between halves of one surface), the neighbour's boundaries count instead. Without this the property below found 42 in 200 grooves falsely refused at a cylinder's seam 17.8° from the rim.
+  - **Precision:** sampled 64 times an edge, then refined to rounding (crossings by bisection, minima by golden section).
+  - It now applies to the convex plane/plane check, the wedge chamfer, `arcTool` (both senses) and both new tools.
+  - The bowed block's 8.5 mm fillet is refused at a reach of 7.928932 (15 − √50).
+- **Evidence:**
+  - `test/r10-1.test.mjs` (4 tests). Every volume is the region between the corner and the fillet arc, worked out by hand and integrated exactly (Green's theorem over lines and arcs; Pappus):
+    - **Translational:** rod on plate r 1–3, D shaft r 0.5 and 1.5, two parallel rods r 0.5–2, all to 1e-9 relative. The fillet surface is within 1e-12 of the cylinder about the ball's centre line.
+    - **Coaxial:** cylinder × cone, cone × plane and plane × cone (foot) to 1e-10 of the part (torus quadrature); the fillet surface is within 1e-12 of the torus about the ball's centre circle.
+    - **Cylinder × sphere:** the surface is exact to 1e-12, the volume to 1e-7 of the part (6e-8 measured: quadrature over the sphere face trimmed by the torus).
+    - **Refusals:** each typed code, the reach exactly met (r 37.5 on a 15 mm top) and just passed (r 40).
+    - **Names:** every face and edge name is unchanged across r 1–7.5; a sketch-tagged rod keeps `ce.side[w]`.
+  - `test/r10-s0.test.mjs`'s "today" test now records then and now: both S0 refusals filleted, and the 8.5 mm defect refused by name.
+  - **Conformance `conformance/r10/`** (6 cases):
+    - translational rod on plate (volume and centroid closed form, STEP round trip);
+    - coaxial cone rim (volume closed form; centroid by this kernel, x and y 0 by symmetry);
+    - one refusal for each typed code.
+  - **RB4 properties** (`scripts/rb/property.mjs`):
+    - "translational fillets": a random rod or groove (radius 2–8, axis −0.8ρ to 0.8ρ about the top, r 0.2–3) against the closed-form section, 200/200 at the fixed seed and three random seeds;
+    - "coaxial fillets": a random wall-and-cone body against Pappus, to the result's mass method.
+  - **Studio:** errors.ts hints; a flow step opens a rod-on-plate file, fillets the junction in the studio (volume = the closed form to the panel's 1 mm³), and has the other junction's 40 mm refused as too large.
+- **Found and kept as known, not fixed here** (`robustness/properties-todo.json`):
+  - **The analytic Boolean** fails on some coaxial cone-rim tools: 9 in 200 at the fixed seed, 8 at another. It leaves a sliver of the body's seam edge (the seam opposite the edge's start, from the corner to the contact on the cone): "not a manifold solid". The smallest is R 9, h 10, a cone of about 45°, r 1.
+    - D87's hand-built tool fails identically, so the defect is the Boolean's with a tool tangent to a cone, not R10.1's.
+    - Rotating the tool's seam by ±1e-12 or ±1e-9 changes nothing (structural, not rounding). A generic seam angle makes it far worse (192 in 200).
+    - The coaxial line/arc tangency test in `profileCrossings` was ruled out: disc against tol² looked suspect, but a distance test changed nothing and was not kept.
+    - The other 191 in 200 are exact.
+    - The property is a TODO, so the harness stops at its first failure there. Its coverage meanwhile comes from `r10-1.test.mjs` and the conformance cases.
+    - **Next:** R10.2's contact pcurves, or a Boolean repair of seam slivers.
+  - **Mass:** where quadrature's finer pass (q 16) cannot place a mesh point on such a torus, the result's mass falls back to the tessellation (5 in 200 there). It is reported honestly as `tessellated`, up to 4.4e-4 of the part off at the default chords in those seen (the removed 13.20 mm³ against 11.33); the coarse pass alone is exact there. A quadrature robustness item.
+- **Not done:** chamfers of the new pairs (refused with CAPABILITY); the pipe-clamp lug's B-rep version (needs R10.3 too, D87); variable radius, vertex blends and overflow (R10.2–R10.5).

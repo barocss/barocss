@@ -2843,6 +2843,37 @@ try {
     await snap('r10a-after');
   });
 
+  await check('R10.1 a rod on a plate (a file): the junction filleted in the studio — a plane and a cylinder along the edge, its volume the closed form; a radius past the plate\'s reach refused by name', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rod-on-plate.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const junction = await page.evaluate(() => ['n1.top#1|n3.side0', 'n1.top#2|n3.side0', 'n3.side0|n1.top#1', 'n3.side0|n1.top#2'].find(n => window.__studioPickEdge(n)));
+    assert.ok(junction, 'the junction is picked by its name');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('2'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    const yc = Math.sqrt(45), section = yc - 2 * Math.atan2(yc, 2) - 12.5 * Math.atan2(2, yc), exact = 16000 + 500 * Math.PI + 40 * section;
+    assert.ok(Math.abs(vol - exact) <= 1, `${vol} vs ${exact}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-1-rod-on-plate');
+    // The other junction at 40: the ball would touch the top 15.6 mm out, past its 15.
+    const other = await page.evaluate(j => ['n1.top#1|n3.side0', 'n1.top#2|n3.side0', 'n3.side0|n1.top#1', 'n3.side0|n1.top#2'].find(n => n !== j && window.__studioPickEdge(n)), junction);
+    assert.ok(other, 'the other junction');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('40');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused', null, { timeout: 20000 });
+    assert.match(await page.locator('.hud-error').innerText(), /too large/i);
+    await press('Escape');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

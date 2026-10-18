@@ -1,0 +1,80 @@
+{
+  "id": "r10-refuse-radius-exceeds-face",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1: a block whose top bows in to 15 − √50 = 7.93 mm deep at its middle, its near top edge filleted 8.5 mm — past the face's true reach (D88; the control-point bound of D87 admitted it).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                10,
+                0
+              ],
+              "center": [
+                15,
+                5
+              ],
+              "direction": "cw"
+            },
+            {
+              "kind": "line",
+              "start": [
+                10,
+                10
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 20
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side3|e.top"
+          ],
+          "radius": 8.5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[RADIUS_EXCEEDS_FACE]"
+    }
+  },
+  "oracle": "Closed form: the arc about (15, 5) of radius √50 comes to x = 15 − √50 at y = 5; a 90° fillet sets back r."
+}

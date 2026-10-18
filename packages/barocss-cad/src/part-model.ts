@@ -1737,8 +1737,8 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const [s1, s2] = sides, convex = dot(s2.w, s1.n) < 0;
   // Cutting, the chamfer must fit on both faces: d at most each face's reach across the edge.
   if (convex) {
-    const walls = uses.map((c, k) => faceReach(source, faceOf(c.loop).id, P, sides[k].w)), tol = 1e-6 * Math.max(1, ...P.map(Math.abs), ...Q.map(Math.abs));
-    if (walls.some(w => d > w + tol)) fail('PARAMETER', `edge ${edge.name}: chamfer ${d} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
+    const walls = uses.map((c, k) => faceReach(source, faceOf(c.loop).id, edge, sides[k].w)), tol = 1e-6 * Math.max(1, ...P.map(Math.abs), ...Q.map(Math.abs));
+    if (walls.some(w => d > w + tol)) fail('PARAMETER', `[RADIUS_EXCEEDS_FACE] edge ${edge.name}: chamfer ${d} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
   }
   const corner = (X: Point) => {
     const A1 = add(X, scale(s1.w, d)), A2 = add(X, scale(s2.w, d)), M = scale(add(A1, A2), 0.5);

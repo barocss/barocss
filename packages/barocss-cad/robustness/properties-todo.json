@@ -1,1 +1,6 @@
-[]
+[
+  {
+    "property": "coaxial fillets (R10.1, D88)",
+    "note": "The analytic Boolean leaves a sliver of the body's seam edge (at the seam opposite the edge's start, from the corner to the contact on the cone) when the fillet tool touches a cone tangentially along a circle, for some proportions (e.g. R 8.993, h 10.394, top 0.537, hc 4.172, r 0.998): 'not a manifold solid'. The S0 hand-built tool fails the same way, so the defect is the Boolean's, not R10.1's tool. About 9 in 200 at the fixed seed. Fix with R10.2 (contact pcurves) or a Boolean repair step."
+  }
+]

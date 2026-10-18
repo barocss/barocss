@@ -1,0 +1,128 @@
+{
+  "id": "r10-translational-rod-on-plate",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1 (a): a rod (radius 5) half sunk in a plate, the junction on one side filleted 2 mm — a plane and a cylinder along the edge; the fillet is the cylinder about the ball's centre line (√45, 12).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "c",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 5,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "ce",
+          "kind": "extrude",
+          "sketch": "c",
+          "height": 40
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "pe",
+          "tool": "ce"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "ce.side0|pe.top#2"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 17591.76506334814,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            0.0063961354708673285,
+            5.642279038161468
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "ce.bottom",
+          "ce.side0",
+          "ce.top",
+          "f.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side2",
+          "pe.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the plate, the rod's upper half and the fillet section (between the top, the rod and the arc about (√45, 12), integrated over its lines and arcs by Green's theorem) extruded 40."
+}

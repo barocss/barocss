@@ -1,0 +1,59 @@
+{
+  "id": "r10-refuse-tangent-faces",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1: a disc's top rim rounded 2 mm, then the edge between that round and the top: they meet tangentially — no corner (TANGENT_FACES).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10
+        },
+        {
+          "id": "ce",
+          "kind": "extrude",
+          "sketch": "c",
+          "height": 10
+        },
+        {
+          "id": "g",
+          "kind": "fillet",
+          "target": "ce",
+          "edges": [
+            "ce.side0#2|ce.top"
+          ],
+          "radius": 2
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "ce.top|g.face#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "SELECTION",
+      "messageIncludes": "[TANGENT_FACES]"
+    }
+  },
+  "oracle": "The round is tangent to the top along the edge by construction."
+}

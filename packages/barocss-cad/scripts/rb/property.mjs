@@ -142,6 +142,47 @@ export function properties(cad) {
         const bound = (2 - Math.PI / 2) * r2 * 2 * (v.w + v.d) * v.dr;
         return (b < a && a - b <= bound * (1 + 1e-9)) || { a, b, bound };
       } },
+    { name: 'translational fillets (R10.1, D88): a rod on a plate or a groove in it, the edge along it filleted, against the closed-form section', gen: rnd => {
+        const rho = num(rnd, 2, 8);
+        return { rho, c: num(rnd, -0.8 * rho, 0.8 * rho), r: num(rnd, 0.2, 3), groove: rnd() < 0.5 };
+      },
+      shrink: v => [{ ...v, rho: Math.round(v.rho) || 2 }, { ...v, c: 0 }, { ...v, r: Math.round(v.r * 10) / 10 || 0.2 }, { ...v, groove: false }].filter(x => JSON.stringify(x) !== JSON.stringify(v)), prop: v => {
+        const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -30], max: [40, 30] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 20 },
+          { id: 'c', kind: 'sketch', profile: 'circle', center: [0, 20 + v.c], radius: v.rho, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 40 },
+          { id: 'u', kind: v.groove ? 'difference' : 'union', target: 'pe', tool: 'ce' }];
+        let edge; try { edge = cad.evaluateCadPart(D(body)).outputs[0].brep.edges.find(e => e.curve.degree === 1 && /ce\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0)?.name; } catch { return 'skip'; }
+        if (!edge) return 'skip';
+        const a = volumeOf(cad, D(body)), b = volumeOf(cad, D([...body, { id: 'f', kind: 'fillet', target: 'u', edges: [edge], radius: v.r }]));
+        if (a === 'skip' || b === 'skip') return 'skip';
+        // In (y, z − 20): the ball r above the top (a rod) or below it (a groove's rim), ρ + r from the axis (0, c).
+        const s = v.groove ? -1 : 1, yc = Math.sqrt((v.rho + v.r) ** 2 - (s * v.r - v.c) ** 2), C = [yc, s * v.r], A0 = [0, v.c];
+        const d = Math.hypot(C[0] - A0[0], C[1] - A0[1]), X = [Math.sqrt(v.rho ** 2 - v.c ** 2), 0], T1 = [yc, 0], T2 = [A0[0] + v.rho * (C[0] - A0[0]) / d, A0[1] + v.rho * (C[1] - A0[1]) / d];
+        const exact = 40 * sectionArea([{ kind: 'line', start: X }, arcTo(T1, C, T2), arcTo(T2, A0, X)]), got = v.groove ? a - b : b - a;
+        return Math.abs(got - exact) <= 1e-8 * exact + 1e-10 * a || { got, exact, rel: got / exact - 1 };
+      } },
+    { name: 'coaxial fillets (R10.1, D88): a turned wall meeting a cone, the rim filleted, against Pappus', gen: rnd => {
+        const R = num(rnd, 4, 12);
+        return { R, h: num(rnd, 4, 12), top: num(rnd, 0.2, 0.9), hc: num(rnd, 2, 10), r: num(rnd, 0.2, 3) };
+      },
+      shrink: v => [{ ...v, R: Math.round(v.R) }, { ...v, h: Math.round(v.h) }, { ...v, hc: Math.round(v.hc) }, { ...v, r: Math.round(v.r * 10) / 10 || 0.2 }].filter(x => JSON.stringify(x) !== JSON.stringify(v)), prop: v => {
+        const Rt = Math.round(v.R * v.top * 1000) / 1000, H = v.h + v.hc;
+        const body = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [v.R, 0], [v.R, v.h], [Rt, H], [0, H]], plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
+        let edge; try { edge = cad.evaluateCadPart(D(body)).outputs[0].brep.edges.find(e => /side1#1/.test(e.name) && /side2#1/.test(e.name))?.name; } catch { return 'skip'; }
+        if (!edge) return 'skip';
+        const a = volumeOf(cad, D(body)), filleted = D([...body, { id: 'f', kind: 'fillet', target: 'r', edges: [edge], radius: v.r }]), b = volumeOf(cad, filleted), tol = lastTol;
+        if (a === 'skip') return 'skip';
+        // (A typed refusal is not judged; the analytic Boolean failing on the tool — it touches the cone tangentially
+        // along a circle — is a failure, the S0 method's too: a TODO, robustness/properties-todo.json.)
+        if (b === 'skip') { try { cad.evaluateCadPart(filleted); } catch (cause) { if (/not a manifold solid/.test(cause.message)) return { boolean: cause.message.slice(0, 160) }; } return 'skip'; }
+        // The meridian corner at (R, h): down the wall, up the cone; the ball r from both, on the bisector.
+        const P = [v.R, v.h], w1 = [0, -1], l = Math.hypot(Rt - v.R, v.hc), w2 = [(Rt - v.R) / l, v.hc / l], alpha = Math.acos(w1[0] * w2[0] + w1[1] * w2[1]);
+        const t = v.r / Math.tan(alpha / 2), b2 = [w1[0] + w2[0], w1[1] + w2[1]], bl = Math.hypot(...b2), k = v.r / Math.sin(alpha / 2);
+        const T1 = [P[0] + w1[0] * t, P[1] + w1[1] * t], T2 = [P[0] + w2[0] * t, P[1] + w2[1] * t], C = [P[0] + b2[0] / bl * k, P[1] + b2[1] / bl * k];
+        const exact = 2 * Math.PI * sectionMoments([{ kind: 'line', start: P }, arcTo(T1, C, T2), { kind: 'line', start: T2 }]).M;
+        // (To the filleted body's mass method: quadrature, or — where its finer pass cannot place a mesh point on the
+        // torus, D88 — the tessellation, each to its stated accuracy.)
+        return Math.abs(a - b - exact) <= Math.max(1e-9, tol) * a || { got: a - b, exact, ofPart: (a - b - exact) / a, tol };
+      } },
     { name: 'exact oracles: a cylinder against a box turned about X, Y or Z (or grazing it), and crossed cylinders', gen: oracleGen, shrink: oracleShrink, prop: v => {
       const c = oracleCaseOf(v);
       let outputs; try { outputs = cad.evaluateCadPart(D(c.features)).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
@@ -161,6 +202,25 @@ export function properties(cad) {
     } },
   ];
 }
+
+/** The short arc from `start` about `center` (to the next segment's start). */
+const arcTo = (start, center, end) => ({ kind: 'arc', start, center, direction: ((start[0] - center[0]) * (end[1] - center[1]) - (start[1] - center[1]) * (end[0] - center[0])) > 0 ? 'ccw' : 'cw' });
+/** The area and first moment about x = 0 (∫∫ x dA) of a closed loop of lines and arcs (each ending at the next one's
+ * start), exactly (Green's theorem). */
+function sectionMoments(loop) {
+  let A = 0, M = 0;
+  loop.forEach((s, i) => {
+    const p = s.start, q = loop[(i + 1) % loop.length].start;
+    if (s.kind === 'line') { A += (p[0] * q[1] - q[0] * p[1]) / 2; M += (q[1] - p[1]) * (p[0] ** 2 + p[0] * q[0] + q[0] ** 2) / 6; return; }
+    const [cx, cy] = s.center, r = Math.hypot(p[0] - cx, p[1] - cy), a0 = Math.atan2(p[1] - cy, p[0] - cx), b = Math.atan2(q[1] - cy, q[0] - cx), T = 2 * Math.PI;
+    const d = s.direction === 'ccw' ? ((b - a0) % T + T) % T : -(((a0 - b) % T + T) % T), a1 = a0 + d;
+    A += (cx * r * (Math.sin(a1) - Math.sin(a0)) - cy * r * (Math.cos(a1) - Math.cos(a0)) + r * r * d) / 2;
+    const F = t => cx * cx * r * Math.sin(t) + 2 * cx * r * r * (t / 2 + Math.sin(2 * t) / 4) + r ** 3 * (Math.sin(t) - Math.sin(t) ** 3 / 3);
+    M += (F(a1) - F(a0)) / 2;
+  });
+  return { A: Math.abs(A), M: Math.abs(M) };
+}
+const sectionArea = loop => sectionMoments(loop).A;
 
 // ---- exact oracles (D25) ---------------------------------------------------------------------------------
 /**

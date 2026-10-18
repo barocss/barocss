@@ -1,0 +1,123 @@
+{
+  "id": "r10-coaxial-cone-rim",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1 (b): a turned body whose wall (a cylinder) meets a cone at a circle, the rim filleted 2 mm from one half of it — the whole circle, a torus about the ball's centre circle (8, 10 − 2(√2 − 1)).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              10
+            ],
+            [
+              4,
+              16
+            ],
+            [
+              0,
+              16
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "r",
+          "kind": "revolve",
+          "sketch": "s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "r",
+          "edges": [
+            "r.side1#1|r.side2#1"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4116.427447572646,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            6.706164006821266
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "f.face",
+          "r.side0",
+          "r.side1",
+          "r.side2",
+          "r.side3"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Volume closed form: the body 1312π less the corner region (the kite between the corner and the arc, less its 45° sector) revolved (Pappus). The centroid by this kernel (x, y 0 by symmetry)."
+}
