@@ -2991,6 +2991,21 @@ try {
     await snap('r11-2c1-pipe-tee-open');
   });
 
+  await check('R11.2c-2 a box with a conic-filleted edge shelled 2 with its bottom opened (a file): its end faces as bounding planes\' bands, the rounded side as one slab, the body run out through the opening — its section eroded × (40 − 2t) (refused before D113)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'conic-box-open.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 4, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 },
+      { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3, section: { kind: 'conic', rho: 0.5 } },
+      { id: 'n3', kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 2, open: ['n1.bottom'] }] }));
+    await openModel(file, 4, 90000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 90000 }); await idle();
+    // (Conformance r11/shell-conic-box-open-bottom: 7095.52 mm³; the panel rounds to 1 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 7095.52) <= 1, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-2c2-conic-box-open');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

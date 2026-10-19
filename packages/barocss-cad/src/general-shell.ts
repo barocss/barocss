@@ -288,7 +288,7 @@ function shellBody(body: Brep, t: number, open: ReadonlySet<string>, id: string,
  * the reverse order — one solid however it is grouped, only the pieces' meeting in between differs (a box's notched
  * corner at t 3, D108: one wall's slab added last to the end's, the top's and the floor's) — refused typed if none does.
  */
-function joined(slabs: readonly Brep[], id: string): Brep {
+export function joined(slabs: readonly Brep[], id: string): Brep {
   const union = (a: Brep, b: Brep) => booleanAnalytic(a, b, 'union', { id, exactEdges: true });
   const inOrder = (xs: readonly Brep[]) => xs.slice(1).reduce(union, xs[0]);
   const byHalves = (xs: readonly Brep[]): Brep => xs.length === 1 ? xs[0] : union(byHalves(xs.slice(0, xs.length >> 1)), byHalves(xs.slice(xs.length >> 1)));

@@ -1,0 +1,86 @@
+{
+  "id": "r11-refuse-shell-regions-sharp",
+  "step": "R11",
+  "decisions": [
+    "D113"
+  ],
+  "about": "R11.2c-2: an unfilleted pipe tee shelled 1: its two cylinders (smooth regions, trimmed by their saddle) meet at a sharp concave edge — region slabs need a bounding plane on one side of every sharp edge.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 25
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "u",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[SHELL_REGIONS_SHARP]"
+    }
+  },
+  "oracle": "Refused by name (this kernel)."
+}

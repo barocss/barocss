@@ -770,13 +770,15 @@ function snapIsoRuns(ring: XY[], U: readonly number[], V: readonly number[]): XY
   }
   return out;
 }
+/** The i-th of n steps across [D0, D1], the last D1 itself (D0 + (D1 − D0)·n/n can round past it, out of the domain). */
+const spaced = (D: readonly number[], i: number, n: number): number => i >= n ? D[1] : D[0] + (D[1] - D[0]) * i / n;
 function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number, near = 0): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
   const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
   const ku = (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const N = 24, grid: { a: number; b: number; p: Point }[] = [];
-  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = spaced(U, i, N), b = spaced(V, j, N); grid.push({ a, b, p: at(a, b) }); }
   const polar = new Set(polesOf(S).flatMap(q => grid.filter(g => q.along === 0 ? g.b === q.at : g.a === q.at)));
   // (Inversion seeds: the grid off the poles, a pole's parameters saying nothing about the free one.)
   const inv: Inversion = { at, U, V, seeds: grid.filter(g => !polar.has(g)), done: 1e-12 * (Lu + Lv + 1) };
@@ -893,7 +895,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const turning = (along: 0 | 1) => {
     let worst = 0;
     for (let j = 0; j <= 8; j++) {
-      let acc = 0; const q = (k: number): XY => along === 0 ? [U[0] + (U[1] - U[0]) * k / 8, V[0] + (V[1] - V[0]) * j / 8] : [U[0] + (U[1] - U[0]) * j / 8, V[0] + (V[1] - V[0]) * k / 8];
+      let acc = 0; const q = (k: number): XY => along === 0 ? [spaced(U, k, 8), spaced(V, j, 8)] : [spaced(U, j, 8), spaced(V, k, 8)];
       for (let i = 0; i < 8; i++) acc += Math.acos(Math.min(1, Math.max(-1, dot(normal(q(i)), normal(q(i + 1))))));
       worst = Math.max(worst, acc);
     }
@@ -928,7 +930,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     return null;
   };
   if (nu > 1 || nv > 1) for (let i = 1; i < nu; i++) for (let j = 1; j < nv; j++) {
-    const q: XY = [U[0] + (U[1] - U[0]) * i / nu, V[0] + (V[1] - V[0]) * j / nv], P = mirror(flat(q));
+    const q: XY = [spaced(U, i, nu), spaced(V, j, nv)], P = mirror(flat(q));
     let inside = false, near = Infinity;
     for (const [A, B] of boundary) {
       if ((A[1] > P[1]) !== (B[1] > P[1]) && P[0] < A[0] + (B[0] - A[0]) * (P[1] - A[1]) / (B[1] - A[1])) inside = !inside;

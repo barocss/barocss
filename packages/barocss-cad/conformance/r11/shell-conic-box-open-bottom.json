@@ -1,0 +1,92 @@
+{
+  "id": "r11-shell-conic-box-open-bottom",
+  "step": "R11",
+  "decisions": [
+    "D113"
+  ],
+  "about": "R11.2c-2: the conic-filleted box shelled 2 with its bottom opened: the body first run out through the opening (a prism on it glued on), the slabs that body’s, the shell the box within them.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 20
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top"
+          ],
+          "radius": 3,
+          "section": {
+            "kind": "conic",
+            "rho": 0.5
+          }
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 2,
+          "open": [
+            "e.bottom"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 7095.519316121161,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            20.000000000007727,
+            15.115401137773448,
+            12.298855240574252
+          ],
+          "absTol": 0.001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "The body is a prism along X of its end face’s section (area A = 598.499999983 mm², perimeter P = 98.869675718 mm, by Green’s theorem and arc length over the end face’s own edges, Gauss–Legendre), so its hollow is the section eroded by t over 40 − 2t. With the bottom (30 long) open, only the top right corner lies between two kept sides: A − (P − 30)t + (1 + π/4)t². The shell is 40A − (40 − 2t)·that. The tolerance is the fit’s accuracy (1e-7). Centroid from this kernel."
+}

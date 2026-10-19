@@ -51,12 +51,14 @@ test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bou
   // A SubD body: every face freeform (R11.2's case). (Refused at S0; R11.2a, D110, shells it as its offset cavity.)
   const CUBE = { positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10], faces: [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]] };
   assert.equal(out([{ id: 'c', kind: 'subd', cage: CUBE }, { id: 'sh', kind: 'shell', target: 'c', thickness: 1 }]).brep.shells.length, 2);
-  // A pipe tee filleted (R10.2a): refused at its branch, a cylinder trimmed by the junction's saddle, before its fillet face.
+  // A pipe tee filleted (R10.2a): refused at S0 at its branch, a cylinder trimmed by the junction's saddle, before its fillet
+  // face. (R11.2c-2, D113, shells it: its regions' slabs and its caps' bands — r11-2c2.test.mjs.)
   const tee = [{ id: 'as', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: yzAt(0) }, { id: 'a', kind: 'extrude', sketch: 'as', height: 60 }, { id: 'bs', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['a.side0#1|b.side0#2#4'], radius: 2 }];
-  refused([...tee, { id: 'sh', kind: 'shell', target: 'f', thickness: 1 }], 'CAPABILITY', /trimmed by a curve other than its rulings and circles/);
-  // A box edge with a conic fillet (R10.5b, no shell history recorded): its end faces are bounded by the conic.
+  assert.equal(out([...tee, { id: 'sh', kind: 'shell', target: 'f', thickness: 1 }]).brep.shells.length, 2);
+  // A box edge with a conic fillet (R10.5b, no shell history recorded): refused at S0, its end faces bounded by the conic.
+  // (R11.2c-2, D113, shells it: the end faces' bands need no outline.)
   const box = [{ id: 'q', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 'q', height: 20 }];
-  refused([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: 3, section: { kind: 'conic', rho: 0.5 } }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.bottom'] }], 'CAPABILITY', /not a line or an arc/);
+  assert.equal(out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: 3, section: { kind: 'conic', rho: 0.5 } }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.bottom'] }]).brep.shells.length, 1);
   // A mesh body (an octahedron of facets).
   const P = [10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10], I = [0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 4, 2, 0, 5, 1, 2, 5, 3, 1, 5, 0, 3, 5];
   refused([{ id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' }, { id: 'sh', kind: 'shell', target: 'm', thickness: 1 }], 'CAPABILITY', /faceted \(mesh\) faces are not supported yet/);

@@ -56,7 +56,7 @@ type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: numbe
 type Surf = Plane | Cylinder | Nurbs;
 function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
   const { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
-  let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
+  let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(k === 7 ? U[1] : U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, k === 7 ? V[1] : V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
   const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const poles = polesOf(S).map(q => ({ along: q.along, at: q.along === 0 ? q.at * kv : q.at * ku, point: q.point as P3 }));
   const hullMin: P3 = [Infinity, Infinity, Infinity], hullMax: P3 = [-Infinity, -Infinity, -Infinity];
@@ -68,7 +68,8 @@ function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
 /** 25 × 25 samples of a patch, those at a collapsed side marked (their free parameter is arbitrary). */
 function gridOf(at: (u: number, v: number) => P3, U: readonly number[], V: readonly number[], poles: readonly { point: P3 }[], size: number): { p: XY; x: P3; pole?: boolean }[] {
   const grid: { p: XY; x: P3; pole?: boolean }[] = [];
-  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
+  // (The last row at the domain's end itself: U0 + (U1 − U0)·24/24 can round past it.)
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = i === 24 ? U[1] : U[0] + (U[1] - U[0]) * i / 24, b = j === 24 ? V[1] : V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
   for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (size + 1));
   return grid;
 }
@@ -261,7 +262,7 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
       if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { d.push(null); continue; }
       const h = 1e-6 * span, xa = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x - h)), xb = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x + h));
       const dP = scale(sub(at3(xb), at3(xa)), 1 / (xb - xa));
-      const u = q[0] / s.ku, v = q[1] / s.kv, hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
+      const u = Math.min(s.U[1], Math.max(s.U[0], q[0] / s.ku)), v = Math.min(s.V[1], Math.max(s.V[0], q[1] / s.kv)), hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
       const ua = u + hu <= s.U[1] ? u + hu : u - hu, va = v + hv <= s.V[1] ? v + hv : v - hv, Q = s.ev(u, v);
       const Su = scale(sub(s.ev(ua, v), Q), 1 / (ua - u)), Sv = scale(sub(s.ev(u, va), Q), 1 / (va - v));
       const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dP), r2 = dot(Sv, dP);
@@ -1092,7 +1093,9 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const reverse = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false);
+  // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
+  const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
+  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol);
 }
 
 // ---- merging ----------------------------------------------------------------------------------------
@@ -1315,7 +1318,7 @@ function regionLength(region: CurveRegion2): number {
   return total;
 }
 
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): Brep {
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -1468,7 +1471,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),
-    toleranceMM: tol });
+    toleranceMM: Math.max(tol, inputTol) });
   // Solids that touch at a vertex give a non-manifold result; refuse it plainly (as for edges).
   const report = checkBrep(result);
   if (!report.valid) throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (the inputs touch along an edge or at a vertex): ${report.issues[0]}`, report);

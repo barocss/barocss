@@ -48,6 +48,7 @@ import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
+import { regionShell } from './region-shell.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -1470,6 +1471,11 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
       if (cause instanceof BrepError && OFFSET_ROUTE.test(cause.message) && smoothOffsetBody(body, new Set(open))) {
         // Opened faces (R11.2b, D111): the kept faces, their offset and the wall's end at the opening's edges.
         try { return { kind: 'brep', brep: open.length ? offsetShell(body, t, new Set(open), at, at).shell : withCavities(body, offsetCavity(body, t, `${at}_in`, at).cavity, { family: 'shell', id: at }) }; }
+        catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
+      }
+      // Sharp edges between such faces' smooth regions and the planes that bound the body: bands and regions' slabs (R11.2c-2, D113).
+      if (cause instanceof BrepError && OFFSET_ROUTE.test(cause.message)) {
+        try { return { kind: 'brep', brep: regionShell(body, t, new Set(open), at) }; }
         catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
       }
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;

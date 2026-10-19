@@ -282,7 +282,9 @@ test('shell any body of planes and cylinders: the wall as a slab per face, never
   }
   // Opening the plate's end runs the hollow out through it: more taken away than closed.
   assert.ok(volume(cases[1][1]) < volume(cases[0][1]));
-  refused(D([...box, rect('a', 10, 10, 30, 30), circle('b', 20, 20, 5), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 20 }, { sketch: 'b', z: 30 }] }, { id: 'u', kind: 'union', target: 'e', tool: 'L' }, { id: 'sh', kind: 'shell', target: 'u', thickness: 2 }]), 'CAPABILITY', /not a plane, a cylinder or a surface of revolution/);
+  // (A lofted boss on the box: refused for its freeform faces until R11.2c-2, D113; now for the box's top, which the boss
+  // crosses at a concave edge — the region route takes bounding planes only.)
+  refused(D([...box, rect('a', 10, 10, 30, 30), circle('b', 20, 20, 5), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 20 }, { sketch: 'b', z: 30 }] }, { id: 'u', kind: 'union', target: 'e', tool: 'L' }, { id: 'sh', kind: 'shell', target: 'u', thickness: 2 }]), 'CAPABILITY', /\[SHELL_PLANE_NOT_BOUNDING\] face e\.top is a plane the body crosses/);
   refused(D([...bracket, { id: 'sh', kind: 'shell', target: 'u', thickness: 1, open: ['nope'] }]), 'SELECTION', /no face named nope/);
 });
 

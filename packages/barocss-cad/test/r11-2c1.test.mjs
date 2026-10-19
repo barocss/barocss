@@ -74,7 +74,7 @@ test('R11.2c-1 a filleted pipe tee shelled with its three ends opened: the kept 
   }
 });
 
-test('R11.2c-1 refused by name: a wall past the fillet\'s convex radius (4.048 mm, where it turns round the branch); an end kept (a sharp edge between kept faces: region slabs, R11.2c-2)', () => {
+test('R11.2c-1 refused by name: a wall past the fillet\'s convex radius (4.048 mm, where it turns round the branch)', () => {
   refused(shell(10, 5, 2, 4.1), 'CAPABILITY', /\[OFFSET_FOLDS\] face f\.face#\d+ curves more tightly than the wall .*its radius there 4\.048\d* mm, the wall 4\.1 mm/);
-  refused(shell(10, 5, 2, 1, ['a.top', 'a.bottom']), 'CAPABILITY', /trimmed by a curve other than its rulings and circles/);
+  // (An end kept, a sharp edge between kept faces, was refused here until R11.2c-2, D113: r11-2c2.test.mjs.)
 });
