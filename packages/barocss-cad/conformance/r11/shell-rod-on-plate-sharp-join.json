@@ -1,0 +1,131 @@
+{
+  "id": "r11-shell-rod-on-plate-sharp-join",
+  "step": "R11",
+  "decisions": [
+    "D106"
+  ],
+  "about": "R11.1a: a rod (R 5) half sunk in a plate, shelled 1 closed: the concave junctions beside the cylinder filled with the sharp join of the plate's and the rod's offsets (HEAD at D105: 1.1 % over).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "c",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 5,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "ce",
+          "kind": "extrude",
+          "sketch": "c",
+          "height": 40
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "pe",
+          "tool": "ce"
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "u",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4762.949197821346,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            19.999999999999996,
+            -3.047101411652879e-15,
+            5.721474344234047
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "ce.bottom",
+          "ce.side0",
+          "ce.top",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side2",
+          "pe.top",
+          "sh_c0_0.side3",
+          "sh_p0.bottom",
+          "sh_p1.bottom",
+          "sh_p2.bottom",
+          "sh_p3.bottom",
+          "sh_p4.bottom",
+          "sh_p5.bottom"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the hollow is the plate's section eroded ((L − 2t) × (10 − 2t)) and the rod's offset disc (radius r − t) above the plate's offset (z = 10 − t), the circular segment πρ² − (ρ² acos(t/ρ) − t√(ρ² − t²)), times L − 2t; the body's volume (plate and the rod's upper half) closed form too. Centroid from this kernel."
+}

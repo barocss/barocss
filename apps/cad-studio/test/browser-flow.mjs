@@ -2882,6 +2882,26 @@ try {
     await press('Escape');
   });
 
+  await check('R11.1a a rod on a plate shelled (a file): the wall 1 thick throughout — the junctions beside the rod filled with the sharp join, its volume the closed form (1.1 % over before, D105)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rod-on-plate-shell.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+      { id: 'n5', kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 1, open: [] }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    // (Conformance r11/shell-rod-on-plate-sharp-join: the body less the plate's box eroded and the rod's offset disc above
+    // the plate's offset, × 38: 4762.95 mm³.)
+    const vol = await bodyVolume(), rho = 4, seg = Math.PI * rho * rho - (rho * rho * Math.acos(1 / rho) - Math.sqrt(rho * rho - 1));
+    const exact = 16000 + 12.5 * Math.PI * 40 - (38 * 8 + seg) * 38;
+    assert.ok(Math.abs(vol - exact) <= 1, `${vol} vs ${exact}`);
+    assert.match(await page.textContent('.history'), /Shell 1/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-1a-rod-on-plate-shell');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
