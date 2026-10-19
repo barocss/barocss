@@ -113,6 +113,10 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
   for (const e of brep.edges) if (e.toleranceMM > cap) add('tolerance', `edge ${e.id} tolerance ${e.toleranceMM} mm is past the cap ${cap} mm`);
   for (const v of brep.vertices) if (v.toleranceMM > cap) add('tolerance', `vertex ${v.id} tolerance ${v.toleranceMM} mm is past the cap ${cap} mm`);
   for (const face of brep.faces) {
+    // (A lens: one loop of two edges between the same two vertices, the curves within a hundredth of their chord of
+    // each other all along — a patch's edge a hair beside the face that cut it, D102.)
+    const lens = lensGap(face, maps);
+    if (lens) add('geometry', `face ${face.id} is a sliver: its two edges lie within ${lens.gap.toExponential(2)} mm of each other over a ${lens.chord.toExponential(2)} mm chord`);
     // (A facet face's edges are polylines through its own vertices: on it by construction. Checked here: each
     // polyline vertex is one of the patch's.)
     if (face.surface.kind === 'facets') { facetEdgesOnPatch(face, face.surface.positions, maps, add); continue; }
@@ -152,6 +156,33 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
     }
   }
   return { maximumEdgeSurfaceGapMM };
+}
+
+/** A face of one loop of two edges joining the same two vertices that lie within 1e-2 of their chord of each other. */
+function lensGap(face: Brep['faces'][number], maps: Maps): { gap: number; chord: number } | null {
+  if (face.loops.length !== 1) return null;
+  const loop = maps.loops.get(face.loops[0]);
+  if (!loop || loop.coedges.length !== 2) return null;
+  const [e1, e2] = loop.coedges.map(cid => maps.edges.get(maps.coedges.get(cid)?.edge ?? ''));
+  if (!e1 || !e2 || e1 === e2) return null;
+  const [d1, d2] = [curveDomain(e1.curve), curveDomain(e2.curve)], a1 = curveEvaluator(e1.curve), a2 = curveEvaluator(e2.curve);
+  const p = a1(d1[0]), q = a1(d1[1]), chord = dist(p, q);
+  if (!(chord > 0)) return null;
+  const along: Point[] = [];
+  for (let k = 0; k <= 64; k++) along.push(a2(d2[0] + (d2[1] - d2[0]) * k / 64));
+  let gap = 0;
+  for (let k = 1; k < 16; k++) {
+    const x = a1(d1[0] + (d1[1] - d1[0]) * k / 16);
+    let best = Infinity; for (let j = 0; j + 1 < along.length; j++) best = Math.min(best, segmentDistance(x, along[j], along[j + 1]));
+    gap = Math.max(gap, best);
+    if (gap >= 1e-2 * chord) return null;
+  }
+  return { gap, chord };
+}
+function segmentDistance(x: Point, a: Point, b: Point): number {
+  const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], l2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+  const t = l2 > 0 ? Math.max(0, Math.min(1, ((x[0] - a[0]) * d[0] + (x[1] - a[1]) * d[1] + (x[2] - a[2]) * d[2]) / l2)) : 0;
+  return Math.hypot(x[0] - a[0] - t * d[0], x[1] - a[1] - t * d[1], x[2] - a[2] - t * d[2]);
 }
 
 /**

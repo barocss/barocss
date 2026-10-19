@@ -511,6 +511,25 @@ function pastEnds(past: readonly (EndPlane | null)[] | undefined, mid: Point, sc
   return out;
 }
 /**
+ * A break at s moved on, a quarter step at a time (at most 64), until its section lies wholly beyond an end plane it
+ * straddles; s itself where its section does not straddle one (or where it never clears).
+ */
+function breakBeyond(ends: readonly PastEnd[], s: number, h: number, sectionAt: (x: number) => Section | null): number {
+  const sec = sectionAt(s); if (!sec) return s;
+  const pts = (q: Section) => [...q.corners, q.mid];
+  for (const e of ends) {
+    const d = pts(sec).map(x => dot(sub(x, e.o), e.n)), lo = Math.min(...d), hi = Math.max(...d);
+    // (Straddling it — not in it to rounding: a square end's section lies in the end plane, and its patch edge is the
+    // face's edge there exactly.)
+    if (!(lo < e.tol && hi > -e.tol && hi - lo > 1e3 * e.tol)) continue;
+    // (Towards the side past the plane: the way the chain runs out through it.)
+    const ahead = sectionAt(s + h / 4), dir = ahead && Math.min(...pts(ahead).map(x => dot(sub(x, e.o), e.n))) > lo ? 1 : -1;
+    for (let k = 1; k <= 64; k++) { const x = s + dir * k * h / 4, q = sectionAt(x); if (q && pts(q).every(y => dot(sub(y, e.o), e.n) > e.tol)) return x; }
+    return s;
+  }
+  return s;
+}
+/**
  * A break at s (found between s0 and s1) moved to where one of its contacts lies exactly in an end plane run past, when
  * that contact crosses the plane between s0 and s1 and lies within 1e-4 × scale of it at s; else s.
  */
@@ -648,6 +667,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   // (The ends the tool is cut at by their plane: there a break where a contact crosses it is put in the plane, R10.B; where
   // the Boolean trims the run past, a tool vertex in the body's end face would be a touch at a point, D100.)
   const clippedEnds = closed ? [] : pastEnds((input.past ?? []).map((pl, k) => input.clipped?.[k] ? pl : null), path.at(L / 2).X, scaleMM);
+  const trimmedEnds = closed ? [] : pastEnds((input.past ?? []).map((pl, k) => input.clipped?.[k] ? null : pl), path.at(L / 2).X, scaleMM);
   const reach = back + 2 * g, endsPast = closed ? [] : pastEnds(input.past, path.at(L / 2).X, scaleMM), beside = (x: number): Check => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0)) || endsPast;
   for (let j = 0; j < (closed ? N0 : N0 + 1); j++) {
     const x = L * j / N0;
@@ -682,6 +702,10 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     // in the plane itself: found on the face's sampled outline it lay up to 1e-5 off, and the plane that clips the tool
     // there then passed a hair beside the tool's vertex, cutting a corner of 1e-4 off a patch, R10.B, D99.)
     if (!closed) hi = breakOnEnd(clippedEnds, hi, p.s, q.s, x => solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, rAt(x), at(x).X, at(x).t, p.st.uvA, p.st.uvB, scaleMM), scaleMM);
+    // (Near an end the Boolean trims, the break's section is moved on until it lies wholly beyond that end's plane: where
+    // the chain meets the end face nearly square, a section across it lies a hair beside the face, and the cut leaves a
+    // lens of the patch beyond — a two-vertex face, D102.)
+    if (!closed && trimmedEnds.length) hi = breakBeyond(trimmedEnds, hi, h, x => { const st = solveStation(As[q.a].sheet, sigma, Bs[q.b].sheet, sigma, rAt(x), at(x).X, at(x).t, q.st.uvA, q.st.uvB, scaleMM); return st && sectionOf(st, sigma, sigma, rAt(x), g); });
     breaks.push({ s: hi, a: q.a, b: q.b });
   }
   // (An open chain's first stretch starts at its start, on the first station's faces; where it runs past an end, the
@@ -691,7 +715,9 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     // patch, where refinement takes it.)
     for (const [x, on] of [[0, input.past?.[0]], [L, input.past?.[1]]] as const) if (on && !breaks.some(b => Math.abs(b.s - x) < 2 * h)) {
       const f = first.reduce((best, c) => Math.abs(c.s - x) < Math.abs(best.s - x) ? c : best);
-      breaks.push({ s: x, a: f.a, b: f.b });
+      // (Moved on past a trimmed end's plane as the breaks above are, where its section lies a hair beside it, D102.)
+      const at1 = trimmedEnds.length ? breakBeyond(trimmedEnds, x, h, y => { const st = solveStation(As[f.a].sheet, sigma, Bs[f.b].sheet, sigma, rAt(y), at(y).X, at(y).t, f.st.uvA, f.st.uvB, scaleMM); return st && sectionOf(st, sigma, sigma, rAt(y), g); }) : x;
+      breaks.push({ s: at1, a: f.a, b: f.b });
     }
     breaks.sort((p, q) => p.s - q.s);
     breaks.unshift({ s: s0, a: first[0].a, b: first[0].b });

@@ -4755,3 +4755,23 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
 - **Kept:** `packages/barocss-cad/test/determinism.test.mjs`. Eight models are evaluated in order, in reverse and again, and must match to the bit: the groove at 200, 342 and its default count, R10.B's capped step foot, a rounded box, the mitred L-plate top, the cone rim and a gear pair.
 - **Not covered:** the browser worker against Node. The kernel is the same code in both, but no test runs one model in both and compares them.
 - **Next:** R10.5b. The trimmed-end sliver (D100) remains a follow-up.
+
+## D102 — no sliver at a trimmed end: a tool's patch edge moved off the end face; strict checks flag lenses (2026-10-19)
+
+- **The defect** (D100's follow-up, seen since D101 as a station-count sensitivity): where a rolling-ball tool runs past an end the Boolean trims (a convex end where the body ends), a break of the tool's patches near that end gave its patch edge, a section of the tool, straddling the end face's plane.
+  - Where the chain meets the end face nearly square (the oblique groove's rims at the plate's end, 10° off), that section dips a hair inside the face. The Boolean's cut leaves a lens of the patch beyond: a face of two edges between two vertices, 1e-3 mm wide.
+  - It depended on where the breaks fell. The variable-radius groove had it at 175 (its default count), 200 and 350 stations, 1e-4 mm³ off.
+  - The constant r 1 groove had it on one of its two mirror-image rims: the rims came out 2.8e-3 mm³ apart (3e-7 of the part, 4e-4 of the fillet).
+  - Both were silent: valid, strict checks clean.
+- **The fix** (`rolling-ball.ts`, `breakBeyond`): near an end the Boolean trims, a break whose section straddles that end's plane is moved on, a quarter step at a time, until its section lies wholly beyond the plane. This applies to the contact-crossing breaks and the run-past break at the chain's end.
+  - Not where the section lies in the plane to rounding: a square end's section is the end face's edge exactly, and that break stays, as its curvature jump needs.
+  - Not at ends the tool is clipped at (D99's `breakOnEnd` puts those breaks in the plane).
+  - (Dropping those breaks instead was tried. It broke the plate-0-to-40 groove's typed refusal, which became an untyped Boolean failure.)
+- **The check** (`brep-check-geometry.ts`, strict): a face of one loop of two edges between the same two vertices that lie within 1e-2 of their chord of each other is a sliver. It flags every lens above on HEAD's tool. Two-edge faces in general (a lens between two arcs, a disc's one-edge loop) are not flagged.
+- **Evidence** (`test/r10-5.test.mjs`, new test, failing on HEAD):
+  - the variable-radius groove at 150, 175, 200, 250, 300, 350 and 400 stations: strict-valid, the same body faces, the same volume to 1e-9 (8983.1172428 at every count);
+  - the groove's two rims filleted 1: strict-valid, equal to 1e-11 of the part (2e-12).
+  - `r10-5`'s curved-faces test is back to 1e-6 of the fillet against twice the stations.
+  - The volume the counts now agree on is the one HEAD's lens counts had (to 1.5e-6 mm³), not the one its lens-free counts had (1e-4 apart). That it is the right one rests on the agreement across seven counts and on the rims' mirror symmetry above. Why HEAD's lens-free counts differed was not traced.
+  - Every kernel test and conformance case is unchanged; the forced straight groove, which has square ends, stays at 1e-11 of its closed form.
+- **The fillet face count still follows the station count** (the loft's pieces of at most 13 spans, D89): that is by design. The body's own faces and the topology class do not change with it.
