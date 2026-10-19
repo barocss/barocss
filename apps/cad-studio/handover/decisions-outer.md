@@ -324,3 +324,48 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Browser flow 149/149, with the new step "A5.2" (just before the last step) through the real chat and tool servers with the scripted agent: a plate, a loop of three holes and a fillet in one call (6 nodes, one Undo takes it all back); a refused second line applies nothing and names line 2.
   - Bench: parsing a 6k-character script takes 1.16 ms (budget 4); a plate with 10 holes in a loop and a fillet, 12 calls each evaluated, takes 231 ms (budget 700).
 - **Deferred**: `script_of(doc)`, writing a part back as a script. It is not needed for A5.5's A/B, and it comes later if the A/B shows value.
+
+## O11 — A5.3: the consolidated tools (`barocss-cad-tools-v2`) (2026-10-20)
+
+- **What** (`src/chat/groups.ts`, `src/chat/toolset.ts`):
+  - **13 tools**, each taking an `action` beside the arguments of the v1 tool it stands for:
+    - `model` (run_script; its one action may be left unsaid);
+    - `features` (command, add, edit, delete, batch);
+    - `query` (summary, inspect, measure, mass, interference, section, wall, draft, render, select);
+    - `history`, `requirements`, `proposals`, `assembly`, `library`, `print`, `drawing`, `subd`, `image`;
+    - `describe`.
+    - Every v1 tool is exactly one action (a test checks it).
+  - **One tool layer**: a v2 call is translated to its v1 call at the dispatcher's two entry points (gated `runTool`, ungated `dispatchTool`), so results, refusals and the autonomy/approval gates are the v1 ones. Ops in `features.batch` and `proposals.propose` may name v2 tools; they are kept as the v1 call, so a proposal replays the same whichever list proposed it.
+  - **The v1 names stay callable** (aliases) from either list until A5.5 decides. No v2 name is also a v1 name.
+  - **`describe`** gives what the short list leaves out, on request:
+    - the tools and their actions;
+    - an action's full v1 description and input schema;
+    - a command's selection and values (from the same docs run_command lists);
+    - a feature kind's node JSON (the add_features lines for that kind).
+    - The `features` description names every command and feature kind, and a test describes each one.
+  - **Annotations** from the actions: read only if every action is (`query`, `describe`); destructive if any is; idempotent if all are. v2 declares no output schemas (a group's shapes differ). A read action whose v1 tool has an output schema still returns `structuredContent`.
+  - **The system prompt for v2** is the v1 prompt with each tool written as `group.action`, plus one line on `action` and `describe`:
+    - names with an underscore are mapped as words;
+    - the few one-word tool names only in the phrases that name the tool, so "propose it" and similar English words stay English.
+  - **Switch**: `CAD_TOOLSET=v2` makes the chat server list the v2 tools (`--allowedTools`) with the v2 prompt and pass the set to the MCP server. The MCP server lists them and answers `initialize` with `barocss-cad-tools-v2`. **v1 stays the default** until the A/B.
+  - **Frozen** in `src/chat/tools-v2.json` with the same breaking-change rules as v1 (an action removed narrows the enum: breaking). tools-v1.json is unchanged.
+- **Sizes** (what a model reads every turn):
+  - **v2 tools/list 10 985 characters** (target ≤ 15k), against v1's 79 171;
+  - **system prompt v2 7 094**, against v1's 6 870 (+224: names with a group, one line);
+  - **per turn 86 041 → 18 079 characters (−79 %)**.
+  - The biggest v2 tool is `model` (2 476, the script language); `features` is 1 451 with every command and feature kind named.
+- **Evidence**:
+  - `test/toolset.test.ts` (9 tests):
+    - the sizes;
+    - every v1 tool is one action, and the v2 prompt names only v2 tools that exist;
+    - the frozen v2 contract and an action removal flagged as breaking;
+    - v2 calls give byte-identical results to their v1 calls, and unknown or missing actions are refused with the list;
+    - `describe` in all its forms, and for every listed command and feature kind;
+    - the gates (L2 `needs_proposal`), a v2 op kept as `run_command` and replayed on accept, a v2 batch;
+    - the MCP server in v2 (contract version, 13 tools, v2 and v1 calls, structured content, `query.select` saving the selection);
+    - the chat server's arguments per set;
+    - the replay hook.
+  - Browser flow 151/151, with the new step "A5.3" (just before the last step): a v2 chat server; the scripted agent calls describe, model, features.edit, query.mass and the v1 mass_properties in one turn; the part built, every call answered.
+  - **The whole studio suite replayed through v2**: `CAD_TOOLS_VIA_V2=1` sends every v1 call (tests, ops, proposals) as its v2 call. **462/462**, the same as without it, which covers every chat, proposal, assembly, drawing and cage test (O8's acceptance).
+  - Bench: all 45 rows within budget (dispatch adds one table lookup a call; run_script 12 calls 238 ms, check_spec 24 ms).
+- **Deferred to A5.5**: which list is the default, and whether the v1 aliases go. That is a measured decision (pass rate, calls, tokens), not a size one.

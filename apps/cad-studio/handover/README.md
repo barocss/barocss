@@ -207,6 +207,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A5.2** (O10): done. `run_script` (`barocss-cad-script-v1`): a JS-like script (const, for … of range, if, arithmetic,
     handles naming a feature's faces by role) whose commands and features run as tool calls, all or nothing, typed errors
     with their line; proposable. Conformance `conformance/a5/`. tools/list 79 171 characters, system prompt 6 870.
+  - **A5.3** (O11): done. The consolidated tools `barocss-cad-tools-v2`: 13 tools, each action a v1 tool (one layer,
+    the same gates), `describe` for the detail, `CAD_TOOLSET=v2` to serve them (v1 the default until A5.5). tools/list
+    10 985 characters (v1 79 171), system prompt 7 094 (v1 6 870); the whole suite replays through v2.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): none open.
