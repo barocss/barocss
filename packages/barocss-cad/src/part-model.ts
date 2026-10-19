@@ -322,7 +322,7 @@ export function stepSizeProblem(text: string): string | null {
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
 /** `history`: an upright body of one section and the edge finishes applied to it since (for shell). */
-interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string }
+interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string; /** A variable radius (D100), the radius at points of the edges. */ readonly radii?: readonly { readonly at: Point; readonly radius: number }[] }
 /** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
 interface Part {
   readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties;
@@ -1196,10 +1196,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
       return () => {
         const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [], solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii, shape);
-        // A body that left the upright family keeps how it was made, so that it can still be shelled (not past a
-        // variable-radius fillet: its hollow would need the radius offset along the chain, D100).
+        // A body that left the upright family keeps how it was made, so that it can still be shelled — past a
+        // variable-radius fillet too (its hollow's radius is the outer one less the wall, D108), not past a conic or G2 one.
         const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
-        const history = solid.kind === 'brep' && base && !radii && !shape ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
+        const history = solid.kind === 'brep' && base && !shape ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at, ...(radii ? { radii } : {}) }] } : undefined;
         return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}) }] };
       };
     }
@@ -1479,6 +1479,7 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   const outer = brepOf(part, 'target'), faces = new Map(outer.faces.map(f => [f.name, f]));
   let hollow: Part = { solid: { kind: 'upright', solid: h.hollow } };
   for (const fin of finishes) {
+    if (fin.radii) { hollow = varyingHollow(hollow, fin, base, face, t, open, at, fail); continue; }
     // Edges by their offset size (a chamfer's depends on each corner's angle).
     const jobs = new Map<number, string[]>();
     for (const name of fin.edges) {
@@ -1506,6 +1507,34 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   // (Ids are identifiers; the hollow's finished faces are named `${at}.in.${finish}.…`.)
   const inner = hollow.solid.kind === 'brep' ? { kind: 'brep' as const, brep: transformBrep(hollow.solid.brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, 0] }, n => n.split(`${at}_in_`).join(`${at}.in.`)) } : hollow.solid;
   return boolean(part.solid, inner, 'difference', at);
+}
+
+/**
+ * The hollow rounded after a variable-radius fillet (D108): the ball's spine is the outer fillet's, its radius the outer
+ * one less the wall — exact for a straight chain with its radius linear along it (two points): the radius at the hollow
+ * chain's ends from the outer law. Sharp where the wall reaches the radius all along; refused where it does partway, and
+ * for a curved chain or more points (their law along the hollow's chain is not the outer one's).
+ */
+function varyingHollow(hollow: Part, fin: Finish, base: PrismaticSolid, face: (n: string) => string | null, t: number, open: readonly string[], at: string, fail: Tools['fail']): Part {
+  const radii = fin.radii!, outer = brepOf({ solid: { kind: 'upright', solid: base } }, 'base');
+  const lines = fin.edges.map(name => {
+    if (name.split('|').some(n => open.includes(n))) fail('CAPABILITY', `${name} borders an open face: finish the opening's edges after the shell`);
+    const e = outer.edges.find(x => x.name === name || x.name === name.split('|').reverse().join('|'));
+    if (!e) return fail('CAPABILITY', `${fin.id} rounds ${name}, an edge made by an earlier finish: shell before that finish`);
+    if (!(e.curve.degree === 1 && e.curve.controlPoints.length === 2)) return fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id} varies its radius along a curved edge (${name}): its hollow's radius along the chain is not the outer one's less the wall; not supported yet`);
+    return e.curve.controlPoints as Point[];
+  });
+  if (radii.length !== 2) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id} gives ${radii.length} radii: shell after a variable radius takes two (linear along a straight chain) yet`);
+  const p0 = radii[0].at, u = unit(sub(lines[0][1], lines[0][0]));
+  for (const [a, b] of lines) if (len(cross(sub(b, a), u)) > 1e-9 * Math.max(1, len(b)) || len(cross(sub(a, p0), u)) > 1e-6 * Math.max(1, len(a))) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id}'s edges do not lie on one line: shell after a variable radius takes a straight chain yet`);
+  const s1 = dot(sub(radii[1].at, p0), u), r = (p: Point) => radii[0].radius + (radii[1].radius - radii[0].radius) * dot(sub(p, p0), u) / s1;
+  const names = fin.edges.map(name => { const m = name.split('|').map(face); if (m.some(n => n === null)) fail('CAPABILITY', `${fin.id} rounds ${name}, an edge made by an earlier finish: shell before that finish`); return (m as string[]).sort().join('|'); });
+  const inner = brepOf(hollow, `${at}_hollow`), ends = names.flatMap(n => { const e = inner.edges.find(x => x.name === n); if (!e) return fail('CAPABILITY', `the wall rounds the inside corner of ${n} already: shell inside corners finished by ${fin.id} is not supported yet`); return e.curve.controlPoints as Point[]; });
+  const along = ends.map(p => dot(sub(p, p0), u)), lo = ends[along.indexOf(Math.min(...along))], hi = ends[along.indexOf(Math.max(...along))];
+  const rLo = r(lo) - t, rHi = r(hi) - t;
+  if (!(rLo > 1e-9) && !(rHi > 1e-9)) return hollow;
+  if (!(rLo > 1e-9) || !(rHi > 1e-9)) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id}'s radius falls to the wall (${t} mm) partway along: the hollow's round would run out there; not supported yet`);
+  return { solid: finishEdges(hollow, names, Math.max(rLo, rHi), 'fillet', `${at}_in_${fin.id}`, fail, undefined, [{ at: lo, radius: rLo }, { at: hi, radius: rHi }]) };
 }
 
 /** A body less hollows inside it: masses and moments subtracted (inertia via the origin). */

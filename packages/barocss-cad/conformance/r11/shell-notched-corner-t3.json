@@ -1,0 +1,137 @@
+{
+  "id": "r11-shell-notched-corner-t3",
+  "step": "R11",
+  "decisions": [
+    "D108"
+  ],
+  "about": "R11.1c: the notched box of r11/shell-notched-corner at a wall of 3, where the wall's union in order does not close (an untyped failure before D108); joined by halves.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 20
+        },
+        {
+          "id": "n",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            18,
+            12
+          ],
+          "max": [
+            35,
+            25
+          ],
+          "plane": {
+            "origin": [
+              25,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "ne",
+          "kind": "extrude",
+          "sketch": "n",
+          "height": 40
+        },
+        {
+          "id": "u",
+          "kind": "difference",
+          "target": "e",
+          "tool": "ne"
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "u",
+          "thickness": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12576,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            19.656488549618324,
+            14.65648854961832,
+            9.65648854961832
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "ne.bottom",
+          "ne.side0",
+          "ne.side3",
+          "sh_p0.bottom",
+          "sh_p1.bottom",
+          "sh_p2.bottom",
+          "sh_p3.bottom",
+          "sh_p4.bottom",
+          "sh_p5.bottom",
+          "sh_p6.bottom",
+          "sh_p6.wall"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the erosion by a cube of half-side t (as r11/shell-notched-corner). Centroid from this kernel."
+}

@@ -135,10 +135,26 @@ export type ShellJoin = 'sharp' | 'arc';
 /** The shell of `body` with walls `t` thick, the faces named in `open` removed. */
 export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, id: string, join: ShellJoin = 'sharp'): Brep {
   if (body.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'shell of a mesh body: faceted (mesh) faces are not supported yet');
+  // (Every failure is a typed refusal: the refusals by name below as they are, any other — a profile, a Boolean that
+  // cannot close the result — with its reason, D108.)
+  try { return shellBody(body, t, open, id, join); }
+  catch (cause) {
+    if (cause instanceof BrepError && /CAPABILITY: shell:/.test(cause.message)) throw cause;
+    return refuse(`[SHELL_NOT_CLOSED] a wall of ${t} mm cannot be closed on this body: ${cause instanceof Error ? cause.message.replace(/^B-rep: /, '') : String(cause)}`);
+  }
+}
+
+function shellBody(body: Brep, t: number, open: ReadonlySet<string>, id: string, join: ShellJoin): Brep {
   const size = Math.max(1, ...body.vertices.flatMap(v => v.point.map(Math.abs))), tol = 1e-9 * size, out = 1.37 * t;
   const loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
   const shapes = new Map<string, Shape>();
   for (const f of body.faces) if (!(f.name && open.has(f.name))) shapes.set(f.id, shapeOf(f, size));
+  // A convex round face whose radius the wall all but reaches: its offset a circle of less than 0.01 mm, the kernel's
+  // least arc — refused by name rather than made with a sliver core (D108).
+  for (const sh of shapes.values()) {
+    const r = sh.cylinder && sh.cylinder.out > 0 ? sh.cylinder.r : sh.rev && sh.rev.R.profile.kind === 'arc' && (sh.rev.m0[0] - sh.rev.R.profile.c[0]) * sh.rev.nm[0] + (sh.rev.m0[1] - sh.rev.R.profile.c[1]) * sh.rev.nm[1] > 0 ? sh.rev.R.profile.r : NaN;
+    if (r - t > tol && r - t < 0.01) refuse(`[WALL_NEAR_RADIUS] a wall of ${t} mm on ${sh.name} (radius ${+r.toFixed(6)} mm) leaves a core ${+(r - t).toExponential(2)} mm across its offset: make the wall the radius or more (all wall) or at least 0.01 mm less`);
+  }
   const meets = edgeMeets(body, shapes);
   /** A face's loops as point chains, each coedge as its curve in its direction (and its edge). */
   const usesOf = (f: BrepFace) => f.loops.map(lid => { const l = loops.get(lid)!; return { outer: l.kind === 'outer', uses: l.coedges.map(cid => { const c = coedges.get(cid)!; return { curve: edges.get(c.edge)!.curve, forward: c.sense === 'forward', edge: c.edge }; }) }; });
@@ -242,7 +258,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
     const parts: Rect[] = same && total >= TAU - 1e-6 ? [{ th0: 0, span: TAU, z0: rs[0].z0, z1: rs[0].z1, stop: [false, false, rs.some(r => r.stop[2]), rs.some(r => r.stop[3])] }] : rs;
     parts.forEach((R, j) => {
       // A convex cylinder no wider than the wall is wall throughout: its slab reaches the axis (no inner band left).
-      const inner = C.out > 0 ? Math.max(C.r - t, 0) : Math.max(C.r - CONCAVE_REACH * t, C.r / 2), outer = C.out > 0 ? C.r + out : C.r + t;
+      const inner = C.out > 0 ? (C.r - t > tol ? C.r - t : 0) : Math.max(C.r - CONCAVE_REACH * t, C.r / 2), outer = C.out > 0 ? C.r + out : C.r + t;
       const dth = Math.min(t / Math.max(inner, C.r / 4), Math.PI / 2), g0 = R.stop[0] ? 0 : dth, g1 = R.stop[1] ? 0 : dth;
       const full = R.span >= TAU - 1e-6 || R.span + g0 + g1 >= TAU - 1e-9, span = full ? TAU : R.span + g0 + g1, start = full ? 0 : R.th0 - g0, sid = `${id}_c${k}_${j}`;
       const z0 = R.z0 - (R.stop[2] ? 0 : t), z1 = R.z1 + (R.stop[3] ? 0 : t);
@@ -264,9 +280,24 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
     if ([...concaveAt.values()].some(n => n >= 2)) refuse('an arc join at a vertex where concave edges meet is not supported yet');
   }
   if (!slabs.length) refuse('every face is opened');
-  let wall = slabs[0];
-  for (const s of slabs.slice(1)) wall = booleanAnalytic(wall, s, 'union', { id: `${id}_wall`, exactEdges: true });
-  return booleanAnalytic(body, wall, 'intersection', { id, exactEdges: true });
+  return booleanAnalytic(body, joined(slabs, `${id}_wall`), 'intersection', { id, exactEdges: true });
+}
+
+/**
+ * The slabs' union: in their order; where the analytic Boolean cannot close a step, the same union by halves, then in
+ * the reverse order — one solid however it is grouped, only the pieces' meeting in between differs (a box's notched
+ * corner at t 3, D108: one wall's slab added last to the end's, the top's and the floor's) — refused typed if none does.
+ */
+function joined(slabs: readonly Brep[], id: string): Brep {
+  const union = (a: Brep, b: Brep) => booleanAnalytic(a, b, 'union', { id, exactEdges: true });
+  const inOrder = (xs: readonly Brep[]) => xs.slice(1).reduce(union, xs[0]);
+  const byHalves = (xs: readonly Brep[]): Brep => xs.length === 1 ? xs[0] : union(byHalves(xs.slice(0, xs.length >> 1)), byHalves(xs.slice(xs.length >> 1)));
+  let first: unknown;
+  for (const way of [inOrder, byHalves, (xs: readonly Brep[]) => inOrder([...xs].reverse())]) {
+    try { return way(slabs); }
+    catch (cause) { if (!(cause instanceof BrepError)) throw cause; first ??= cause; }
+  }
+  return refuse(`[SHELL_WALL_UNION] the wall's ${slabs.length} slabs do not join in any order tried: ${(first as Error).message.replace(/^B-rep: /, '')}`);
 }
 
 const ringsOf = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
@@ -462,7 +493,7 @@ function cornerRegion(E: XY, A: Section, B: Section, t: number, meridian: boolea
   // The offsets' meeting point nearest E beyond both normals sizes the square.
   const offsetOf = (s: Section) => s.kind === 'line' ? { kind: 'line' as const, p: [E[0] - t * s.n[0], E[1] - t * s.n[1]] as XY, d: [-s.n[1], s.n[0]] as XY } : { kind: 'circle' as const, c: s.c, r: s.convex ? s.r - t : s.r + t };
   const beyond = (s: Section, x: XY) => s.kind === 'line' ? (x[0] - E[0]) * s.u[0] + (x[1] - E[1]) * s.u[1] <= 1e-9 * t : sideOfRay(s, E, x) <= 1e-9 * t;
-  const oA = offsetOf(A), oB = offsetOf(B), vanished = (s: Section) => s.kind === 'circle' && s.convex && s.r <= t;
+  const eps = 1e-9 * Math.max(1, Math.abs(E[0]), Math.abs(E[1]), t), oA = offsetOf(A), oB = offsetOf(B), vanished = (s: Section) => s.kind === 'circle' && s.convex && s.r - t <= eps;
   const meetings = meet(oA, oB).filter(x => beyond(A, x) && beyond(B, x)).sort((x, y) => Math.hypot(x[0] - E[0], x[1] - E[1]) - Math.hypot(y[0] - E[0], y[1] - E[1]));
   let h = 1.25 * t;
   if (meetings.length) h = Math.max(h, 1.25 * Math.hypot(meetings[0][0] - E[0], meetings[0][1] - E[1]));
@@ -479,7 +510,7 @@ function cornerRegion(E: XY, A: Section, B: Section, t: number, meridian: boolea
     else { const w = unit2([-(E[1] - s.c[1]), E[0] - s.c[0]]), sg = w[0] * s.u[0] + w[1] * s.u[1] > 0 ? 1 : -1; cut(halfPlane(E, [w[0] * sg, w[1] * sg], h), 'intersection'); }
     // Within its wall.
     if (s.kind === 'line') cut(halfPlane([E[0] - t * s.n[0], E[1] - t * s.n[1]], [-s.n[0], -s.n[1]], h), 'intersection');
-    else if (s.convex) { if (s.r > t) cut(disc(s.c, s.r - t), 'difference'); }
+    else if (s.convex) { if (s.r - t > eps) cut(disc(s.c, s.r - t), 'difference'); }
     else cut(disc(s.c, s.r + t), 'intersection');
   }
   if (meridian) cut(halfPlane([0, E[1]], [-1, 0], Math.max(h, Math.abs(E[0]) + h)), 'intersection');
@@ -561,7 +592,7 @@ function revolutionSlab(R: Revolution, f: BrepFace, name: string, uses: { curve:
     ring = quad.map((x, i) => ({ kind: 'line', a: x, b: quad[(i + 1) % 4] }));
   } else {
     const { c: C, r } = R.profile, convex = (m0[0] - C[0]) * nm[0] + (m0[1] - C[1]) * nm[1] > 0;
-    const ri = convex ? Math.max(r - t, 0) : Math.max(r - CONCAVE_REACH * t, 0), ro = convex ? r + out : r + t;
+    const ri = convex ? (r - t > tol ? r - t : 0) : Math.max(r - CONCAVE_REACH * t, 0), ro = convex ? r + out : r + t;
     const phiOf = (m: XY) => wrap(Math.atan2(m[1] - C[1], m[0] - C[0])), phis = [...new Set(M.map(phiOf))].sort((x, y) => x - y);
     const gaps = phis.map((x, i) => ({ size: i ? x - phis[i - 1] : x + TAU - phis[phis.length - 1], start: x })).sort((x, y) => y.size - x.size);
     const dphi = t / Math.max(ri, r / 4), lo = gaps[0].start, sweep0 = TAU - gaps[0].size;
