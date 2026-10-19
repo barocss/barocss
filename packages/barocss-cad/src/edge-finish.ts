@@ -50,15 +50,28 @@ interface Use { face: Brep['faces'][number]; geometry: Geo; sense: 'forward' | '
 export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions = {}): Brep {
   // (Where a closed-form tool cut at a cylinder its end runs across — R10.3c — leaves the analytic Boolean a result it
   // cannot close, the finish is made again with those ends stopped at their vertices, as before R10.3c, D94.)
+  // (An edge whose closed form would run past a smooth edge onto another surface is the rolling ball's, R10.4a, D95.)
+  const n0 = options.reports?.length ?? 0;
+  for (let tries = 0, opts = options; ; tries++) {
+    try { return finishGuarded(body, names, size, kind, id, opts); }
+    catch (cause) {
+      if (options.reports) options.reports.length = n0;
+      if (!(cause instanceof Overflow) || tries > 8 || opts.generalEdges?.includes(cause.edge)) throw cause instanceof Overflow ? new BrepError('GEOMETRY', `CAPABILITY: [CONTACT_LEAVES_FACE] edge ${body.edges.find(x => x.id === cause.edge)?.name}: a fillet of ${size} mm runs over a smooth edge onto another face where the rolling ball cannot follow; that is not supported yet`) : cause;
+      opts = { ...opts, generalEdges: [...(opts.generalEdges ?? []), cause.edge] };
+    }
+  }
+}
+function finishGuarded(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions): Brep {
   if (options.squareAtCylinders) return finishEdges(body, names, size, kind, id, options);
-  const used = { cylinder: false };
+  const used = { cylinder: false }, n0 = options.reports?.length ?? 0;
   try { return finishEdges(body, names, size, kind, id, options, used); }
   catch (cause) {
-    if (!(cause instanceof BrepError) || !used.cylinder) throw cause;
+    if (!(cause instanceof BrepError) || cause instanceof Overflow || !used.cylinder) throw cause;
+    if (options.reports) options.reports.length = n0;
     return finishEdges(body, names, size, kind, id, { ...options, squareAtCylinders: true });
   }
 }
-interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean }
+interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean; readonly generalEdges?: readonly string[] }
 function finishEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions, used: { cylinder: boolean } = { cylinder: false }): Brep {
   let usedCylinder = false;
   try {
@@ -177,6 +190,8 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   const groups = new Map<string, Brep['edges'][number][]>();
   if (!options.general) for (const e of chain.values()) { const key = circleKey(e); if (key) groups.set(key, [...(groups.get(key) ?? []), e]); }
   for (const list of groups.values()) {
+    // (A circle with an edge the rolling ball takes — its closed form would run over a smooth edge — is the ball's whole.)
+    if (list.some(e => options.generalEdges?.includes(e.id))) continue;
     const total = list.reduce((acc, e) => { const k = circleOf(e.curve)!; return acc + k.spans.reduce((a, x) => a + x.phi, 0); }, 0);
     if (Math.abs(total - 2 * Math.PI) <= 1e-9) { closedCircle.add(list[0].id); for (const e of list.slice(1)) skip.add(e.id); }
   }
@@ -232,7 +247,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     const straightOf = (e: Brep['edges'][number]) => e.curve.degree === 1 && e.curve.controlPoints.length === 2;
     // (A chain rolling round an edge at a corner is the rolling ball's whole, whatever its edges' own classes.)
     const rolls = comp.some(e => comp.some(o => cornerOf.has(`${e.id}|${o.id}`)));
-    const general = (options.general || rolls) && kind === 'fillet' && (closedLoop(comp) || openChain(comp)) ? comp : comp.filter(e => !(straightOf(e) && usesOf.get(e.id)!.every(u => u.geometry.kind === 'plane')) && pairOf(e, usesOf.get(e.id)!, straightOf(e), kind, tol, true) === 'general');
+    const general = (options.general || rolls || comp.some(e => options.generalEdges?.includes(e.id))) && kind === 'fillet' && (closedLoop(comp) || openChain(comp)) ? comp : comp.filter(e => !(straightOf(e) && usesOf.get(e.id)!.every(u => u.geometry.kind === 'plane')) && pairOf(e, usesOf.get(e.id)!, straightOf(e), kind, tol, true) === 'general');
     if (!general.length) continue;
     if (kind === 'chamfer') refuse('CAPABILITY', `edge ${general[0].name}: chamfers between general faces are not supported yet`);
     // A closed loop makes a ring; an open chain (R10.2b) a capped tool, run on past an end where the body ends there
@@ -571,10 +586,10 @@ function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf:
     const before = c.e === loop[k].e.id ? c.before : c.next, next = c.e === loop[k].e.id ? c.next : c.before;
     corners.push({ after: k, side: B.has(before) ? 'B' : 'A', shared: faceOf.get(c.shared)!, edge: c.edge.curve, before: faceOf.get(before)!, next: faceOf.get(next)! });
   }
-  const { brep, report, contactFaces } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), facesOf: loop.map(l => usesOf.get(l.e.id)!.map(u => u.face.id)), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM, closed, past, corners });
+  const { brep, report, contactFaces, sides } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), facesOf: loop.map(l => usesOf.get(l.e.id)!.map(u => u.face.id)), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM, closed, past, corners });
   // (A point of the chain halfway along it: the side of an end plane the fillet lies on.)
   const m = loop[Math.floor(loop.length / 2)], [t0, t1] = curveDomain(m.e.curve), mid = evaluateCurve(m.e.curve, (t0 + t1) / 2);
-  return { brep, convex, report, contactFaces, mid, sides: [...sideA, ...sideB].map(f => f.name ?? f.id) };
+  return { brep, convex, report, contactFaces, mid, sides };
 }
 
 /**
@@ -787,6 +802,19 @@ function edgeKind(body: Brep, o: Brep['edges'][number], scaleMM: number): 'conve
   if (len(sub(sides[0].n, sides[1].n)) < 1e-9) return 'smooth';
   return convexAt(sides) ? 'convex' : 'concave';
 }
+/** A closed-form finish of this edge would run past a smooth edge onto another surface: the rolling ball takes it (R10.4a, D95). */
+class Overflow extends BrepError { constructor(readonly edge: string) { super('GEOMETRY', `overflow onto a smooth neighbour at edge ${edge}`); } }
+/** Whether the two faces at a smooth edge lie on one surface (halves of a cylinder, a plane split): their geometries the same. */
+function sameSurfaceAcross(body: Brep, o: Brep['edges'][number], scaleMM: number): boolean {
+  const loopFace = new Map(body.loops.map(l => [l.id, l.face])), fs = [...new Set(body.coedges.filter(c => c.edge === o.id).map(c => loopFace.get(c.loop)!))].map(id => body.faces.find(f => f.id === id)!);
+  if (fs.length !== 2) return true;
+  const [g, h] = fs.map(f => geoOf(f, scaleMM)), tol = 1e-7 * scaleMM;
+  if (g.kind === 'plane' && h.kind === 'plane') return len(sub(g.n, h.n)) < 1e-9 && Math.abs(dot(sub(h.o, g.o), g.n)) < tol;
+  if (g.kind === 'cylinder' && h.kind === 'cylinder') return len(cross(unit(g.a), unit(h.a))) < 1e-9 && Math.abs(g.r - h.r) < tol && len(cross(sub(h.c, g.c), unit(g.a))) < tol;
+  if (g.kind === 'revolution' && h.kind === 'revolution') return len(cross(g.R.a, h.R.a)) < 1e-9 && len(cross(sub(h.R.c, g.R.c), g.R.a)) < tol && g.R.profile.kind === h.R.profile.kind && JSON.stringify(g.R.profile) === JSON.stringify(h.R.profile);
+  // (Unknown surfaces — B-spline halves of one patch — count as one surface, as before.)
+  return g.kind === 'other' && h.kind === 'other';
+}
 /** Whether a curve lies in the plane (or meridian) where the edge ends: its start, middle and end all beside one end. */
 function atAnEnd(curve: Curve, ch: Chart, tolAlong: number): boolean {
   const [t0, t1] = curveDomain(curve), L = lengthOf(ch), a = [t0, (t0 + t1) / 2, t1].map(t => alongOf(ch, evaluateCurve(curve, t)));
@@ -802,7 +830,7 @@ function atAnEnd(curve: Curve, ch: Chart, tolAlong: number): boolean {
  * A boss's foot (a concave edge) limits it; for a finish that adds material every boundary does. Across a smooth
  * edge (a seam between halves of one surface) the face goes on: its neighbour's boundaries count in its stead.
  */
-function trueReach(body: Brep, faceId: string, e: Brep['edges'][number], ch: Chart, side: SectionSide, X: XY, scaleMM: number, removes: boolean): number {
+function trueReach(body: Brep, faceId: string, e: Brep['edges'][number], ch: Chart, side: SectionSide, X: XY, scaleMM: number, removes: boolean, out?: { smooth: number }): number {
   const own = new Set(e.vertices), eps = side.curve.kind === 'line' ? 1e-7 * scaleMM : 1e-9, tolAlong = ch.kind === 'straight' ? 1e-9 * scaleMM : 1e-12;
   const loopFace = new Map(body.loops.map(l => [l.id, l.face])), edgesOf = new Map<string, { edge: string; loop: string }[]>();
   for (const c of body.coedges) { const f = loopFace.get(c.loop)!; edgesOf.set(f, [...(edgesOf.get(f) ?? []), { edge: c.edge, loop: c.loop }]); }
@@ -815,6 +843,16 @@ function trueReach(body: Brep, faceId: string, e: Brep['edges'][number], ch: Cha
       const o = byId.get(edge)!;
       if (o.id === e.id || walked.has(o.id) || o.vertices.some(v => own.has(v)) || atAnEnd(o.curve, ch, tolAlong)) continue;
       const kind = edgeKind(body, o, scaleMM);
+      // (Smooth onto another surface — a round already made, tangent to the face: the face ends there, and a closed-form
+      // section reaching past it would lie on the face's own surface carried on, not on the round; recorded in `out`,
+      // R10.4a, D95.)
+      if (kind === 'smooth' && !sameSurfaceAcross(body, o, scaleMM)) {
+        walked.add(o.id);
+        const at = reachOnCurve(o.curve, ch, side, X, eps, tolAlong);
+        if (out) out.smooth = Math.min(out.smooth, at);
+        reach = Math.min(reach, at);
+        continue;
+      }
       if (kind === 'smooth') {
         // On into the neighbour, its loop through this seam counting as the face's own.
         walked.add(o.id);
@@ -841,8 +879,10 @@ export function faceReach(body: Brep, faceId: string, edge: Brep['edges'][number
 /** Refuses a fillet whose contact on a face lies past the face's true reach. */
 function fitsFaces(body: Brep, e: Brep['edges'][number], uses: Use[], ch: Chart, sides: SectionSide[], X: XY, contacts: XY[], what: string, scaleMM: number, removes: boolean): void {
   sides.forEach((side, k) => {
-    const need = acrossOf(side, X, contacts[k]), reach = trueReach(body, uses[k].face.id, e, ch, side, X, scaleMM, removes);
+    const lim = { smooth: Infinity }, need = acrossOf(side, X, contacts[k]), reach = trueReach(body, uses[k].face.id, e, ch, side, X, scaleMM, removes, lim);
     const slack = side.curve.kind === 'line' ? 1e-6 * scaleMM : 1e-9;
+    // (Past a smooth edge onto another surface: no closed form — the rolling ball rolls on over it, R10.4a.)
+    if (need > reach + slack && lim.smooth <= reach + slack) throw new Overflow(e.id);
     if (need > reach + slack) {
       const unitOf = (x: number) => side.curve.kind === 'line' ? `${+x.toFixed(6)} mm` : `${+(x * 180 / Math.PI).toFixed(6)}°`;
       refuseFillet('RADIUS_EXCEEDS_FACE', `edge ${e.name}: ${what} reaches ${unitOf(need)} into face ${uses[k].face.name ?? uses[k].face.id}, which reaches only ${unitOf(reach)} across the edge`);

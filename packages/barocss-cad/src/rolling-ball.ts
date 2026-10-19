@@ -518,7 +518,7 @@ function stationOn(As: Side[], Bs: Side[], last: [number, number], sigma: number
  */
 export interface CornerInput { readonly after: number; readonly side: 'A' | 'B'; readonly shared: Face; readonly edge: Curve; readonly before: Face; readonly next: Face }
 export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[] }
-export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[] } {
+export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[]; sides: string[] } {
   if (input.corners?.length) return cornerFillet(body, input);
   const { r, id, scaleMM, tolMM } = input, closed = input.closed !== false, sigma = input.convex ? -1 : 1, name = input.names[0];
   const As = input.sideA.map(f => sideOf(body, f, !closed, scaleMM)), Bs = input.sideB.map(f => sideOf(body, f, !closed, scaleMM));
@@ -541,7 +541,11 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   // (Within reach of an end run past, a contact may run off its face across that end: it is not checked there.)
   const reach = back + 2 * g, beside = (x: number) => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0));
   for (let j = 0; j < (closed ? N0 : N0 + 1); j++) {
-    const x = L * j / N0, got = solveAt(x, first.at(-1), beside(x));
+    const x = L * j / N0;
+    let got = solveAt(x, first.at(-1), beside(x));
+    // (Off its faces: where the last contact's face goes on smoothly across an edge — a round already made — the ball
+    // rolls on over it, R10.4a, D95.)
+    for (let k = 0; !got && k < 3 && growSides(body, As, Bs, first.at(-1) ?? { a: 0, b: 0 }, !closed, scaleMM); k++) got = solveAt(x, first.at(-1), beside(x));
     if (!got) throw leaves(x);
     first.push({ ...got, s: x });
   }
@@ -607,7 +611,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     // (Done when the contacts lie within tolMM of their faces and the fillet within 4 tolMM of the true sections — on
     // planes the contacts are exact at any count, and the sections round a corner, R10.3a, then set it.)
     const worst = Math.max(contact / tolMM, report.maxDeviationMM / (4 * tolMM));
-    if (worst <= 1 || fixedStations) return { brep, contactFaces, report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
+    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
     if (tries >= 6) N = 8192;
     else N = 2 * Math.ceil(N * Math.max(tries ? 1.25 : 2, 1.15 * worst ** 0.25) / 2);
   }
@@ -650,6 +654,31 @@ function footOn(c: Curve, x: Point, hint?: number): number {
 function curveTangent(c: Curve, t: number): Point {
   const [t0, t1] = curveDomain(c), h = 1e-6 * (t1 - t0), a = Math.max(t0, t - h), b = Math.min(t1, t + h);
   return scale(sub(evaluateCurve(c, b), evaluateCurve(c, a)), 1 / (b - a));
+}
+/**
+ * The sides grown by the faces that go on smoothly from the last contacts' faces (R10.4a, D95): across an edge of that
+ * face whose two faces share their normal there (a round already made, its tangent faces), the face beyond — not yet on
+ * either side. Returns whether any was added.
+ */
+function growSides(body: Brep, As: Side[], Bs: Side[], last: { a: number; b: number }, extend: boolean, scaleMM: number): boolean {
+  const loops = new Map(body.loops.map(l => [l.id, l])), faceOfLoop = new Map(body.loops.map(l => [l.id, l.face])), byId = new Map(body.faces.map(f => [f.id, f]));
+  const facesOfEdge = new Map<string, string[]>();
+  for (const c of body.coedges) facesOfEdge.set(c.edge, [...(facesOfEdge.get(c.edge) ?? []), faceOfLoop.get(c.loop)!]);
+  const known = new Set([...As, ...Bs].map(sd => sd.face.id)), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
+  let added = false;
+  // (From the last contacts' faces first; at the chain's start, or where that adds nothing, from every face of the side.)
+  for (const [list, idx] of [[As, last.a], [Bs, last.b]] as const) for (const face of [list[idx].face, ...list.map(sd => sd.face)]) {
+    if (added && face !== list[idx].face) break;
+    for (const lid of face.loops) for (const cid of loops.get(lid)!.coedges) {
+      const e = edges.get(coedges.get(cid)!.edge)!, other = (facesOfEdge.get(e.id) ?? []).find(f => f !== face.id);
+      if (!other || known.has(other)) continue;
+      const [t0, t1] = curveDomain(e.curve), x = evaluateCurve(e.curve, (t0 + t1) / 2), g = byId.get(other)!;
+      const s1 = sheetOf(face.surface as Surface, face.sense), s2 = sheetOf(g.surface as Surface, g.sense);
+      if (len(sub(normalOn(s1, ...invertOn(s1, x)), normalOn(s2, ...invertOn(s2, x)))) > 1e-6) continue;
+      list.push(sideOf(body, g, extend, scaleMM)); known.add(other); added = true;
+    }
+  }
+  return added;
 }
 /** Inside the face's region with no margin (the bisection's test: on the seam counts as off). */
 function strictlyInside(side: Side, uv: XY): boolean {
@@ -759,7 +788,7 @@ type Span = { kind: 'edge'; x0: number; x1: number; lo: number; hi: number; rho:
  * meet (a corner's first ball touches the face before at the edge: the span before ends at the station through its
  * centre). Then as the plain ring: refined until the lofted contacts lie within `tolMM` of their faces.
  */
-function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[] } {
+function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[]; sides: string[] } {
   const { r, id, scaleMM, tolMM } = input, sigma = input.convex ? -1 : 1, name = input.names[0], n = input.loop.length;
   const unsupported = (why: string) => new BrepError('GEOMETRY', `CAPABILITY: [VERTEX_BLEND_UNSUPPORTED] edge ${name}: ${why}`), closed = input.closed !== false;
   if (!input.facesOf) throw new BrepError('INPUT', 'rolling ball: a chain with corners needs its edges\' faces');
@@ -959,7 +988,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
     // (Done when the contacts lie within tolMM of their faces and the fillet within 4 tolMM of the true sections — on
     // planes the contacts are exact at any count, and the sections round a corner, R10.3a, then set it.)
     const worst = Math.max(contact / tolMM, report.maxDeviationMM / (4 * tolMM));
-    if (worst <= 1 || fixedStations) return { brep, contactFaces, report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
+    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
     if (tries >= 6) N = 8192;
     else N = 2 * Math.ceil(N * Math.max(tries ? 1.25 : 2, 1.15 * worst ** 0.25) / 2);
   }

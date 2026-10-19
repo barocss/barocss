@@ -3013,6 +3013,33 @@ try {
     await snap('r10-3c-rod-on-disc');
   });
 
+  await check('R10.4a a boss with a rounded top (a file): its foot filleted larger than the wall below the round — the ball rolls over onto the round', async () => {
+    const fs = await import('node:fs'), file = join(out, 'boss-rounded-top.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 8 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 6, from: 10 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    // The top edge rounded 2, then the foot 5 (the wall below the round is 4 high).
+    let roundedVolume = NaN;
+    for (const [names, radius] of [[['n3.side0#1|n3.top', 'n3.top|n3.side0#1', 'n3.side0|n3.top'], 2], [['n1.top|n3.side0#1', 'n3.side0#1|n1.top', 'n1.top|n3.side0'], 5]]) {
+      await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, names, { timeout: 30000 })).jsonValue();
+      await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+      await field('Radius').fill(String(radius));
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(n => window.__studioDoc.nodes.filter(x => x.kind === 'fillet').length === n, radius === 2 ? 1 : 2, { timeout: 90000 }); await idle();
+      await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+      if (radius === 2) roundedVolume = await bodyVolume();
+    }
+    const after = await bodyVolume();
+    // (+289.0 mm³ — conformance r10/overflow-boss-rounded-top, by Pappus; the panel rounds to 1 mm³.)
+    assert.ok(Math.abs(after - roundedVolume - 289.0) <= 1, `${roundedVolume} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-4a-boss-rounded-top');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

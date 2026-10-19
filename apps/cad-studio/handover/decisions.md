@@ -4540,3 +4540,21 @@ R10.3c took R10.2b's refused ends: square on a plane, at a curved face, at sever
   - **A general fillet ending at a cylinder:** the lofted tool cut by a cylinder fails ("an arc on a cylinder is not a cross-section circle", "not a manifold solid") on the tilted rod on a disc, even near the end only.
   - **Ends at more than one face.**
   - Next for all three: the Boolean's handling of a tool face coinciding with, or lying along, a body face (coplanar sections, coincident cylinders across a seam). That is a Boolean robustness step, not a fillet step.
+
+## D95 — R10.4a: overflow over smooth edges — the ball rolls on over a round already made (2026-10-19)
+
+R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face across a smooth edge onto a tangent face. **R10.4b:** rolling onto a sharp edge (a cliff edge), not started.
+- **The rolling ball** (`rolling-ball.ts`, `growSides`): where no station solves on the sides' faces, the faces beyond smooth edges of the last contacts' faces (or, at the chain's start, of any side face) join that side, and the station is solved again (up to three rings).
+  - A smooth edge here is one whose two faces share their normal at its middle.
+  - The ring's result now names its final sides, so the Boolean's contact faces include them.
+- **R10.1's closed forms:** the true reach (D88) went on across every smooth edge, so a closed-form section could reach past one onto another surface.
+  - Example: a boss with its top edge rounded, its foot filleted larger than the wall below the round. The section then lay on the wall's cylinder carried on, not on the round. The result was valid but 7.8 % too much at r 5 (311.6 mm³ against 289.0).
+  - Now the reach goes on only across a smooth edge between faces on one surface (halves of a cylinder, a split plane; `sameSurfaceAcross`).
+  - Past a smooth edge onto another surface, the closed form throws `Overflow`. The finish is made again with that chain by the rolling ball (`generalEdges`; whole circles too, not grouped into one closed tool). The reports of a failed attempt are dropped.
+  - Where the ball cannot follow either: CONTACT_LEAVES_FACE.
+- **Evidence** (`packages/barocss-cad/test/r10-4a.test.mjs`): a boss (R 8, 6 high) on a plate, its top edge rounded 2.
+  - The foot filleted at r 4.5, 5 and 6 (contacts above the wall's 4 mm, on the round) matches Pappus (the meridian region between plate, wall, round and ball, by Green over fine polylines) to 9e-8, as a feature and forced through the rolling ball.
+  - At r 3 (contact on the wall) R10.1's closed form stays, to 1e-9.
+  - **Conformance:** `r10/overflow-boss-rounded-top` (r 5, 1e-7).
+  - **Studio:** a flow step opens the boss file, rounds its top 2, then fillets the foot 5 in the UI (+289.0 mm³).
+- **Not done:** R10.4b (rolling onto a sharp edge, the cliff edge: CONTACT_LEAVES_FACE as before); closed-form straight edges between planes whose face runs smoothly onto a round (their reach check, `planeReach`, still walks across); R10.5.
