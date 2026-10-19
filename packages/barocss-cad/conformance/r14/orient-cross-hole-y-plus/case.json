@@ -1,0 +1,246 @@
+{
+ "id": "r14-orient-cross-hole-y-plus",
+ "step": "R14.3b",
+ "decisions": [
+  "O7"
+ ],
+ "about": "the block with a hole along X turned to a front from +Y (seen from behind): the same views mirrored, every value kept",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      60,
+      30
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 30,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      15,
+      15
+     ],
+     "radius": 4,
+     "axis": "x",
+     "id": "n2"
+    }
+   ],
+   "nextId": 3,
+   "outputs": {
+    "b2": {
+     "node": 2,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {
+   "sheet": "A4",
+   "projection": "third",
+   "hidden": true,
+   "dimensions": [
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side2",
+      "at": "end",
+      "near": [
+       0,
+       30,
+       0
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -10,
+      15
+     ],
+     "id": "d1"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      30,
+      -10
+     ],
+     "id": "d2"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side0|n1.top",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       30
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -10,
+      15
+     ],
+     "id": "d3"
+    },
+    {
+     "view": "right",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.side0|n1.side1",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side1|n2.side0#2",
+      "at": "center",
+      "near": [
+       60,
+       14.999999999999996,
+       15
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      7.499999999999998,
+      -10
+     ],
+     "id": "d4"
+    },
+    {
+     "view": "right",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.side0|n1.side1",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side1|n2.side0#2",
+      "at": "center",
+      "near": [
+       60,
+       14.999999999999996,
+       15
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      40,
+      7.5
+     ],
+     "id": "d5"
+    },
+    {
+     "view": "right",
+     "kind": "diameter",
+     "edge": "n1.side1|n2.side0#2",
+     "near": [
+      60,
+      14.999999999999996,
+      15
+     ],
+     "auto": true,
+     "place": [
+      4.9999999999999964,
+      36
+     ],
+     "id": "d6"
+    }
+   ],
+   "views": [
+    "front",
+    "top",
+    "right",
+    "iso"
+   ]
+  },
+  "to": "y+"
+ },
+ "expect": {
+  "ok": true,
+  "moved": [],
+  "dimensions": [
+   "front 30",
+   "front 60",
+   "right 15",
+   "right 15",
+   "right Ø8",
+   "top 30"
+  ]
+ },
+ "oracle": "the same edges read from the views showing their axes: every value the one before, checked by hand; run by apps/cad-studio/test/reorient.test.ts"
+}

@@ -12,7 +12,7 @@
 import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
 import { roundIn } from './dimensions';
 import { drawingIssues, fixAll, issueContext, type DrawingIssue, type SheetInputs } from './issues';
-import { SCALES, layoutSheet } from './views';
+import { ORIENTATIONS, SCALES, layoutSheet, viewsFor, type Orientation } from './views';
 import { ROOM_SIDES, VIEW_IDS, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom } from './types';
 
 export const AUTO_LAYOUT_VERSION = 'cad-studio-auto-layout-v1';
@@ -61,6 +61,31 @@ export function chooseViews(views: DrawingViews, settings: DrawingSettings): { v
   const handInRight = settings.dimensions.some(d => d.view === 'right' && !d.auto) || (settings.notes ?? []).some(n => n.leader?.view === 'right');
   if (base.includes('right') && !handInRight && rightAddsNothing(views)) return { views: base.filter(v => v !== 'right'), dropped: ['right'] };
   return { views: base, dropped: [] };
+}
+
+/**
+ * How much a view tells (R14.3b, O7): its visible edges, each circle that shows round three times over, less half
+ * its hidden ones (a view with fewer hidden lines reads better).
+ */
+export function information(pr: DrawingViews['front']): number {
+  let visible = 0, hidden = 0, round = 0;
+  for (const e of pr.edges) for (const p of e.pieces) { if (p.visible) visible++; else hidden++; }
+  const seen = new Set<string>();
+  for (const e of pr.edges) if (e.circle && roundIn(pr, e)) { const k = e.circle.center.map(x => Math.round(x * 1e6)).join(',') + `|${Math.round(e.circle.radius * 1e6)}`; if (!seen.has(k)) { seen.add(k); round++; } }
+  return visible + 3 * round - 0.5 * hidden;
+}
+
+/**
+ * The front view's side for Auto (R14.3b, O7): the side the right view looks from, when it tells clearly more than the
+ * front (a fifth more, and two more); else the front as it is. Only for a drawing that has no side set and nothing
+ * placed by hand on it (a side set, or annotations to keep, stay as they are). Null: keep the front.
+ */
+export function frontByInformation(views: DrawingViews, settings: DrawingSettings): { orientation: Orientation; why: string } | null {
+  if (settings.orientation || settings.dimensions.some(d => !d.auto) || (settings.notes ?? []).some(n => n.leader) || (settings.datums ?? []).length) return null;
+  const front = information(views.front), right = information(views.right);
+  if (!(right > 1.2 * front && right > front + 2)) return null;
+  const t = views.right.toward, orientation = ORIENTATIONS.find(o => { const v = viewsFor(o).front.toward; return Math.abs(v[0] - t[0]) < 1e-9 && Math.abs(v[1] - t[1]) < 1e-9; })!;
+  return { orientation, why: `the side now seen as the right view shows more (${Math.round(right)} against ${Math.round(front)}: visible edges, round circles three times, less half the hidden lines)` };
 }
 
 /** Room for each side: the larger of what it had and what its rows took, to the next half millimetre. */

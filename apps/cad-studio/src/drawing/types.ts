@@ -77,7 +77,7 @@ export interface DrawingSettings {
   centers?: boolean;
   /** Tangent edges (a fillet's boundaries) as thin lines (not shown by default). */
   tangent?: boolean;
-  /** Section A–A: the part cut by the plane Y = y, seen like the front view, under it (none: no section). */
+  /** Section A–A: the part cut by the plane square to the front view's depth at `y` along it (Y = y from −Y), seen like the front view, under it (none: no section). */
   section?: { y: number };
   /** The title block's part name (default: the file name). */
   title?: string;
@@ -91,6 +91,11 @@ export interface DrawingSettings {
   views?: ViewId[];
   /** Extra sheet room (mm) beside a view's sides for its dimensions (R14.3, O4): the layout spaces the views by it. */
   room?: ViewRoom;
+  /**
+   * The side the front view looks from (R14.3b, O7): none is `y-` (from −Y), as every drawing saved before. Changing it
+   * re-maps the annotations to the views that show the same model axes, or is refused (reorient.ts).
+   */
+  orientation?: 'x+' | 'y+' | 'x-';
   /** How the drawing is toleranced (R14.4, O5): by ± values (default) or geometrically (datums and position). */
   tolerancing?: 'plus-minus' | 'geometric';
   datums?: DrawingDatum[];
@@ -122,6 +127,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     }) : [],
     ...(Array.isArray(r.views) && r.views.includes('front') && r.views.includes('top') ? { views: VIEW_IDS.filter(v => r.views!.includes(v)) } : {}),
     ...(readRoom(r.room) ? { room: readRoom(r.room)! } : {}),
+    ...(r.orientation === 'x+' || r.orientation === 'y+' || r.orientation === 'x-' ? { orientation: r.orientation } : {}),
     ...(r.tolerancing === 'geometric' ? { tolerancing: 'geometric' as const } : {}),
     ...(Array.isArray(r.datums) && r.datums.some(isDatum) ? { datums: r.datums.filter(isDatum).map(d => ({ id: d.id, letter: d.letter, view: d.view, edge: { ...d.edge }, place: [d.place[0], d.place[1]] as XY })) } : {}),
     ...(Array.isArray(r.frames) && r.frames.some(isFrame) ? { frames: r.frames.filter(isFrame).map(f => ({ id: f.id, dim: f.dim, characteristic: 'position' as const, value: f.value, datums: [...f.datums] })) } : {}),
