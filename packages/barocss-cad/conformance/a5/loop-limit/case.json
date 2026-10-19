@@ -1,0 +1,10 @@
+{
+ "case": "loop-limit",
+ "step": "A5.2",
+ "note": "Nested loops past the iteration limit, refused before any call is made past it.",
+ "script": "for (const i of range(50)) {\n  for (const j of range(50)) {\n    const k = i * j\n  }\n}",
+ "error": {
+  "code": "script_limit",
+  "line": 2
+ }
+}

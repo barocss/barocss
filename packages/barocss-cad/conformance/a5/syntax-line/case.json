@@ -1,0 +1,10 @@
+{
+ "case": "syntax-line",
+ "step": "A5.2",
+ "note": "A missing closing parenthesis.",
+ "script": "const b = box({w: 80, d: 40, h: 8})\nhole(b.top, {d: 5, x: 10, y: 10}\nfillet([edge(b.top, b.side0)], {radius: 1})",
+ "error": {
+  "code": "script_syntax",
+  "line": 3
+ }
+}

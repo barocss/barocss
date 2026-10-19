@@ -10,7 +10,8 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
-import { featureId } from '../engine/ids';
+import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
+import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
@@ -113,10 +114,10 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_requirements', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
-const MUTATORS = new Set(['apply_ops', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
+const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -339,7 +340,7 @@ const ASSEMBLY_CHANGES = new Set(['add_part', 'place_part', 'delete_part', 'add_
 /** Whether a call changes the part (requirements are the brief, not the part; a dry run changes nothing). */
 function changesPart(name: string, input: unknown): boolean {
   if (name === 'set_requirements' || name === 'accept_proposal') return false;
-  if (name === 'apply_ops' && isObj(input) && input.dryRun === true) return false;
+  if ((name === 'apply_ops' || name === 'run_script') && isObj(input) && input.dryRun === true) return false;
   return MUTATORS.has(name) || ASSEMBLY_CHANGES.has(name);
 }
 /** Fields that say what a feature is built on or how it is made (references, choices, counts), not its values. */
@@ -424,6 +425,38 @@ async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Pro
   const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
   const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
   return { cur, results, ops: kept, diff, change, broken };
+}
+/** The studio side of a script (A5.2): each call through the dispatcher on the working part, a concise result. */
+class ScriptOn implements ScriptHost {
+  readonly commands = CHAT_COMMANDS;
+  constructor(public cur: ChatState, private readonly evaluate: Evaluate, private readonly because: string) {}
+  indexOf(id: string): number { return nodeIndexOf(this.cur.doc.nodes, id); }
+  idAt(index: number): string | null { return Number.isInteger(index) && this.cur.doc.nodes[index] ? featureId(this.cur.doc.nodes, index) : null; }
+  bodyOf(id: string): string { const i = this.indexOf(id); return i >= 0 ? bodyKeyFor(this.cur.doc.nodes, i) : id; }
+  async call(tool: string, args: Record<string, unknown>): Promise<{ ok: true; added: string[]; did: string } | { ok: false; why: string }> {
+    const was = this.cur.doc.nodes, before = new Set<string>();
+    for (let i = 0; i < was.length; i++) before.add(featureId(was, i));
+    const r = await runToolCounted(this.cur, tool, { ...args, response_format: 'concise', ...(this.because ? { because: this.because } : {}) }, this.evaluate);
+    let out: Record<string, unknown> = {}; try { out = JSON.parse(r.content); } catch { /* plain text */ }
+    if (r.isError) return { ok: false, why: String(out.error ?? r.content) };
+    this.cur = r.state;
+    const now = r.state.doc.nodes, added: string[] = [];
+    for (let i = 0; i < now.length; i++) if (!before.has(featureId(now, i))) added.push(featureId(now, i));
+    return { ok: true, added, did: String(out.did ?? r.summary) };
+  }
+}
+/** A script run on a copy (A5.2): the part it leaves, its calls by line, the names it set; or the first problem, typed with its line (nothing applied). */
+async function runScriptOn(state: ChatState, source: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | { cur: ChatState; calls: ScriptRun['calls']; names: Record<string, string>; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }> {
+  if (typeof source !== 'string' || !source.trim()) return { fail: fail(state, 'Pass "source": the script (its language is in the tool description).') };
+  const host = new ScriptOn(state, rememberedEvaluate(evaluate), because);
+  let run: ScriptRun;
+  try { run = await runScript(parse(source), host); } catch (e) {
+    if (!(e instanceof ScriptError)) throw e;
+    return { fail: fail(state, `${e.message}${e.code === 'REFUSED' ? '' : '.'} Nothing was applied.`, { code: `script_${e.code.toLowerCase()}`, line: e.line, col: e.col, kept: 'nothing was applied' }) };
+  }
+  const cur = host.cur, diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
+  const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
+  return { cur, calls: run.calls, names: run.names, diff, change, broken };
 }
 /**
  * A proposal's change worked out on a copy (A4.2): the ops run as a person would apply them (no regression
@@ -808,6 +841,15 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const applied = [...tx.applied, ...results.flatMap(r => typeof r.opId === 'string' && !r.skipped ? [r.opId] : [])].slice(-OP_IDS);
       return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `${results.length} ops applied` };
     }
+    case 'run_script': {
+      // (A5.2, O10: a script's commands and features as one change, all or nothing, as apply_ops.)
+      const dry = args.dryRun === true, run = await runScriptOn(state, args.source, evaluate);
+      if ('fail' in run) return run.fail;
+      const { cur, calls, names, diff, change, broken } = run;
+      const body = { ...(dry ? { dryRun: true } : { ok: true }), script: SCRIPT_VERSION, calls, names, diff, change, ...(broken.length ? { broken_references: broken } : {}) };
+      if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: a script of ${calls.length} calls` };
+      return { state: cur, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `a script of ${calls.length} calls` };
+    }
     case 'propose': {
       // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
       const title = typeof args.title === 'string' ? args.title.trim() : '';
@@ -1044,6 +1086,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { ops: { type: 'array', items: { type: 'object', properties: { tool: { type: 'string' }, args: { type: 'object' }, opId: { type: 'string' } }, required: ['tool'] } }, dryRun: { type: 'boolean' } }, required: ['ops'], additionalProperties: false },
   },
   {
+    name: 'run_script',
+    description: 'Builds or changes the part with a short script, all or nothing (as apply_ops): each command or feature call in it runs as that tool call, in order; the first refusal or error stops it with its line and nothing is applied. dryRun: true tries it and returns what would change. The result lists each call with its line and the feature ids it made, and the names the script set. The language (JS-like): `const x = expr`, `for (const i of range(n)) { … }`, `if (c) { … } else { … }`, `//` comments; numbers, "strings", [lists], {objects}, + - * / %, comparisons, && || !, a ? b : c. A command is called by its name with "-" as "_" — box, cylinder, hole, fillet, chamfer, shell, linear_pattern, union, … — as cmd(selection?, {values}), values by run_command\'s keys; it returns a handle to the feature it made: h.top, h.bottom, h.cut, h.side0 (or h.side(2), h.side("e3")) are its faces, h.body its body, h.id its id. edge(faceA, faceB) is the edge between two faces; face({normal: [0, 0, 1], pick: "max"}) a face by direction; a selection may be a list. feature({kind: …}) adds a feature node (as add_features takes it; a handle in it is that feature\'s index, ref(h, side) a body reference); edit(h, {values}) and remove(h) edit or delete one; node("f3") or node(index) is a feature there before. Built in: range, min, max, abs, sqrt, round, floor, ceil, sin, cos, tan (degrees), PI. Example: const p = box({w: 80, d: 40, h: 8}); for (const i of range(3)) { hole(p.top, {d: 5, x: 20 + 20 * i, y: 20}) } fillet([edge(p.top, p.side0)], {radius: 1}). At most 200 calls, 2000 loop iterations, 20 000 characters.',
+    input_schema: { type: 'object', properties: { source: { type: 'string', description: 'The script.' }, dryRun: { type: 'boolean' } }, required: ['source'], additionalProperties: false },
+  },
+  {
     name: 'checkpoint',
     description: 'Keeps the part as it is under a name, to restore or compare later (this session; the last 20).',
     input_schema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'], additionalProperties: false },
@@ -1114,6 +1161,8 @@ export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
 Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L2 (the default) change values of one feature or of parameters directly — anything more in a turn (several features; adding, deleting or moving features; what a feature is built on) you propose, except on an empty part, whose first build you make directly; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+
+For a part of many steps or repeated features, write it as one run_script instead of many calls: loops and arithmetic in it, each command's handle naming its faces for the next; a refused line comes back with its number, nothing applied, so fix that line and run the script again.
 
 For the part's 2D drawing: drawing_issues and tolerance_suggestions read it; auto_dimension (layout and dimensions), fix_drawing, accept_tolerances and set_drawing change it, and a drawing change is always the user's to accept, so make those as ops of propose. When you report tolerances, say which suggestions are estimates and which come from the fastener data.
 

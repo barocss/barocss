@@ -1,0 +1,16 @@
+{
+ "case": "raw-feature-handle",
+ "step": "A5.2",
+ "note": "A sketch and an extrude as raw feature nodes, the sketch handle passed in the extrude as its index.",
+ "script": "const s = feature({kind: \"sketch\", profile: \"circle\", center: [0, 0], radius: 5})\nconst c = feature({kind: \"extrude\", sketch: s, height: 12})",
+ "expect": {
+  "features": 2,
+  "names": {
+   "s": "n0",
+   "c": "n1"
+  },
+  "volume_mm3": 942.478,
+  "tol": 0.5,
+  "source": "\u03c0\u00b75\u00b2\u00b712 (closed form)"
+ }
+}

@@ -204,6 +204,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A5.1** (O9): done. The tool contract `barocss-cad-tools-v1`: every tool classified (read / adds / alters),
     MCP annotations, output schemas and structured results for read tools, frozen in `src/chat/tools-v1.json` with a
     breaking-change test. tools/list 76 697 characters (64 531 before), system prompt 6 588.
+  - **A5.2** (O10): done. `run_script` (`barocss-cad-script-v1`): a JS-like script (const, for … of range, if, arithmetic,
+    handles naming a feature's faces by role) whose commands and features run as tool calls, all or nothing, typed errors
+    with their line; proposable. Conformance `conformance/a5/`. tools/list 79 171 characters, system prompt 6 870.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): none open.

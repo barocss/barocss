@@ -23,6 +23,8 @@ import { autoLayout } from '../../src/drawing/layout';
 import { toleranceSuggestions } from '../../src/drawing/tolerance';
 import { defaultDrawing } from '../../src/drawing/types';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
+import { parse as parseScript } from '../../src/chat/script';
+import { dispatchTool } from '../../src/chat/tools';
 import { withLook } from '../../src/app/bodies';
 import { emptyDoc } from '../../src/engine/doc';
 import { faceTableOf } from '../../src/assembly/faces';
@@ -93,6 +95,8 @@ const BUDGET_ISSUES = 4;
 const BUDGET_AUTO_LAYOUT = 100;
 /** R14.4 (O5), 2026-10-19: about twice the first measurement. */
 const BUDGET_SUGGESTIONS = 5;
+/** run_script (A5.2, O10): the parse alone (1.2 ms measured), and a 12-call part (231 ms; the evaluations are most of it): about ×3. */
+const BUDGET_SCRIPT_PARSE = 4, BUDGET_SCRIPT_RUN = 700;
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -164,6 +168,17 @@ const scenarios: Scenario[] = [
     const laid = autoLayout({ views: r.views, settings: defaultDrawing(), callout: () => null, meta: { title: 'bench', date: '2026-10-19' } }).settings, settings = { ...laid, tolerancing: 'geometric' as const };
     const layout = layoutSheet(r.views, settings), sheet = buildSheet(r.views, layout, settings, { title: 'bench', date: '2026-10-19' });
     return () => toleranceSuggestions({ views: r.views, layout, settings, sheet: { ...sheet }, callout: () => null });
+  } },
+  // (A5.2, O10: run_script — the language alone on a long script, and a part of 12 calls each evaluated, as the agent runs it.)
+  { name: 'run_script: parse a 6k-character script', budgetMS: BUDGET_SCRIPT_PARSE, runs: 5, setup() {
+    const line = 'for (const i of range(4)) { hole(p.top, {d: 5 + i % 2, x: 20 + 20 * i, y: max(10, 2 * i)}) }\n';
+    const source = 'const p = box({w: 80, d: 40, h: 8})\n' + line.repeat(Math.floor(6000 / line.length));
+    return () => parseScript(source);
+  } },
+  { name: 'run_script: a plate, 10 holes in a loop, a fillet (12 calls)', budgetMS: BUDGET_SCRIPT_RUN, runs: 3, setup() {
+    let k = 0;
+    return () => dispatchTool({ doc: emptyStudioDoc(), bodies: [] }, 'run_script', { source: `const p = box({w: ${120 + 1e-3 * ++k}, d: 40, h: 8})\nfor (const i of range(10)) { hole(p.top, {d: 5, x: 10 + 10 * i, y: 20}) }\nfillet([edge(p.top, p.side0)], {radius: 1})` }, async d => evaluateDoc(d, 1))
+      .then(r => { if (r.isError) throw new Error(r.content); return r; });
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {
