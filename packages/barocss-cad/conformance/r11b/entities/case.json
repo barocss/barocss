@@ -1,0 +1,73 @@
+{
+  "id": "r11b-entities",
+  "step": "R11b",
+  "decisions": ["O1"],
+  "about": "every entity the DXF writer knows, on layers with line types and weights, in AC1015 and in R12 (ellipse and spline as polylines within 1e-3)",
+  "input": {
+    "document": {
+      "units": "mm",
+      "linetypes": [
+        { "name": "BC_HIDDEN", "description": "Hidden 3 / 1.5", "pattern": [3, -1.5] },
+        { "name": "BC_CENTER", "description": "Centre 8 / 1.5 / 1.5 / 1.5", "pattern": [8, -1.5, 1.5, -1.5] }
+      ],
+      "layers": [
+        { "name": "VISIBLE", "color": 7, "lineweight": 50 },
+        { "name": "HIDDEN", "color": 8, "linetype": "BC_HIDDEN", "lineweight": 35 },
+        { "name": "CENTER", "color": 1, "linetype": "BC_CENTER", "lineweight": 25 },
+        { "name": "THIN", "color": 7, "lineweight": 25 },
+        { "name": "HATCH", "color": 7, "lineweight": 25 },
+        { "name": "TEXT", "color": 7 },
+        { "name": "DIMENSIONS", "color": 7, "lineweight": 25 }
+      ],
+      "styles": [{ "name": "BOLD", "font": "arialbd.ttf" }],
+      "blocks": [
+        { "name": "MARK", "base": [1, 1], "entities": [
+          { "type": "circle", "center": [1, 1], "radius": 0.5, "layer": "THIN" },
+          { "type": "line", "a": [0, 1], "b": [2, 1], "layer": "THIN" }
+        ] }
+      ],
+      "entities": [
+        { "type": "line", "a": [0, 0], "b": [64.125, 0.1], "layer": "VISIBLE" },
+        { "type": "line", "a": [0, 10], "b": [64, 10], "layer": "HIDDEN" },
+        { "type": "line", "a": [32, -5], "b": [32, 40], "layer": "CENTER" },
+        { "type": "circle", "center": [32, 16], "radius": 6, "layer": "VISIBLE" },
+        { "type": "arc", "center": [10, 30], "radius": 4.5, "startDeg": 30, "endDeg": 300, "layer": "VISIBLE" },
+        { "type": "arc", "center": [20, 30], "radius": 2, "startDeg": 350, "endDeg": 10, "layer": "VISIBLE" },
+        { "type": "ellipse", "center": [80, 20], "major": [8, 4], "ratio": 0.5, "start": 0, "end": 6.283185307179586, "layer": "VISIBLE" },
+        { "type": "ellipse", "center": [100, 20], "major": [0, -6], "ratio": 0.25, "start": 1, "end": 4, "layer": "HIDDEN" },
+        { "type": "lwpolyline", "points": [[0, 50], [20, 50], [20, 60], [0, 60]], "bulges": [0, 0.41421356237309503, 0, -1], "closed": true, "layer": "VISIBLE" },
+        { "type": "lwpolyline", "points": [[30, 50], [40, 55], [50, 50]], "layer": "THIN" },
+        { "type": "spline", "degree": 3, "knots": [0, 0, 0, 0, 0.5, 1, 1, 1, 1], "control": [[60, 50], [65, 60], [70, 45], [75, 60], [80, 50]], "layer": "VISIBLE" },
+        { "type": "spline", "degree": 2, "knots": [0, 0, 0, 1, 1, 1], "control": [[90, 50], [95, 60], [100, 50]], "weights": [1, 0.7071067811865476, 1], "layer": "VISIBLE" },
+        { "type": "text", "at": [0, -10], "height": 3.5, "text": "Ø12 THRU ±0.1 90° 5% – end", "layer": "TEXT" },
+        { "type": "text", "at": [64, -10], "height": 2.5, "text": "right", "align": "right", "rotationDeg": 0, "layer": "TEXT" },
+        { "type": "text", "at": [32, -15], "height": 5, "text": "BRACKET {01}", "align": "center", "style": "BOLD", "rotationDeg": 90, "layer": "TEXT" },
+        { "type": "mtext", "at": [70, -5], "height": 3.5, "text": "ALL EDGES BROKEN 0.5\nC:\\path {x}", "layer": "TEXT" },
+        { "type": "solid", "points": [[40, 0], [37, 0.6], [37, -0.6]], "layer": "THIN" },
+        { "type": "solid", "points": [[50, 0], [52, 0], [52, 2], [50, 2]], "layer": "THIN" },
+        { "type": "hatch", "loops": [{ "points": [[110, 0], [130, 0], [130, 20], [110, 20]] }, { "points": [[115, 5], [125, 5], [125, 15], [115, 15]] }], "fill": { "kind": "lines", "angleDeg": 45, "spacing": 2.5, "origin": [0.7, 0.3] }, "layer": "HATCH" },
+        { "type": "hatch", "loops": [{ "points": [[140, 10], [150, 10]], "bulges": [1, 1] }], "fill": { "kind": "solid" }, "layer": "HATCH" },
+        { "type": "insert", "block": "MARK", "at": [5, 5] },
+        { "type": "insert", "block": "MARK", "at": [10, 5], "scale": 2, "rotationDeg": 45 },
+        { "type": "dimension", "geometry": { "kind": "linear", "p1": [0, 0], "p2": [64, 0], "line": [64, -20], "angleDeg": 0 }, "text": "64 ±0.1", "textAt": [32, -18.8], "measurement": 64, "layer": "DIMENSIONS",
+          "block": [
+            { "type": "line", "a": [0, -1], "b": [0, -22], "layer": "THIN" }, { "type": "line", "a": [64, -1], "b": [64, -22], "layer": "THIN" },
+            { "type": "line", "a": [0, -20], "b": [64, -20], "layer": "THIN" },
+            { "type": "solid", "points": [[0, -20], [3, -19.4], [3, -20.6]], "layer": "THIN" }, { "type": "solid", "points": [[64, -20], [61, -20.6], [61, -19.4]], "layer": "THIN" },
+            { "type": "text", "at": [32, -18.8], "height": 3.5, "text": "64 ±0.1", "align": "center", "layer": "TEXT" }
+          ] },
+        { "type": "dimension", "geometry": { "kind": "aligned", "p1": [0, 50], "p2": [20, 60], "line": [17.76, 64.47] }, "text": "22.36", "textAt": [8.4, 61], "measurement": 22.360679774997898, "layer": "DIMENSIONS",
+          "block": [{ "type": "line", "a": [-2.24, 54.47], "b": [17.76, 64.47], "layer": "THIN" }, { "type": "text", "at": [8.4, 61], "height": 3.5, "text": "22.36", "align": "center", "rotationDeg": 26.565, "layer": "TEXT" }] },
+        { "type": "dimension", "geometry": { "kind": "angular", "line1": [[0, 0], [20, 0]], "line2": [[0, 0], [0, 20]], "arc": [10.6, 10.6] }, "text": "90°", "textAt": [13, 13], "layer": "DIMENSIONS",
+          "block": [{ "type": "arc", "center": [0, 0], "radius": 15, "startDeg": 0, "endDeg": 90, "layer": "THIN" }, { "type": "text", "at": [13, 13], "height": 3.5, "text": "90°", "layer": "TEXT" }] },
+        { "type": "dimension", "geometry": { "kind": "diameter", "rim": [36.24, 20.24], "opposite": [27.76, 11.76] }, "text": "Ø12 THRU", "textAt": [45, 25], "measurement": 12, "layer": "DIMENSIONS",
+          "block": [{ "type": "line", "a": [36.24, 20.24], "b": [45, 25], "layer": "THIN" }, { "type": "text", "at": [46, 25], "height": 3.5, "text": "Ø12 THRU", "layer": "TEXT" }] },
+        { "type": "dimension", "geometry": { "kind": "radius", "center": [10, 30], "rim": [13.18, 33.18] }, "text": "R4.5", "textAt": [16, 36], "measurement": 4.5, "layer": "DIMENSIONS",
+          "block": [{ "type": "line", "a": [10, 30], "b": [16, 36], "layer": "THIN" }, { "type": "text", "at": [17, 36], "height": 3.5, "text": "R4.5", "layer": "TEXT" }] }
+      ]
+    },
+    "options": [{ "version": "AC1015" }, { "version": "AC1009", "r12ChordTolerance": 0.001, "withoutSolidHatches": true }]
+  },
+  "oracle": "ezdxf 1.4.5 (MIT) reads each file (scripts/dxf-oracle.py, run outside the product): oracle.<version>.json; the test compares it with the input to 1e-9 and requires a clean audit",
+  "notes": "R12 runs without the solid hatch, which it refuses (R12 has no HATCH): test/dxf-writer.test.mjs checks the refusal"
+}

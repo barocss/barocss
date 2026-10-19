@@ -154,6 +154,25 @@ Done:
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
+### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
+Order: **R11b DXF writer** → R14 automatic drawings → A5 DSL + MCP → RM1–RM6 robot kinematics (→ RD1–RD3). Its own
+decision log `handover/decisions-outer.md` (O1, O2, …); conformance in `conformance/r11b/`, `r14/`, `a5/`, `rm/`; it
+stays out of the kernel's core files (requests for them go through the coordinator to the kernel lane).
+- **R11b** (O1): done. `writeDxf` (kernel `dxf-writer.ts`): AC1015 by default, R12 option; LINE, ARC, CIRCLE, ELLIPSE,
+  LWPOLYLINE with bulges, SPLINE, TEXT/MTEXT, SOLID, HATCH, INSERT/BLOCK, DIMENSION with its block; layers, line types
+  and weights, `$INSUNITS`; Windows-1252 text; typed refusals; R12's changes counted, curves within an explicit
+  tolerance. Studio: the drawing sheet at true size (layers by pen, the title block a block, DIMENSION entities,
+  the section a HATCH), section A–A alone 1:1, a sketch's profile 1:1 (history menu). Oracle ezdxf 1.4.5 run
+  outside the product: every case audits clean, its reading matches to 1e-9. Opening in a free viewer: the
+  owner's L1 check. Flat patterns: with R12.
+- **R14** (design input `notes/research-draftwright-2026-10-19.md`), steps R14.1 auto-dimension → R14.2 issue list →
+  R14.3 views and layout for the dimensions → R14.4 tolerance/GD&T suggestions → R14.5 agent tools and pitch circles (O2).
+  - **R14.1** (O2): done. The drawing's “Auto” button: overall sizes, steps, hole positions from the view's extremes
+    (a row at one pitch as `3× 20`), one callout per kind of hole with its count (`4× Ø6.6 THRU`, the feature's
+    THRU/DEEP/thread/counterbore/countersink); its own replaced, hand-placed kept; skipped and crowded sides listed.
+    Conformance `conformance/r14/` (six parts). Fixed: a pattern copy's diameter reads the hole's callout.
+- Next: **R14.2** the drawing issue list.
+
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
 - No functions inside functions on hot paths (per frame, per element, per sample): hoist them to module level.

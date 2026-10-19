@@ -244,7 +244,8 @@ test('section A–A: the plate cut through its hole, the cut faces hatched, the 
   const sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }, r), svg = sheetSvg(sheet, 't');
   assert.ok(svg.includes('>SECTION A–A</text>')); assert.equal((svg.match(/>A<\/text>/g) ?? []).length, 2, 'A at both ends of the cutting plane');
   const g = sheet.groups.find(x => x.role === 'section')!;
-  assert.ok(g.marks.filter(m => m.kind === 'line' && m.pen === 'thin').length > 10, 'hatched');
+  const h = g.marks.find((m): m is Extract<Mark, { kind: 'hatch' }> => m.kind === 'hatch');
+  assert.ok(h && hatch(h.rings, h.spacing).length > 10, 'hatched (one mark, drawn as its lines; a DXF HATCH, R11b)');
   assert.ok(g.marks.every(m => !('pen' in m) || m.pen !== 'hidden'), 'a section shows no hidden lines');
   // Behind the whole part: nothing to show; in front of it: the whole part.
   const none = sectionOf(doc, 40); assert.ok(!none.ok && /Nothing/.test(none.error));

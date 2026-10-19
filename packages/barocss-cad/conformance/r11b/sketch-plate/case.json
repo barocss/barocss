@@ -1,0 +1,20 @@
+{
+  "id": "r11b-sketch-plate",
+  "step": "R11b",
+  "decisions": [
+    "O1"
+  ],
+  "about": "a sketch (cad-studio) at 1:1 in its plane: a loop with a half-round end as a closed polyline with a bulge, a circular hole as a circle, a two-arc hole, a construction slot on its own layer; and in R12",
+  "input": {
+    "documentFile": "document.json",
+    "options": [
+      {
+        "version": "AC1015"
+      },
+      {
+        "version": "AC1009"
+      }
+    ]
+  },
+  "oracle": "the document is the studio's (apps/cad-studio/test/dxf.test.ts writes and checks it); ezdxf 1.4.5 (MIT) reads each file (scripts/dxf-oracle.py, outside the product): oracle.<version>.json, compared with the document to 1e-9 with a clean audit"
+}

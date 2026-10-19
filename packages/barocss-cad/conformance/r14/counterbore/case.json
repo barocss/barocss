@@ -1,0 +1,121 @@
+{
+ "id": "r14-counterbore",
+ "step": "R14.1",
+ "decisions": [
+  "O2"
+ ],
+ "about": "a counterbored hole: one callout for both circles, located once",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      50,
+      50
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 12,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      25,
+      25
+     ],
+     "radius": 3.3,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      25,
+      25
+     ],
+     "radius": 5.5,
+     "depth": 6.5,
+     "id": "n3"
+    }
+   ],
+   "nextId": 4,
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {}
+ },
+ "expect": {
+  "dimensions": [
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "50"
+   },
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "12"
+   },
+   {
+    "view": "top",
+    "kind": "diameter",
+    "text": "Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "25"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "25"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "50"
+   }
+  ],
+  "added": {
+   "overall": 3,
+   "levels": 0,
+   "holePositions": 2,
+   "pitches": 0,
+   "callouts": 1
+  },
+  "skipped": [],
+  "crowded": []
+ },
+ "oracle": "the part’s design values (round numbers), checked by hand against the definitions in decisions-outer.md O2; run by apps/cad-studio/test/auto-dimension.test.ts"
+}

@@ -1,0 +1,248 @@
+{
+ "units": "mm",
+ "linetypes": [
+  {
+   "name": "BC_HIDDEN",
+   "description": "Hidden __ __ __ (3, 1.5)",
+   "pattern": [
+    3,
+    -1.5
+   ]
+  },
+  {
+   "name": "BC_CENTER",
+   "description": "Centre ____ _ ____ (8, 1.5, 1.5, 1.5)",
+   "pattern": [
+    8,
+    -1.5,
+    1.5,
+    -1.5
+   ]
+  }
+ ],
+ "layers": [
+  {
+   "name": "VISIBLE",
+   "color": 7,
+   "lineweight": 50
+  },
+  {
+   "name": "HIDDEN",
+   "color": 8,
+   "linetype": "BC_HIDDEN",
+   "lineweight": 35
+  },
+  {
+   "name": "THIN",
+   "color": 7,
+   "lineweight": 25
+  },
+  {
+   "name": "CENTER",
+   "color": 1,
+   "linetype": "BC_CENTER",
+   "lineweight": 25
+  },
+  {
+   "name": "FRAME",
+   "color": 7,
+   "lineweight": 70
+  },
+  {
+   "name": "TEXT",
+   "color": 7,
+   "lineweight": 25
+  },
+  {
+   "name": "HATCH",
+   "color": 7,
+   "lineweight": 25
+  },
+  {
+   "name": "DIMENSIONS",
+   "color": 7,
+   "lineweight": 25
+  }
+ ],
+ "entities": [
+  {
+   "type": "line",
+   "a": [
+    64,
+    0
+   ],
+   "b": [
+    64,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    0,
+    0
+   ],
+   "b": [
+    0,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    0,
+    0
+   ],
+   "b": [
+    28,
+    0
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    28,
+    0
+   ],
+   "b": [
+    28,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    0,
+    8
+   ],
+   "b": [
+    28,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    28,
+    0
+   ],
+   "b": [
+    36,
+    0
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    36,
+    0
+   ],
+   "b": [
+    36,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    28,
+    8
+   ],
+   "b": [
+    36,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    64,
+    0
+   ],
+   "b": [
+    36,
+    0
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "line",
+   "a": [
+    64,
+    8
+   ],
+   "b": [
+    36,
+    8
+   ],
+   "layer": "VISIBLE"
+  },
+  {
+   "type": "hatch",
+   "loops": [
+    {
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       28,
+       0
+      ],
+      [
+       28,
+       8
+      ],
+      [
+       0,
+       8
+      ],
+      [
+       0,
+       0
+      ]
+     ]
+    },
+    {
+     "points": [
+      [
+       36,
+       0
+      ],
+      [
+       64,
+       0
+      ],
+      [
+       64,
+       8
+      ],
+      [
+       36,
+       8
+      ],
+      [
+       36,
+       0
+      ]
+     ]
+    }
+   ],
+   "fill": {
+    "kind": "lines",
+    "angleDeg": 45,
+    "spacing": 2.5
+   },
+   "layer": "HATCH"
+  }
+ ]
+}

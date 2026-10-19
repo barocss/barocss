@@ -1,0 +1,142 @@
+{
+ "id": "r14-bolt-circle",
+ "step": "R14.1",
+ "decisions": [
+  "O2"
+ ],
+ "about": "six holes on a Ø40 circle: located by their positions, the pitch circle listed as not available; on A4 at 1:1 too crowded below the top view (listed), on A3 not",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      80,
+      80
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      60,
+      40
+     ],
+     "radius": 3,
+     "pattern": {
+      "count": 6,
+      "about": [
+       40,
+       40
+      ]
+     },
+     "id": "n2"
+    }
+   ],
+   "nextId": 3,
+   "outputs": {
+    "b2": {
+     "node": 2,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {}
+ },
+ "expect": {
+  "dimensions": [
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "80"
+   },
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "10"
+   },
+   {
+    "view": "top",
+    "kind": "diameter",
+    "text": "6× Ø6 THRU"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "20"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "30"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "50"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "60"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "22.68"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "2× 17.32"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "80"
+   }
+  ],
+  "added": {
+   "overall": 3,
+   "levels": 0,
+   "holePositions": 5,
+   "pitches": 1,
+   "callouts": 1
+  },
+  "skipped": [
+   "6 holes on a Ø40 circle"
+  ],
+  "crowded": [
+   "top below"
+  ]
+ },
+ "oracle": "the part’s design values (round numbers), checked by hand against the definitions in decisions-outer.md O2; run by apps/cad-studio/test/auto-dimension.test.ts"
+}

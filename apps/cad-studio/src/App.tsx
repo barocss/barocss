@@ -72,6 +72,7 @@ import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSet
 import { downloadBytes, meshToStl } from './ui/files';
 import { write3mf } from './print/threemf';
 import { threeMfModelOf } from './print/export3mf';
+import { sketchDxf } from './sketch/dxf';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
@@ -1287,6 +1288,13 @@ export function App() {
     setDoc(cur => cur.nodes === opened.nodes || JSON.stringify(cur.nodes) === JSON.stringify(opened.nodes) ? { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) } : cur); setDirty(true);
 
   };
+  /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */
+  const exportSketchDxf = (index: number) => {
+    const n = doc.nodes[index];
+    if (n?.kind !== 'sketch') return;
+    try { downloadBytes(sketchDxf(n, doc.parameters).bytes, `${fileName}-sketch-${index + 1}.dxf`, 'image/vnd.dxf'); }
+    catch (e) { setToast({ title: 'Could not write the DXF', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+  };
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
   const [stepAsk, setStepAsk] = useState(false);
   const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
@@ -2053,7 +2061,7 @@ export function App() {
         return <ContextMenu at={historyMenu.at} title={featureLabel(n, i, doc.nodes).toUpperCase()} ctx={ctx} commands={false} onClose={() => setHistoryMenu(null)} onRun={() => {}}
           actions={[
             { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
-            ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }] : []),
+            ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }, { label: 'Export sketch DXF', icon: 'download', run: () => exportSketchDxf(sk) }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
             ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },

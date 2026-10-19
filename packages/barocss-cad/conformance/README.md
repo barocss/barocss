@@ -56,3 +56,13 @@ Rules:
   body and shell counts and the genus are compared.
 - Values from this kernel alone are marked so in `oracle`. Where an exact or independent value exists, it
   is used and the tolerance reflects the method's error.
+
+## DXF cases (`r11b/<case>/`, R11b, O1)
+
+The DXF writer's cases are folders, not part documents (the runner above skips them): `case.json` (`id`, `step`,
+`decisions`, `about`, `input.document` or `input.documentFile`, `input.options` — one run each, a run may name its own
+`documentFile` or say `withoutSolidHatches` — and `oracle`), the expected file of each run `expected.<version>.dxf`
+(the writer must reproduce it byte for byte), and an independent reader's reading of it `oracle.<version>.json`
+(ezdxf, `scripts/dxf-oracle.py`, run outside the product). `test/dxf-writer.test.mjs` checks them: a clean audit, and
+every input entity, layer, line type, unit, text and coordinate (to 1e-9) found in the reading. After a deliberate
+change: `pnpm build:library && DXF_ORACLE_PYTHON=~/.cache/barocss-ezdxf/bin/python node scripts/dxf-fixtures.mjs`.
