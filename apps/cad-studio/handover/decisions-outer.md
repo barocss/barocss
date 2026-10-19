@@ -91,3 +91,33 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - A browser-flow step: the bare plate lists 3 issues; Fix all leaves none and six dimensions. The width added by hand lists "given twice"; its fix leaves yours and removes the auto one.
   - Bench `drawing: issue list, 120-hole plate` (auto-dimensioned, 480 circles in its views): 13 ms (budget 26).
 - **Not done**: dimension lines (not text) crossing other views are not listed; text against hatching and the iso view's lines are checked only as a view's area; the R14.3 layout is what removes the crowded cases' remaining issue.
+
+## O4 — R14.3: views chosen and laid out for their dimensions (2026-10-19)
+
+- **What** (`apps/cad-studio/src/drawing/layout.ts`, `cad-studio-auto-layout-v1`): the drawing's "Auto" button now lays the drawing out, then auto-dimensions it. Its own earlier dimensions are replaced and hand-placed ones kept, as before.
+  - **Views** (`chooseViews`): the front and top views always. The right view is left out when it adds nothing: no circle shows round in it, it has no curve, every straight edge's position across and up is already one of the top view's or the front view's, and nothing is placed in it by hand (a dimension or a note's leader). The isometric view stays as set.
+  - **Room**: Auto-dimension reports what each view side's rows take (`needs`, sheet mm from the view's edge). The layout spaces the views by it (`settings.room`, below). The two run in turn until every side has its rows, at most four rounds. The issue list's moves then clear what still overlaps (a short dimension's text, a callout over lines).
+  - **Scale and sheet**, in two passes. Pass one: the scales at which the smallest hole is at least `MIN_HOLE_ON_PAPER_MM` = 2.5 mm across on paper, largest first (or the one set), on the sheet set and then A3 for an A4 sheet. The first that gives nothing crowded and no error on the issue list is taken. Pass two, only if pass one found none: the largest clean scale below that, reported as not reading well. Else the attempt with the fewest errors, with what is left listed.
+  - 2.5 mm is **an estimate**, not from a standard: below it a hole's centre lines, leader and callout crowd it. It is named in the code and in the toast.
+  - The scale stays automatic in the file where the layout would pick it anyway.
+- **New settings** (versioned fields, read back validated; old files are unchanged):
+  - `views`: the views shown; front and top are always included. Hidden views are drawn nowhere.
+    - A dimension in a hidden view is kept and resolves "its view is not shown" (the issue list's DIMENSION_LOST names it).
+    - A hole that shows round only in a hidden view is the new warning `VIEW_NEEDED`; its fix shows the view.
+    - Switches "Right view" and "Isometric view" in the SHEET card.
+  - `room`: sheet mm per view side, 0–200. The layout uses it only where it is more than the gaps (22 mm) and margins (14 mm) already give, plus 3 mm clear and the view name's 7 mm below. Without it, or with an empty one, the layout is exactly as before (tested).
+- **Auto-dimension change**: a dimension a hand-placed one already gives — in its view or one sharing the axis — is left out. Before this, a depth placed by hand in the right view still got an auto depth in the top view, and the issue list called it a duplicate.
+- **Evidence**:
+  - Conformance `conformance/r14/layout-*` (run by `apps/cad-studio/test/auto-layout.test.ts`; `UPDATE_R14_FIXTURES=1`): views, sheet, scale, readable, issues left, the dimensions as they read; each checked by hand.
+    - `layout-plate`: right view left out, A4 1:1, clean.
+    - `layout-cross-hole`: a hole along X; the right view stays and holds Ø8 THRU, 15, 15.
+    - `layout-bolt-circle`: crowded at A4 1:1 in R14.1/R14.2; now A4 1:2 with room, clean, Ø6 holes 3 mm on paper.
+    - `layout-long-plate`: 240 × 120. A4 would need 1:5, putting its Ø8 holes at 1.6 mm, so A3 at 1:2: 10× Ø8 THRU, 20 then 9× 20.
+    - `layout-hand-in-right`: the right view stays for the hand-placed 32; no auto depth beside it.
+  - Each chosen layout reads back from a saved file and gives the same sheet with no error.
+  - Tests: room changes nothing where the gaps already suffice, and widens a gap by what is asked; hidden views take no room and are drawn nowhere; `rightAddsNothing` on a plate and a cross hole; VIEW_NEEDED with its fix.
+  - A browser-flow step: the plate's Auto leaves the right view out (the toast says so), has six dimensions and no issue; its switch brings the view back.
+  - Bench `drawing: auto layout, 120-hole plate`: 45 ms (budget 100). The first version took 7.3 s, with two causes.
+    - Each candidate place a move tried scanned all ~15k segments of the views' lines. A grid of 10 mm cells (`SegmentGrid`) now gives each box only the segments near it.
+    - The loop ran the moves while sides were still crowded, and kept scanning ever smaller scales after a clean layout that did not read well. Now moves run only once nothing is crowded, and the search goes in two passes: scales at which holes read first (A4, then A3), then the largest clean scale below that. The 120-hole plate's Ø4 holes read at no scale that fits either sheet (1:1 does not fit); it gets A4 at 1:5, reported as not reading well, in one try.
+- **Deferred (R14.3b)**: choosing which side of the part is the front ("the front view by most information"). It changes every view's direction and the dimensions placed in them, so it needs a versioned view-orientation setting and a decision on what happens to existing dimensions. Also not done: dropping the isometric view to make room, and laying out the section with its own dimensions.

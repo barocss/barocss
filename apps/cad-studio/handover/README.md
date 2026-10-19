@@ -175,7 +175,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
     not fit (errors); duplicates, re-matched references, holes without size or position, unlocated steps, missing
     overall sizes (warnings); a fix each where safe (remove, move clear, accept, automatic scale, Auto-dimension) and Fix
     all. Conformance `conformance/r14/issues-*` (five drawings).
-- Next: **R14.3** views chosen and laid out for their dimensions.
+  - **R14.3** (O4): done. "Auto" lays out first: the right view left out when it adds nothing, room per view side for
+    the rows (`settings.room`), the largest scale and the sheet that give a clean drawing with holes ≥ 2.5 mm on paper
+    (an estimate), then auto-dimensions. View switches for the right and isometric views; VIEW_NEEDED for a hole round
+    only in a hidden view. Conformance `conformance/r14/layout-*` (five parts). Deferred: R14.3b, choosing the front side.
+- Next: **R14.4** tolerance and GD&T suggestions.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
