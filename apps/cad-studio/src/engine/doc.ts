@@ -151,8 +151,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
-  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. */
-  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim }[] }
+  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
+  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim }[]; section?: FilletSection }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }
@@ -171,6 +171,8 @@ type ModelNodeBase = SketchNode
  * Copies of a hole on its face, the first at its centre: `count` in a row `step` apart (in the face's two
  * coordinates), or `count` evenly round `about` (a bolt circle). The kernel gets one hole per copy.
  */
+/** A fillet's section between its contacts (R10.5b, D103): a conic of rho in (0, 1), or G2 (tension in (0, 1), default 0.5). */
+export type FilletSection = { kind: 'conic'; rho: number } | { kind: 'g2'; tension?: number };
 export type HolePattern = { count: number; step: [number, number] } | { count: number; about: [number, number] };
 /** The centres of a hole's copies (just its centre without a pattern). */
 export function holeCentres(center: readonly number[], p?: HolePattern): [number, number][] {
@@ -489,7 +491,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
-    case 'fillet': return node.radii ? `Fillet R${n(node.radii[0].radius)}→${n(node.radii[node.radii.length - 1].radius)}` : `Fillet R${n(node.radius)}`;
+    case 'fillet': return (node.radii ? `Fillet R${n(node.radii[0].radius)}→${n(node.radii[node.radii.length - 1].radius)}` : `Fillet R${n(node.radius)}`) + (node.section?.kind === 'conic' ? ` conic ρ${fmt(node.section.rho)}` : node.section?.kind === 'g2' ? ' G2' : '');
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';

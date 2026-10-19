@@ -1,0 +1,119 @@
+{
+  "id": "r10-g2-step-foot",
+  "step": "R10",
+  "decisions": [
+    "D103"
+  ],
+  "about": "R10.5b (D103): a step (a 40 × 30 × 10 block, a 40 × 15 × 10 block on it) filleted r 3 at its foot (concave, y 15, z 10) with a G2 section of tension 0.5 (a quartic, poles T1, mid-way to the corner, the corner, mid-way, T2).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            15
+          ]
+        },
+        {
+          "id": "f0",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 10,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "f0"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "e.top|f0.side2"
+          ],
+          "radius": 3,
+          "section": {
+            "kind": "g2"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18036,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            12.5059405,
+            8.337610493
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face",
+          "f0.side2",
+          "f0.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: Green's theorem over the quartic's Bernstein form gives the region between the corner and the section r²/10 at tension 0.5; 18000 + r² L / 10 = 18036."
+}

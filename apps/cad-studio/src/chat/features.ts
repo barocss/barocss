@@ -29,7 +29,8 @@ const SPECS: Record<string, Spec> = {
   // (R9, D85: a mesh body simplified; its keep and bounds are values.)
   decimate: { parent: 'ref', 'ratio?': 'num', 'triangles?': 'count', 'maxError?': 'num', 'featureAngle?': 'num' },
   chamfer: { parent: 'ref', edges: 'names1', distance: 'dim' },
-  fillet: { parent: 'ref', edges: 'names1', radius: 'dim' },
+  // (`radii`: a varying radius, R10.5a, D100; `section`: a conic or G2 section, R10.5b, D103.)
+  fillet: { parent: 'ref', edges: 'names1', radius: 'dim', 'radii?': 'radii', 'section?': 'section' },
   hole: { parent: 'ref', center: 'dim2', radius: 'dim', 'axis?': 'enum:x|y|z', 'side?': 'enum:min|max', 'depth?': 'dim' },
 };
 const PROFILE: Record<string, Spec> = {
@@ -100,6 +101,13 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'plane': {
       const v3 = (x: unknown) => Array.isArray(x) && x.length === 3 && x.every(n => typeof n === 'number' && Number.isFinite(n));
       return isObj(v) && v3(v.origin) && v3(v.normal) && v3(v.xAxis) ? null : 'a plane {origin, normal, xAxis}, each [x, y, z]';
+    }
+    case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r}';
+    case 'section': {
+      const frac = (x: unknown) => typeof x === 'number' && x > 0 && x < 1;
+      if (isObj(v) && v.kind === 'conic' && frac(v.rho) && Object.keys(v).every(k => k === 'kind' || k === 'rho')) return null;
+      if (isObj(v) && v.kind === 'g2' && (v.tension === undefined || frac(v.tension)) && Object.keys(v).every(k => k === 'kind' || k === 'tension')) return null;
+      return '{"kind": "conic", "rho": 0–1 exclusive} or {"kind": "g2", "tension"?: 0–1 exclusive}';
     }
     case 'names': return Array.isArray(v) && v.every(n => typeof n === 'string') ? null : 'a list of face or edge names';
     case 'names1': return Array.isArray(v) && v.length > 0 && v.every(n => typeof n === 'string') ? null : 'a non-empty list of edge names';

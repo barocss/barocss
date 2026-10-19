@@ -153,6 +153,9 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
         number('r', 'Start radius', 'mm', n => num(k(n).radii![0].radius), (n, v) => ({ ...k(n), radius: v, radii: k(n).radii!.map((p, i) => i === 0 ? { ...p, radius: v } : p) }));
         number('r1', 'End radius', 'mm', n => num(k(n).radii![last].radius), (n, v) => ({ ...k(n), radii: k(n).radii!.map((p, i) => i === last ? { ...p, radius: v } : p) }));
       } else number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v }));
+      // (A conic's rho, a G2 section's tension, R10.5b, D103.)
+      if (node.section?.kind === 'conic') number('rho', 'Rho', undefined, n => ((n as typeof node).section as { rho: number }).rho, (n, v) => ({ ...(n as typeof node), section: { kind: 'conic', rho: v } }));
+      if (node.section?.kind === 'g2') number('tension', 'Tension', undefined, n => ((n as typeof node).section as { tension?: number }).tension ?? 0.5, (n, v) => ({ ...(n as typeof node), section: { kind: 'g2', tension: v } }));
       break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
     case 'rack': {

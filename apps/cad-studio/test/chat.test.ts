@@ -148,7 +148,7 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   const s = await stateOf(saved.doc);
   const expected = 64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8;
   assert.ok(Math.abs(volume(s) - expected) / expected < 1e-6, String(volume(s)));
-  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2,"endRadius":0} → 1 body, ${Math.round(expected)} mm³`);
+  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${Math.round(expected)} mm³`);
 });
 
 test('add_features checks nodes before the kernel; revolve and polygon profiles build', async () => {
@@ -158,6 +158,14 @@ test('add_features checks nodes before the kernel; revolve and polygon profiles 
   assert.match(checkNode({ kind: 'extrude', sketch: 0, height: 5, depth: 2 }, s.doc.nodes, {})!, /unknown field "depth"/);
   assert.match(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, {})!, /defined parameter/);
   assert.equal(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, { r: 2 }), null);
+  // (A fillet's section, R10.5b, D103, and its varying radius, D100.)
+  const fillet = (extra: object) => checkNode({ kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2, ...extra }, s.doc.nodes, {});
+  assert.equal(fillet({ section: { kind: 'conic', rho: 0.4 } }), null);
+  assert.equal(fillet({ section: { kind: 'g2' } }), null);
+  assert.equal(fillet({ radii: [{ at: [0, 0, 5], radius: 1 }, { at: [20, 0, 5], radius: 2 }] }), null);
+  assert.match(fillet({ section: { kind: 'conic', rho: 1 } })!, /fillet\.section: \{"kind": "conic", "rho": 0–1 exclusive\}/);
+  assert.match(fillet({ section: { kind: 'g2', tension: 0.5, rho: 0.2 } })!, /fillet\.section/);
+  assert.match(fillet({ radii: [{ at: [0, 0, 5], radius: 1 }] })!, /fillet\.radii: 2 to 16 points/);
   let r = await runTool(s, 'add_features', { features: [{ kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [40, 10] }, { kind: 'extrude', sketch: 9, height: 4 }] }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Feature 2 of 2 \(would be index 3\)/); assert.equal(r.state, s);
   // A ring: a rectangle beside the sketch's Y axis turned a full revolution, then a triangular prism.

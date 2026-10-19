@@ -1,0 +1,92 @@
+{
+  "id": "r10-conic-parabola-box-edge",
+  "step": "R10",
+  "decisions": [
+    "D103"
+  ],
+  "about": "R10.5b (D103): a 40 × 30 × 10 box, its top edge on y = 0 filleted r 3 with a conic section of rho 0.5 (a parabola tangent to both faces at the ball's contacts).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top"
+          ],
+          "radius": 3,
+          "section": {
+            "kind": "conic",
+            "rho": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11940,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            15.072361809,
+            4.977889447
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the parabola's segment is 2/3 of its control triangle (r²/2), so each section loses r²/6; 12000 − r² L / 6 = 11940."
+}
