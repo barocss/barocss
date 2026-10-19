@@ -44,6 +44,7 @@ import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from './robot/joints';
 import { forwardKinematics, gearPairAt, sliderRange } from './robot/fk';
 import { posedInstances } from './robot/preview';
+import { treeInertia } from './robot/inertia';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
@@ -517,6 +518,12 @@ export function App() {
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
+  // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
+  const linkInertias = useMemo(() => !jointTree ? undefined : treeInertia(jointTree, p => {
+    if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
+    const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
+    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
+  }), [jointTree, doc, bodies, instanceBodies]);
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [jointPlaying, setJointPlaying] = useState<string | null>(null);
@@ -1881,7 +1888,7 @@ export function App() {
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanel tree={jointTree} instances={doc.instances ?? []}
-        values={jointFk?.values ?? jointValues} onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} gears={gearLines}
+        values={jointFk?.values ?? jointValues} onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} gears={gearLines} links={linkInertias}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}

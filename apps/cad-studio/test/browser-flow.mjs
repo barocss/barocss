@@ -3861,6 +3861,21 @@ try {
     await page.click('[aria-label="Joints home"]');
   });
 
+  // ---- RM3 (O16): link inertia ------------------------------------------------------------------------------------
+  await check('RM3: the 2R arm\'s links with their mass and centre of mass in the link frame, the material said to be assumed', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r-mass.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Link a mass"]', { timeout: 20000 });
+    // (An arm 60 × 20 × 5 less two Ø10 holes, aluminium: 14.1 g; its centre 20 mm along from its turning hole, 2.5 up.)
+    const a = await page.locator('[aria-label="Link a mass"]').innerText();
+    assert.match(a, /14\.1 g/); assert.match(a, /CoM \(20\.0, 0\.0, 2\.5\) mm · material assumed/);
+    assert.match(await page.locator('[aria-label="Link base mass"]').innerText(), /103\.8 g/);
+    await snap('rm3-mass');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

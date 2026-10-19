@@ -27,6 +27,7 @@ import { parse as parseScript } from '../../src/chat/script';
 import { jointTreeOf } from '../../src/robot/joints';
 import { forwardKinematics } from '../../src/robot/fk';
 import { posedInstances } from '../../src/robot/preview';
+import { treeInertia } from '../../src/robot/inertia';
 import { solveDoc } from '../../src/chat/assembly';
 import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
@@ -106,6 +107,8 @@ const BUDGET_SCRIPT_PARSE = 4, BUDGET_SCRIPT_RUN = 700;
 const BUDGET_JOINT_TREE = 1;
 /** RM2: per slider move, FK alone (0.02 ms measured) and with the moving links' meshes posed (0.45 ms): about ×3–5. */
 const BUDGET_FK = 0.1, BUDGET_POSED = 2;
+/** RM3: the link inertias of the 12-link arm (0.1 ms measured; about ×5). */
+const BUDGET_INERTIA = 0.5;
 /** A 12-link serial arm (the base part and 11 arms, each turning on the one before), solved, with its joint tree. */
 function twelveLinkArm() {
   const hole = (doc: StudioDoc, c: [number, number]) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: 5 } as never);
@@ -214,6 +217,11 @@ const scenarios: Scenario[] = [
     const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1); if (!r.ok) throw new Error('eval');
     const shown = solved.doc.instances!.map(i => ({ id: i.id, bodies: r.bodies })); let k = 0;
     return () => { k++; return posedInstances(shown, forwardKinematics(tree, Object.fromEntries(tree.joints.map(j => [j.key, 0.01 * k])))); };
+  } },
+  // (RM3, O16: each link's mass properties after an assembly change — the 12-link arm, its bodies evaluated once outside.)
+  { name: 'robot: link inertia, 12-link arm', budgetMS: BUDGET_INERTIA, runs: 5, setup() {
+    const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1); if (!r.ok) throw new Error('eval');
+    return () => treeInertia(tree, p => { const i = solved.doc.instances!.find(x => x.id === p); return { doc: i?.doc ?? solved.doc, bodies: r.bodies, position: i?.position ?? [0, 0, 0], rotation: i?.rotation ?? [0, 0, 0] }; });
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

@@ -2,6 +2,7 @@ import type { PartInstance } from '../engine/doc';
 import { BASE } from '../assembly/mates';
 import type { JointTree, JointType } from '../robot/joints';
 import { sliderRange } from '../robot/fk';
+import type { LinkInertia } from '../robot/inertia';
 
 const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revolute', continuous: 'Continuous', prismatic: 'Prismatic' };
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
@@ -10,15 +11,19 @@ const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: J
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }
 const DEG = 180 / Math.PI;
+/** One decimal, a rounding of zero shown as 0.0 (not −0.0). */
+const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0' : t; };
 
 /**
  * The assembly as a robot (RM1): the base link, the joints the mates make, loops, gear couplings and what blocks a link;
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
+  /** Each link's mass properties (RM3), in its link frame. */
+  links?: LinkInertia[];
 }) {
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
@@ -47,6 +52,14 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       })}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {tree.joints.some(j => j.type !== 'fixed') && <div className="row-actions"><button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button></div>}
+      {links?.filter(l => l.part !== null).map(l => {
+        const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
+        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
+          <div className="kv">{name(l.link)} <b>{mm1(l.massKg * 1000)} g</b></div>
+          <div className="kv muted">CoM ({l.comM.map(v => mm1(v * 1000)).join(', ')}) mm{assumed ? ' · material assumed' : ''}</div>
+          {bad.map((i, k) => <div key={k} className="hud-error" role="status">{i.message}</div>)}
+        </div>;
+      })}
       {tree.loops.map(l => <div key={l.parts.join('~')} className="kv" aria-label="Loop">Loop <b>{name(l.parts[0])} – {name(l.parts[1])}</b> <span className="muted">{l.mates.join(', ')}</span></div>)}
       {tree.problems.map((p, i) => <div key={i} className="hud-error" role="status" aria-label={`Joint problem ${p.code}`}>{p.message}</div>)}
       {!tree.joints.length && !tree.problems.length && <div className="empty">Mate parts to the base part to make joints.</div>}

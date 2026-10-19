@@ -25,6 +25,7 @@
        "snap",
        "joints",
        "pose",
+       "inertia",
        "set_joints"
       ],
       "type": "string"

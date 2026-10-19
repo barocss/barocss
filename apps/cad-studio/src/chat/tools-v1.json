@@ -1337,6 +1337,32 @@
    }
   },
   {
+   "name": "link_inertia",
+   "annotations": {
+    "title": "Link inertia",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "links": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "links"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "list_library",
    "annotations": {
     "title": "List library",
