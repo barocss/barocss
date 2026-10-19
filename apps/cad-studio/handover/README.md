@@ -39,7 +39,7 @@ starts **R12 sheet metal**. The R10 → R11 block below is kept as history.
   | Conformance | 129/129 |
   | Studio | 519/519 |
   | Full browser flow, run on its own | 164/164 |
-  | RB | RBCOUNT cases, 0 new, the 8 known TODOs |
+  | RB | 341 cases, 0 new, the 8 known TODOs |
   | Properties | no failures |
 
 - The tree is clean, apart from the earlier review session's untracked drafts (see "Where the work is").
