@@ -65,9 +65,8 @@ test('D97 refusals, none built wrong: the concave chamfer 8 past the round (RADI
     assert.throws(() => out([...body, finish('fillet', 'g', inner, 8)]), e => e.code === 'CAPABILITY' && (oblique ? /\[CONTACT_LEAVES_FACE\].*analytic Boolean/ : /end square on a face/).test(e.message), `fillet, oblique ${oblique}`);
     const got = out([...body, finish('fillet', 'g', inner, 5)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
     assert.ok(Math.abs(got / ((1 - Math.PI / 4) * 25 * 40) - 1) < (oblique ? 2e-7 : 1e-9), `fillet 5, oblique ${oblique}: ${got}`);
-    // (Square ends only: at oblique ends the concave wedge chamfer still stops square, 6.5 % over here — a follow-up.)
-    if (oblique) continue;
+    // (At oblique ends too since D98: the wedge ends in the end face's plane.)
     const chamfer = out([...body, finish('chamfer', 'g', inner, 5)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
-    assert.ok(Math.abs(chamfer / (12.5 * 40) - 1) < 1e-9, `chamfer 5: ${chamfer}`);
+    assert.ok(Math.abs(chamfer / (12.5 * 40) - 1) < 1e-9, `chamfer 5, oblique ${oblique}: ${chamfer}`);
   }
 });

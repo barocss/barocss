@@ -1748,14 +1748,40 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
     // Grown about the chamfer line so no wedge face lies on a face of the body.
     return [sub(scale(A1, 2), A2), sub(scale(A2, 2), A1), sub(scale(X, 2), M)];
   };
-  const grow = convex ? d : 0, T0 = corner(sub(P, scale(e, grow))), T1 = corner(add(Q, scale(e, grow)));
+  // The wedge ends where the edge's end face is — oblique too: its corners carried along the edge onto that face's
+  // plane. A cutting one runs past an end where the body ends (the Boolean trims it) but not into a wall there; a filling
+  // one stops at either (it stopped square before, adding past an oblique end, and a cutting one notched a wall, D98).
+  const planes = [0, 1].map(k => endPlaneOf(source, edge, k as 0 | 1)), away = (k: number) => k ? e : scale(e, -1);
+  const ends = planes.map((pl, k) => pl && !(convex && dot(pl.n, away(k)) > 0) ? pl : null), past = planes.map((pl, k) => convex && !ends[k] ? d : 0);
+  const onto = (T: Point[], pl: { o: Point; n: Point } | null) => pl ? T.map(X => add(X, scale(e, dot(sub(pl.o, X), pl.n) / dot(e, pl.n)))) : T;
+  const T0 = onto(corner(sub(P, scale(e, past[0]))), ends[0]), T1 = onto(corner(add(Q, scale(e, past[1]))), ends[1]);
   const wedge = prismBrep(T0, T1, `${at}.face`);
   const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-  if (planarBrep(body)) return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
+  // (A wedge ending in an end face's plane: the analytic Boolean, which takes the coplanar cap; the polyhedral one does not, D98.)
+  if (planarBrep(body) && !ends.some(Boolean)) return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
   try { return { kind: 'brep', brep: booleanAnalytic(body, wedge, convex ? 'difference' : 'union', { id: at }) }; }
   catch (cause) { if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', `edge ${edge.name}: the chamfer would cut a curved face at an angle (not supported yet)`); throw cause; }
 }
 
+/**
+ * The plane of the faces (not the edge's own two) meeting a straight edge at its end k — one face, or several in one
+ * plane (a step's two blocks' ends) — when planar and not along the edge, its normal out of the body; else null (the
+ * wedge stops square there, a cutting one run past).
+ */
+function endPlaneOf(source: Brep, edge: Brep['edges'][number], k: 0 | 1): { o: Point; n: Point } | null {
+  const v = edge.vertices[k], loopFace = new Map(source.loops.map(l => [l.id, l.face])), facesOf = (id: string) => source.coedges.filter(c => c.edge === id).map(c => loopFace.get(c.loop)!);
+  const own = new Set(facesOf(edge.id)), at = [...new Set(source.edges.filter(x => x.vertices.includes(v)).flatMap(x => facesOf(x.id)).filter(f => !own.has(f)))];
+  const p = edge.curve.controlPoints, e = unit(sub(p[p.length - 1], p[0])), tol = 1e-9 * Math.max(1, ...p.flat().map(Math.abs));
+  let plane: { o: Point; n: Point } | null = null;
+  for (const id of at) {
+    const face = source.faces.find(x => x.id === id)!, s = face.surface;
+    if (s.kind !== 'surface' || !(s.degreeU === 1 && s.degreeV === 1 && s.controlPoints.length === 2 && s.controlPoints[0].length === 2)) return null;
+    const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = unit(cross(sub(p10, p00), sub(p01, p00))), n = face.sense === 'forward' ? n0 : scale(n0, -1);
+    if (!plane) plane = { o: p00, n };
+    else if (len(sub(n, plane.n)) > 1e-9 || Math.abs(dot(sub(p00, plane.o), plane.n)) > tol) return null;
+  }
+  return plane && Math.abs(dot(plane.n, e)) > 1e-6 ? plane : null;
+}
 /** A triangular prism between triangles T0 and T1 (corresponding corners), faces pointing out. */
 function prismBrep(T0: Point[], T1: Point[], name: string): Brep {
   const a = T0[0], A = T1[0];

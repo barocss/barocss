@@ -3090,6 +3090,29 @@ try {
     await snap('d97-step-oblique-foot');
   });
 
+  await check('D98 a step with ends turned 25° (a file): its foot chamfered 5 — the filling wedge ends in the end faces\' plane', async () => {
+    const fs = await import('node:fs'), file = join(out, 'step-25.bcad'), t = Math.tan(25 * Math.PI / 180), q = d => [[0, 0], [40, 0], [40 + d * t, d], [d * t, d]];
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'polygon', points: q(30) }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'polygon', points: q(15) }, { id: 'n3', kind: 'extrude', sketch: 2, height: 10, from: 10 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = await bodyVolume();
+    await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.top|n3.side2', 'n3.side2|n1.top'], { timeout: 30000 })).jsonValue();
+    await press(' '); await page.locator('.palette input').fill('chamfer'); await press('Enter'); await hudReady();
+    await field('Distance').fill('5');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'chamfer', null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    const after = await bodyVolume();
+    // (+500 mm³ — conformance r10/wedge-chamfer-oblique-ends, 5²/2 × 40; +585.5 before, stopped square.)
+    assert.ok(Math.abs(after - before - 500) <= 1, `${before} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('d98-step-25-chamfer');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

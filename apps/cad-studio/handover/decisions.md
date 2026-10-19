@@ -4619,3 +4619,26 @@ R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face acr
   - **Studio:** a flow step opens the oblique step, rounds the riser's top 4, then fillets its foot 12 in the UI (+839.83 mm³).
 - **Found, not fixed (a different defect, reported):** the concave wedge chamfer stops square at its ends. At oblique ends it adds material past the end face: the oblique step's foot chamfered 5 adds 532.33 mm³ against 500, 6.5 % over. The convex one is grown past both ends and trimmed, so it is right. The fix is R10.2b's end clip for the wedge.
 - **Not done:** R10.B (the Boolean behind the refused radii) → R10.5.
+
+## D98 — the wedge chamfer's ends (found at D97) (2026-10-19)
+
+- **The defect** (found at D97, fixed on the coordinator's word before R10.B): the wedge chamfer (a straight edge between two planes, `wedgeChamfer`) ended its prism square to the edge.
+  - A filling (concave) wedge stopped square at both ends. At an oblique end face it added material past the body's end on one side and left a gap on the other.
+  - A cutting (convex) wedge ran d past both ends. Where the body ends that is trimmed away, but at a wall it notched the wall.
+  - On HEAD (`f2015c295`), a step's foot chamfered 2 and 5 with ends at 10° was 2.6 % and 6.5 % over; at 25°, 6.8 % and 17 % over. With the riser's top rounded, the result at 5 was also invalid.
+  - A rib's top edge chamfered 2 where it meets a wall was 30 % over square (28 % with the wall turned 10°). Its concave foot was 0.27 % under at the turned wall.
+- **The fix** (`part-model.ts`):
+  - `endPlaneOf` finds the plane of the faces meeting the edge at each end, other than its own two. That is one face, or several in one plane (a step's two blocks' ends), planar and not along the edge, with its normal out of the body. Otherwise it returns null, and the end stays as before.
+  - The wedge's corners at that end are carried along the edge onto the plane, so its cap lies in it.
+  - A cutting wedge still runs d past an end where the body ends (the end face's normal points away along the edge). Only a wall stops it.
+  - A wedge with a cap in an end plane goes to the analytic Boolean even on a planar body: the polyhedral one fails on the coplanar cap (non-manifold at 10° and 25°, invalid at 25° d 2).
+- **Evidence** (`packages/barocss-cad/test/r10-wedge-ends.test.mjs`, 2 tests, both failing on HEAD):
+  - **The step's foot:** ends at 0°, 10° and 25°, the riser's top rounded or not, chamfered 2 and 5: d²/2 × 40 to 1e-12, all valid.
+  - **The rib into a wall** (square, and turned 10°): the top edge stops at the wall and the foot fills to it. Each matches the prism's section × its length at the section's centroid to 1e-12.
+  - `r10-reach.test.mjs` now checks the oblique step's chamfer 5 too (to 1e-9).
+  - **Conformance:** `r10/wedge-chamfer-oblique-ends` (25°, d 5) and `r10/wedge-chamfer-into-wall` (10°, d 2). Both are closed forms, relTol 1e-9, with a STEP round trip.
+  - **Studio:** a flow step opens the 25° step and chamfers its foot 5 in the UI (+500 mm³; +585.5 before).
+- **Not done:**
+  - an end at several faces not in one plane, or at a curved face (square as before);
+  - wedge chamfers of more than one edge meeting at a corner (unchanged).
+  - Next: R10.B, then R10.5.

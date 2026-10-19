@@ -1,0 +1,136 @@
+{
+  "id": "r10-wedge-chamfer-oblique-ends",
+  "step": "R10",
+  "decisions": [
+    "D98"
+  ],
+  "about": "D98: a step with ends turned 25° (x = y tan 25°, 40 + y tan 25°), its riser's foot (a concave straight plane–plane edge) chamfered 5: the filling wedge ends in the end faces' plane (it stopped square: 17 % over before).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              53.98922974464996,
+              30
+            ],
+            [
+              13.989229744649958,
+              30
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              46.99461487232498,
+              15
+            ],
+            [
+              6.994614872324979,
+              15
+            ]
+          ]
+        },
+        {
+          "id": "f0",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 10,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "f0"
+        },
+        {
+          "id": "c",
+          "kind": "chamfer",
+          "target": "u",
+          "edges": [
+            "e.top|f0.side2"
+          ],
+          "distance": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18500,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            25.88135785060359,
+            12.612612612612612,
+            8.423423423423422
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.face",
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f0.side2",
+          "f0.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: a prism 40 long between parallel end planes; its section the step (30 × 10 + 15 × 10) plus the chamfer's triangle 5²/2."
+}
