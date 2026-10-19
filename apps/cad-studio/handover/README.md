@@ -329,6 +329,16 @@ stays out of the kernel's core files (requests for them go through the coordinat
     over the move out and back with dwells: motor RMS, the torque–speed line, speeds, inertia ratio, the reducer's
     repeated peak, cube-mean torque, average input speed, L10. It takes the lightest pair that passes, refined and
     checked again. Closed forms to 1e-9. Tool size_actuators. Conformance `conformance/rm/size-1r`.
+- **A6** inputs (coordinator, 2026-10-20; after RM1–RM6 + RD1–RD3):
+  - **A6 S0** (O23): done. Scope and acceptance frozen for A6.1 brief template, A6.2 clarifying policy, A6.3 locked
+    reference body, A6.4 drafts from images and drawings, A6.5 standards data with provenance. Acceptance is
+    deterministic (the scripted agent, fixtures for briefs and answers); no live-model run without the owner.
+  - **A6.1** (O24): done. The brief in the document (`src/chat/brief.ts`): purpose, process and material required, each
+    field with its basis and the user's words; an assumption never replaces what the user stated (typed refusals);
+    gaps with their questions; a stated process with rules becomes the part's (CNC and sheet metal as intent); a
+    stated library material is the bodies'. Tools set_brief, get_brief; the Brief section in the Browser with
+    Confirm. Conformance `conformance/a6/briefs` (10 hand-written cases).
+  - A6.2 clarifying policy (next) → A6.3 → A6.4 → A6.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
@@ -343,6 +353,8 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
   - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
     chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
+  - RD3 does not check the reducer's momentary peak torque (emergency stops, collisions): a check against the pages'
+    "Limit for Momentary Peak Torque" for a stated stop event.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

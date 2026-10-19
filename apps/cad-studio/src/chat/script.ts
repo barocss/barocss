@@ -227,7 +227,7 @@ const PURE: Record<string, (args: number[]) => number> = {
   min: a => Math.min(...a), max: a => Math.max(...a), abs: a => Math.abs(a[0]), sqrt: a => Math.sqrt(a[0]), round: a => Math.round(a[0]),
   floor: a => Math.floor(a[0]), ceil: a => Math.ceil(a[0]), sin: a => Math.sin(a[0] * Math.PI / 180), cos: a => Math.cos(a[0] * Math.PI / 180), tan: a => Math.tan(a[0] * Math.PI / 180),
 };
-const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove', 'requirements']);
+const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove', 'requirements', 'brief']);
 
 /** Runs a parsed script against the host. Throws ScriptError (typed, with its line) on the first problem. */
 export async function runScript(program: Stmt[], host: ScriptHost): Promise<ScriptRun> {
@@ -365,6 +365,11 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
         // (The brief as checks, A5.4: set_requirements, so a script carries what it must meet and cad-cli --check runs it.)
         if (args.length !== 1 || !Array.isArray(args[0])) fail('TYPE', 'requirements takes a list of {id, source, hard?, check}', at);
         await tool('set_requirements', { requirements: plain(args[0], at) }, at); return true;
+      }
+      case 'brief': {
+        // (The intent, A6.1: set_brief, so a script carries its purpose, process and material with their basis.)
+        if (args.length !== 1 || !args[0] || typeof args[0] !== 'object' || Array.isArray(args[0]) || isHandle(args[0])) fail('TYPE', 'brief takes {field: {value, basis, source?, why?}}', at);
+        await tool('set_brief', { fields: plain(args[0], at) }, at); return true;
       }
       case 'remove': { const h = args[0]; if (!isHandle(h) || h.h !== 'feature') fail('TYPE', 'remove takes a feature', at); await tool('delete_feature', { index: indexOf((h as { id: string }).id, at) }, at); return true; }
     }

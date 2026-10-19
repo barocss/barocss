@@ -343,7 +343,9 @@
      "action": {
       "enum": [
        "set",
-       "check"
+       "check",
+       "brief",
+       "gaps"
       ],
       "type": "string"
      }

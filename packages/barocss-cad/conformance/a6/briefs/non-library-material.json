@@ -1,0 +1,41 @@
+{
+ "case": "non-library-material",
+ "step": "A6.1",
+ "note": "A material not in the library is kept as written; its density unknown, so it is not applied and a mass stays assumed.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "cnc-milling",
+     "basis": "stated",
+     "source": "machined"
+    },
+    "material": {
+     "value": "Delrin 150",
+     "basis": "stated",
+     "source": "Delrin 150"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [],
+  "complete": true,
+  "doc_process": null,
+  "process": {
+   "value": "cnc-milling",
+   "checked": false,
+   "applied": false
+  },
+  "material": {
+   "value": "Delrin 150",
+   "library": false,
+   "applied": false
+  }
+ }
+}

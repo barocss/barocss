@@ -64,7 +64,9 @@ import { clipMesh } from './engine/clip';
 import { faceProfile } from './app/faceProfile';
 import { sketchShapes } from './sketch/reopen';
 import { renameToTagged } from './sketch/entityIds';
-import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, rgbOf, rootOf, withLook } from './app/bodies';
+import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, materialIdOf, rgbOf, rootOf, withLook } from './app/bodies';
+import { applyBrief, briefMaterial, confirmField, readBrief, type BriefKey } from './chat/brief';
+import { BriefPanel } from './ui/BriefPanel';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
@@ -1322,6 +1324,8 @@ export function App() {
     if (!Number.isFinite(value)) return;
     commit({ ...doc, requirements: doc.requirements!.map(q => q.id !== id ? q : { ...q, basis: 'stated' as const, confirmed: { by: 'user', at: new Date().toISOString() }, check: q.check.op === 'between' ? q.check : { ...q.check, value } }) }, false);
   };
+  /** A brief field confirmed by the user as it is (A6.1): stated from now on; a stated process becomes the part's. */
+  const confirmBrief = (key: BriefKey) => { const b = readBrief(doc.brief); if (!b) return; const next = confirmField(b, key, new Date().toISOString()); if ('error' in next) return; commit(applyBrief(doc, next), false); };
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const settleRef = async (index: number, to?: string) => {
@@ -1804,6 +1808,7 @@ export function App() {
             setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
+        {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}
         {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
           <button className={'tool tiny' + (failingOnly ? ' on' : '')} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></button></div>
         {doc.requirements.map(q => {
@@ -2004,16 +2009,16 @@ export function App() {
             <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
             <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
             {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
-            {(() => { const own = MATERIALS.find(m => m.id === look.material) ?? density; return <>
+            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
               {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div>}
               {/* The body's own material (the default for new bodies stays the studio's). */}
-              <label className="kv"><span>Material{!look.material && <span className="muted"> · default</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === material ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
+              <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             </>; })()}
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, t = made?.command === 'fastener' ? fastenerThread(made.values) : null;
               return t ? <><div className="kv">Part <b>{fastenerName(made!.values)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal ISO sizes — check the standard before manufacture.</div></> : null; })()}
             {b.centroid && <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
-            {(() => { const own = MATERIALS.find(m => m.id === look.material) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
+            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.massG, mp.centroid, [0, 0, 0]) : mp.inertia;
               return <>
                 <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
@@ -2026,11 +2031,11 @@ export function App() {
             <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
-          {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
+          {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
             return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
               <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
         </>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === lookOf(doc, b).material) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
           return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
             <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}

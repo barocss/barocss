@@ -1,0 +1,49 @@
+{
+ "case": "stated-kept",
+ "step": "A6.1",
+ "note": "A material the user stated is not replaced by an assumption: refused, the brief unchanged.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "fdm",
+     "basis": "stated",
+     "source": "printed"
+    },
+    "material": {
+     "value": "petg",
+     "basis": "stated",
+     "source": "PETG"
+    }
+   },
+   {
+    "material": {
+     "value": "pla",
+     "basis": "assumed",
+     "why": "cheaper"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "error": "STATED_KEPT",
+  "gaps": [],
+  "complete": true,
+  "doc_process": "fdm",
+  "process": {
+   "value": "fdm",
+   "checked": true,
+   "applied": true
+  },
+  "material": {
+   "value": "petg",
+   "library": true,
+   "applied": true
+  }
+ }
+}

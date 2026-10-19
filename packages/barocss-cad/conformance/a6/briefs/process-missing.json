@@ -1,0 +1,37 @@
+{
+ "case": "process-missing",
+ "step": "A6.1",
+ "note": "The process is not given: one required gap.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "material": {
+     "value": "al6061",
+     "basis": "stated",
+     "source": "aluminium 6061"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [
+   {
+    "field": "process",
+    "why": "missing"
+   }
+  ],
+  "complete": false,
+  "doc_process": null,
+  "process": null,
+  "material": {
+   "value": "al6061",
+   "library": true,
+   "applied": true
+  }
+ }
+}

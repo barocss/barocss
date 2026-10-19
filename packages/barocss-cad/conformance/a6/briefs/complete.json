@@ -1,0 +1,41 @@
+{
+ "case": "complete",
+ "step": "A6.1",
+ "note": "Purpose, process and material stated: nothing to settle; the process is the part's; the material is the bodies'.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "fdm",
+     "basis": "stated",
+     "source": "I will 3D print it on my FDM printer"
+    },
+    "material": {
+     "value": "petg",
+     "basis": "stated",
+     "source": "in PETG"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [],
+  "complete": true,
+  "doc_process": "fdm",
+  "process": {
+   "value": "fdm",
+   "checked": true,
+   "applied": true
+  },
+  "material": {
+   "value": "petg",
+   "library": true,
+   "applied": true
+  }
+ }
+}

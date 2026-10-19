@@ -8,7 +8,7 @@
 // joint's point with Z along its axis and X the part's X square to it (else the part's Y); a fixed one, its part frame.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { lookOf } from '../app/bodies';
+import { materialIdOf } from '../app/bodies';
 import { materialOf } from '../app/materials';
 import { rotationMatrix } from '../assembly/mates';
 import type { JointTree } from './joints';
@@ -68,7 +68,7 @@ export function symmetricEigen(S: Mat3): { values: V3; vectors: Mat3 } {
 /** One body's mass (kg), centre (mm, part coordinates) and inertia about it (kg·m²) at its own material's density. */
 function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; material: string; assumed: boolean } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
-  const id = lookOf(doc, b).material, mat = materialOf(id), k = mat.gPerCm3 / KERNEL_DENSITY;
+  const id = materialIdOf(doc, b), mat = materialOf(id), k = mat.gPerCm3 / KERNEL_DENSITY;
   return { m: b.volumeMM3 * mat.gPerCm3 * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k) as Mat3, material: mat.label, assumed: !id };
 }
 

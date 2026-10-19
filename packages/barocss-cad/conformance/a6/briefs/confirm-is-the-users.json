@@ -1,0 +1,40 @@
+{
+ "case": "confirm-is-the-users",
+ "step": "A6.1",
+ "note": "The agent may not confirm a field: refused (CONFIRM_IS_THE_USERS).",
+ "input": {
+  "patches": [
+   {
+    "material": {
+     "value": "petg",
+     "basis": "assumed",
+     "confirmed": {
+      "by": "user",
+      "at": "2026-10-20T00:00:00Z"
+     }
+    }
+   }
+  ]
+ },
+ "expect": {
+  "error": "CONFIRM_IS_THE_USERS",
+  "gaps": [
+   {
+    "field": "purpose",
+    "why": "missing"
+   },
+   {
+    "field": "process",
+    "why": "missing"
+   },
+   {
+    "field": "material",
+    "why": "missing"
+   }
+  ],
+  "complete": false,
+  "doc_process": null,
+  "process": null,
+  "material": null
+ }
+}
