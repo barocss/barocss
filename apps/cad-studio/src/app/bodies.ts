@@ -6,6 +6,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { commands } from './commands';
 import { refOf } from './bodyRef';
 import { bodyKeyFor } from '../engine/ids';
+import { briefMaterial } from '../chat/brief';
 
 /** The colours offered for bodies (the theme's grey is no colour). */
 export const BODY_COLOURS = ['#d9534f', '#f0ad4e', '#e8d44d', '#5cb85c', '#3fb6a8', '#4a90d9', '#8e6bd8', '#d26fa9', '#8d6e63', '#5b6470'] as const;
@@ -27,6 +28,8 @@ export function lookKey(nodes: readonly ModelNode[], body: BodyResult): string {
   return bodyKeyFor(nodes, rootOf(nodes, node), side === 'negative' || side.startsWith('part') ? side : 'solid');
 }
 export const lookOf = (doc: StudioDoc, body: BodyResult): BodyLook => doc.bodies?.[lookKey(doc.nodes, body)] ?? {};
+/** A body's material id: its own, else the brief's stated library material (A6.1), else none (the default, assumed). */
+export const materialIdOf = (doc: StudioDoc, body: BodyResult): string | undefined => lookOf(doc, body).material ?? briefMaterial(doc);
 /** The document with a body's look changed (empty fields dropped). */
 export function withLook(doc: StudioDoc, body: BodyResult, patch: BodyLook): StudioDoc {
   const key = lookKey(doc.nodes, body), next: BodyLook = { ...doc.bodies?.[key], ...patch };

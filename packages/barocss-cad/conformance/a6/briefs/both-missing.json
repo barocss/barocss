@@ -1,0 +1,32 @@
+{
+ "case": "both-missing",
+ "step": "A6.1",
+ "note": "Only the purpose: two required gaps, in field order.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [
+   {
+    "field": "process",
+    "why": "missing"
+   },
+   {
+    "field": "material",
+    "why": "missing"
+   }
+  ],
+  "complete": false,
+  "doc_process": null,
+  "process": null,
+  "material": null
+ }
+}

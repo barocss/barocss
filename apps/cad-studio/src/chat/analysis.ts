@@ -6,7 +6,7 @@ import { withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { bodyKeyFor } from '../engine/ids';
-import { lookOf } from '../app/bodies';
+import { materialIdOf } from '../app/bodies';
 import { refOf } from '../app/bodyRef';
 import { materialOf } from '../app/materials';
 
@@ -16,14 +16,14 @@ type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 
 /** A body's material and whether it is the default (none set: aluminium assumed). */
 export function materialFact(doc: StudioDoc, b: BodyResult): { material: string; assumed: boolean } {
-  const id = lookOf(doc, b).material, m = materialOf(id);
+  const id = materialIdOf(doc, b), m = materialOf(id);
   return { material: m.label, assumed: !id };
 }
 
 /** Mass properties of bodies: volume, area, mass (its material's density), centroid, inertia about it, box. */
 export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): Record<string, unknown>[] {
   return bodies.map(b => {
-    const mat = materialFact(doc, b), rho = materialOf(lookOf(doc, b).material).gPerCm3;
+    const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).gPerCm3;
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / 2.7).toPrecision(6))));
     return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)),

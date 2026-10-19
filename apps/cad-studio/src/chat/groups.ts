@@ -48,8 +48,8 @@ export const GROUPS: Record<string, Group> = {
   },
   requirements: {
     title: 'Requirements',
-    about: 'The brief as checks the kernel runs.',
-    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'] },
+    about: 'The brief (the part\'s intent) and the checks the kernel runs.',
+    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'], brief: ['set_brief', 'fields: {purpose | process | material | …: {value, basis, source?, why?} | null} — the intent, before the checks'], gaps: ['get_brief', '— the brief, its gaps and what it applies'] },
   },
   proposals: {
     title: 'Proposals',

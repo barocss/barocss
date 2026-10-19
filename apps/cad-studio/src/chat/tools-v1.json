@@ -1066,6 +1066,57 @@
    }
   },
   {
+   "name": "get_brief",
+   "annotations": {
+    "title": "Get brief",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "brief": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "complete": {
+      "type": "boolean"
+     },
+     "gaps": {
+      "type": "array"
+     },
+     "material": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "process": {
+      "type": [
+       "object",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "brief",
+     "gaps",
+     "complete",
+     "process",
+     "material"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "get_image_layers",
    "annotations": {
     "title": "Get image layers",
@@ -2284,6 +2335,238 @@
     },
     "required": [
      "ok"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "set_brief",
+   "annotations": {
+    "title": "Set brief",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "fields": {
+      "additionalProperties": false,
+      "properties": {
+       "envelope": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "finish": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "interfaces": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "loads": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "material": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "notes": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "process": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "purpose": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       },
+       "quantity": {
+        "properties": {
+         "basis": {
+          "enum": [
+           "stated",
+           "assumed",
+           "ambiguous"
+          ],
+          "type": "string"
+         },
+         "source": {
+          "type": "string"
+         },
+         "value": {},
+         "why": {
+          "type": "string"
+         }
+        },
+        "type": [
+         "object",
+         "null"
+        ]
+       }
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "fields"
     ],
     "type": "object"
    }

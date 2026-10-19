@@ -943,6 +943,10 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - A flow step drives one turn of scripted questions, the panel's answers, and a second scripted turn that sets the requirements from them.
   - No live model.
 
+- **Added on acceptance (coordinator, 2026-10-20):**
+  - "What it blocks" must name a real gap that `get_brief` reports, or a hard requirement whose value is unknown.
+  - A question citing a field already stated is refused as `NOT_BLOCKING`, with a test.
+
 ### A6.3 — a STEP or mesh file as a locked reference body, with datums and keep-outs
 - **Scope**
   - **The reference node.** `{kind: 'reference', name, source: {step} | {mesh}, locked: true, at?: placement}` is added to an existing part. It reuses the kernel's STEP reader and the studio's mesh path as they are: one or more solids as one reference, with **no assembly structure**.
@@ -964,6 +968,10 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - The reference is not in mass or export.
   - Save and open keep it, with its signatures verified.
   - A flow step: open a part, add a STEP reference, add a datum from its face, sketch on it, and see a keep-out violation reported.
+
+- **Added on acceptance (coordinator, 2026-10-20):**
+  - A keep-out verdict decided on mesh clearance states the chord tolerance.
+  - A clearance within that tolerance of the limit comes back **undecided**, not a pass.
 
 ### A6.4 — images and drawings give drafts only; their dimensions confirmed by the user
 - **Scope**
@@ -1006,3 +1014,46 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
 - Process checks for CNC or sheet metal (the kernel lane).
 - A STEP assembly structure, and an exact B-rep clearance (the kernel lane, if needed).
 - The legal review (the owner).
+
+## O24 — A6.1: the brief template, process and material required (2026-10-20)
+
+- **The brief** (`src/chat/brief.ts`) is kept in the document as `brief` (version 1, in `STUDIO_DOC_FIELDS`, carried over like the requirements).
+  - Each field is `{value, basis: stated | assumed | ambiguous, source?, why?, confirmed?}`.
+  - The fields: purpose, process, material (all three required), quantity, envelope `{x, y, z}` mm, interfaces (a list), loads, finish and notes.
+- **The rules**, enforced by the tool, all or nothing, with typed refusals:
+  - **stated needs the user's words** in `source` (`NO_SOURCE`);
+  - a field the user stated is **never replaced or cleared by an assumption** (`STATED_KEPT`, naming their words); their own new words do replace it;
+  - **only the user confirms** (`CONFIRM_IS_THE_USERS`), in the studio;
+  - a value that does not fit is refused (`BAD_FIELD`): a process outside the list, a fractional quantity, an envelope ≤ 0, an empty list, an unknown field.
+- **Gaps** (`get_brief`):
+  - a required field missing;
+  - any field assumed or ambiguous, each with the question that would settle it.
+  - These are what A6.2's questions may cite.
+  - `complete` means purpose, process and material are all stated.
+- **The process.** The five with rules (fdm, sla, sls, mjf, injection), plus `cnc-milling`, `cnc-turning` and `sheet-metal`.
+  - The last three are **recorded as intent, not checked**, and `get_brief` says so: their checks are the kernel lane's R12 and CNC steps.
+  - A **stated** process with rules becomes `doc.process`, and a printer of another process is cleared, as the studio's picker does.
+  - An assumed process is not applied until the user states or confirms it.
+- **The material.**
+  - A **stated library material** is the material of every body without its own, through `materialIdOf`. Mass, analysis, observe, link inertia and the studio's body panel all read it, so a mass is no longer "assumed" there. A body's own material still wins.
+  - A name not in the library is kept as written. Its density is unknown, so it is not applied, its mass stays assumed, and the tool says so.
+  - An assumed material is not applied.
+- **Where.**
+  - Tools `set_brief {fields}` (alters, batchable in `apply_ops`) and `get_brief` (read, with an output schema). v2: `requirements.brief` and `requirements.gaps`. The script: `brief({…})`.
+  - The system prompt says to start from the brief: stated with the user's words, the agent's choices assumed with why.
+  - The studio: a **Brief** section in the Browser above the requirements. Each field shows with its basis, a ✓ or ?, the gaps are counted ("N to settle · … missing"), and **Confirm** marks an assumed or ambiguous field stated by the user, with when. Editing values is A6.2's Specify panel.
+- **Evidence**: `test/brief.test.ts` (5 tests).
+  - **The ten fixtures** in `conformance/a6/briefs` are hand-written, so their expectations are not produced by the code: complete; process missing; material missing; both missing; assumed process; a non-library material; sheet metal as intent; stated kept; stated without words; confirm is the user's.
+    - They are run through the tool, checking gaps, completeness, the part's process and the applied flags. Each refusal is typed, and leaves the state the very same object.
+  - **Assumption against stated**: assumed, ambiguous and null over a stated field are refused, naming the words; the user's own new words replace it; all or nothing; the bad values are refused.
+  - **The studio's confirm**: an assumed process confirmed becomes stated with who and when, and becomes `doc.process`. The gaps follow. `readBrief` keeps a saved brief and drops what does not fit.
+  - **Mass**:
+    - assumed before;
+    - still assumed with an assumed steel or a stated non-library name;
+    - not assumed with stated steel (7.85 g for a 10 mm cube);
+    - a body's own aluminium still wins (2.7 g).
+  - **The script's `brief()` and the v2 path** do what set_brief and get_brief do. The field registry test covers `brief`.
+  - Browser flow 167/167, with a step "A6.1" before the last. The scripted agent sets the assumed-process fixture's brief through the real chat and tool servers; the Browser shows it with "1 to settle" and the part's process unset; the user's Confirm makes it stated "confirmed by user", the part's process fdm, and the brief complete.
+  - Studio 536/536. Bench: every row within budget; the mass rows are unchanged.
+- **Found by the flow**: the Browser's headers are upper-cased by CSS, so the step reads them case-insensitively.
+- **Next**: A6.2, the clarifying policy. Its questions must cite a gap `get_brief` reports, or a hard requirement whose value is unknown.

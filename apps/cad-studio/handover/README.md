@@ -330,7 +330,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A6 S0** (O23): done. Scope and acceptance frozen for A6.1 brief template, A6.2 clarifying policy, A6.3 locked
     reference body, A6.4 drafts from images and drawings, A6.5 standards data with provenance. Acceptance is
     deterministic (the scripted agent, fixtures for briefs and answers); no live-model run without the owner.
-  - A6.1 brief template (next) → A6.2 → A6.3 → A6.4 → A6.5.
+  - **A6.1** (O24): done. The brief in the document (`src/chat/brief.ts`): purpose, process and material required, each
+    field with its basis and the user's words; an assumption never replaces what the user stated (typed refusals);
+    gaps with their questions; a stated process with rules becomes the part's (CNC and sheet metal as intent); a
+    stated library material is the bodies'. Tools set_brief, get_brief; the Brief section in the Browser with
+    Confirm. Conformance `conformance/a6/briefs` (10 hand-written cases).
+  - A6.2 clarifying policy (next) → A6.3 → A6.4 → A6.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

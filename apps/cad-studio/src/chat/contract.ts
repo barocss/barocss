@@ -14,7 +14,7 @@ export type JsonSchema = { type?: string | string[]; properties?: Record<string,
 export interface ToolAnnotations { title: string; readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: false }
 
 const o = (properties: Record<string, JsonSchema>, required: string[] = []): JsonSchema => ({ type: 'object', properties, ...(required.length ? { required } : {}) });
-const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }, arr: JsonSchema = { type: 'array' }, obj: JsonSchema = { type: 'object' }, bool: JsonSchema = { type: 'boolean' };
+const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }, arr: JsonSchema = { type: 'array' }, obj: JsonSchema = { type: 'object' }, bool: JsonSchema = { type: 'boolean' }, objOrNull: JsonSchema = { type: ['object', 'null'] };
 
 /**
  * The tools that change nothing in the document (the part, its drawing, requirements, proposals, assembly), each with
@@ -47,6 +47,7 @@ const READ: Record<string, JsonSchema | null> = {
   link_inertia: o({ links: arr }, ['links']),
   motion_torques: o({ profile: str, duration_s: num, joints: obj, sampling: str, gravity_m_s2: num }, ['profile', 'duration_s', 'joints', 'sampling']),
   size_actuators: o({ profile: str, move_s: num, cycle_s: num, joints: arr, skipped: arr, model: str, sampling: str, pending_worked_examples: arr }, ['profile', 'move_s', 'cycle_s', 'joints', 'skipped', 'model', 'sampling', 'pending_worked_examples']),
+  get_brief: o({ brief: objOrNull, gaps: arr, complete: bool, process: objOrNull, material: objOrNull }, ['brief', 'gaps', 'complete', 'process', 'material']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity_m_s2: num }, ['torques', 'generalized', 'units', 'gravity_m_s2']),
   sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),
@@ -58,7 +59,7 @@ const READ: Record<string, JsonSchema | null> = {
 const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
 /** Changes that may alter or remove what is there; `true`: the same call twice has no further effect. */
 const ALTERS: Record<string, boolean> = {
-  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, accept_proposal: true,
+  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,

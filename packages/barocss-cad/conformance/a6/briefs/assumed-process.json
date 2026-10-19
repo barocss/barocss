@@ -1,0 +1,46 @@
+{
+ "case": "assumed-process",
+ "step": "A6.1",
+ "note": "The agent assumed the process: a gap (assumed), not applied to the part until stated or confirmed.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "fdm",
+     "basis": "assumed",
+     "why": "a one-off bracket; printing is the cheapest"
+    },
+    "material": {
+     "value": "petg",
+     "basis": "stated",
+     "source": "PETG"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [
+   {
+    "field": "process",
+    "why": "assumed"
+   }
+  ],
+  "complete": false,
+  "doc_process": null,
+  "process": {
+   "value": "fdm",
+   "checked": true,
+   "applied": false
+  },
+  "material": {
+   "value": "petg",
+   "library": true,
+   "applied": true
+  }
+ }
+}

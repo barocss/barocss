@@ -4048,6 +4048,32 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- A6.1 (O24): the brief ------------------------------------------------------------------------------------------
+  await check('A6.1: the scripted agent writes a brief through the real chat and tool servers (conformance a6/briefs/assumed-process); the Browser shows it, one gap; the user confirms the process, which becomes the part\'s', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/a6/briefs/assumed-process.json'), 'utf8'));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && !window.__studioDoc.brief && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = c.input.patches.map(fields => ({ tool: 'set_brief', args: { fields } }));
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc?.brief?.process?.basis === 'assumed', null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.process ?? null), null, 'an assumed process is not applied');
+    assert.match(await page.locator('[aria-label="Brief gaps"]').innerText(), /^1 to settle$/i);
+    assert.match(await page.locator('[aria-label="Brief process"]').innerText(), /fdm[\s\S]*assumed/);
+    await snap('a6-1-brief');
+    await page.click('[aria-label="Confirm brief process"]');
+    await page.waitForFunction(() => window.__studioDoc?.brief?.process?.confirmed?.by === 'user' && window.__studioDoc.process === 'fdm', null, { timeout: 10000 });
+    assert.match(await page.locator('[aria-label="Brief gaps"]').innerText(), /^complete$/i);
+    assert.match(await page.locator('[aria-label="Brief process"]').innerText(), /confirmed by user/);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
