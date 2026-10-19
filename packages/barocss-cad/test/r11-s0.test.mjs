@@ -68,7 +68,7 @@ test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bou
   assert.ok(Math.abs(Math.min(...folded.brep.vertices.map(v => Math.hypot(v.point[0], v.point[2]))) - 2) < 1e-9, 'the inner sheet has passed through the axis');
 });
 
-test('R11 S0 defect: a slab grown across a smooth edge into a concave face over-thickens the wall — the same slabs not grown there are exact', () => {
+test('R11 S0 then and now: a slab grown across a smooth edge into a concave face over-thickened the wall — the same slabs not grown there are exact, as the shell now is (D106)', () => {
   // A rod R 5 (axis along X at the plate's top) on a plate, both junctions filleted 2 (R10.1, closed form): a prism along X,
   // so its hollow is the section eroded, times L − 2t. The section has no reflex corner (its joints are tangent; four
   // convex right-angled corners), so the eroded area is A − P t + t² (Σ cot(α/2) + ½ ∫κ ds) = A − P t + 4t² (∫κ ds = 0).
@@ -86,28 +86,30 @@ test('R11 S0 defect: a slab grown across a smooth edge into a concave face over-
       sector(F1, ri, rf + t, -Math.PI + phi - dF, -Math.PI / 2 + dF), sector(F2, ri, rf + t, -Math.PI / 2 - dF, -phi + dF), sector([0, 10], R - t, R + o, phi - dR, Math.PI - phi + dR)], [-20, 0, 20, 10 + R]);
   };
   for (const [t, over] of [[0.5, 6.9e-4], [1, 2.6e-3]]) {
-    const today = vol([...body, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]);
-    assert.ok((today - exact(t)) / exact(t) > over, `general shell t ${t}: ${(today - exact(t)) / exact(t)}`);
-    // The hand-built grown slabs are today's to the digit: the growth is the cause.
-    assert.ok(Math.abs(vol([...body, ...hand(t, true)]) / today - 1) < 1e-9, `grown by hand, t ${t}`);
+    // (At S0 the general shell was 6.9e-4 and 2.65e-3 over; R11.1a, D106, stops its slabs at smooth edges: exact.)
+    const now = vol([...body, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]);
+    assert.ok(Math.abs(now / exact(t) - 1) < 1e-12, `general shell t ${t}: ${(now - exact(t)) / exact(t)}`);
+    // The hand-built grown slabs (the S0 general shell's to the digit): the growth was the cause.
+    assert.ok((vol([...body, ...hand(t, true)]) - exact(t)) / exact(t) > over, `grown by hand, t ${t}`);
     // Not grown across the smooth edges: the slabs meet there in one plane (the normal at the contact), coincident side
     // walls the analytic Boolean takes exactly.
     const fixed = out([...body, ...hand(t, false)]);
     assert.equal(fixed.validate().valid, true);
     assert.ok(Math.abs(fixed.massProperties(1).volumeMM3 / exact(t) - 1) < 1e-12, `not grown, t ${t}`);
   }
-  // The error grows with the wall: 7.9 % at t 2.5.
-  const t = 2.5, today = vol([...body, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]);
-  assert.ok((today - exact(t)) / exact(t) > 0.07);
+  // (At S0 the error grew with the wall: 7.9 % at t 2.5.)
+  const t = 2.5, now = vol([...body, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]);
+  assert.ok(Math.abs(now / exact(t) - 1) < 1e-12);
 });
 
-test('R11 S0 defect: a cylinder slab past a concave junction — a rod thinner than the wall becomes a ring reaching into the plate', () => {
+test('R11 S0 then and now: a cylinder slab past a concave junction — a rod thinner than the wall became a ring reaching into the plate; exact now (D106)', () => {
   // A rod r 1 half sunk in a plate, a wall of 2: the rod is all wall, so the hollow is the plate's eroded box, (L − 2t)²(10 − 2t).
   const r = 1, t = 2, body = rodOn(r), exact = vol(body) - (L - 2 * t) * (L - 2 * t) * (10 - 2 * t);
-  const today = vol([...body, { id: 'sh', kind: 'shell', target: 'u', thickness: t }]);
-  // general-shell.ts clamps the rod slab's inner radius to 1e-3 r, so its angular growth t / (1e-3 r) closes it into a full
-  // ring of outer radius r + 1.37t = 3.74 about the axis: 1.74 below the plate's top under the rod, past the wall.
-  assert.ok((today - exact) / exact > 0.03, `${(today - exact) / exact}`);
+  // At S0 general-shell.ts clamped the rod slab's inner radius to 1e-3 r, so its angular growth t / (1e-3 r) closed it into
+  // a full ring of outer radius r + 1.37t = 3.74 about the axis: 1.74 below the plate's top under the rod, past the wall
+  // (3.4 % over). R11.1a (D106): the slab reaches the axis, stops at the junction, and its corner is filled apart — exact.
+  const now = vol([...body, { id: 'sh', kind: 'shell', target: 'u', thickness: t }]);
+  assert.ok(Math.abs(now / exact - 1) < 1e-12, `${(now - exact) / exact}`);
   // By hand, the rod's slab the half disc of r + 1.37t above the plate, its inner band not grown (none is left: r < t), the
   // plate's top grown across the junction (a sharp, concave edge) by t: exact.
   const o = 1.37 * t, d = 0.41 * t;
@@ -117,11 +119,11 @@ test('R11 S0 defect: a cylinder slab past a concave junction — a rod thinner t
   assert.equal(fixed.validate().valid, true);
   assert.ok(Math.abs(fixed.massProperties(1).volumeMM3 / exact - 1) < 1e-12, `${fixed.massProperties(1).volumeMM3} vs ${exact}`);
   // A thicker rod (r 5, t 1): the hollow under the sharp (intersection) join is the eroded box and the disc of r − t about
-  // the axis above z = 10 − t. Today's wall is 1.1 % over even that join's (the thicker of the two joins): the rod slab's
-  // outer band, carried round past the junction by its angular growth t / (r − t), lies inside the plate.
+  // the axis above z = 10 − t. At S0 the wall was 1.1 % over even that join's: the rod slab's outer band, carried round past
+  // the junction by its angular growth t / (r − t), lay inside the plate. Now exact (R11.1a, D106).
   const R = 5, T = 1, rho = R - T, seg = Math.PI * rho * rho - (rho * rho * Math.acos(T / rho) - T * Math.sqrt(rho * rho - T * T));
   const sharp = vol(rodOn(R)) - ((L - 2 * T) * (10 - 2 * T) + seg) * (L - 2 * T), thick = vol([...rodOn(R), { id: 'sh', kind: 'shell', target: 'u', thickness: T }]);
-  assert.ok((thick - sharp) / sharp > 0.01, `${(thick - sharp) / sharp}`);
+  assert.ok(Math.abs(thick / sharp - 1) < 1e-12, `${(thick - sharp) / sharp}`);
 });
 
 // ---- R11.2: offsets of B-spline faces, as faces on the body's own topology ----

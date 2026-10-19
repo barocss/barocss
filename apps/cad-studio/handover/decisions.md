@@ -4889,3 +4889,86 @@ The roadmap's feasibility checkpoint before R11, with the research note's R11.1�
   - **R11.3 — mesh bodies:** an offset mesh as the cavity, with the wall it achieves reported, and refusals for inverted triangles (folds) and self-intersection (mesh repair's grid). `thicken`'s fold-over becomes the same refusal. Not probed here; a mini-probe at its step.
 - **Not decided here:** splitting offset faces or raising the kernel's 16-control-point cap (finding b); which join (sharp or arc) a concave edge gets in the hollow — sharp, as today and as upright shells do, unless the owner asks.
 - Checks: no product code changed. Kernel 1134/1139 (only the env-only "actual native Split source…" fails; r11-s0 5/5, 20 s); lint clean; studio, flow and RB not rerun (no source change), as at D87.
+
+## D106 — R11.1a: the general shell's slabs stop at smooth edges and at concave edges beside curved faces, whose corners are filled apart (2026-10-19)
+
+The coordinator accepted D105 and asked for fixes (A) and (B) first, each with a test that fails on HEAD. `general-shell.ts` now classifies every edge between two slabbed faces and grows each slab per side.
+
+- **Edge kinds.** Each edge between two faces with slabs is smooth, convex or concave.
+  - The test uses the two faces' outward normals at the edge's middle and the first face's loop direction T. Loops run counter-clockwise about the outward normal, so (nA × nB)·T > 0 means convex. This was checked on a box, an L-body, a rod on a plate and a groove.
+  - An edge is smooth when the normals agree to 1e-6 rad.
+  - Edges next to an opened face are left out, so they grow as before and the hollow still runs out through the opening.
+- **Growth per side** (`stopsAt`):
+  - Across a **convex** edge, and a **concave edge between two planes**, the slab grows by the wall, as before.
+  - Across a **smooth** edge the slab stops. The two slabs meet in the normal plane there, as coincident walls; S0 probed that this is exact.
+  - Across a **concave edge beside a curved face** the slab stops, and the corner is filled apart (below).
+- **How stopping is done, per face kind:**
+  - Planes: the strip beyond each such side is taken off the grown region, and the face's own region is added back.
+  - Cylinders: each side of the (angle, height) rectangle has its own flag.
+  - Surfaces of revolution: each end of the meridian strip, and each end of the turn, has its own flag.
+- **Corner fills (fix B).** At a concave edge beside a curved face, the corner is solved in 2D: in the plane across a straight edge whose two faces run along it, or in the meridian of a circular edge whose two faces turn about its axis.
+  - The region near the edge's point E must lie beyond both faces' normals at E and within the wall of both faces' offsets: on the near side of a line's offset, outside a convex circle's, inside a concave one's. This is the sharp join of the offsets.
+  - Its size is set by where the offsets meet. Where a convex circle's offset is gone, or does not reach the other offset, the region runs to the circle's centre.
+  - The 2D regions of one straight run (the same direction and extent) are joined and extruded once. Those of one axis whose circles are whole (an edge, or its pieces) are joined and turned once. No two fills then overlap along a face: overlapping fills had left 1.1e-4 at t 3 on the torus ring.
+  - Edges that are neither case are refused typed (`CAPABILITY`), as are walls whose offsets do not meet.
+- **No clamp:** a convex cylinder no wider than the wall gets a slab that reaches its axis. Its angular growth is t / max(inner radius, r/4), capped at π/2. Before, the inner radius was clamped to 1e-3 r and the slab closed into a ring.
+- **The reach of a concave face's slab** towards its centre is 1.29t, unlike the 1.37t of other faces. A concave round's slab then never meets a plane slab's outer face tangentially. At 1.37t both reached exactly 10 + 1.37t, which made an untyped Boolean failure at t 0.5 on the filleted rod.
+- **Evidence, against closed forms.** Each case was wrong on HEAD (804ee65ef); `test/r11-1.test.mjs` is new; every result passes the strict check.
+
+  | Case | Oracle | HEAD | Now |
+  |---|---|---|---|
+  | Rod R 5 on a plate, both junctions filleted 2, t 0.5–2.5 | the prism's eroded section, A − Pt + 4t² | 6.9e-4 – 7.9 % over | 1e-14 |
+  | Rod half sunk in a plate, r 5/3/2/1 at t 0.5–2 | sharp join: the plate box eroded plus the rod's offset disc above the plate's offset | 1.1–7.8 % over | ≤ 4e-15 |
+  | The same, rod shorter than the plate (x 10–30) | the same | | exact; its junctions end at the caps' chords, concave edges of two planes grown as before |
+  | Torus ring R0 15, r 4 half sunk in a round plate, t 0.5–3.5 | Pappus | 0.5–18 % over; untyped Boolean failures from t 2.5 | ≤ 2.3e-12 |
+
+  - Where the rod's or ring's offset disc no longer meets the plate's hollow, the result has a second cavity, and the tests count it.
+  - S0's "today" tests (`r11-s0`) now read as then and now: the shell is exact, and the hand-built grown slabs still show the old error.
+  - Conformance `r11/shell-filleted-rod-on-plate`, `shell-rod-on-plate-sharp-join`, `shell-torus-ring-in-disc` (closed-form volumes, STEP round trip).
+  - A flow step: the rod on the plate shelled 1, its volume the closed form.
+- **Not fixed here (R11.1b, next).** Concave edges between two planes still grow by t. That is exact only at right angles.
+  - D105's prism oracle shows it: a 225° inside corner is 2.5e-3 over at t 1 and 5e-3 at t 2; a 315° one is 5e-4 over at t 1. These are bodies of planes only, wrong on HEAD as well.
+  - Filling those corners too (as above) makes both exact (1e-15), but it fails on a concave vertex: a box with its corner notched, where three concave edges meet. The pieces touch along the vertex's vertical edge and the analytic Boolean refuses.
+  - HEAD under-fills that vertex (−1.2e-5 at t 1, −5.1e-5 at t 2, against the cube-erosion closed form) and fails, untyped, at t 3.
+  - R11.1b fills concave vertices where all edges are concave (the region within the wall of every face there), then fills plane–plane corners.
+- **Found, not decided (for the owner):**
+  - The upright route erodes each section in 2D, so its vertical concave edges get an arc join. An L-section extruded 20 and shelled 2 is 6610.27 mm³ (with a t²(1 − π/4) round).
+  - The general route gives the same body 6624 mm³ (sharp join).
+  - Ledges are sharp in both. Kept as is; say which join a concave edge should get, and the other route follows.
+- Checks: lint and type-check clean; kernel 1140/1145 (only the env-only Split test fails); conformance 108/108; studio 413/413; full flow 143/143 (new step: the rod on the plate shelled). RB rows in the next commit.
+
+## D107 — R11.1b: concave plane–plane edges at any angle and vertices of concave edges; the join as one switch (2026-10-20)
+
+The coordinator accepted D106 and asked for vertex fills first, then concave plane–plane corners off a right angle. The owner has not yet decided the join, so the join kind is one switch, not baked in.
+
+- **Concave edges between two planes.** A plane's slab grows across such an edge by t·tan(θ/2), where θ is the angle between the two normals.
+  - That is as far as the two offsets reach before they meet. The band beyond the edge (depth 0 to t) then lies within both walls, for θ ≤ 90°.
+  - At a right angle the growth is the wall exactly (snapped), as before.
+  - For θ > 90°, a band of either plane, however wide, misses the far corner of the offsets' meeting. Those edges are filled apart, as R11.1a fills edges beside curved faces.
+- **Vertices.** Where two growing sides of a plane region turn away from each other at a concave edge between lines, the bands are joined by a mitre instead of a round: the corner of the two grown lines, or a bevel past 10× the growth.
+  - Under the sharp join, the planes' growth then meets at a vertex of concave edges with no extra piece.
+  - First tried: fills along every concave edge plus a vertex fill (near the vertex, within the wall of every face's offset there).
+    - Pieces touched only along the vertex's edge, so the analytic Boolean refused the result. With the fills placed first, the volume was exact.
+    - Coplanar fill faces then left a slit edge in a hollow face, which failed the strict check. Not kept.
+  - Every other region is grown as before, to the bit: when each side grows by t or not at all and no corner needs a mitre, the region is still the round dilation less the strips.
+  - The fills still go after the slabs, as in R11.1a. Putting them first changed which intermediate unions meet, and a ray test degenerated on the r 1, t 0.5 rod.
+- **The join switch:** `generalShell(…, join: ShellJoin = 'sharp')`.
+  - Under `'arc'`, every concave edge stops and is filled with the disc of the wall about E, beyond both normals: every point within the wall of the boundary, and no other.
+  - A vertex where concave edges meet is refused typed under `'arc'`: the ball there meets its edges' rounds tangentially along their end circles, and the Boolean fails, even with the ball clipped to the region beyond every edge.
+  - Part documents still get the sharp join. The switch is internal until the owner decides, and a document setting would be a versioned shell node (D16).
+- **Evidence** (`test/r11-1b.test.mjs`, new; each case fails on HEAD 519606e7e; every result passes the strict check):
+
+  | Case | Oracle | HEAD | Now |
+  |---|---|---|---|
+  | Prism, 225° inside corner, t 1–2 | sharp-join inset of the section × (L − 2t) | 2.5e-3 – 5.0e-3 over | exact |
+  | Prism, 315° inside corner, t 1–2 | the same | 5.2e-4 – 1.05e-3 over | ≤ 5e-15 |
+  | Prism, 270° inside corner | the same | exact | unchanged |
+  | Box with a notched corner (three concave edges), t 1–4 | cube erosion, (A − 2t)(B − 2t)(C − 2t) − (A − a)(B − b)(C − c) | −1.2e-5 to −2.4e-4: under-filled, a wall thinner than t at the vertex | exact |
+  | L-prism, arc join | the upright route's value (6610.265 at t 2) | not run | 1e-12 |
+  | Rod on a plate, arc join | sharp shell less 2 × (kite − quarter disc) × 38, t 1 | not run | 1e-12 |
+
+  - The kite in the rod row is the polygon E, E − t·n, the offsets' meeting point, E − t·n′ less its circular segment.
+  - Conformance `r11/shell-inside-corner-225`, `shell-notched-corner`; a flow step (the notched box, 9 024 mm³).
+- **Not fixed (TODO, Boolean robustness):** the notched box at t 2.9–3.1 fails, untyped ("not a manifold solid"), as on HEAD. Three slabs' bounding planes meet along one short edge there (x = A − t, y = b + t, z from c + 1.37t to C − t). t 2.5 and t 3.5 build exactly.
+- **Next:** R11.1 is done apart from that TODO. The note's remaining R11.1 items are typed refusals for slabs that cannot be made, and the history route for variable-radius fillets (r(s) − t on the same spine). Then R11.2.
+- Checks: lint and type-check clean; kernel 1145/1150 (only the env-only Split test fails); conformance 110/110; studio 429/429; full flow 146/146 (new step: the notched box shelled 2; also the first full flow on the R14.5 merge 519606e7e, every R14 and drawing step passing). RB rows in the next commit.
