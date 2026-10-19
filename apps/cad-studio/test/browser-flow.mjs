@@ -3972,6 +3972,28 @@ try {
     await page.click('[aria-label="Joints home"]');
   });
 
+  // ---- RD2 (O21): a move's torques -----------------------------------------------------------------------------------
+  await check('RD2: motion_torques through the real chat and tool servers on the planar 2R — the S-curve\'s duration and each joint\'s peak as the conformance case has them', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/move-2r/case.json'), 'utf8')), file = join(out, 'move-2r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'motion_torques', args: { to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const line = await page.locator('.chat-tool').last().innerText();
+      // (The chat lists a read tool's result as the start of its JSON: the profile and its duration first.)
+      assert.ok(line.includes(`"profile":"s-curve","duration_s":${Number(c.expect.duration_s.toPrecision(10))}`), line);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -1680,6 +1680,91 @@
    }
   },
   {
+   "name": "motion_torques",
+   "annotations": {
+    "title": "Motion torques",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "from": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     },
+     "joint_limits": {
+      "additionalProperties": {
+       "type": "object"
+      },
+      "type": "object"
+     },
+     "limits": {
+      "properties": {
+       "acceleration": {
+        "type": "number"
+       },
+       "jerk": {
+        "type": "number"
+       },
+       "velocity": {
+        "type": "number"
+       }
+      },
+      "type": "object"
+     },
+     "profile": {
+      "enum": [
+       "trapezoid",
+       "s-curve"
+      ],
+      "type": "string"
+     },
+     "to": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "to",
+     "profile"
+    ],
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "duration_s": {
+      "type": "number"
+     },
+     "gravity_m_s2": {
+      "type": "number"
+     },
+     "joints": {
+      "type": "object"
+     },
+     "profile": {
+      "type": "string"
+     },
+     "sampling": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "profile",
+     "duration_s",
+     "joints",
+     "sampling"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "orient_for_print",
    "annotations": {
     "title": "Orient for print",
