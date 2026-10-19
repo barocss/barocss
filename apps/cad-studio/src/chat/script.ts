@@ -12,7 +12,7 @@
 //   feature({ kind: "extrude", sketch: s, height: 12 })        // a handle in feature JSON is its node index
 //   edit(plate, { h: 12 })  remove(s)
 //
-// Statements: `const name = expr`, an expression, `for (const name of expr) { … }`, `if (expr) { … } else { … }`.
+// Statements: `const name = expr` (or `const a = 1, b = 2`), an expression, `for (const name of expr) { … }`, `if (expr) { … } else { … }`.
 // Expressions: numbers, "strings", true/false, [arrays], { objects }, names, a.b, a[i], calls, + - * / %, comparisons,
 // && || !, ( ). Built in: range(n) | range(a, b[, step]), min, max, abs, sqrt, round, floor, ceil, sin, cos, tan
 // (degrees), PI; face({normal, pick?, on?, all?}), edge(a, b), body("b1"), ref(feature[, side]), node("f3" | index) (a
@@ -85,7 +85,7 @@ export type Expr = Pos & (
   | { t: 'member'; obj: Expr; prop: string } | { t: 'index'; obj: Expr; index: Expr } | { t: 'call'; callee: Expr; args: Expr[] }
   | { t: 'unary'; op: string; arg: Expr } | { t: 'binary'; op: string; left: Expr; right: Expr } | { t: 'cond'; test: Expr; then: Expr; else: Expr });
 export type Stmt = Pos & (
-  | { t: 'const'; name: string; init: Expr } | { t: 'expr'; expr: Expr }
+  | { t: 'const'; name: string; init: Expr } | { t: 'consts'; decls: (Pos & { name: string; init: Expr })[] } | { t: 'expr'; expr: Expr }
   | { t: 'for'; name: string; iter: Expr; body: Stmt[] } | { t: 'if'; test: Expr; then: Stmt[]; else: Stmt[] });
 
 const BINARY: Record<string, number> = { '||': 1, '&&': 2, '==': 3, '!=': 3, '===': 3, '!==': 3, '<': 4, '>': 4, '<=': 4, '>=': 4, '+': 5, '-': 5, '*': 6, '/': 6, '%': 6 };
@@ -110,8 +110,11 @@ export function parse(source: string): Stmt[] {
       if (t.kind === 'name' && (t.text === 'let' || t.text === 'var')) throw new ScriptError('SYNTAX', `use const: names are set once (${t.text} is not part of the language)`, t.line, t.col);
       if (t.kind === 'name' && (t.text === 'function' || t.text === 'while' || t.text === 'return')) throw new ScriptError('SYNTAX', `"${t.text}" is not part of the language: use for (const … of range(n)) and calls`, t.line, t.col);
       if (t.kind === 'name' && t.text === 'const') {
-        next(); const n = nameToken('a name'); expect('='); const init = expression(); semi();
-        return { t: 'const', name: n.text, init, line: t.line, col: t.col };
+        // (`const a = 1, b = 2`: several names in one statement, set in order.)
+        next(); const decls: (Pos & { name: string; init: Expr })[] = [];
+        do { if (decls.length) next(); const n = nameToken('a name'); expect('='); decls.push({ name: n.text, init: expression(), line: n.line, col: n.col }); } while (is(','));
+        semi();
+        return decls.length === 1 ? { t: 'const', name: decls[0].name, init: decls[0].init, line: t.line, col: t.col } : { t: 'consts', decls, line: t.line, col: t.col };
       }
       if (t.kind === 'name' && t.text === 'for') {
         next(); expect('('); expect('const'); const n = nameToken('a name'); expect('of'); const iter = expression(); expect(')');
@@ -242,12 +245,9 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
 
   async function exec(stmts: Stmt[]): Promise<void> {
     for (const s of stmts) {
-      if (s.t === 'const') {
-        const scope = scopes[scopes.length - 1];
-        if (scope.has(s.name)) fail('TYPE', `"${s.name}" is already set`, s);
-        const v = await evaluate(s.init); scope.set(s.name, v);
-        if (scopes.length === 1 && isHandle(v) && v.h === 'feature') run.names[s.name] = v.id;
-      } else if (s.t === 'expr') await evaluate(s.expr);
+      if (s.t === 'const') await declare(s.name, s.init, s);
+      else if (s.t === 'consts') for (const d of s.decls) await declare(d.name, d.init, d);
+      else if (s.t === 'expr') await evaluate(s.expr);
       else if (s.t === 'if') { const c = await evaluate(s.test); scopes.push(new Map()); try { await exec(truthy(c) ? s.then : s.else); } finally { scopes.pop(); } }
       else {
         const items = await evaluate(s.iter);
@@ -260,6 +260,12 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
     }
   }
 
+  async function declare(name: string, init: Expr, at: Pos): Promise<void> {
+    const scope = scopes[scopes.length - 1];
+    if (scope.has(name)) fail('TYPE', `"${name}" is already set`, at);
+    const v = await evaluate(init); scope.set(name, v);
+    if (scopes.length === 1 && isHandle(v) && v.h === 'feature') run.names[name] = v.id;
+  }
   async function evaluate(e: Expr): Promise<Value> {
     switch (e.t) {
       case 'num': return e.v;

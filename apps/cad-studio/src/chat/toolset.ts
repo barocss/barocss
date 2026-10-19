@@ -7,8 +7,9 @@ import { annotationsOf, outputSchemaOf, TOOL_CONTRACT_V2, TOOL_CONTRACT_VERSION,
 import { GROUPS, V2_OF } from './groups';
 import { CHAT_COMMANDS, featureKinds, SYSTEM_PROMPT, TOOLS } from './tools';
 
-export type Toolset = 'v1' | 'v2';
-export function toolset(): Toolset { return typeof process !== 'undefined' && process.env?.CAD_TOOLSET === 'v2' ? 'v2' : 'v1'; }
+/** `json` (A5.5): v1 without run_script — the A/B's JSON-only arm, today's tools before the script. */
+export type Toolset = 'v1' | 'v2' | 'json';
+export function toolset(): Toolset { const v = typeof process !== 'undefined' ? process.env?.CAD_TOOLSET : undefined; return v === 'v2' || v === 'json' ? v : 'v1'; }
 
 const v1Tool = (name: string) => TOOLS.find(t => t.name === name)!;
 /** Text with each v1 tool name that has an underscore written as its group's action (`apply_ops` → `features.batch`). */
@@ -43,8 +44,12 @@ export function listed(t: ToolDefinition) {
   const a = annotationsOf(t.name), out = outputSchemaOf(t.name);
   return { name: t.name, title: a.title, description: t.description, inputSchema: t.input_schema, ...(out ? { outputSchema: out } : {}), annotations: a };
 }
+/** The JSON-only arm: the v1 tools but run_script, the prompt without its paragraph. */
+const TOOLS_JSON = TOOLS.filter(t => t.name !== 'run_script');
+export const SYSTEM_PROMPT_JSON = SYSTEM_PROMPT.replace(/\n\nFor a part of many steps or repeated features, write it as one run_script[^\n]*/, '');
 /** What a model reads for a tool set: the contract's version, the tools, the system prompt. */
 export function toolsetOf(set: Toolset = toolset()): { version: string; tools: ToolDefinition[]; prompt: string } {
-  return set === 'v2' ? { version: TOOL_CONTRACT_V2, tools: TOOLS_V2, prompt: SYSTEM_PROMPT_V2 } : { version: TOOL_CONTRACT_VERSION, tools: TOOLS, prompt: SYSTEM_PROMPT };
+  if (set === 'v2') return { version: TOOL_CONTRACT_V2, tools: TOOLS_V2, prompt: SYSTEM_PROMPT_V2 };
+  return set === 'json' ? { version: TOOL_CONTRACT_VERSION, tools: TOOLS_JSON, prompt: SYSTEM_PROMPT_JSON } : { version: TOOL_CONTRACT_VERSION, tools: TOOLS, prompt: SYSTEM_PROMPT };
 }
 export type { JsonSchema };
