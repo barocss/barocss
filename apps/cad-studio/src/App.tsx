@@ -42,6 +42,8 @@ import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/typ
 import { MatePanel } from './ui/MatePanel';
 import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from './robot/joints';
+import { forwardKinematics, gearPairAt, sliderRange } from './robot/fk';
+import { posedInstances } from './robot/preview';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
@@ -515,14 +517,31 @@ export function App() {
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
+  // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
+  const [jointValues, setJointValues] = useState<Record<string, number>>({});
+  const [jointPlaying, setJointPlaying] = useState<string | null>(null);
+  const jointFk = useMemo(() => jointTree && Object.values(jointValues).some(v => v !== 0) ? forwardKinematics(jointTree, jointValues) : null, [jointTree, jointValues]);
+  const gearLines = useMemo(() => (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlashMM: at.backlashMM }; }), [jointTree, jointFk]);
+  // (Joints gone from the tree lose their values; a joint played swings through its range, a period of 4 s.)
+  useEffect(() => { const keys = new Set(jointTree?.joints.map(j => j.key) ?? []); setJointValues(v => Object.keys(v).every(k => keys.has(k)) ? v : Object.fromEntries(Object.entries(v).filter(([k]) => keys.has(k)))); if (jointPlaying && !keys.has(jointPlaying)) setJointPlaying(null); }, [jointTree]);
+  useEffect(() => {
+    const j = jointPlaying ? jointTree?.joints.find(x => x.key === jointPlaying) : undefined;
+    if (!j) return;
+    const r = sliderRange(j), mid = (r.min + r.max) / 2, amp = (r.max - r.min) / 2, t0 = performance.now();
+    let frame = requestAnimationFrame(function step(now) { setJointValues(v => ({ ...v, [j.key]: mid + amp * Math.sin(2 * Math.PI * (now - t0) / 4000) })); frame = requestAnimationFrame(step); });
+    return () => cancelAnimationFrame(frame);
+  }, [jointPlaying, jointTree]);
   const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
   const instancesExploded = useMemo(() => {
-    if (!explode) return instancesPlaced;
-    const off = explodeOffsets(bodies, instancesPlaced, explode);
-    return instancesPlaced.map(i => { const d = off.get(i.id); return d ? { id: i.id, bodies: i.bodies.map(b => movedBody(b, d)) } : i; });
-  }, [instancesPlaced, explode, bodies]);
+    const posed = jointFk ? posedInstances(instancesPlaced, jointFk) : instancesPlaced;
+    if (!explode) return posed;
+    const off = explodeOffsets(bodies, posed, explode);
+    return posed.map(i => { const d = off.get(i.id); return d ? { id: i.id, bodies: i.bodies.map(b => movedBody(b, d)) } : i; });
+  }, [instancesPlaced, explode, bodies, jointFk]);
+  // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesExploded.map(i => ({ id: i.id, min: i.bodies[0]?.mesh.bounds.min, max: i.bodies[0]?.mesh.bounds.max })); }, [instancesExploded]);
   // The section view cuts the placed parts too (their meshes clipped and capped, as the part's while dragged).
   const instancesShown = useMemo(() => {
     if (!section || sketch) return instancesExploded;
@@ -1862,6 +1881,7 @@ export function App() {
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanel tree={jointTree} instances={doc.instances ?? []}
+        values={jointFk?.values ?? jointValues} onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} gears={gearLines}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}

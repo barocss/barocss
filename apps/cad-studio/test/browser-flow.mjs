@@ -3820,6 +3820,33 @@ try {
     await snap('rm1-joints');
   });
 
+  // ---- RM2 (O15): forward kinematics and the joint sliders ----------------------------------------------------------
+  await check('RM2: the 2R arm posed by its sliders — the second arm swung a half turn, shown moved and not saved; Home puts it back; a joint played', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 20000 });
+    const before = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
+    const placed = JSON.stringify((await doc()).instances);
+    // (A half turn of b about a's far hole at x = 60: its box, x 50…110, swings to 10…70.)
+    // (A range input set as a person's drag sets it: the native value, then an input event React hears.)
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint a~b value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI);
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 10) < 1e-3, null, { timeout: 10000 });
+    assert.ok(Math.abs(before.min[0] - 50) < 1e-3, JSON.stringify(before));
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
+    assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
+    await snap('rm2-posed');
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
+    // Played: the first arm swings by itself, then stopped.
+    await page.click('[aria-label="Play joint base~a"]');
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'a').min[0] - 10) > 1, null, { timeout: 10000 });
+    await page.click('[aria-label="Play joint base~a"]');
+    await page.click('[aria-label="Joints home"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

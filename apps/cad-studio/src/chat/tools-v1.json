@@ -898,6 +898,51 @@
    }
   },
   {
+   "name": "forward_kinematics",
+   "annotations": {
+    "title": "Forward kinematics",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "values": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "gears": {
+      "type": "array"
+     },
+     "links": {
+      "type": "array"
+     },
+     "out_of_limits": {
+      "type": "array"
+     },
+     "values": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "values",
+     "links",
+     "gears",
+     "out_of_limits"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "get_assembly",
    "annotations": {
     "title": "Get assembly",

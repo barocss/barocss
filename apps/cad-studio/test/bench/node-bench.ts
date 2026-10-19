@@ -25,6 +25,8 @@ import { defaultDrawing } from '../../src/drawing/types';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
 import { parse as parseScript } from '../../src/chat/script';
 import { jointTreeOf } from '../../src/robot/joints';
+import { forwardKinematics } from '../../src/robot/fk';
+import { posedInstances } from '../../src/robot/preview';
 import { solveDoc } from '../../src/chat/assembly';
 import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
@@ -102,6 +104,19 @@ const BUDGET_SUGGESTIONS = 5;
 const BUDGET_SCRIPT_PARSE = 4, BUDGET_SCRIPT_RUN = 700;
 /** RM1: the joint tree of a 12-link arm (0.27 ms measured; about ×3). */
 const BUDGET_JOINT_TREE = 1;
+/** RM2: per slider move, FK alone (0.02 ms measured) and with the moving links' meshes posed (0.45 ms): about ×3–5. */
+const BUDGET_FK = 0.1, BUDGET_POSED = 2;
+/** A 12-link serial arm (the base part and 11 arms, each turning on the one before), solved, with its joint tree. */
+function twelveLinkArm() {
+  const hole = (doc: StudioDoc, c: [number, number]) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: 5 } as never);
+  const arm = hole(hole(rectanglePart(60, 20, 5), [10, 10]), [50, 10]);
+  const instances = Array.from({ length: 11 }, (_, k) => ({ id: `a${k}`, name: `a${k}`, doc: arm, position: [0, 0, 10 + 10 * k] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }));
+  const mates = instances.flatMap((inst, k) => { const on = k ? `a${k - 1}` : 'base', far = k ? 'n3.side0' : 'n2.side0';
+    return [{ id: `c${k}`, kind: 'concentric' as const, a: { part: on, face: far }, b: { part: inst.id, face: 'n2.side0' } }, { id: `f${k}`, kind: 'coincident' as const, a: { part: on, face: 'n1.top' }, b: { part: inst.id, face: 'n1.bottom' } }]; });
+  const doc = { ...arm, instances, mates }, solved = solveDoc(doc), tables = tablesFor(solved.doc);
+  if (solved.problems.length) throw new Error(JSON.stringify(solved.problems));
+  return { solved, tables, tree: jointTreeOf(solved.doc, { instances: solved.doc.instances!, problems: [] }, tables) };
+}
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -187,14 +202,18 @@ const scenarios: Scenario[] = [
   } },
   // (RM1, O14: the joint tree after an assembly change — a 12-link serial arm, every pair revolute; solved once outside.)
   { name: 'robot: joint tree, 12-link serial arm', budgetMS: BUDGET_JOINT_TREE, runs: 5, setup() {
-    const hole = (doc: StudioDoc, c: [number, number]) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: 5 } as never);
-    const arm = hole(hole(rectanglePart(60, 20, 5), [10, 10]), [50, 10]);
-    const instances = Array.from({ length: 11 }, (_, k) => ({ id: `a${k}`, name: `a${k}`, doc: arm, position: [0, 0, 10 + 10 * k] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }));
-    const mates = instances.flatMap((inst, k) => { const on = k ? `a${k - 1}` : 'base', far = k ? 'n3.side0' : 'n2.side0';
-      return [{ id: `c${k}`, kind: 'concentric' as const, a: { part: on, face: far }, b: { part: inst.id, face: 'n2.side0' } }, { id: `f${k}`, kind: 'coincident' as const, a: { part: on, face: 'n1.top' }, b: { part: inst.id, face: 'n1.bottom' } }]; });
-    const doc = { ...arm, instances, mates }, solved = solveDoc(doc), tables = tablesFor(solved.doc);
-    if (solved.problems.length) throw new Error(JSON.stringify(solved.problems));
+    const { solved, tables } = twelveLinkArm();
     return () => { const t = jointTreeOf(solved.doc, { instances: solved.doc.instances!, problems: [] }, tables); if (t.joints.length !== 11) throw new Error('joints'); return t; };
+  } },
+  // (RM2, O15: per slider move — forward kinematics of the 12-link arm, then its 11 moving links' meshes posed.)
+  { name: 'robot: forward kinematics, 12-link arm', budgetMS: BUDGET_FK, runs: 5, setup() {
+    const { tree } = twelveLinkArm(); let k = 0;
+    return () => { k++; const q = Object.fromEntries(tree.joints.map((j, i) => [j.key, 0.01 * k + 0.1 * i])); return forwardKinematics(tree, q); };
+  } },
+  { name: 'robot: posed preview, 11 moving links', budgetMS: BUDGET_POSED, runs: 5, setup() {
+    const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1); if (!r.ok) throw new Error('eval');
+    const shown = solved.doc.instances!.map(i => ({ id: i.id, bodies: r.bodies })); let k = 0;
+    return () => { k++; return posedInstances(shown, forwardKinematics(tree, Object.fromEntries(tree.joints.map(j => [j.key, 0.01 * k])))); };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

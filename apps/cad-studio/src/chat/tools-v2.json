@@ -24,6 +24,7 @@
        "insert",
        "snap",
        "joints",
+       "pose",
        "set_joints"
       ],
       "type": "string"
