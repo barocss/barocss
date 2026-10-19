@@ -2960,6 +2960,20 @@ try {
     await snap('r11-2a-subd-cube-shell');
   });
 
+  await check('R11.2b the SubD cube shelled 0.5 with its top opened (a file): the kept faces, their offset and the wall\'s ends along the opening — each kept face\'s normal band (refused before D111)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'subd-cube-open.bcad');
+    const cube = { positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10], faces: [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]] };
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'subd', name: 'SubD cube', cage: cube }, { id: 'n1', kind: 'shell', parent: { node: 0, side: 'solid' }, thickness: 0.5, open: ['n0.cap1_0', 'n0.cap1_1', 'n0.cap1_2', 'n0.cap1_3'] }] }));
+    await openModel(file, 2, 60000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    // (Conformance r11/shell-subd-cube-open-top: 85.040 mm³; the panel rounds to 1 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 85.04) <= 1, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-2b-subd-cube-open');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

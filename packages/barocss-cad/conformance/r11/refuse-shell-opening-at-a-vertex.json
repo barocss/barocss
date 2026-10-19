@@ -1,0 +1,105 @@
+{
+  "id": "r11-refuse-shell-opening-at-a-vertex",
+  "step": "R11",
+  "decisions": [
+    "D111"
+  ],
+  "about": "R11.2b: the SubD cube shelled 0.5 with two diagonal caps of its top opened: the opening touches itself at the top's centre vertex, where the wall's ends would meet.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              10,
+              0,
+              10,
+              10,
+              10,
+              10,
+              0,
+              10,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                3,
+                2,
+                1
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                0,
+                1,
+                5,
+                4
+              ],
+              [
+                1,
+                2,
+                6,
+                5
+              ],
+              [
+                2,
+                3,
+                7,
+                6
+              ],
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          }
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "s",
+          "thickness": 0.5,
+          "open": [
+            "s.cap1_0",
+            "s.cap1_2"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[OPENING_AT_A_VERTEX]"
+    }
+  },
+  "oracle": "Refused by name (this kernel)."
+}

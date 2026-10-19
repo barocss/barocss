@@ -77,11 +77,10 @@ test('R11.2a SubD bodies shelled closed: their cavity Steiner\'s, within the are
   }
 });
 
-test('R11.2a refused by name: a wall past the tightest curvature (the cube\'s caps 1.480 mm, on their boundary), a membrane thinner than twice the wall, an opened face', () => {
+test('R11.2a refused by name: a wall past the tightest curvature (the cube\'s caps 1.480 mm, on their boundary), a membrane thinner than twice the wall', () => {
   const shell = (cage, t, open) => [{ id: 's', kind: 'subd', cage }, { id: 'sh', kind: 'shell', target: 's', thickness: t, ...(open ? { open } : {}) }];
   // (Interior samples alone found 1.509 at S0, D105; the tightest lies on a cap's side beside its extraordinary corner.)
   refused(shell(CUBE, 1.49), 'CAPABILITY', /\[OFFSET_FOLDS\] face s\.cap\d_\d curves more tightly than the wall .*its radius there 1\.4801\d mm, the wall 1\.49 mm/);
   refused(shell(wheel(6, 4.5), 0.6), 'CAPABILITY', /\[WALL_TOO_THIN\] the wall of 0\.6 mm inside face s\.patch\d+_\d+ comes 0\.[0-5]\d* mm from face s\.patch\d+_\d+: the body is thinner than twice the wall/);
-  const face = out([{ id: 's', kind: 'subd', cage: CUBE }]).brep.faces[0].name;
-  refused(shell(CUBE, 0.5, [face]), 'CAPABILITY', /opening a face of a smooth freeform body .* is not supported yet \(R11\.2b\)/);
+  // (An opened face was refused here until R11.2b, D111: r11-2b.test.mjs.)
 });

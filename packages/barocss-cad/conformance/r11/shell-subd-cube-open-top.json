@@ -1,0 +1,133 @@
+{
+  "id": "r11-shell-subd-cube-open-top",
+  "step": "R11",
+  "decisions": [
+    "D111"
+  ],
+  "about": "R11.2b: the SubD cube shelled 0.5 with its top (4 caps) opened: the kept faces, their offset turned inside out and the wall's ends along the opening, no Boolean (refused before D111).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              10,
+              0,
+              10,
+              10,
+              10,
+              10,
+              0,
+              10,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                3,
+                2,
+                1
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                0,
+                1,
+                5,
+                4
+              ],
+              [
+                1,
+                2,
+                6,
+                5
+              ],
+              [
+                2,
+                3,
+                7,
+                6
+              ],
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          }
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "s",
+          "thickness": 0.5,
+          "open": [
+            "s.cap1_0",
+            "s.cap1_1",
+            "s.cap1_2",
+            "s.cap1_3"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 85.03957528775233,
+          "relTol": 0.000021
+        },
+        "centroidMM": {
+          "value": [
+            5.000000000000195,
+            5.000000000001515,
+            4.330966421741442
+          ],
+          "absTol": 0.001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "The wall is the union of the kept faces' normal bands, each of volume ∫∫ (t − Ht² + Kt³/3) dA (H > 0 convex; the bands of a smooth body meet only along the normals at their common edges); kept area 191.610405 mm², by 8 × 8 Gauss–Legendre on halves of the limit surface's knot spans (the formula is implementation-independent; the integrals are of this kernel's limit surface). The tolerance is the fit's accuracy contract: kept area × 1e-6 of the body's size. Centroid from this kernel."
+}

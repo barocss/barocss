@@ -47,7 +47,7 @@ import { combineMassProperties, prismaticMassProperties, brepMassProperties, bre
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
-import { offsetCavity, smoothClosedBody } from './offset-cavity.js';
+import { offsetCavity, offsetShell, smoothClosedBody } from './offset-cavity.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -1465,8 +1465,8 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
     catch (cause) {
       // A closed body of freeform faces meeting smoothly (a SubD body): its cavity, its faces offset (R11.2a, D110).
       if (cause instanceof BrepError && /freeform faces joined to others/.test(cause.message) && smoothClosedBody(body)) {
-        if (open.length) fail('CAPABILITY', `opening a face of a smooth freeform body (${open.join(', ')}) is not supported yet (R11.2b): shell it closed`);
-        try { return { kind: 'brep', brep: withCavities(body, offsetCavity(body, t, `${at}_in`).cavity, { family: 'shell', id: at }) }; }
+        // Opened faces (R11.2b, D111): the kept faces, their offset and the wall's end at the opening's edges.
+        try { return { kind: 'brep', brep: open.length ? offsetShell(body, t, new Set(open), at, at).shell : withCavities(body, offsetCavity(body, t, `${at}_in`, at).cavity, { family: 'shell', id: at }) }; }
         catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
       }
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
