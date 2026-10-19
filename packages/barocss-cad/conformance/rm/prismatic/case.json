@@ -1,0 +1,182 @@
+{
+ "case": "prismatic",
+ "step": "RM1",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      100,
+      40
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      20,
+      20
+     ],
+     "radius": 5,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      80,
+      20
+     ],
+     "radius": 5,
+     "id": "n3"
+    }
+   ],
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   },
+   "nextId": 4,
+   "instances": [
+    {
+     "id": "slider",
+     "name": "slider",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "id": "n1"
+       }
+      ],
+      "outputs": {
+       "b1": {
+        "node": 1,
+        "side": "solid"
+       }
+      },
+      "nextId": 2
+     },
+     "position": [
+      0,
+      0,
+      30
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "mates": [
+    {
+     "id": "m1",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.top"
+     },
+     "b": {
+      "part": "slider",
+      "face": "n1.bottom"
+     }
+    },
+    {
+     "id": "m2",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.side0"
+     },
+     "b": {
+      "part": "slider",
+      "face": "n1.side0"
+     },
+     "flip": true
+    }
+   ],
+   "robot": {
+    "version": 1,
+    "joints": {
+     "base~slider": {
+      "lower": 0,
+      "upper": 80,
+      "effort": 10,
+      "velocity": 50
+     }
+    }
+   }
+  }
+ },
+ "expect": {
+  "base": "base",
+  "links": [
+   "base",
+   "slider"
+  ],
+  "joints": [
+   {
+    "key": "base~slider",
+    "type": "prismatic",
+    "parent": "base",
+    "child": "slider",
+    "axis": [
+     1,
+     0,
+     0
+    ],
+    "origin": [
+     0,
+     0,
+     10
+    ]
+   }
+  ],
+  "loops": [],
+  "problems": [],
+  "couplings": 0
+ }
+}

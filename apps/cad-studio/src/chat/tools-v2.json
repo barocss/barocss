@@ -22,7 +22,9 @@
        "edit_mate",
        "delete_mate",
        "insert",
-       "snap"
+       "snap",
+       "joints",
+       "set_joints"
       ],
       "type": "string"
      }

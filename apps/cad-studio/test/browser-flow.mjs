@@ -3819,6 +3819,21 @@ try {
     await snap('a5-cli');
   });
 
+  // ---- RM1 (O14): the joint tree -----------------------------------------------------------------------------------
+  await check('RM1: an assembly opened — the Joints card reads its mates as a continuous joint about +Z; the base link moved to the arm', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/revolute/case.json'), 'utf8')), file = join(out, 'revolute.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 1, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joints"] [aria-label="Joint base~arm"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Joint base~arm"]').innerText(), /Base part → arm\s+Continuous \+Z/);
+    await page.selectOption('[aria-label="Base link"]', 'arm');
+    await page.waitForFunction(() => window.__studioDoc.robot?.base === 'arm', null, { timeout: 10000 });
+    assert.match(await page.locator('[aria-label="Joint base~arm"]').innerText(), /arm → Base part/);
+    await snap('rm1-joints');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

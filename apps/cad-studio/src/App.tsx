@@ -40,6 +40,8 @@ import { resolveNames, type NameSelection } from './chat/names';
 import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
+import { JointsPanel } from './ui/JointsPanel';
+import { jointTreeOf } from './robot/joints';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
@@ -60,7 +62,7 @@ import { explodeOffsets, movedBody } from './assembly/explode';
 import { flattenAssembly } from './assembly/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from './assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
-import type { Mate } from './assembly/mates';
+import { BASE, type Mate } from './assembly/mates';
 import type { DirectGeometry } from './engine/direct';
 import { directNow, loadDirect } from './engine/directModule';
 import { stepLengthUnit } from './engine/stepUnits';
@@ -510,6 +512,9 @@ export function App() {
     setDoc({ ...doc, instances, mates }); setDirty(true);
   }, [doc, marker]);
   const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
+  // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
+  const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
+    p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
   const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
@@ -1856,6 +1861,8 @@ export function App() {
           onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
+      {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanel tree={jointTree} instances={doc.instances ?? []}
+        onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <Suspense fallback={null}><DirectPanel direct={doc.direct} selected={directSel}

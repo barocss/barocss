@@ -24,6 +24,9 @@ import { toleranceSuggestions } from '../../src/drawing/tolerance';
 import { defaultDrawing } from '../../src/drawing/types';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
 import { parse as parseScript } from '../../src/chat/script';
+import { jointTreeOf } from '../../src/robot/joints';
+import { solveDoc } from '../../src/chat/assembly';
+import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
 import { withLook } from '../../src/app/bodies';
 import { emptyDoc } from '../../src/engine/doc';
@@ -97,6 +100,8 @@ const BUDGET_AUTO_LAYOUT = 100;
 const BUDGET_SUGGESTIONS = 5;
 /** run_script (A5.2, O10): the parse alone (1.2 ms measured), and a 12-call part (231 ms; the evaluations are most of it): about ×3. */
 const BUDGET_SCRIPT_PARSE = 4, BUDGET_SCRIPT_RUN = 700;
+/** RM1: the joint tree of a 12-link arm (0.27 ms measured; about ×3). */
+const BUDGET_JOINT_TREE = 1;
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -179,6 +184,17 @@ const scenarios: Scenario[] = [
     let k = 0;
     return () => dispatchTool({ doc: emptyStudioDoc(), bodies: [] }, 'run_script', { source: `const p = box({w: ${120 + 1e-3 * ++k}, d: 40, h: 8})\nfor (const i of range(10)) { hole(p.top, {d: 5, x: 10 + 10 * i, y: 20}) }\nfillet([edge(p.top, p.side0)], {radius: 1})` }, async d => evaluateDoc(d, 1))
       .then(r => { if (r.isError) throw new Error(r.content); return r; });
+  } },
+  // (RM1, O14: the joint tree after an assembly change — a 12-link serial arm, every pair revolute; solved once outside.)
+  { name: 'robot: joint tree, 12-link serial arm', budgetMS: BUDGET_JOINT_TREE, runs: 5, setup() {
+    const hole = (doc: StudioDoc, c: [number, number]) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: 5 } as never);
+    const arm = hole(hole(rectanglePart(60, 20, 5), [10, 10]), [50, 10]);
+    const instances = Array.from({ length: 11 }, (_, k) => ({ id: `a${k}`, name: `a${k}`, doc: arm, position: [0, 0, 10 + 10 * k] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }));
+    const mates = instances.flatMap((inst, k) => { const on = k ? `a${k - 1}` : 'base', far = k ? 'n3.side0' : 'n2.side0';
+      return [{ id: `c${k}`, kind: 'concentric' as const, a: { part: on, face: far }, b: { part: inst.id, face: 'n2.side0' } }, { id: `f${k}`, kind: 'coincident' as const, a: { part: on, face: 'n1.top' }, b: { part: inst.id, face: 'n1.bottom' } }]; });
+    const doc = { ...arm, instances, mates }, solved = solveDoc(doc), tables = tablesFor(solved.doc);
+    if (solved.problems.length) throw new Error(JSON.stringify(solved.problems));
+    return () => { const t = jointTreeOf(solved.doc, { instances: solved.doc.instances!, problems: [] }, tables); if (t.joints.length !== 11) throw new Error('joints'); return t; };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {
