@@ -4972,3 +4972,33 @@ The coordinator accepted D106 and asked for vertex fills first, then concave pla
 - **Not fixed (TODO, Boolean robustness):** the notched box at t 2.9–3.1 fails, untyped ("not a manifold solid"), as on HEAD. Three slabs' bounding planes meet along one short edge there (x = A − t, y = b + t, z from c + 1.37t to C − t). t 2.5 and t 3.5 build exactly.
 - **Next:** R11.1 is done apart from that TODO. The note's remaining R11.1 items are typed refusals for slabs that cannot be made, and the history route for variable-radius fillets (r(s) − t on the same spine). Then R11.2.
 - Checks: lint and type-check clean; kernel 1145/1150 (only the env-only Split test fails); conformance 110/110; studio 429/429; full flow 146/146 (new step: the notched box shelled 2; also the first full flow on the R14.5 merge 519606e7e, every R14 and drawing step passing). RB rows in the next commit.
+
+## D108 — R11.1c: the rest of R11.1 — the wall's union retried, typed refusals, shells past a variable-radius fillet (2026-10-20)
+
+The coordinator asked to finish R11.1 before R11.2: the typed refusals and the variable-radius history route, and the notched box's untyped failure at t 2.9–3.1, which counts as a defect.
+
+- **The notched box at t 2.9–3.1.** The wall's union fails in one order only.
+  - Bisected to four slabs: the end face's, the top's, the notch floor's and one notch wall's. No pair or triple of them fails.
+  - Of the 24 orders of those four, the 6 that add the wall's slab last, after the other three, fail. So do the in-order union of all nine and a retry that defers the failing slab to the end.
+  - The union of the other three leaves a convex edge of the end slab 0.89 mm long, between the floor slab's outer face and the top slab's inner face. The wall's slab swallows that edge whole, and the analytic Boolean reports an edge with one use.
+  - The root, in the analytic Boolean, is not traced; it is a TODO, with that repro.
+  - **Fix:** `joined()` unions the slabs in order. Only where the analytic Boolean fails a step does it retry the same union by halves, then in the reverse order. Union is associative, so the result is the same solid; only the intermediate meetings differ. Every case that built before is bit-identical, since the in-order union is tried first.
+  - The sweep t 2.5–5, in steps down to 0.05 across 2.9–3.1, is exact to 7e-16 against the cube erosion. Conformance `r11/shell-notched-corner-t3`.
+- **Typed refusals.** `generalShell` turns every failure into a typed refusal (`CAPABILITY`):
+  - Refusals by name (`CAPABILITY: shell: …`) pass through.
+  - Any other failure (a profile builder's error, or an analytic Boolean that cannot close the result) becomes `[SHELL_NOT_CLOSED] a wall of t mm cannot be closed on this body: <cause>`.
+  - A union that fails in every order tried becomes `[SHELL_WALL_UNION]`. No test reaches either one now; the wrapper is there so that none can leave untyped.
+  - **`[WALL_NEAR_RADIUS]`:** a convex round face (a cylinder, or a sphere or torus meridian) whose radius the wall all but reaches is refused. Its offset would be a core under 0.01 mm across, below the kernel's least arc; HEAD built a rod r 2 at t 1.995 with a 0.005 mm core.
+  - r − t is snapped to 0 within the model tolerance, so a wall of exactly the radius is all wall. The rod's recognised radius is 2 + 4.4e-16; at first that read as just short. t 2 and t 1.99 are the closed forms.
+- **The variable-radius history route.** A body with a variable-radius fillet now keeps its shell history: `Finish.radii`, with conic and G2 still excluded. Its hollow is rounded on the same spine with radius r(s) − t.
+  - For a straight chain (its edges on one line) with a linear law (two radii), the hollow chain's ends take the outer law's value less the wall. The ball's planes are the same along a straight line, so this is exact.
+  - The wall at or past the radius all along leaves the hollow's edge sharp.
+  - Refused by name (`[SHELL_VARIABLE_RADIUS]`):
+    - the radius falling to the wall partway (the hollow's round would run out there);
+    - three or more radii (Fritsch–Carlson end slopes depend on the outer knots, so the hollow chain's law is not the outer one less t);
+    - a curved chain (its arc length differs from the outer one's).
+  - Closed form, the box edge rounded 2 → 4 (and 3 → 5), open below and closed: (1 − π/4)∫r² for the round, (1 − π/4)∫(r − t)² over the hollow's edge. Exact to 1.6e-14.
+  - Conformance `r11/shell-variable-radius-box-edge`; a flow step.
+- Evidence: `test/r11-1c.test.mjs` (new). Each case fails on HEAD 44399c726: untyped there; built there with its core; or refused by "no shell history" there.
+- **R11.1 is done.** The note's R11.1 also listed a fillet radius below the wall giving a sharp inner corner, which already holds on the history route (`part-model.test`: a fillet of 1 under a wall of 2 leaves the hollow sharp). Next: **R11.2**, offset sheets (D105's verdict).
+- Checks: lint and type-check clean; kernel 1150/1155 (only the env-only Split test fails); conformance 112/112; studio 429/429; full flow 147/147 (new step: the box edge rounded 2 → 4, shelled). RB rows in the next commit.

@@ -1,0 +1,120 @@
+{
+  "id": "r11-shell-variable-radius-box-edge",
+  "step": "R11",
+  "decisions": [
+    "D108"
+  ],
+  "about": "R11.1c: a box edge rounded 2 → 4 (a variable radius, linear), shelled 1 open at the bottom: the hollow's edge rounded r(s) − t on the same spine (refused before D108: no shell history past a variable radius).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 20
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top"
+          ],
+          "radii": [
+            {
+              "at": [
+                0,
+                0,
+                20
+              ],
+              "radius": 2
+            },
+            {
+              "at": [
+                40,
+                0,
+                20
+              ],
+              "radius": 4
+            }
+          ]
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 1,
+          "open": [
+            "e.bottom"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3738.9547168274003,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            19.960656810061877,
+            15.179485978143015,
+            12.584181195824687
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face",
+          "sh.ceiling",
+          "sh.in.e.side0",
+          "sh.in.e.side1",
+          "sh.in.e.side2",
+          "sh.in.e.side3",
+          "sh.in.f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: a round of radius r takes (1 − π/4) r² of the section; the box less (1 − π/4) ∫₀⁴⁰ (2 + x/20)² dx, the hollow box (38 × 28 × 19 within the body, open below) less (1 − π/4) ∫₁³⁹ (1 + x/20)² dx. Centroid from this kernel."
+}

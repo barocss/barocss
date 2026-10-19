@@ -2919,6 +2919,23 @@ try {
     await snap('r11-1b-notched-box-shell');
   });
 
+  await check('R11.1c a box edge rounded 2 → 4 then shelled 1 open at the bottom (a file): the hollow\'s edge rounded r(s) − 1 on the same spine — its volume the closed form (refused before, D107)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'variable-radius-shell.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 4, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 },
+      { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2, radii: [{ at: [0, 0, 20], radius: 2 }, { at: [40, 0, 20], radius: 4 }] },
+      { id: 'n3', kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 1, open: ['n1.bottom'] }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    // (Conformance r11/shell-variable-radius-box-edge: the box less its round, (1 − π/4) ∫ r², less the hollow box less its round, (1 − π/4) ∫ (r − 1)².)
+    const k = 1 - Math.PI / 4, I = (a, b, x0, x1) => { const m = (b - a) / 40; return ((a + m * x1) ** 3 - (a + m * x0) ** 3) / (3 * m); };
+    const exact = 24000 - k * I(2, 4, 0, 40) - (38 * 28 * 19 - k * I(1, 3, 1, 39)), vol = await bodyVolume();
+    assert.ok(Math.abs(vol - exact) <= 1, `${vol} vs ${exact}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-1c-variable-radius-shell');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
