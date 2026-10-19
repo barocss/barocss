@@ -3452,6 +3452,39 @@ try {
     assert.equal(count(gk, 'LWPOLYLINE'), 1); assert.equal(gk[gk.findIndex(([k, v]) => k === 9 && v === '$EXTMAX') + 1][1], '64.0');
   });
 
+  // ---- R14.1 (O2): Auto-dimension -------------------------------------------------------------------------------
+  await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      const texts = async () => (await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text).sort();
+      // One placed by hand first: the overall width.
+      const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -30);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 1, null, { timeout: 5000 }); await press('Escape');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6, null, { timeout: 5000 });
+      assert.deepEqual(await texts(), ['16', '32', '32', '64', '8', 'Ø8 THRU']);
+      await page.waitForFunction(() => /5 dimensions placed/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+      const saved = (await doc()).drawing.dimensions;
+      assert.equal(saved.filter(d => d.auto).length, 5); assert.equal(saved.filter(d => !d.auto).length, 1);
+      // Again: the same set (its own replaced, yours kept).
+      await page.click('[aria-label="Auto-dimension"]'); await page.waitForTimeout(300);
+      assert.deepEqual(await texts(), ['16', '32', '32', '64', '8', 'Ø8 THRU']);
+      await snap('r14-auto-dimension');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

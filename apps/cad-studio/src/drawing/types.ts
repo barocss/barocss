@@ -16,8 +16,12 @@ export type XY = [number, number];
 export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3; sig?: Sig; was?: string }
 /** A dimension's tolerance: ± one value, an upper and a lower deviation, or a fit (H7, h6, …). */
 export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviation'; upper: number; lower: number } | { kind: 'fit'; code: string };
-/** `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance. */
-export type DrawingDimension = ({ tol?: Tolerance }) & (
+/**
+ * `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance.
+ * `count` (R14.1, O2): it stands for that many — a diameter for as many equal holes (`4× Ø6.6 THRU`), a linear dimension
+ * for as many equal spaces of a row (`3× 20`). `auto`: placed by Auto-dimension (which replaces only its own).
+ */
+export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true }) & (
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
   | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
@@ -83,7 +87,8 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)).map(x => {
-      const { tol, ...rest } = x; const t = readTolerance(tol); return (t ? { ...rest, tol: t } : rest) as DrawingDimension;
+      const { tol, count, auto, ...rest } = x; const t = readTolerance(tol);
+      return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}) } as DrawingDimension;
     }) : [],
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
   };

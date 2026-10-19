@@ -50,7 +50,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
     groups.push({ role: 'view', view: id, marks });
   }
-  const dimensions = settings.dimensions.map(d => resolveDimension(views, d)).map(r => r.ok && r.kind === 'diameter' && meta.callout ? { ...r, text: meta.callout(r.dim.edge) ?? r.text } : r);
+  const dimensions = settings.dimensions.map(d => resolveDimension(views, d)).map(r => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
   for (const r of dimensions) if (r.ok) groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views[r.dim.view], r) });
   for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
   // Each view's name under it, below any dimension placed under the view.
@@ -70,6 +70,15 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, y1 + 7], text: 'SECTION A–A', size: 2.5, anchor: 'middle' }] });
   }
   return { size: [W, H], groups, dimensions };
+}
+
+/**
+ * What a dimension reads: a diameter on a hole its callout, and `count` before it (`4× Ø6.6 THRU`, `3× 20`) in
+ * place of a callout's own count (R14.1, O2).
+ */
+export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string) => string | null): string {
+  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge) : null) ?? r.text;
+  return r.dim.count ? `${r.dim.count}× ${base.replace(/^\d+× /, '')}` : base;
 }
 
 export function curveMark(v: ViewPlacement, c: ProjectedCurve, pen: Pen): Mark {

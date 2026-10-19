@@ -13,6 +13,7 @@ import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
+import { autoDimensions } from '../drawing/auto';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
@@ -295,6 +296,16 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     const missing = pdfMissing(sheet);
     if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
   };
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  /** Auto-dimension (R14.1, O2): its own earlier dimensions replaced, those placed by hand kept; what it left out said. */
+  const autoDimension = () => {
+    if (!views || !layout) return;
+    const { dimensions, report } = autoDimensions(views, layout, settings, callout);
+    onChange({ ...settings, dimensions });
+    const a = report.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
+    const notes = [...report.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.crowded.map(x => `${x.side} the ${x.view} view needs ${x.neededMM} mm, has ${x.roomMM}: a larger sheet or a smaller scale gives it room`)];
+    onToast({ title: `${n} dimension${n === 1 ? '' : 's'} placed`, hint: `${a.overall} overall, ${plural(a.levels, 'step')}, ${plural(a.holePositions + a.pitches, 'hole position')}, ${plural(a.callouts, 'callout')}${report.kept ? `; ${report.kept} of yours kept` : ''}.`, detail: notes.join('\n') });
+  };
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
   const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
   const exportDxf = () => {
@@ -414,7 +425,8 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
           </>; })()}
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
 
-        <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span></div>
+        <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
+          <button className="ghost small" disabled={!views || !layout} onClick={autoDimension} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Overall sizes, steps, hole positions and callouts from the part: replaces its own earlier ones, keeps yours">Auto</button></div>
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => { setSelected(r.dim.id); setTool('select'); }}>

@@ -1,0 +1,107 @@
+{
+ "id": "r14-l-plate",
+ "step": "R14.1",
+ "decisions": [
+  "O2"
+ ],
+ "about": "an L-shaped plate: its steps across and along in the top view, from the left and front edges",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       60,
+       0
+      ],
+      [
+       60,
+       20
+      ],
+      [
+       30,
+       20
+      ],
+      [
+       30,
+       40
+      ],
+      [
+       0,
+       40
+      ]
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 15,
+     "id": "n1"
+    }
+   ],
+   "nextId": 2,
+   "outputs": {
+    "b1": {
+     "node": 1,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {}
+ },
+ "expect": {
+  "dimensions": [
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "60"
+   },
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "15"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "30"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "20"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "40"
+   }
+  ],
+  "added": {
+   "overall": 3,
+   "levels": 2,
+   "holePositions": 0,
+   "pitches": 0,
+   "callouts": 0
+  },
+  "skipped": [],
+  "crowded": []
+ },
+ "oracle": "the part’s design values (round numbers), checked by hand against the definitions in decisions-outer.md O2; run by apps/cad-studio/test/auto-dimension.test.ts"
+}

@@ -10,7 +10,8 @@ const same = (a: readonly unknown[], b: readonly unknown[]) => n(a[0]) === n(b[0
 /** The callout of the hole whose round face an edge (by its name) bounds, or null for any other edge. */
 export function holeCallout(nodes: readonly ModelNode[], edge: string): string | null {
   let i = -1;
-  for (const m of edge.matchAll(/\b(n\d+)\.side\d+/g)) { const k = nodeIndexOf(nodes, m[1]); if (nodes[k]?.kind === 'hole') { i = k; break; } }
+  // (A pattern's copies are named `n<k>_p<j>`: the callout is the hole's, the count its pattern's.)
+  for (const m of edge.matchAll(/\b(n\d+)(?:_p\d+)?\.side\d+/g)) { const k = nodeIndexOf(nodes, m[1]); if (nodes[k]?.kind === 'hole') { i = k; break; } }
   if (i < 0) return null;
   // A counterbore is the second, wider hole on the first's centre: the callout is the first's.
   const prev = nodes[i - 1], cur = nodes[i];

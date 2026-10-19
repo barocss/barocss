@@ -17,6 +17,7 @@ import { projectViews } from '../../src/drawing/project';
 import { layoutSheet } from '../../src/drawing/views';
 import { buildSheet } from '../../src/drawing/sheet';
 import { sheetDxf } from '../../src/drawing/dxf';
+import { autoDimensions } from '../../src/drawing/auto';
 import { defaultDrawing } from '../../src/drawing/types';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
 import { withLook } from '../../src/app/bodies';
@@ -81,6 +82,8 @@ let uuidSeq = 0;
 const benchUuid = () => `00000000-0000-4000-8000-${(++uuidSeq).toString(16).padStart(12, '0')}`;
 /** R11b (O1), 2026-10-19: about twice the first measurement. */
 const BUDGET_DXF_2000 = 8, BUDGET_DXF_R12 = 20;
+/** R14.1 (O2), 2026-10-19: about twice the first measurement. */
+const BUDGET_AUTO_DIMENSION = 16;
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -120,6 +123,14 @@ const scenarios: Scenario[] = [
     const settings = defaultDrawing(), layout = layoutSheet(r.views, settings), sheet = buildSheet(r.views, layout, settings, { title: 'bench', date: '2026-10-19' });
     return () => sheetDxf(sheet, layout, version);
   } })),
+  // (R14.1, O2: Auto-dimension on the 120-hole plate's views: 12 × 10 positions as two pitch rows, one callout.)
+  { name: 'drawing: auto-dimension, 120-hole plate', budgetMS: BUDGET_AUTO_DIMENSION, runs: 3, setup() {
+    const f: unknown[] = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [240, 120] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+    let t = 'e'; for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) { const id = `h${i}_${j}`; f.push({ id, kind: 'hole', target: t, center: [10 + 20 * i, 6 + 12 * j], radius: 2 }); t = id; }
+    const r = projectViews([evaluateCadPart(D(f)).outputs[0].brep]); if (!r.ok) throw new Error('views');
+    const settings = defaultDrawing(), layout = layoutSheet(r.views, settings);
+    return () => autoDimensions(r.views, layout, settings, () => null);
+  } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {
     // (Each run a fresh document, as after an edit; its evaluation done here, outside the time.)
