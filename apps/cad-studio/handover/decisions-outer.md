@@ -324,3 +324,143 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Browser flow 149/149, with the new step "A5.2" (just before the last step) through the real chat and tool servers with the scripted agent: a plate, a loop of three holes and a fillet in one call (6 nodes, one Undo takes it all back); a refused second line applies nothing and names line 2.
   - Bench: parsing a 6k-character script takes 1.16 ms (budget 4); a plate with 10 holes in a loop and a fillet, 12 calls each evaluated, takes 231 ms (budget 700).
 - **Deferred**: `script_of(doc)`, writing a part back as a script. It is not needed for A5.5's A/B, and it comes later if the A/B shows value.
+
+## O11 — A5.3: the consolidated tools (`barocss-cad-tools-v2`) (2026-10-20)
+
+- **What** (`src/chat/groups.ts`, `src/chat/toolset.ts`):
+  - **13 tools**, each taking an `action` beside the arguments of the v1 tool it stands for:
+    - `model` (run_script; its one action may be left unsaid);
+    - `features` (command, add, edit, delete, batch);
+    - `query` (summary, inspect, measure, mass, interference, section, wall, draft, render, select);
+    - `history`, `requirements`, `proposals`, `assembly`, `library`, `print`, `drawing`, `subd`, `image`;
+    - `describe`.
+    - Every v1 tool is exactly one action (a test checks it).
+  - **One tool layer**: a v2 call is translated to its v1 call at the dispatcher's two entry points (gated `runTool`, ungated `dispatchTool`), so results, refusals and the autonomy/approval gates are the v1 ones. Ops in `features.batch` and `proposals.propose` may name v2 tools; they are kept as the v1 call, so a proposal replays the same whichever list proposed it.
+  - **The v1 names stay callable** (aliases) from either list until A5.5 decides. No v2 name is also a v1 name.
+  - **`describe`** gives what the short list leaves out, on request:
+    - the tools and their actions;
+    - an action's full v1 description and input schema;
+    - a command's selection and values (from the same docs run_command lists);
+    - a feature kind's node JSON (the add_features lines for that kind).
+    - The `features` description names every command and feature kind, and a test describes each one.
+  - **Annotations** from the actions: read only if every action is (`query`, `describe`); destructive if any is; idempotent if all are. v2 declares no output schemas (a group's shapes differ). A read action whose v1 tool has an output schema still returns `structuredContent`.
+  - **The system prompt for v2** is the v1 prompt with each tool written as `group.action`, plus one line on `action` and `describe`:
+    - names with an underscore are mapped as words;
+    - the few one-word tool names only in the phrases that name the tool, so "propose it" and similar English words stay English.
+  - **Switch**: `CAD_TOOLSET=v2` makes the chat server list the v2 tools (`--allowedTools`) with the v2 prompt and pass the set to the MCP server. The MCP server lists them and answers `initialize` with `barocss-cad-tools-v2`. **v1 stays the default** until the A/B.
+  - **Frozen** in `src/chat/tools-v2.json` with the same breaking-change rules as v1 (an action removed narrows the enum: breaking). tools-v1.json is unchanged.
+- **Sizes** (what a model reads every turn):
+  - **v2 tools/list 10 985 characters** (target ≤ 15k), against v1's 79 171;
+  - **system prompt v2 7 094**, against v1's 6 870 (+224: names with a group, one line);
+  - **per turn 86 041 → 18 079 characters (−79 %)**.
+  - The biggest v2 tool is `model` (2 476, the script language); `features` is 1 451 with every command and feature kind named.
+- **Evidence**:
+  - `test/toolset.test.ts` (9 tests):
+    - the sizes;
+    - every v1 tool is one action, and the v2 prompt names only v2 tools that exist;
+    - the frozen v2 contract and an action removal flagged as breaking;
+    - v2 calls give byte-identical results to their v1 calls, and unknown or missing actions are refused with the list;
+    - `describe` in all its forms, and for every listed command and feature kind;
+    - the gates (L2 `needs_proposal`), a v2 op kept as `run_command` and replayed on accept, a v2 batch;
+    - the MCP server in v2 (contract version, 13 tools, v2 and v1 calls, structured content, `query.select` saving the selection);
+    - the chat server's arguments per set;
+    - the replay hook.
+  - Browser flow 151/151, with the new step "A5.3" (just before the last step): a v2 chat server; the scripted agent calls describe, model, features.edit, query.mass and the v1 mass_properties in one turn; the part built, every call answered.
+  - **The whole studio suite replayed through v2**: `CAD_TOOLS_VIA_V2=1` sends every v1 call (tests, ops, proposals) as its v2 call. **462/462**, the same as without it, which covers every chat, proposal, assembly, drawing and cage test (O8's acceptance).
+  - Bench: all 45 rows within budget (dispatch adds one table lookup a call; run_script 12 calls 238 ms, check_spec 24 ms).
+- **Deferred to A5.5**: which list is the default, and whether the v1 aliases go. That is a measured decision (pass rate, calls, tokens), not a size one.
+
+## O12 — A5.4: the external MCP server (`cad-mcp --doc`) and the CLI (`cad-cli`) (2026-10-20)
+
+- **`cad-mcp --doc part.bcad [--toolset v1|v2] [--autonomy 1–4] [--libraries dir]`** (`server/cadDoc.ts`, `scripts/cad-mcp.mjs`, `pnpm mcp`):
+  - serves the studio's tools over stdio to any MCP client (Claude Code, Claude Desktop) for as long as the client keeps it. An MCP config entry is `{"command": "node", "args": ["<repo>/apps/cad-studio/scripts/cad-mcp.mjs", "--doc", "<abs>/part.bcad"]}`.
+  - **One tool layer** with the chat: `serveMcp` now takes a store, either the chat server's per-turn state file (as before) or the document. The calls, results, gates and both tool lists are the same.
+  - **Saves each change at once, atomically**: a temporary file beside it, renamed over it, so a reader sees the old file or the new one. Mesh blobs are saved in the container (`encodeStudioFile`); a part without them is plain JSON, as the studio saves. A read writes nothing; reopening without a change leaves the file byte-identical. A change the file cannot take (a missing folder, a blob not loaded) is answered as an error, `Not saved: …`.
+  - A file that does not exist yet is a new, empty part, written on the first change.
+  - **Local files only**: a path with a URL scheme is refused (a drive letter is fine), and so is one that is not `.bcad`/`.json`. The tools touch no other file.
+  - **Autonomy as in the studio** (default L2; one MCP session is one turn, its base the file as opened):
+    - an empty part is built directly, values are edited directly, and the rest is proposed;
+    - proposals stay in the file for the user to accept in the studio (assemblies, drawings and locked parts always need that);
+    - `--autonomy 3|4` lets the agent accept its own, as in the studio.
+  - stdout carries only the protocol; usage errors go to stderr with exit code 2.
+- **`cad-cli`** (`server/cadCli.ts`, `scripts/cad-cli.mjs`, `pnpm cli`), for batch work and CI:
+  - `run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]` runs a run_script script on base.bcad or an empty part and writes what is asked.
+    - STL is one file per body when there are several (`part-b1.stl`, …): the kernel's writer, else the display mesh.
+    - It prints a JSON summary (calls, names, facts, files written, checks).
+  - `check part.bcad` runs a saved part's requirements.
+  - The person running it is the author, so no autonomy gate applies.
+  - **Exit codes**: 0 done; 1 the script or a tool refused (printed `file:line:col: [CODE] reason`, nothing written); 2 usage; 3 a hard requirement fails.
+- **The script language gains `requirements([...])`** (set_requirements), so a script carries what it must meet and `--check` gates CI on it. It is a compatible addition to `barocss-cad-script-v1`, and the contracts are unchanged (descriptions are not frozen).
+- **Sizes after it**: v1 tools/list 79 259, v2 11 073; prompts 6 870 / 7 094.
+- **Evidence**:
+  - `test/cad-external.test.ts` (6 tests):
+    - **cad-mcp spawned as a client would** (the real script, stdio): initialize, list, run a script, the file saved on the change and not on a read, no temporary file left. A second session (v2) reopens the file and finds the same facts, and the file is byte-identical.
+    - A container with mesh blobs: changed, saved with its blobs, read back whole.
+    - The options (local files only, the flags), and the real script's usage error (exit 2, stdout empty).
+    - A save failure reported as `Not saved`.
+    - **cad-cli** in process: .bcad, STEP (`ISO-10303-21`) and binary STL (its size from its triangle count); `--check` passing and failing (exit 3); `check`; a refused line (exit 1, nothing written); `--doc` and `--dry-run`; one STL per body; the usage errors.
+    - cad-cli spawned for real.
+  - Conformance `a5/requirements-in-script`.
+  - Studio 468/468, and 468/468 replayed through v2. Browser flow 152/152, with the new step "A5.4" (just before the last step): a part written by cad-cli from a script (with `--check`) opens in the studio with its five features, one body and its requirement.
+- **Pending (reversible default taken)**: cad-mcp's default autonomy is L2, the studio's. An owner who drives the agent from their own client may want L4 by default; it is one flag today.
+- **Not in A5.4**: editing one file from the studio and cad-mcp at once (the last writer wins; the studio does not watch files). That belongs to the document service (out of A5, O8).
+
+## O13 — A5.5: the A/B harness, dry-run with the scripted agent (2026-10-20)
+
+- **What** (`server/ab/briefs.ts`, `server/ab/harness.ts`, `server/ab/main.ts`, `scripts/ab.mjs`, `pnpm ab`):
+  - **Arms**:
+    - **json**: the v1 tools without run_script, and the prompt without its paragraph (today's tools before A5.2; `CAD_TOOLSET=json`);
+    - **hybrid**: the v2 tools with `model.run` (A5.3).
+  - **Briefs**: 10 single-part rungs of the RB9 ladder, each with 3 parameter variants (run k takes variant k):
+    - block-hole, washer, phone-stand (RB9.3), machined-plate (RB9.4), l-bracket (RB9.5);
+    - flange, open-box (RB9.8), pcb-enclosure (RB9.9), stepped-shaft, knob (RB9.13).
+    - Each brief is a few sentences of words. Its dimensions are the brief's own, taken from no standard.
+    - The assembly, sheet-metal and stress rungs are left for later: an agent can only propose an assembly, and the kernel has no stress oracle.
+  - **The oracle**: each brief's hard requirements (bounding box ±0.1, volume in closed form ±0.5 % or between closed-form bounds for the knob's fillet, one solid).
+    - The kernel checks them on the part the agent leaves, with the agent's own requirements set aside. The agent never sees them.
+    - They depend on no face names, so any construction that makes the part passes.
+  - **Every run takes the product path**:
+    - a fresh empty document, one turn through the real chat server in-process;
+    - the CLI spawned with the arm's tools and prompt, and the MCP tool server on a state file;
+    - autonomy L2 (an empty part's first build applies directly).
+    - The agent is the `claude` CLI (live) or the scripted stand-in (dry run), which makes the brief's ideal calls through the same path: requirements, then the build, then the check.
+  - **Measures per run**: pass (every hard oracle requirement), each outcome, tool calls, refusals, the tools called, wall time, and tokens.
+    - Live: the CLI's own usage and cost (the chat server now forwards the result message's `usage`, `num_turns` and `total_cost_usd` in its `done` event).
+    - Dry run: an estimate of what each model turn would read: prompt, tools, the brief, and the calls and results so far, at 4 characters a token, one call a turn. Input not read from the prompt cache is reported apart.
+  - **Summaries**: per brief and arm, passes, pass@k (any), pass^k (all) and means; per arm, the totals. Written to `results.json` and `report.md`.
+  - **Live runs need `--live` and `CAD_AB_LIVE=1`**; either alone is refused with exit 2, and nothing runs. The owner decides.
+- **Found by writing the briefs, fixed here**:
+  - (1) The `between` edge selector missed edges whose name marks a face's second occurrence (`n1.side0#2|n1.top`, a cylinder's top edge), so a fillet on a cylinder's top edge by `edge(k.top, k.side0)` was refused. Fixed in `names.ts`.
+  - (2) A script's feature handle as a body (`h.body`, or `h` in a selection) was the body as that feature made it, a key gone after its holes or a union. It is now the body that holds that feature's faces now. So `difference([plate, tool])` after the plate's holes works, and `union([b, cylinder(…)])` in a loop keeps joining onto one body.
+  - (3) `const a = 1, b = 2` (several names in one `const`) was a syntax error; it is now in the language. It made 2 of 10 hybrid briefs fail on the first dry run.
+- **The dry run** (`handover/notes/ab-dry-run-2026-10-20/`): 60 runs (10 briefs × 2 arms × 3 runs), **all pass in both arms**.
+
+  | Arm | Calls a brief | Input tokens a brief | Not from the cache | Output |
+  |---|---|---|---|---|
+  | json | 6.4 | 151 944 | 21 918 | 396 |
+  | hybrid | 2.0 | 14 175 | 4 993 | 342 |
+
+  - These are estimates for an ideal agent: a lower bound.
+  - Each model turn re-reads the prompt and tools: about 17.9k tokens in json, 4.1k in hybrid.
+  - The dry run proves the harness, not value: the scripted agent is written to succeed (L2 for the harness; value needs the live L3 run).
+- **Live cost estimate** (for the owner's decision; tokens, not money: the CLI reports the cost per run):
+  - The plan: 10 briefs × 2 arms × 3 runs = 60 turns, at most 24 model turns each (the chat server's cap).
+  - **Lower bound** (the ideal calls):
+    - json 30 × 152k = 4.6M input (0.66M not from the cache), 12k output;
+    - hybrid 30 × 14k = 0.43M (0.15M), 10k output;
+    - **about 5.0M input tokens in all (0.8M uncached), 22k output**.
+  - **If a live agent makes 3× the ideal calls** (an assumption, not a measurement: reading, inspecting, repairing):
+    - json 19 calls, 515k input a run;
+    - hybrid 6 calls, 40k;
+    - in all 15.5M + 1.2M = **about 16.7M input tokens (1.1M uncached), 57k output**.
+  - The json arm is about 92 % of either total.
+  - A smaller first live run, 1 run a brief and arm, is a third of these.
+- **Evidence**: `test/ab.test.ts` (6 tests):
+  - every brief's ideal calls pass the oracle in every variant in both arms (60 builds in process), each in its arm's tool names;
+  - the oracle fails wrong parts (no hole, too wide, two solids, nothing built);
+  - what each arm reads (json has no run_script; the estimate grows each turn; json about 4.4× hybrid a turn);
+  - pass@k and pass^k;
+  - **the real `scripts/ab.mjs` dry run** of two briefs × both arms (4 runs: calls 4/2/13/2, json's input over 10× hybrid's on the enclosure);
+  - the live guard.
+  - script.test gains `const a, b`. Studio 474/474; replayed through v2 474/474. Browser flow 152/152 (no UI change, no new step). Bench 45/45 within budget.
+- **Pending (the owner's)**: the live runs (L3). After them, the decision A5.3 left open: the default tool list and whether the v1 aliases go.

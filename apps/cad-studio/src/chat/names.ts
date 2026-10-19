@@ -65,6 +65,8 @@ export function resolveFace(nodes: readonly ModelNode[], bodies: readonly BodyRe
   return found;
 }
 
+/** An edge name's face part without its occurrence mark (`n1.side0#2` → `n1.side0`). */
+const faceOfPart = (part: string) => part.replace(/#\d+$/, '');
 /** The edge names an edge selector stands for, or why none. */
 export function resolveEdge(nodes: readonly ModelNode[], bodies: readonly BodyResult[], sel: unknown): string[] | string {
   if (typeof sel === 'string') return [sel];
@@ -72,7 +74,8 @@ export function resolveEdge(nodes: readonly ModelNode[], bodies: readonly BodyRe
   const [a, b] = sel.between.map(f => resolveFace(nodes, bodies, f));
   if (typeof a === 'string') return a; if (typeof b === 'string') return b;
   if (a.length !== 1 || b.length !== 1) return 'each face of "between" must be one face';
-  const edge = bodies.flatMap(body => body.mesh.edges.flatMap(e => e.names.filter(name => { const p = name.split('|'); return p.includes(a[0]) && p.includes(b[0]); })))[0];
+  // (A face met twice by one edge's name is written "n1.side0#2": a cylinder's side meets each cap once, A5.5.)
+  const edge = bodies.flatMap(body => body.mesh.edges.flatMap(e => e.names.filter(name => { const p = name.split('|').map(faceOfPart); return p.includes(a[0]) && p.includes(b[0]); })))[0];
   return edge ? [edge] : `faces ${a[0]} and ${b[0]} share no edge`;
 }
 

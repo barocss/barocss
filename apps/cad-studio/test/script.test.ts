@@ -44,6 +44,7 @@ test('all or nothing: a refused line, a type error or a limit leaves the part as
     ['const a = box({w: 10, d: 10, h: 10, x: 100})\nconst b = box({w: 10, d: 10, h: 10, q: 1})', 'script_refused', 2],
     ['const a = box({w: 10, d: 10, h: 10, x: 100})\nfillet([edge(a.top, a.side0)], {radius: 40})', 'script_refused', 2],
     ['const a = box({w: 10, d: 10, h: 10, x: 100})\nconst a = 2', 'script_type', 2],
+    ['const a = 1, a = 2', 'script_type', 1],
     ['const a = box({w: 10, d: 10, h: 10, x: 100})\nconst b = a.top + 1', 'script_type', 2],
     ['const a = box({w: 10, d: 10, h: 10, x: 100})\nnode("f99")', 'script_type', 2],
     ['box({w: 10, d: 10, h: 10, x: 100})\n\n  let x = 1', 'script_syntax', 3],
@@ -110,9 +111,10 @@ test('the language: precedence, conditionals, objects and lists, comments; a hos
     // a comment
     /* and a block one */
     const w = 2 + 3 * 4 - -1          // 15
+    const two = 2, three = two + 1
     const o = { w, d: w > 10 ? 1 : 2, list: [1, 2][1], ok: !(1 > 2) && "a" + 1 == "a1" }
     if (o.ok) { box(o) } else { box({w: 0}) }
-    const b = box({w: round(sqrt(2) * 10) % 4, d: max(1, 2, 3), h: abs(-cos(180))})
+    const b = box({w: round(sqrt(2) * 10) % 4, d: max(1, two, three), h: abs(-cos(180))})
     linear_pattern(b, {count: range(2, 10, 3).length})
     linear_pattern([b.side(2), b.side("e3"), b.face("cut"), edge(b.top, face({normal: [0, 0, 1], pick: "max"}))], {})
   `), host);

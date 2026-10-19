@@ -12,11 +12,12 @@
 //   feature({ kind: "extrude", sketch: s, height: 12 })        // a handle in feature JSON is its node index
 //   edit(plate, { h: 12 })  remove(s)
 //
-// Statements: `const name = expr`, an expression, `for (const name of expr) { … }`, `if (expr) { … } else { … }`.
+// Statements: `const name = expr` (or `const a = 1, b = 2`), an expression, `for (const name of expr) { … }`, `if (expr) { … } else { … }`.
 // Expressions: numbers, "strings", true/false, [arrays], { objects }, names, a.b, a[i], calls, + - * / %, comparisons,
 // && || !, ( ). Built in: range(n) | range(a, b[, step]), min, max, abs, sqrt, round, floor, ceil, sin, cos, tan
 // (degrees), PI; face({normal, pick?, on?, all?}), edge(a, b), body("b1"), ref(feature[, side]), node("f3" | index) (a
-// feature there before the script).
+// feature there before the script), requirements([{id, source, hard?, check}]) (the part's requirements, as
+// set_requirements takes them).
 // A feature handle: `.top`, `.bottom`, `.cut`, `.side0` … (its faces by role), `.side(k)` or `.side("e3")`, `.face(role)`,
 // `.id`, `.body` (the body it made, for commands that take bodies).
 
@@ -84,7 +85,7 @@ export type Expr = Pos & (
   | { t: 'member'; obj: Expr; prop: string } | { t: 'index'; obj: Expr; index: Expr } | { t: 'call'; callee: Expr; args: Expr[] }
   | { t: 'unary'; op: string; arg: Expr } | { t: 'binary'; op: string; left: Expr; right: Expr } | { t: 'cond'; test: Expr; then: Expr; else: Expr });
 export type Stmt = Pos & (
-  | { t: 'const'; name: string; init: Expr } | { t: 'expr'; expr: Expr }
+  | { t: 'const'; name: string; init: Expr } | { t: 'consts'; decls: (Pos & { name: string; init: Expr })[] } | { t: 'expr'; expr: Expr }
   | { t: 'for'; name: string; iter: Expr; body: Stmt[] } | { t: 'if'; test: Expr; then: Stmt[]; else: Stmt[] });
 
 const BINARY: Record<string, number> = { '||': 1, '&&': 2, '==': 3, '!=': 3, '===': 3, '!==': 3, '<': 4, '>': 4, '<=': 4, '>=': 4, '+': 5, '-': 5, '*': 6, '/': 6, '%': 6 };
@@ -109,8 +110,11 @@ export function parse(source: string): Stmt[] {
       if (t.kind === 'name' && (t.text === 'let' || t.text === 'var')) throw new ScriptError('SYNTAX', `use const: names are set once (${t.text} is not part of the language)`, t.line, t.col);
       if (t.kind === 'name' && (t.text === 'function' || t.text === 'while' || t.text === 'return')) throw new ScriptError('SYNTAX', `"${t.text}" is not part of the language: use for (const … of range(n)) and calls`, t.line, t.col);
       if (t.kind === 'name' && t.text === 'const') {
-        next(); const n = nameToken('a name'); expect('='); const init = expression(); semi();
-        return { t: 'const', name: n.text, init, line: t.line, col: t.col };
+        // (`const a = 1, b = 2`: several names in one statement, set in order.)
+        next(); const decls: (Pos & { name: string; init: Expr })[] = [];
+        do { if (decls.length) next(); const n = nameToken('a name'); expect('='); decls.push({ name: n.text, init: expression(), line: n.line, col: n.col }); } while (is(','));
+        semi();
+        return decls.length === 1 ? { t: 'const', name: decls[0].name, init: decls[0].init, line: t.line, col: t.col } : { t: 'consts', decls, line: t.line, col: t.col };
       }
       if (t.kind === 'name' && t.text === 'for') {
         next(); expect('('); expect('const'); const n = nameToken('a name'); expect('of'); const iter = expression(); expect(')');
@@ -223,7 +227,7 @@ const PURE: Record<string, (args: number[]) => number> = {
   min: a => Math.min(...a), max: a => Math.max(...a), abs: a => Math.abs(a[0]), sqrt: a => Math.sqrt(a[0]), round: a => Math.round(a[0]),
   floor: a => Math.floor(a[0]), ceil: a => Math.ceil(a[0]), sin: a => Math.sin(a[0] * Math.PI / 180), cos: a => Math.cos(a[0] * Math.PI / 180), tan: a => Math.tan(a[0] * Math.PI / 180),
 };
-const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove']);
+const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove', 'requirements']);
 
 /** Runs a parsed script against the host. Throws ScriptError (typed, with its line) on the first problem. */
 export async function runScript(program: Stmt[], host: ScriptHost): Promise<ScriptRun> {
@@ -241,12 +245,9 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
 
   async function exec(stmts: Stmt[]): Promise<void> {
     for (const s of stmts) {
-      if (s.t === 'const') {
-        const scope = scopes[scopes.length - 1];
-        if (scope.has(s.name)) fail('TYPE', `"${s.name}" is already set`, s);
-        const v = await evaluate(s.init); scope.set(s.name, v);
-        if (scopes.length === 1 && isHandle(v) && v.h === 'feature') run.names[s.name] = v.id;
-      } else if (s.t === 'expr') await evaluate(s.expr);
+      if (s.t === 'const') await declare(s.name, s.init, s);
+      else if (s.t === 'consts') for (const d of s.decls) await declare(d.name, d.init, d);
+      else if (s.t === 'expr') await evaluate(s.expr);
       else if (s.t === 'if') { const c = await evaluate(s.test); scopes.push(new Map()); try { await exec(truthy(c) ? s.then : s.else); } finally { scopes.pop(); } }
       else {
         const items = await evaluate(s.iter);
@@ -259,6 +260,12 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
     }
   }
 
+  async function declare(name: string, init: Expr, at: Pos): Promise<void> {
+    const scope = scopes[scopes.length - 1];
+    if (scope.has(name)) fail('TYPE', `"${name}" is already set`, at);
+    const v = await evaluate(init); scope.set(name, v);
+    if (scopes.length === 1 && isHandle(v) && v.h === 'feature') run.names[name] = v.id;
+  }
   async function evaluate(e: Expr): Promise<Value> {
     switch (e.t) {
       case 'num': return e.v;
@@ -353,6 +360,11 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
         const h = args[0]; if (!isHandle(h) || h.h !== 'feature') fail('TYPE', 'edit takes a feature and its new values', at);
         const values = args[1]; if (!values || typeof values !== 'object' || Array.isArray(values) || isHandle(values)) fail('TYPE', 'edit takes {key: value} values', at);
         await tool('edit_feature', { index: indexOf((h as { id: string }).id, at), values: plain(values, at) }, at); return h;
+      }
+      case 'requirements': {
+        // (The brief as checks, A5.4: set_requirements, so a script carries what it must meet and cad-cli --check runs it.)
+        if (args.length !== 1 || !Array.isArray(args[0])) fail('TYPE', 'requirements takes a list of {id, source, hard?, check}', at);
+        await tool('set_requirements', { requirements: plain(args[0], at) }, at); return true;
       }
       case 'remove': { const h = args[0]; if (!isHandle(h) || h.h !== 'feature') fail('TYPE', 'remove takes a feature', at); await tool('delete_feature', { index: indexOf((h as { id: string }).id, at) }, at); return true; }
     }

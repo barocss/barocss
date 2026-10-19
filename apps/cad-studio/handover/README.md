@@ -208,9 +208,20 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A5.2** (O10): done. `run_script` (`barocss-cad-script-v1`): a JS-like script (const, for … of range, if, arithmetic,
     handles naming a feature's faces by role) whose commands and features run as tool calls, all or nothing, typed errors
     with their line; proposable. Conformance `conformance/a5/`. tools/list 79 171 characters, system prompt 6 870.
+  - **A5.3** (O11): done. The consolidated tools `barocss-cad-tools-v2`: 13 tools, each action a v1 tool (one layer,
+    the same gates), `describe` for the detail, `CAD_TOOLSET=v2` to serve them (v1 the default until A5.5). tools/list
+    10 985 characters (v1 79 171), system prompt 7 094 (v1 6 870); the whole suite replays through v2.
+  - **A5.4** (O12): done. `cad-mcp --doc part.bcad` (any MCP client; each change saved atomically with its blobs;
+    local files only; the studio's gates) and `cad-cli run script -o part.bcad [--step] [--stl] [--check]` (exit 3 on a
+    failing hard requirement); scripts may state `requirements([...])`.
+  - **A5.5** (O13): harness built, dry run done. `pnpm ab --scripted`: 10 RB9 briefs × json | hybrid × 3 runs through the
+    real chat server, a hidden kernel oracle; all 60 pass. Ideal calls 6.4 against 2, estimated input 152k against 14k
+    tokens a brief. Live runs (`--live` with `CAD_AB_LIVE=1`) wait for the owner: about 5M input tokens at the least,
+    about 17M if an agent makes 3× the ideal calls. Report: `notes/ab-dry-run-2026-10-20/`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
-- Pending decisions (outer lane, reversible defaults taken): none open.
+- Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
+- Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

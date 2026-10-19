@@ -4,6 +4,7 @@
 // calls to make as `script {"calls": [{ "tool": …, "args": … }, …]}`; each is made through MCP in order and
 // reported as stream-json, as the CLI reports a model's tool calls.
 import { spawn } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 
 const args = process.argv.slice(2);
@@ -26,6 +27,8 @@ await request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, c
 for (const [k, call] of calls.entries()) {
   say({ type: 'assistant', message: { content: [{ type: 'tool_use', id: `toolu_${k}`, name: `mcp__cad__${call.tool}`, input: call.args }] } });
   const r = (await request('tools/call', { name: call.tool, arguments: call.args })).result;
+  // (The A/B harness, A5.5: each call's size, to estimate what a model would read and write.)
+  if (process.env.CAD_AB_LOG) appendFileSync(process.env.CAD_AB_LOG, JSON.stringify({ tool: call.tool, args: JSON.stringify(call.args ?? {}).length, result: r.content.filter(c => c.type === 'text').map(c => c.text).join('').length, isError: r.isError }) + '\n');
   say({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `toolu_${k}`, is_error: r.isError, content: r.content.filter(c => c.type === 'text') }] } });
 }
 say({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: `Scripted: ${calls.length} call${calls.length === 1 ? '' : 's'}.` } }, parent_tool_use_id: null });

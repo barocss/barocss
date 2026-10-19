@@ -1,0 +1,15 @@
+{
+ "case": "requirements-in-script",
+ "step": "A5.4",
+ "note": "A script that states its requirement (set_requirements) beside its geometry, for cad-cli --check: the requirement adds no feature.",
+ "script": "const p = box({w: 80, d: 40, h: 8})\nrequirements([{id: \"R1\", source: \"80 long\", hard: true, check: {op: \"==\", query: {fn: \"bbox\", axis: \"x\"}, value: 80, tol: 0.1}}])",
+ "expect": {
+  "features": 2,
+  "names": {
+   "p": "n1"
+  },
+  "volume_mm3": 25600,
+  "tol": 0.01,
+  "source": "80\u00b740\u00b78"
+ }
+}
