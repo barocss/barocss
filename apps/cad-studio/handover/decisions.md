@@ -4587,3 +4587,8 @@ R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face acr
   - cliffs within R10.1's closed forms (they refuse);
   - a cliff whose ball would then roll onto the face beyond the edge across another edge of it;
   - R10.5 (variable radius).
+- **Sequencing (the coordinator's check, 2026-10-19):** R10.4a and R10.4b did not need the analytic Boolean's coincident and along-face robustness.
+  - R10.4a's sides grow onto tangent faces whose contacts are ordinary edge-on-surface cuts.
+  - R10.4b's cliffs meet the body along its edge, as R10.3a's corners do. The wedge growth keeps the tool's faces off the body's.
+  - That robustness is now the common blocker behind four items: the coaxial cone-rim seam sliver (D88), general fillets ending square or at cylinders or several faces (D94), and the pole-off ball turn (D93). So it comes next, as **R10.B**, before R10.5.
+
