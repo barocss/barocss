@@ -7,12 +7,27 @@
 import type { HiddenLineView } from '@barocss/cad';
 import type { DrawingSettings, DrawingViews, ViewId, XY } from './types';
 
-export const VIEWS: Record<ViewId, HiddenLineView & { label: string }> = {
-  front: { toward: [0, -1, 0], up: [0, 0, 1], label: 'FRONT' },
-  top: { toward: [0, 0, 1], up: [0, 1, 0], label: 'TOP' },
-  right: { toward: [1, 0, 0], up: [0, 0, 1], label: 'RIGHT' },
-  iso: { toward: [1, -1, 1], up: [0, 0, 1], label: 'ISOMETRIC' },
-};
+/**
+ * Which side of the part the front view looks from (R14.3b, O7): `y-` (from −Y, the default and every drawing saved
+ * before), `x+`, `y+` or `x-`. The top view always looks down Z with the front's horizontal axis kept; the right view
+ * is the front turned a quarter to its right; the isometric from the front-right-top corner.
+ */
+export type Orientation = 'y-' | 'x+' | 'y+' | 'x-';
+export const ORIENTATIONS: readonly Orientation[] = ['y-', 'x+', 'y+', 'x-'];
+const TOWARD: Record<Orientation, [number, number, number]> = { 'y-': [0, -1, 0], 'x+': [1, 0, 0], 'y+': [0, 1, 0], 'x-': [-1, 0, 0] };
+/** The views for an orientation (the default's are exactly the views drawings have always had). */
+export function viewsFor(o: Orientation = 'y-'): Record<ViewId, HiddenLineView & { label: string }> {
+  const t = TOWARD[o], r: [number, number, number] = [-t[1] || 0, t[0] || 0, 0], d: [number, number, number] = [-t[0] || 0, -t[1] || 0, 0];
+  return {
+    front: { toward: t, up: [0, 0, 1], label: 'FRONT' },
+    top: { toward: [0, 0, 1], up: d, label: 'TOP' },
+    right: { toward: r, up: [0, 0, 1], label: 'RIGHT' },
+    iso: { toward: [t[0] + r[0], t[1] + r[1], 1], up: [0, 0, 1], label: 'ISOMETRIC' },
+  };
+}
+export const VIEWS: Record<ViewId, HiddenLineView & { label: string }> = viewsFor('y-');
+/** The front view's depth (away from the viewer): section A–A's plane is square to it (`section.y` along it). */
+export const depthOf = (o: Orientation = 'y-'): [number, number, number] => { const t = TOWARD[o]; return [-t[0] || 0, -t[1] || 0, 0]; };
 
 /** Sheet sizes (landscape, mm). */
 export const SHEETS = { A4: [297, 210], A3: [420, 297] } as const;

@@ -13,13 +13,14 @@ import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
-import { MIN_HOLE_ON_PAPER_MM, autoLayout } from '../drawing/layout';
+import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '../drawing/layout';
+import { reorient } from '../drawing/reorient';
 import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '../drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
-import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
+import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '../drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
 import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
 import { downloadBytes } from './files';
@@ -27,6 +28,8 @@ import { Icon, Kbd } from './atoms';
 import type { SectionResult } from '../drawing/section';
 import '../drawing/drawing.css';
 
+/** The front view's sides, as the SHEET card names them (R14.3b). */
+const SIDE_NAMES: Record<Orientation, string> = { 'y-': '−Y (default)', 'x+': '+X', 'y+': '+Y', 'x-': '−X' };
 type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
@@ -50,7 +53,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   engine: EngineClient; doc: StudioDoc; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
-  const [views, setViews] = useState<DrawingViews | null>(null);
+  // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
+  const [projected, setProjected] = useState<{ views: DrawingViews; side: string } | null>(null);
+  const views = projected && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
   /** Section A–A as last projected (or why it could not be cut). */
   const [section, setSection] = useState<SectionResult | null>(null);
   const [sectionY, setSectionY] = useState<string | null>(null);
@@ -83,14 +88,15 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
     let live = true; setBusy(true);
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}) }).then(r => {
+    const side = settings.orientation ?? 'y-';
+    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
       if (!live) return;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setViews(r.views); setSection(r.section ?? null); setError(null); } else { setViews(null); setSection(null); setError(r.error); }
+      if (r.ok) { setProjected({ views: r.views, side }); setSection(r.section ?? null); setError(null); } else { setProjected(null); setSection(null); setError(r.error); }
     });
     return () => { live = false; };
-  }, [engine, model, settings.tangent, settings.section?.y]);
+  }, [engine, model, settings.tangent, settings.section?.y, settings.orientation]);
 
   const title = settings.title ?? fileName;
   const cut = settings.section && section?.ok ? section : undefined;
@@ -324,14 +330,33 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
    * Auto (R14.1–R14.3, O2–O4): the views chosen and laid out with room for their dimensions, the scale and sheet that
    * give a clean drawing, then Auto-dimension; its own earlier dimensions replaced, those placed by hand kept.
    */
-  const autoDimension = () => {
+  const autoDimension = async () => {
     if (!views) return;
-    const { settings: next, report } = autoLayout({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
+    let base = { views, settings, section: cut };
+    const pick = frontByInformation(views, settings);
+    if (pick) {
+      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
+      if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
+    }
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, meta: { title, date: today(), threads }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
-    const where = `${report.sheet} at ${scaleLabel(report.scale)}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
+    const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
+    const where = `${report.sheet} at ${scaleLabel(report.scale)}${side}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
     const notes = [...report.dimensions.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.left.map(x => x.message), ...(report.readable ? [] : [`The smallest hole is under ${MIN_HOLE_ON_PAPER_MM} mm on paper at this scale: a larger sheet reads better.`])];
     onToast({ title: `${n} dimension${n === 1 ? '' : 's'} placed · ${where}`, hint: `${a.overall} overall, ${plural(a.levels, 'step')}, ${plural(a.holePositions + a.pitches, 'hole position')}, ${plural(a.callouts, 'callout')}${report.dimensions.kept ? `; ${report.dimensions.kept} of yours kept` : ''}${report.left.length ? `; ${plural(report.left.length, 'issue')} left` : ''}.`, detail: notes.join('\n') });
+  };
+  /** Another front side (R14.3b, O7): the annotations re-mapped to the views showing their axes, or refused, typed. */
+  const turnTo = async (o: Orientation) => {
+    if (!views || o === (settings.orientation ?? 'y-')) return;
+    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}) });
+    if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
+    const t = reorient(views, r.views, settings, o);
+    if (!t.ok) { onToast({ title: 'The drawing was not turned', hint: t.message, detail: t.code === 'ORIENTATION_REMAP_FAILED' ? t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('\n') : '' }); return; }
+    onChange(t.settings);
+    if (t.moved.length) onToast({ title: `Front now seen from ${SIDE_NAMES[o]}`, hint: `Annotations moved with their axes: ${t.moved.map(m => `${m.from} → ${m.to}`).join(', ')}.`, detail: '' });
   };
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
   const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
@@ -425,6 +450,8 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const rest = { ...settings }; delete rest.scale; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
           <option value="auto">Auto{layout && settings.scale === undefined ? ` (${scaleLabel(layout.scale)})` : ''}</option>
           {SCALES.map(s => <option key={s} value={s}>{scaleLabel(s)}</option>)}</select></label>
+        <label className="field"><span>Front from</span><select aria-label="Front view side" value={settings.orientation ?? 'y-'} onChange={e => void turnTo(e.target.value as Orientation)}>
+          {ORIENTATIONS.map(o => <option key={o} value={o}>{SIDE_NAMES[o]}</option>)}</select></label>
         <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></select></label>
         <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
@@ -480,7 +507,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <button className="ghost small" disabled={!views || !layout} onClick={autoDimension} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
+          <button className="ghost small" disabled={!views || !layout} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => { setSelected(r.dim.id); setTool('select'); }}>

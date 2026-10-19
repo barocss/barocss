@@ -193,10 +193,20 @@ stays out of the kernel's core files (requests for them go through the coordinat
     located by a bore on the centre or by the circle's own centre; the agent's drawing tools (`drawing_issues`,
     `tolerance_suggestions`; `auto_dimension`, `fix_drawing`, `accept_tolerances`, `set_drawing` only as proposals).
     Conformance `conformance/r14/pcd-*` (four parts).
-- Next: **R14.3b** (the front view's side), then **A5** DSL + MCP.
-- Pending decisions (outer lane, reversible defaults taken):
-  - **R14.3b, the front view's side** (coordinator, 2026-10-19: after R14.5): the front view stays the part's −Y side.
-    Choosing it by information needs a versioned view-orientation setting and a rule for existing dimensions.
+  - **R14.3b** (O7): done. `orientation` (none: −Y, as every saved drawing): the front from −Y, +X, +Y or −X; turning
+    re-maps every annotation to the view showing its axes or is refused, typed (ORIENTATION_REMAP_FAILED, SECTION_ACROSS);
+    section A–A square to the front's depth; Auto takes the side that tells more when nothing by hand ties it.
+    Conformance `conformance/r14/orient-*`.
+- **A5** DSL + MCP (design input `notes/research-cad-server-2026-10-18.md`): S0 done (O8) — 57 tools, a 64.5k-character
+  tool list every turn, a per-turn MCP on a state file without annotations or output schemas; a script is 2.5× smaller
+  than op JSON per part, so its value is fewer calls and a smaller surface. Steps: A5.1 tool contract v1 → A5.2
+  `run_script` → A5.3 consolidated tools (≤ 15k characters) → A5.4 external MCP + CLI → A5.5 A/B (live runs on a go-ahead).
+  - **A5.1** (O9): done. The tool contract `barocss-cad-tools-v1`: every tool classified (read / adds / alters),
+    MCP annotations, output schemas and structured results for read tools, frozen in `src/chat/tools-v1.json` with a
+    breaking-change test. tools/list 76 697 characters (64 531 before), system prompt 6 588.
+- Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
+  `notes/flaky-step116-flow12.log` / `.png`.
+- Pending decisions (outer lane, reversible defaults taken): none open.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

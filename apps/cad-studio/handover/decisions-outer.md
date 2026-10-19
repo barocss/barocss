@@ -183,3 +183,98 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - `test/chat-drawing.test.ts`: the tools offered with schemas; reading changes nothing; every change tool refused directly (`needs_approval`, the drawing unchanged); a proposal of Auto plus geometric tolerances has risk approval `drawing`, the agent cannot accept it, and the user's acceptance gives the drawing its dimensions (a 3× pitch), datums A B C, a Ø0.6 frame and no issue; through dispatch, layout off, set_drawing (a non-standard scale refused), accepting one suggestion by id (an unknown id refused), and a fix by code.
   - A browser-flow step: the flange opened from its case file; Auto gives Ø60 PCD · 4× EQ SP, 4× Ø6 THRU, Ø20 THRU, its bore at 50/50, no issue; the DXF holds the pitch circle's text.
 - **R14 done** with this step: R14.1 auto-dimension, R14.2 issue list, R14.3 layout, R14.4 tolerances, R14.5 pitch circles and agent tools. Pending (README): R14.3b, the front view's side; then A5.
+
+## O7 — R14.3b: the front view's side, versioned; annotations re-mapped or the turn refused (2026-10-20)
+
+- **The setting** `orientation` (the D16 pattern): the side the front view looks from, `x+`, `y+` or `x-`. **None means `y-`**, from −Y: every drawing saved before has none and reopens exactly as it was. `viewsFor('y-')` gives the very numbers the views always had (tested against the literal), and the R11b DXF document fixture and every R14 case are unchanged byte for byte. A bad value is dropped on reading.
+  - For each side: the top view looks down Z keeping the front's horizontal axis; the right view is the front turned a quarter to its right; the isometric is from the front-right-top corner. So for every side, front and top share u, front and right share Z, and the top's v is the right's u (tested). Auto's and the issue list's shared-axis rules hold without change.
+  - **Section A–A** is cut square to the front's depth: `section.y` is the position along it (model Y from −Y; X = −y from +X, Y = −y from +Y, X = y from −X). The far side is kept, as before.
+  - Wired through the worker, the client, the agent's tools and the DXF/PDF/SVG (which draw what the sheet holds).
+- **The rule for what is on a drawing when it turns** (`drawing/reorient.ts`, `cad-studio-reorient-v1`):
+  - **Re-map**: each annotation goes to the view of the new side that looks along the same model axis as its own. One always does: the top view stays, the front and right views swap or turn round. Its places, note leader points and datum symbol spots are carried through the model. A horizontal or vertical dimension turns where the axes swap. The views shown turn with them: a view shown before keeps its annotations shown.
+  - **Refuse, typed**, and change nothing, when:
+    - a dimension would not read what it read before — the same edges, the same kind and value to 1e-9, or no longer resolves (`ORIENTATION_REMAP_FAILED`, with each dimension's before and after);
+    - section A–A would be cut across the present front (`SECTION_ACROSS`: turn it off first). Along it (−Y ↔ +Y, ±X ↔ ∓X) it is kept, its position turned.
+  - Nothing is dropped silently, and nothing is kept in a view that no longer shows its axes.
+- **Auto's choice** (`frontByInformation`): the side the right view looks from, when it tells clearly more than the front. Information is visible edges, plus three for each circle that shows round, less half the hidden ones; "clearly" means a fifth more and two more. Only for a drawing with no side set and nothing placed by hand on it (dimensions, leaders, datums); otherwise the front stays. The studio's Auto and the agent's `auto_dimension` project the part for that side, turn by the rule above, and lay out; the toast and the tool's `front` say why. The block with a hole along X gets its front from +X, so its hole shows round in the front view; a plate keeps −Y.
+- **Studio**: "Front from" in the SHEET card (−Y default, +X, +Y, −X), turning by the rule (a refusal says why, its list in the details). The workspace shows no views of the old side while the new ones come. The agent's `set_drawing` takes `front`.
+- **Evidence**:
+  - Conformance `conformance/r14/orient-*` (`test/reorient.test.ts`):
+    - `orient-plate-x-plus`: the plate's 64 and 8 move from the front to the right view, which is shown again; top unchanged; every value kept.
+    - `orient-cross-hole-y-plus`: from behind, the same views mirrored, every value kept.
+    - `orient-section-across`: refused SECTION_ACROSS.
+  - Tests:
+    - an old drawing (no side) reads back, lays out and draws exactly as with the old views;
+    - the shared axes for all four sides;
+    - a turn and its way back give the places to 1e-9;
+    - section along kept at −16, across refused;
+    - a turn against views where the hole is gone refused with the Ø8 and positions listed;
+    - section A–A from +X: the plane X = 30, the far side kept, a 30 × 30 cut face less the hole, "Nothing … behind X = −10";
+    - Auto's choice for the block, none for a plate, none with a side set or a dimension by hand;
+    - the agent's auto_dimension on the block: front from +X, the hole's diameter in the front view, no issue; set_drawing back to −Y re-maps it to the right view; a bad side refused.
+  - A browser-flow step: the auto-dimensioned plate turned to +X — the same six values, no error, the old front's dimensions in the right view (shown) — then back to −Y as it was; with section A–A on, turning to +X is refused and nothing changes.
+
+## O8 — A5 S0: what the tool layer is today, and A5's steps (2026-10-20)
+
+- **Measured** (HEAD `975a62fed`; deterministic, no model run):
+  - The agent's tool layer (`src/chat/tools.ts` `TOOLS`): **57 tools**. Their `tools/list` JSON is **64 531 characters** (about 16k tokens), and the system prompt another 6 588, sent every turn. The largest: `run_command` 11 697 (every toolbar command's value keys in one description), `add_features` 3 656, `set_requirements` 2 283, the image tools about 1.8k each, `inspect` and `measure` about 1.5k.
+  - **MCP** (`server/cadMcp.ts`): a per-turn stdio process the chat server starts on a state file. It answers `initialize`, `tools/list` and `tools/call`. It has no tool annotations, no `outputSchema`, no `structuredContent` (results are JSON in a text item), no document of its own, and no way for an external client (Claude Code, Desktop) to open or save a `.bcad`.
+  - **Command-only modelling works headless**: `dispatchTool` / `apply_ops` build any part in Node (every chat test does), all-or-nothing with op ids.
+    - A bracket (a 100 × 40 × 10 plate, a row of four Ø6.6 holes, a tapped M6 hole), built here through `apply_ops`, is **391 characters of op JSON**. The same as the draft DSL below is **156: 2.5×**.
+    - The owner's SubD pipe clamp is 43 calls, 4 188 characters of call JSON.
+    - So a script saves little text per operation. What it saves is round trips (a part in one call, not one call per feature) and a tool surface the model must read each turn.
+  - The kernel's `cad.model()` builder (`CONCISE_API.md`) is an older, narrower surface (convex polygons, a few features), not the studio's feature set. The DSL should compile to the studio's feature ops (`run_command` commands and `add_features` kinds), the format proposals, undo and the A1 references already use.
+- **A5's steps** (a proposal):
+  - **A5.1 tool contract v1** (`barocss-cad-tools-v1`):
+    - every tool gets MCP annotations: title, and read-only / destructive / idempotent hints from the existing mutator and approval sets;
+    - read tools get an `outputSchema` and return `structuredContent` beside the text;
+    - the names and input schemas are frozen in a committed list, with a test that fails on any unversioned change.
+    - Acceptance: the schema test; an MCP conformance test (a JSON-RPC client: initialize, list, call, structured results).
+  - **A5.2 `run_script`** — a small TypeScript-like language, our own lexer and parser, no `eval`, no new dependency:
+    - parameters, `const` names, numbers in mm, arrays and objects, arithmetic, bounded `for` loops;
+    - calls named after the commands and feature kinds with their HUD value keys; faces and edges by A1 names or selectors (`plate.top`);
+    - compiled to ops and run as one `apply_ops` (all or nothing, never raw B-rep), returning each statement's feature ids and the part's facts;
+    - typed errors with line and column; limits on statements and loop iterations;
+    - later, `script_of(doc)`: the feature tree written back as a script for reading.
+    - Acceptance: conformance `conformance/a5/` (script → features and volume); the parser fuzzed for typed errors; round trip where the decompiler covers the tree.
+  - **A5.3 consolidated tools** (about a dozen): `model` (run_script), `features` (feature JSON add/edit/delete), `query` (summary, inspect, measure, mass, interference, section, wall, draft, render), `history`, `requirements`, `proposals`, `assembly`, `library`, `print`, `drawing`, `subd`, `describe` (one command's or feature's full schema on request).
+    - The old names stay as versioned aliases until A5.5 decides.
+    - Acceptance: `tools/list` at most 15k characters (from 64.5k); every existing chat, proposal and cage test replayed through the consolidated layer.
+  - **A5.4 external MCP server and CLI** (one tool layer with the in-app chat):
+    - `cad-mcp --doc part.bcad`: long-lived stdio, saves on change atomically with its blob files, local files only;
+    - `cad-cli run script -o part.bcad [--step] [--stl] [--check]` for batch and CI.
+    - Acceptance: a client test (spawn, list, run a script, save, reopen identical) and a CLI test.
+  - **A5.5 A/B**: JSON-only (today's tools) against the hybrid (consolidated tools and `run_script`), on 8–12 briefs from the AI scenario ladder, each with A3 requirements as the kernel oracle.
+    - Measures: hard-requirement pass rate, tool calls, input and output tokens, wall time, refusals.
+    - A scripted agent dry-runs the harness in CI. **Live model runs (L3 evidence, the owner's usage) only on a go-ahead**, at least 3 runs a brief and arm.
+- **Out of A5**: the chat-turn overwrite (README TODO, the owner's decision), the document service, accounts and concurrent editing (A7/A8 and a server track, per the research note).
+
+## O9 — A5.1: the tool contract v1 (`barocss-cad-tools-v1`) (2026-10-20)
+
+- **What** (`apps/cad-studio/src/chat/contract.ts`; frozen in `src/chat/tools-v1.json`):
+  - **Every tool classified** in one table:
+    - read (22 tools: they change nothing in the document — part, drawing, requirements, proposals, assembly);
+    - additive change (10: a feature, part, mate, library or proposal added, nothing altered);
+    - other change (25, each marked idempotent or not).
+    - A tool the table does not name throws, so a new tool cannot ship unclassified.
+    - (`checkpoint` keeps a session snapshot and `select` sets the viewport selection: both are read tools, the document unchanged.)
+  - **MCP annotations** from it: `title`; `readOnlyHint`; `destructiveHint` (true for every change that may alter or remove); `idempotentHint`; `openWorldHint: false` for all (nothing reaches outside the document).
+  - **Output schemas** for 21 of the 22 read tools: their result's top-level shape, with what is always there required and the rest optional. `get_image_layers` has none (its shape varies). Change tools have none in v1.
+  - **The frozen list**: each tool's name, annotations, input schema and output schema, descriptions stripped (wording may change; shape may not). A test compares the tools with it:
+    - a **breaking** difference fails and needs `barocss-cad-tools-v2`: a tool gone; an input property gone, retyped, an enum narrowed or added, a property newly required; a read tool no longer read only, or a non-destructive one now destructive; an output property gone, retyped or no longer required, or an output schema removed;
+    - a **compatible** one (new tools, new optional properties, wider input enums, new output properties) fails until recorded with `UPDATE_TOOL_CONTRACT=1`, which refuses to record a breaking one.
+- **MCP** (`server/cadMcp.ts`):
+  - `initialize` answers with `serverInfo.version = barocss-cad-tools-v1` (and a title);
+  - `tools/list` gives each tool its `title`, `annotations` and, for read tools, `outputSchema`;
+  - `tools/call` on a read tool returns `structuredContent` (the same JSON as its text, so text-only clients see no change); a change or a refused call has none.
+  - JSON-RPC errors as before (−32601 unknown method, −32700 not JSON).
+- **Sizes** (what a model reads every turn; A5.3 measures against them):
+  - **tools/list 76 697 characters** with the contract (64 531 without: annotations and output schemas add 12 166);
+  - **system prompt 6 588 characters**.
+  - A5.3's target (≤ 15k characters for tools/list, coordinator 2026-10-20) is against the 76.7k; both numbers are reported again there.
+- **Evidence** (`test/tool-contract.test.ts`):
+  - every tool classified (none reaching out; read tools neither destructive nor non-idempotent; an unknown tool throws);
+  - the frozen comparison;
+  - the breaking-change rules on a synthetic contract (removal, a narrowed enum, newly required, no longer required, no longer read only: break; additions: do not);
+  - all 21 output schemas validated against real results (both `measure` forms, the SubD tools on a cage), each read call leaving the document the same object and `changed` false;
+  - an MCP client over in-memory pipes: initialize (protocol 2025-06-18, the contract version), tools/list (titles, annotations, output schemas where due), a read call (structured content equal to the text, valid), a change (none), a refusal (`isError`, none), the JSON-RPC errors, the change saved to the state file.

@@ -18,7 +18,7 @@ export type WorkerRequest =
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
   | { type: 'stepMeshes'; id: number; step: string }
-  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; section?: { y: number } } }
+  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; section?: { y: number }; orientation?: 'x+' | 'y+' | 'x-' } }
   /** A mesh checked and repaired (M3, D47), off the main thread; a repair posts its stages as it goes. */
   | { type: 'diagnose'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number> }
   | { type: 'repair'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number>; steps: MeshRepairSteps };
@@ -62,7 +62,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   } else if (request.type === 'drawing') {
     const r = brepsFor(request.doc);
     const drawing = 'error' in r ? { ok: false as const, error: r.error } : projectViews(r.breps, r.prefixes, request.options);
-    if (drawing.ok && request.options?.section) drawing.section = sectionOf(request.doc, request.options.section.y);
+    if (drawing.ok && request.options?.section) drawing.section = sectionOf(request.doc, request.options.section.y, request.options.orientation);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name, request.meshes) });

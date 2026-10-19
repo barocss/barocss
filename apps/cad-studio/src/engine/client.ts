@@ -151,7 +151,7 @@ export class EngineClient {
   }
 
   /** The part's drawing views (hidden-line projections), never dropped as stale. */
-  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; section?: { y: number } } = {}): Promise<DrawingResult> {
+  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; section?: { y: number }; orientation?: 'x+' | 'y+' | 'x-' } = {}): Promise<DrawingResult> {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
