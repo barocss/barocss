@@ -510,7 +510,15 @@ export function importStep(source: string, options: { readonly id?: string } = {
   let fi = 0, ei = 0;
   for (const b of bodies) for (const sh of b.shells) for (const f of sh.faces) { const n = faceNames[fi++]; if (n !== undefined) f.name = n; }
   for (const e of edges.values()) { const n = edgeNames[ei++]; if (n !== undefined) e.name = n; }
+  // The file's distance accuracy, where it is larger than the 1e-6 mm this writer gives exact bodies (a tolerant B-rep's,
+  // D110): its entities' tolerance, at most 1e-5 of the model's size.
+  let accuracy = 0;
+  for (const e of data.values()) if (e.type === 'UNCERTAINTY_MEASURE_WITH_UNIT' && e.args[2] === 'distance_accuracy_value') { const m = e.args[0] as { type?: string; args?: Value[] } | number; const x = typeof m === 'number' ? m : Array.isArray(m?.args) ? m.args[0] as number : NaN; if (Number.isFinite(x)) accuracy = Math.max(accuracy, x); }
+  let extent = 0;
+  for (const p of points.values()) for (const x of p) extent = Math.max(extent, Math.abs(x));
+  const tolerant = accuracy > 1e-6 * (1 + 1e-9) ? Math.min(accuracy, 1e-5 * Math.max(1, extent)) : undefined;
   const brep = buildBrep({
+    ...(tolerant ? { toleranceMM: tolerant } : {}),
     source: { family: 'step', id },
     vertices: [...points].map(([vid, point]) => ({ id: vid, point })),
     edges: [...edges.values()].map(e => ({ id: e.id, curve: curves.get(e.id)!, vertices: e.v, ...(e.name ? { name: e.name } : {}) })),

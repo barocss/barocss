@@ -1,0 +1,101 @@
+{
+  "id": "r11-refuse-shell-subd-folds",
+  "step": "R11",
+  "decisions": [
+    "D110"
+  ],
+  "about": "R11.2a: the SubD cube shelled 1.49: its caps curve more tightly (1.480 mm, on a cap's side beside its extraordinary corner) — the offset would turn over.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              10,
+              0,
+              10,
+              10,
+              10,
+              10,
+              0,
+              10,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                3,
+                2,
+                1
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                0,
+                1,
+                5,
+                4
+              ],
+              [
+                1,
+                2,
+                6,
+                5
+              ],
+              [
+                2,
+                3,
+                7,
+                6
+              ],
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          }
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "s",
+          "thickness": 1.49
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[OFFSET_FOLDS]"
+    }
+  },
+  "oracle": "Refused by name (this kernel)."
+}

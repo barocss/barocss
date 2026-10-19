@@ -97,8 +97,9 @@ export function withCavities(outer: Brep, inner: Brep, source: Brep['source']): 
     }) }));
   };
   const ia = (s: string) => `a.${s}`, ib = (s: string) => `b.${s}`;
-  const verts = (x: Brep, id: (s: string) => string) => x.vertices.map(v => ({ id: id(v.id), point: v.point }));
-  const edgs = (x: Brep, id: (s: string) => string) => x.edges.map(e => ({ id: id(e.id), curve: e.curve, vertices: [id(e.vertices[0]), id(e.vertices[1])] as [string, string], ...(e.name === undefined ? {} : { name: e.name }) }));
+  // (Each entity keeps its tolerance: a cavity of fitted offsets has tolerant edges, D110.)
+  const verts = (x: Brep, id: (s: string) => string) => x.vertices.map(v => ({ id: id(v.id), point: v.point, toleranceMM: v.toleranceMM }));
+  const edgs = (x: Brep, id: (s: string) => string) => x.edges.map(e => ({ id: id(e.id), curve: e.curve, vertices: [id(e.vertices[0]), id(e.vertices[1])] as [string, string], toleranceMM: e.toleranceMM, ...(e.name === undefined ? {} : { name: e.name }) }));
   return buildBrep({ source, vertices: [...verts(outer, ia), ...verts(inner, ib)], edges: [...edgs(outer, ia), ...edgs(inner, ib)],
     bodies: [{ id: outer.bodies[0].id, kind: 'solid', shells: [...inputs(outer, ia, false), ...inputs(inner, ib, true)] }] });
 }

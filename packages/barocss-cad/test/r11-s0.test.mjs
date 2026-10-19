@@ -48,9 +48,9 @@ test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bou
   const sphere = [{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -10] }, { kind: 'arc', start: [0, 10], center: [0, 0], direction: 'cw' }], plane: xz }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
   const hollow = vol([...sphere, { id: 'sh', kind: 'shell', target: 'r', thickness: 1 }]);
   assert.ok(Math.abs(hollow / (4 / 3 * Math.PI * (1000 - 729)) - 1) < 1e-9, `${hollow}`);
-  // A SubD body: every face freeform (R11.2's case).
+  // A SubD body: every face freeform (R11.2's case). (Refused at S0; R11.2a, D110, shells it as its offset cavity.)
   const CUBE = { positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10], faces: [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]] };
-  refused([{ id: 'c', kind: 'subd', cage: CUBE }, { id: 'sh', kind: 'shell', target: 'c', thickness: 1 }], 'CAPABILITY', /not a plane, a cylinder or a surface of revolution/);
+  assert.equal(out([{ id: 'c', kind: 'subd', cage: CUBE }, { id: 'sh', kind: 'shell', target: 'c', thickness: 1 }]).brep.shells.length, 2);
   // A pipe tee filleted (R10.2a): refused at its branch, a cylinder trimmed by the junction's saddle, before its fillet face.
   const tee = [{ id: 'as', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: yzAt(0) }, { id: 'a', kind: 'extrude', sketch: 'as', height: 60 }, { id: 'bs', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['a.side0#1|b.side0#2#4'], radius: 2 }];
   refused([...tee, { id: 'sh', kind: 'shell', target: 'f', thickness: 1 }], 'CAPABILITY', /trimmed by a curve other than its rulings and circles/);
@@ -266,10 +266,11 @@ test('R11 S0 (R11.2) a closed SubD body\'s cavity as its faces offset and fitted
   // Findings, recorded: (a) without the extra knot the fit cannot follow the offset across a cap's C1 knot (u = 0.25).
   const cube = out([{ id: 's', kind: 'subd', cage: CUBE }]).brep;
   assert.ok(cavity(cube, 0.5, 4, false).deviation > 3e-4 && cavity(cube, 0.5, 4).deviation < 1e-4);
-  // (b) the kernel's quadrature does not take these fitted faces as whole patches (their edges lie within the fit's
-  // tolerance of the patch boundaries, not on them): its mass of the cube's cavity is 7.7e-5 off the faces' own integral.
+  // (b) at S0 the kernel's quadrature did not take these fitted faces as whole patches (their edges lie within the fit's
+  // tolerance of the patch boundaries, not on them): its mass of the cube's cavity was 7.7e-5 off the faces' own integral.
+  // D110: the whole-patch test takes an edge within its own tolerance — the same to rounding.
   const { inner, faces } = made[0], mass = brepMassProperties(inner, 1).volumeMM3, own = enclosed(faces.map(x => ({ S: x.F, sense: x.sense })));
-  assert.ok(Math.abs(mass / own - 1) > 1e-5, `${mass} vs ${own}`);
+  assert.ok(Math.abs(mass / own - 1) < 1e-12, `${mass} vs ${own}`);
 });
 
 test('R11 S0 (R11.2) folding: t·κmax ≥ 1 on the convex side predicts where the offset map turns over', () => {
@@ -280,9 +281,10 @@ test('R11 S0 (R11.2) folding: t·κmax ≥ 1 on the convex side predicts where t
     const e = 1e-7, q = (x, y) => inward(S, sense, t, x, y), Qu = q(u + e, v).map((x, k) => x - q(u - e, v)[k]), Qv = q(u, v + e).map((x, k) => x - q(u, v - e)[k]), d = evaluateSurfaceD1(S, u, v), n = cross(Qu, Qv), m = cross(d.du, d.dv);
     return n[0] * m[0] + n[1] * m[1] + n[2] * m[2];
   };
-  // Where κmax is (beside a cap's extraordinary corner), the map turns over between t 1.5 and 1.6, as predicted.
+  // Where κmax is among interior points (beside a cap's extraordinary corner), the map turns over between t 1.5 and 1.6,
+  // as predicted. (D110: the tightest curvature lies on a cap's side, 1.480 mm, which interior points do not reach.)
   assert.ok(J(at.S, at.sense, 1.5, at.u, at.v) > 0 && J(at.S, at.sense, 1.6, at.u, at.v) < 0);
-  // At 1.5, nowhere on an 8 × 8 grid a span.
+  // At 1.5, nowhere on an 8 × 8 grid of interior points a span.
   const turned = b.faces.some(f => {
     const S = nurbsOf(f), sense = f.sense === 'forward' ? 1 : -1, ku = [...new Set(S.knotsU)], kv = [...new Set(S.knotsV)];
     for (let a = 0; a + 1 < ku.length; a++) for (let c = 0; c + 1 < kv.length; c++) for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) if (J(S, sense, 1.5, ku[a] + (ku[a + 1] - ku[a]) * (i + 0.5) / 8, kv[c] + (kv[c + 1] - kv[c]) * (j + 0.5) / 8) <= 0) return true;

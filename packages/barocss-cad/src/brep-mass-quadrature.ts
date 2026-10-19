@@ -411,7 +411,8 @@ function fromCentre(I: number[]): number[] {
 }
 /**
  * Whether a curved face is its whole patch: one loop, every edge on the patch's domain boundary (sampled
- * at nine points, each within 1e-7 of the surface's size of one of the four boundary iso-curves), and the
+ * at nine points, each within 1e-7 of the surface's size of one of the four boundary iso-curves, or within
+ * the edge's own tolerance where it is a tolerant edge — a fitted offset's, D110), and the
  * loop as long as that boundary (to 1e-3, both measured as 64-segment polylines a curve). A closed loop made
  * only of boundary pieces, as long as the boundary, goes round it once: the face is the full domain.
  */
@@ -431,11 +432,11 @@ function wholePatch(face: BrepFace, maps: Maps): boolean {
   let perimeter = 0, length = 0;
   for (const s of sides) perimeter += polylineLength(s);
   for (const cid of maps.loops.get(face.loops[0])!.coedges) {
-    const curve = maps.edges.get(maps.coedges.get(cid)!.edge)!.curve, c = curveEvaluator(curve), [t0, t1] = curveDomain(curve);
+    const edge = maps.edges.get(maps.coedges.get(cid)!.edge)!, curve = edge.curve, c = curveEvaluator(curve), [t0, t1] = curveDomain(curve), near = Math.max(tol, edge.toleranceMM);
     let last: Point | null = null;
     for (let k = 0; k <= EDGE_SAMPLES; k++) {
       const p = c(t0 + (t1 - t0) * k / EDGE_SAMPLES);
-      if (k % (EDGE_SAMPLES / 8) === 0 && !(boundaryDistance(at, U, V, sides, p) <= tol)) return false;
+      if (k % (EDGE_SAMPLES / 8) === 0 && !(boundaryDistance(at, U, V, sides, p) <= near)) return false;
       if (last) length += Math.hypot(p[0] - last[0], p[1] - last[1], p[2] - last[2]);
       last = p;
     }
