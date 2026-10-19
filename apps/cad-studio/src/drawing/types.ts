@@ -68,7 +68,14 @@ export interface DrawingSettings {
   revisedModel?: string;
   dimensions: DrawingDimension[];
   notes?: DrawingNote[];
+  /** The views shown (R14.3, O4): the front and top views always; none: all four. */
+  views?: ViewId[];
+  /** Extra sheet room (mm) beside a view's sides for its dimensions (R14.3, O4): the layout spaces the views by it. */
+  room?: ViewRoom;
 }
+export type RoomSide = 'above' | 'below' | 'left' | 'right';
+export type ViewRoom = Partial<Record<ViewId, Partial<Record<RoomSide, number>>>>;
+export const ROOM_SIDES: readonly RoomSide[] = ['above', 'below', 'left', 'right'];
 
 export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection: 'third', hidden: true, dimensions: [] });
 
@@ -90,10 +97,23 @@ export function readDrawing(raw: unknown): DrawingSettings {
       const { tol, count, auto, ...rest } = x; const t = readTolerance(tol);
       return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}) } as DrawingDimension;
     }) : [],
+    ...(Array.isArray(r.views) && r.views.includes('front') && r.views.includes('top') ? { views: VIEW_IDS.filter(v => r.views!.includes(v)) } : {}),
+    ...(readRoom(r.room) ? { room: readRoom(r.room)! } : {}),
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
   };
 }
 
+/** Room kept where it is a number of sheet mm from 0 to 200, by a known view and side. */
+function readRoom(raw: unknown): ViewRoom | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: ViewRoom = {};
+  for (const v of VIEW_IDS) {
+    const sides = (raw as Record<string, unknown>)[v];
+    if (!sides || typeof sides !== 'object') continue;
+    for (const k of ROOM_SIDES) { const x = (sides as Record<string, unknown>)[k]; if (typeof x === 'number' && Number.isFinite(x) && x >= 0 && x <= 200) (out[v] ??= {})[k] = x; }
+  }
+  return Object.keys(out).length ? out : null;
+}
 const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
 const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);
 function readTolerance(t: unknown): Tolerance | null {

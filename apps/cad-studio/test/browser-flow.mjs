@@ -3517,6 +3517,34 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  // ---- R14.3 (O4): views and layout for the dimensions ---------------------------------------------------------------
+  await check('R14.3: Auto lays the plate out without its right view (it adds nothing), clean; the right view comes back on its switch', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6 && window.__studioDrawing().issues.length === 0, null, { timeout: 10000 });
+      await page.waitForFunction(() => /without the right view/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+      const d = (await doc()).drawing;
+      assert.deepEqual(d.views, ['front', 'top', 'iso']); assert.equal(await page.locator('[aria-label="Right view"]').isChecked(), false);
+      assert.equal(await page.locator('[aria-label="Drawing sheet"] text', { hasText: /^RIGHT$/ }).count(), 0, 'no right view drawn');
+      await snap('r14-auto-layout');
+      await page.click('[aria-label="Right view"]');
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(t => t.textContent === 'RIGHT'), null, { timeout: 10000 });
+      assert.equal((await doc()).drawing.views, undefined, 'all four views again');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

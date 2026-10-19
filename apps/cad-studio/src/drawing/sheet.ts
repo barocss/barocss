@@ -40,6 +40,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   groups.push({ role: 'title', marks: titleBlock(layout, settings, meta) });
   for (const id of VIEW_IDS) {
     const v = layout.views[id], pr = views[id], marks: Mark[] = [];
+    if (v.hidden) continue;
     const showHidden = settings.hidden && id !== 'iso';
     // Hidden pieces first, so visible ink covers them where they touch.
     for (const visible of [false, true]) for (const e of pr.edges) for (const p of e.pieces) {
@@ -50,11 +51,13 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
     groups.push({ role: 'view', view: id, marks });
   }
-  const dimensions = settings.dimensions.map(d => resolveDimension(views, d)).map(r => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
+  // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it.)
+  const dimensions: Resolved[] = settings.dimensions.map((d): Resolved => layout.views[d.view].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
   for (const r of dimensions) if (r.ok) groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views[r.dim.view], r) });
   for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
+    if (layout.views[id].hidden) continue;
     const [x0, , x1, y1] = layout.views[id].box;
     let below = y1;
     for (const g of groups) if (g.role === 'dimension' && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
@@ -300,7 +303,7 @@ export const NOTE_LINE = 5;
 /** A note's lines (top left at `at`) and its leader: from the nearer end of the first line, a short shoulder, then out to an arrow on the view point. */
 export function noteMarks(layout: SheetLayout, n: DrawingNote): Mark[] {
   const lines = n.text.split('\n'), marks: Mark[] = lines.map((t, k) => ({ kind: 'text', at: [n.at[0], n.at[1] + TEXT * 0.85 + k * NOTE_LINE] as XY, text: t, size: TEXT, anchor: 'start' }));
-  if (n.leader) {
+  if (n.leader && !layout.views[n.leader.view].hidden) {
     const tip = toSheet(layout.views[n.leader.view], n.leader.at), w = Math.max(0, ...lines.map(t => textWidth(t, TEXT, false)));
     const y = n.at[1] + TEXT * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
     marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee)));

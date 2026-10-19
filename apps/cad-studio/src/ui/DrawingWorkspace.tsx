@@ -13,7 +13,7 @@ import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
-import { autoDimensions } from '../drawing/auto';
+import { MIN_HOLE_ON_PAPER_MM, autoLayout } from '../drawing/layout';
 import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '../drawing/issues';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
@@ -123,6 +123,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (!layout) return null;
     let best: ViewId | null = null, bestD = 30;
     for (const id of VIEW_IDS) {
+      if (layout.views[id].hidden) continue;
       const [x0, y0, x1, y1] = layout.views[id].box, d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0);
       if (d < bestD) { bestD = d; best = id; }
     }
@@ -308,14 +309,18 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
   };
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
-  /** Auto-dimension (R14.1, O2): its own earlier dimensions replaced, those placed by hand kept; what it left out said. */
+  /**
+   * Auto (R14.1–R14.3, O2–O4): the views chosen and laid out with room for their dimensions, the scale and sheet that
+   * give a clean drawing, then Auto-dimension; its own earlier dimensions replaced, those placed by hand kept.
+   */
   const autoDimension = () => {
-    if (!views || !layout) return;
-    const { dimensions, report } = autoDimensions(views, layout, settings, callout);
-    onChange({ ...settings, dimensions });
-    const a = report.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
-    const notes = [...report.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.crowded.map(x => `${x.side} the ${x.view} view needs ${x.neededMM} mm, has ${x.roomMM}: a larger sheet or a smaller scale gives it room`)];
-    onToast({ title: `${n} dimension${n === 1 ? '' : 's'} placed`, hint: `${a.overall} overall, ${plural(a.levels, 'step')}, ${plural(a.holePositions + a.pitches, 'hole position')}, ${plural(a.callouts, 'callout')}${report.kept ? `; ${report.kept} of yours kept` : ''}.`, detail: notes.join('\n') });
+    if (!views) return;
+    const { settings: next, report } = autoLayout({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    onChange(next);
+    const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
+    const where = `${report.sheet} at ${scaleLabel(report.scale)}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
+    const notes = [...report.dimensions.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.left.map(x => x.message), ...(report.readable ? [] : [`The smallest hole is under ${MIN_HOLE_ON_PAPER_MM} mm on paper at this scale: a larger sheet reads better.`])];
+    onToast({ title: `${n} dimension${n === 1 ? '' : 's'} placed · ${where}`, hint: `${a.overall} overall, ${plural(a.levels, 'step')}, ${plural(a.holePositions + a.pitches, 'hole position')}, ${plural(a.callouts, 'callout')}${report.dimensions.kept ? `; ${report.dimensions.kept} of yours kept` : ''}${report.left.length ? `; ${plural(report.left.length, 'issue')} left` : ''}.`, detail: notes.join('\n') });
   };
   const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
   const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
@@ -422,6 +427,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
           onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange({ ...settings, section: { y } }); setSectionY(null); }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
         {settings.section && section && !section.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {section.error}</div>}
+        {(['right', 'iso'] as const).map(v => <label key={v} className="field"><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className="check" aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
+          const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);
+          const next = { ...settings }; delete next.views; onChange(on.size === VIEW_IDS.length ? next : { ...next, views: VIEW_IDS.filter(x => on.has(x)) });
+        }} /></label>)}
         <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
         <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
@@ -448,7 +457,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <button className="ghost small" disabled={!views || !layout} onClick={autoDimension} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Overall sizes, steps, hole positions and callouts from the part: replaces its own earlier ones, keeps yours">Auto</button></div>
+          <button className="ghost small" disabled={!views || !layout} onClick={autoDimension} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => { setSelected(r.dim.id); setTool('select'); }}>
