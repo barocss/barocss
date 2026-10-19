@@ -32,6 +32,10 @@ import { exportUrdf } from '../../src/robot/urdf';
 import { readUrdf } from '../../src/robot/urdfCheck';
 import { exportMjcf } from '../../src/robot/mjcf';
 import { readMjcf } from '../../src/robot/mjcfCheck';
+import { sweepLinks, sweepPath } from '../../src/robot/sweep';
+import { convexHull } from '../../src/robot/hull';
+import { placeBody } from '../../src/engine/evaluate';
+import { rotationMatrix } from '../../src/assembly/mates';
 import { solveDoc } from '../../src/chat/assembly';
 import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
@@ -113,6 +117,8 @@ const BUDGET_JOINT_TREE = 1;
 const BUDGET_FK = 0.1, BUDGET_POSED = 2;
 /** RM3: the link inertias of the 12-link arm (0.1 ms measured; about ×5). */
 const BUDGET_INERTIA = 0.5;
+/** RM6: a certified sweep of the 6R arm folding to a contact (225 ms measured; about ×3). */
+const BUDGET_SWEEP = 700;
 /** RM4: the URDF of the 12-link arm with its hulls (2.7 ms measured; about ×4). */
 const BUDGET_URDF = 10;
 /** A 12-link serial arm (the base part and 11 arms, each turning on the one before), solved, with its joint tree. */
@@ -246,6 +252,14 @@ const scenarios: Scenario[] = [
       if (!m.ok) throw new Error(JSON.stringify(m.refusals));
       const c = readMjcf(m.xml, new Set(m.files.map(f => f.path))); if (c.issues.length) throw new Error(c.issues.join()); return c;
     };
+  } },
+  // (RM6, O19: a certified sweep — the 6R arm folded until a link meets the base (45 steps), its meshes and hulls built outside.)
+  { name: 'robot: collision sweep, 6R arm folding to a contact', budgetMS: BUDGET_SWEEP, runs: 3, setup() {
+    const doc = JSON.parse(readFileSync(join(import.meta.dirname, '../../../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8')) as StudioDoc;
+    const solved = solveDoc(doc), tree = jointTreeOf(solved.doc, { instances: solved.doc.instances!, problems: solved.problems }, tablesFor(solved.doc)), rb = evaluateDoc(solved.doc, 1); if (!rb.ok) throw new Error('eval');
+    const world = new Map(solved.doc.instances!.map(i => { const r = evaluateDoc(i.doc, 1); if (!r.ok) throw new Error('eval'); return [i.id, r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position))]; }));
+    const links = sweepLinks(tree, p => p === 'base' ? rb.bodies : world.get(p), pts => convexHull(pts).positions);
+    return () => { const r = sweepPath(tree, links, {}, { 'l1~l2': 1.2, 'l2~l3': 2.6, 'l4~l5': -2.4 }); if (!r.contact) throw new Error('no contact'); return r; };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

@@ -28,6 +28,7 @@
        "inertia",
        "urdf",
        "mjcf",
+       "sweep",
        "set_joints"
       ],
       "type": "string"

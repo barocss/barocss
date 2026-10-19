@@ -45,6 +45,7 @@ const READ: Record<string, JsonSchema | null> = {
   list_library: o({ libraries: arr, note: str }, ['libraries']),
   check_printability: o({ direction: { type: ['object', 'null'] }, rules: arr }, ['rules']),
   link_inertia: o({ links: arr }, ['links']),
+  sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),
   export_urdf: o({ urdf: str, files: arr, notes: arr, check: arr }, ['urdf', 'files', 'notes', 'check']),
   forward_kinematics: o({ values: obj, links: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),

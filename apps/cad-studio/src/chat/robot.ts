@@ -11,12 +11,15 @@ import { exportUrdf, type UrdfResult } from '../robot/urdf';
 import { readUrdf } from '../robot/urdfCheck';
 import { exportMjcf, type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
+import { sweepLinks, sweepPath } from '../robot/sweep';
+import { convexHull } from '../robot/hull';
+import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -46,6 +49,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: { name: { type: 'string' } }, additionalProperties: false },
   },
   {
+    name: 'sweep_path',
+    description: 'Checks a straight joint-space move for collisions between the robot\'s links: from "from" to "to" (joint values by key; absent: 0, the solved pose; radians or mm). Conservative advancement: each step is as long as the links\' clearance allows by a bound on how far the joints can carry their points, so the whole path is certified, not just samples; the clearance from the links\' convex hulls first, the meshes exactly where those meet. Parent and child links are not checked. Returns clear, or the first contact (where, the joint values there, the two links), the least clearance and where, the samples taken. Changes nothing.',
+    input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['to'], additionalProperties: false },
+  },
+  {
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
@@ -63,6 +71,19 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (name === 'get_joints') {
     const t = await treeOfDoc(doc, bodies, evaluate);
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
+  }
+  if (name === 'sweep_path') {
+    const t = await treeOfDoc(doc, bodies, evaluate), keys = new Set(t.joints.map(j => j.key));
+    const from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
+    for (const v of [from, to]) {
+      if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
+      const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
+    }
+    const solved = solveDoc(doc).doc, world = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
+    for (const i of solved.instances ?? []) { const r = await evaluate(i.doc); world.set(i.id, r?.ok ? r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position)) : []); }
+    const r = sweepPath(t, sweepLinks(t, p => world.get(p), pts => convexHull(pts).positions), from as Record<string, number>, to as Record<string, number>);
+    const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
+    return { doc, content: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped }, changed: false, summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
   }
   if (name === 'export_mjcf') {
     const r = await mjcfOfDoc(doc, bodies, evaluate, typeof args.name === 'string' ? args.name : 'robot');

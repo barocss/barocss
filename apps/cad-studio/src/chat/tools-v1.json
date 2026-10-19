@@ -2908,6 +2908,69 @@
    }
   },
   {
+   "name": "sweep_path",
+   "annotations": {
+    "title": "Sweep path",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "from": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     },
+     "to": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "to"
+    ],
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "clear": {
+      "type": "boolean"
+     },
+     "contact": {
+      "type": "object"
+     },
+     "min_clearance": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "pairs": {
+      "type": "number"
+     },
+     "samples": {
+      "type": "number"
+     },
+     "skipped": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "clear",
+     "samples",
+     "pairs",
+     "skipped"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "tolerance_suggestions",
    "annotations": {
     "title": "Tolerance suggestions",

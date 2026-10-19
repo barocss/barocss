@@ -47,6 +47,8 @@ import { posedInstances } from './robot/preview';
 import { treeInertia } from './robot/inertia';
 import { exportUrdf } from './robot/urdf';
 import { exportMjcf } from './robot/mjcf';
+import { sweepLinks, sweepPath } from './robot/sweep';
+import { convexHull } from './robot/hull';
 import { writeZip } from './io/zip';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
@@ -521,15 +523,21 @@ export function App() {
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
+  // (Every placed part evaluated with its bodies: until then the robot's masses, exports and sweeps wait, RM6 — a part
+  // not yet evaluated is not massless.)
+  const robotReady = (doc.instances ?? []).every(i => instanceBodies.get(i.id)?.inst === i);
   // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
-  const linkInertias = useMemo(() => !jointTree ? undefined : treeInertia(jointTree, p => {
+  const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
     const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
     return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
-  }), [jointTree, doc, bodies, instanceBodies]);
+  }), [jointTree, doc, bodies, instanceBodies, robotReady]);
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [jointPlaying, setJointPlaying] = useState<string | null>(null);
+  const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean } | null>(null);
+  // (A path checked is for the pose it was checked to: moving a joint clears it.)
+  useEffect(() => setPathCheck(null), [jointValues, jointTree]);
   const jointFk = useMemo(() => jointTree && Object.values(jointValues).some(v => v !== 0) ? forwardKinematics(jointTree, jointValues) : null, [jointTree, jointValues]);
   const gearLines = useMemo(() => (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlashMM: at.backlashMM }; }), [jointTree, jointFk]);
   // (Joints gone from the tree lose their values; a joint played swings through its range, a period of 4 s.)
@@ -1898,6 +1906,14 @@ export function App() {
           if (!r.ok) { setToast({ title: 'URDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
           void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
+        }}
+        path={pathCheck} ready={robotReady}
+        onCheckPath={() => {
+          // (RM6: the move from the solved pose to the sliders', the links as placed; the whole path certified.)
+          const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions), r = sweepPath(jointTree, links, {}, jointValues);
+          const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l;
+          setPathCheck(r.contact ? { contact: true, text: `Contact ${name(r.contact.links[0])} – ${name(r.contact.links[1])} at ${(r.contact.s * 100).toFixed(1)} % of the move (${r.samples} steps)` }
+            : { contact: false, text: `Clear: the whole move certified (${r.samples} steps)${r.minClearance ? `; least clearance ${r.minClearance.mm.toFixed(2)} mm, ${name(r.minClearance.links[0])} – ${name(r.minClearance.links[1])}` : ''}` });
         }}
         onExportMjcf={() => {
           // (RM5: as the URDF, the same parts; robot.xml and its meshes.)

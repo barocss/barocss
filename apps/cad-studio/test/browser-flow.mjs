@@ -3918,6 +3918,26 @@ try {
     await snap('rm5-arm');
   });
 
+  // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
+  await check('RM6: the 2R arm swung into a grounded post — Check path reports the contact with the post; a small move is clear', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/sweep-post/case.json'), 'utf8')), file = join(out, 'sweep-post.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    const set = v => page.evaluate(x => { const el = document.querySelector('[aria-label="Joint base~a value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await set(2);
+    await page.click('[aria-label="Check path"]');
+    await page.waitForSelector('[aria-label="Path check"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Path check"]').innerText(), /^Contact .*post.* at \d+\.\d % of the move/);
+    await snap('rm6-contact');
+    await set(-0.5);
+    await page.click('[aria-label="Check path"]');
+    await page.waitForFunction(() => /^Clear: the whole move certified/.test(document.querySelector('[aria-label="Path check"]')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.click('[aria-label="Joints home"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
