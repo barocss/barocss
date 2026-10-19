@@ -66,7 +66,7 @@ test('R10.2a names: every face but the fillet\'s keeps its name as the radius ch
   assert.ok(names(2).includes('a.side0') && names(2).includes('b.side0') && names(2).includes('b.top'), names(2).join(' '));
 });
 
-test('R10.2 the pipe clamp\'s lug as a B-rep (the coordinator\'s probe): each lug-to-tube edge filleted alone by R10.1 — rulings (translational) and arcs (plane × square cylinder) — and the loop in one feature refused at its inside corners, which need the ball to roll round the lug\'s edges (R10.3)', () => {
+test('R10.2 the pipe clamp\'s lug as a B-rep (the coordinator\'s probe): each lug-to-tube edge filleted alone by R10.1 — rulings (translational) and arcs (plane × square cylinder) — and the loop in one feature (refused here at first: the ball rolls round the lug\'s edges at its inside corners) built by R10.3a (r10-3a.test.mjs)', () => {
   // A tube along X (20 out, 14 in), a lug 20 × 8 × 19 standing on it with its broad faces (y = ±4) along the axis and its
   // narrow ones (x = 20, 40) square to it; a hole through the lug square to its broad faces.
   const xzAt = y => ({ origin: [0, y, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] });
@@ -80,5 +80,5 @@ test('R10.2 the pipe clamp\'s lug as a B-rep (the coordinator\'s probe): each lu
     assert.equal(o.validate().valid, true, e.name);
     assert.ok(o.massProperties(1).volumeMM3 > o0.massProperties(1).volumeMM3, e.name);
   }
-  assert.throws(() => evaluateCadPart(D([...lug, { id: 'f', kind: 'fillet', target: 'c', edges: edges.map(e => e.name), radius: 2 }])), e => e.code === 'CAPABILITY' && /inside corner of their face/.test(e.message));
+  assert.equal(evaluateCadPart(D([...lug, { id: 'f', kind: 'fillet', target: 'c', edges: edges.map(e => e.name), radius: 2 }])).outputs.at(-1).validate().valid, true);
 });

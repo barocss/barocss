@@ -1,0 +1,206 @@
+{
+  "id": "r10-corner-lug-loop",
+  "step": "R10",
+  "decisions": [
+    "D92"
+  ],
+  "about": "R10.3a: the owner's pipe clamp as a B-rep part — a tube (20 out, 14 in) along X, a lug 20 × 8 × 19 standing on it (its broad faces along the axis, a hole through them), the lug-to-tube loop filleted 2 mm in one feature: rulings along the broad faces, arcs along the narrow ends, and at the lug's four corners the ball rolling round its upright edges (refused at R10.2).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "ts",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 20,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          },
+          "holes": [
+            [
+              {
+                "kind": "arc",
+                "start": [
+                  14,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "t",
+          "kind": "extrude",
+          "sketch": "ts",
+          "height": 60
+        },
+        {
+          "id": "ls",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            16
+          ],
+          "max": [
+            40,
+            35
+          ],
+          "plane": {
+            "origin": [
+              0,
+              4,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "l",
+          "kind": "extrude",
+          "sketch": "ls",
+          "height": 8
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "t",
+          "tool": "l"
+        },
+        {
+          "id": "hs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            28
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              10,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "h",
+          "kind": "extrude",
+          "sketch": "hs",
+          "height": 20
+        },
+        {
+          "id": "c",
+          "kind": "difference",
+          "target": "u",
+          "tool": "h"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "c",
+          "edges": [
+            "l.side1|t.side0#1",
+            "l.side3|t.side0#1",
+            "l.bottom|t.side0#1",
+            "l.top|t.side0#1"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 40506.040315256345,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            29.99999999999995,
+            7.409912510936932e-12,
+            1.3785822872848517
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 2
+          }
+        ],
+        "faceNames": [
+          "f.face",
+          "h.side0",
+          "l.bottom",
+          "l.side1",
+          "l.side2",
+          "l.side3",
+          "l.top",
+          "t.bottom",
+          "t.hole0.side0",
+          "t.side0",
+          "t.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "This kernel (no closed form), mass by quadrature: the rolling-ball fillet's contacts within 2.5e-7 mm of their faces, G1 to 1e-3° (none to the lug's upright edges it rolls round), its sections within 1e-6 mm of the true ones; through twice the stations the same to 1e-6 of the fillet (test/r10-3a.test.mjs). The same corner method on a box boss's foot and an L-plate's inner corner matches its closed form to 1e-8 (corner-box-boss-foot, corner-l-plate-top). relTol 1e-7 of the part is about 3e-3 of the fillet."
+}

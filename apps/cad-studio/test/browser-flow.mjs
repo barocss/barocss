@@ -2927,6 +2927,33 @@ try {
     await snap('r10-2b-oblique-groove');
   });
 
+  await check('R10.3a a box boss (a file): its whole foot filleted in the studio, four edges picked — the ball rolling round the boss\'s upright edges at its corners', async () => {
+    const fs = await import('node:fs'), file = join(out, 'box-boss.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [-10, -6], max: [10, 6] }, { id: 'n3', kind: 'extrude', sketch: 2, height: 15, from: 10 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
+    const picked = await page.evaluate(() => { let n = 0; for (let k = 0; k < 4; k++) for (const e of [`n1.top|n3.side${k}`, `n3.side${k}|n1.top`]) if (window.__studioPickEdge(e, n > 0)) { n++; break; } return n; });
+    assert.equal(picked, 4, 'the four foot edges picked by name');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('2');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes.at(-1).edges.length), 4);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
+    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    // (The fillet adds 57.35 mm³ — conformance r10/corner-box-boss-foot, in closed form; the panel rounds to 1 mm³.)
+    assert.ok(Math.abs(after - before - 57.35) <= 1, `${before} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-3a-box-boss');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

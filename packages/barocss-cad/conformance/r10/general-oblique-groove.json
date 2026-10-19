@@ -2,7 +2,8 @@
   "id": "r10-general-oblique-groove",
   "step": "R10",
   "decisions": [
-    "D90"
+    "D90",
+    "D91"
   ],
   "about": "R10.2b: a groove cut by a rod (radius 4) tilted 10\u00b0, on a plate from 8 to 32, one rim (an open chain of ellipse arcs) filleted 1 mm \u2014 the tool run past both ends until its section clears them, the Boolean trimming it.",
   "input": {
@@ -99,16 +100,16 @@
     "outputs": [
       {
         "volumeMM3": {
-          "value": 8983.23263666066,
-          "relTol": 5e-05
+          "value": 8983.14946924587,
+          "relTol": 1e-07
         },
         "centroidMM": {
           "value": [
-            19.822180361832057,
-            -0.0020035705221454307,
-            4.790063633659322
+            19.822171201341064,
+            -0.0019820028669146625,
+            4.790029954801944
           ],
-          "absTol": 0.0002
+          "absTol": 1e-05
         },
         "bodies": 1,
         "topology": [
@@ -134,8 +135,8 @@
       }
     ],
     "stepRoundTrip": {
-      "relTol": 5e-05
+      "relTol": 1e-07
     }
   },
-  "oracle": "This kernel (no closed form), by its tessellated mass: the result's quadrature declines here (its finer pass cannot place a mesh point on a trimmed patch, the D88 item), so the value is the tessellation at 64 segments a quarter (128 gives the same) and the tolerance 5e-5 of the part covers the default 32 (2.7e-5 off); the centroid likewise at 64, to 2e-4 mm (32 is 1.2e-4 mm off) \u2014 about 4 % of the fillet's own volume: this case pins the build, the fillet's accuracy is pinned by the closed-form cases (test/r10-2b.test.mjs: the general path forced on a groove along a plate and a rod across one at 10\u00b0, to 4e-12 and 6e-7). The rolling ball's contacts within 2.5e-7 mm of their faces, G1 to 1e-3\u00b0."
+  "oracle": "This kernel (no closed form), mass by quadrature: its fillet's lofted contacts within 2.5e-7 mm of their faces, G1 to 1e-3\u00b0; the general path forced on a groove along a plate and a rod across one at 10\u00b0 matches their closed forms to 3e-12 and 4e-7 of the fillet (test/r10-2b.test.mjs). Until D91 the quadrature declined here (a derivative's stencil stepped off a trimmed patch's domain) and the value was the tessellation's, 9e-6 of the part high (the chords miss about 0.4\u20130.8 % of a fillet). relTol 1e-7 of the part is about 1e-4 of the fillet."
 }

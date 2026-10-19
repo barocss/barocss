@@ -457,7 +457,13 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
       const k = curve3Of(f, seg), key = (k.kind === 'param' && k.src) || null, seen = contactCuts.get(g) ?? new Set<unknown>();
       if (key && seen.has(key)) continue;
-      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); if (key) { seen.add(key); contactCuts.set(g, seen); } }
+      if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) continue;
+      // (Not where it lies wholly off a planar face: a tool's section edge in the plane of a face it ends beside — a lug's
+      // end face, where the ball turns its corner, R10.3a — lies on that face's surface but off the face. Planes only:
+      // on a curved face a contact's (u, v) can fall a period over, off the region as drawn.)
+      const c2 = curve2(g, k, tol);
+      if (g.surf.kind === 'plane' && [0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(c2, u), g.region, 10 * tol) === 'out')) continue;
+      g.cuts.push(c2); if (key) { seen.add(key); contactCuts.set(g, seen); }
     }
     return;
   }
@@ -965,6 +971,9 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  * Edges that are an exact curve's map onto a general face and lie on a circle are made that arc
  * (`exactEdges: false` keeps them fitted).
  */
+/** Each Boolean's pieces and their classes (debugging and tests; unset in use). */
+let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
+export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
@@ -992,6 +1001,7 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
       pieces.push({ face: f, region, out: 1, key: x, where });
     }
   }
+  booleanTrace?.(pieces.map(p => ({ face: p.face.name ?? p.face.id, solid: p.face.solid, where: p.where, at: p.key, area: regionArea(p.region), cuts: p.face.cuts.length, ends: p.face.cuts.map(c => [to3(p.face, segAtAny(c, 0)), to3(p.face, segAtAny(c, 1))]), ring: [p.face.region.outer, ...p.face.region.holes].map(r => r.map(c => to3(p.face, segAtAny(c, 0)))), raw: { region: p.face.region, cuts: p.face.cuts, tol } })));
   // 4. Keep, flip, stitch.
   const keep = (p: { face: GFace; where: Where }): 'keep' | 'flip' | null => {
     const fromA = p.face.solid === 0, w = p.where;

@@ -4412,3 +4412,79 @@ The rolling-ball fillet (D89) for an **open** tangent chain: its ends, plus thre
   - General fillets still take seconds where there are many patches.
   - Square ends, ends at curved or several faces, vertex blends and overflow are refused: R10.3–R10.4.
 - **Not done:** R10.3 (vertex blends, mixed corners such as the pipe clamp's lug loop, the ends refused here), R10.4 (overflow), R10.5; general chamfers.
+
+## D91 — Mass by quadrature on trimmed patches: the D88/D90 tessellation fallbacks fixed (2026-10-19)
+
+The coordinator asked whether R10.3 changes how general-fillet mass stands: quadrature declined on some trimmed patches and the mass fell back to tessellation (D88's coaxial torus item; D90's oblique groove). Two causes, both fixed, in the order found:
+- **A derivative's stencil off the domain** (`brep-mass-quadrature.ts`): each Gauss point's surface derivative is a central difference u ± h. A trimmed patch's mesh reaches its domain edge (a lofted fillet's contact row is that edge), and there u − h left the knot domain. The evaluator threw, so the whole quadrature returned null.
+  - Now the stencil's centre moves a step inside (`stencilU`/`stencilV`) when u is within a step of an edge. The derivative moves by at most a step's curvature, 1e-6 of the face's span, on a band one step wide.
+  - Points outside the domain (a surface evaluated round its seam) are left alone.
+- **Zero-area slivers along an iso-line trim** (`brep-tessellate.ts`): a revolved face cut at a circle has its boundary on a parameter line. Inverted point by point, it wobbles about that line: by rounding, and by 1e-8 where a Boolean's fitted pieces stand for the trim.
+  - Ear-clipping then stacked zero-area triangles on both sides of the line. In space these are chords across the face's opening: 494 triangles on one cone band where 53 suffice.
+  - The quadrature's area check then saw 10–30 % more flat area than surface area and declined.
+  - Now runs of three or more boundary points the same to 1e-7 of the span in one coordinate are set to one value (`snapIsoRuns`), for the triangulation only. Afterwards the boundary's own (u, v) are put back: the triangles are still a triangulation of the ring as inverted, so their signed areas sum to its area, and the quadrature's domain is the face's, not the snap's.
+  - A first version kept the snapped values. It moved the R10 S0 coaxial case by 2.8e-9 (over its 1e-9) and was not kept.
+  - The Lawson flips' pass cap rose from 50 to 50 + the triangle count: a flat triangle always flips once its neighbour across has.
+- **Result:**
+  - 200 random coaxial cone-rim fillets (the D88 property's generator, its seed): with the stencil fixed but not yet the slivers, 180 by quadrature, 7 tessellated, 13 refused. With both fixed, 187 by quadrature, 0 tessellated, 13 refused (the Boolean TODO, unchanged). D88 counted 5 in 200 on its own run.
+  - The oblique groove (D90) is now by quadrature too. Forced through the general path on the groove at 0° and the rod at 10°, quadrature matches the closed forms to 2.5e-12 and 3.5e-7 of the fillet. Tessellation at 64 segments was 0.36 % and 0.79 % off.
+  - The fallback had also hidden a defect in tessellated fillet volumes: the chords miss part of a fillet. `r10/general-oblique-groove`'s value was the tessellation's, 9.3e-6 of the part high. It is now quadrature's, 8983.14946924587, at relTol 1e-7, STEP 1e-7 and centroid 1e-5, its oracle saying so.
+- **Pole points (`brep-tessellate.ts`, found with D92):** a boundary point at a surface's pole now takes the boundary's own point, the vertex's, instead of the surface's evaluation of its pole, one rounding apart. The faces round a horn torus's apex cracked there.
+- **Evidence:**
+  - the kernel suite;
+  - `rb:props` (mass by quadrature against finer tessellations, the coaxial and translational properties);
+  - the coaxial count above;
+  - `r10/general-oblique-groove`.
+
+## D92 — R10.3a: the rolling ball round an edge at a corner (2026-10-19)
+
+R10.3 is split, as R10.2 was:
+- **R10.3a (this):** where the ball rolls round an unfinished edge at an inside corner, plus mitres of a rolling-ball chain with another finished edge at a convex corner.
+- **R10.3b:** corners of three or more finished edges (vertex blends: sphere-patch corners, setbacks).
+- **R10.3c:** R10.2b's remaining end refusals (square ends, ends at curved or several faces).
+
+- **The case:** two finished edges meet at a vertex at an inside corner of the face they share (S), and the edge k between their other faces is not finished. Before, this was refused ("inside corner of their face"), for example a box boss's whole foot or the pipe clamp's lug loop. If k turns the other way to the fillet (convex for a concave fillet, concave for a convex one), the ball leaves the first face at k, rolls round k touching S and k, and goes on along the next face.
+  - The fillet surface there is a canal surface about k. Where S is a plane square to k, it is a horn torus quarter: the contacts on k are one point, its apex.
+  - `cornerJoin` (`edge-finish.ts`) joins such edges into one chain. Excluded: tangent continuations, smooth k (a seam between halves of one surface), corners not clearly inside, and convexities that do not match.
+- **The solve** (`rolling-ball.ts`, `solveCorner`): the ball on S at distance r from k, its foot square to k, at the fraction θ of the turn from the first face's normal to the second's (slerp in the plane square to k). Newton in (u, v, t), with the faces' normals at the foot held, then updated.
+  - The turn's last ball is stepped to in eighths: Newton from across the turn did not find it.
+- **The chain in spans** (`cornerFillet`): edge spans (stations square to the chain, on the span's own faces only; a station plane can meet a parallel face of the side as well, a lug's far end) alternate with corner spans (stations by θ).
+  - An edge span ends where its station plane passes through the corner's first ball's centre (bisection), and the next starts at its last ball's.
+  - Tangents inside a span are central differences. Within a step of a corner they are second-order one-sided: a first-order difference tilted the station plane by 3.4e-6 rad, moved the contact 2.8e-6 mm off k, and the Boolean then could not split the lug's end face.
+  - Open chains are supported: their ends run past or are clipped as in R10.2b, using `marchPast`/`pastAt` taken out of `ringFillet`.
+- **The tool beside a corner:** a contact's growth into the material (the wall) normally goes square into its face. Beside a corner that lies along the other face (a 90° wedge), which was near-coincident and broke the Boolean.
+  - Within 2r of a corner the growth turns smoothly (C¹) to halfway between the wedge's bisector and that face's inward normal. Round the corner it turns on to halfway towards the next face's, so the grown points sweep an arc even where the feet are one point.
+  - A loft patch whose contact row is one point has no edge there (`loftTool`): its two faces meet that row in one vertex, a pole.
+  - Contacts at a corner's first or last foot, to rounding, are set to that foot.
+- **The analytic Boolean:** a contact face's edge lying wholly off a planar face (a section edge in the plane of the lug's end face, beside it) is not cut into that face. Planes only: on a curved face a contact's (u, v) can fall a period over, off the region as drawn, and filtering there broke R10.2's cone rim and the groove.
+- **Refinement:** the loft now also refines until the fillet lies within 4 × tolMM of the true sections, not only its contacts within tolMM of their faces. On planes the contacts are exact at any count, and the corner sections then set the count.
+  - `sectionMM` now measures the fillet face only (its contacts and arc middle). The tool's inner faces, which the Boolean drops, bend more where they turn into a wedge and say nothing of the fillet.
+  - R10.2's rings already met the new bound, so their counts are unchanged.
+- **Mitres** (`edge-finish.ts`): an open rolling-ball chain whose end meets one other finished edge sharing a face at a convex corner of it, the same way round, runs past until its section clears that edge's own face. That edge's tool runs past too (R10.1's mitre), and the Boolean makes the mitre.
+  - Planes only for now (the end edge's faces and the other's own face). An oblique groove's rim meeting the plate's end gave the Boolean a sliver and stays refused.
+- **Refusals:** CAPABILITY `[VERTEX_BLEND_UNSUPPORTED]` for:
+  - a joint of the chain that neither continues it tangentially nor rolls round a corner (a third finished edge there: the boss's foot with one upright edge, R10.3b);
+  - a ball meeting k past the corner (a setback);
+  - corners at the ends of an edge leaving none of it.
+  - Chamfers round a corner stay as they were.
+- **Evidence** (`packages/barocss-cad/test/r10-3a.test.mjs`, 4 tests):
+  - **Box boss's foot** (20 × 12 boss on a plate, all four edges, r 1, 2, 4): (1 − π/4) r² × 64 + 4 × (π/2) r³ (5/6 − π/4) (Pappus about the upright edge) to 1.4e-9; contacts exact on the planes; sections 5e-8 mm.
+  - **L-plate's top** (convex):
+    - its two inner edges round the inner upright edge, (1 − π/4) r² × 40 + the quarter turn, to 1e-8;
+    - all six edges (the five outer corners mitred, two convex fillets overlapping by r³ (5/3 − π/2)) to 2e-8, held at 5e-8.
+  - **The pipe clamp's lug loop** (r 2; also built at r 1 and 3): valid, one body; contacts 1.1e-8 mm, G1 2e-6°, sections 3.2e-8 mm; volume within 1e-6 of a loft through twice the stations. 3 s.
+    - Each edge alone (R10.1) adds more than the loop: the arcs' square ends overhang the corners.
+  - **Refusal:** the three-edge corner.
+  - The R10.2 lug probe and part-model's L-plate refusal now build.
+  - **Conformance (`conformance/r10/`):**
+    - `corner-lug-loop` (the coordinator's case, this kernel's value with its oracle);
+    - `corner-box-boss-foot` (closed form, 2e-8);
+    - `corner-l-plate-top` (closed form, 5e-8);
+    - `refuse-vertex-blend`.
+  - **Studio:** errors.ts hints; a flow step opens a box-boss file, picks its four foot edges and fillets them (+57.35 mm³, the closed form).
+- **Mass (the coordinator's question):** every R10.3a case is by quadrature. R10.3a needed no new mass method: D91 removed both fallback causes, and the corner patches (poles included) integrate like any trimmed patch.
+- **Known:**
+  - Chamfers round inside corners still stop square.
+  - Mitres with curved faces are refused.
+  - The lug loop takes about 3 s; the box boss 3.5 s (1356 stations, set by the corner sections).
+- **Not done:** R10.3b (vertex blends), R10.3c (R10.2b's end refusals), R10.4 (overflow), R10.5; general chamfers.

@@ -744,6 +744,29 @@ function invert(x: Inversion, p: Point): XY {
   for (const g of near) { const q = newtonUV(x, g, p), e = x.at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= x.done) break; }
   return best;
 }
+/**
+ * A boundary ring's (u, v) with each run of three or more consecutive points along one parameter line (the coordinate
+ * the same to 1e-7 of its span — a trim along an iso-line: a revolved face cut at a circle) set to one value. Inverted
+ * one by one they wobble about the line (by rounding, and by a Boolean's fitted pieces of the trim, 1e-8 off it), and
+ * the ear-clipping then stacks zero-area triangles on both sides of it, which in space are chords across the face's
+ * opening (D91). (For the triangulation only: the points stay where they are, and their (u, v) are put back after.)
+ */
+function snapIsoRuns(ring: XY[], U: readonly number[], V: readonly number[]): XY[] {
+  const out = ring.map(q => [q[0], q[1]] as [number, number]), n = out.length;
+  for (const k of [0, 1] as const) {
+    const eps = 1e-7 * Math.abs(k === 0 ? U[1] - U[0] : V[1] - V[0]);
+    // (Runs start where the previous point is off the line: a ring that is one run is left as it is.)
+    let start = 0; while (start < n && Math.abs(out[start][k] - out[(start + n - 1) % n][k]) <= eps) start++;
+    if (start === n) continue;
+    for (let i = 0; i < n;) {
+      const a = (start + i) % n; let j = i + 1;
+      while (j < n && Math.abs(out[(start + j) % n][k] - out[a][k]) <= eps) j++;
+      if (j - i >= 3) { let m = 0; for (let q = i; q < j; q++) m += out[(start + q) % n][k]; m /= j - i; for (let q = i; q < j; q++) out[(start + q) % n][k] = m; }
+      i = j;
+    }
+  }
+  return out;
+}
 function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
   const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
@@ -758,15 +781,18 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // (at its neighbours' free coordinate), so the domain polygon stays a polygon; the triangles on that
   // side collapse in space and are dropped at the end.
   const poles = polesOf(S), atPole = (p: Point) => poles.find(q => Math.hypot(p[0] - q.point[0], p[1] - q.point[1], p[2] - q.point[2]) <= 1e-9 * (Lu + Lv + 1));
-  const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [];
+  const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [], inverted: (XY | null)[] = [], polar3 = new Set<Point>();
   for (const r of rings) {
-    const base = r.map(p => invert(inv, p)), before = pts.length;
+    const exact = r.map(p => invert(inv, p)), base = snapIsoRuns(exact, U, V), before = pts.length;
     r.forEach((p, i) => {
       const q = atPole(p);
-      if (!q) { pts.push(p); uv.push(base[i]); return; }
+      if (!q) { pts.push(p); uv.push(base[i]); inverted.push(exact[i]); return; }
+      inverted.push(null, null);
       const free = (k: number) => base[(k + r.length) % r.length][q.along];
       const end = (f: number): XY => q.along === 0 ? [f, q.at] : [q.at, f];
-      pts.push(q.point, q.point); uv.push(end(free(i - 1)), end(free(i + 1)));
+      // (The boundary's own point — the vertex's, which every face meeting there shares — not the surface's evaluation of
+      // its pole, a rounding apart: the faces round a horn torus's apex would crack there, D92.)
+      pts.push(p, p); uv.push(end(free(i - 1)), end(free(i + 1))); polar3.add(p);
     });
     ringSizes.push(pts.length - before);
   }
@@ -796,7 +822,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // already one step long and cannot be split).
   const interior = (x: number, y: number) => (around.get(key(x, y))?.size ?? 0) === 2;
   // Edges at a pole are left out: its normal depends on the direction it is approached from (a cone tip).
-  const polePoint = new Set(poles.map(q => q.point)), atPoleIdx = (i: number) => polePoint.has(pts[i]);
+  const atPoleIdx = (i: number) => polar3.has(pts[i]);
   // (A flat triangle is left too: bisecting it only makes flat triangles.)
   const bent = (t: number) => { const [a, b, c] = tris[t]; return !flat3(t) && ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep); };
   const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
@@ -821,7 +847,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   };
   const flat3 = (t: number) => { const [a, b, c] = tris[t], l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
   const flipAll = () => {
-    for (let pass = 0, changed = true; changed && pass < 50; pass++) {
+    for (let pass = 0, changed = true; changed && pass < 50 + tris.length; pass++) {
       changed = false;
       for (let t = 0; t < tris.length; t++) {
         // (t's flatness, worked out once for its three edges: it changes only when t flips, which ends them.)
@@ -917,6 +943,9 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     }
   }
   refine(); flipAll(); refine();
+  // (The boundary's own (u, v) back: the triangles were made on the snapped ring, and stay a triangulation of the ring
+  // as inverted — their signed areas still sum to its area — so the quadrature's domain is the face's, not the snap's.)
+  inverted.forEach((q, i) => { if (q) uv[i] = q; });
   // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
   const keep = (face.sense === 'forward') !== flip, same = (a: number, b: number) => pts[a] === pts[b];
   const wound = tris.map(([a, b, c]): [number, number, number] => keep ? [a, b, c] : [a, c, b]);

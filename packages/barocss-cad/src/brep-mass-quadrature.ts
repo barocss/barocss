@@ -165,8 +165,9 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     const domain = fp.domain ? fp.domain.map(([a, b, c]) => [a + face.vertexOffset, b + face.vertexOffset, c + face.vertexOffset] as [number, number, number]) : tris;
     const uvArea = ([a, b, c]: readonly number[]) => { const qa = uv[a - face.vertexOffset], qb = uv[b - face.vertexOffset], qc = uv[c - face.vertexOffset]; return ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2; };
     let du = 0, dv = 0; for (const q of uv) { du = Math.max(du, Math.abs(q[0] - uv[0][0])); dv = Math.max(dv, Math.abs(q[1] - uv[0][1])); }
-    const hu = 1e-6 * (du || 1), hv = 1e-6 * (dv || 1);
-    const J = (u: number, v: number) => cross(sub(at(u + hu, v), at(u - hu, v)), sub(at(u, v + hv), at(u, v - hv)));
+    const hu = 1e-6 * (du || 1), hv = 1e-6 * (dv || 1), dom = surfaceDomain(surfaces.get(face.faceId)!);
+    sink.u0 = dom.u[0]; sink.u1 = dom.u[1]; sink.v0 = dom.v[0]; sink.v1 = dom.v[1]; sink.hu = hu; sink.hv = hv;
+    const J = (u: number, v: number) => { const cu = stencilU(sink, u), cv = stencilV(sink, v); return cross(sub(at(cu + hu, v), at(cu - hu, v)), sub(at(u, cv + hv), at(u, cv - hv))); };
     // Which way the parameter map turns against the outward winding: from the face's largest triangle.
     let sigma = 0, best = 0;
     for (const t of tris) {
@@ -268,8 +269,16 @@ function curveMoment(curve: Curve, moments: Map<Curve, Point>): Point {
  * its derivatives, the orientation `sigma`, the integrals, its vector area and area; for its trims' strips the
  * edge's evaluators `ev` (points) and `d1` (with derivatives).
  */
-const sink = { at: null as unknown as (u: number, v: number) => Point, hu: 0, hv: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
+const sink = { at: null as unknown as (u: number, v: number) => Point, hu: 0, hv: 0, u0: 0, u1: 1, v0: 0, v1: 1, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
   ev: null as unknown as (t: number) => Point, d1: null as unknown as (t: number) => CurveD1Result };
+/**
+ * Where a derivative's central difference about u is taken: u itself, else (u within a step of its domain's edge — a
+ * trimmed face's mesh reaches it) a step inside, so the stencil stays on the surface. The shift moves the derivative
+ * by at most a step's curvature (1e-6 of the face's span), on a band a step wide. (u outside the domain — a surface
+ * evaluated round its seam — is left as it is.)
+ */
+function stencilU(s: typeof sink, u: number): number { return u >= s.u0 && u - s.hu < s.u0 ? s.u0 + s.hu : u <= s.u1 && u + s.hu > s.u1 ? s.u1 - s.hu : u; }
+function stencilV(s: typeof sink, v: number): number { return v >= s.v0 && v - s.hv < s.v0 ? s.v0 + s.hv : v <= s.v1 && v + s.hv > s.v1 ? s.v1 - s.hv : v; }
 /** One triangle of the domain (signed by its (u, v) orientation) integrated by the 16-point rule. */
 function triangle(s: typeof sink, qa: XY, qb: XY, qc: XY): void {
   const area = ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2;
@@ -286,7 +295,7 @@ function triangle(s: typeof sink, qa: XY, qb: XY, qc: XY): void {
  */
 function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number[], vec: Point): void {
   const at = s.at, hu = s.hu, hv = s.hv;
-  const pu = at(u + hu, v), mu = at(u - hu, v), pv = at(u, v + hv), mv = at(u, v - hv), su = 2 * hu, sv = 2 * hv;
+  const cu = stencilU(s, u), cv = stencilV(s, v), pu = at(cu + hu, v), mu = at(cu - hu, v), pv = at(u, cv + hv), mv = at(u, cv - hv), su = 2 * hu, sv = 2 * hv;
   const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
   // The mesh is wound outward throughout: sigma times the signed (u, v) area is outward.
   normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
@@ -326,7 +335,7 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
     if (off * off > 0.25 * chord2 * chord2) return;
     // C′(t) from the surface's tangents there: dE/dt = Su du + Sv dv (least squares).
     let Su: Point, Sv: Point;
-    try { const pu = s.at(c[0] + s.hu, c[1]), mu = s.at(c[0] - s.hu, c[1]), pv = s.at(c[0], c[1] + s.hv), mv = s.at(c[0], c[1] - s.hv); Su = sub(pu, mu); Sv = sub(pv, mv); } catch { return; }
+    try { const cu = stencilU(s, c[0]), cv = stencilV(s, c[1]), pu = s.at(cu + s.hu, c[1]), mu = s.at(cu - s.hu, c[1]), pv = s.at(c[0], cv + s.hv), mv = s.at(c[0], cv - s.hv); Su = sub(pu, mu); Sv = sub(pv, mv); } catch { return; }
     Su = [Su[0] / (2 * s.hu), Su[1] / (2 * s.hu), Su[2] / (2 * s.hu)]; Sv = [Sv[0] / (2 * s.hv), Sv[1] / (2 * s.hv), Sv[2] / (2 * s.hv)];
     const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dE) * (tq - tp), r2 = dot(Sv, dE) * (tq - tp);
     if (!(Math.abs(det) > 0)) return;
