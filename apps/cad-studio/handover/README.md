@@ -249,6 +249,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
 - Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- Outer-lane follow-ups (logged, not scheduled):
+  - UX: the Joints card's link mass list runs past the viewport on a 6-link arm and the card scrolls; it could
+    collapse into a summary line with the list on demand (seen on the RM5 screenshot, `notes/acceptance/rm5-arm.png`;
+    the coordinator, 2026-10-20: log it, do not fix it now).
+  - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

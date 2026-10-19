@@ -708,6 +708,7 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 510/510, 510/510 replayed through v2. Bench: MJCF export and check of the 12-link arm takes 2.35 ms (budget 10); 51 rows within budget.
   - Browser flow 159/159, with a step "RM5" just before the last: the 6R arm opened (its six joints in the Joints card), Export MJCF read by Python (`zipfile`, `xml.etree`: 7 bodies, 6 hinges, 14 meshes), equal to the CLI's frozen model to 12 significant figures. Screenshot `notes/acceptance/rm5-arm.png`.
 - **Next**: RM6, the sampled collision sweep (no simulator needed), unless the owner's answer comes first.
+- **Follow-up (UX, logged 2026-10-20, not fixed)**: with six links the Joints card's mass list runs past the viewport and the card scrolls (`notes/acceptance/rm5-arm.png`). It could collapse to a summary line; it is listed in the README's outer-lane follow-ups.
 
 ## O19 — RM6: the collision sweep, conservative advancement (2026-10-20)
 
