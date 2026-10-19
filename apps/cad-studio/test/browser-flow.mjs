@@ -3695,6 +3695,36 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  // ---- A5.2 (O10): run_script ---------------------------------------------------------------------------------------
+  await check('A5.2: run_script through the real chat and tool servers — a plate with a loop of holes and a fillet in one call, one Undo takes it back; a refused line applies nothing and names its line', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await idle();
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const send = async calls => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      };
+      const source = 'const p = box({w: 80, d: 40, h: 8, x: 0, y: 0, z: 0})\nfor (const i of range(3)) { hole(p.top, {d: 5, x: 20 + 20 * i, y: 20}) }\nfillet([edge(p.top, p.side0)], {radius: 1})';
+      await send([{ tool: 'run_script', args: { source } }]);
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+      assert.deepEqual((await doc()).nodes.map(n => n.kind), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'fillet']);
+      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
+      await snap('a5-script');
+      await page.click('.toast button:text-is("Undo")');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 10000 });
+      // A refused second line: nothing applied, the line named in the tool's result.
+      await send([{ tool: 'run_script', args: { source: 'const p = box({w: 20, d: 20, h: 5})\nbox({w: 10, d: 10, h: 10, q: 1})' } }]);
+      assert.match(await page.locator('.chat-tool').last().innerText(), /line 2/);
+      assert.equal((await doc()).nodes.length, 0);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

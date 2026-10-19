@@ -1,0 +1,15 @@
+{
+ "case": "plate-hole-row",
+ "step": "A5.2",
+ "note": "A plate and a row of through holes made in a loop.",
+ "script": "const p = box({w: 80, d: 40, h: 8})\nfor (const i of range(3)) {\n  hole(p.top, {d: 5, x: 20 + 20 * i, y: 20})\n}",
+ "expect": {
+  "features": 5,
+  "names": {
+   "p": "n1"
+  },
+  "volume_mm3": 25128.761,
+  "tol": 0.01,
+  "source": "80\u00b740\u00b78 \u2212 3\u00b7\u03c0\u00b72.5\u00b2\u00b78 (closed form)"
+ }
+}

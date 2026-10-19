@@ -1,0 +1,10 @@
+{
+ "case": "refused-line",
+ "step": "A5.2",
+ "note": "The second command has a value Box does not take: the tool refuses it, the script stops on that line and nothing is applied.",
+ "script": "const b = box({w: 80, d: 40, h: 8})\nconst c = box({w: 10, d: 10, h: 10, q: 1})",
+ "error": {
+  "code": "script_refused",
+  "line": 2
+ }
+}

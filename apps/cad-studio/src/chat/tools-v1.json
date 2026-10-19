@@ -1791,6 +1791,44 @@
    }
   },
   {
+   "name": "run_script",
+   "annotations": {
+    "title": "Run script",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "because": {
+      "type": "string"
+     },
+     "dryRun": {
+      "type": "boolean"
+     },
+     "part": {
+      "type": "string"
+     },
+     "response_format": {
+      "enum": [
+       "concise",
+       "detailed"
+      ],
+      "type": "string"
+     },
+     "source": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "source"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "section",
    "annotations": {
     "title": "Section",

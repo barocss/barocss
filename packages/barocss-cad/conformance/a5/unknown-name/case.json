@@ -1,0 +1,10 @@
+{
+ "case": "unknown-name",
+ "step": "A5.2",
+ "note": "A misspelt command, named with near matches.",
+ "script": "const b = bxo({w: 80, d: 40, h: 8})",
+ "error": {
+  "code": "script_unknown_name",
+  "line": 1
+ }
+}
