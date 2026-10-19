@@ -54,9 +54,9 @@ export function smoothOffsetBody(body: Brep, open: ReadonlySet<string>): boolean
   return true;
 }
 /** The largest angle between the kept faces' normals along their edges (smooth, below SMOOTH). */
-function largestKink(body: Brep, open: ReadonlySet<string>): number {
+function largestKink(body: Brep, open: ReadonlySet<string>, region?: ReadonlySet<string>): number {
   const size = sizeOf(body), kept = new Map<string, Patch | Exact>();
-  for (const f of body.faces) if (!(f.name && open.has(f.name))) kept.set(f.id, keptFace(body, f, size)!);
+  for (const f of body.faces) if (region ? region.has(f.id) : !(f.name && open.has(f.name))) kept.set(f.id, keptFace(body, f, size)!);
   return Math.max(0, ...meetsOf(body, kept, true).map(m => m.angle));
 }
 /** The body's size: its largest coordinate (vertices and control points), at least 1. */
@@ -66,15 +66,17 @@ function sizeOf(body: Brep): number {
   for (const f of body.faces) for (const row of nurbsOf(f).controlPoints) for (const p of row) for (const x of p) size = Math.max(size, Math.abs(x));
   return size;
 }
-/** A kept face as this route offsets it: an untrimmed patch (fitted), else a plane or cylinder (exact), else none. */
+/** A kept face as this route offsets it: a plane or cylinder (exact, however trimmed), else an untrimmed patch (fitted), else none. */
 function keptFace(body: Brep, f: BrepFace, size: number): Patch | Exact | null {
+  const exact = exactOf(f, size);
+  if (exact) return exact;
   const loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
   const S = nurbsOf(f);
   if (f.loops.length === 1 && loops.get(f.loops[0])!.kind === 'outer' && S.degreeU <= 3 && S.degreeV <= 3) {
     const F = patchOf(f, size);
-    try { for (const cid of loops.get(f.loops[0])!.coedges) { const c = coedges.get(cid)!; sideUse(F, edges.get(c.edge)!.curve, c.edge, size); } return F; } catch { /* trimmed: an exact face, or none */ }
+    try { for (const cid of loops.get(f.loops[0])!.coedges) { const c = coedges.get(cid)!; sideUse(F, edges.get(c.edge)!.curve, c.edge, size); } return F; } catch { /* trimmed: none */ }
   }
-  return exactOf(f, size);
+  return null;
 }
 
 /** The cavity t inside `body` (its faces turned as the body's: `withCavities` turns them inside out). */
@@ -98,20 +100,52 @@ export function offsetShell(body: Brep, t: number, open: ReadonlySet<string>, id
   return { shell: made.brep, report: made.report };
 }
 
-/** The cavity (nothing opened) or the opened shell. */
-function offsetWall(body: Brep, t: number, id: string, label: string, open: ReadonlySet<string>): { brep: Brep; report: OffsetCavityReport } {
+/**
+ * A region's slab (R11.2c-2, D113): the faces whose ids `region` names — a smooth region of untrimmed patches, planes and
+ * cylinders — offset t in (the inner sheet, turned inside out) and out by 1.37 t (or half the tightest concave radius),
+ * closed along every edge of the region by bands ruled along its normals. Its reach out is reported as `reachMM`.
+ */
+export function regionSlab(body: Brep, region: ReadonlySet<string>, t: number, id: string, label = id): { slab: Brep; report: OffsetCavityReport } {
+  const made = offsetWall(body, t, id, label, new Set(), { region });
+  return { slab: made.brep, report: made.report };
+}
+
+/** The faces' smooth edges: each edge between two of the faces named by id, its largest angle between their normals. */
+export function edgeAngles(body: Brep, faceIds: ReadonlySet<string>): Map<string, number> {
+  const size = sizeOf(body), kept = new Map<string, Patch | Exact>();
+  for (const f of body.faces) if (faceIds.has(f.id)) { const k = keptFace(body, f, size); if (k) kept.set(f.id, k); }
+  return new Map(meetsOf(body, kept, true).map(m => [m.edge, m.angle]));
+}
+/** Whether a face is one this route offsets (an untrimmed patch, a plane or a cylinder). */
+export function offsetFace(body: Brep, f: BrepFace): boolean { return keptFace(body, f, sizeOf(body)) !== null; }
+/** The angle (rad) below which this route takes an edge as smooth. */
+export const SMOOTH_EDGE = SMOOTH;
+
+/**
+ * The cavity (nothing opened), the opened shell, or a region's slab (`slab`: the faces whose ids it names offset t in and a
+ * reach out, closed along the region's edges; R11.2c-2, D113).
+ */
+function offsetWall(body: Brep, t: number, id: string, label: string, open: ReadonlySet<string>, slab?: { readonly region: ReadonlySet<string> }): { brep: Brep; report: OffsetCavityReport } {
   if (!(t > 0)) refuse('the wall must be positive');
-  const opened = (f: BrepFace) => !!f.name && open.has(f.name);
+  const opened = slab ? (f: BrepFace) => !slab.region.has(f.id) : (f: BrepFace) => !!f.name && open.has(f.name);
   if (body.faces.every(opened)) refuse('every face is opened');
-  if (!smoothOffsetBody(body, open)) refuse('the offset route takes a closed body whose kept faces are untrimmed patches, planes or cylinders meeting smoothly');
+  if (!slab && !smoothOffsetBody(body, open)) refuse('the offset route takes a closed body whose kept faces are untrimmed patches, planes or cylinders meeting smoothly');
   const size = sizeOf(body), target = 1e-6 * size, near = 1e-7 * size;
   // (Only the kept faces are offset; an opened face's band is gone, and with it what it could fold or meet.)
-  const kept = body.faces.filter(f => !opened(f)).map(f => keptFace(body, f, size)!);
+  const kept = body.faces.filter(f => !opened(f)).map(f => keptFace(body, f, size) ?? refuse(`face ${f.name ?? f.id} is not an untrimmed patch, a plane or a cylinder (the offset route's faces)`));
   const faces = kept.filter(isPatch), exacts = kept.filter(isExact);
   const minRadius = Math.min(foldCheck(faces, t), exactFold(exacts, t));
-  // Each face's grid of cells, fitted within the target.
-  const fits = faces.map(F => fitFace(F, t, target));
-  thinCheck(body, faces, fits, t, body.faces.filter(opened).map(f => patchOf(f, size)), exacts);
+  // A slab's outer sheet: 1.37 walls out (the slab route's reach), or half the tightest concave radius where that is less.
+  const reach = slab ? Math.min(1.37 * t, 0.5 * Math.min(foldCheck(faces, 0, -1), ...exacts.filter(X => X.cylinder && X.cylinder.out < 0).map(X => X.cylinder!.r))) : 0;
+  // Each face's grid of cells, fitted within the target; a slab's two sheets on one grid (each refitted on the other's).
+  let fits = faces.map(F => fitFace(F, t, target)), outs: FaceFit[] = [];
+  if (slab) for (let round = 0; ; round++) {
+    outs = faces.map((F, i) => fitFace(F, -reach, target, fits[i]));
+    if (outs.every((o, i) => o.cu.length === fits[i].cu.length && o.cv.length === fits[i].cv.length)) break;
+    if (round === 4) refuse('[APPROX_TOLERANCE_NOT_MET] a slab\'s two sheets do not settle on one grid of cells');
+    fits = faces.map((F, i) => fitFace(F, t, target, outs[i]));
+  }
+  thinCheck(body, faces, fits, t, slab ? [] : body.faces.filter(opened).map(f => patchOf(f, size)), exacts);
   // ---- Topology: the body's, its edges split where a face's grid line meets them ----
   const loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
   const faceOfEdge = new Map<string, Patch>(), exactOfEdge = new Map<string, Exact>();
@@ -135,94 +169,99 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
       }
     }
   }
-  // The edges' pieces: the exact offset of the body's edge (along its first face's normal), fitted. (Where two faces meet
-  // within SMOOTH but not exactly, their offsets part by t times the angle along the edge.)
-  let deviation = Math.max(0, ...fits.map(f => f.deviation), t * largestKink(body, open));
-  const pieces: { id: string; curve: Curve; a: string; b: string; from: Point; to: Point }[] = [], piecesOf = new Map<string, typeof pieces>();
-  const offsetAt = new Map<string, Point>(), cutsOf = new Map<string, number[]>();
-  const vertexOffset = (key: string, p: Point, F: Patch) => { let q = offsetAt.get(key); if (!q) { const [u, v] = project(F, p); q = offsetPoint(F, t, u, v); offsetAt.set(key, q); } return q; };
+  // Each kept edge's cuts: snapped to its own knots within rounding, the same cut from two faces once; an edge of exact
+  // faces only in pieces of at most the kernel's poles (a band on each).
+  const cutsOf = new Map<string, number[]>();
   for (const e of body.edges) {
-    const F = faceOfEdge.get(e.id), [c0, c1] = curveDomain(e.curve), list: typeof pieces = [];
-    if (!F) {
-      // An edge of exact faces only: its offset the face's map of it, in pieces of at most the kernel's poles (a band on each).
-      const X = exactOfEdge.get(e.id);
-      if (!X) continue;
-      const ts = chunksOf(e.curve);
-      cutsOf.set(e.id, ts);
-      for (let k = 0; k + 1 < ts.length; k++) {
-        const P0 = evaluateCurve(e.curve, ts[k]), P1 = evaluateCurve(e.curve, ts[k + 1]), a = vertices.at(P0), b = vertices.at(P1);
-        if (!offsetAt.has(a)) offsetAt.set(a, mapExact(X, t, P0));
-        if (!offsetAt.has(b)) offsetAt.set(b, mapExact(X, t, P1));
-        const own = ts.length > 2 ? curvePiece(e.curve, ts[k], ts[k + 1], ident(`${id}_o_${e.id}_${k}`)) : e.curve;
-        const piece = { id: `${e.id}#${k}`, curve: mapCurve(X, t, own, ident(`${id}_e_${e.id}_${k}`)), a, b, from: P0, to: P1 };
-        list.push(piece); pieces.push(piece);
-      }
-      piecesOf.set(e.id, list);
-      continue;
-    }
-    // Its cuts, snapped to its own knots within rounding, the same cut from two faces once.
+    const [c0, c1] = curveDomain(e.curve);
+    if (!faceOfEdge.has(e.id)) { if (exactOfEdge.has(e.id)) cutsOf.set(e.id, chunksOf(e.curve)); continue; }
     const eps = 1e-9 * (c1 - c0), kn = [...new Set(e.curve.knots)], ts = [c0];
     for (const x0 of [...cut.get(e.id)!].sort((x, y) => x - y)) { const x = kn.find(k => Math.abs(k - x0) <= eps) ?? x0; if (x - ts[ts.length - 1] > eps && c1 - x > eps) ts.push(x); }
     ts.push(c1);
     cutsOf.set(e.id, ts);
-    for (let k = 0; k + 1 < ts.length; k++) {
-      const P0 = evaluateCurve(e.curve, ts[k]), P1 = evaluateCurve(e.curve, ts[k + 1]), a = vertices.at(P0), b = vertices.at(P1);
-      const q0 = vertexOffset(a, P0, F), q1 = vertexOffset(b, P1, F);
-      const use = sides.get(F)!.find(x => x.edge === e.id)!, sa = sideParam(F, use.side, P0).s, sb = sideParam(F, use.side, P1).s;
-      const fitted = fitEdge(F, use.side, sa, sb, t, q0, q1, target, ident(`${id}_e_${e.id}_${k}`));
-      deviation = Math.max(deviation, fitted.deviation);
-      const piece = { id: `${e.id}#${k}`, curve: fitted.curve, a, b, from: P0, to: P1 };
-      list.push(piece); pieces.push(piece);
-    }
-    piecesOf.set(e.id, list);
   }
-  // The cells: their sides the pieces along the face's boundary, or grid edges inside it.
+  // (Where two faces meet within SMOOTH but not exactly, their offsets part by the offset times the angle along the edge.)
+  let deviation = Math.max(0, ...fits.map(f => f.deviation), ...outs.map(f => f.deviation), Math.max(t, reach) * largestKink(body, open, slab?.region));
   type Use = { edge: string; sense: 'forward' | 'reversed' };
-  const gridEdges: { id: string; curve: Curve; a: string; b: string }[] = [], faceInputs: { id: string; name: string; surface: Surface; sense: 'forward' | 'reversed'; loops: { kind: 'outer' | 'inner'; uses: Use[] }[] }[] = [];
-  faces.forEach((F, fi) => {
-    const fit = fits[fi], nu = fit.cu.length - 1, nv = fit.cv.length - 1, gid = (s: string) => `${id}_g${fi}_${s}`;
-    // The grid's nodes: on the face's boundary the registered points, inside it their own.
-    const node = (i: number, j: number) => {
-      const u = fit.cu[i], v = fit.cv[j], p = F.at(u, v), key = vertices.at(p);
-      if (!offsetAt.has(key)) offsetAt.set(key, offsetPoint(F, t, u, v));
-      return key;
-    };
-    // Grid edges inside the face: along u at v = cv[j] (0 < j < nv), along v at u = cu[i] (0 < i < nu).
-    for (let j = 1; j < nv; j++) for (let i = 0; i < nu; i++) gridEdges.push({ id: gid(`h${i}_${j}`), curve: fit.cells[i][j].iso('v', 0), a: node(i, j), b: node(i + 1, j) });
-    for (let i = 1; i < nu; i++) for (let j = 0; j < nv; j++) gridEdges.push({ id: gid(`v${i}_${j}`), curve: fit.cells[i][j].iso('u', 0), a: node(i, j), b: node(i, j + 1) });
-    const uses = sides.get(F)!;
-    for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
-      // Counter-clockwise in (u, v): along u at the bottom, along v at the right, back along u at the top, down at the left.
-      const loop: { edge: string; sense: 'forward' | 'reversed' }[] = [];
-      const along = (side: 0 | 1 | 2 | 3, s0: number, s1: number, inner: string | null) => {
-        if (inner) { loop.push({ edge: inner, sense: side === 0 || side === 1 ? 'forward' : 'reversed' }); return; }
-        loop.push(...boundaryRun(F, uses, piecesOf, side, s0, s1));
-      };
-      along(0, fit.cu[i], fit.cu[i + 1], j > 0 ? gid(`h${i}_${j}`) : null);
-      along(1, fit.cv[j], fit.cv[j + 1], i + 1 < nu ? gid(`v${i + 1}_${j}`) : null);
-      along(2, fit.cu[i + 1], fit.cu[i], j + 1 < nv ? gid(`h${i}_${j + 1}`) : null);
-      along(3, fit.cv[j + 1], fit.cv[j], i > 0 ? gid(`v${i}_${j}`) : null);
-      // (A reversed face's loop runs the other way: counter-clockwise about its outward normal.)
-      const ordered = F.sense > 0 ? loop : [...loop].reverse().map(x => ({ edge: x.edge, sense: (x.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }));
-      faceInputs.push({ id: `${id}_f${fi}_${i}_${j}`, name: `${label}.in.${F.name}.c${i}_${j}`, surface: fit.cells[i][j].surface, sense: F.face.sense, loops: [{ kind: 'outer', uses: ordered }] });
+  type Piece = { id: string; curve: Curve; a: string; b: string; from: Point; to: Point };
+  type FaceInput = { id: string; name: string; surface: Surface; sense: 'forward' | 'reversed'; loops: { kind: 'outer' | 'inner'; uses: Use[] }[] };
+  /**
+   * The faces' offset tt (inside for tt > 0) as one sheet on the body's topology: the edges' pieces (the exact offset of
+   * the body's edge along its first face's normal, fitted; an exact face's map of it), the cells (their sides the pieces
+   * along the face's boundary, or grid edges inside it), the exact faces mapped. Ids under `pre`, names under `as`.
+   */
+  const sheet = (tt: number, fitsT: readonly FaceFit[], pre: string, as: string) => {
+    const pieces: Piece[] = [], piecesOf = new Map<string, Piece[]>(), offsetAt = new Map<string, Point>();
+    const vertexOffset = (key: string, p: Point, F: Patch) => { let q = offsetAt.get(key); if (!q) { const [u, v] = project(F, p); q = offsetPoint(F, tt, u, v); offsetAt.set(key, q); } return q; };
+    for (const e of body.edges) {
+      const F = faceOfEdge.get(e.id), X = exactOfEdge.get(e.id), ts = cutsOf.get(e.id), list: Piece[] = [];
+      if (!ts || (!F && !X)) continue;
+      for (let k = 0; k + 1 < ts.length; k++) {
+        const P0 = evaluateCurve(e.curve, ts[k]), P1 = evaluateCurve(e.curve, ts[k + 1]), a = vertices.at(P0), b = vertices.at(P1);
+        let curve: Curve;
+        if (F) {
+          const q0 = vertexOffset(a, P0, F), q1 = vertexOffset(b, P1, F), use = sides.get(F)!.find(x => x.edge === e.id)!, sa = sideParam(F, use.side, P0).s, sb = sideParam(F, use.side, P1).s;
+          const fitted = fitEdge(F, use.side, sa, sb, tt, q0, q1, target, ident(`${pre}_e_${e.id}_${k}`));
+          deviation = Math.max(deviation, fitted.deviation); curve = fitted.curve;
+        } else {
+          if (!offsetAt.has(a)) offsetAt.set(a, mapExact(X!, tt, P0));
+          if (!offsetAt.has(b)) offsetAt.set(b, mapExact(X!, tt, P1));
+          const own = ts.length > 2 ? curvePiece(e.curve, ts[k], ts[k + 1], ident(`${pre}_o_${e.id}_${k}`)) : e.curve;
+          curve = mapCurve(X!, tt, own, ident(`${pre}_e_${e.id}_${k}`));
+        }
+        const piece = { id: `${e.id}#${k}`, curve, a, b, from: P0, to: P1 };
+        list.push(piece); pieces.push(piece);
+      }
+      piecesOf.set(e.id, list);
     }
-  });
-  // The exact faces: the face's surface mapped, its loops through its edges' pieces (in order, or back for a reversed use).
-  const piecesUse = (cid: string): Use[] => { const c = coedges.get(cid)!, list = piecesOf.get(c.edge)!; return (c.sense === 'forward' ? list : [...list].reverse()).map(x => ({ edge: x.id, sense: c.sense })); };
-  exacts.forEach((X, xi) => faceInputs.push({ id: `${id}_x${xi}`, name: `${label}.in.${X.name}`, surface: mapSurface(X, t, nurbsOf(X.face), ident(`${id}_xs${xi}`)), sense: X.face.sense,
-    loops: X.face.loops.map(lid => { const l = loops.get(lid)!; return { kind: l.kind, uses: l.coedges.flatMap(piecesUse) }; }) }));
-  const tolerance = Math.max(2 * deviation, near);
-  const used = new Set([...pieces.flatMap(p => [p.a, p.b]), ...gridEdges.flatMap(g => [g.a, g.b])]);
-  const cavityVertices = vertices.keys().filter(k => used.has(k)).map(k => ({ id: `${id}_${k}`, point: offsetAt.get(k) ?? refuse(`a vertex of the cavity was not placed (${k})`), toleranceMM: tolerance }));
-  const cavityEdges = [...pieces.map(p => ({ id: `${id}_${p.id}`, curve: p.curve, vertices: [`${id}_${p.a}`, `${id}_${p.b}`] as [string, string], toleranceMM: tolerance })), ...gridEdges.map(g => ({ id: `${id}_${g.id}`, curve: g.curve, vertices: [`${id}_${g.a}`, `${id}_${g.b}`] as [string, string], toleranceMM: tolerance }))];
-  const prefixed = (uses: readonly Use[]) => uses.map(u => ({ edge: `${id}_${u.edge}`, sense: u.sense }));
-  const report = { deviationMM: deviation, targetMM: target, faces: faceInputs.length, minRadiusMM: minRadius };
-  if (!open.size) {
-    const cavity = buildBrep({ source: { family: 'shell', id }, vertices: cavityVertices, edges: cavityEdges, toleranceMM: tolerance,
-      bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: prefixed(l.uses) })) })) }] }] });
+    const gridEdges: { id: string; curve: Curve; a: string; b: string }[] = [], faceInputs: FaceInput[] = [];
+    faces.forEach((F, fi) => {
+      const fit = fitsT[fi], nu = fit.cu.length - 1, nv = fit.cv.length - 1, gid = (s: string) => `${pre}_g${fi}_${s}`;
+      // The grid's nodes: on the face's boundary the registered points, inside it their own.
+      const node = (i: number, j: number) => {
+        const u = fit.cu[i], v = fit.cv[j], p = F.at(u, v), key = vertices.at(p);
+        if (!offsetAt.has(key)) offsetAt.set(key, offsetPoint(F, tt, u, v));
+        return key;
+      };
+      // Grid edges inside the face: along u at v = cv[j] (0 < j < nv), along v at u = cu[i] (0 < i < nu).
+      for (let j = 1; j < nv; j++) for (let i = 0; i < nu; i++) gridEdges.push({ id: gid(`h${i}_${j}`), curve: fit.cells[i][j].iso('v', 0), a: node(i, j), b: node(i + 1, j) });
+      for (let i = 1; i < nu; i++) for (let j = 0; j < nv; j++) gridEdges.push({ id: gid(`v${i}_${j}`), curve: fit.cells[i][j].iso('u', 0), a: node(i, j), b: node(i, j + 1) });
+      const uses = sides.get(F)!;
+      for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
+        // Counter-clockwise in (u, v): along u at the bottom, along v at the right, back along u at the top, down at the left.
+        const loop: Use[] = [];
+        const along = (side: 0 | 1 | 2 | 3, s0: number, s1: number, inner: string | null) => {
+          if (inner) { loop.push({ edge: inner, sense: side === 0 || side === 1 ? 'forward' : 'reversed' }); return; }
+          loop.push(...boundaryRun(F, uses, piecesOf, side, s0, s1));
+        };
+        along(0, fit.cu[i], fit.cu[i + 1], j > 0 ? gid(`h${i}_${j}`) : null);
+        along(1, fit.cv[j], fit.cv[j + 1], i + 1 < nu ? gid(`v${i + 1}_${j}`) : null);
+        along(2, fit.cu[i + 1], fit.cu[i], j + 1 < nv ? gid(`h${i}_${j + 1}`) : null);
+        along(3, fit.cv[j + 1], fit.cv[j], i > 0 ? gid(`v${i}_${j}`) : null);
+        // (A reversed face's loop runs the other way: counter-clockwise about its outward normal.)
+        const ordered = F.sense > 0 ? loop : [...loop].reverse().map(x => ({ edge: x.edge, sense: (x.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }));
+        faceInputs.push({ id: `${pre}_f${fi}_${i}_${j}`, name: `${as}.${F.name}.c${i}_${j}`, surface: fit.cells[i][j].surface, sense: F.face.sense, loops: [{ kind: 'outer', uses: ordered }] });
+      }
+    });
+    // The exact faces: the face's surface mapped, its loops through its edges' pieces (in order, or back for a reversed use).
+    const piecesUse = (cid: string): Use[] => { const c = coedges.get(cid)!, list = piecesOf.get(c.edge)!; return (c.sense === 'forward' ? list : [...list].reverse()).map(x => ({ edge: x.id, sense: c.sense })); };
+    exacts.forEach((X, xi) => faceInputs.push({ id: `${pre}_x${xi}`, name: `${as}.${X.name}`, surface: mapSurface(X, tt, nurbsOf(X.face), ident(`${pre}_xs${xi}`)), sense: X.face.sense,
+      loops: X.face.loops.map(lid => { const l = loops.get(lid)!; return { kind: l.kind, uses: l.coedges.flatMap(piecesUse) }; }) }));
+    const used = new Set([...pieces.flatMap(p => [p.a, p.b]), ...gridEdges.flatMap(g => [g.a, g.b])]);
+    const verts = vertices.keys().filter(k => used.has(k)).map(k => ({ id: `${pre}_${k}`, point: offsetAt.get(k) ?? refuse(`a vertex of the offset was not placed (${k})`) }));
+    const edgeInputs = [...pieces.map(p => ({ id: `${pre}_${p.id}`, curve: p.curve, vertices: [`${pre}_${p.a}`, `${pre}_${p.b}`] as [string, string] })), ...gridEdges.map(g => ({ id: `${pre}_${g.id}`, curve: g.curve, vertices: [`${pre}_${g.a}`, `${pre}_${g.b}`] as [string, string] }))];
+    const prefixed = (uses: readonly Use[]) => uses.map(u => ({ edge: `${pre}_${u.edge}`, sense: u.sense }));
+    return { piecesOf, offsetAt, faceInputs, verts, edgeInputs, prefixed };
+  };
+  const inner = sheet(t, fits, id, `${label}.in`);
+  const flip = (uses: readonly Use[]) => [...uses].reverse().map(u => ({ edge: u.edge, sense: (u.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }));
+  if (!open.size && !slab) {
+    const tolerance = Math.max(2 * deviation, near), report = { deviationMM: deviation, targetMM: target, faces: inner.faceInputs.length, minRadiusMM: minRadius };
+    const cavity = buildBrep({ source: { family: 'shell', id }, vertices: inner.verts.map(v => ({ ...v, toleranceMM: tolerance })), edges: inner.edgeInputs.map(e => ({ ...e, toleranceMM: tolerance })), toleranceMM: tolerance,
+      bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: inner.prefixed(l.uses) })) })) }] }] });
     return { brep: cavity, report };
   }
-  // ---- Opened: the kept faces as they are, the cells turned inside out, a band at each edge of the opening ----
+  // ---- The wall's ends: a band at each edge between a kept face and another ----
   const facesOfEdge = new Map<string, { face: BrepFace; sense: 'forward' | 'reversed' }[]>();
   for (const f of body.faces) for (const lid of f.loops) for (const cid of loops.get(lid)!.coedges) { const c = coedges.get(cid)!; facesOfEdge.set(c.edge, [...(facesOfEdge.get(c.edge) ?? []), { face: f, sense: c.sense }]); }
   const keptEdges = body.edges.filter(e => (facesOfEdge.get(e.id) ?? []).some(x => !opened(x.face)));
@@ -231,62 +270,106 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
   // end meet itself along one radial: not a manifold.
   const rimAt = new Map<string, number>();
   for (const e of rim) for (const v of e.vertices) rimAt.set(v, (rimAt.get(v) ?? 0) + 1);
-  for (const [v, n] of rimAt) if (n > 2) refuse(`[OPENING_AT_A_VERTEX] the opened faces meet the kept ones ${n / 2} times round the vertex at (${body.vertices.find(x => x.id === v)!.point.map(x => +x.toFixed(6)).join(', ')}): the wall's ends would touch there; open the faces between, or neither`);
-  const keptVertices = new Set(keptEdges.flatMap(e => [...e.vertices])), vertexPoint = new Map(body.vertices.map(v => [v.id, v.point]));
-  const bands: { id: string; name: string; surface: Surface; sense: 'forward' | 'reversed'; uses: { edge: string; sense: 'forward' | 'reversed' }[] }[] = [], radials = new Map<string, { id: string; curve: Curve; a: string; b: string }>();
-  const radialAt = (v: string) => {
-    let r = radials.get(v);
-    if (!r) { const p = vertexPoint.get(v)!, key = vertices.at(p), q = offsetAt.get(key) ?? refuse(`a rim vertex has no offset (${v})`); r = { id: `${id}_r_${ident(v)}`, curve: lineCurve(ident(`${id}_r_${v}`), p, q), a: `o_${v}`, b: `${id}_${key}` }; radials.set(v, r); }
-    return r;
-  };
-  // Each rim edge in the pieces its offset was cut into (exact pieces of its curve), a band on each.
-  const rimPieces = new Map<string, { id: string; curve: Curve; a: string; b: string; name?: string }[]>();
-  const rimVertex = (e: string, k: number, ts: readonly number[], v: readonly [string, string]) => k === 0 ? v[0] : k === ts.length - 1 ? v[1] : `${e}@${k}`;
-  for (const e of rim) {
-    const kept = facesOfEdge.get(e.id)!.find(x => !opened(x.face))!, F = faces.find(x => x.face === kept.face), use = F ? sides.get(F)!.find(x => x.edge === e.id)! : null;
-    const ts = cutsOf.get(e.id)!, list = piecesOf.get(e.id)!, outer: { id: string; curve: Curve; a: string; b: string; name?: string }[] = [];
-    for (let k = 0; k + 1 < ts.length; k++) {
-      const va = rimVertex(e.id, k, ts, e.vertices), vb = rimVertex(e.id, k + 1, ts, e.vertices);
-      for (const [v, x] of [[va, ts[k]], [vb, ts[k + 1]]] as const) if (!vertexPoint.has(v)) vertexPoint.set(v, evaluateCurve(e.curve, x));
-      const piece = { id: ts.length > 2 ? `${e.id}@${k}_${k + 1}` : e.id, curve: ts.length > 2 ? curvePiece(e.curve, ts[k], ts[k + 1], ident(`${id}_o_${e.id}_${k}`)) : e.curve, a: va, b: vb, ...(e.name ? { name: ts.length > 2 ? `${e.name}#${k + 1}` : e.name } : {}) };
-      outer.push(piece);
-      let band: { surface: Surface; deviation: number };
-      if (F && use) { const sa = sideParam(F, use.side, vertexPoint.get(va)!).s, sb = sideParam(F, use.side, vertexPoint.get(vb)!).s; band = fitBand(F, use.side, sa, sb, t, target, ident(`${id}_b_${e.id}_${k}`)); }
-      // (Along an exact face, the ruled band between the piece and its map: exact.)
-      else band = { surface: ruledBetween(piece.curve, list[k].curve, ident(`${id}_b_${e.id}_${k}`)), deviation: 0 };
-      deviation = Math.max(deviation, band.deviation);
-      // Along the piece (u), from it to its offset (v): the piece, the radial at its end, its offset back, the radial at its start.
-      const r0 = radialAt(va), r1 = radialAt(vb);
-      const loop: { edge: string; sense: 'forward' | 'reversed' }[] = [{ edge: `o_${piece.id}`, sense: 'forward' }, { edge: r1.id, sense: 'forward' }, { edge: `${id}_${list[k].id}`, sense: 'reversed' }, { edge: r0.id, sense: 'reversed' }];
-      // Outward is towards the opening: across the edge from the kept face (its loop's left), so the band's du × dv,
-      // the edge's direction × the inward normal, faces out where the kept face's loop runs against the edge.
-      const sense = kept.sense === 'forward' ? 'reversed' : 'forward';
-      bands.push({ id: `${id}_band_${ident(e.id)}_${k}`, name: `${label}.rim.${e.name ?? e.id}${ts.length > 2 ? `#${k + 1}` : ''}`, surface: band.surface, sense, uses: sense === 'forward' ? loop : [...loop].reverse().map(x => ({ edge: x.edge, sense: (x.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' })) });
+  for (const [v, n] of rimAt) if (n > 2) refuse(`[OPENING_AT_A_VERTEX] the ${slab ? 'region\'s faces meet the others' : 'opened faces meet the kept ones'} ${n / 2} times round the vertex at (${body.vertices.find(x => x.id === v)!.point.map(x => +x.toFixed(6)).join(', ')}): the wall's ends would touch there; ${slab ? 'not supported yet' : 'open the faces between, or neither'}`);
+  if (slab) return slabOf();
+  return openedShell();
+
+  /** A region's slab: its outer sheet, its inner one turned inside out, and bands from one to the other along its edges. */
+  function slabOf(): { brep: Brep; report: OffsetCavityReport } {
+    const outer = sheet(-reach, outs, `${id}_out`, `${label}.out`);
+    const bands: FaceInput[] = [], radials = new Map<string, { id: string; curve: Curve; a: string; b: string }>();
+    const radialAt = (key: string) => {
+      let r = radials.get(key);
+      if (!r) { const p = outer.offsetAt.get(key) ?? refuse(`a slab's vertex has no outer offset (${key})`), q = inner.offsetAt.get(key) ?? refuse(`a slab's vertex has no inner offset (${key})`); r = { id: `${id}_r_${key}`, curve: lineCurve(ident(`${id}_r_${key}`), p, q), a: `${id}_out_${key}`, b: `${id}_${key}` }; radials.set(key, r); }
+      return r;
+    };
+    for (const e of rim) {
+      const keptUse = facesOfEdge.get(e.id)!.find(x => !opened(x.face))!, F = faces.find(x => x.face === keptUse.face), use = F ? sides.get(F)!.find(x => x.edge === e.id)! : null;
+      const out = outer.piecesOf.get(e.id)!, inn = inner.piecesOf.get(e.id)!;
+      out.forEach((po, k) => {
+        let band: { surface: Surface; deviation: number };
+        if (F && use) { const sa = sideParam(F, use.side, po.from).s, sb = sideParam(F, use.side, po.to).s; band = fitBand(F, use.side, sa, sb, t, target, ident(`${id}_b_${e.id}_${k}`), -reach); }
+        else band = { surface: ruledBetween(po.curve, inn[k].curve, ident(`${id}_b_${e.id}_${k}`)), deviation: 0 };
+        deviation = Math.max(deviation, band.deviation);
+        // Along the piece (u), from the outer sheet to the inner (v): as the opened shell's bands (D111), the outer piece for the edge.
+        const r0 = radialAt(po.a), r1 = radialAt(po.b);
+        const loop: Use[] = [{ edge: `${id}_out_${po.id}`, sense: 'forward' }, { edge: r1.id, sense: 'forward' }, { edge: `${id}_${inn[k].id}`, sense: 'reversed' }, { edge: r0.id, sense: 'reversed' }];
+        const sense = keptUse.sense === 'forward' ? 'reversed' : 'forward';
+        bands.push({ id: `${id}_band_${ident(e.id)}_${k}`, name: `${label}.end.${e.name ?? e.id}${out.length > 1 ? `#${k + 1}` : ''}`, surface: band.surface, sense, loops: [{ kind: 'outer', uses: sense === 'forward' ? loop : flip(loop) }] });
+      });
     }
-    rimPieces.set(e.id, outer);
+    const tolerance = Math.max(2 * deviation, near), report = { deviationMM: deviation, targetMM: target, faces: inner.faceInputs.length + outer.faceInputs.length + bands.length, minRadiusMM: minRadius };
+    const brep = buildBrep({
+      source: { family: 'shell', id },
+      vertices: [...outer.verts, ...inner.verts].map(v => ({ ...v, toleranceMM: tolerance })),
+      edges: [...outer.edgeInputs, ...inner.edgeInputs, ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string] }))].map(e => ({ ...e, toleranceMM: tolerance })),
+      toleranceMM: tolerance,
+      bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: [
+        ...outer.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: outer.prefixed(l.uses) })) })),
+        ...inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', loops: f.loops.map(l => ({ kind: l.kind, uses: flip(inner.prefixed(l.uses)) })) })),
+        ...bands.map(b => ({ id: b.id, name: b.name, surface: b.surface, sense: b.sense, loops: b.loops })),
+      ] }] }],
+    });
+    return { brep, report };
   }
-  const flip = (uses: readonly Use[]) => [...uses].reverse().map(u => ({ edge: u.edge, sense: (u.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }));
-  const shellTolerance = Math.max(2 * deviation, near);
-  const rimVertexIds = new Set<string>();
-  for (const list of rimPieces.values()) for (const p of list) { keptVertices.add(p.a); keptVertices.add(p.b); rimVertexIds.add(p.a); rimVertexIds.add(p.b); }
-  const keptLoop = (lid: string) => loops.get(lid)!.coedges.flatMap(cid => {
-    const c = coedges.get(cid)!, list = rimPieces.get(c.edge);
-    if (!list) return [{ edge: `o_${c.edge}`, sense: c.sense }];
-    return (c.sense === 'forward' ? list : [...list].reverse()).map(p => ({ edge: `o_${p.id}`, sense: c.sense }));
-  });
-  const shell = buildBrep({
-    source: { family: 'shell', id },
-    vertices: [...[...keptVertices].map(v => ({ id: `o_${v}`, point: vertexPoint.get(v)!, toleranceMM: Math.max(body.vertices.find(x => x.id === v)?.toleranceMM ?? 0, rimVertexIds.has(v) ? shellTolerance : 0) })), ...cavityVertices.map(v => ({ ...v, toleranceMM: shellTolerance }))],
-    edges: [...keptEdges.filter(e => !rimPieces.has(e.id)).map(e => ({ id: `o_${e.id}`, curve: e.curve, vertices: [`o_${e.vertices[0]}`, `o_${e.vertices[1]}`] as [string, string], toleranceMM: e.toleranceMM, ...(e.name ? { name: e.name } : {}) })),
-      ...[...rimPieces.values()].flat().map(p => ({ id: `o_${p.id}`, curve: p.curve, vertices: [`o_${p.a}`, `o_${p.b}`] as [string, string], toleranceMM: shellTolerance, ...(p.name ? { name: p.name } : {}) })),
-      ...cavityEdges.map(e => ({ ...e, toleranceMM: shellTolerance })), ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string], toleranceMM: shellTolerance }))],
-    bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: [
-      ...body.faces.filter(f => !opened(f)).map(f => ({ id: `o_${ident(f.id)}`, surface: f.surface, sense: f.sense, ...(f.name ? { name: f.name } : {}), loops: f.loops.map(lid => ({ kind: loops.get(lid)!.kind, uses: keptLoop(lid) })) })),
-      ...faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', loops: f.loops.map(l => ({ kind: l.kind, uses: flip(prefixed(l.uses)) })) })),
-      ...bands.map(b => ({ id: b.id, name: b.name, surface: b.surface, sense: b.sense, loops: [{ kind: 'outer' as const, uses: b.uses }] })),
-    ] }] }],
-  });
-  return { brep: shell, report: { ...report, deviationMM: deviation } };
+
+  /** The opened shell (D111): the kept faces as they are, the cells turned inside out, a band at each edge of the opening. */
+  function openedShell(): { brep: Brep; report: OffsetCavityReport } {
+    const keptVertices = new Set(keptEdges.flatMap(e => [...e.vertices])), vertexPoint = new Map(body.vertices.map(v => [v.id, v.point]));
+    const bands: FaceInput[] = [], radials = new Map<string, { id: string; curve: Curve; a: string; b: string }>();
+    const radialAt = (v: string) => {
+      let r = radials.get(v);
+      if (!r) { const p = vertexPoint.get(v)!, key = vertices.at(p), q = inner.offsetAt.get(key) ?? refuse(`a rim vertex has no offset (${v})`); r = { id: `${id}_r_${ident(v)}`, curve: lineCurve(ident(`${id}_r_${v}`), p, q), a: `o_${v}`, b: `${id}_${key}` }; radials.set(v, r); }
+      return r;
+    };
+    // Each rim edge in the pieces its offset was cut into (exact pieces of its curve), a band on each.
+    const rimPieces = new Map<string, { id: string; curve: Curve; a: string; b: string; name?: string }[]>();
+    const rimVertex = (e: string, k: number, ts: readonly number[], v: readonly [string, string]) => k === 0 ? v[0] : k === ts.length - 1 ? v[1] : `${e}@${k}`;
+    for (const e of rim) {
+      const keptUse = facesOfEdge.get(e.id)!.find(x => !opened(x.face))!, F = faces.find(x => x.face === keptUse.face), use = F ? sides.get(F)!.find(x => x.edge === e.id)! : null;
+      const ts = cutsOf.get(e.id)!, list = inner.piecesOf.get(e.id)!, own: { id: string; curve: Curve; a: string; b: string; name?: string }[] = [];
+      for (let k = 0; k + 1 < ts.length; k++) {
+        const va = rimVertex(e.id, k, ts, e.vertices), vb = rimVertex(e.id, k + 1, ts, e.vertices);
+        for (const [v, x] of [[va, ts[k]], [vb, ts[k + 1]]] as const) if (!vertexPoint.has(v)) vertexPoint.set(v, evaluateCurve(e.curve, x));
+        const piece = { id: ts.length > 2 ? `${e.id}@${k}_${k + 1}` : e.id, curve: ts.length > 2 ? curvePiece(e.curve, ts[k], ts[k + 1], ident(`${id}_o_${e.id}_${k}`)) : e.curve, a: va, b: vb, ...(e.name ? { name: ts.length > 2 ? `${e.name}#${k + 1}` : e.name } : {}) };
+        own.push(piece);
+        let band: { surface: Surface; deviation: number };
+        if (F && use) { const sa = sideParam(F, use.side, vertexPoint.get(va)!).s, sb = sideParam(F, use.side, vertexPoint.get(vb)!).s; band = fitBand(F, use.side, sa, sb, t, target, ident(`${id}_b_${e.id}_${k}`)); }
+        // (Along an exact face, the ruled band between the piece and its map: exact.)
+        else band = { surface: ruledBetween(piece.curve, list[k].curve, ident(`${id}_b_${e.id}_${k}`)), deviation: 0 };
+        deviation = Math.max(deviation, band.deviation);
+        // Along the piece (u), from it to its offset (v): the piece, the radial at its end, its offset back, the radial at its start.
+        const r0 = radialAt(va), r1 = radialAt(vb);
+        const loop: Use[] = [{ edge: `o_${piece.id}`, sense: 'forward' }, { edge: r1.id, sense: 'forward' }, { edge: `${id}_${list[k].id}`, sense: 'reversed' }, { edge: r0.id, sense: 'reversed' }];
+        // Outward is towards the opening: across the edge from the kept face (its loop's left), so the band's du × dv,
+        // the edge's direction × the inward normal, faces out where the kept face's loop runs against the edge.
+        const sense = keptUse.sense === 'forward' ? 'reversed' : 'forward';
+        bands.push({ id: `${id}_band_${ident(e.id)}_${k}`, name: `${label}.rim.${e.name ?? e.id}${ts.length > 2 ? `#${k + 1}` : ''}`, surface: band.surface, sense, loops: [{ kind: 'outer', uses: sense === 'forward' ? loop : flip(loop) }] });
+      }
+      rimPieces.set(e.id, own);
+    }
+    const shellTolerance = Math.max(2 * deviation, near), report = { deviationMM: deviation, targetMM: target, faces: inner.faceInputs.length, minRadiusMM: minRadius };
+    const rimVertexIds = new Set<string>();
+    for (const list of rimPieces.values()) for (const p of list) { keptVertices.add(p.a); keptVertices.add(p.b); rimVertexIds.add(p.a); rimVertexIds.add(p.b); }
+    const keptLoop = (lid: string) => loops.get(lid)!.coedges.flatMap(cid => {
+      const c = coedges.get(cid)!, list = rimPieces.get(c.edge);
+      if (!list) return [{ edge: `o_${c.edge}`, sense: c.sense }];
+      return (c.sense === 'forward' ? list : [...list].reverse()).map(p => ({ edge: `o_${p.id}`, sense: c.sense }));
+    });
+    const shell = buildBrep({
+      source: { family: 'shell', id },
+      vertices: [...[...keptVertices].map(v => ({ id: `o_${v}`, point: vertexPoint.get(v)!, toleranceMM: Math.max(body.vertices.find(x => x.id === v)?.toleranceMM ?? 0, rimVertexIds.has(v) ? shellTolerance : 0) })), ...inner.verts.map(v => ({ ...v, toleranceMM: shellTolerance }))],
+      edges: [...keptEdges.filter(e => !rimPieces.has(e.id)).map(e => ({ id: `o_${e.id}`, curve: e.curve, vertices: [`o_${e.vertices[0]}`, `o_${e.vertices[1]}`] as [string, string], toleranceMM: e.toleranceMM, ...(e.name ? { name: e.name } : {}) })),
+        ...[...rimPieces.values()].flat().map(p => ({ id: `o_${p.id}`, curve: p.curve, vertices: [`o_${p.a}`, `o_${p.b}`] as [string, string], toleranceMM: shellTolerance, ...(p.name ? { name: p.name } : {}) })),
+        ...inner.edgeInputs.map(e => ({ ...e, toleranceMM: shellTolerance })), ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string], toleranceMM: shellTolerance }))],
+      bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: [
+        ...body.faces.filter(f => !opened(f)).map(f => ({ id: `o_${ident(f.id)}`, surface: f.surface, sense: f.sense, ...(f.name ? { name: f.name } : {}), loops: f.loops.map(lid => ({ kind: loops.get(lid)!.kind, uses: keptLoop(lid) })) })),
+        ...inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', loops: f.loops.map(l => ({ kind: l.kind, uses: flip(inner.prefixed(l.uses)) })) })),
+        ...bands.map(b => ({ id: b.id, name: b.name, surface: b.surface, sense: b.sense, loops: b.loops })),
+      ] }] }],
+    });
+    return { brep: shell, report: { ...report, deviationMM: deviation } };
+  }
 }
 
 /**
@@ -323,16 +406,17 @@ function curvePiece(curve: Curve, a: number, b: number, id: string): Curve {
  * side to its offset there, cubic along the edge (w ∈ [0, 1], the side's knots each once more, refined until both rows are
  * within the target), linear across. Its deviation.
  */
-function fitBand(F: Patch, side: 0 | 1 | 2 | 3, sa: number, sb: number, t: number, target: number, id: string): { surface: Surface; deviation: number } {
+function fitBand(F: Patch, side: 0 | 1 | 2 | 3, sa: number, sb: number, t: number, target: number, id: string, t0 = 0): { surface: Surface; deviation: number } {
   const k = side === 0 || side === 2 ? F.ku : F.kv, lo = Math.min(sa, sb), hi = Math.max(sa, sb), toW = (x: number) => (x - sa) / (sb - sa);
   const uvAt = (w: number) => sideUV(F, side, sa + (sb - sa) * w);
   for (let r = 2; ; r++) {
     const K = cellKnots(k, lo, hi, r).map(toW).sort((x, y) => x - y), g = greville(K);
-    const P = interpolate(K, g.map(w => { const [u, v] = uvAt(w); return [F.at(u, v), offsetPoint(F, t, u, v)]; }));
+    // (Row 0 the face's offset t0 — the face itself, or a slab's outer sheet — row 1 its offset t.)
+    const P = interpolate(K, g.map(w => { const [u, v] = uvAt(w); return [t0 ? offsetPoint(F, t0, u, v) : F.at(u, v), offsetPoint(F, t, u, v)]; }));
     const surface: Surface = { kind: 'surface', id, degreeU: 3, degreeV: 1, knotsU: K, knotsV: [0, 0, 1, 1], controlPoints: P, weights: P.map(r2 => r2.map(() => 1)) };
     const at = surfaceEvaluator(surface);
     let deviation = 0;
-    for (const w of between(g)) { const [u, v] = uvAt(w); deviation = Math.max(deviation, len(sub(F.at(u, v), at(w, 0))), len(sub(offsetPoint(F, t, u, v), at(w, 1)))); }
+    for (const w of between(g)) { const [u, v] = uvAt(w); deviation = Math.max(deviation, len(sub(t0 ? offsetPoint(F, t0, u, v) : F.at(u, v), at(w, 0))), len(sub(offsetPoint(F, t, u, v), at(w, 1)))); }
     if (deviation <= target || poles(K) >= MAX_POLES) return { surface, deviation };
   }
 }
@@ -619,14 +703,15 @@ function normalNear(k: Patch | Exact, p: Point): Point {
 // ---- Folding and thin walls ----
 
 /** The face's largest convex principal curvature at (u, v); NaN where the second derivatives are not defined. */
-function convexCurvature(F: Patch, u: number, v: number): number {
+function convexCurvature(F: Patch, u: number, v: number, sign: 1 | -1 = 1): number {
   // (From the fundamental forms against the unit normal Su × Sv; convex towards the inside, positive, for the outward one.)
   const d = F.d2; d.at(u, v, 2);
   const N = cross3(d.Su, d.Sv), l = len(N);
   if (!(l > 1e-300)) return NaN;
   const n: Point = [N[0] / l, N[1] / l, N[2] / l], E = dot(d.Su, d.Su), Fm = dot(d.Su, d.Sv), G = dot(d.Sv, d.Sv), L = dot(n, d.Suu), M = dot(n, d.Suv), Nn = dot(n, d.Svv), det = E * G - Fm * Fm;
   const H = (E * Nn - 2 * Fm * M + G * L) / (2 * det), K = (L * Nn - M * M) / det, root = Math.sqrt(Math.max(0, H * H - K));
-  return Math.max(-F.sense * (H - root), -F.sense * (H + root));
+  // (sign −1: the largest concave one, for an offset outwards.)
+  return Math.max(-sign * F.sense * (H - root), -sign * F.sense * (H + root));
 }
 /** A knot span's end moved inside it by rounding where it is an interior knot (C¹ there: the second derivatives one-sided). */
 const inside = (x: number, lo: number, hi: number, k: Knots) => x === lo && lo > k.at[0] ? lo + 1e-9 * (hi - lo) : x === hi && hi < k.at[k.at.length - 1] ? hi - 1e-9 * (hi - lo) : x;
@@ -636,13 +721,13 @@ const inside = (x: number, lo: number, hi: number, k: Knots) => x === lo && lo >
  * (1.480 mm on the cube's, where interior points gave 1.509) — and from the largest samples, a climb (each parameter in
  * turn, golden section, the step halving) to the local largest. The tightest radius.
  */
-function foldCheck(faces: readonly Patch[], t: number): number {
-  const seeds: { F: Patch; k: number; u: number; v: number; u0: number; u1: number; v0: number; v1: number }[] = [];
+function foldCheck(faces: readonly Patch[], t: number, sign: 1 | -1 = 1): number {
+  const seeds: { F: Patch; k: number; u: number; v: number; u0: number; u1: number; v0: number; v1: number; sign: 1 | -1 }[] = [];
   for (const F of faces) for (let a = 0; a + 1 < F.ku.at.length; a++) for (let c = 0; c + 1 < F.kv.at.length; c++) {
     const u0 = F.ku.at[a], u1 = F.ku.at[a + 1], v0 = F.kv.at[c], v1 = F.kv.at[c + 1];
     for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) {
-      const u = inside(u0 + (u1 - u0) * i / 8, u0, u1, F.ku), v = inside(v0 + (v1 - v0) * j / 8, v0, v1, F.kv), k = convexCurvature(F, u, v);
-      if (k > 0) seeds.push({ F, k, u, v, u0, u1, v0, v1 });
+      const u = inside(u0 + (u1 - u0) * i / 8, u0, u1, F.ku), v = inside(v0 + (v1 - v0) * j / 8, v0, v1, F.kv), k = convexCurvature(F, u, v, sign);
+      if (k > 0) seeds.push({ F, k, u, v, u0, u1, v0, v1, sign });
     }
   }
   // (The six largest samples climbed: only the largest curvature decides.)
@@ -654,15 +739,15 @@ function foldCheck(faces: readonly Patch[], t: number): number {
       u = climb(s.F, u, v, Math.max(s.u0, u - h), Math.min(s.u1, u + h), true, s);
       v = climb(s.F, u, v, Math.max(s.v0, v - h), Math.min(s.v1, v + h), false, s);
     }
-    const k = Math.max(s.k, convexCurvature(s.F, u, v) || 0);
+    const k = Math.max(s.k, convexCurvature(s.F, u, v, sign) || 0);
     if (k > kmax) kmax = k;
     if (t * k >= 1) refuse(`[OFFSET_FOLDS] face ${s.F.name} curves more tightly than the wall at (${+u.toFixed(6)}, ${+v.toFixed(6)}): its radius there ${+(1 / k).toPrecision(6)} mm, the wall ${t} mm — the offset turns over`);
   }
   return kmax > 0 ? 1 / kmax : Infinity;
 }
 /** Golden section for the largest convex curvature along u (or v) on [lo, hi], the other parameter held. */
-function climb(F: Patch, u: number, v: number, lo: number, hi: number, alongU: boolean, s: { u0: number; u1: number; v0: number; v1: number }): number {
-  const g = (Math.sqrt(5) - 1) / 2, kOf = (x: number) => { const y = alongU ? inside(x, s.u0, s.u1, F.ku) : inside(x, s.v0, s.v1, F.kv), k = alongU ? convexCurvature(F, y, v) : convexCurvature(F, u, y); return Number.isNaN(k) ? -Infinity : k; };
+function climb(F: Patch, u: number, v: number, lo: number, hi: number, alongU: boolean, s: { u0: number; u1: number; v0: number; v1: number; sign: 1 | -1 }): number {
+  const g = (Math.sqrt(5) - 1) / 2, kOf = (x: number) => { const y = alongU ? inside(x, s.u0, s.u1, F.ku) : inside(x, s.v0, s.v1, F.kv), k = alongU ? convexCurvature(F, y, v, s.sign) : convexCurvature(F, u, y, s.sign); return Number.isNaN(k) ? -Infinity : k; };
   let a = lo, b = hi, x1 = b - g * (b - a), x2 = a + g * (b - a), f1 = kOf(x1), f2 = kOf(x2);
   for (let it = 0; it < 24; it++) { if (f1 > f2) { b = x2; x2 = x1; f2 = f1; x1 = b - g * (b - a); f1 = kOf(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + g * (b - a); f2 = kOf(x2); } }
   // The ends too: the largest is often at the span's edge.
@@ -711,7 +796,10 @@ function thinCheck(body: Brep, faces: readonly Patch[], fits: readonly FaceFit[]
         }
         if (!G) {
           // An opened face is no wall: the wall may come near it (what is between runs out through the opening), not cross it.
-          const O = openedOf.get(mf.faceId)!, [u, v] = nearestOn(O, q, uvOf[2 * j0], uvOf[2 * j0 + 1]), r = sub(q, O.at(u, v));
+          // (A face neither kept nor opened — another region's, in a slab — is not this check's: the slabs' union takes it.)
+          const O = openedOf.get(mf.faceId);
+          if (!O) continue;
+          const [u, v] = nearestOn(O, q, uvOf[2 * j0], uvOf[2 * j0 + 1]), r = sub(q, O.at(u, v));
           if (dot(r, normalOf(O, u, v)) > 1e-6 * t) refuse(`[WALL_TOO_THIN] the wall of ${t} mm inside face ${Fname} runs out through the opened face ${O.name}, ${+len(r).toPrecision(6)} mm past it: the body is thinner than the wall there`);
           continue;
         }
@@ -842,14 +930,15 @@ function isoCurve(S: Surface, axis: 'u' | 'v', end: 0 | 1, id: string): Curve {
  * fits the pole cap; a cell refines its spans (2 to as many as the cap allows) until within the target; where the cap
  * is reached first, the grid is cut through that cell's middle (both ways) and the face fitted again.
  */
-function fitFace(F: Patch, t: number, target: number): FaceFit {
+function fitFace(F: Patch, t: number, target: number, start?: { readonly cu: readonly number[]; readonly cv: readonly number[] }): FaceFit {
   const groups = (k: Knots, lo: number, hi: number) => {
     // Spans together while (the spans · 3 + 2) poles fit the cap at 2 a span.
     const cuts = [lo]; let n = 0;
     for (let i = 1; i < k.at.length; i++) { n++; if (k.at[i] < hi && (n + 1) * 3 + 2 > MAX_POLES) { cuts.push(k.at[i]); n = 0; } }
     cuts.push(hi); return [...new Set(cuts)];
   };
-  let cu = groups(F.ku, F.U[0], F.U[1]), cv = groups(F.kv, F.V[0], F.V[1]);
+  // (From a grid given — another offset's of the same face, so the two share their cuts — or the face's spans grouped.)
+  let cu = start ? [...start.cu] : groups(F.ku, F.U[0], F.U[1]), cv = start ? [...start.cv] : groups(F.kv, F.V[0], F.V[1]);
   for (let round = 0; round < 12; round++) {
     const cells: Cell[][] = [], worse: [number, number][] = [];
     let deviation = 0;

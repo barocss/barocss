@@ -5178,3 +5178,63 @@ R11.2c-1 builds what R11.2c-2's region slabs need too: the inner and outer sheet
   - Trimmed freeform patches, and exact faces other than planes and cylinders (cones, spheres, tori trimmed).
   - The exact faces' thin-wall path has no case of its own that refuses: none of the tees comes near it.
 - Checks: lint and type-check clean (kernel and studio); kernel 1166/1171 (4 skipped; only the env-only Split test fails); conformance 121/121 with the 2 new cases; studio 482/482; full flow 156/156 on bc468b3e9 plus this change, the new step included (every outer-lane step passing). RB rows in the next commit.
+
+## D113 — R11.2c-2: shells of bodies whose smooth regions meet bounding planes at sharp edges (2026-10-20)
+
+D105's verdict (b), finished: bodies with sharp edges and freeform or trimmed faces. The targets were the closed pipe tee and the conic-filleted box; both were refused on HEAD: a cylinder trimmed by a curve, and a plane bounded by a curve that is not a line or an arc.
+
+- **Route** (`region-shell.ts`, new). The wall is the union of a slab per piece of the boundary, and the shell is the body within it (the slab route's way, D105–D108). Two kinds of slab need no growth across an edge.
+  - **A bounding plane's band.** A plane bounds the body when every point of the body lies on its inner side (its tessellation's points, within 1e-6 of the size).
+    - Its band runs from the wall inside to 1.37 walls out and is unbounded along the plane: a square 4 sizes across, each band's a little apart so no far faces coincide.
+    - Inside the body, a point within the wall of such a plane is within the wall of the boundary, because the segment to the plane leaves the body. So the band needs neither the face's outline nor any growth: a plane bounded by a conic or a trimmed curve is as any other.
+    - The faces of one plane joined by flat edges form one band.
+  - **A smooth region's slab** (`regionSlab`, offset-cavity.ts):
+    - the region (faces joined by edges within 1e-4 rad) offset in by the wall (the inner sheet, turned inside out) and out by its reach;
+    - closed along every edge of the region by bands ruled along its normals.
+    - The reach is 1.37 walls, or half the tightest concave radius where that is less: the outer sheet must not fold.
+    - The two sheets share one grid of cells a face (each refitted on the other's until neither cuts it further), so the bands pair their pieces.
+  - At a sharp edge between a region and a bounding plane, the region's end lies inside the plane's band: its normal there lies in the plane at a right angle, and near it otherwise. So the slabs, the body and each other meet transversally, and every face of the union inside the body is the hollow's.
+  - **Closed:** the union's voids are the hollow, so the shell is the body with them as cavities (`withCavities`): no Boolean with the body. The closed tee takes 7.9 s instead of 22 s.
+  - **Opened, beside a region:**
+    - The body is first extended through the opened face: a prism on it, two walls deep, glued on (`glueAtSharedFace`). The slabs are the extended body's, so the region's run out past the opening.
+    - The shell is the original body within them (one analytic Boolean).
+    - A face opened beside bounding planes only needs nothing.
+- **Planes and cylinders are now always exact faces in the offset route** (they were patches when untrimmed, D112). An untrimmed half cylinder fitted as cells was 1.6e-5 off on a capped cylinder; exact, it is 4e-15. The opened tee of D112 improves from −1.6e-6 to −2.6e-7. R11.2a/b are unchanged: their SubD faces are neither.
+- **Kernel core fixes found by the region slabs' cells** (domains such as [12/13, 1], where a sum of steps rounds past the end):
+  - The analytic Boolean's curve table evaluated a face at its parameters scaled and back, which could lie past the domain: now clamped.
+  - Its 25 × 25 sample grid's last row, and its arc-length estimate's last step, could round past the domain: now the end itself.
+  - The tessellator's grids (`spaced`): the same.
+  - **The analytic Boolean's result tolerance** was its own 1e-5 whatever its inputs. A fitted region slab's pieces lost their 1.2e-4, and the tessellator then refused them. It is now the inputs' largest entity tolerance where that is more, as `withCavities` keeps them (D110).
+- **Refusals by name:**
+  - `[SHELL_REGIONS_SHARP]`: two smooth regions meeting at a sharp edge (an unfilleted tee's cylinders at their concave saddle).
+  - `[SHELL_PLANE_NOT_BOUNDING]`: a plane the body crosses (a step, a pocket) at a sharp edge beside a region.
+  - `[SHELL_OPENING_NOT_PLANAR]`: an opened curved face beside a region.
+  - `[SHELL_FACE_KIND]`: a face of another kind beside a sharp edge.
+  - `[SHELL_NOT_CLOSED]` for any other failure, with its reason.
+- **Evidence** (`test/r11-2c2.test.mjs`, new; every case refused on HEAD c885e6c0e; every result strictly valid, mass by quadrature):
+
+  | Body | Wall, opened | Faces | Volume against the closed form | Time |
+  |---|---|---|---|---|
+  | Box 40 × 30 × 20, an edge conic-filleted (ρ 0.5, 3) | 1 closed | 51 | −9.1e-9 | 1.5 s |
+  | the same | 2 closed | 135 | +9.9e-9 | 2.9 s |
+  | the same | 1, bottom | 50 | −1.2e-8 | 2.0 s |
+  | the same | 2, bottom | 134 | +1.3e-8 | 4.6 s |
+  | Pipe tee R 10 / r 5, filleted 2 (D112) | 1 closed | 328 | −2.3e-7 | 7.9 s |
+  | the same | 2 closed | 328 | −2.0e-7 | 8.9 s |
+  | the same | 1, branch end | 327 | −2.3e-7 | 19.7 s |
+
+  - The box is a prism along X, so its hollow is its section eroded over 40 − 2t. The section's turning is three right angles and the conic's quarter turn, so it erodes to A − Pt + (3 + π/4)t². With the bottom open it is A − (P − 30)t + (1 + π/4)t².
+    - A and P come from the end face's own edges, by Green's theorem and arc length; A agrees with the body's volume / 40 to 1e-9.
+  - The closed tee's wall is the faces' normal bands (D112's), plus each kept cap's disc πr²t, less each cap's overlap with its pipe, the square ring 2π(r − t/2)t².
+  - The closed tee tessellates at 8 and 16 a quarter.
+  - Refused by name: the unfilleted tee, a pocket in the conic box's floor, an opened fillet face.
+  - Conformance `r11/shell-conic-box-closed`, `shell-conic-box-open-bottom`, `shell-pipe-tee-closed` (STEP round trip 1e-9) and `refuse-shell-regions-sharp`.
+  - A flow step: the conic box from a file, shelled 2 with its bottom opened (7096 mm³).
+  - R11 S0's two refusals (the filleted tee, the conic box) and R11.2c-1's kept-end refusal now shell; their tests say then and now. A box with a lofted boss (part-model's shell test) is refused by name for the box's top the boss crosses (`[SHELL_PLANE_NOT_BOUNDING]`) instead of for its freeform faces.
+- **Not done** (each refused by name):
+  - concave sharp edges between regions, or between a region and a plane the body crosses (a boss on a curved face, a pocket);
+  - openings that are curved faces beside a region;
+  - trimmed freeform patches, and exact faces other than planes and cylinders.
+  - The opened case's one Boolean takes about 20 s on the tee (327 faces).
+  - R11.3 (mesh offsets) is next.
+- Checks: lint and type-check clean (kernel and studio); kernel 1173/1178 (4 skipped; only the env-only Split test fails); conformance 125/125 with the 4 new cases; studio 505/505; full flow 160/160 on c885e6c0e plus this change, the new step included (every outer-lane step passing). A first full run made beside the kernel suite timed out six drawing and A5 steps (5–30 s waits) and logged one page error. Those steps all passed on their own, and the run alone was clean. RB rows in the next commit.

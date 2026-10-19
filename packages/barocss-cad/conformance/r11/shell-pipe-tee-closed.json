@@ -1,0 +1,121 @@
+{
+  "id": "r11-shell-pipe-tee-closed",
+  "step": "R11",
+  "decisions": [
+    "D113"
+  ],
+  "about": "R11.2c-2: the filleted pipe tee (D112) shelled 1 with its ends kept: three caps’ bands and the tube’s one slab; refused before D113 (a trimmed cylinder).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 25
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|b.side0#2#4"
+          ],
+          "radius": 2
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4514.410774747857,
+          "relTol": 0.000002
+        },
+        "centroidMM": {
+          "value": [
+            30.00000000001659,
+            -2.553804289373348e-9,
+            1.8172533971289904
+          ],
+          "absTol": 0.001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "The wall is the faces’ normal bands (D112’s: a cylinder’s A(t − t²/2r), its area r ∮ −h dθ over its own edges; a fillet patch’s ∫∫(t − Ht² + Kt³/3) dA by quadrature), each cap’s disc πr²t, less each cap’s overlap with its pipe, the square ring 2π(r − t/2)t² (the formulas implementation-independent, the integrals of this kernel’s faces and edges). The tolerance is the fit’s accuracy contract (kept area × 1e-6 of the size, about 6e-5 relative; 2e-6 taken). Centroid from this kernel."
+}
