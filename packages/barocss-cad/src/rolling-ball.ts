@@ -511,6 +511,22 @@ function pastEnds(past: readonly (EndPlane | null)[] | undefined, mid: Point, sc
   return out;
 }
 /**
+ * A break at s (found between s0 and s1) moved to where one of its contacts lies exactly in an end plane run past, when
+ * that contact crosses the plane between s0 and s1 and lies within 1e-4 × scale of it at s; else s.
+ */
+function breakOnEnd(ends: readonly PastEnd[], s: number, s0: number, s1: number, solve: (x: number) => Station | null, scaleMM: number): number {
+  const at = solve(s); if (!at) return s;
+  for (const e of ends) for (const side of ['pA', 'pB'] as const) {
+    const f = (st: Station | null) => st ? dot(sub(st[side], e.o), e.n) : NaN;
+    if (Math.abs(f(at)) > 1e-4 * scaleMM) continue;
+    let lo = s0, hi = s1, flo = f(solve(lo));
+    if (!(flo * f(solve(hi)) < 0)) continue;
+    for (let k = 0; k < 100 && hi - lo > 1e-15 * Math.max(1, Math.abs(hi)); k++) { const m = (lo + hi) / 2, fm = f(solve(m)); if (!Number.isFinite(fm)) break; if ((fm < 0) === (flo < 0)) { lo = m; flo = fm; } else hi = m; }
+    return (lo + hi) / 2;
+  }
+  return s;
+}
+/**
  * Whether the contact (u, v) at p passes the check: inside its face, or beyond an end run past (by more than rounding:
  * a contact in that end's plane is checked — there it would be off its face across the side, not the end).
  */
@@ -594,6 +610,10 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
       const m = (lo + hi) / 2, { X, t } = at(m), st = solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, r, X, t, p.st.uvA, p.st.uvB, scaleMM);
       if (st && (closed ? strictlyInside(As[p.a], st.uvA) && strictlyInside(Bs[p.b], st.uvB) : state({ st, a: p.a, b: p.b }) === key)) lo = m; else hi = m;
     }
+    // (Where a contact leaves its face across an end run past — the face's edge in that end's plane — the break is put
+    // in the plane itself: found on the face's sampled outline it lay up to 1e-5 off, and the plane that clips the tool
+    // there then passed a hair beside the tool's vertex, cutting a corner of 1e-4 off a patch, R10.B, D99.)
+    if (!closed) hi = breakOnEnd(endsPast, hi, p.s, q.s, x => solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, r, at(x).X, at(x).t, p.st.uvA, p.st.uvB, scaleMM), scaleMM);
     breaks.push({ s: hi, a: q.a, b: q.b });
   }
   // (An open chain's first stretch starts at its start, on the first station's faces; where it runs past an end, the

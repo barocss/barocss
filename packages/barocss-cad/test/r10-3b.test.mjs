@@ -17,7 +17,7 @@ const A = r => (1 - Math.PI / 4) * r * r, M = r => r ** 3 * (5 / 6 - Math.PI / 4
 const boss = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 10 },
   { id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-10, -6], max: [10, 6] }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 15, from: 10 }, { id: 'u', kind: 'union', target: 'p', tool: 'b' }];
 
-test('R10.3b a pocket\'s floor and upright edges (all concave, between planes): a ball\'s eighth at each of its four corners — the added volume to its closed form, within the ball patch\'s quadrature (3e-4 of the fillet)', () => {
+test('R10.3b a pocket\'s floor and upright edges (all concave, between planes): a ball\'s eighth at each of its four corners — the added volume to its closed form to 2e-6 of the fillet (3e-4 before R10.B: the ball\'s pole in its patch)', () => {
   const pocket = [{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 20 },
     { id: 'ps', kind: 'sketch', profile: 'rectangle', min: [15, 10], max: [45, 30] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 15, from: 10 }, { id: 'c', kind: 'difference', target: 'b', tool: 'p' }];
   const o0 = out(pocket), edges = o0.brep.edges.filter(e => e.name.split('|').every(n => /^p\./.test(n))).map(e => e.name), r = 2;
@@ -25,8 +25,9 @@ test('R10.3b a pocket\'s floor and upright edges (all concave, between planes): 
   const o = out([...pocket, fillet('c', edges, r)]);
   assert.equal(o.validate().valid, true);
   const got = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3, exact = A(r) * (2 * (30 - 2 * r) + 2 * (20 - 2 * r) + 4 * (10 - r)) + 4 * cube(r);
-  // (The corner patches hold their ball's pole, where the quadrature over a trimmed domain is least accurate, D22/D93.)
-  assert.ok(Math.abs(got / exact - 1) < 3e-4, `${got} vs ${exact} (${got / exact - 1})`);
+  // (The corner patches held their ball's pole, where the quadrature over a trimmed domain was least accurate — 3e-4 of
+  // the fillet, D22/D93; turned off it since R10.B, 8e-7, D99.)
+  assert.ok(Math.abs(got / exact - 1) < 2e-6, `${got} vs ${exact} (${got / exact - 1})`);
   assert.ok(o.brep.faces.some(f => /^f\.face/.test(f.name) && f.surface.degreeU === 2 && f.surface.degreeV === 2), 'a spherical corner face');
 });
 

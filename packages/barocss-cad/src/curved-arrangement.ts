@@ -249,13 +249,32 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   };
   const outgoing = points.map(() => [] as number[]); half.forEach((h, i) => outgoing[h.from].push(i));
   const keyed = half.map(leaving);
-  outgoing.forEach(list => list.sort((a, b) => { const A = keyed[a], B = keyed[b], d = A.angle - B.angle; return Math.abs(d) > 1e-12 ? d : A.curvature - B.curvature; }));
+  // (Leaving along one tangent to within the data's rounding — a fillet's arc and the line it is tangent to, their
+  // shared vertex moved by the vertex tolerance, the arc's tangent then off the line's by eps / r — they are ordered as
+  // they lie a little way out, at δ = 10³ eps: by the chord's direction there, angle + κ δ / 2. R10.B, D99.)
+  // (Angles are read from the middle of the widest gap between a vertex's directions, not from −π: a direction along
+  // −x off by rounding to either side of ±π would otherwise jump to the other end of the order.)
+  const delta = 1e3 * eps, rel = new Float64Array(half.length);
+  for (const list of outgoing) {
+    const a = list.map(h => keyed[h].angle).sort((x, y) => x - y);
+    let from = -Math.PI, gap = -1;
+    for (let i = 0; i < a.length; i++) { const g = (i + 1 < a.length ? a[i + 1] : a[0] + TWO_PI) - a[i]; if (g > gap) { gap = g; from = a[i] + g / 2; } }
+    for (const h of list) rel[h] = ((keyed[h].angle - from) % TWO_PI + TWO_PI) % TWO_PI;
+    list.sort((x, y) => leavingOrder(rel[x] - rel[y], keyed[x].curvature, keyed[y].curvature, delta));
+  }
   const pos = new Map<number, number>(); outgoing.forEach(list => list.forEach((h, k) => pos.set(h, k)));
   for (const h of half) { const list = outgoing[h.to], k = pos.get(h.twin)!; h.next = list[(k - 1 + list.length) % list.length]; }
   const cycles: number[][] = [];
   half.forEach((h, i) => { if (h.face >= 0) return; const c: number[] = []; let g = i; do { half[g].face = cycles.length; c.push(g); g = half[g].next; } while (g !== i && c.length <= half.length); cycles.push(c); });
   const segOfHalf = (h: number) => half[h].from === edges[half[h].edge].u ? edges[half[h].edge].seg : segReverse(edges[half[h].edge].seg);
   return { points, edges, half, cycles, segOfHalf, eps };
+}
+
+/** Two half-edges' order about their vertex: by angle d apart, or within 1e-4 by their chords at δ out (angle + κδ/2). */
+function leavingOrder(d: number, ka: number, kb: number, delta: number): number {
+  if (Math.abs(d) > 1e-4) return d;
+  const k = d + (ka - kb) * delta / 2;
+  return Math.abs(k) > 1e-15 ? k : ka - kb;
 }
 
 /** Every vertex of the arrangement of the rings (crossings, tangencies, touches, ring vertices). */

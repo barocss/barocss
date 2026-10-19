@@ -62,9 +62,8 @@ test('R10.1\'s closed-form tools end where an oblique end face is: a rib turned 
   assert.ok(Math.abs((o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3) / (section(1) * 40 / Math.cos(Math.PI / 18)) - 1) < 2e-6);
 });
 
-test('R10.2b refusals: an end square on a face (forced, the rod lying straight across); an end meeting another finished edge (a vertex blend, R10.3)', () => {
-  const straight = across('union', 'z', 0), o0 = out(straight);
-  assert.throws(() => finishBrepEdges(o0.brep, [rim(straight)], 1, 'fillet', 'f', { general: true }), e => /CAPABILITY: .*end square on a face/.test(e.message));
+// (An end square on a face — the rod lying straight across, forced — was refused here; it builds since R10.B: r10-b.test.mjs.)
+test('R10.2b refusals: an end meeting another finished edge (a vertex blend, R10.3)', () => {
   const groove = across('difference', 'y', 10, plateFrom(8, 32)), b = out(groove).brep, edge = b.edges.find(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   // The plate's top edge at the rim's end (x = 40) as well: they meet at a vertex.
   const end = b.edges.find(e => /pe\.side[13]/.test(e.name) && /pe\.top/.test(e.name) && e.vertices.some(v => edge.vertices.includes(v)));

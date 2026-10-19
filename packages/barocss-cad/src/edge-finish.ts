@@ -200,6 +200,8 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   }
 
   const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], concaveCorners: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[]; sides: string[]; report: FilletReport }[] = [];
+  // (Rings with an end square on a face, by that edge's name: a Boolean failing there is that end's refusal.)
+  const squareEnds = new Map<object, string>();
   // Corner blends: where three filleted straight edges between three planes meet at a convex vertex,
   // the rolling ball rounds the corner with a sphere about the point r from all three planes. Each
   // edge's tool then stops at the plane through that centre square to the edge (where its cylinder
@@ -269,6 +271,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     // nothing, a convex one's (it would cut the wall) is clipped by the wall's plane. A clip needs one plane there.
     let past: (EndPlane | null)[] = [null, null];
     const clips: EndClip[] = [];
+    let squareEnd: string | null = null;
     if (open) {
       const sideFaces = new Set(comp.flatMap(facesOf)), convex0 = convexAt(generalInto(open[0], usesOf, ends));
       past = [0, 1].map(i => {
@@ -302,12 +305,14 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
           // (One plane — square to the chain too since R10.3c, D94 — or one cylinder: the tool runs past and is cut by it.)
           const g = others.length === 1 ? geom(others[0]) : null;
           // (A cylinder there — a general fillet ending on a round plate's rim — not yet: the analytic Boolean cutting a
-          // lofted tool by a cylinder fails on the cases tried, D94.)
+          // lofted tool by a cylinder fails on the cases tried, D94; R10.B (D99) tried it again — cut near that end as
+          // R10.3c's are, the rim's cut of the rod no longer meets the clipped contact.)
           if (!g || g.kind !== 'plane') refuse('CAPABILITY', `edge ${o.e.name}: its end meets ${others.length === 1 ? 'a curved face' : 'more than one face'}; ending a general fillet there is not supported yet`);
           const pl = g as Extract<FaceGeometry, { kind: 'plane' }>;
           // (An end plane square to the chain: the tool's end section lies in it, partly on the end face and on along a
-          // side face's continuation — the analytic Boolean's arrangement fails there on most radii tried, D90, D94.)
-          if (Math.abs(dot(pl.n, end.out)) > 1 - 1e-9) refuse('CAPABILITY', `edge ${o.e.name}: the fillet would end square on a face (its last section in that face's plane); that end is not supported yet`);
+          // side face's continuation. Built since R10.B (D99); where the analytic Boolean still cannot close it, refused
+          // as before, D90, D94.)
+          if (Math.abs(dot(pl.n, end.out)) > 1 - 1e-9) squareEnd = o.e.name ?? o.e.id;
           clips.push({ kind: 'plane', o: pl.o, n: pl.n });
           return { o: pl.o, n: pl.n };
         }
@@ -318,11 +323,14 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
       });
     }
     const ring = generalRing(body, (loop ?? open)!, usesOf, ends, size, id, scaleMM, !!loop, past, cornerOf);
-    for (const c of clips) {
-      // The end face's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
-      ring.brep = clipTool(ring.brep, c, ring.mid, 4 * scaleMM + 10, 4 * size, id, id);
-      ring.contactFaces = contactFacesOf(ring.brep, id);
-    }
+    try {
+      for (const c of clips) {
+        // The end face's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
+        ring.brep = clipTool(ring.brep, c, ring.mid, 4 * scaleMM + 10, 4 * size, id, id);
+        ring.contactFaces = contactFacesOf(ring.brep, id);
+      }
+    } catch (cause) { throw squareEnd ? squareRefusal(cause, squareEnd) : cause; }
+    if (squareEnd) squareEnds.set(ring, squareEnd);
     rings.push(ring);
     reports?.push(ring.report);
     for (const e of comp) handled.add(e.id);
@@ -443,8 +451,9 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   // (A result in more bodies than the part had: the fillet ran off its faces near an end and cut a piece free — it would
   // have rolled onto the face there, R10.4: refused, D90.)
   for (const ring of rings) {
-    const was = out.bodies.length;
-    out = booleanAnalytic(out, ring.brep, ring.convex ? 'difference' : 'union', { id, contactFaces: ring.contactFaces, contactWith: ring.sides });
+    const was = out.bodies.length, square = squareEnds.get(ring);
+    try { out = booleanAnalytic(out, ring.brep, ring.convex ? 'difference' : 'union', { id, contactFaces: ring.contactFaces, contactWith: ring.sides }); }
+    catch (cause) { throw square ? squareRefusal(cause, square) : cause; }
     if (out.bodies.length > was) refuseFillet('CONTACT_LEAVES_FACE', `edge ${ring.report.edges[0]}: a fillet of ${size} mm runs off its faces near its end and cuts a piece free; rolling over the next face arrives with R10.4`);
   }
   apply(convexTools, 'difference');
@@ -671,10 +680,12 @@ function cornerTool(V: Point, C: Point, outs: Point[], r: number, id: string): B
   const rays = [[0, 1, 2], [1, 2, 0], [2, 0, 1]].map(([i, j, k]) => { const u = unit(cross(outs[i], outs[j])); return dot(u, outs[k]) < 0 ? u : scale(u, -1); });
   const reach = 4 * (len(sub(V, C)) + r), pts: Point[] = [C, ...rays.map(u => add(C, scale(u, reach)))];
   const cone = tetrahedron(pts, `${id}.tool`);
-  // The ball about an axis through the cone towards V (its pole is the corner's apex, its seams lie in no
-  // plane of the cone). (Turned so its poles and seam lie off the patch, the patch integrates exactly — 2e-10 on one
-  // corner — but the Boolean's march along the ball's tangent circles with the edge tools then fails on some boxes, D93.)
-  const axis = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), e1 = unit(sub(any, scale(axis, dot(any, axis)))), e3 = cross(e1, axis);
+  // The ball turned so its poles and seam lie off the corner patch: its axis square to the direction towards V (the
+  // patch lies within the cone's 55° of that direction, the poles 90° from it), its seam opposite V. On the pole — the
+  // corner's apex, as before — the quadrature over the trimmed domain did not converge (1e-5 of a rounded box). Tried at
+  // D93, the Boolean then failed on some boxes; since R10.B it does not (D99).
+  const toward = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), side = unit(sub(any, scale(toward, dot(any, toward))));
+  const axis = unit(cross(toward, side)), e1 = scale(toward, -1), e3 = cross(e1, axis);
   const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
   const placed = transformBrep(ball, { matrix: [e1[0], axis[0], e3[0], e1[1], axis[1], e3[1], e1[2], axis[2], e3[2]], offset: [C[0], C[1], C[2]] });
   return booleanAnalytic(cone, { ...placed, faces: placed.faces.map(f => ({ ...f, name: `${id}.face` })) }, 'difference', { id: `${id}_c` });
@@ -808,6 +819,11 @@ function edgeKind(body: Brep, o: Brep['edges'][number], scaleMM: number): 'conve
   const sides = intoFaces(o, uses, x, tangent);
   if (len(sub(sides[0].n, sides[1].n)) < 1e-9) return 'smooth';
   return convexAt(sides) ? 'convex' : 'concave';
+}
+/** A general fillet ending square on a face whose Boolean fails: refused as before R10.B (D90, D94, D99). */
+function squareRefusal(cause: unknown, edge: string): unknown {
+  if (!(cause instanceof BrepError) || !/analytic Boolean/.test(cause.message)) return cause;
+  return new BrepError('GEOMETRY', `CAPABILITY: edge ${edge}: the fillet would end square on a face (its last section in that face's plane), and the analytic Boolean cannot close it there; that end is not supported yet`);
 }
 /** A closed-form finish of this edge would run past a smooth edge onto another surface: the rolling ball takes it (R10.4a, D95). */
 class Overflow extends BrepError { constructor(readonly edge: string) { super('GEOMETRY', `overflow onto a smooth neighbour at edge ${edge}`); } }

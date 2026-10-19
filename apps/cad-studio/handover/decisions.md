@@ -4642,3 +4642,47 @@ R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face acr
   - an end at several faces not in one plane, or at a curved face (square as before);
   - wedge chamfers of more than one edge meeting at a corner (unchanged).
   - Next: R10.B, then R10.5.
+
+## D99 — R10.B: the analytic Boolean with tool faces coinciding with or lying along body faces (2026-10-19)
+
+R10.B took the five items blocked on the analytic Boolean, each with a fixture that was refused or failed before. Four build; one stays refused, with the reason measured.
+
+- **The coplanar end caps (D97):** the rolling ball's tool, capped in an end face's plane, is united with a body whose end face lies in that plane. Most radii failed. Three causes, each fixed where it arose:
+  - **The tool's patch break** where a contact leaves its face across an end run past was found on the face's sampled outline in (u, v). It lay up to 1.6e-5 off the end plane. The clip plane then passed a hair beside the tool's vertex, cutting a 1e-4 corner off one patch: too short for the march, so the loop of cuts stayed open. Now the break is bisected onto the plane itself (`breakOnEnd`, rolling-ball.ts).
+  - **A marched cut's ends** were found where its tabulated (u, v) curve crosses a face's outline, to about 1e-5. The cut of the neighbouring patch ended elsewhere along the shared edge. Now, where one face is a plane, each end is moved onto the exact point where a boundary edge of either face crosses the other surface (`snapEnds`, `edgeCrossing`; within 300 tol, the rest of the curve carried along linearly).
+    - An edge lying on that surface crosses it nowhere and is skipped.
+    - Only plane pairs: on tool–tool pairs (an L-plate's mitred tools) snapping one cut's end left a neighbour's apart.
+  - **The same curve twice** on a plane face: the coplanar face's boundary copied in, and the same tool edge lying in the plane copied by the march's along-path. Equal to the bit, the arrangement cut the two at every sample where they "crossed" (128 pieces) and lost its cycles.
+    - Now a curve cut lying along a longer one end to end is dropped.
+    - On a plane, so is a same-length copy, keeping the most exact (an exact curve, then one with its own 3D curve, then the earlier).
+    - Not on curved faces: there the copies of a cone's cross-section circle are kept, as they were (dropping one moved a revolved body's volume by 2e-9).
+- **The arrangement's order at a tangent vertex** (curved-arrangement.ts), the second blocker for both caps and square ends. A fillet's arc leaves its contact along the line it is tangent to, to within the vertex tolerance (eps / r, about 1e-7 rad), not to 1e-12. So the curvature tie-break never applied, and the arc was read on the wrong side of the line.
+  - Now directions within 1e-4 are ordered by the chord at δ = 10³ eps (angle + κδ/2).
+  - Angles are read from the middle of the widest gap between a vertex's directions, not from −π: an arc leaving along −x at −π + 1.35e-12 had jumped to the other end of the order.
+- **General fillets ending square on a face** (D90, D94): built since this step. The end's refusal is lifted. Where the Boolean still cannot close it, it is refused with the same message as before, now saying so (`squareRefusal`).
+- **The coaxial cone-rim TODO (D88):** a band of the cone, between the corner and the tool's tangent contact circle, was classified out on one half and in on the other. The first ray grazed the tool, and the patch's grid triangles missed the graze.
+  - Now two rays that agree decide. Where they disagree, the majority of all six does.
+  - The property's 200 runs: 200 pass (187 and 13 failing before). `robustness/properties-todo.json` is empty.
+- **The corner ball's pole (D93):** the ball is turned so its poles and seam lie off the corner patch (its axis square to the direction towards the corner, its seam opposite it). The quadrature now converges.
+  - Rounded boxes match Steiner's formula to 1.1e-7 (1.2e-5–2.5e-5 before, over 120 random boxes).
+  - The pocket's corners match to 8e-7 of the fillet (3e-4 before).
+  - At D93 the Boolean failed on some boxes with this turn; with the changes above it does not, on 120 random boxes.
+  - **Found on the way:** one random box failed in HEAD too, as "unexpected kernel failure: Parameter is outside the knot domain". A ray test's Newton step became NaN and evaluated the patch there. A non-finite step now makes that ray degenerate, and another is cast.
+- **Evidence** (`packages/barocss-cad/test/r10-b.test.mjs`, 4 tests, each failing on HEAD):
+  - **The step's foot past its round:** r 6.5–15 with 10° ends, and r 6.5–14 with square ends. Each matches D97's closed form × 40 to 1e-7 (2e-8–6e-8; square ends 1e-12).
+  - **The rod lying straight across a plate** (forced general, both feet, r 0.25–3): the R10.1 section × 40 to 1e-9. The one foot that still fails (r 2) is refused, typed.
+  - **D88's counterexamples:** Pappus to 1e-9 of the part.
+  - **Five rounded boxes and the NaN box:** Steiner's formula to 3e-7.
+  - `r10-3b` now holds the pocket to 2e-6 of the fillet (3e-4 before).
+  - `r10-2b`'s square-end refusal and D97's oblique fillet-8 refusal are removed: both build now.
+  - **Conformance:** `r10/overflow-step-square-ends` (closed form, 1e-7), `r10/coaxial-cone-rim-tangent` (Pappus, 1e-9), `r10/rounded-box-corner-balls` (Steiner, 3e-7).
+  - **Studio:** a flow step opens a square-ended step, rounds the riser's top 4 and fillets its foot 8 in the UI (+503.14 mm³; refused before).
+- **Still refused (measured):** a general fillet ending at a cylinder (the tilted rod's foot at a round plate's rim). It was tried again, the tool run past the rim's tangent plane and cut by the cylinder near its end, as R10.3c's are.
+  - With a circle on the rim that is not a cross-section mapped as a general curve (it was refused "an arc on a cylinder is not a cross-section circle"), the cylinder cut of the lofted tool closes. In the union, though, the rod's face keeps the rim's cut of the rod as a slit: it no longer meets the clipped contact (all four feet, r 1). Both changes were reverted with the attempt.
+  - Ends at more than one face were not tried. Both keep their refusals.
+- **Tried and not kept:**
+  - snapping cut ends to a nearby vertex (it moved the cap off its plane);
+  - joining loose cut ends across a corner (not needed once the break lies on the plane);
+  - dropping sliver pieces;
+  - snapping on cylinder pairs (no help for the rim, above).
+- **Next:** R10.5 (variable radius).

@@ -3113,6 +3113,32 @@ try {
     await snap('d98-step-25-chamfer');
   });
 
+  await check('R10.B a step with square ends (a file): its riser\'s top rounded 4, then its foot filleted 8 — the ball over the round, its tool capped in the end faces (refused before)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'step-square.bcad'), q = d => [[0, 0], [40, 0], [40, d], [0, d]];
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'polygon', points: q(30) }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'polygon', points: q(15) }, { id: 'n3', kind: 'extrude', sketch: 2, height: 10, from: 10 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    let roundedVolume = NaN;
+    for (const [names, radius] of [[['n3.side2|n3.top', 'n3.top|n3.side2'], 4], [['n1.top|n3.side2', 'n3.side2|n1.top', 'n1.top|n3.side2#1', 'n3.side2#1|n1.top'], 8]]) {
+      await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, names, { timeout: 30000 })).jsonValue();
+      await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+      await field('Radius').fill(String(radius));
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(n => window.__studioDoc.nodes.filter(x => x.kind === 'fillet').length === n, radius === 4 ? 1 : 2, { timeout: 90000 }); await idle();
+      await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+      if (radius === 4) roundedVolume = await bodyVolume();
+    }
+    const after = await bodyVolume();
+    // (+503.14 mm³ — conformance r10/overflow-step-square-ends, a closed form.)
+    assert.ok(Math.abs(after - roundedVolume - 503.14) <= 1, `${roundedVolume} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10b-step-square');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

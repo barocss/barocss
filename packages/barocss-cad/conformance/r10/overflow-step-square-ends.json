@@ -1,0 +1,145 @@
+{
+  "id": "r10-overflow-step-square-ends",
+  "step": "R10",
+  "decisions": [
+    "D99"
+  ],
+  "about": "R10.B (D99): a step with square ends, its riser (6 mm flat below a round of 4) filleted 8 at its foot — the rolling ball over the round, its tool capped in the end faces' planes: refused before (its end square on a face, D90; the Boolean could not close the coplanar cap, D97).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              30
+            ],
+            [
+              0,
+              30
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              15
+            ],
+            [
+              0,
+              15
+            ]
+          ]
+        },
+        {
+          "id": "f0",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 10,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "f0"
+        },
+        {
+          "id": "g",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "f0.side2|f0.top"
+          ],
+          "radius": 4
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "e.top|f0.side2"
+          ],
+          "radius": 8
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18365.790360863586,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            20.00000000000077,
+            12.605125238363037,
+            8.343176239013914
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face",
+          "f0.top",
+          "g.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: a prism 40 long; its section the step less the round's corner (1 − π/4) 4² plus the fillet's (D97's: the polygon between the ball's floor contact, the riser and its contact on the round, less the round's and the ball's segments)."
+}
