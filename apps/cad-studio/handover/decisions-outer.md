@@ -658,3 +658,115 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 505/505, 505/505 replayed through v2. Bench: URDF export and check of the 12-link arm takes 2.7 ms (budget 10); 50 rows within budget.
   - Browser flow 158/158, with a step "RM4" just before the last: Export URDF downloads a zip, read by Python's `zipfile`. Its `robot.urdf` is the CLI's frozen one to 12 significant figures. The studio works from world-placed bodies and the CLI from part coordinates, so only the last digits differ; the robot is named after the file.
 - **Next**: RM5, MJCF export with the same checks; a 6R arm hangs under gravity stably. That step needs a simulator, so it depends on the same go-ahead.
+
+## O18 — RM5: MJCF export, its structure and FK checked; the gravity hang pending (2026-10-20)
+
+- **Shared model** (`robotParts`, `src/robot/urdf.ts`): link frames, RM3 inertials, meshes and hulls, refusals and notes, now one function used by both exporters. URDF's output is byte-identical to before (its frozen files unchanged).
+- **MJCF** (`src/robot/mjcf.ts`, `barocss-mjcf-v1`):
+  - bodies nest as the tree does, each at its link frame in its parent's (`pos` in m, `quat` w x y z: Shepperd's method, w ≥ 0);
+  - a moving joint is a `hinge` or `slide` at the body origin along its axis (Z), `range` from its limits (a slide's in m), no range for continuous;
+  - a fixed joint is no joint (the body welded to its parent); the base link is a body in the world without a joint (fixed);
+  - `<inertial pos mass fullinertia>` from RM3, dummy links tiny as in the URDF;
+  - each link has a visual mesh geom (no contacts, group 1) and its hull as a collision geom (group 3); meshes under `meshes/` (`compiler meshdir`), angles in radians;
+  - a gear follower is `<equality><joint joint1=follower joint2=leader polycoef="0 m 0 0 0">`;
+  - gravity −9.81 on Z.
+  - **A passive model: no damping, friction, armature or actuators are invented.**
+  - Refused as URDF is; loops not written (RM8 makes them equality closures).
+- **Read back** (`src/robot/mjcfCheck.ts`, our XML reader), checking what MuJoCo's compiler would refuse from this export:
+  - `<mujoco>`, `compiler angle="radian"`, `<worldbody>`;
+  - unique body and joint names, one joint a body, a known type, unit axis and unit quaternion, `range` lower < upper;
+  - every moving body with `<inertial>` (mass > 0, positive definite, a triangle);
+  - every mesh geom's asset, and every asset's file;
+  - equalities naming existing joints.
+  - FK in MuJoCo's composition: a body's `pos`/`quat` in its parent, then its joint's motion about its own axis at its own `pos`; an equality's `joint1` from its polynomial.
+- **The 6R arm** (`conformance/rm/arm-6r/robot.bcad`, built in `test/robot-mjcf.test.ts`):
+  - a base plate and six 20 × 20 × 80 aluminium blocks, each with blind vertical holes at both ends and two through holes along Y (no bores crossing);
+  - wrists stacked on Z, shoulders side by side on Y; axes Z, Y, Y, Z, Y, Z, from 12 mates; six continuous joints, no problem.
+- **Where**: tool `export_mjcf` (read; v2 `assembly.mjcf`), a compatible addition; **Export MJCF** in the Joints card (a zip of `robot.xml` and `meshes/`); `cad-cli mjcf part.bcad -o folder`.
+- **Pending: the gravity hang and MuJoCo's own read** (the owner's go-ahead; the coordinator, 2026-10-20). `packages/barocss-cad/scripts/mjcf-oracle.py` is written and not run. It loads `robot.xml` in MuJoCo and checks, against `conformance/rm/arm-6r/expect.json`:
+  - masses, centres and principal inertia per body, and body frames (`xpos`, `xmat`) at two poses, tolerance 1e-6;
+  - **the arm hanging under gravity** from the solved pose, RK4 at 0.5 ms:
+    - as exported (no damping): 5 s with the total energy conserved to 1e-4 relative and nothing diverging;
+    - with 0.002 N·m·s/rad on every joint, set in the oracle only (the export invents none): 30 s with the energy never rising, every |qvel| below 1e-3 rad/s at the end, and the centre of mass below its start.
+  - The exact commands:
+
+    ```
+    uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0
+    node apps/cad-studio/scripts/cad-cli.mjs mjcf packages/barocss-cad/conformance/rm/arm-6r/robot.bcad -o /tmp/arm-6r
+    ~/.cache/barocss-mujoco/bin/python -I packages/barocss-cad/scripts/mjcf-oracle.py /tmp/arm-6r/robot.xml packages/barocss-cad/conformance/rm/arm-6r/expect.json
+    ```
+
+  - **RM5 is not accepted without that run**: the writer, its checks and the arm are this checkpoint.
+- **Sizes**: v1 64 tools, tools/list 85 327 characters; v2 11 536.
+- **Evidence**: `test/robot-mjcf.test.ts` (5 tests).
+  - Quaternions: 300 rotations, near a half turn too, unit with w ≥ 0, back to the same matrix to 1e-12.
+  - The 6R arm's MJCF read back with no issue: seven nested bodies, six hinges on their bodies' Z without range, 14 mesh assets, every inertial positive; gravity set; no damping, friction, armature or actuator attribute.
+  - **FK three ways to 1e-12**: MJCF's (MuJoCo's composition) equals RM2's product of exponentials and the URDF's composition on the 6R arm (200 random poses), the gear pair (its equality `polycoef 0 −2/3`) and a slide-and-turn chain (its range in metres).
+  - The checker's catches: degrees, a missing mesh file, a non-unit quaternion, an empty range, an equality to nothing, an inertia not positive definite or not a triangle, a moving body without `<inertial>`.
+  - The tool (14 files, no issue), the CLI (`robot.xml` equal to the frozen one), and the case `conformance/rm/arm-6r` (document, frozen `robot.xml`, `expect.json` for the oracle).
+  - By hand: Python's standard `xml.etree` parses the frozen model (7 bodies, 6 joints).
+  - Studio 510/510, 510/510 replayed through v2. Bench: MJCF export and check of the 12-link arm takes 2.35 ms (budget 10); 51 rows within budget.
+  - Browser flow 159/159, with a step "RM5" just before the last: the 6R arm opened (its six joints in the Joints card), Export MJCF read by Python (`zipfile`, `xml.etree`: 7 bodies, 6 hinges, 14 meshes), equal to the CLI's frozen model to 12 significant figures. Screenshot `notes/acceptance/rm5-arm.png`.
+- **Next**: RM6, the sampled collision sweep (no simulator needed), unless the owner's answer comes first.
+- **Follow-up (UX, logged 2026-10-20, not fixed)**: with six links the Joints card's mass list runs past the viewport and the card scrolls (`notes/acceptance/rm5-arm.png`). It could collapse to a summary line; it is listed in the README's outer-lane follow-ups.
+
+## O19 — RM6: the collision sweep, conservative advancement (2026-10-20)
+
+- **What** (`src/robot/sweep.ts`, `src/robot/gjk.ts`): a straight joint-space move `q(s) = q0 + s(q1 − q0)` checked for contact between links by conservative advancement (Schwarzer, Saha & Latombe).
+  - At a sample, each pair's clearance `d`. Over the next step no point of one link moves towards the other more than `Δs · Σ_i |Δq_i| · r_i`, so the step `d / Σ|Δq_i| r_i` is free of contact. **The whole path is certified, not just its samples.**
+  - **The bound**:
+    - only the joints between the two links count (a common ancestor moves both together);
+    - `r_i` holds in every pose: the joint-to-joint distances down the chain to the link (each fixed in its link) plus the link's own reach from its joint, by the triangle inequality;
+    - a slide moves a point by exactly `|Δq|`; a gear follower counts with its multiplier.
+  - **The clearance**:
+    - first the links' convex hulls (RM4's) by **GJK**, our own (Ericson's closest-point regions on the simplex). This is the prefilter: a hull distance is never more than the true one, so a hull distance above zero proves two links apart;
+    - where hulls meet, the meshes themselves: an **exact contact test** (an edge through the inside of a triangle, Möller–Trumbore with the edges and plane excluded, or one mesh inside the other by ray parity), and else their least distance (vertex–triangle and edge–edge, boxes first).
+    - Touching without passing into each other is clearance 0, met to the tolerance (1e-6 mm).
+  - **Pairs**: every pair of links but parent and child (they meet at their joint by design, as simulators exclude them); a pair in contact where the path starts and not moved by it is skipped, said so.
+  - **Result**: clear, or the first contact (s, the joint values there, the two links); the least clearance and where; the samples taken; the pairs checked and skipped.
+- **Where**: tool `sweep_path {from?, to}` (read, output schema; v2 `assembly.sweep`), a compatible addition; **Check path** in the Joints card (from the solved pose to the sliders', the result shown; moving a joint clears it).
+- **Sizes**: v1 65 tools, tools/list 86 641 characters; v2 11 612.
+- **Evidence**: `test/robot-sweep.test.ts` (5 tests).
+  - **GJK** against the polytopes' brute-force distance (60 random hull pairs, to 1e-8), boxes in closed form (2, √3), 0 when overlapping.
+  - **The motion bound holds**: 30 random 5-joint trees of turns and slides, a random step each; no hull point moves more than `Σ|Δq_i|·r_i` (dense FK at 100 points of the step).
+  - **A 2R arm swung into a grounded post** (`conformance/rm/sweep-post`):
+    - the first contact against an independent oracle, separating axes of the swung rectangles in the plane (both links span the post's height), found by bisection;
+    - the sweep stops within 1e-4 rad of it and never past it; the post is named;
+    - parent and child are skipped;
+    - the way back (−π/2) is clear with its least clearance above 1 mm.
+  - **The 6R arm folding** (three joints) against a dense sweep, the exact mesh test at 200 samples up to where the sweep stopped:
+    - no earlier contact (the bound let none through);
+    - where it stopped (link 4 meeting the base at s 0.739, 45 steps) the meshes are within the tolerance: a true contact;
+    - 15 pairs checked (21 less the six parent–child ones).
+  - The tool and the conformance case, its expected angle written from the plane oracle, not the sweep.
+  - Studio 515/515, 515/515 replayed through v2. Bench: the 6R arm's folding sweep to its contact takes 225 ms (budget 700); 52 rows within budget.
+  - Browser flow 160/160, with a step "RM6" just before the last: the arm turned 2 rad beside the post, Check path reports the contact with the post at its share of the move; a small move the other way is certified clear. Screenshot `notes/acceptance/rm6-contact.png`.
+  - **Found by the flow and fixed (it touches RM3–RM5 too)**: the Joints card appears once the faces are read, before the placed parts' bodies are. Export or Check path pressed in that window found no bodies and refused "massless". The masses, both exports and Check path now wait until every placed part is evaluated as it stands (its bodies for that very instance; the buttons disabled until then). A part not yet evaluated is not massless. The RM5 step had passed by timing before.
+- **Follow-up (not needed for RM6's acceptance)**: the mesh distance where hulls meet is brute force, O(n·m) triangle pairs. Fine for these parts (hundreds of triangles); a part of 100k triangles wants the BVH (R3.2) under it.
+- **The RM track**: RM1–RM4 and RM6 are done; RM5 is at its writer checkpoint. **Pending the owner's go-ahead (MuJoCo)**: RM4's external comparison and RM5's gravity hang (O17, O18, commands there).
+
+## O20 — RD1: static gravity torques (2026-10-20)
+
+- **Lanes**: RD1–RD3 move from the kernel lane's sequence to the outer lane's (README §0, the coordinator 2026-10-20: they sit on `src/robot`).
+- **What** (`src/robot/dynamics.ts`): G(q), what each joint must hold for the robot to stand still at q.
+  - It is `G_j = ∂V/∂q_j` with `V = −Σ m_L g·c_L(q)`:
+    - a turning joint: `Σ m_L (−g)·(a_j × (c_L − p_j))` (N·m);
+    - a slide: `Σ m_L (−g)·a_j` (N);
+    - over the links beyond the joint, its axis and point and each centre at q (RM2's FK; RM3's masses and centres, through each part's placement: `linkMasses`).
+  - A gear follower moves with its leader, so its share goes to the leader by virtual work (`generalized`, ×multiplier); the follower's own axis value is kept too.
+  - **Gravity**: standard 9.80665 m/s² (the CGPM's defined value) on −Z unless `g` is given. MJCF keeps MuJoCo's own default, 9.81, as the simulator's convention, and says so.
+- **Where**: tool `gravity_torques {values?, g?}` (read, output schema; v2 `assembly.gravity`), a compatible addition; the Joints card shows "holds … N·m against gravity" for each joint at the pose shown.
+- **The tool list's 15k guard** (A5.1: what annotations and output schemas add to tools/list): the robot tools had taken it to 15 053. The listing carried each tool's title twice (top level and in its annotations), so the annotations' copy is dropped from the listing. MCP lists the title at the top; the frozen contract keeps it. It is now 13 554: a de-duplication, not a looser guard.
+- **Sizes**: v1 66 tools, tools/list 86 165 characters; v2 11 437; prompts unchanged.
+- **Evidence**: `test/robot-dynamics.test.ts` (4 tests).
+  - **The planar 2R and 3R closed forms to 1e-9** (300 random poses each):
+    - arms of real 20 × 20 × 80 blocks on Y-axis joints beside an upright one;
+    - each block's mass from its analytic volume (the box less its four holes, aluminium; the kernel's equal to 1e-12), its centre 20 mm above its lower joint, joints 40 mm apart;
+    - `τ_j = −g Σ_{i≥j} m_i (x_ci − x_Jj)` in planar angles, independent of the 3D code;
+    - upright, nothing to hold (to 1e-15).
+  - **G = ∂V/∂q** on 40 random 3D trees of 6 turns and slides: central differences of the potential energy, to 1e-6.
+  - A gear follower: `generalized` equals dV/dq along the coupling (1e-7), the follower not an independent joint.
+  - The tool on the planar 3R, its torques equal to the closed form's, and the conformance case `conformance/rm/gravity-3r` (document, values, and torques written from the closed form, not the code).
+  - Studio 519/519, 519/519 replayed through v2. Bench: gravity torques of the 12-link arm take 0.05 ms (budget 0.1); 53 rows within budget.
+  - Browser flow 162/162, with a step "RD1" just before the last: the planar 3R from its conformance file posed by its sliders, each joint's "holds … N·m" equal to the closed form's to the 4 figures shown. Screenshot `notes/acceptance/rd1-holding.png`.
+- **Next**: RD2, the RNEA, trapezoid and S-curve profiles, RMS and peak torque; RNEA = M(q)q̈ + C + G over 100 random states.

@@ -41,8 +41,10 @@ export const SYSTEM_PROMPT_V2 = v2Names(PHRASES.reduce((p, [a, b]) => p.split(a)
 
 /** A tool as MCP lists it: title, annotations and, where the result has a fixed shape, its output schema. */
 export function listed(t: ToolDefinition) {
-  const a = annotationsOf(t.name), out = outputSchemaOf(t.name);
-  return { name: t.name, title: a.title, description: t.description, inputSchema: t.input_schema, ...(out ? { outputSchema: out } : {}), annotations: a };
+  // (The title once, at the top as MCP lists it; the annotations' hints without it again — RD1: the list had grown past
+  // A5.1's 15k-character guard on what the contract adds, a duplicated title being 1.6k of it.)
+  const { title, ...hints } = annotationsOf(t.name), out = outputSchemaOf(t.name);
+  return { name: t.name, title, description: t.description, inputSchema: t.input_schema, ...(out ? { outputSchema: out } : {}), annotations: hints };
 }
 /** The JSON-only arm: the v1 tools but run_script, the prompt without its paragraph. */
 const TOOLS_JSON = TOOLS.filter(t => t.name !== 'run_script');

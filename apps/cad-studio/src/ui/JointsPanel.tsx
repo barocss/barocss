@@ -12,6 +12,8 @@ const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: J
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }
 const DEG = 180 / Math.PI;
 /** One decimal, a rounding of zero shown as 0.0 (not −0.0). */
+/** A torque or force to 4 significant figures, a rounding of zero as 0. */
+const fmtTorque = (v: number) => (Math.abs(v) < 1e-12 ? '0' : Number(v.toPrecision(4)).toString());
 const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0' : t; };
 
 /**
@@ -19,13 +21,22 @@ const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0'
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
   links?: LinkInertia[];
   /** Writes the robot as URDF (RM4), a zip of robot.urdf and its meshes. */
   onExportUrdf?(): void;
+  /** Writes the robot as a MuJoCo MJCF model (RM5), a zip of robot.xml and its meshes. */
+  onExportMjcf?(): void;
+  /** Sweeps the move from the solved pose to the sliders' (RM6); the result to show. */
+  onCheckPath?(): void;
+  path?: { text: string; contact: boolean } | null;
+  /** Every part evaluated: the masses, exports and the path check wait until then. */
+  ready?: boolean;
+  /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
+  holding?: Record<string, number>;
 }) {
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
@@ -42,6 +53,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
           <div key={j.key} aria-label={`Joint ${j.key}`} title={`mates ${j.mates.join(', ') || 'none'}`}>
             <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}` : ''}</b>
               {j.limit && <span className="muted"> {limitText(j.limit, j.type)}</span>}</div>
+            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque(holding[j.key] ?? 0)} {turn ? 'N·m' : 'N'} against gravity</div>}
             {j.type !== 'fixed' && !j.mimic && <div className="field" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="range" aria-label={`Joint ${j.key} value`} min={r.min} max={r.max} step="any" value={v} style={{ flex: 1 }}
                 onChange={e => onValue(j.key, Number(e.target.value))} />
@@ -53,8 +65,11 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         );
       })}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
+      {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       <div className="row-actions">{tree.joints.some(j => j.type !== 'fixed') && <button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button>}
-        {onExportUrdf && <button className="ghost" aria-label="Export URDF" onClick={onExportUrdf}>Export URDF</button>}</div>
+        {onCheckPath && Object.values(values).some(v => v !== 0) && <button className="ghost" aria-label="Check path" disabled={!ready} title="Sweep the move from the solved pose to this one for collisions between links" onClick={onCheckPath}>Check path</button>}
+        {onExportUrdf && <button className="ghost" aria-label="Export URDF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportUrdf}>Export URDF</button>}
+        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}</div>
       {links?.filter(l => l.part !== null).map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>

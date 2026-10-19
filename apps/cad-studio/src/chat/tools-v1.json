@@ -809,6 +809,48 @@
    }
   },
   {
+   "name": "export_mjcf",
+   "annotations": {
+    "title": "Export mjcf",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "name": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "check": {
+      "type": "array"
+     },
+     "files": {
+      "type": "array"
+     },
+     "mjcf": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "mjcf",
+     "files",
+     "notes",
+     "check"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "export_urdf",
    "annotations": {
     "title": "Export urdf",
@@ -1154,6 +1196,57 @@
      "parameters",
      "features",
      "bodies"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "gravity_torques",
+   "annotations": {
+    "title": "Gravity torques",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "g": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "values": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "generalized": {
+      "type": "object"
+     },
+     "gravity_m_s2": {
+      "type": "number"
+     },
+     "torques": {
+      "type": "object"
+     },
+     "units": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "torques",
+     "generalized",
+     "units",
+     "gravity_m_s2"
     ],
     "type": "object"
    }
@@ -2861,6 +2954,69 @@
     "required": [
      "index",
      "vertices"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "sweep_path",
+   "annotations": {
+    "title": "Sweep path",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "from": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     },
+     "to": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "to"
+    ],
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "clear": {
+      "type": "boolean"
+     },
+     "contact": {
+      "type": "object"
+     },
+     "min_clearance": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "pairs": {
+      "type": "number"
+     },
+     "samples": {
+      "type": "number"
+     },
+     "skipped": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "clear",
+     "samples",
+     "pairs",
+     "skipped"
     ],
     "type": "object"
    }

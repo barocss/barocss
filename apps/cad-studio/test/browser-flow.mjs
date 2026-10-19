@@ -3933,6 +3933,60 @@ try {
     await snap('rm4-urdf');
   });
 
+  // ---- RM5 (O18): MJCF export -------------------------------------------------------------------------------------
+  await check('RM5: the 6R arm opened, Export MJCF — a zip of robot.xml (seven nested bodies, six hinges) and its meshes, the CLI\'s model', async () => {
+    const fs = await import('node:fs'), { spawnSync } = await import('node:child_process');
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'));
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint l5~l6"]', { timeout: 30000 });
+    const [d] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.click('[aria-label="Export MJCF"]')]);
+    assert.match(d.suggestedFilename(), /-mjcf\.zip$/);
+    const py = spawnSync('python3', ['-I', '-c', 'import sys, zipfile, xml.etree.ElementTree as ET; z = zipfile.ZipFile(sys.argv[1]); r = ET.fromstring(z.read("robot.xml")); print(len(r.findall(".//body")), len(r.findall(".//joint[@type=\'hinge\']")), len([n for n in z.namelist() if n.startswith("meshes/")])); print(z.read("robot.xml").decode())', await d.path()], { encoding: 'utf8' });
+    assert.equal(py.status, 0, py.stderr);
+    const [counts, ...xml] = py.stdout.split('\n');
+    assert.equal(counts, '7 6 14');
+    const norm = t => t.trim().replace(/<mujoco model="[^"]*">/, '<mujoco>').replace(/-?\d+(\.\d+)?(e-?\d+)?/g, x => { const v = Number(x); return Math.abs(v) < 1e-15 ? '0' : String(Number(v.toPrecision(12))); });
+    assert.equal(norm(xml.join('\n')), norm(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.xml'), 'utf8')), 'the studio\'s MJCF is the CLI\'s');
+    await snap('rm5-arm');
+  });
+
+  // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
+  await check('RM6: the 2R arm swung into a grounded post — Check path reports the contact with the post; a small move is clear', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/sweep-post/case.json'), 'utf8')), file = join(out, 'sweep-post.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    const set = v => page.evaluate(x => { const el = document.querySelector('[aria-label="Joint base~a value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await set(2);
+    await page.click('[aria-label="Check path"]');
+    await page.waitForSelector('[aria-label="Path check"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Path check"]').innerText(), /^Contact .*post.* at \d+\.\d % of the move/);
+    await snap('rm6-contact');
+    await set(-0.5);
+    await page.click('[aria-label="Check path"]');
+    await page.waitForFunction(() => /^Clear: the whole move certified/.test(document.querySelector('[aria-label="Path check"]')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RD1 (O20): static gravity torques --------------------------------------------------------------------------
+  await check('RD1: the planar 3R posed by its sliders — each joint holds the closed form\'s torque against gravity (4 figures)', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/gravity-3r/case.json'), 'utf8')), file = join(out, 'gravity-3r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint l2~l3 holding"]', { timeout: 30000 });
+    for (const [k, v] of Object.entries(c.input.values)) await page.evaluate(([key, x]) => { const el = document.querySelector(`[aria-label="Joint ${key} value"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [k, v]);
+    for (const [k, t] of Object.entries(c.expect.torques_N_m)) {
+      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·m against gravity`, [k, String(Number(t.toPrecision(4)))], { timeout: 10000 })
+        .catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${await page.locator(`[aria-label="Joint ${k} holding"]`).innerText()} vs ${t}`); });
+    }
+    await snap('rd1-holding');
+    await page.click('[aria-label="Joints home"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
