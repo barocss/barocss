@@ -5,7 +5,7 @@ import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
-import { leafBodies, planeText, withNode, type Axis, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
+import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
@@ -201,6 +201,13 @@ function chainEnds(edges: readonly DisplayEdge[]): [V3, V3] | null {
   if (loose.length !== 2 || [...count.values()].some(c => c.n > 2)) return null;
   const a = edges[0].a, d = (p: V3) => Math.hypot(p[0] - a[0], p[1] - a[1], p[2] - a[2]);
   return d(loose[0]) <= d(loose[1]) ? [loose[0], loose[1]] : [loose[1], loose[0]];
+}
+
+/** The Fillet HUD's section (R10.5b, D103): none for a circle. */
+function sectionOf(v: Values): FilletSection | undefined {
+  if (v.shape === 'conic') return { kind: 'conic', rho: Number(v.rho) };
+  if (v.shape === 'g2') return { kind: 'g2', tension: Number(v.tension) };
+  return undefined;
 }
 
 const edgeSteps = (ctx: Ctx) => {
@@ -435,19 +442,24 @@ const allCommands: Command[] = [
       if (!sel) return no('Select edges of one body to round (Shift-click for more), or a face for all its edges.');
       return ok;
     },
-    fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }, { key: 'endRadius', label: 'End radius (0: same)', kind: 'mm', min: 0 }],
-    defaults: () => ({ radius: 3, endRadius: 0 }),
+    fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }, { key: 'endRadius', label: 'End radius (0: same)', kind: 'mm', min: 0 },
+      // (The section between the contacts, R10.5b, D103: a circle, a conic of rho, or G2 — curving as the faces do there.)
+      { key: 'shape', label: 'Section', kind: 'choice', options: [{ value: 'circular', label: 'Circular' }, { value: 'conic', label: 'Conic' }, { value: 'g2', label: 'Curvature (G2)' }] },
+      { key: 'rho', label: 'Rho', kind: 'ratio', min: 0.01, max: 0.99, step: 0.05, when: v => v.shape === 'conic' },
+      { key: 'tension', label: 'Tension', kind: 'ratio', min: 0.01, max: 0.99, step: 0.05, when: v => v.shape === 'g2' }],
+    defaults: () => ({ radius: 3, endRadius: 0, shape: 'circular', rho: 0.5, tension: 0.5 }),
     steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'radius', Number(v.radius), 'fillet'),
     build: (ctx, v) => {
       const { body, edges } = edgesOfOneBody(ctx)!, r = Number(v.radius), r1 = Number(v.endRadius) || 0, names = edges.flatMap(e => e.names);
+      const section = sectionOf(v), shaped = section ? { section } : {};
       // (An end radius: the radius varies along the picked chain from its start to its end, R10.5, D100.)
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
         const ends = chainEnds(edges);
         if (!ends) throw new Error('A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
-        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }] });
+        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }], ...shaped });
       }
-      return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r });
+      return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, ...shaped });
     },
   },
   // (R9, D85: a mesh body simplified; its faces keep their regions and names, its report in the body's notes.)

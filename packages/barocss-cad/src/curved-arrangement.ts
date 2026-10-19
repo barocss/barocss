@@ -127,6 +127,37 @@ export function segDistance(s: CurveSegment2, p: XY): number {
 }
 /** Intersection points of two segments (crossings, tangencies, endpoints touching, overlap ends). */
 /** Points shared by two segments (crossings, tangencies, touching ends, overlap ends) within eps. */
+/**
+ * Whether m (at u on s) is a point of a touch at an end e of s lying on t (t's end, or a point inside it): s from e
+ * stays within eps of t up to m and past it, then leaves t away from t's ends — a curve meeting a line to second order
+ * (a G2 fillet's section at a planar face, R10.5b) lies that close to it for a while, and Newton, slow at a triple root,
+ * stops anywhere in there. e is a vertex already. (Where s leaves t at an end of t, or never, the two overlap: m is a
+ * point of the overlap. Nor at an end of either.)
+ */
+function touchOfEnd(s: CurveSegment2, t: CurveSegment2, u: number, m: XY, eps: number): boolean {
+  if ([segStart(s), segEnd(s), segStart(t), segEnd(t)].some(q => Math.hypot(q[0] - m[0], q[1] - m[1]) <= eps)) return false;
+  for (const [e, ue] of [[segStart(s), 0], [segEnd(s), 1]] as const) {
+    if (Math.abs(u - ue) > 0.25 || segDistance(t, e) > eps) continue;
+    let hug = true;
+    for (let k = 1; k < 8 && hug; k++) hug = segDistance(t, segAt(s, ue + (u - ue) * k / 8)) <= eps;
+    if (hug && leavesAwayFromEnds(s, t, e, ue, Math.abs(u - ue), eps)) return true;
+  }
+  return false;
+}
+/** Whether s, walked from its end e (at ue), leaves t (by eps) past `from` of its parameter, and not at an end of t (other than e). */
+function leavesAwayFromEnds(s: CurveSegment2, t: CurveSegment2, e: XY, ue: number, from: number, eps: number): boolean {
+  const dir = ue === 0 ? 1 : -1;
+  let prev = segAt(s, ue + dir * from);
+  for (let k = 1; k <= 64; k++) {
+    const x = from + (1 - from) * k / 64, q = segAt(s, ue + dir * x);
+    if (segDistance(t, q) > eps) {
+      const step = Math.hypot(q[0] - prev[0], q[1] - prev[1]) + eps;
+      return ![segStart(t), segEnd(t)].some(w => Math.hypot(w[0] - e[0], w[1] - e[1]) > eps && Math.hypot(w[0] - prev[0], w[1] - prev[1]) <= step);
+    }
+    prev = q;
+  }
+  return false;
+}
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
@@ -151,7 +182,7 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
         if (Math.abs(du) < 1e-15 && Math.abs(dv) < 1e-15) break;
       }
       const P = segAt(s, u), Q = segAt(t, v);
-      if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps)) push(m); }
+      if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps) && !touchOfEnd(s, t, u, m, eps) && !touchOfEnd(t, s, v, m, eps)) push(m); }
     }
     ends(); return out;
   }
@@ -254,13 +285,13 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   // they lie a little way out, at δ = 10³ eps: by the chord's direction there, angle + κ δ / 2. R10.B, D99.)
   // (Angles are read from the middle of the widest gap between a vertex's directions, not from −π: a direction along
   // −x off by rounding to either side of ±π would otherwise jump to the other end of the order.)
-  const delta = 1e3 * eps, rel = new Float64Array(half.length);
+  const delta = 1e3 * eps, rel = new Float64Array(half.length), segLeaving = (h: number) => half[h].from === edges[half[h].edge].u ? edges[half[h].edge].seg : segReverse(edges[half[h].edge].seg);
   for (const list of outgoing) {
     const a = list.map(h => keyed[h].angle).sort((x, y) => x - y);
     let from = -Math.PI, gap = -1;
     for (let i = 0; i < a.length; i++) { const g = (i + 1 < a.length ? a[i + 1] : a[0] + TWO_PI) - a[i]; if (g > gap) { gap = g; from = a[i] + g / 2; } }
     for (const h of list) rel[h] = ((keyed[h].angle - from) % TWO_PI + TWO_PI) % TWO_PI;
-    list.sort((x, y) => leavingOrder(rel[x] - rel[y], keyed[x].curvature, keyed[y].curvature, delta));
+    list.sort((x, y) => { const d = rel[x] - rel[y]; return Math.abs(d) > 1e-4 ? d : tangentOrder(segLeaving(x), segLeaving(y), rel[x], rel[y], from, d, keyed[x].curvature, keyed[y].curvature, delta); });
   }
   const pos = new Map<number, number>(); outgoing.forEach(list => list.forEach((h, k) => pos.set(h, k)));
   for (const h of half) { const list = outgoing[h.to], k = pos.get(h.twin)!; h.next = list[(k - 1 + list.length) % list.length]; }
@@ -270,11 +301,29 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   return { points, edges, half, cycles, segOfHalf, eps };
 }
 
-/** Two half-edges' order about their vertex: by angle d apart, or within 1e-4 by their chords at δ out (angle + κδ/2). */
-function leavingOrder(d: number, ka: number, kb: number, delta: number): number {
-  if (Math.abs(d) > 1e-4) return d;
+/**
+ * Two half-edges leaving one vertex along one tangent (to 1e-4): ordered by their chords to the points a quarter of the
+ * shorter one's length out along each — they do not cross before their next vertices (a crossing is a vertex), so the
+ * chords keep their order; a curve touching a line to second order (a G2 fillet's section at a planar face, R10.5b)
+ * agrees with it in angle and curvature both. Where the chords also agree (a copy), by angle + κδ/2.
+ */
+function tangentOrder(a: CurveSegment2, b: CurveSegment2, relA: number, relB: number, from: number, d: number, ka: number, kb: number, delta: number): number {
+  const L = 0.25 * Math.min(segLength(a), segLength(b)), p0 = segAt(a, 0), pa = pointAlong(a, L), pb = pointAlong(b, L);
+  const ang = (q: XY) => ((Math.atan2(q[1] - p0[1], q[0] - p0[0]) - from) % TWO_PI + TWO_PI) % TWO_PI;
+  // (The chords' angles read about the same origin as the tangents: near ±π a chord off by rounding would wrap.)
+  const fix = (x: number, ref: number) => x - ref > Math.PI ? x - TWO_PI : ref - x > Math.PI ? x + TWO_PI : x;
+  const c = fix(ang(pa), relA) - fix(ang(pb), relB);
+  if (Math.abs(c) > 1e-12) return c;
   const k = d + (ka - kb) * delta / 2;
   return Math.abs(k) > 1e-15 ? k : ka - kb;
+}
+/** A segment's length by 64 chords. */
+function segLength(g: CurveSegment2): number { let l = 0, p = segAt(g, 0); for (let i = 1; i <= 64; i++) { const q = segAt(g, i / 64); l += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; } return l; }
+/** The point L along a segment from its start (by 64 chords, linearly between them). */
+function pointAlong(g: CurveSegment2, L: number): XY {
+  let acc = 0, p = segAt(g, 0);
+  for (let i = 1; i <= 64; i++) { const q = segAt(g, i / 64), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (acc + d >= L && d > 0) { const t = (L - acc) / d; return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]; } acc += d; p = q; }
+  return p;
 }
 
 /** Every vertex of the arrangement of the rings (crossings, tangencies, touches, ring vertices). */

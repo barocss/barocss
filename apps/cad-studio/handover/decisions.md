@@ -4778,3 +4778,51 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
   - The volume the counts now agree on is the one HEAD's lens counts had (to 1.5e-6 mm³), not the one its lens-free counts had (1e-4 apart). That it is the right one rests on the agreement across seven counts and on the rims' mirror symmetry above. Why HEAD's lens-free counts differed was not traced.
   - Every kernel test and conformance case is unchanged; the forced straight groove, which has square ends, stays at 1e-11 of its closed form.
 - **The fillet face count still follows the station count** (the loft's pieces of at most 13 spans, D89): that is by design. The body's own faces and the topology class do not change with it.
+
+## D103 — R10.5b: conic and G2 fillet sections (2026-10-19)
+
+- **The contract** (optional field; no version change, D16): a fillet takes `section`:
+  - `{ kind: 'circular' }` (the default: the rolling ball's arc, unchanged);
+  - `{ kind: 'conic', rho }`, rho in (0, 1);
+  - `{ kind: 'g2', tension? }`, tension in (0, 1), 0.5 when left out.
+  - A conic or G2 section is the rolling ball's (R10.2a): every chain goes to the general path, as a variable radius does (D100). The closed forms of R10.1, the phased corners and the corner balls are skipped. It combines with `radii`.
+- **The sections** (`rolling-ball.ts`, `sectionOf`): at each station the ball's contacts T1 and T2 stay as for the circle, and so does Q, the intersection of the faces' tangents in the station's plane.
+  - **Conic:** the rational quadratic T1, Q, T2 with weight ρ/(1 − ρ). The circle is ρ = w/(1 + w), with w = cos(θ/2). 0.5 is a parabola; smaller is flatter, larger fuller.
+  - **G2:** a quartic with poles T1, P1, P2, P3, T2 and weights 1.
+    - P1 and P3 lie a fraction `tension` of the way from T1 and T2 to Q, so the section is tangent at the contacts.
+    - P2 is placed so that the section's curvature across each contact equals the face's normal curvature in that direction: (P2 − T)·n = 4/3 κ |P1 − T|² at both ends, two conditions in the station's plane.
+    - κ is read by central differences of the face's own surface (`normalCurvature`, a step of 2e-3 mm along the section's direction projected on the face). On planes κ = 0 and P2 = Q.
+    - Matching the curvature in that one direction is enough for G2 across the contact: along the contact, the fillet and the face share the curve.
+  - **The tool:** the fillet face is degree 4 across (G2) or rational quadratic (conic), cubic along as before. Its section edges match. The fillet face's outward test is now against the ball's centre, not the corner centroid: a full conic (ρ 0.7) or a G2 section crosses the old reference, and that gave a "2 uses" edge.
+- **Refused:** rho or tension outside (0, 1), or an unknown kind (INPUT at the part, PARAMETER at the kernel). A section shape on a chamfer is refused PARAMETER. A conic or G2 fillet where the ball rolls round an edge at a corner (R10.3a) is CAPABILITY: the corner patch is a canal surface of the circle. No history is recorded for shelling past it, as with a variable radius.
+- **Two defects in the curved arrangement, found by G2's second-order contact** (`curved-arrangement.ts`). Neither shows with circular sections.
+  - **Half-edge order at a vertex:** a G2 section leaving a vertex along a planar face's edge agrees with it in angle and in curvature. The κδ/2 tie-break (D99) could not order them, so a groove's end faces lost their regions. Now `tangentOrder` compares the chords to points a quarter of the shorter one's length out (they cannot cross before their next vertices), then falls back to κδ/2.
+  - **Spurious crossings at a touch:** where such a section ends on a line (its contact), it stays within eps of the line for a while (distance ~ s³). Newton, slow at the triple root, stopped anywhere in there and reported a crossing 1e-4 mm from the contact.
+    - It made slivers: on a step's foot at the end plane, two corner faces 1.2e-4 wide. The volumes were off 1e-6 to 1e-4 relative, depending on where the stations fell.
+    - Now `touchOfEnd` drops a point when s ran within eps of t from one of its ends lying on t (t's end or a point inside it), and leaves t further on, away from t's ends.
+    - An overlap is kept: two copies of one curve, as the coaxial revolved tools have, run along each other to an end. The first version, without the "leaves t" condition, dropped those points too and broke two coaxial Pappus tests (R10.1, R10 S0) by 1e-10 of the part.
+- **Evidence** (`test/r10-5b.test.mjs`, 5 tests; the feature is new, so all fail on HEAD):
+  - **A box's top edge and a step's foot, r 3** (convex and concave planes): ρ at the circle's value, 0.3, 0.5 and 0.7, and G2 at tension 0.3, 0.5 and 0.8. Each is checked against the region between the corner and the exact curve × 40, to 1e-9. The circle's ρ matches the circular fillet's (1 − π/4) r² L to 1e-9.
+    - Without the arrangement fix, the step's G2 is off 1.3e-6.
+    - Measured at L 20, 40 and 80 and tension 0.3 and 0.5, every case is within 2e-10 of the reference, which is itself a 200 000-chord integral.
+  - **With a varying radius** (1 → 3 along the box edge): parabola and G2, against the integrated closed forms to 1e-10 (3.6e-12 measured).
+  - **G2 on a curved face:** a groove's rim (a plate and a cylinder of R 4), filleted r 1. Across each contact the fillet's own surface curves as the face does, to 1e-5: 1/4 at the cylinder, 0 at the plate. This is read by one-sided differences with Richardson extrapolation. The circular fillet reads 1/r there (G1 only).
+  - **Round a boss's foot** (a closed loop), G2 and ρ 0.6, by Pappus:
+    - At the default station count (252), the volume is within the loft's own reported deviation (`sectionMM`, 1.8e-7 mm) × the fillet's area. That is 3.5e-7 of the fillet (G2).
+    - At 1024 stations it is within 1e-8 (4.7e-9 measured).
+    - This is the loft's discretisation, the same as for the circle: a conic at the circle's ρ, through the loft, is 1.7e-7 off the circular fillet's closed form there. The error converges with the station count (252 → 512 → 1024: 3.5e-7 → 1.8e-8 → 4.7e-9).
+    - **Stated honestly:** closed loops round curved paths are as accurate as the loft's reported deviation, not to 1e-9.
+  - **Refusals** as listed above.
+  - **The full kernel suite:** 1114 pass, and the one known environment failure (native Split source).
+- **Conformance:** `r10/conic-parabola-box-edge` and `r10/g2-step-foot`, both closed forms to 1e-9 with a STEP round trip.
+  - Parabola: its segment is 2/3 of the control triangle, so 12000 − r² L / 6 = 11940.
+  - G2 at tension 0.5: the region is r²/10, so 18000 + r² L / 10 = 18036.
+- **Studio:** the Fillet HUD has a Section choice (Circular, Conic, Curvature (G2)), with Rho and Tension shown for the one chosen. The history reads "Fillet R3 conic ρ0.5" or "… G2", and the edit panel has Rho or Tension.
+  - The tool schema documents `section` for add_features, and shape, rho and tension for run_command. A run_command result now echoes `shape` among the values, and its summary test moved with it.
+  - The chat checker (`checkNode`) accepts `section`, and also `radii`: D100 documented `radii` for add_features but the checker refused it as an unknown field, so that is fixed here.
+  - A flow step opens a box and fillets its top edge r 3 with a conic section of rho 0.5 in the UI (−60 mm³).
+- **Not done:**
+  - A G2 or conic corner (the ball round an edge at a corner) is refused, not built.
+  - Variable rho or tension along the chain.
+  - G2 continuity at the chain's ends, which are square or clipped as before.
+- **Next:** R11 (general shell and offset), as §0 lists it.

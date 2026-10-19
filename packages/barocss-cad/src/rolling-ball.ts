@@ -122,12 +122,21 @@ export function solveStation(A: Sheet, sA: number, B: Sheet, sB: number, r: numb
 }
 
 /** A station's section: its five corners (T1, T1 grown, the grown corner, T2 grown, T2) and the arc's middle pole and weight. */
-export interface Section { readonly corners: Point[]; readonly mid: Point; readonly w: number; readonly c: Point }
+export interface Section { readonly corners: Point[]; readonly mid: Point; readonly w: number; readonly c: Point; /** The fillet's inner poles, from T2 (corner 4) to T1 (corner 0), weights 1, when it is not a conic of `mid` and `w` (a G2 section, R10.5b). */ readonly poles?: readonly Point[] }
+/**
+ * The fillet's section shape (R10.5b, D103): the ball's arc (circular, the default); a conic between the same contacts,
+ * tangent there to the faces, its shape ρ ∈ (0, 1) (weight ρ/(1 − ρ) at the faces' corner; 0.5 a parabola; a circle at
+ * the arc's own ρ); or G2 — a quartic tangent to both faces with their normal curvature across the contact, its inner
+ * poles a fraction `tension` of the way to the faces' corner.
+ */
+export type SectionShape = { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension: number };
+/** A station's shape terms: for G2, the faces' normal curvatures across the contacts (along the section, at T1 and T2). */
+export type ShapeAt = { readonly kind: 'conic'; readonly w: number } | { readonly kind: 'g2'; readonly tension: number; readonly kA: number; readonly kB: number };
 /**
  * The section of a station, grown g outside the corner (σ as for the ball: along −σ n at each contact, or along `growA`,
  * `growB` where given — beside a corner the ball rolls round, into the wedge there, R10.3a); null when it is degenerate.
  */
-export function sectionOf(st: Station, sA: number, sB: number, r: number, g: number, growA?: Point, growB?: Point): Section | null {
+export function sectionOf(st: Station, sA: number, sB: number, r: number, g: number, growA?: Point, growB?: Point, shape?: ShapeAt): Section | null {
   const T1 = st.pA, T2 = st.pB, c = st.c, a = sub(T1, c), b = sub(T2, c), m = cross(a, b);
   if (!(len(m) > 1e-12 * r * r)) return null;
   const mz = unit(m), T1o = growA ? add(T1, scale(growA, g)) : sub(T1, scale(st.nA, sA * g)), T2o = growB ? add(T2, scale(growB, g)) : sub(T2, scale(st.nB, sB * g));
@@ -141,8 +150,47 @@ export function sectionOf(st: Station, sA: number, sB: number, r: number, g: num
   const s1 = (b1 * A22 - A12 * b2) / det, O = add(T1o, scale(d1, s1));
   if (!(s1 > 0)) return null;
   const theta = Math.acos(Math.max(-1, Math.min(1, dot(unit(a), unit(b))))), w = Math.cos(theta / 2);
+  // (Q, the faces' corner in the section: where their tangents at the contacts meet — every shape's tangent there.)
   const mid = add(c, scale(unit(add(a, b)), r / w));
+  if (shape?.kind === 'conic') return { corners: [T1, T1o, O, T2o, T2], mid, w: shape.w, c };
+  if (shape?.kind === 'g2') {
+    // (P1, P3 on the tangents; P2 so that the quartic's curvature across each contact is the face's: (P2 − T)·n = 4/3 κ |P1 − T|².
+    // P2 = T1 + x d1 + y nA in the section's plane, which holds both normals.)
+    const P1 = add(T1, scale(sub(mid, T1), shape.tension)), P3 = add(T2, scale(sub(mid, T2), shape.tension));
+    const nA = unit(a), nB = unit(b), e1 = sub(mid, T1), ex = unit(sub(e1, scale(nA, dot(e1, nA))));
+    const y = 4 / 3 * shape.kA * dot(sub(P1, T1), sub(P1, T1)), bB = 4 / 3 * shape.kB * dot(sub(P3, T2), sub(P3, T2)), den = dot(nB, ex);
+    if (!(Math.abs(den) > 1e-9)) return null;
+    const x = (dot(nB, sub(T2, T1)) + bB - y * dot(nA, nB)) / den, P2 = add(T1, add(scale(ex, x), scale(nA, y)));
+    return { corners: [T1, T1o, O, T2o, T2], mid, w, c, poles: [P3, P2, P1] };
+  }
   return { corners: [T1, T1o, O, T2o, T2], mid, w, c };
+}
+/** A station's shape terms: a conic's weight, or G2's normal curvatures of the faces across its contacts. */
+function shapeAt(shape: Exclude<SectionShape, { kind: 'circular' }>, st: Station, A: Sheet, B: Sheet, r: number): ShapeAt {
+  if (shape.kind === 'conic') return { kind: 'conic', w: shape.rho / (1 - shape.rho) };
+  const a = sub(st.pA, st.c), b = sub(st.pB, st.c), w = Math.cos(Math.acos(Math.max(-1, Math.min(1, dot(unit(a), unit(b))))) / 2), Q = add(st.c, scale(unit(add(a, b)), r / w));
+  const across = (T: Point, n: Point) => { const e = sub(Q, T); return unit(sub(e, scale(n, dot(e, n)))); };
+  return { kind: 'g2', tension: shape.tension, kA: normalCurvature(A, st.uvA, unit(a), across(st.pA, unit(a))), kB: normalCurvature(B, st.uvB, unit(b), across(st.pB, unit(b))) };
+}
+/** The fillet's section curve at t (0 at T2, 1 at T1): the quartic of its poles, or the conic of mid and w. */
+function sectionAt(s: Section, t: number): Point {
+  if (s.poles) { let pts: Point[] = [s.corners[4], ...s.poles, s.corners[0]]; while (pts.length > 1) pts = pts.slice(1).map((q, i) => add(scale(pts[i], 1 - t), scale(q, t))); return pts[0]; }
+  const b0 = (1 - t) * (1 - t), b1 = 2 * t * (1 - t) * s.w, b2 = t * t, d = b0 + b1 + b2;
+  return scale(add(add(scale(s.corners[4], b0), scale(s.mid, b1)), scale(s.corners[0], b2)), 1 / d);
+}
+/**
+ * The normal curvature of a sheet at (u, v) along the unit tangent d, against the unit normal n (positive where it
+ * curves towards n): its second derivative along d by central differences.
+ */
+export function normalCurvature(S: Sheet, uv: XY, n: Point, d: Point): number {
+  const hu = 1e-5 * (S.u1 - S.u0), hv = 1e-5 * (S.v1 - S.v0), p = pointOn(S, uv[0], uv[1]);
+  const Su = scale(sub(pointOn(S, uv[0] + hu, uv[1]), pointOn(S, uv[0] - hu, uv[1])), 1 / (2 * hu)), Sv = scale(sub(pointOn(S, uv[0], uv[1] + hv), pointOn(S, uv[0], uv[1] - hv)), 1 / (2 * hv));
+  // (d = α Su + β Sv, least squares; then the curve (u, v) + s (α, β) has unit speed at s = 0.)
+  const E = dot(Su, Su), F = dot(Su, Sv), G = dot(Sv, Sv), du = dot(d, Su), dv = dot(d, Sv), det = E * G - F * F;
+  if (!(Math.abs(det) > 1e-300)) return 0;
+  // (Unit speed: s is arc length in mm; ±2e-3 mm, far above the rounding of the points' second difference.)
+  const al = (G * du - F * dv) / det, be = (E * dv - F * du) / det, k = 2e-3, q = (s: number) => pointOn(S, uv[0] + al * s, uv[1] + be * s);
+  return dot(scale(add(sub(q(k), scale(p, 2)), q(-k)), 1 / (k * k)), n);
 }
 
 /**
@@ -231,6 +279,8 @@ export function loftTool(sections: readonly Section[], id: string, breaks: reado
   // Per corner k (5) and the arc's middle (homogeneous), the values along the chain.
   const rows: number[][][] = [0, 1, 2, 3, 4].map(k => used.map(s => s.corners[k] as number[]));
   const mid = used.map(s => [s.mid[0] * s.w, s.mid[1] * s.w, s.mid[2] * s.w, s.w]);
+  // (A G2 section's inner poles, each along the chain: the fillet a quartic across, weights 1, R10.5b.)
+  const inner = used[0].poles ? used[0].poles.map((_, j) => used.map(s => s.poles![j] as number[])) : null;
   // Patches: between the breaks, each cut into pieces of at most 13 spans; an open loft ends at its last station.
   const per = 13, cuts = [...new Set(closed ? breaks : [0, ...breaks])].filter(c => closed || (c >= 0 && c < n - 1)).sort((x, y) => x - y), bounds: number[] = [];
   const end = closed ? cuts[0] + n : n - 1;
@@ -257,7 +307,7 @@ export function loftTool(sections: readonly Section[], id: string, breaks: reado
   for (let b = 0; b < nb; b++) {
     const sc = used[bounds[b] % n];
     for (let k = 0; k < 4; k++) edges.push({ id: `s${k}_${b}`, curve: { kind: 'curve', id: `s${k}_${b}`, degree: 1, knots: [0, 0, 1, 1], controlPoints: [sc.corners[k], sc.corners[k + 1]], weights: [1, 1] }, vertices: [vid(k, b), vid(k + 1, b)] });
-    edges.push({ id: `s4_${b}`, curve: { kind: 'curve', id: `s4_${b}`, degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [sc.corners[4], sc.mid, sc.corners[0]], weights: [1, sc.w, 1] }, vertices: [vid(4, b), vid(0, b)] });
+    edges.push({ id: `s4_${b}`, curve: sc.poles ? { kind: 'curve', id: `s4_${b}`, degree: sc.poles.length + 1, knots: bezierKnots(sc.poles.length + 1), controlPoints: [sc.corners[4], ...sc.poles, sc.corners[0]], weights: [1, ...sc.poles.map(() => 1), 1] } : { kind: 'curve', id: `s4_${b}`, degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [sc.corners[4], sc.mid, sc.corners[0]], weights: [1, sc.w, 1] }, vertices: [vid(4, b), vid(0, b)] });
   }
   for (let p = 0; p < patches; p++) {
     const i0 = bounds[p], i1 = bounds[p + 1], spans = i1 - i0, knots = splineKnots(spans);
@@ -268,13 +318,16 @@ export function loftTool(sections: readonly Section[], id: string, breaks: reado
     for (let k = 0; k < 5; k++) {
       // Face k: corner k to corner k+1 across (the fillet: corner 4 → mid → corner 0), along the patch.
       const fillet = k === 4, next = (k + 1) % 5;
-      const cps = fillet ? [along[4], midPoles, along[0]] : [along[k], along[next]], wts = fillet ? [along[4].map(() => 1), midW, along[0].map(() => 1)] : [along[k].map(() => 1), along[next].map(() => 1)];
-      const surface: Surface = { kind: 'surface', id: `f${k}_${p}`, degreeU: fillet ? 2 : 1, degreeV: 3, knotsU: fillet ? [0, 0, 0, 1, 1, 1] : [0, 0, 1, 1], knotsV: knots, controlPoints: cps, weights: wts };
+      const innerRows = fillet && inner ? inner.map(rowsJ => splinePoles(rowsJ, ends(rowsJ), i0, i1) as Point[]) : null;
+      const cps = fillet ? (innerRows ? [along[4], ...innerRows, along[0]] : [along[4], midPoles, along[0]]) : [along[k], along[next]];
+      const wts = fillet ? (innerRows ? cps.map(r => r.map(() => 1)) : [along[4].map(() => 1), midW, along[0].map(() => 1)]) : [along[k].map(() => 1), along[next].map(() => 1)];
+      const du = fillet ? cps.length - 1 : 1;
+      const surface: Surface = { kind: 'surface', id: `f${k}_${p}`, degreeU: du, degreeV: 3, knotsU: bezierKnots(du), knotsV: knots, controlPoints: cps, weights: wts };
       // Its loop: along corner k, the section edge at the patch's end, back along corner k+1, the section edge at its
       // start — clockwise in (u, v), so about −(Su × Sv). Facing out along +(Su × Sv) (away from the section's middle),
       // the loop is turned and the face kept forward; otherwise the face is reversed.
       const uses = [{ edge: `a${k}_${p}`, sense: 'forward' as const }, { edge: `s${k}_${closed ? (p + 1) % patches : p + 1}`, sense: 'forward' as const }, { edge: `a${next}_${p}`, sense: 'reversed' as const }, { edge: `s${k}_${p}`, sense: 'reversed' as const }].filter(u => !(pole[p] && u.edge === `a4_${p}`));
-      const out = facesOut(surface, used[(i0 + Math.floor(spans / 2)) % n]);
+      const out = facesOut(surface, used[(i0 + Math.floor(spans / 2)) % n], fillet);
       // (The walls at the contacts are `${id}.wall`: a contact face, found by name after any clip.)
       faces.push({ id: `f${k}_${p}`, name: fillet ? `${id}.face` : k === 0 || k === 3 ? `${id}.wall` : `${id}.tool`, surface, sense: out ? 'forward' : 'reversed', loops: [{ kind: 'outer', uses: out ? turned(uses) : uses }] });
     }
@@ -367,9 +420,11 @@ function newell(ps: readonly Point[]): Point {
   for (let i = 0; i < ps.length; i++) { const a = ps[i], b = ps[(i + 1) % ps.length]; n[0] += (a[1] - b[1]) * (a[2] + b[2]); n[1] += (a[2] - b[2]) * (a[0] + b[0]); n[2] += (a[0] - b[0]) * (a[1] + b[1]); }
   return n;
 }
+/** A Bézier's clamped knots for degree p: p + 1 zeros, p + 1 ones. */
+function bezierKnots(p: number): number[] { return [...Array(p + 1).fill(0), ...Array(p + 1).fill(1)]; }
 /** A plane patch through a section, Su × Sv along n, covering it (and its arc) with room. */
 function planePatch(s: Section, nrm: Point): Surface {
-  const n = unit(nrm), o = s.c, d = sub(s.corners[0], o), e1 = unit(sub(d, scale(n, dot(d, n)))), e2 = cross(n, e1), pts = [...s.corners, s.mid];
+  const n = unit(nrm), o = s.c, d = sub(s.corners[0], o), e1 = unit(sub(d, scale(n, dot(d, n)))), e2 = cross(n, e1), pts = [...s.corners, s.mid, ...(s.poles ?? [])];
   const reach = 2 * Math.max(...pts.map(p => len(sub(p, o)))) + 1, at = (u: number, v: number): Point => add(o, add(scale(e1, u), scale(e2, v)));
   return { kind: 'surface', id: 'cap', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[at(-reach, -reach), at(-reach, reach)], [at(reach, -reach), at(reach, reach)]], weights: [[1, 1], [1, 1]] };
 }
@@ -377,17 +432,17 @@ function planePatch(s: Section, nrm: Point): Surface {
 export function ringTool(sections: readonly Section[], id: string, breaks: readonly number[] = [0]): { brep: Brep; report: LoftReport; contactFaces: string[] } { return loftTool(sections, id, breaks, true); }
 
 /** The true arc's middle: r from the ball's centre towards the middle pole. */
-function arcMiddle(s: Section): Point {
-  const r = len(sub(s.corners[0], s.c));
-  return add(s.c, scale(unit(sub(s.mid, s.c)), r));
-}
+function arcMiddle(s: Section): Point { return sectionAt(s, 0.5); }
 /** How far x lies from the surface: Gauss–Newton from (u, v). */
 function distanceTo(s: Sheet, x: Point, start: XY): number { const uv = invertOn(s, x, start); return len(sub(pointOn(s, ...uv), x)); }
 
 /** Whether a tool face's Su × Sv at its middle points away from the middle of a section near it. */
-function facesOut(S: Surface, near: Section): boolean {
+function facesOut(S: Surface, near: Section, fillet = false): boolean {
   const at = surfaceEvaluator(S), u0 = S.knotsU[S.degreeU], u1 = S.knotsU[S.controlPoints.length], v0 = S.knotsV[S.degreeV], v1 = S.knotsV[S.controlPoints[0].length];
   const um = (u0 + u1) / 2, vm = (v0 + v1) / 2, h = 1e-6, p0 = at(um, vm), n = cross(sub(at(um + h, vm), at(um - h, vm)), sub(at(um, vm + h), at(um, vm - h)));
+  // (The fillet faces out of the tool towards the ball's centre: a G2 or full conic section passes close to the faces'
+  // corner, on either side of the corners' centroid, R10.5b.)
+  if (fillet) return dot(n, sub(near.c, p0)) > 0;
   const cen = scale(near.corners.reduce((x, y) => add(x, y), [0, 0, 0] as Point), 1 / 5);
   return dot(n, sub(p0, cen)) > 0;
 }
@@ -637,10 +692,12 @@ function radiusOn(p: RadiusProfile, s: number): number {
  * finished) joins the faces `before` and `next` on side `side`; the ball keeps touching `shared`, on the other side.
  */
 export interface CornerInput { readonly after: number; readonly side: 'A' | 'B'; readonly shared: Face; readonly edge: Curve; readonly before: Face; readonly next: Face }
-export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly noCliffs?: boolean; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[]; /** A variable radius (R10.5, D100): the radius at points of the chain, `r` their largest. */ readonly radii?: readonly RadiusAt[]; /** Which ends run past are cut by their plane (a clipped tool), not trimmed by the Boolean. */ readonly clipped?: readonly [boolean, boolean] }
+export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly noCliffs?: boolean; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[]; /** A variable radius (R10.5, D100): the radius at points of the chain, `r` their largest. */ readonly radii?: readonly RadiusAt[]; /** The section's shape (R10.5b, D103): circular when absent. */ readonly shape?: SectionShape; /** Which ends run past are cut by their plane (a clipped tool), not trimmed by the Boolean. */ readonly clipped?: readonly [boolean, boolean] }
 export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[]; sides: string[] } {
   // (A variable radius — R10.5, D100 — along plain chains for now: not where the ball rolls round an edge or onto one.)
   if (input.corners?.length && input.radii) throw new BrepError('GEOMETRY', `CAPABILITY: edge ${input.names[0]}: a variable-radius fillet where the ball rolls round an edge at a corner is not supported yet`);
+  const shaped = input.shape && input.shape.kind !== 'circular' ? input.shape : null;
+  if (input.corners?.length && shaped) throw new BrepError('GEOMETRY', `CAPABILITY: edge ${input.names[0]}: a ${shaped.kind === 'conic' ? 'conic' : 'G2'} fillet where the ball rolls round an edge at a corner is not supported yet`);
   if (input.corners?.length) return cornerFillet(body, input);
   const { r, id, scaleMM, tolMM } = input, closed = input.closed !== false, sigma = input.convex ? -1 : 1, name = input.names[0];
   const As = input.sideA.map(f => sideOf(body, f, !closed, scaleMM)), Bs = input.sideB.map(f => sideOf(body, f, !closed, scaleMM));
@@ -677,7 +734,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     for (let k = 0; !got && k < 3 && growSides(body, As, Bs, first.at(-1) ?? { a: 0, b: 0 }, !closed, scaleMM); k++) got = solveAt(x, first.at(-1), beside(x));
     // (Still off them: perhaps at a sharp edge of a face, where the ball rolls on along that edge — the span machinery's,
     // R10.4b, D96.)
-    if (!got && input.facesOf && !input.noCliffs && !prof) return cornerFillet(body, { ...input, corners: [], noCliffs: true });
+    if (!got && input.facesOf && !input.noCliffs && !prof && !shaped) return cornerFillet(body, { ...input, corners: [], noCliffs: true });
     if (!got) throw leaves(x);
     first.push({ ...got, s: x });
   }
@@ -739,7 +796,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   //    with one more at its end), each solved on its stretch's faces; refined as the h⁴ rate predicts.
   for (let N = fixedStations ?? N0, tries = 0; ; tries++) {
     if (N > 4096) throw new BrepError('GEOMETRY', `CAPABILITY: [APPROX_TOLERANCE_NOT_MET] edge ${name}: the fillet's lofted contacts stay over ${tolMM} mm off their faces (or its sections over ${4 * tolMM} mm off the true ones) at 4096 stations`);
-    const sols: Station[] = [], cuts: number[] = [], radiusOf: number[] = [];
+    const sols: Station[] = [], cuts: number[] = [], radiusOf: number[] = [], sheetsOf: [Sheet, Sheet][] = [];
     for (let k = 0; k < breaks.length; k++) {
       const a0 = breaks[k].s, a1 = k + 1 < breaks.length ? breaks[k + 1].s : closed ? breaks[0].s + L : s1, n = Math.max(4, 2 * Math.round(N * (a1 - a0) / span / 2));
       const A = As[breaks[k].a], B = Bs[breaks[k].b], last = !closed && k === breaks.length - 1;
@@ -751,10 +808,10 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
         const near = prev ?? first.reduce((best, c) => Math.abs(c.s - x) < Math.abs(best.s - x) ? c : best).st, seedA = j ? invertOn(A.sheet, near.pA, near.uvA) : invertOn(A.sheet, near.pA), seedB = j ? invertOn(B.sheet, near.pB, near.uvB) : invertOn(B.sheet, near.pB);
         const st = solveStation(A.sheet, sigma, B.sheet, sigma, rAt(x), X, t, seedA, seedB, scaleMM);
         if (!st || !contactOk(A, st.uvA, st.pA, beside(x)) || !contactOk(B, st.uvB, st.pB, beside(x))) throw leaves(x);
-        sols.push(st); radiusOf.push(rAt(x));
+        sols.push(st); radiusOf.push(rAt(x)); sheetsOf.push([A.sheet, B.sheet]);
       }
     }
-    const sections = sols.map((st, j) => sectionOf(st, sigma, sigma, radiusOf[j], g));
+    const sections = sols.map((st, j) => sectionOf(st, sigma, sigma, radiusOf[j], g, undefined, undefined, shaped ? shapeAt(shaped, st, sheetsOf[j][0], sheetsOf[j][1], radiusOf[j]) : undefined));
     if (sections.some(x => !x)) throw new BrepError('GEOMETRY', `SELECTION: [TANGENT_FACES] edge ${name}: the fillet's section degenerates (its faces nearly tangent)`);
     const { brep, report, contactFaces } = loftTool(sections as Section[], id, cuts, closed);
     const { contact, turn } = contactsOf(brep, id, As, Bs, []);

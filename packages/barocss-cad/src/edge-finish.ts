@@ -29,7 +29,7 @@ import { circleOf } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
 import { revolutionOf, type Revolution } from './surface-revolution.js';
 import { acrossOf, filletSection, refuseFillet, type SectionSide } from './fillet-section.js';
-import { contactFacesOf, invertOn, normalOn, ringFillet, sheetOf, type CornerInput, type EndPlane, type FilletReport, type RadiusAt } from './rolling-ball.js';
+import { contactFacesOf, invertOn, normalOn, ringFillet, sheetOf, type CornerInput, type EndPlane, type FilletReport, type RadiusAt, type SectionShape } from './rolling-ball.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { linearToleranceMM } from './numeric-policy.js';
 import type { Curve, Point, Surface } from './types.js';
@@ -53,6 +53,15 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
   // (An edge whose closed form would run past a smooth edge onto another surface is the rolling ball's, R10.4a, D95.)
   const n0 = options.reports?.length ?? 0;
   // (A variable radius has no closed form: every chain is the rolling ball's, R10.5, D100.)
+  // (A conic or G2 section likewise: the rolling ball's sections, R10.5b, D103.)
+  const shaped = !!options.shape && options.shape.kind !== 'circular';
+  if (shaped) {
+    if (kind !== 'fillet') refuse('PARAMETER', 'a section shape is a fillet\'s; a chamfer is flat');
+    const sh = options.shape!;
+    if (sh.kind === 'conic' && !(sh.rho > 0 && sh.rho < 1)) refuse('PARAMETER', `a conic section's rho must lie between 0 and 1 (not ${sh.rho})`);
+    if (sh.kind === 'g2' && !(sh.tension > 0 && sh.tension < 1)) refuse('PARAMETER', `a G2 section's tension must lie between 0 and 1 (not ${sh.tension})`);
+    options = { ...options, general: true };
+  }
   if (options.radii) {
     if (kind !== 'fillet') refuse('PARAMETER', 'a variable size is a fillet\'s (radii); a chamfer has one distance');
     if (!options.radii.length || options.radii.some(p => !(p.radius > 0) || !Number.isFinite(p.radius))) refuse('PARAMETER', 'radii must give positive radii at points of the edges');
@@ -80,7 +89,7 @@ function finishGuarded(body: Brep, names: readonly string[], size: number, kind:
     return finishEdges(body, names, size, kind, id, { ...options, squareAtCylinders: true });
   }
 }
-interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean; readonly generalEdges?: readonly string[]; /** A variable radius (R10.5, D100): the radius at points of the edges, `size` their largest; the rolling ball's. */ readonly radii?: readonly RadiusAt[] }
+interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean; readonly generalEdges?: readonly string[]; /** A variable radius (R10.5, D100): the radius at points of the edges, `size` their largest; the rolling ball's. */ readonly radii?: readonly RadiusAt[]; /** The section's shape (R10.5b, D103); not circular: the rolling ball's. */ readonly shape?: SectionShape }
 function finishEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions, used: { cylinder: boolean } = { cylinder: false }): Brep {
   let usedCylinder = false;
   try {
@@ -148,7 +157,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   // upright edge down to the plate), then the others, which now run tangentially round the first's round (the foot round
   // the rounded corner: R10.1's or the rolling ball's). More edges at a corner, or an edge odd at one corner and not at
   // another, are refused.
-  if (kind === 'fillet' && !options.phased && !options.radii) {
+  if (kind === 'fillet' && !options.phased && !options.radii && !(options.shape && options.shape.kind !== 'circular')) {
     const convexOf = new Map<string, boolean>(), convex = (e: Brep['edges'][number]) => {
       let c = convexOf.get(e.id);
       if (c === undefined) { const [E0] = ends(e); c = convexAt((usesOf.get(e.id) ?? []).map(u => { const n = sheetNormal(u.face, E0.x); return { n, w: unit(cross(n, u.sense === 'forward' ? E0.out : scale(E0.out, -1))) }; })); convexOf.set(e.id, c); }
@@ -216,7 +225,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   // touches the sphere), and a corner tool (the cone from the centre to the vertex, less the ball)
   // fills the corner.
   const trims = new Map<string, number[]>();
-  if (kind === 'fillet' && !options.radii) for (const [v, incident] of atVertex) {
+  if (kind === 'fillet' && !options.radii && !(options.shape && options.shape.kind !== 'circular')) for (const [v, incident] of atVertex) {
     const here = incident.filter(e => chain.has(e.id) && !skip.has(e.id));
     if (here.length !== 3 || !here.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2)) continue;
     const fids = [...new Set(here.flatMap(facesOf))];
@@ -335,7 +344,7 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     // (A variable radius: the points on this chain's edges.)
     const radiiHere = options.radii?.filter(p => comp.some(e => onCurve(e.curve, p.at, 1e-6 * scaleMM)));
     if (options.radii && !radiiHere!.length) refuse('SELECTION', `edge ${comp[0].name}: no radius point lies on its chain; give the radius at a point of it`);
-    const ring = generalRing(body, (loop ?? open)!, usesOf, ends, size, id, scaleMM, !!loop, past, cornerOf, radiiHere, clipped);
+    const ring = generalRing(body, (loop ?? open)!, usesOf, ends, size, id, scaleMM, !!loop, past, cornerOf, radiiHere, clipped, options.shape);
     try {
       for (const c of clips) {
         // The end face's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
@@ -588,7 +597,7 @@ function closedLoop(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | n
  * The rolling-ball tool of a closed loop (R10.2a): its faces sorted to the loop's two sides (by the first edge's,
  * then by a shared face or by the normals where consecutive edges meet), its convexity from the first edge.
  */
-function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf: Map<string, Use[]>, ends: Ends, r: number, id: string, scaleMM: number, closed = true, past: (EndPlane | null)[] = [null, null], cornerOf: ReadonlyMap<string, CornerJoin> = new Map(), radii?: readonly RadiusAt[], clipped: readonly [boolean, boolean] = [false, false]): { brep: Brep; convex: boolean; report: FilletReport; contactFaces: string[]; mid: Point; sides: string[] } {
+function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf: Map<string, Use[]>, ends: Ends, r: number, id: string, scaleMM: number, closed = true, past: (EndPlane | null)[] = [null, null], cornerOf: ReadonlyMap<string, CornerJoin> = new Map(), radii?: readonly RadiusAt[], clipped: readonly [boolean, boolean] = [false, false], shape?: SectionShape): { brep: Brep; convex: boolean; report: FilletReport; contactFaces: string[]; mid: Point; sides: string[] } {
   const normalAt = (f: Brep['faces'][number], x: Point) => { const s = sheetOf(f.surface as Surface, f.sense); return normalOn(s, ...invertOn(s, x)); };
   const first = loop[0], u0 = usesOf.get(first.e.id)!, A = new Set([u0[0].face.id]), B = new Set([u0[1].face.id]), sideA = [u0[0].face], sideB = [u0[1].face];
   // Into each face at the loop's start, square to the edge (the face left of its coedge seen from outside).
@@ -615,7 +624,7 @@ function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf:
     const before = c.e === loop[k].e.id ? c.before : c.next, next = c.e === loop[k].e.id ? c.next : c.before;
     corners.push({ after: k, side: B.has(before) ? 'B' : 'A', shared: faceOf.get(c.shared)!, edge: c.edge.curve, before: faceOf.get(before)!, next: faceOf.get(next)! });
   }
-  const { brep, report, contactFaces, sides } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), facesOf: loop.map(l => usesOf.get(l.e.id)!.map(u => u.face.id)), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM, closed, past, corners, clipped, ...(radii ? { radii } : {}) });
+  const { brep, report, contactFaces, sides } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), facesOf: loop.map(l => usesOf.get(l.e.id)!.map(u => u.face.id)), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM, closed, past, corners, clipped, ...(radii ? { radii } : {}), ...(shape ? { shape } : {}) });
   // (A point of the chain halfway along it: the side of an end plane the fillet lies on.)
   const m = loop[Math.floor(loop.length / 2)], [t0, t1] = curveDomain(m.e.curve), mid = evaluateCurve(m.e.curve, (t0 + t1) / 2);
   return { brep, convex, report, contactFaces, mid, sides };
