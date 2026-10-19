@@ -336,7 +336,7 @@ type FirstStation = { st: Station; a: number; b: number; s: number };
  * plane (the body ends there; the Boolean trims the tool). The stations go into `first` (before its start, or after its
  * end); returns where the run stops. Refused where the ball no longer touches both faces first.
  */
-function marchPast(k: 0 | 1, plane: EndPlane, o: { path: ChainPath; ext: Ext; As: readonly Side[]; Bs: readonly Side[]; first: FirstStation[]; solveAt: (x: number, prev: FirstStation | undefined, check: boolean) => { st: Station; a: number; b: number } | null; sigma: number; r: number; g: number; h: number; N0: number; scaleMM: number; name: string; leaves: (x: number) => Error }): number {
+function marchPast(k: 0 | 1, plane: EndPlane, o: { path: ChainPath; ext: Ext; As: readonly Side[]; Bs: readonly Side[]; first: FirstStation[]; solveAt: (x: number, prev: FirstStation | undefined, check: Check) => { st: Station; a: number; b: number } | null; sigma: number; r: number; g: number; h: number; N0: number; scaleMM: number; name: string; leaves: (x: number) => Error }): number {
   const { path, ext, As, Bs, first, sigma, r, g, h, scaleMM } = o, L = path.length;
   // (The plane's side away from the chain: past it the section is clear of the body.)
   const away = dot(plane.n, sub(path.at(L / 2).X, plane.o)) < 0 ? plane.n : scale(plane.n, -1), clear = (sec: Section) => [...sec.corners, sec.mid].every(p => dot(sub(p, plane.o), away) > 1e-9 * scaleMM);
@@ -496,12 +496,36 @@ function segmentDistance(p: XY, a: XY, b: XY): number {
   const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy, t = l2 > 0 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
   return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 }
+/** An end the chain runs past, its normal pointing past it (away from the chain): beyond it the body has ended. */
+interface PastEnd { readonly o: Point; readonly n: Point; readonly tol: number }
+/**
+ * Which contacts a station checks: all of them (true), none (false), or — within reach of an end run past — all but
+ * those lying past such an end (there a contact may run off its face across the end, where the body ends, but not off
+ * across the face's side: a contact on the extended surface beside the face is off it, R10.4a fix, D97).
+ */
+type Check = boolean | readonly PastEnd[];
+/** The open chain's ends run past, oriented away from its middle `mid`. */
+function pastEnds(past: readonly (EndPlane | null)[] | undefined, mid: Point, scaleMM: number): PastEnd[] {
+  const out: PastEnd[] = [];
+  for (const pl of past ?? []) if (pl) { const n = unit(pl.n), m = dot(sub(mid, pl.o), n); out.push({ o: pl.o, n: m > 0 ? scale(n, -1) : n, tol: 1e-7 * scaleMM }); }
+  return out;
+}
+/**
+ * Whether the contact (u, v) at p passes the check: inside its face, or beyond an end run past (by more than rounding:
+ * a contact in that end's plane is checked — there it would be off its face across the side, not the end).
+ */
+function contactOk(side: Side, uv: XY, p: Point, check: Check): boolean {
+  if (check === false || insideFace(side, uv)) return true;
+  if (check === true) return false;
+  for (const e of check) if (dot(sub(p, e.o), e.n) > e.tol) return true;
+  return false;
+}
 /** Solves a station on any pair of the sides' faces (the last pair first), its contacts inside the faces they lie on. */
-function stationOn(As: Side[], Bs: Side[], last: [number, number], sigma: number, r: number, X: Point, t: Point, gA: Point, gB: Point, hintA: XY | undefined, hintB: XY | undefined, size: number, check = true): { st: Station; a: number; b: number } | null {
+function stationOn(As: Side[], Bs: Side[], last: [number, number], sigma: number, r: number, X: Point, t: Point, gA: Point, gB: Point, hintA: XY | undefined, hintB: XY | undefined, size: number, check: Check = true): { st: Station; a: number; b: number } | null {
   for (let i = 0; i < As.length; i++) for (let j = 0; j < Bs.length; j++) {
     const a = (last[0] + i) % As.length, b = (last[1] + j) % Bs.length, A = As[a], B = Bs[b];
     const st = solveStation(A.sheet, sigma, B.sheet, sigma, r, X, t, invertOn(A.sheet, gA, i === 0 ? hintA : undefined), invertOn(B.sheet, gB, j === 0 ? hintB : undefined), size);
-    if (st && (!check || (insideFace(A, st.uvA) && insideFace(B, st.uvB)))) return { st, a, b };
+    if (st && contactOk(A, st.uvA, st.pA, check) && contactOk(B, st.uvB, st.pB, check)) return { st, a, b };
   }
   return null;
 }
@@ -534,12 +558,13 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   //    an end goes on, a step at a time, until the section there lies beyond that end's plane (the body ends there; the
   //    Boolean trims the tool), refused where the ball no longer touches both faces first.
   const g = 0.5 * r, N0 = Math.max(64, 2 * Math.ceil(L / (r / 4) / 2)), h = L / N0, first: { st: Station; a: number; b: number; s: number }[] = [];
-  const solveAt = (x: number, prev: { st: Station; a: number; b: number } | undefined, check: boolean) => {
+  const solveAt = (x: number, prev: { st: Station; a: number; b: number } | undefined, check: Check) => {
     const { X, t } = at(x);
     return stationOn(As, Bs, prev ? [prev.a, prev.b] : [0, 0], sigma, r, X, t, prev ? prev.st.pA : add(X, scale(input.start.wA, back)), prev ? prev.st.pB : add(X, scale(input.start.wB, back)), prev?.st.uvA, prev?.st.uvB, scaleMM, check);
   };
-  // (Within reach of an end run past, a contact may run off its face across that end: it is not checked there.)
-  const reach = back + 2 * g, beside = (x: number) => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0));
+  // (Within reach of an end run past, a contact may run off its face across that end — beyond it, it is not checked —
+  // but not off across the face's side, D97.)
+  const reach = back + 2 * g, endsPast = closed ? [] : pastEnds(input.past, path.at(L / 2).X, scaleMM), beside = (x: number): Check => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0)) || endsPast;
   for (let j = 0; j < (closed ? N0 : N0 + 1); j++) {
     const x = L * j / N0;
     let got = solveAt(x, first.at(-1), beside(x));
@@ -601,7 +626,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
         // the last one's (u, v) belong to the face across the seam.)
         const near = prev ?? first.reduce((best, c) => Math.abs(c.s - x) < Math.abs(best.s - x) ? c : best).st, seedA = j ? invertOn(A.sheet, near.pA, near.uvA) : invertOn(A.sheet, near.pA), seedB = j ? invertOn(B.sheet, near.pB, near.uvB) : invertOn(B.sheet, near.pB);
         const st = solveStation(A.sheet, sigma, B.sheet, sigma, r, X, t, seedA, seedB, scaleMM);
-        if (!st || (beside(x) && (!insideFace(A, st.uvA) || !insideFace(B, st.uvB)))) throw leaves(x);
+        if (!st || !contactOk(A, st.uvA, st.pA, beside(x)) || !contactOk(B, st.uvB, st.pB, beside(x))) throw leaves(x);
         sols.push(st);
       }
     }
@@ -912,11 +937,12 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
     return { ia, ib, Asp: ia.map(i => As[i]), Bsp: ib.map(i => Bs[i]) };
   };
   const N0 = Math.max(64, 2 * Math.ceil((L + rolls.reduce((a, x) => a + x.length, 0)) / (r / 4) / 2)), h = L / N0, hd = 1e-6 * L;
-  // (Within reach of an end run past, a contact may run off its face across that end: it is not checked there.)
-  const reach = back + 2 * g, beside = (x: number) => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0));
+  // (Within reach of an end run past, a contact may run off its face across that end — beyond it, it is not checked —
+  // but not off across the face's side, D97.)
+  const reach = back + 2 * g, endsPast = closed ? [] : pastEnds(input.past, path.at(L / 2).X, scaleMM), beside = (x: number): Check => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0)) || endsPast;
   const solverOn = (sp: Extract<Span, { kind: 'edge' }>, seed: { pA: Point; pB: Point }) => {
     const { ia, ib, Asp, Bsp } = facesIn(sp);
-    return { Asp, Bsp, ia, ib, solve: (x: number, prev: { st: Station; a: number; b: number } | undefined, check: boolean) => {
+    return { Asp, Bsp, ia, ib, solve: (x: number, prev: { st: Station; a: number; b: number } | undefined, check: Check) => {
       const { X, t } = spanAt(P, hd, x, sp.lo, sp.hi);
       const got = stationOn(Asp, Bsp, prev ? [Math.max(0, ia.indexOf(prev.a)), Math.max(0, ib.indexOf(prev.b))] : [0, 0], sigma, r, X, t, prev ? prev.st.pA : seed.pA, prev ? prev.st.pB : seed.pB, prev?.st.uvA, prev?.st.uvB, scaleMM, check);
       return got && { st: got.st, a: ia[got.a], b: ib[got.b] };
@@ -1186,7 +1212,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
         const near = prev ?? firsts.reduce((best, c) => Math.abs(c.rho - a0) < Math.abs(best.rho - a0) ? c : best).st;
         const seedA = j ? invertOn(A.sheet, near.pA, near.uvA) : invertOn(A.sheet, near.pA), seedB = j ? invertOn(B.sheet, near.pB, near.uvB) : invertOn(B.sheet, near.pB);
         const st = solveStation(A.sheet, sigma, B.sheet, sigma, r, X, t, seedA, seedB, scaleMM);
-        if (!st || (beside(x) && (!insideFace(A, st.uvA) || !insideFace(B, st.uvB)))) throw leaves(X);
+        if (!st || !contactOk(A, st.uvA, st.pA, beside(x)) || !contactOk(B, st.uvB, st.pB, beside(x))) throw leaves(X);
         sols.push(st);
         const grow: [Point | undefined, Point | undefined] = [undefined, undefined];
         for (const [tg, d] of [[tIn, x - sp.x0], [tOut, sp.x1 - x]] as const) if (tg && d < blend) {

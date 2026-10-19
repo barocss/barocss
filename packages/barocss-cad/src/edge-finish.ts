@@ -56,6 +56,9 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     try { return finishGuarded(body, names, size, kind, id, opts); }
     catch (cause) {
       if (options.reports) options.reports.length = n0;
+      // (The rolling ball's tool made there, but the analytic Boolean cannot close the result — its cap coplanar with an
+      // end face, on most radii tried: refused, not left to fail untyped, until the Boolean step R10.B, D97.)
+      if (tries > 0 && !(cause instanceof Overflow) && cause instanceof BrepError && /analytic Boolean/.test(cause.message)) throw new BrepError('GEOMETRY', `CAPABILITY: [CONTACT_LEAVES_FACE] edge ${body.edges.find(x => x.id === opts.generalEdges!.at(-1))?.name}: a fillet of ${size} mm runs over a smooth edge onto another face; the rolling ball's tool there leaves the analytic Boolean a result it cannot close (${cause.message.replace(/^.*?analytic Boolean: /, '')}); that is not supported yet`);
       if (!(cause instanceof Overflow) || tries > 8 || opts.generalEdges?.includes(cause.edge)) throw cause instanceof Overflow ? new BrepError('GEOMETRY', `CAPABILITY: [CONTACT_LEAVES_FACE] edge ${body.edges.find(x => x.id === cause.edge)?.name}: a fillet of ${size} mm runs over a smooth edge onto another face where the rolling ball cannot follow; that is not supported yet`) : cause;
       opts = { ...opts, generalEdges: [...(opts.generalEdges ?? []), cause.edge] };
     }
@@ -328,15 +331,19 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
     if (skip.has(e.id) || handled.has(e.id)) continue;
     const uses = usesOf.get(e.id) ?? [];
     if (uses.length !== 2) refuse('SELECTION', `edge ${e.name} does not join exactly two faces`);
-    // A convex finish of a straight edge between two planes must fit on both faces: its setback from the
-    // edge (the chamfer distance, or r / tan(half the corner angle)) at most each face's true reach across it.
+    // A finish of a straight edge between two planes must fit on both faces: its setback from the edge (the
+    // chamfer distance, or r / tan(half the corner angle)) at most each face's true reach across it — convex or
+    // concave (a concave one adds material, so every boundary of the face bounds it). Where the binding limit is a
+    // smooth edge onto another surface (a round already made), a fillet is the rolling ball's (R10.4a, D97); a
+    // chamfer has none, and is refused.
     if (e.curve.degree === 1 && e.curve.controlPoints.length === 2 && uses.every(u => u.geometry.kind === 'plane')) {
-      const [E0, E1] = ends(e), sides = intoFaces(e, uses, E0.x, E0.out);
-      if (convexAt(sides)) {
-        const half = Math.acos(Math.max(-1, Math.min(1, dot(sides[0].w, sides[1].w)))) / 2;
-        const back = kind === 'chamfer' ? size : size / Math.tan(half);
-        const walls = uses.map((u, k) => planeReach(body, u.face.id, e, E0.x, E1.x, sides[k].w, scaleMM, true));
-        if (walls.some(w => back > w + 1e3 * tol)) refuseFillet('RADIUS_EXCEEDS_FACE', `edge ${e.name}: ${kind} ${size} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
+      const [E0, E1] = ends(e), sides = intoFaces(e, uses, E0.x, E0.out), convex = convexAt(sides);
+      const half = Math.acos(Math.max(-1, Math.min(1, dot(sides[0].w, sides[1].w)))) / 2;
+      const back = kind === 'chamfer' ? size : size / Math.tan(half), lim = { smooth: Infinity };
+      const walls = uses.map((u, k) => planeReach(body, u.face.id, e, E0.x, E1.x, sides[k].w, scaleMM, convex, lim));
+      if (walls.some(w => back > w + 1e3 * tol)) {
+        if (kind === 'fillet' && walls.every(w => back <= w + 1e3 * tol || lim.smooth <= w + 1e3 * tol)) throw new Overflow(e.id);
+        refuseFillet('RADIUS_EXCEEDS_FACE', `edge ${e.name}: ${kind} ${size} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
       }
     }
     // How far the tool may run past each end: past the end of the body, else not at all. Where another
@@ -866,15 +873,15 @@ function trueReach(body: Brep, faceId: string, e: Brep['edges'][number], ch: Cha
   return reach;
 }
 /** A plane face's true reach across the straight edge P → Q along w (into the face). */
-function planeReach(body: Brep, faceId: string, e: Brep['edges'][number], P: Point, Q: Point, w: Point, scaleMM: number, removes: boolean): number {
+function planeReach(body: Brep, faceId: string, e: Brep['edges'][number], P: Point, Q: Point, w: Point, scaleMM: number, removes: boolean, out?: { smooth: number }): number {
   const d = unit(sub(Q, P)), v = cross(d, w), ch: Chart = { kind: 'straight', P, d, u: w, v, L: len(sub(Q, P)) };
-  return trueReach(body, faceId, e, ch, { curve: { kind: 'line', p: [0, 0], d: [1, 0] }, w: [1, 0], n: [0, 1] }, [0, 0], scaleMM, removes);
+  return trueReach(body, faceId, e, ch, { curve: { kind: 'line', p: [0, 0], d: [1, 0] }, w: [1, 0], n: [0, 1] }, [0, 0], scaleMM, removes, out);
 }
-/** A plane face's true reach across a straight edge, from it along w, for a finish that removes material (the wedge chamfer's). */
-export function faceReach(body: Brep, faceId: string, edge: Brep['edges'][number], w: Point): number {
+/** A plane face's true reach across a straight edge, from it along w, for a finish that removes material or adds it (the wedge chamfer's). */
+export function faceReach(body: Brep, faceId: string, edge: Brep['edges'][number], w: Point, removes = true): number {
   const p = edge.curve.controlPoints, P = p[0], Q = p[p.length - 1];
   let s = 1; for (const x of body.vertices) for (const c of x.point) s = Math.max(s, Math.abs(c));
-  return planeReach(body, faceId, edge, P, Q, w, s, true);
+  return planeReach(body, faceId, edge, P, Q, w, s, removes);
 }
 /** Refuses a fillet whose contact on a face lies past the face's true reach. */
 function fitsFaces(body: Brep, e: Brep['edges'][number], uses: Use[], ch: Chart, sides: SectionSide[], X: XY, contacts: XY[], what: string, scaleMM: number, removes: boolean): void {

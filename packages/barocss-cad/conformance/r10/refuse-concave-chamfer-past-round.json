@@ -1,0 +1,108 @@
+{
+  "id": "r10-refuse-concave-chamfer-past-round",
+  "step": "R10",
+  "decisions": [
+    "D97"
+  ],
+  "about": "D97: the same step, its riser's foot chamfered 8 mm — more than the 6 mm of flat riser below the round: refused (a concave chamfer adds material, so every boundary of the face bounds it; a chamfer has no rolling ball to roll on; built 51 % over before).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              45.28980942125395,
+              30
+            ],
+            [
+              5.289809421253949,
+              30
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              42.644904710626975,
+              15
+            ],
+            [
+              2.6449047106269745,
+              15
+            ]
+          ]
+        },
+        {
+          "id": "f0",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 10,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "f0"
+        },
+        {
+          "id": "g",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "f0.side2|f0.top"
+          ],
+          "radius": 4
+        },
+        {
+          "id": "f",
+          "kind": "chamfer",
+          "target": "g",
+          "edges": [
+            "e.top|f0.side2"
+          ],
+          "distance": 8
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[RADIUS_EXCEEDS_FACE]"
+    }
+  },
+  "oracle": "Closed form: the riser is flat from z = 10 to 16 (the round of 4 under its top at 20), so it reaches 6 mm across its foot."
+}

@@ -4592,3 +4592,30 @@ R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face acr
   - R10.4b's cliffs meet the body along its edge, as R10.3a's corners do. The wedge growth keeps the tool's faces off the body's.
   - That robustness is now the common blocker behind four items: the coaxial cone-rim seam sliver (D88), general fillets ending square or at cylinders or several faces (D94), and the pole-off ball turn (D93). So it comes next, as **R10.B**, before R10.5.
 
+
+## D97 — the plane–plane reach past a round (the coordinator's planeReach fix) (2026-10-19)
+
+- **The defect** (same class as D95's, found by the coordinator): a closed-form finish of a straight edge between two planes checked its reach only when convex. A concave one was not checked at all.
+  - So a concave fillet or chamfer whose face runs onto a round already made built valid but wrong: its section lay on the riser carried on past the round.
+  - Reproduced on HEAD (`f1f4e00cb`): a step with oblique ends, its riser 10 high with its top rounded 4 (6 mm of flat riser). The foot filleted 7 built 422.30 mm³ against the closed form's 408.86 (3.3 % over); filleted 12, 1853.45 against 839.83 (121 % over). Chamfered 8, 2046 against a square form of 1280 (the true form is refused).
+  - The convex check already counted smooth edges onto another surface since D95, but refused where the ball could roll on.
+- **The fix** (`edge-finish.ts`, the straight plane–plane check; `part-model.ts`, `wedgeChamfer`):
+  - Both convex and concave finishes are checked. For a concave (adding) finish every boundary of the face bounds it, as `trueReach` already did for added material.
+  - Where the binding limit is a smooth edge onto another surface, a fillet throws `Overflow`: the rolling ball takes it (R10.4a's retry). A chamfer has no rolling ball and is refused RADIUS_EXCEEDS_FACE (the wedge chamfer too: `faceReach` takes `removes`).
+- **A second hole, in the rolling ball's own check** (`rolling-ball.ts`): within reach (2r) of an end run past, no contact was checked at all, so a contact could run off its face sideways.
+  - On an open chain shorter than 4r, that was the whole chain. The step's foot at r 12 went through the rolling ball and still built 121 % over.
+  - Now only a contact lying beyond such an end, by more than rounding, goes unchecked (`contactOk`, `Check`, `pastEnds`). A contact in the end's plane is checked: there it would be off its face across the side, not across the end.
+  - (Carrying the contact back along the chain to the end and checking it there was tried. It fails the oblique groove's ends, R10.2b, where the rim curves within that distance.)
+- **The analytic Boolean** cannot close most radii of the overflowing concave foot: the tool's end cap is coplanar with the body's end faces. A retry that fails there is refused as CAPABILITY [CONTACT_LEAVES_FACE] ("…leaves the analytic Boolean a result it cannot close…"), not left untyped. The square-ended step's foot is refused as before (its end square on a face, D90).
+- **Evidence** (`packages/barocss-cad/test/r10-reach.test.mjs`, 3 tests; the first and third fail on HEAD):
+  - **Concave:** the oblique step's foot at r 7 and 12 matches the closed form (the polygon between the ball's floor contact, the riser and its contact on the round, less the round's and the ball's circular segments, × 40) to 1e-7 (2.4e-8 at r 12). The report is in bounds.
+  - **Convex:** a block with oblique ends, its bottom edge rounded 8, its top edge filleted 2.5, 3 and 4 (2 mm of flat wall). The ball rolls round onto the round from inside; matches the closed form to 1e-7 (4e-8 to 7e-8). Refused RADIUS_EXCEEDS_FACE on HEAD.
+  - **Refusals, none built wrong:**
+    - the concave chamfer 8 (RADIUS_EXCEEDS_FACE, walls of 6 and 15 mm);
+    - the oblique step's fillet 8 (the Boolean, CAPABILITY);
+    - the square step's fillet 8 (end square).
+    - Within the flat riser, fillet 5 and chamfer 5 keep the closed form.
+  - **Conformance:** `r10/overflow-step-concave-fillet` (r 12, the closed form, relTol 1e-7; STEP round trip); `r10/refuse-concave-chamfer-past-round`.
+  - **Studio:** a flow step opens the oblique step, rounds the riser's top 4, then fillets its foot 12 in the UI (+839.83 mm³).
+- **Found, not fixed (a different defect, reported):** the concave wedge chamfer stops square at its ends. At oblique ends it adds material past the end face: the oblique step's foot chamfered 5 adds 532.33 mm³ against 500, 6.5 % over. The convex one is grown past both ends and trimmed, so it is right. The fix is R10.2b's end clip for the wedge.
+- **Not done:** R10.B (the Boolean behind the refused radii) → R10.5.
