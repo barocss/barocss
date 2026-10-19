@@ -4875,6 +4875,7 @@ The roadmap's feasibility checkpoint before R11, with the research note's R11.1�
     - (c) The error gathers beside a cap's extraordinary corner. Graded refinement is needed there, not uniform.
     - (d) The kernel's mass quadrature does not take these fitted faces as whole patches, because their edges lie within the fit's tolerance of the patch boundaries, not on them. Its mass of the cube's cavity is 7.7e-5 off the faces' own integral. The offset faces' edges should be their exact boundaries (with the neighbour within tolerance), or the whole-patch test should take tolerant edges.
   - **Folding:** t·κmax ≥ 1 on the convex side predicts the turn-over. On the SubD cube 1/κmax = 1.509 mm: the offset map's Jacobian against the face's is positive at t 1.5 (at the curvature's peak, and nowhere turned on an 8 × 8 grid a span) and negative at 1.6 at the peak. `OFFSET_FOLDS` can come from `local-curvature.ts`, as the note proposes.
+    - *Corrected at D110:* those samples were interior points only. The tightest curvature lies on a cap's side beside its extraordinary corner, 1.480 mm. The cube folds from t 1.480, not 1.509.
 - **Verdict — R11 in three stages, the note's order, with these changes:**
   - **R11.1 — fix the slabs of the faces taken now, then extend them.**
     - Grow a slab's region only across sharp edges. Across a smooth edge, the slabs share the normal plane as a coincident wall (probed exact).
@@ -5029,3 +5030,56 @@ The outer lane reported step 116, "R10.3c a rod across a round plate", failing o
   - Reproducing the original R10.3b → R10.3c pair alone took more than 6 rounds without a failure, at loads up to 30.
 - No kernel change; nothing in R10.3c's geometry was wrong.
 - Checks: studio 429/429, type-check clean; full flow 148/148 (new step: the back-to-back opens). Kernel unchanged (1150/1155 at D108), so RB not rerun.
+
+## D110 — R11.2a: a smooth closed freeform body shelled as its offset cavity (2026-10-20)
+
+D105's verdict for R11.2: a closed body whose faces meet smoothly needs no slab, since its cavity is its faces offset. This step builds that cavity for SubD bodies. The open decision from D105 (finding b) is taken: offset faces are split into cells, and the kernel's 16-pole cap stays a fixed contract.
+
+- **Route** (`offset-cavity.ts`, new): `smoothClosedBody` takes a body with one closed shell, every face an untrimmed NURBS patch (one outer loop on its natural boundary), and every edge between two faces smooth (normals within 1e-6 rad).
+  - `shellPart` takes this route when `generalShell` refuses freeform faces and the body qualifies. The shell is `withCavities(body, cavity)`, with no Boolean.
+  - Opening a face of such a body is refused by name (R11.2b).
+- **The cavity's faces.** Each face's exact offset, p − t·n with n from the first derivatives, is interpolated at the Greville points of a cubic spline space.
+  - The space has the face's own knots, each interior one once more, since an offset is one order less continuous there (D105's finding a). Each span is cut into r pieces.
+  - The face is split into a grid of cells: spans grouped so a cell starts under the cap. Each cell raises r while it fits the cap, until within the target, 1e-6 of the body's size.
+  - Where the cap comes first, the grid is cut through the middle of every cell that missed, both ways, and fitted again (at most 64 × 64). Cuts gather where the error does, beside an extraordinary corner. A cell that cannot reach the target is refused (`[APPROX_TOLERANCE_NOT_MET]`).
+  - Deviation is measured at the quarters and middles between the interpolation points.
+- **The cavity's topology is the body's.**
+  - Each body edge is cut where a grid line of either face meets it; the cuts snap to the edge's own knots within rounding, and the same cut seen from two faces is kept once. A first version left a 1e-16 span (0.25 against 0.2500000000000001), which made the fit singular.
+  - Each piece's offset is fitted in its face's side parameter, with no projection a point. The first version projected each point from scratch, about 450 evaluations a point, and never finished the edges of a torus.
+  - Grid edges inside a face are the cells' own boundary curves.
+  - Vertices are registered by their position on the body (1e-7 of its size).
+  - Each cell's loop runs counter-clockwise about the outward normal, through the pieces along its sides or the grid edges.
+  - Every entity's tolerance is twice the measured deviation.
+- **Refusals by name:**
+  - `[OFFSET_FOLDS]` where t·κ ≥ 1. Each knot span is sampled on a 9 × 9 grid with its edges, nudged off C1 knots where the second derivatives are not defined. From the six largest samples overall, a hill climb (golden section in u, then v, the step halving) finds the local largest.
+    - This corrects D105: the cube's tightest radius is 1.480 mm, on a cap's side beside its extraordinary corner, not 1.509 inside.
+    - With interior samples only, t 1.49 folded unrefused.
+  - `[WALL_TOO_THIN]` where an offset point comes nearer than the wall to the body. Candidates are triangles of the body's tessellation within the wall, on a grid of the wall's size. The deciding distance is a Newton projection onto that face's surface, an upper bound of the true one, so the refusal is never false.
+  - `[APPROX_TOLERANCE_NOT_MET]`.
+- **Speed.** The kernel's evaluators check the surface at every call, and second derivatives copy it: 80 % of the time.
+  - The route has its own evaluator per face: rational point and first and second derivatives (Piegl & Tiller A2.3, the quotient rule), the surface checked once. It is the kernel's to 2.4e-14 on SubD and rational revolved faces (a test).
+  - Curvature now comes from the fundamental forms.
+  - The cube at t 0.5: 4.9 s → 0.9 s. The 16 × 8 torus: 0.5 s.
+- **Supporting changes (kernel core):**
+  - `buildBrep` takes an optional per-vertex and per-edge `toleranceMM`, and `withCavities` keeps each entity's. Before, it rebuilt everything at the default and lost a tolerant cavity's.
+  - The mass quadrature's whole-patch test accepts an edge within its own tolerance (D105's finding d: the cube's cavity was 7.7e-5 off; now the same to rounding, as `r11-s0` reads).
+  - STEP: the writer's distance accuracy is the bodies' largest entity tolerance where that exceeds 1e-6. The reader takes a distance accuracy above 1e-6 as its entities' tolerance, at most 1e-5 of the model's size. Exact bodies are unchanged both ways. A SubD shell's STEP round trip keeps its volume to 1e-9; it failed before.
+- **Evidence** (`test/r11-2a.test.mjs`, new; the shells were refused on HEAD 52f800a48; every result strictly valid, mass by quadrature):
+
+  | Body (χ) | Wall | Cells | Deviation | Volume against Steiner |
+  |---|---|---|---|---|
+  | SubD cube (2) | 0.5 | 216 | 8.6e-6 mm (target 9.2e-6) | −8.5e-7 |
+  | SubD cube (2) | 1 | 216 | 9e-6 mm | −7.3e-7 |
+  | SubD cube (2) | 1.47, next to its fold | 216 | | within the bound |
+  | Torus 8 × 6 (0) | 1 | 35 | 2.3e-5 mm (target 2.5e-5) | −2.1e-6 |
+  | Torus 8 × 6 (0) | 2 | 92 | 2.1e-5 mm | −2.1e-6 |
+  | Torus 16 × 8 (0), faces of 13 spans, past the cap | 1 | 114 | 2.0e-5 mm | −1.5e-6 |
+  | Torus 16 × 8 (0) | 2 | 114 | 2.4e-5 mm | −2.1e-6 |
+  | Membrane in a rim (2) | 0.2–0.5 | | | 2.4e-6 – 7e-6 of the shell |
+
+  - The oracle is Steiner's formula: the hollow encloses V − At + Mt² − (2πχ/3)t³. A, M = ∫H dA and ∫K dA are by quadrature of the limit surface, and χ comes out 2.000000 and 0.000000. The bound checked is area × target.
+  - Refused by name: the cube at 1.49 (`OFFSET_FOLDS`, radius 1.48015); the membrane at 0.6 (`WALL_TOO_THIN`, top and bottom membranes 0.5x mm apart); an opened face (R11.2b).
+  - Conformance `r11/shell-subd-cube`, `shell-subd-torus-16x8` (Steiner's volume, the tolerance from the accuracy contract, STEP round trip 1e-9), `refuse-shell-subd-folds`, `refuse-shell-wall-too-thin`.
+  - A flow step: the SubD cube shelled 0.5 from a file.
+- **Not done:** opened faces (R11.2b). Bodies with sharp edges and freeform faces (region slabs) are R11.2b and R11.2c. Creased SubD bodies have sharp edges and are not on this route.
+- Checks: lint and type-check clean; kernel 1157/1162 (only the env-only Split test fails; r11-s0's two S0 records read then and now); conformance with the 4 new cases; studio 453/453; full flow 151/151 on 52f800a48 plus this step (every R14 and A5 step passing). RB rows in the next commit.

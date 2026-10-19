@@ -270,8 +270,9 @@ export interface BrepFaceInput { readonly id: string; readonly surface: Surface 
 export interface BrepShellInput { readonly id: string; readonly faces: readonly BrepFaceInput[]; readonly closed: boolean }
 export interface BrepBuildInput {
   readonly source: Brep['source'];
-  readonly vertices: readonly { readonly id: string; readonly point: Point }[];
-  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string }[];
+  /** (`toleranceMM` on a vertex or an edge: its own, for one that is tolerant — a fitted offset's, D110; else the B-rep's.) */
+  readonly vertices: readonly { readonly id: string; readonly point: Point; readonly toleranceMM?: number }[];
+  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string; readonly toleranceMM?: number }[];
   readonly bodies: readonly { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly BrepShellInput[] }[];
   /** Entity tolerance; defaults to CadNumericPolicy.linearToleranceMM at the geometry's scale. */
   readonly toleranceMM?: number;
@@ -311,8 +312,8 @@ export function buildBrep(input: BrepBuildInput): Brep {
   for (const c of mutable) coedges.push(c);
   return {
     format: 'barocss-brep', version: 0, lengthUnit: 'mm', source: input.source, bodies, shells, faces, loops, coedges,
-    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: tol, ...(e.name === undefined ? {} : { name: e.name }) })),
-    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: tol })),
+    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: Math.max(tol, e.toleranceMM ?? 0), ...(e.name === undefined ? {} : { name: e.name }) })),
+    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: Math.max(tol, v.toleranceMM ?? 0) })),
   };
 }
 

@@ -98,7 +98,11 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   const mm = add_(`(LENGTH_UNIT()NAMED_UNIT(*)SI_UNIT(.MILLI.,.METRE.))`);
   const radian = add_(`(NAMED_UNIT(*)PLANE_ANGLE_UNIT()SI_UNIT($,.RADIAN.))`);
   const steradian = add_(`(NAMED_UNIT(*)SI_UNIT($,.STERADIAN.)SOLID_ANGLE_UNIT())`);
-  const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(1.E-06),${mm},'distance_accuracy_value','confusion accuracy')`);
+  // (The distance accuracy: 1e-6 mm, or the bodies' largest entity tolerance where that is larger — a cavity of fitted
+  // offsets has tolerant edges, which a reader takes back from it, D110.)
+  let accuracy = 1e-6;
+  for (const b of given) for (const x of [...b.edges, ...b.vertices]) if (x.toleranceMM > accuracy) accuracy = x.toleranceMM;
+  const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(${accuracy === 1e-6 ? '1.E-06' : real(accuracy)}),${mm},'distance_accuracy_value','confusion accuracy')`);
   const context = add_(`(GEOMETRIC_REPRESENTATION_CONTEXT(3)GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((${uncertainty}))GLOBAL_UNIT_ASSIGNED_CONTEXT((${mm},${radian},${steradian}))REPRESENTATION_CONTEXT('Context3D','3D Context with UNIT and UNCERTAINTY'))`);
 
   const solids = breps.flatMap(brep => solidsOf(brep)), tessellated = meshes.flatMap(m => tessellatedOf(m));
