@@ -224,6 +224,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
     the rest typed MOTION_UNSUPPORTED), a minimum-freedom spanning tree from the base link, loops reported, gear pairs
     coupled (mimic −z1/z2), limits by pair key; tools get_joints / set_joints (proposed); a Joints card. Conformance
     `conformance/rm/`.
+  - **RM2** (O15): done. FK by the product of exponentials (`src/robot/fk.ts`): planar 2R to 1e-9, equal to the
+    moving-axis form on random 3D trees; gear followers with the tooth phase re-checked and held at every pose; joint
+    sliders, Home and play in the Joints card, a preview on copies (nothing saved); tool forward_kinematics.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

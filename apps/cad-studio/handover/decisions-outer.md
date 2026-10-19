@@ -519,3 +519,47 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Browser flow, a step "RM1" just before the last: an assembly opened, the Joints card reads `Base part → arm Continuous +Z`, and the base link moved to the arm (saved in `robot.base`).
   - Bench: the joint tree of a 12-link serial arm takes 0.27 ms (budget 1); 46 rows within budget. Studio 482/482, 482/482 replayed through v2; browser flow 154/154 (screenshot `notes/acceptance/rm1-joints.png`).
 - **Next**: RM2, forward kinematics over the tree and the joint-slider preview (the gear pair turning together, its clearance shown).
+
+## O15 — RM2: forward kinematics over the joint tree, the joint sliders (2026-10-20)
+
+- **FK** (`src/robot/fk.ts`): the product of exponentials in the space frame (Lynch & Park).
+  - Each joint's screw is its axis and point at the solved pose, where every value is 0. So a link's motion from its solved pose is `D = exp([S1] q1) · exp([S2] q2) · …` along its path from the base link, and its pose is `D · M`.
+  - Revolute and continuous joints turn q radians about the axis through the point; prismatic ones slide q mm along it; fixed ones stay.
+  - **Followers** (a gear's `mimic`) take multiplier × leader + offset, whatever was given for them.
+  - **Limits are reported, not clamped**: `outOfLimits` (a preview may show them; an export refuses). Unknown keys are reported too.
+  - It runs per slider move: module-level helpers writing into given arrays, no closures, one motion allocated a link.
+- **The gear pair at any pose** (`gearPairAt`, D56):
+  - each coupling now carries both gears in its common frame and each joint's sense about that frame's Z;
+  - at joint values, both gears are turned by their joints and the kernel's `checkPlacedSpurGears` is run again.
+  - With the right ratio and sign, the tooth phase stays the home phase, so the pair turns together; the check is what proves it.
+- **The preview** (`src/robot/preview.ts`):
+  - the instances shown are moved by FK on copies of their meshes (`placeBody`, now exported); the evaluated bodies are untouched;
+  - at home nothing is copied;
+  - when the base link is an instance, motions are shown relative to the base part's: the same relative motion, the base part still.
+  - Nothing is saved: the placements in the document do not change.
+- **Studio**:
+  - in the Joints card, a slider for each moving joint that is not a follower, in degrees or mm (its limits; else a turn either way, or ±50 mm for a slide without limits);
+  - a follower's value shown with it;
+  - each gear pair's line: "mesh held" or "teeth out of phase", and its backlash at that pose;
+  - **Home**, and **▶** to play one joint through its range (4 s a swing, `requestAnimationFrame`, stopped by touching a slider).
+  - Exploding the view applies after the pose.
+  - The sliders take any value (`step="any"`): with a step of a 720th of the range, the browser snapped π to 179.5°. This was found by the flow step.
+- **Tool**: `forward_kinematics {values}` (read, output schema; v2 `assembly.pose`). It returns each part's placement at the values (position mm, rotation in degrees as `place_part` takes it), the values used, joints out of limits, and each gear pair's phase against home (`held`). Compatible additions to both contracts.
+- **Sizes**: v1 61 tools, tools/list 82 438 characters; v2 11 336; prompts unchanged (7 086 / 7 334).
+- **Evidence**:
+  - `test/robot-fk.test.ts` (7 tests):
+    - **the planar 2R tip by its closed form to 1e-9** over 200 random poses;
+    - **the product of exponentials equals the moving-axis form** (each axis carried by its parent's motion, then turned about there) on 20 random 3D trees of 8 turning and sliding joints, to 1e-9, every rotation orthonormal to 1e-12;
+    - the gear follower from its leader (even when given another value), the **tooth phase held at 25 random poses** to 1e-6°, the backlash and centre distance unchanged, and a wrong ratio caught;
+    - limits reported not clamped, slider ranges, unknown keys, a prismatic slide;
+    - the tool (a quarter turn: placements `[30, 10, …]` and `[0, 0, 90]`; the gear `held`; refusals);
+    - the preview on copies (the evaluated mesh unchanged, a half turn's bounds, the same bodies at home);
+    - the RM2 conformance cases.
+  - Conformance `conformance/rm/fk-chain-2r` (5 poses' tip by the closed form, written from the formula, not the code) and `fk-gears` (4 leader values: the follower's value and the held phase). The RM1 case list now counts only its own step.
+  - Browser flow, a step "RM2" just before the last:
+    - the 2R arm from its conformance file; the second arm swung a half turn by its slider, shown at x 10…70 from 50…110 and reading 180.0°;
+    - the document's placements unchanged; Home back;
+    - the first joint played (moving by itself) and stopped.
+  - Bench: FK of the 12-link arm takes 0.02 ms (budget 0.1); its 11 moving links' meshes posed take 0.45 ms (budget 2).
+  - Studio 489/489, 489/489 replayed through v2; browser flow 155/155; bench 48/48 within budget (screenshot `notes/acceptance/rm2-posed.png`).
+- **Next**: RM3, link-frame inertia about the CoM (I_L = R·I·Rᵀ), checked against an analytic rotated off-origin cuboid; SPD and the triangle inequality.
