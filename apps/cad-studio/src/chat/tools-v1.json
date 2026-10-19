@@ -2432,6 +2432,128 @@
    }
   },
   {
+   "name": "size_actuators",
+   "annotations": {
+    "title": "Size actuators",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "dwell_s": {
+      "type": "number"
+     },
+     "from": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     },
+     "inertia_ratio_max": {
+      "type": "number"
+     },
+     "joint_limits": {
+      "additionalProperties": {
+       "type": "object"
+      },
+      "type": "object"
+     },
+     "life_h": {
+      "type": "number"
+     },
+     "limits": {
+      "properties": {
+       "acceleration": {
+        "type": "number"
+       },
+       "jerk": {
+        "type": "number"
+       },
+       "velocity": {
+        "type": "number"
+       }
+      },
+      "type": "object"
+     },
+     "motors": {
+      "items": {
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "only_given": {
+      "type": "boolean"
+     },
+     "profile": {
+      "enum": [
+       "trapezoid",
+       "s-curve"
+      ],
+      "type": "string"
+     },
+     "reducers": {
+      "items": {
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "to": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "to",
+     "profile"
+    ],
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "cycle_s": {
+      "type": "number"
+     },
+     "joints": {
+      "type": "array"
+     },
+     "model": {
+      "type": "string"
+     },
+     "move_s": {
+      "type": "number"
+     },
+     "pending_worked_examples": {
+      "type": "array"
+     },
+     "profile": {
+      "type": "string"
+     },
+     "sampling": {
+      "type": "string"
+     },
+     "skipped": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "profile",
+     "move_s",
+     "cycle_s",
+     "joints",
+     "skipped",
+     "model",
+     "sampling",
+     "pending_worked_examples"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "snap_part",
    "annotations": {
     "title": "Snap part",

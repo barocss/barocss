@@ -320,16 +320,26 @@ stays out of the kernel's core files (requests for them go through the coordinat
     energy from FK velocities, M SPD, the energy balance along a move; trapezoid and jerk-limited S-curve profiles by
     their closed forms; peak and RMS torque with stated sampling (segment ends, 256 a segment, golden-section peaks).
     Tool motion_torques. Conformance `conformance/rm/move-2r`.
+  - **RD3** (O22): done, its worked-example check pending. Source records `{v, unit, src}` (a product page's URL, the
+    date read and its label, or a flagged estimate with why); maxon 608131 and 18 Harmonic Drive CSG-2A-LW sets from
+    their HTML pages, five reducer values estimated (not on the pages). The solver checks every motor × reducer pair
+    over the move out and back with dwells: motor RMS, the torque–speed line, speeds, inertia ratio, the reducer's
+    repeated peak, cube-mean torque, average input speed, L10. It takes the lightest pair that passes, refined and
+    checked again. Closed forms to 1e-9. Tool size_actuators. Conformance `conformance/rm/size-1r`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
 - Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
+  PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):
   - UX: the Joints card's link mass list runs past the viewport on a 6-link arm and the card scrolls; it could
     collapse into a summary line with the list on demand (seen on the RM5 screenshot, `notes/acceptance/rm5-arm.png`;
     the coordinator, 2026-10-20: log it, do not fix it now).
   - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
+  - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
+    chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

@@ -1,0 +1,195 @@
+{
+ "case": "size-1r",
+ "step": "RD3",
+ "note": "The one-joint revolute case (vertical axis: no gravity load) moved 2 rad and back on a trapezoid (1.5 rad/s, 4 rad/s²) with 0.5 s dwells, life 1 h required. The lightest pair from the built-in catalogue; its checks by the closed forms of the cycle (the load inertia J = M₁₁): motor torque A ± T_f on the ramps, T_f cruising, A = J a/(N η) + (J_m + J_in) N a; RMS over the cycle; T_av = J a (v t_a/d)^⅓; n_av = N·2d/T_c; L10 = L_n (T_r/T_av)³ (n_r/n_av); the line check A + T_f − (n_0 − N v)/(Δn/ΔM).",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      100,
+      40
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      20,
+      20
+     ],
+     "radius": 5,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      80,
+      20
+     ],
+     "radius": 5,
+     "id": "n3"
+    }
+   ],
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   },
+   "nextId": 4,
+   "instances": [
+    {
+     "id": "arm",
+     "name": "arm",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         60,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "id": "n1"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "center": [
+         10,
+         10
+        ],
+        "radius": 5,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "center": [
+         50,
+         10
+        ],
+        "radius": 5,
+        "id": "n3"
+       }
+      ],
+      "outputs": {
+       "b3": {
+        "node": 3,
+        "side": "solid"
+       }
+      },
+      "nextId": 4
+     },
+     "position": [
+      0,
+      0,
+      30
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "mates": [
+    {
+     "id": "m1c",
+     "kind": "concentric",
+     "a": {
+      "part": "base",
+      "face": "n2.side0"
+     },
+     "b": {
+      "part": "arm",
+      "face": "n2.side0"
+     }
+    },
+    {
+     "id": "m1f",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.top"
+     },
+     "b": {
+      "part": "arm",
+      "face": "n1.bottom"
+     }
+    }
+   ]
+  },
+  "to": {
+   "base~arm": 2
+  },
+  "profile": "trapezoid",
+  "limits": {
+   "velocity": 1.5,
+   "acceleration": 4
+  },
+  "dwell_s": 0.5,
+  "life_h": 1
+ },
+ "expect": {
+  "reducer": "hd-csg-14-50-2a-r-bb-lw",
+  "motor": "maxon-608131",
+  "load_inertia_kg_m2": 0.000010157032779046853,
+  "checks": {
+   "motor RMS torque": 0.007449278979070967,
+   "motor torque–speed line": -1.011645089926696,
+   "motor speed": 716.1972439135291,
+   "inertia ratio": 0.00024183411378682983,
+   "reducer repeated peak torque": 0.00004062813111618741,
+   "reducer average torque": 0.00002661895624638471,
+   "reducer average input speed": 432.42097745722515,
+   "reducer life L10": 841093534199240700000
+  },
+  "tol_rel": 1e-9
+ }
+}

@@ -4024,6 +4024,30 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- RD3 (O22): actuator sizing --------------------------------------------------------------------------------------
+  await check('RD3: size_actuators through the real chat and tool servers on the one-joint case — the cycle\'s times as the conformance case has them, a motor and a reducer chosen with every check passed', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/size-1r/case.json'), 'utf8')), file = join(out, 'size-1r.bcad'), { document, ...args } = c.input;
+    fs.writeFileSync(file, JSON.stringify(document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(n => window.__studioDoc?.instances?.length === n, document.instances.length, { timeout: 20000 }); await idle();
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'size_actuators', args }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const line = await page.locator('.chat-tool').last().innerText();
+      // (The chat lists a read tool's result as the start of its JSON: the profile and the move's and the cycle's times first.)
+      const T = c.input.limits, d = Object.values(c.input.to)[0], move = d / T.velocity + T.velocity / T.acceleration;
+      assert.ok(line.includes(`"profile":"trapezoid","move_s":${Number(move.toPrecision(10))},"cycle_s":${Number((2 * move + 2 * c.input.dwell_s).toPrecision(10))}`), line);
+      await snap('rd3-sizing');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

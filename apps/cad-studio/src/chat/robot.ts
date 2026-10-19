@@ -13,6 +13,8 @@ import { exportMjcf, type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '../robot/sweep';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
+import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActuators, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
+import type { ProfileKind } from '../robot/profile';
 import { convexHull } from '../robot/hull';
 import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
@@ -20,7 +22,7 @@ import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -65,6 +67,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } }, profile: { type: 'string', enum: ['trapezoid', 's-curve'] }, limits: { type: 'object', properties: { velocity: { type: 'number' }, acceleration: { type: 'number' }, jerk: { type: 'number' } } }, joint_limits: { type: 'object', additionalProperties: { type: 'object' } } }, required: ['to', 'profile'], additionalProperties: false },
   },
   {
+    name: 'size_actuators',
+    description: 'Chooses a motor and a reducer for each turning joint from what a move asks of it: the move from "from" to "to" and back (as motion_torques takes it: profile and limits, none assumed), with "dwell_s" held at each end, repeated. Every motor × reducer pair is checked over that cycle — the motor\'s RMS torque against its nominal (continuous) torque, its torque at every instant against its torque–speed line at the nominal voltage, its speed, the load\'s inertia over the drive\'s (at most "inertia_ratio_max", 10); the reducer\'s peak against its repeated peak torque, its input speed, the speed-weighted cube-mean torque and the average input speed against their limits, its L10 life (against "life_h" when given) — and the lightest that passes is taken. The motor torque is τ/(N η) + (J_m + J_in) N q̈ + friction. Each check says whether its limit is from a product page, an estimate or a rule; every value has its source (the page\'s URL, the date read and its label there, or why it is estimated). Built in: maxon and Harmonic Drive values read from their product pages; "motors" and "reducers" add entries ({id, name, maker, and each field as {v, unit, src}}; "only_given" uses those alone). Rigid and decoupled: an actuator\'s own mass is not added to the links. Changes nothing.',
+    input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } }, profile: { type: 'string', enum: ['trapezoid', 's-curve'] }, limits: { type: 'object', properties: { velocity: { type: 'number' }, acceleration: { type: 'number' }, jerk: { type: 'number' } } }, joint_limits: { type: 'object', additionalProperties: { type: 'object' } }, dwell_s: { type: 'number' }, life_h: { type: 'number' }, inertia_ratio_max: { type: 'number' }, motors: { type: 'array', items: { type: 'object' } }, reducers: { type: 'array', items: { type: 'object' } }, only_given: { type: 'boolean' } }, required: ['to', 'profile'], additionalProperties: false },
+  },
+  {
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
@@ -84,20 +91,20 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
   }
   if (name === 'motion_torques') {
-    const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key));
-    const from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
-    for (const v of [from, to]) {
-      if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
-      const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
-    }
-    if (args.profile !== 'trapezoid' && args.profile !== 's-curve') return { error: '"profile" is "trapezoid" or "s-curve".' };
-    const ok = (l: unknown): l is MoveLimits => !!l && typeof l === 'object' && typeof (l as MoveLimits).velocity === 'number' && (l as MoveLimits).velocity > 0 && typeof (l as MoveLimits).acceleration === 'number' && (l as MoveLimits).acceleration > 0 && ((l as MoveLimits).jerk === undefined || (typeof (l as MoveLimits).jerk === 'number' && (l as MoveLimits).jerk! > 0));
-    const per = (args.joint_limits ?? {}) as Record<string, unknown>, all = args.limits;
-    const moving = Object.keys({ ...from, ...to }).filter(k => ((to[k] as number) ?? 0) !== ((from[k] as number) ?? 0));
-    for (const k of moving) { const l = per[k] ?? all; if (!ok(l)) return { error: `${k}: give its limits (velocity and acceleration above 0${args.profile === 's-curve' ? ', and jerk for an S-curve' : ''}) in "limits" or "joint_limits" — none is assumed.` }; if (args.profile === 's-curve' && (l as MoveLimits).jerk === undefined) return { error: `${k}: an S-curve needs a jerk limit.` }; }
-    const bodiesOf = linkBodies(r.tree, r.partOf), m = moveTorques(r.tree, bodiesOf, from as Record<string, number>, to as Record<string, number>, args.profile, k => (per[k] ?? all) as MoveLimits), sig = (v: number) => Number(v.toPrecision(10)) + 0;
+    const r = await robotOfDoc(doc, bodies, evaluate), mv = moveArgs(r.tree, args); if ('error' in mv) return mv;
+    const bodiesOf = linkBodies(r.tree, r.partOf), m = moveTorques(r.tree, bodiesOf, mv.from, mv.to, mv.profile, mv.limits), sig = (v: number) => Number(v.toPrecision(10)) + 0;
     const unit = (k: string) => (r.tree.joints.find(j => j.key === k)!.type === 'prismatic' ? 'N' : 'N·m');
     return { doc, content: { profile: m.kind, duration_s: sig(m.duration), joints: Object.fromEntries(Object.entries(m.joints).map(([k, j]) => [k, { [`peak_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.peak), [`rms_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.rms), at_s: sig(j.atPeak), distance: sig(j.distance), v_peak: sig(j.vPeak), a_peak: sig(j.aPeak), j_peak: sig(j.jPeak) }])), sampling: m.sampling, gravity_m_s2: STANDARD_GRAVITY }, changed: false, summary: `${m.kind}, ${sig(m.duration)} s` };
+  }
+  if (name === 'size_actuators') {
+    const r = await robotOfDoc(doc, bodies, evaluate), mv = moveArgs(r.tree, args); if ('error' in mv) return mv;
+    for (const f of ['dwell_s', 'life_h', 'inertia_ratio_max'] as const) { const v = args[f]; if (v !== undefined && (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || (f !== 'dwell_s' && v === 0))) return { error: `"${f}" is a number ${f === 'dwell_s' ? 'of 0 or more' : 'above 0'}.` }; }
+    let motors: readonly Motor[] = args.only_given ? [] : MOTORS, reducers: readonly Reducer[] = args.only_given ? [] : REDUCERS;
+    if (args.motors !== undefined) { const c = readCatalogue(args.motors, MOTOR_FIELDS, 'motors'); if ('error' in c) return c; motors = [...motors, ...(c.entries as unknown as Motor[])]; }
+    if (args.reducers !== undefined) { const c = readCatalogue(args.reducers, REDUCER_FIELDS, 'reducers'); if ('error' in c) return c; reducers = [...reducers, ...(c.entries as unknown as Reducer[])]; }
+    if (!motors.length || !reducers.length) return { error: 'No motor or no reducer to choose from: give "motors" and "reducers", or leave "only_given" off for the built-in ones.' };
+    const s = sizeActuators(r.tree, linkBodies(r.tree, r.partOf), mv.from, mv.to, mv.profile, mv.limits, { motors, reducers, dwell: args.dwell_s as number | undefined, life: args.life_h as number | undefined, inertiaRatio: args.inertia_ratio_max as number | undefined });
+    return { doc, content: sizingJson(s), changed: false, summary: s.joints.map(j => `${j.key}: ${j.choice ? `${j.choice.motor} + ${j.choice.reducer}` : 'none feasible'}`).join('; ') || 'nothing to size' };
   }
   if (name === 'gravity_torques') {
     const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
@@ -192,6 +199,47 @@ export function inertiaJson(l: LinkInertia) {
   return { link: l.link, part: l.part, mass_kg: sig(l.massKg), com_m: l.comM.map(sig), inertia_kg_m2: [l.inertia.slice(0, 3), l.inertia.slice(3, 6), l.inertia.slice(6, 9)].map(r => r.map(sig)),
     principal: { moments_kg_m2: l.principal.moments.map(sig), axes: [l.principal.axes.slice(0, 3), l.principal.axes.slice(3, 6), l.principal.axes.slice(6, 9)].map(r => r.map(sig)) },
     frame: { origin_mm: l.frame.origin.map(sig), axes: [l.frame.R.slice(0, 3), l.frame.R.slice(3, 6), l.frame.R.slice(6, 9)].map(r => r.map(sig)) }, bodies: l.bodies.map(b => ({ ...b, massKg: sig(b.massKg) })), issues: l.issues };
+}
+
+/** A move's arguments (motion_torques, size_actuators): from and to by joint key, the profile, and each moving joint's
+ * limits (per joint, else for all; none assumed). */
+function moveArgs(tree: JointTree, args: Record<string, unknown>): { from: Record<string, number>; to: Record<string, number>; profile: ProfileKind; limits: (k: string) => MoveLimits } | { error: string } {
+  const keys = new Set(tree.joints.map(j => j.key)), from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
+  for (const v of [from, to]) {
+    if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
+    const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
+  }
+  if (args.profile !== 'trapezoid' && args.profile !== 's-curve') return { error: '"profile" is "trapezoid" or "s-curve".' };
+  const ok = (l: unknown): l is MoveLimits => !!l && typeof l === 'object' && typeof (l as MoveLimits).velocity === 'number' && (l as MoveLimits).velocity > 0 && typeof (l as MoveLimits).acceleration === 'number' && (l as MoveLimits).acceleration > 0 && ((l as MoveLimits).jerk === undefined || (typeof (l as MoveLimits).jerk === 'number' && (l as MoveLimits).jerk! > 0));
+  const per = (args.joint_limits ?? {}) as Record<string, unknown>, all = args.limits;
+  const moving = Object.keys({ ...from, ...to }).filter(k => ((to[k] as number) ?? 0) !== ((from[k] as number) ?? 0));
+  for (const k of moving) { const l = per[k] ?? all; if (!ok(l)) return { error: `${k}: give its limits (velocity and acceleration above 0${args.profile === 's-curve' ? ', and jerk for an S-curve' : ''}) in "limits" or "joint_limits" — none is assumed.` }; if (args.profile === 's-curve' && (l as MoveLimits).jerk === undefined) return { error: `${k}: an S-curve needs a jerk limit.` }; }
+  return { from: from as Record<string, number>, to: to as Record<string, number>, profile: args.profile, limits: k => (per[k] ?? all) as MoveLimits };
+}
+
+/** The sizing as the tool returns it (10 significant figures; a margin with nothing to check is null). */
+export function sizingJson(s: Sizing) {
+  const n = (v: number) => (Number.isFinite(v) ? sig(v) : null);
+  return {
+    profile: s.kind, move_s: sig(s.moveS), cycle_s: sig(s.cycleS), model: SIZING_MODEL,
+    joints: s.joints.map(j => ({
+      key: j.key, choice: j.choice ? { motor: j.choice.motor, reducer: j.choice.reducer, ratio: j.choice.ratio, mass_kg: sig(j.choice.massKg) } : null,
+      checks: j.checks.map(c => ({ name: c.name, value: n(c.value), limit: n(c.limit), unit: c.unit, ok: c.ok, margin: n(c.margin), limit_source: c.limitSource })),
+      candidates: j.candidates, feasible: j.feasible, rejected: j.rejected, ...sourcesJson(j.sources),
+    })),
+    skipped: s.skipped, sampling: s.sampling, pending_worked_examples: s.pending,
+  };
+}
+
+/** The chosen pair's sources: by page (its URL, the date read, each field's label there), then the derived and the
+ * estimated fields with why. */
+function sourcesJson(list: readonly { field: string; src: Source }[]) {
+  const pages = new Map<string, { page: string; read: string; labels: Record<string, string> }>(), derived: Record<string, string> = {}, estimates: Record<string, string> = {};
+  for (const { field, src } of list) {
+    if ('page' in src) { const p = pages.get(src.page) ?? { page: src.page, read: src.read, labels: {} }; p.labels[field] = src.label; pages.set(src.page, p); }
+    else if ('derived' in src) derived[field] = src.derived; else estimates[field] = src.estimate;
+  }
+  return { sources: [...pages.values()], derived, estimates };
 }
 
 /** The document's robot and its parts: its instances evaluated in their own coordinates, each with its placement. */
