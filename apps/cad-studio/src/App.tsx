@@ -414,6 +414,9 @@ export function App() {
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
   const fresh = bodiesFor === evaluated;
+  // (Tests: the bodies shown are the current document's and nothing is computing — set in the commit that changes the
+  // document, so a test never reads the last document's bodies as this one's, D109.)
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioFresh: boolean }).__studioFresh = fresh && !busy; }, [fresh, busy]);
   /** The document whose names and looks go with the bodies shown (the one they were computed for). */
   const namesDoc = fresh || !bodiesFor ? doc : bodiesFor;
 
