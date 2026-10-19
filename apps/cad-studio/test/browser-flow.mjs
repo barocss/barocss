@@ -3006,6 +3006,20 @@ try {
     await snap('r11-2c2-conic-box-open');
   });
 
+  await check('R11.3 a mesh octahedron shelled 3 (a file): its cavity its triangles offset in, each vertex its faces\' planes\' meeting point — (4/3)(a³ − (a − √3t)³) (refused before D114)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'mesh-octahedron-shell.bcad');
+    const P = [10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10], I = [0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 4, 2, 0, 5, 1, 2, 5, 3, 1, 5, 0, 3, 5];
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'mesh', name: 'octahedron', unit: 'mm', positions: P, indices: I, representation: 'facets' }, { id: 'n1', kind: 'shell', parent: { node: 0, side: 'solid' }, thickness: 3, open: [] }] }));
+    await openModel(file, 2, 60000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    // (Conformance r11/shell-mesh-octahedron: 1185.52 mm³; the panel rounds to 1 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 1185.52) <= 1, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-3-mesh-octahedron-shell');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

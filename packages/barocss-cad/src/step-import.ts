@@ -16,7 +16,10 @@
 // A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
 // holes across a seam) are refused by name.
 import { BrepError, buildBrep, mergeBreps, type Brep } from './brep-core.js';
-import { facetBrepFromTriangles } from './facet-brep.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles } from './facet-brep.js';
+import { withCavities } from './brep-glue.js';
+import { brepMassProperties } from './solid-mass.js';
+import { classifyPointInFacets } from './facet-bvh.js';
 import { MeshBrepError } from './mesh-brep.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -572,7 +575,19 @@ function tessellatedMeshes(data: Map<number, Entity>, id: string): StepMesh[] {
 function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
   return tessellatedMeshes(data, id).map(m => {
     const o = { id: m.id, groups: m.faces, groupName: (g: number) => m.faceNames[g], maximumTriangles: Infinity };
-    if (!m.shell) { try { return facetBrepFromTriangles(m.positions, m.indices, o); } catch (e) { if (!(e instanceof MeshBrepError) || !/not closed/.test(e.message)) throw e; } }
+    if (!m.shell) {
+      try { return facetBrepFromTriangles(m.positions, m.indices, o); }
+      catch (e) {
+        if (!(e instanceof MeshBrepError) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
+        // (A closed hollow solid — a mesh shelled, R11.3, D114 — in pieces: the largest its outside, the others its voids.)
+        if (!/not closed/.test(e.message)) {
+          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volumeMM3) })).sort((x, y) => y.v - x.v);
+          // (Only pieces inside the largest are voids; lumps apart are the file's to name as bodies of their own.)
+          if (pieces.slice(1).every(p => classifyPointInFacets(pieces[0].b, p.b.vertices[0].point) === 'inside')) return pieces.slice(1).reduce((acc, p) => withCavities(acc, p.b, { family: 'step', id: m.id }), pieces[0].b);
+          throw e;
+        }
+      }
+    }
     return facetBrepFromTriangles(m.positions, m.indices, { ...o, open: true });
   });
 }

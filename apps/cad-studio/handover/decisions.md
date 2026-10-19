@@ -5238,3 +5238,46 @@ D105's verdict (b), finished: bodies with sharp edges and freeform or trimmed fa
   - The opened case's one Boolean takes about 20 s on the tee (327 faces).
   - R11.3 (mesh offsets) is next.
 - Checks: lint and type-check clean (kernel and studio); kernel 1173/1178 (4 skipped; only the env-only Split test fails); conformance 125/125 with the 4 new cases; studio 505/505; full flow 160/160 on c885e6c0e plus this change, the new step included (every outer-lane step passing). A first full run made beside the kernel suite timed out six drawing and A5 steps (5–30 s waits) and logged one page error. Those steps all passed on their own, and the run alone was clean. RB rows in the next commit.
+
+## D114 — R11.3: a mesh body's shell, and thicken's fold refused by name (2026-10-20)
+
+D105's R11.3: mesh bodies get an offset mesh as their cavity, with the wall it achieves reported. Folds and self-intersections are refused, and `thicken`'s unchecked fold-over (S0) is refused by name. This step ends R11.
+
+- **Route** (`mesh-offset.ts`, new; `shellOf` takes a body of facet faces first):
+  - The mesh's triangles, welded (`facetTriangles`), must be closed and wound one way.
+  - Each vertex moves to the least-squares point of its triangles' planes moved in by the wall, each weighted by the triangle's angle at the vertex. The solve is Σ w n nᵀ d = −t Σ w n, through the 3 × 3 matrix's eigenvectors (Jacobi), leaving out directions it spans less than 1e-4 of its largest.
+  - So where up to three planes meet it is their sharp join exactly: a box's corner, a mitre on an edge, a flat point along its normal. Round a smooth vertex the wall lies within the spread of its normals.
+  - The cavity is the same triangles at the moved points (a facet B-rep, its faces named `<shell>.in.<face>`), added as a void (`withCavities`). The mass is polyhedral, exact.
+  - **The wall it achieves**, measured: the least and largest distance from the offset (its vertices and triangles' centres) to the mesh's surface, through D85's distance tree (`meshDistanceRange`, new). It is on the output as `shell: { wallMM, wallMinMM, wallMaxMM, triangles }`.
+- **Refusals by name:**
+  - `[OFFSET_FOLDS]`, a triangle turned over: an offset triangle facing against its own. The wall is deeper than the mesh curves there, or than half its thickness (a U-prism's 2 mm slot floor at 1.5).
+  - `[OFFSET_FOLDS]`, turned inside out: the offset's signed volume is not positive. Each triangle still faces its own way, so only the whole tells; for example a ball shelled past its radius.
+  - `[WALL_TOO_THIN]`: the inner surface meets itself or the mesh. The mesh and its offset are taken together and crossing pairs found through mesh repair's grid (`selfIntersections`). Example: a pocket's floor 2 above the bottom at 1.5. No triangle joins the two there, so none turns over: the offsets just cross.
+  - `[MESH_WALL_THIN]`: the wall achieved is more than 1 % thinner than asked, a mesh too coarse for its offset.
+  - `[SHELL_MESH_NOT_CLOSED]`.
+  - Opening a face of a mesh body, and a mesh sheet, are refused ("not supported yet"; a sheet: "thicken it instead").
+- **thicken** (`thicken-solid.ts`):
+  - Refused where the offset turns over towards the side it curves to, `[OFFSET_FOLDS]`: the shell's check (D110), each knot span sampled with its edges and climbed, against the side or sides thickened into. Surfaces of degree above 3 are sampled on a 64 × 64 grid of principal curvatures.
+  - The quarter cylinder R 10 thickened 12 towards its axis (S0's fold) is refused, its radius 10 against 12; so is 21 both ways (10.5 a side). 9 towards it, 12 away and 19 both ways are made, within 2e-3 of their volumes (the sampled mesh).
+- **STEP, for hollow mesh bodies** (kernel core, `step.ts`, `step-import.ts`). HEAD wrote a facet body's faces as planar faces in one shell, so a hollow one's two shells became one, and reading it back refused it as "not connected". Now:
+  - each shell is written apart and the voids are put back (`withCavities`);
+  - a tessellated solid that reads in pieces takes the largest as its outside and the pieces inside it as its voids (others are refused as before);
+  - a hollow 1280-triangle mesh round-trips both ways to 1e-9, and a 20 480-triangle one the same.
+- **Evidence** (`test/r11-3.test.mjs`, new; every case refused, or the fold made, on HEAD 3f2bf159b; every result strictly valid, two shells):
+
+  | Mesh body | Wall | Volume against the closed form | Wall achieved |
+  |---|---|---|---|
+  | Octahedron \|x\| + \|y\| + \|z\| ≤ 10 | 1, 3 | exact (rounding): (4/3)(a³ − (a − √3t)³) | t to rounding |
+  | Box 40 × 30 × 20 (12 triangles) | 2 | exact: 24000 − 36·26·16 | 2 |
+  | U-prism (a slot down to 2 above its floor), tessellated | 0.5, 0.9 | exact: its section inset with the slot grown, (40 − 2t)(20 − 2t) − (10 + 2t)·18, over 30 − 2t | t |
+  | Box with a blind pocket, tessellated | 0.9 | exact: the box inset less the pocket grown | 0.9 … 1.1 (the pocket's inside corners, sharply joined) |
+  | Icosphere R 10, 1280 triangles | 1, 5 | (no closed form) | within 5e-4 of t |
+  | Icosphere, 80 triangles | 3 | | 2.981 … 3.007 |
+  | Icosahedron | 3 | | t |
+
+  - Refused by name: the U at 1.5 (a fold), the icosphere at 11 (inside out), the pocketed box at 1.5 (crossing), an opened mesh face, thicken at 12 and at 21 both ways.
+  - Conformance `r11/shell-mesh-octahedron`, `shell-mesh-pocketed-box` (exact, STEP round trip 1e-9), `refuse-shell-mesh-wall-too-thin`, `refuse-thicken-folds`.
+  - A flow step: the octahedron mesh from a file, shelled 3 (1185.5 mm³).
+  - R11 S0's mesh refusal and its unchecked thicken fold now say then and now.
+- **Not done:** opened faces on mesh bodies; round (arc) joins at a mesh's concave edges (the sharp join, as the slab route's default); the mesh's offset is a vertex move, so a mesh coarser than its curvature is refused (`MESH_WALL_THIN`) rather than refined; thicken's sheets are still a sampled grid.
+- Checks: lint and type-check clean (kernel and studio); kernel 1182/1187 (4 skipped; only the env-only Split test fails); conformance 129/129 with the 4 new cases; studio 519/519; full flow 164/164 on 3f2bf159b plus this change, run on its own, the new step included (every outer-lane step passing). RB rows in the next commit.

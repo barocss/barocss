@@ -26,6 +26,23 @@ export function meshDistance(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: A
   return { maxMM: Math.sqrt(max), sumSq: sum, samples: n, at: found ? [ax, ay, az] : null };
 }
 
+/** From mesh A's vertices and triangle centres to mesh B's surface: the least and the largest distance, and where (R11.3, D114). */
+export function meshDistanceRange(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: ArrayLike<number>, ib: ArrayLike<number>): { readonly minMM: number; readonly maxMM: number; readonly minAt: readonly [number, number, number] | null; readonly maxAt: readonly [number, number, number] | null } {
+  const P = pb instanceof Float64Array ? pb : Float64Array.from(pb), I = ib instanceof Uint32Array ? ib : Uint32Array.from(ib);
+  if (!(I.length >= 3)) return { minMM: Infinity, maxMM: Infinity, minAt: null, maxAt: null };
+  const tree = buildTree(P, I), stack = new Int32Array(128), nv = pa.length / 3, nt = ia.length / 3;
+  let min = Infinity, max = -Infinity, minAt: [number, number, number] | null = null, maxAt: [number, number, number] | null = null;
+  for (let k = 0; k < nv + nt; k++) {
+    let x: number, y: number, z: number;
+    if (k < nv) { x = pa[3 * k]; y = pa[3 * k + 1]; z = pa[3 * k + 2]; }
+    else { const t = k - nv, a = 3 * ia[3 * t], b = 3 * ia[3 * t + 1], c = 3 * ia[3 * t + 2]; x = (pa[a] + pa[b] + pa[c]) / 3; y = (pa[a + 1] + pa[b + 1] + pa[c + 1]) / 3; z = (pa[a + 2] + pa[b + 2] + pa[c + 2]) / 3; }
+    const d2 = nearest2(tree, P, I, x, y, z, stack);
+    if (d2 < min) { min = d2; minAt = [x, y, z]; }
+    if (d2 > max) { max = d2; maxAt = [x, y, z]; }
+  }
+  return { minMM: Math.sqrt(min), maxMM: Math.sqrt(max), minAt, maxAt };
+}
+
 function buildTree(P: Float64Array, I: Uint32Array): Tree {
   // (A node splits only past LEAF triangles, into halves of two or more: at most nt nodes.)
   const nt = I.length / 3, cap = Math.max(1, nt);

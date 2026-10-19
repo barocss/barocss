@@ -1,10 +1,12 @@
 // An open surface thickened into a solid: the surface and its offset along the normal (∂S/∂u × ∂S/∂v,
 // or the other way, or half each way) joined round the four edges, as one faceted closed mesh sampled
-// on a grid. An offset deeper than the surface's tightest curve folds over itself; nothing checks that.
+// on a grid. An offset deeper than the surface's tightest curve towards it would fold over itself: refused by name
+// (`OFFSET_FOLDS`, the shell's check, R11.3, D114).
 import { brepFromTriangles } from './mesh-brep.js';
 import { evaluateSurface, surfaceDomain } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import type { Brep } from './brep-core.js';
+import { thickenFoldCheck } from './offset-cavity.js';
 import type { Point, Surface } from './types.js';
 
 export interface ThickenSolidRequest {
@@ -26,6 +28,7 @@ export function thickenSolid(req: ThickenSolidRequest): Brep {
   if (!(t > 0)) throw new RangeError('a thickness must be positive');
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(req.surface), s = req.surface;
   const [lo, hi] = req.side === 'reverse' ? [-t, 0] : req.side === 'both' ? [-t / 2, t / 2] : [0, t];
+  thickenFoldCheck(s, req.id ?? 'thicken', lo, hi);
   const at = (i: number, j: number) => [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n] as const;
   // The unit normal at a sample: from the derivatives, else from neighbouring samples (a corner, a pole).
   const normal = (u: number, v: number): Point => {
