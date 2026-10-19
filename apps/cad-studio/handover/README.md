@@ -180,7 +180,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
     the rows (`settings.room`), the largest scale and the sheet that give a clean drawing with holes ≥ 2.5 mm on paper
     (an estimate), then auto-dimensions. View switches for the right and isometric views; VIEW_NEEDED for a hole round
     only in a hidden view. Conformance `conformance/r14/layout-*` (five parts). Deferred: R14.3b, choosing the front side.
-- Next: **R14.4** tolerance and GD&T suggestions.
+  - **R14.4** (O5): done. TOLERANCING card: a ± or geometric mode; suggestions with their basis, accepted one by one
+    or all — a general note (an estimate), ± on hole positions (T/(2√2)), datums A B C from the largest flat sides, a
+    position frame per kind of hole with basic locations. T from the studio's ISO 273 fastener data: floating
+    (H − F) or fixed ((H − F)/2, mating medium clearance assumed), else an estimate said so. No fit codes (no sourced
+    limits-and-fits table). Conformance `conformance/r14/tol-*` (four drawings).
+- Next: **R14.5** agent tools (auto-dimension, issues, suggestions) and the pitch circle of holes on a circle.
+- Pending decisions (outer lane, reversible defaults taken):
+  - **R14.3b, the front view's side** (coordinator, 2026-10-19: after R14.5): the front view stays the part's −Y side.
+    Choosing it by information needs a versioned view-orientation setting and a rule for existing dimensions.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
