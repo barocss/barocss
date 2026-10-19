@@ -11,6 +11,7 @@ import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
+import { GROUPS, v1Call, viaV2 } from './groups';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
@@ -272,6 +273,10 @@ export function surfaceAt(outline: Pt[], centre: Pt, depth: number, p: Pt): numb
  * re-solved after it, as after a change of the base part.
  */
 export async function runTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
+  // (A consolidated tool, A5.3: the v1 call it stands for, under the same gates.)
+  [name, input] = viaV2(name, input);
+  const v1 = v1Call(name, input);
+  if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
   // (Autonomy L1: the agent proposes, the user changes the part, D41.)
   if (autonomy() === 1 && changesPart(name, input)) return fail(state, 'At autonomy L1 the agent only proposes: make this change with propose, and the user accepts it in the studio.');
   // (Every call counted; the policy rides on the state the call leaves.)
@@ -296,6 +301,10 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
 /** The dispatcher without the session's gates (autonomy, approval): what proposals replay, and the tools' own tests. */
 export const dispatchTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate);
 async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
+  [name, input] = viaV2(name, input);
+  const v1 = v1Call(name, input);
+  if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
+  if (name === 'describe') { const d = describe(isObj(input) ? input : {}); return 'error' in d ? fail(state, String(d.error)) : { state, content: json(d), isError: false, changed: false, summary: 'described' }; }
   const args = isObj(input) ? input : {};
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
     const out = await runAssemblyTool(state, name, args, evaluate);
@@ -412,7 +421,9 @@ async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Pro
   const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [];
   let cur: ChatState = state;
   for (let k = 0; k < ops.length; k++) {
-    const op = ops[k] as Record<string, unknown>;
+    let op = ops[k] as Record<string, unknown>;
+    // (An op may name a consolidated tool, A5.3: it is kept as the v1 call, so a proposal replays the same.)
+    if (isObj(op) && typeof op.tool === 'string') { const v1 = v1Call(op.tool, op.args); if (v1 && !('error' in v1)) op = { ...op, tool: v1.name, args: v1.args }; }
     if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return { fail: fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' }) };
     const opId = typeof op.opId === 'string' ? op.opId : undefined, opArgs = isObj(op.args) ? op.args : {};
     if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
@@ -960,6 +971,37 @@ const commandDoc = CHAT_COMMANDS.map(id => {
   const values = Object.entries(d.values).map(([k, v]) => `${k}: ${v}`).join('; ');
   return `- ${id} (${c.label}) — select ${d.selection}${values ? `; values: ${values}` : ''}`;
 }).join('\n');
+
+/**
+ * `describe` (A5.3): what the consolidated list leaves out, on request — a tool's actions, an action's full v1
+ * description and schema, a command's selection and values, a feature kind's node JSON.
+ */
+function describe(args: Record<string, unknown>): Record<string, unknown> | { error: string } {
+  if (typeof args.command === 'string') {
+    const c = commandById(args.command.replace(/_/g, '-')), d = c && COMMAND_DOCS[c.id];
+    if (!c || !d || !CHAT_COMMANDS.includes(c.id)) return { error: `No command "${args.command}"; commands: ${CHAT_COMMANDS.join(', ')}.` };
+    return { command: c.id, label: c.label, hint: c.hint, selection: d.selection, values: d.values };
+  }
+  if (typeof args.feature === 'string') {
+    const add = TOOLS.find(t => t.name === 'add_features')!, lines = add.description.split('\n').filter(l => l.includes(`"kind":"${args.feature}"`));
+    if (!lines.length) return { error: `No feature kind "${args.feature}"; kinds: ${featureKinds().join(', ')}.` };
+    return { feature: args.feature, nodes: lines.map(l => l.replace(/^- /, '')), note: 'Dimensions in mm; Dim = a number or {"parameter": name}; i = a node index.' };
+  }
+  const tool = typeof args.tool === 'string' ? args.tool : undefined, g = tool ? GROUPS[tool] : undefined;
+  if (tool && (!g || tool === 'describe')) return { error: `No tool "${tool}"; tools: ${Object.keys(GROUPS).filter(n => n !== 'describe').join(', ')}.` };
+  if (!g) return { tools: Object.fromEntries(Object.entries(GROUPS).filter(([n]) => n !== 'describe').map(([n, x]) => [n, Object.keys(x.actions)])) };
+  const action = typeof args.action === 'string' ? args.action : undefined;
+  if (action === undefined) return { tool, actions: Object.fromEntries(Object.entries(g.actions).map(([a, [, hint]]) => [a, hint])) };
+  const v1 = g.actions[action]?.[0], t = v1 && TOOLS.find(x => x.name === v1);
+  if (!t) return { error: `${tool} has no action "${action}"; actions: ${Object.keys(g.actions).join(', ')}.` };
+  return { tool, action, description: t.description, input: t.input_schema };
+}
+/** The feature kinds add_features documents. */
+function featureKinds(): string[] {
+  const add = TOOLS.find(t => t.name === 'add_features')!;
+  return [...new Set([...add.description.matchAll(/"kind":"([a-z-]+)"/g)].map(m => m[1]).filter(k => k !== 'line' && k !== 'arc'))];
+}
+export { featureKinds };
 
 const PART_TOOLS: ToolDefinition[] = [
   {

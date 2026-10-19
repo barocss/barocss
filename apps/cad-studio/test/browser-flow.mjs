@@ -3746,6 +3746,37 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- A5.3 (O11): the consolidated tools ---------------------------------------------------------------------------
+  await check('A5.3: the chat server with CAD_TOOLSET=v2 — describe, model, query and features calls build and read a part; the v1 name still answers', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_TOOLSET: 'v2', CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await idle();
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
+      const calls = [
+        { tool: 'describe', args: { command: 'hole' } },
+        { tool: 'model', args: { source: 'const p = box({w: 60, d: 30, h: 6, x: 0, y: 0, z: 0})\nfor (const i of range(2)) { hole(p.top, {d: 4, x: 15 + 30 * i, y: 15}) }' } },
+        { tool: 'features', args: { action: 'edit', index: 1, values: { h: 8 } } },
+        { tool: 'query', args: { action: 'mass' } },
+        { tool: 'mass_properties', args: {} },
+      ];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+      const d = await doc();
+      assert.deepEqual([d.nodes.map(x => x.kind), d.nodes[1].height], [['sketch', 'extrude', 'hole', 'hole'], 8]);
+      const shown = await page.locator('.chat-tool').allInnerTexts();
+      assert.equal(shown.length - tools, 5, shown.join('\n'));
+      assert.ok(!shown.slice(tools).some(t => /error|takes "action"/i.test(t)), shown.join('\n'));
+      await snap('a5-v2');
+      await page.click('.toast button:text-is("Undo")').catch(() => {});
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

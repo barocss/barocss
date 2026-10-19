@@ -4,7 +4,11 @@
 // annotations and output schemas are frozen in `tools-v1.json`; a change that would break a client (a tool or a
 // property gone, a type or enum narrowed, a property newly required) needs a new contract version.
 
+import { GROUPS } from './groups';
+
 export const TOOL_CONTRACT_VERSION = 'barocss-cad-tools-v1';
+/** The consolidated tools (A5.3, O11): 13 tools, each action a v1 tool (groups.ts), frozen in `tools-v2.json`. */
+export const TOOL_CONTRACT_V2 = 'barocss-cad-tools-v2';
 
 export type JsonSchema = { type?: string | string[]; properties?: Record<string, JsonSchema>; required?: string[]; items?: JsonSchema; enum?: unknown[]; additionalProperties?: boolean | JsonSchema; anyOf?: JsonSchema[]; description?: string; [k: string]: unknown };
 export interface ToolAnnotations { title: string; readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: false }
@@ -55,6 +59,12 @@ const titleOf = (name: string) => name.replace(/_/g, ' ').replace(/^./, c => c.t
 
 /** A tool's annotations; throws for a tool the contract does not classify (each new tool must be). */
 export function annotationsOf(name: string): ToolAnnotations {
+  // (A consolidated tool: read only if every action is, destructive if any is, idempotent if all are; describe reads.)
+  if (name === 'describe') return { title: GROUPS.describe.title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+  if (name in GROUPS) {
+    const each = Object.values(GROUPS[name].actions).map(([v1]) => annotationsOf(v1));
+    return { title: GROUPS[name].title, readOnlyHint: each.every(a => a.readOnlyHint), destructiveHint: each.some(a => a.destructiveHint), idempotentHint: each.every(a => a.idempotentHint), openWorldHint: false };
+  }
   if (name in READ) return { title: titleOf(name), readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
   if (ADDS.has(name)) return { title: titleOf(name), readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false };
   if (name in ALTERS) return { title: titleOf(name), readOnlyHint: false, destructiveHint: true, idempotentHint: ALTERS[name], openWorldHint: false };

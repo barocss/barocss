@@ -12,7 +12,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { StudioDoc } from '../src/engine/doc';
-import { SYSTEM_PROMPT, TOOLS, type NameSelection } from '../src/chat/tools';
+import type { NameSelection } from '../src/chat/tools';
+import { toolset, toolsetOf } from '../src/chat/toolset';
+import { v1Call } from '../src/chat/groups';
 import { PROMPT_CHARS } from '../src/chat/proposals';
 import type { StateFile } from './cadMcp';
 import type { BlobType, WireBlobs } from '../src/engine/blobs';
@@ -71,9 +73,9 @@ export function claudeArgs(o: { mcpConfig: string; model: string; session?: stri
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
-    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', TOOLS.map(t => `mcp__cad__${t.name}`).join(','),
+    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', toolsetOf().tools.map(t => `mcp__cad__${t.name}`).join(','),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
-    '--system-prompt', SYSTEM_PROMPT,
+    '--system-prompt', toolsetOf().prompt,
     ...(o.session ? ['--resume', o.session] : []),
   ];
 }
@@ -100,6 +102,8 @@ export function checkImages(images: unknown): string | null {
   return null;
 }
 
+/** The v1 tool a call runs (a consolidated tool's action, A5.3): results are summarized by it. */
+const v1NameOf = (name: string, input: unknown) => { const v = v1Call(name, input); return v && !('error' in v) ? v.name : name; };
 const r0 = (v: number) => Math.round(v);
 /** One line for a tool result in the transcript. */
 export function summarize(name: string, text: string, isError: boolean): string {
@@ -221,7 +225,7 @@ export function createChatServer(options: ChatServerOptions) {
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), CAD_TOOLSET: toolset(), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
@@ -255,7 +259,7 @@ export function createChatServer(options: ChatServerOptions) {
           if (b.type !== 'tool_result') continue;
           const call = calls.get(b.tool_use_id) ?? { name: 'tool', input: {} };
           const text = typeof b.content === 'string' ? b.content : (b.content ?? []).map((c: { text?: string }) => c.text ?? '').join('');
-          emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(call.name, text, !!b.is_error), isError: !!b.is_error || /"ok":false/.test(text) });
+          emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(v1NameOf(call.name, call.input), text, !!b.is_error), isError: !!b.is_error || /"ok":false/.test(text) });
           // (Only a part a tool changed since the last state sent: a read-only call re-sent nothing, PERF3 A3.)
           const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc }); }
         }

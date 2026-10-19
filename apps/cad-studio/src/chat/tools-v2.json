@@ -1,0 +1,381 @@
+{
+ "contract": "barocss-cad-tools-v2",
+ "tools": [
+  {
+   "name": "assembly",
+   "annotations": {
+    "title": "Assembly",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "get",
+       "add_part",
+       "place",
+       "delete_part",
+       "add_mate",
+       "edit_mate",
+       "delete_mate",
+       "insert",
+       "snap"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "describe",
+   "annotations": {
+    "title": "Describe",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "action": {
+      "type": "string"
+     },
+     "command": {
+      "type": "string"
+     },
+     "feature": {
+      "type": "string"
+     },
+     "tool": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   }
+  },
+  {
+   "name": "drawing",
+   "annotations": {
+    "title": "Drawing",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "issues",
+       "tolerances",
+       "auto",
+       "fix",
+       "accept",
+       "set"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "features",
+   "annotations": {
+    "title": "Features",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "command",
+       "add",
+       "edit",
+       "delete",
+       "batch"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "history",
+   "annotations": {
+    "title": "History",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "checkpoint",
+       "restore",
+       "best",
+       "diff"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "image",
+   "annotations": {
+    "title": "Image",
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "layers",
+       "extrude",
+       "inflate"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "library",
+   "annotations": {
+    "title": "Library",
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "list",
+       "add",
+       "add_part"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "model",
+   "annotations": {
+    "title": "Model (script)",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "because": {
+      "type": "string"
+     },
+     "dryRun": {
+      "type": "boolean"
+     },
+     "part": {
+      "type": "string"
+     },
+     "response_format": {
+      "enum": [
+       "concise",
+       "detailed"
+      ],
+      "type": "string"
+     },
+     "source": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "source"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "print",
+   "annotations": {
+    "title": "3D print",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "check",
+       "orient"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "proposals",
+   "annotations": {
+    "title": "Proposals",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "propose",
+       "accept",
+       "list"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "query",
+   "annotations": {
+    "title": "Query",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "summary",
+       "inspect",
+       "measure",
+       "mass",
+       "interference",
+       "section",
+       "wall",
+       "draft",
+       "render",
+       "select"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "requirements",
+   "annotations": {
+    "title": "Requirements",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "set",
+       "check"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "subd",
+   "annotations": {
+    "title": "SubD",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "properties": {
+     "action": {
+      "enum": [
+       "cage",
+       "select",
+       "move",
+       "extrude",
+       "insert_loop",
+       "bridge",
+       "fill",
+       "weld",
+       "crease",
+       "delete"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "type": "object"
+   }
+  }
+ ]
+}
