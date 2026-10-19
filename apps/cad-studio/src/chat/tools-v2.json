@@ -30,6 +30,7 @@
        "mjcf",
        "sweep",
        "gravity",
+       "move",
        "set_joints"
       ],
       "type": "string"

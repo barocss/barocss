@@ -28,7 +28,8 @@ import { jointTreeOf } from '../../src/robot/joints';
 import { forwardKinematics } from '../../src/robot/fk';
 import { posedInstances } from '../../src/robot/preview';
 import { treeInertia } from '../../src/robot/inertia';
-import { gravityTorques } from '../../src/robot/dynamics';
+import { gravityTorques, moveTorques } from '../../src/robot/dynamics';
+import type { Mat3 } from '../../src/robot/inertia';
 import { exportUrdf } from '../../src/robot/urdf';
 import { readUrdf } from '../../src/robot/urdfCheck';
 import { exportMjcf } from '../../src/robot/mjcf';
@@ -118,6 +119,8 @@ const BUDGET_JOINT_TREE = 1;
 const BUDGET_FK = 0.1, BUDGET_POSED = 2;
 /** RM3: the link inertias of the 12-link arm (0.1 ms measured; about ×5). */
 const BUDGET_INERTIA = 0.5;
+/** RD2: a move's torques on the 12-link arm (150 ms measured; about ×3). */
+const BUDGET_MOVE = 500;
 /** RM6: a certified sweep of the 6R arm folding to a contact (225 ms measured; about ×3). */
 const BUDGET_SWEEP = 700;
 /** RM4: the URDF of the 12-link arm with its hulls (2.7 ms measured; about ×4). */
@@ -266,6 +269,12 @@ const scenarios: Scenario[] = [
   { name: 'robot: gravity torques, 12-link arm', budgetMS: BUDGET_FK, runs: 5, setup() {
     const { tree } = twelveLinkArm(), masses = new Map(tree.links.map((l, i) => [l.id, { massKg: 0.01 + 0.001 * i, com: [10 + 40 * i, 10, 5 + 10 * i] as [number, number, number] }])); let k = 0;
     return () => { k++; return gravityTorques(tree, masses, Object.fromEntries(tree.joints.map((j, i) => [j.key, 0.01 * k + 0.1 * i]))); };
+  } },
+  // (RD2, O21: a move's peak and RMS torques — the 12-link arm along an S-curve, every segment end and 256 samples a segment, peaks refined.)
+  { name: 'robot: move torques (S-curve), 12-link arm', budgetMS: BUDGET_MOVE, runs: 3, setup() {
+    const { tree } = twelveLinkArm(), bodies = new Map(tree.links.map((l, i) => [l.id, { massKg: 0.02, com: [10 + 40 * i, 10, 5 + 10 * i] as [number, number, number], I: [1e-5, 0, 0, 0, 1e-5, 0, 0, 0, 2e-5] as Mat3 }]));
+    const to = Object.fromEntries(tree.joints.map((j, i) => [j.key, 0.3 + 0.05 * i]));
+    return () => moveTorques(tree, bodies, {}, to, 's-curve', () => ({ velocity: 1, acceleration: 4, jerk: 40 }));
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

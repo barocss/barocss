@@ -45,6 +45,7 @@ const READ: Record<string, JsonSchema | null> = {
   list_library: o({ libraries: arr, note: str }, ['libraries']),
   check_printability: o({ direction: { type: ['object', 'null'] }, rules: arr }, ['rules']),
   link_inertia: o({ links: arr }, ['links']),
+  motion_torques: o({ profile: str, duration_s: num, joints: obj, sampling: str, gravity_m_s2: num }, ['profile', 'duration_s', 'joints', 'sampling']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity_m_s2: num }, ['torques', 'generalized', 'units', 'gravity_m_s2']),
   sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),

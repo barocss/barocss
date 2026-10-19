@@ -316,6 +316,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **RD1** (O20): done. Static gravity torques G = ∂V/∂q (`src/robot/dynamics.ts`) from RM3's masses at RM2's pose;
     planar 2R and 3R closed forms to 1e-9, finite differences of the potential energy on random 3D trees; tool
     gravity_torques; the holding torque per joint in the Joints card. Conformance `conformance/rm/gravity-3r`.
+  - **RD2** (O21): done. RNEA over the tree; M from the Jacobians (its oracle), the 2R Lagrangian to 1e-9, the kinetic
+    energy from FK velocities, M SPD, the energy balance along a move; trapezoid and jerk-limited S-curve profiles by
+    their closed forms; peak and RMS torque with stated sampling (segment ends, 256 a segment, golden-section peaks).
+    Tool motion_torques. Conformance `conformance/rm/move-2r`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

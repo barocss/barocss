@@ -34,7 +34,8 @@ const url = server.resolvedUrls.local[0] + (renderer === 'webgl2' ? '?renderer=w
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: (process.env.FLOW_RENDERER ?? 'webgpu') === 'webgl2' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
-page.on('pageerror', e => errors.push(String(e)));
+// (With its first stack lines: which code threw, not only what — a page error in a long flow is hard to place by its message.)
+page.on('pageerror', e => errors.push(`${String(e)}${e.stack ? `\n${e.stack.split('\n').slice(1, 7).join('\n')}` : ''}`));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 // (Leaving with unsaved work asks first; the flow reloads on purpose.)
 page.on('dialog', d => d.accept());
@@ -3999,6 +4000,28 @@ try {
     }
     await snap('rd1-holding');
     await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RD2 (O21): a move's torques -----------------------------------------------------------------------------------
+  await check('RD2: motion_torques through the real chat and tool servers on the planar 2R — the S-curve\'s duration and each joint\'s peak as the conformance case has them', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/move-2r/case.json'), 'utf8')), file = join(out, 'move-2r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'motion_torques', args: { to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const line = await page.locator('.chat-tool').last().innerText();
+      // (The chat lists a read tool's result as the start of its JSON: the profile and its duration first.)
+      assert.ok(line.includes(`"profile":"s-curve","duration_s":${Number(c.expect.duration_s.toPrecision(10))}`), line);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
   });
 
   await check('command palette and light theme', async () => {

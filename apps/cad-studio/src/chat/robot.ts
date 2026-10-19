@@ -12,7 +12,7 @@ import { readUrdf } from '../robot/urdfCheck';
 import { exportMjcf, type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '../robot/sweep';
-import { gravityTorques, linkMasses, STANDARD_GRAVITY } from '../robot/dynamics';
+import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
 import { convexHull } from '../robot/hull';
 import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
@@ -20,7 +20,7 @@ import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -60,6 +60,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } }, g: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
   },
   {
+    name: 'motion_torques',
+    description: 'The torques of a straight joint move from "from" to "to" (by key; absent: 0; radians or mm) under a motion profile: "trapezoid" (velocity and acceleration limits) or "s-curve" (and jerk), from rest to rest, all joints together on one profile so that each stays within its limits (per joint in "joint_limits", else "limits"; rad/s, rad/s², rad/s³ or mm/s…). Inverse dynamics (RNEA) with gravity along it: the move\'s duration, and per joint the peak and RMS torque (N·m, or N for a slide), when the peak comes, the distance and the peaks of velocity, acceleration and jerk reached, and how it was sampled. No limit is assumed: give them. Changes nothing.',
+    input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } }, profile: { type: 'string', enum: ['trapezoid', 's-curve'] }, limits: { type: 'object', properties: { velocity: { type: 'number' }, acceleration: { type: 'number' }, jerk: { type: 'number' } } }, joint_limits: { type: 'object', additionalProperties: { type: 'object' } } }, required: ['to', 'profile'], additionalProperties: false },
+  },
+  {
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
@@ -77,6 +82,22 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (name === 'get_joints') {
     const t = await treeOfDoc(doc, bodies, evaluate);
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
+  }
+  if (name === 'motion_torques') {
+    const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key));
+    const from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
+    for (const v of [from, to]) {
+      if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
+      const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
+    }
+    if (args.profile !== 'trapezoid' && args.profile !== 's-curve') return { error: '"profile" is "trapezoid" or "s-curve".' };
+    const ok = (l: unknown): l is MoveLimits => !!l && typeof l === 'object' && typeof (l as MoveLimits).velocity === 'number' && (l as MoveLimits).velocity > 0 && typeof (l as MoveLimits).acceleration === 'number' && (l as MoveLimits).acceleration > 0 && ((l as MoveLimits).jerk === undefined || (typeof (l as MoveLimits).jerk === 'number' && (l as MoveLimits).jerk! > 0));
+    const per = (args.joint_limits ?? {}) as Record<string, unknown>, all = args.limits;
+    const moving = Object.keys({ ...from, ...to }).filter(k => ((to[k] as number) ?? 0) !== ((from[k] as number) ?? 0));
+    for (const k of moving) { const l = per[k] ?? all; if (!ok(l)) return { error: `${k}: give its limits (velocity and acceleration above 0${args.profile === 's-curve' ? ', and jerk for an S-curve' : ''}) in "limits" or "joint_limits" — none is assumed.` }; if (args.profile === 's-curve' && (l as MoveLimits).jerk === undefined) return { error: `${k}: an S-curve needs a jerk limit.` }; }
+    const bodiesOf = linkBodies(r.tree, r.partOf), m = moveTorques(r.tree, bodiesOf, from as Record<string, number>, to as Record<string, number>, args.profile, k => (per[k] ?? all) as MoveLimits), sig = (v: number) => Number(v.toPrecision(10)) + 0;
+    const unit = (k: string) => (r.tree.joints.find(j => j.key === k)!.type === 'prismatic' ? 'N' : 'N·m');
+    return { doc, content: { profile: m.kind, duration_s: sig(m.duration), joints: Object.fromEntries(Object.entries(m.joints).map(([k, j]) => [k, { [`peak_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.peak), [`rms_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.rms), at_s: sig(j.atPeak), distance: sig(j.distance), v_peak: sig(j.vPeak), a_peak: sig(j.aPeak), j_peak: sig(j.jPeak) }])), sampling: m.sampling, gravity_m_s2: STANDARD_GRAVITY }, changed: false, summary: `${m.kind}, ${sig(m.duration)} s` };
   }
   if (name === 'gravity_torques') {
     const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;

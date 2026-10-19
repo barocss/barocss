@@ -770,3 +770,51 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 519/519, 519/519 replayed through v2. Bench: gravity torques of the 12-link arm take 0.05 ms (budget 0.1); 53 rows within budget.
   - Browser flow 162/162, with a step "RD1" just before the last: the planar 3R from its conformance file posed by its sliders, each joint's "holds … N·m" equal to the closed form's to the 4 figures shown. Screenshot `notes/acceptance/rd1-holding.png`.
 - **Next**: RD2, the RNEA, trapezoid and S-curve profiles, RMS and peak torque; RNEA = M(q)q̈ + C + G over 100 random states.
+
+## O21 — RD2: inverse dynamics (RNEA), motion profiles, peak and RMS torque (2026-10-20)
+
+- **RNEA** (`src/robot/dynamics.ts`), recursive Newton–Euler in world coordinates over the joint tree.
+  - Outward: each link's ω, ω̇ and the acceleration of its joint point. A slide adds `a q̈ + 2 ω × a q̇`; gravity is the base accelerating upward, the usual device.
+  - Inward: each link's `m a_c` and `I ω̇ + ω × I ω` about its centre, gathered to its joint; `τ = a·N` (a turn) or `a·F` (a slide).
+  - Inertias are RM3's in world axes at home (`linkBodies`), turned by the pose. Slides are in mm (q, q̇, q̈) as in the studio, converted inside; torques N·m, forces N.
+  - A gear follower's rates come from its leader.
+  - Per call it builds no closures; child joints are cached a tree (it runs thousands of times a move).
+- **The mass matrix by another route** (`massMatrix`): `M = Σ m J_vᵀ J_v + J_ωᵀ I J_ω` from the geometric Jacobians, not from the RNEA (a follower's column into its leader's).
+  - That makes **RNEA = M q̈ + C + G** a check rather than a tautology: M from the Jacobians, G = RD1's.
+- **Profiles** (`src/robot/profile.ts`), rest to rest, exact piecewise polynomials:
+  - a trapezoid: `T = d/v + v/a`, or `2√(d/a)` triangular;
+  - a **jerk-limited S-curve** (Biagiotti & Melchiorri's double S), seven constant-jerk segments, with the cases where a or v is not reached by their closed forms.
+- **A move's torques** (`moveTorques`):
+  - one profile on the path parameter s ∈ [0, 1], its limits the tightest over the joints (each joint's limit over its share |Δq|), so every joint stays within its own;
+  - τ(t) by the RNEA with gravity along it.
+  - **Sampling, stated in the result**: every segment end and 256 samples a segment. Each segment is evaluated by its own polynomial, one-sided at its ends, so the trapezoid's jumps in acceleration fall on the right side.
+  - The largest |τ| is refined by golden section between its neighbours; the RMS is by Simpson's rule a segment.
+  - **No limit is assumed**: the tool refuses a moving joint without its limits.
+- **Found by the tests and fixed before commit**:
+  - (1) samples at a segment's end first took the next segment's acceleration (and the move's last point none): the RMS was 1.4e-4 low on a trapezoid;
+  - (2) a uniformly sampled oracle missed peaks sitting where an S-curve's jerk switches (a kink in τ(t)), 3.6e-6 low; the oracle now samples every segment by its own polynomial, ends included.
+- **Where**: tool `motion_torques {to, profile, limits | joint_limits, from?}` (read, output schema; v2 `assembly.move`), a compatible addition. No studio UI in RD2: the profile limits must be given, and the joint settings hold no acceleration or jerk.
+- **Sizes**: v1 67 tools, tools/list 87 749 characters; v2 11 526.
+- **Evidence**: `test/robot-rnea.test.ts` (7 tests), the RNEA checked against oracles that do not use it.
+  - **M from the Jacobians equals the RNEA's columns** `RNEA(q, 0, e_k) − G`, 40 random 3D trees of 6 turns and slides with random positive definite inertias, to 1e-9. **RNEA = M q̈ + C + G** there, and the RNEA's gravity part equals RD1's G.
+  - **M symmetric** (1e-12) and **positive definite** (Cholesky). **½ q̇ᵀ M q̇ equals the kinetic energy** `Σ ½ m v² + ½ ωᵀ I ω` from FK velocities by central differences (v from the centres, ω from `R₊R₋ᵀ`), to 1e-6, 40 trees.
+  - **The planar 2R Lagrangian closed form to 1e-9** (300 random q, q̇, q̈): `M11 = 2I + m lc² + m(l1² + lc² + 2 l1 lc cos q2)`, `M12`, `M22`, `h = m l1 lc sin q2`, gravity, on the RD1 arm (I about the hinge from RM3).
+  - **The energy balance** along an S-curve from rest to rest: `∫ q̇ᵀ τ dt = V(end) − V(start)` (Simpson, 400 a segment), 10 random trees to 1e-6 and the 2R to 1e-7. This is the passivity check in its integral form.
+  - The profiles:
+    - durations against their closed forms: `d/v + v/a`, `2√(d/a)`, `d/v + v/a + a/j`, `4 (d/2j)^⅓`, and backwards;
+    - the end at d exactly (1e-12) at rest;
+    - the limits never exceeded (the peaks at the segment ends, and 2 001 samples each);
+    - continuous position, velocity and, for the S-curve, acceleration;
+    - v not reached with a reached.
+  - **Peak and RMS against the closed form** of a joint with no gravity load: `|τ| = J a`, `RMS = J a √(2 t_a / T)` for the trapezoid, and the S-curve's from `∫a²` of its segments, to 1e-9.
+  - The tool, and the conformance case `conformance/rm/move-2r`: the duration by the closed form and each peak from the 2R Lagrangian along that profile, written from the closed forms. The sampler's peak is within 1e-6 and never below it.
+  - Browser flow 163/163, with a step "RD2" just before the last: `motion_torques` through the real chat and tool servers (the scripted agent) on the 2R from its conformance file, the S-curve's duration as the case has it.
+  - Studio 526/526, 526/526 replayed through v2. Bench: a 12-link arm's S-curve move torques take 150 ms (budget 500). 54 rows within budget; on one run two kernel facet rows were slow under the kernel lane's concurrent load and passed on the re-run.
+- **Next**: RD3, motor and reducer envelopes from named datasheets (each value with its source or flagged an estimate; no downloads, and a PDF-only value is a question for the coordinator) and the selection solver.
+- **A page error the kernel lane saw** (its full flow on c885e6c0e, under load: "Cannot read properties of undefined (reading 'every')"; the coordinator asked which `.every(` of the outer lane's could take undefined):
+  - Every `.every(` the outer lane added (R11b–RD2: drawing auto, issues, layout, reorient, types, dimensions; the tool contract; the joint tree; App's joint values and robot readiness) runs on an array that is always there: built by the function itself, a typed required field, or checked with `Array.isArray` first.
+  - The RM3–RM5 race fixed in RM6 could not raise it either: before evaluation a part came back `null` and was handled as massless, not dereferenced.
+  - The nearest candidates elsewhere are typed as required: a hole's `center` (`holeRegion.ts`), a picked vertex's `at` (App's selection).
+  - **Not reproduced**: the full flow ran 164/164 here with the kernel suite running alongside it, and no page error.
+  - The flow now records each page error's first stack lines (`test/browser-flow.mjs`), so the next occurrence names the code that threw.
+
