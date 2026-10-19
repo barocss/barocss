@@ -239,6 +239,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
     our reader checks MuJoCo's structure, and FK equals RM2's and the URDF's to 1e-12; the 6R arm document
     (`conformance/rm/arm-6r`); Export MJCF, `cad-cli mjcf`, tool export_mjcf. **Pending**: the gravity hang in MuJoCo
     (`scripts/mjcf-oracle.py`, commands in O18).
+  - **RM6** (O19): done. The collision sweep (`src/robot/sweep.ts`): conservative advancement with a pose-independent
+    bound `Σ|Δq_i|·r_i`, the clearance by GJK on the hulls (our own) and exactly on the meshes where those meet; the
+    whole path certified. A 2R arm meets a post within 1e-4 rad of a plane oracle; the 6R arm against a dense sweep.
+    Check path in the Joints card; tool sweep_path. Conformance `conformance/rm/sweep-post`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

@@ -708,3 +708,38 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 510/510, 510/510 replayed through v2. Bench: MJCF export and check of the 12-link arm takes 2.35 ms (budget 10); 51 rows within budget.
   - Browser flow 159/159, with a step "RM5" just before the last: the 6R arm opened (its six joints in the Joints card), Export MJCF read by Python (`zipfile`, `xml.etree`: 7 bodies, 6 hinges, 14 meshes), equal to the CLI's frozen model to 12 significant figures. Screenshot `notes/acceptance/rm5-arm.png`.
 - **Next**: RM6, the sampled collision sweep (no simulator needed), unless the owner's answer comes first.
+
+## O19 — RM6: the collision sweep, conservative advancement (2026-10-20)
+
+- **What** (`src/robot/sweep.ts`, `src/robot/gjk.ts`): a straight joint-space move `q(s) = q0 + s(q1 − q0)` checked for contact between links by conservative advancement (Schwarzer, Saha & Latombe).
+  - At a sample, each pair's clearance `d`. Over the next step no point of one link moves towards the other more than `Δs · Σ_i |Δq_i| · r_i`, so the step `d / Σ|Δq_i| r_i` is free of contact. **The whole path is certified, not just its samples.**
+  - **The bound**:
+    - only the joints between the two links count (a common ancestor moves both together);
+    - `r_i` holds in every pose: the joint-to-joint distances down the chain to the link (each fixed in its link) plus the link's own reach from its joint, by the triangle inequality;
+    - a slide moves a point by exactly `|Δq|`; a gear follower counts with its multiplier.
+  - **The clearance**:
+    - first the links' convex hulls (RM4's) by **GJK**, our own (Ericson's closest-point regions on the simplex). This is the prefilter: a hull distance is never more than the true one, so a hull distance above zero proves two links apart;
+    - where hulls meet, the meshes themselves: an **exact contact test** (an edge through the inside of a triangle, Möller–Trumbore with the edges and plane excluded, or one mesh inside the other by ray parity), and else their least distance (vertex–triangle and edge–edge, boxes first).
+    - Touching without passing into each other is clearance 0, met to the tolerance (1e-6 mm).
+  - **Pairs**: every pair of links but parent and child (they meet at their joint by design, as simulators exclude them); a pair in contact where the path starts and not moved by it is skipped, said so.
+  - **Result**: clear, or the first contact (s, the joint values there, the two links); the least clearance and where; the samples taken; the pairs checked and skipped.
+- **Where**: tool `sweep_path {from?, to}` (read, output schema; v2 `assembly.sweep`), a compatible addition; **Check path** in the Joints card (from the solved pose to the sliders', the result shown; moving a joint clears it).
+- **Sizes**: v1 65 tools, tools/list 86 641 characters; v2 11 612.
+- **Evidence**: `test/robot-sweep.test.ts` (5 tests).
+  - **GJK** against the polytopes' brute-force distance (60 random hull pairs, to 1e-8), boxes in closed form (2, √3), 0 when overlapping.
+  - **The motion bound holds**: 30 random 5-joint trees of turns and slides, a random step each; no hull point moves more than `Σ|Δq_i|·r_i` (dense FK at 100 points of the step).
+  - **A 2R arm swung into a grounded post** (`conformance/rm/sweep-post`):
+    - the first contact against an independent oracle, separating axes of the swung rectangles in the plane (both links span the post's height), found by bisection;
+    - the sweep stops within 1e-4 rad of it and never past it; the post is named;
+    - parent and child are skipped;
+    - the way back (−π/2) is clear with its least clearance above 1 mm.
+  - **The 6R arm folding** (three joints) against a dense sweep, the exact mesh test at 200 samples up to where the sweep stopped:
+    - no earlier contact (the bound let none through);
+    - where it stopped (link 4 meeting the base at s 0.739, 45 steps) the meshes are within the tolerance: a true contact;
+    - 15 pairs checked (21 less the six parent–child ones).
+  - The tool and the conformance case, its expected angle written from the plane oracle, not the sweep.
+  - Studio 515/515, 515/515 replayed through v2. Bench: the 6R arm's folding sweep to its contact takes 225 ms (budget 700); 52 rows within budget.
+  - Browser flow 160/160, with a step "RM6" just before the last: the arm turned 2 rad beside the post, Check path reports the contact with the post at its share of the move; a small move the other way is certified clear. Screenshot `notes/acceptance/rm6-contact.png`.
+  - **Found by the flow and fixed (it touches RM3–RM5 too)**: the Joints card appears once the faces are read, before the placed parts' bodies are. Export or Check path pressed in that window found no bodies and refused "massless". The masses, both exports and Check path now wait until every placed part is evaluated as it stands (its bodies for that very instance; the buttons disabled until then). A part not yet evaluated is not massless. The RM5 step had passed by timing before.
+- **Follow-up (not needed for RM6's acceptance)**: the mesh distance where hulls meet is brute force, O(n·m) triangle pairs. Fine for these parts (hundreds of triangles); a part of 100k triangles wants the BVH (R3.2) under it.
+- **The RM track**: RM1–RM4 and RM6 are done; RM5 is at its writer checkpoint. **Pending the owner's go-ahead (MuJoCo)**: RM4's external comparison and RM5's gravity hang (O17, O18, commands there).
