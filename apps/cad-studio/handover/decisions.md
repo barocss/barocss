@@ -5083,3 +5083,47 @@ D105's verdict for R11.2: a closed body whose faces meet smoothly needs no slab,
   - A flow step: the SubD cube shelled 0.5 from a file.
 - **Not done:** opened faces (R11.2b). Bodies with sharp edges and freeform faces (region slabs) are R11.2b and R11.2c. Creased SubD bodies have sharp edges and are not on this route.
 - Checks: lint and type-check clean; kernel 1157/1162 (only the env-only Split test fails; r11-s0's two S0 records read then and now); conformance with the 4 new cases; studio 453/453; full flow 151/151 on 52f800a48 plus this step (every R14 and A5 step passing). RB rows in the next commit.
+
+## D111 — R11.2b: a smooth closed freeform body shelled with faces opened (2026-10-20)
+
+D110 refused a shell that opens faces of a smooth freeform body. A shell's wall is the union of its kept faces' normal bands. So opening a face only takes its band away, and this step builds the opened shell from D110's cavity with no Boolean.
+
+- **Route** (`offsetShell` in `offset-cavity.ts`; `shellPart` takes it when `open` is not empty). The shell's faces:
+  - the kept faces as they are, with their names;
+  - their offset: D110's cells, fitted the same way, turned inside out and named `<shell>.in.<face>.c<i>_<j>`;
+  - along each edge between a kept face and an opened one, the wall's end: the band from the edge to its offset, ruled along the kept face's normal, named `<shell>.rim.<edge>#k`.
+  - Only the kept faces are offset, fold-checked and fitted. A face that folds can be opened.
+- **The wall's ends.** The offset's cells cut the opening's edges, so each band joins one cell side.
+  - Each rim edge is split at those cuts into exact pieces of its curve. Each knot is inserted to full multiplicity (Boehm, on homogeneous points) and the middle segment kept, to 2.7e-15 on a rational cubic.
+  - Each piece has its own band: cubic along the edge (the face's side knots each once more, refined until both rows are within the target, at most 16 poles), linear across.
+  - Without the pieces, a band along a whole cap edge needed more than 16 poles.
+  - Radial edges are straight lines from each rim vertex (cut vertices included) to its offset.
+  - Each band runs out of the kept face towards the opening. Its sense comes from the kept face's coedge.
+  - The kept faces' loops run through the pieces. Rim entities take the cavity's tolerance, twice the measured deviation.
+- **Refusals by name:**
+  - `[OPENING_AT_A_VERTEX]`: the opening touches itself at a vertex, where kept and opened faces alternate more than once round it. The wall's ends would share one radial there, four uses of one edge. For example, two diagonal caps of the cube's top. Before the check, this gave a non-manifold result.
+  - `[WALL_TOO_THIN] … runs out through the opened face …`: a kept face's offset crosses an opened face (its signed distance outside the opened face's outward normal).
+    - The opened face is no wall. The wall may come nearer to it than t (what lies between runs out through the opening), but not cross it.
+    - The first version skipped opened faces in the thin check and would have let a wall poke out of the body.
+    - The membrane in a rim, its top opened: t 0.6 and 1.0 are made (refused closed at 0.6); t 1.1 is refused 0.0525 mm past the top.
+  - `every face is opened`.
+  - Faces that are not on the body are refused by `shellPart` as before (`SELECTION`).
+  - A kept face still folds by name (`[OFFSET_FOLDS]`).
+- **Evidence** (`test/r11-2b.test.mjs`, new; every case refused on HEAD 05679aff2 with "not supported yet (R11.2b)"; every result strictly valid, one shell, mass by quadrature):
+
+  | Body, opened | Wall | Cells | Wall's ends | Deviation (target) | Volume against the bands | Time |
+  |---|---|---|---|---|---|---|
+  | SubD cube, its top (4 caps) | 0.5 | 180 | 24 | 8.6e-6 (9.2e-6) mm | 1.9e-6 | 0.9 s |
+  | SubD cube, one cap | 1 | 207 | 12 | 9.0e-6 (9.2e-6) mm | 5.9e-7 | 1.4 s |
+  | SubD cube, top and bottom (a tube) | 0.5 | 144 | 48 | 8.6e-6 (9.2e-6) mm | 1.9e-6 | 0.7 s |
+  | Torus 8 × 6, one patch | 1 | 31 | 7 | 2.3e-5 (2.5e-5) mm | 3.5e-6 | 0.4 s |
+  | Membrane in a rim, its top (24 faces) | 0.6 | 119 | 38 | 5.9e-5 (6.0e-5) mm | 1.1e-5 | 1.5 s |
+
+  - The oracle: each kept face's normal band is ∫∫ (t − Ht² + Kt³/3) dA (H > 0 convex), by 8 × 8 Gauss–Legendre on halves of the limit surface's knot spans. The bands of a smooth body meet only along the normals at their common edges, so the shell is their sum. The bound checked is kept area × target.
+  - Every kept face keeps its name; no opened face appears.
+  - Refused by name: the diagonal caps, every face, the membrane's top at 1.1, a kept cap at 1.49.
+  - Conformance `r11/shell-subd-cube-open-top`, `shell-subd-torus-open-patch` (the bands' volume, the tolerance from the accuracy contract, STEP round trip 1e-9), `refuse-shell-opening-at-a-vertex`.
+  - A flow step: the SubD cube shelled 0.5 from a file, its top opened (85.04 mm³).
+  - `r11-2a`'s opened-face refusal is removed (noted in place).
+- **Not done:** bodies with sharp edges and freeform faces (region slabs) are R11.2c. Creased SubD bodies have sharp edges and are not on this route. A wall's end is square to its kept face; there is no option for an end square to the opened face.
+- Checks: lint and type-check clean (kernel and studio); kernel 1162/1167 (4 skipped; only the env-only Split test fails); conformance 119/119 with the 3 new cases; studio 474/474; full flow 154/154 on 05679aff2 plus this change, the new step included (every R14 and A5 step passing; the file has 154 steps, against the 155 the coordinator counted after the merge). RB rows in the next commit.
