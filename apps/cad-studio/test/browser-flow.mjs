@@ -3876,6 +3876,31 @@ try {
     await snap('rm3-mass');
   });
 
+  // ---- RM4 (O17): URDF export -------------------------------------------------------------------------------------
+  await check('RM4: Export URDF from the Joints card — a zip of robot.urdf and each link\'s mesh and convex hull; the same URDF as cad-cli writes', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r-urdf.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Export URDF"]', { timeout: 20000 });
+    const [d] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export URDF"]')]);
+    assert.match(d.suggestedFilename(), /-urdf\.zip$/);
+    const zip = fs.readFileSync(await d.path());
+    assert.equal(zip.readUInt32LE(0), 0x04034b50, 'a zip');
+    const names = zip.toString('latin1');
+    for (const n of ['robot.urdf', 'meshes/base.stl', 'meshes/a_collision.stl', 'meshes/b.stl']) assert.ok(names.includes(n), n);
+    // (The URDF inside, inflated by the browser's own zip reader is not at hand here: python3's zipfile reads it.)
+    const { spawnSync } = await import('node:child_process');
+    const py = spawnSync('python3', ['-I', '-c', 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1]); print(z.read("robot.urdf").decode())', await d.path()], { encoding: 'utf8' });
+    assert.equal(py.status, 0, py.stderr);
+    // (The studio's bodies are placed in the world, the CLI's in their parts: the same URDF to rounding, the robot named
+    // after the file. Compared with the name set aside and every number to 12 significant figures.)
+    const norm = t => t.trim().replace(/<robot name="[^"]*">/, '<robot>').replace(/-?\d+(\.\d+)?(e-?\d+)?/g, x => { const v = Number(x); return Math.abs(v) < 1e-15 ? '0' : String(Number(v.toPrecision(12))); });
+    assert.equal(norm(py.stdout), norm(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/urdf-2r/robot.urdf'), 'utf8')), 'the studio\'s URDF is the CLI\'s');
+    await snap('rm4-urdf');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

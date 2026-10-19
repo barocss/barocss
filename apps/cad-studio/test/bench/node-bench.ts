@@ -28,6 +28,8 @@ import { jointTreeOf } from '../../src/robot/joints';
 import { forwardKinematics } from '../../src/robot/fk';
 import { posedInstances } from '../../src/robot/preview';
 import { treeInertia } from '../../src/robot/inertia';
+import { exportUrdf } from '../../src/robot/urdf';
+import { readUrdf } from '../../src/robot/urdfCheck';
 import { solveDoc } from '../../src/chat/assembly';
 import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
@@ -109,6 +111,8 @@ const BUDGET_JOINT_TREE = 1;
 const BUDGET_FK = 0.1, BUDGET_POSED = 2;
 /** RM3: the link inertias of the 12-link arm (0.1 ms measured; about ×5). */
 const BUDGET_INERTIA = 0.5;
+/** RM4: the URDF of the 12-link arm with its hulls (2.7 ms measured; about ×4). */
+const BUDGET_URDF = 10;
 /** A 12-link serial arm (the base part and 11 arms, each turning on the one before), solved, with its joint tree. */
 function twelveLinkArm() {
   const hole = (doc: StudioDoc, c: [number, number]) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: 5 } as never);
@@ -222,6 +226,15 @@ const scenarios: Scenario[] = [
   { name: 'robot: link inertia, 12-link arm', budgetMS: BUDGET_INERTIA, runs: 5, setup() {
     const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1); if (!r.ok) throw new Error('eval');
     return () => treeInertia(tree, p => { const i = solved.doc.instances!.find(x => x.id === p); return { doc: i?.doc ?? solved.doc, bodies: r.bodies, position: i?.position ?? [0, 0, 0], rotation: i?.rotation ?? [0, 0, 0] }; });
+  } },
+  // (RM4, O17: the URDF of the 12-link arm — frames, inertials, each link's mesh and convex hull, then read back and checked.)
+  { name: 'robot: URDF export and check, 12-link arm', budgetMS: BUDGET_URDF, runs: 3, setup() {
+    const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1), rb = evaluateDoc(solved.doc, 1); if (!r.ok || !rb.ok) throw new Error('eval');
+    return () => {
+      const u = exportUrdf(tree, p => { const i = solved.doc.instances!.find(x => x.id === p); return i ? { doc: i.doc, bodies: r.bodies, position: i.position, rotation: i.rotation } : { doc: solved.doc, bodies: rb.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; }, 'arm');
+      if (!u.ok) throw new Error(JSON.stringify(u.refusals));
+      const c = readUrdf(u.urdf, new Set(u.files.map(f => f.path))); if (c.issues.length) throw new Error(c.issues.join()); return c;
+    };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

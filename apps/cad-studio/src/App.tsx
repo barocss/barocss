@@ -45,6 +45,8 @@ import { jointTreeOf } from './robot/joints';
 import { forwardKinematics, gearPairAt, sliderRange } from './robot/fk';
 import { posedInstances } from './robot/preview';
 import { treeInertia } from './robot/inertia';
+import { exportUrdf } from './robot/urdf';
+import { writeZip } from './io/zip';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
 import { fastenerName, fastenerThread } from './app/fasteners';
@@ -1889,6 +1891,13 @@ export function App() {
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanel tree={jointTree} instances={doc.instances ?? []}
         values={jointFk?.values ?? jointValues} onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} gears={gearLines} links={linkInertias}
+        onExportUrdf={() => {
+          // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
+          const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
+          if (!r.ok) { setToast({ title: 'URDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
+          void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
+          if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
+        }}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}

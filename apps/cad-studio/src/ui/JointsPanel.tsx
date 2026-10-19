@@ -19,11 +19,13 @@ const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0'
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
   links?: LinkInertia[];
+  /** Writes the robot as URDF (RM4), a zip of robot.urdf and its meshes. */
+  onExportUrdf?(): void;
 }) {
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
@@ -51,7 +53,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         );
       })}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
-      {tree.joints.some(j => j.type !== 'fixed') && <div className="row-actions"><button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button></div>}
+      <div className="row-actions">{tree.joints.some(j => j.type !== 'fixed') && <button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button>}
+        {onExportUrdf && <button className="ghost" aria-label="Export URDF" onClick={onExportUrdf}>Export URDF</button>}</div>
       {links?.filter(l => l.part !== null).map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
