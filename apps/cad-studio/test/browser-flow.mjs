@@ -34,7 +34,8 @@ const url = server.resolvedUrls.local[0] + (renderer === 'webgl2' ? '?renderer=w
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: (process.env.FLOW_RENDERER ?? 'webgpu') === 'webgl2' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
-page.on('pageerror', e => errors.push(String(e)));
+// (With its first stack lines: which code threw, not only what — a page error in a long flow is hard to place by its message.)
+page.on('pageerror', e => errors.push(`${String(e)}${e.stack ? `\n${e.stack.split('\n').slice(1, 7).join('\n')}` : ''}`));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 // (Leaving with unsaved work asks first; the flow reloads on purpose.)
 page.on('dialog', d => d.accept());

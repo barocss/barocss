@@ -811,3 +811,10 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Browser flow 163/163, with a step "RD2" just before the last: `motion_torques` through the real chat and tool servers (the scripted agent) on the 2R from its conformance file, the S-curve's duration as the case has it.
   - Studio 526/526, 526/526 replayed through v2. Bench: a 12-link arm's S-curve move torques take 150 ms (budget 500). 54 rows within budget; on one run two kernel facet rows were slow under the kernel lane's concurrent load and passed on the re-run.
 - **Next**: RD3, motor and reducer envelopes from named datasheets (each value with its source or flagged an estimate; no downloads, and a PDF-only value is a question for the coordinator) and the selection solver.
+- **A page error the kernel lane saw** (its full flow on c885e6c0e, under load: "Cannot read properties of undefined (reading 'every')"; the coordinator asked which `.every(` of the outer lane's could take undefined):
+  - Every `.every(` the outer lane added (R11b–RD2: drawing auto, issues, layout, reorient, types, dimensions; the tool contract; the joint tree; App's joint values and robot readiness) runs on an array that is always there: built by the function itself, a typed required field, or checked with `Array.isArray` first.
+  - The RM3–RM5 race fixed in RM6 could not raise it either: before evaluation a part came back `null` and was handled as massless, not dereferenced.
+  - The nearest candidates elsewhere are typed as required: a hole's `center` (`holeRegion.ts`), a picked vertex's `at` (App's selection).
+  - **Not reproduced**: the full flow ran 164/164 here with the kernel suite running alongside it, and no page error.
+  - The flow now records each page error's first stack lines (`test/browser-flow.mjs`), so the next occurrence names the code that threw.
+
