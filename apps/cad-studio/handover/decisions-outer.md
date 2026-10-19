@@ -658,3 +658,53 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 505/505, 505/505 replayed through v2. Bench: URDF export and check of the 12-link arm takes 2.7 ms (budget 10); 50 rows within budget.
   - Browser flow 158/158, with a step "RM4" just before the last: Export URDF downloads a zip, read by Python's `zipfile`. Its `robot.urdf` is the CLI's frozen one to 12 significant figures. The studio works from world-placed bodies and the CLI from part coordinates, so only the last digits differ; the robot is named after the file.
 - **Next**: RM5, MJCF export with the same checks; a 6R arm hangs under gravity stably. That step needs a simulator, so it depends on the same go-ahead.
+
+## O18 — RM5: MJCF export, its structure and FK checked; the gravity hang pending (2026-10-20)
+
+- **Shared model** (`robotParts`, `src/robot/urdf.ts`): link frames, RM3 inertials, meshes and hulls, refusals and notes, now one function used by both exporters. URDF's output is byte-identical to before (its frozen files unchanged).
+- **MJCF** (`src/robot/mjcf.ts`, `barocss-mjcf-v1`):
+  - bodies nest as the tree does, each at its link frame in its parent's (`pos` in m, `quat` w x y z: Shepperd's method, w ≥ 0);
+  - a moving joint is a `hinge` or `slide` at the body origin along its axis (Z), `range` from its limits (a slide's in m), no range for continuous;
+  - a fixed joint is no joint (the body welded to its parent); the base link is a body in the world without a joint (fixed);
+  - `<inertial pos mass fullinertia>` from RM3, dummy links tiny as in the URDF;
+  - each link has a visual mesh geom (no contacts, group 1) and its hull as a collision geom (group 3); meshes under `meshes/` (`compiler meshdir`), angles in radians;
+  - a gear follower is `<equality><joint joint1=follower joint2=leader polycoef="0 m 0 0 0">`;
+  - gravity −9.81 on Z.
+  - **A passive model: no damping, friction, armature or actuators are invented.**
+  - Refused as URDF is; loops not written (RM8 makes them equality closures).
+- **Read back** (`src/robot/mjcfCheck.ts`, our XML reader), checking what MuJoCo's compiler would refuse from this export:
+  - `<mujoco>`, `compiler angle="radian"`, `<worldbody>`;
+  - unique body and joint names, one joint a body, a known type, unit axis and unit quaternion, `range` lower < upper;
+  - every moving body with `<inertial>` (mass > 0, positive definite, a triangle);
+  - every mesh geom's asset, and every asset's file;
+  - equalities naming existing joints.
+  - FK in MuJoCo's composition: a body's `pos`/`quat` in its parent, then its joint's motion about its own axis at its own `pos`; an equality's `joint1` from its polynomial.
+- **The 6R arm** (`conformance/rm/arm-6r/robot.bcad`, built in `test/robot-mjcf.test.ts`):
+  - a base plate and six 20 × 20 × 80 aluminium blocks, each with blind vertical holes at both ends and two through holes along Y (no bores crossing);
+  - wrists stacked on Z, shoulders side by side on Y; axes Z, Y, Y, Z, Y, Z, from 12 mates; six continuous joints, no problem.
+- **Where**: tool `export_mjcf` (read; v2 `assembly.mjcf`), a compatible addition; **Export MJCF** in the Joints card (a zip of `robot.xml` and `meshes/`); `cad-cli mjcf part.bcad -o folder`.
+- **Pending: the gravity hang and MuJoCo's own read** (the owner's go-ahead; the coordinator, 2026-10-20). `packages/barocss-cad/scripts/mjcf-oracle.py` is written and not run. It loads `robot.xml` in MuJoCo and checks, against `conformance/rm/arm-6r/expect.json`:
+  - masses, centres and principal inertia per body, and body frames (`xpos`, `xmat`) at two poses, tolerance 1e-6;
+  - **the arm hanging under gravity** from the solved pose, RK4 at 0.5 ms:
+    - as exported (no damping): 5 s with the total energy conserved to 1e-4 relative and nothing diverging;
+    - with 0.002 N·m·s/rad on every joint, set in the oracle only (the export invents none): 30 s with the energy never rising, every |qvel| below 1e-3 rad/s at the end, and the centre of mass below its start.
+  - The exact commands:
+
+    ```
+    uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0
+    node apps/cad-studio/scripts/cad-cli.mjs mjcf packages/barocss-cad/conformance/rm/arm-6r/robot.bcad -o /tmp/arm-6r
+    ~/.cache/barocss-mujoco/bin/python -I packages/barocss-cad/scripts/mjcf-oracle.py /tmp/arm-6r/robot.xml packages/barocss-cad/conformance/rm/arm-6r/expect.json
+    ```
+
+  - **RM5 is not accepted without that run**: the writer, its checks and the arm are this checkpoint.
+- **Sizes**: v1 64 tools, tools/list 85 327 characters; v2 11 536.
+- **Evidence**: `test/robot-mjcf.test.ts` (5 tests).
+  - Quaternions: 300 rotations, near a half turn too, unit with w ≥ 0, back to the same matrix to 1e-12.
+  - The 6R arm's MJCF read back with no issue: seven nested bodies, six hinges on their bodies' Z without range, 14 mesh assets, every inertial positive; gravity set; no damping, friction, armature or actuator attribute.
+  - **FK three ways to 1e-12**: MJCF's (MuJoCo's composition) equals RM2's product of exponentials and the URDF's composition on the 6R arm (200 random poses), the gear pair (its equality `polycoef 0 −2/3`) and a slide-and-turn chain (its range in metres).
+  - The checker's catches: degrees, a missing mesh file, a non-unit quaternion, an empty range, an equality to nothing, an inertia not positive definite or not a triangle, a moving body without `<inertial>`.
+  - The tool (14 files, no issue), the CLI (`robot.xml` equal to the frozen one), and the case `conformance/rm/arm-6r` (document, frozen `robot.xml`, `expect.json` for the oracle).
+  - By hand: Python's standard `xml.etree` parses the frozen model (7 bodies, 6 joints).
+  - Studio 510/510, 510/510 replayed through v2. Bench: MJCF export and check of the 12-link arm takes 2.35 ms (budget 10); 51 rows within budget.
+  - Browser flow 159/159, with a step "RM5" just before the last: the 6R arm opened (its six joints in the Joints card), Export MJCF read by Python (`zipfile`, `xml.etree`: 7 bodies, 6 hinges, 14 meshes), equal to the CLI's frozen model to 12 significant figures. Screenshot `notes/acceptance/rm5-arm.png`.
+- **Next**: RM6, the sampled collision sweep (no simulator needed), unless the owner's answer comes first.

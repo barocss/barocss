@@ -235,11 +235,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
     inertials, meshes and own-quickhull collision hulls in metres, mimic for gears, typed refusals; our reader checks
     the URDF spec's structure, and its FK equals RM2's to 1e-12. Export URDF (zip), `cad-cli urdf`, tool export_urdf.
     **Pending**: MuJoCo/PyBullet comparison (`scripts/urdf-oracle.py`, commands in O17) on the owner's go-ahead.
+  - **RM5** (O18): writer checkpoint; acceptance pending. MJCF export (`src/robot/mjcf.ts`) on the shared robot model;
+    our reader checks MuJoCo's structure, and FK equals RM2's and the URDF's to 1e-12; the 6R arm document
+    (`conformance/rm/arm-6r`); Export MJCF, `cad-cli mjcf`, tool export_mjcf. **Pending**: the gravity hang in MuJoCo
+    (`scripts/mjcf-oracle.py`, commands in O18).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
-- Waiting for the owner: installing MuJoCo as RM4's test oracle (O17; the commands there). RM5 needs it as well.
+- Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
