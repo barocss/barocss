@@ -2902,6 +2902,23 @@ try {
     await snap('r11-1a-rod-on-plate-shell');
   });
 
+  await check('R11.1b a box with a notched corner shelled (a file): three concave edges meet at a vertex, the planes\' growth mitred there — its volume the cube erosion (the vertex under-filled before, D106)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'notched-box-shell.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 },
+      { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [18, 12], max: [35, 25], plane: { origin: [25, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
+      { id: 'n4', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+      { id: 'n5', kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: [] }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    // (Conformance r11/shell-notched-corner: 22 560 − (36 · 26 · 16 − 15 · 12 · 8) = 9 024 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 9024) <= 1, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-1b-notched-box-shell');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

@@ -1,0 +1,164 @@
+{
+  "id": "r11-shell-inside-corner-225",
+  "step": "R11",
+  "decisions": [
+    "D107"
+  ],
+  "about": "R11.1b: a prism whose section has a 225° inside corner (a ramp off a step), shelled 1 closed: the planes grow across the concave edge t·tan(θ/2), as far as their offsets reach (HEAD at D106: 2.5e-3 over, grown t).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              -20,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              10
+            ],
+            [
+              0,
+              10
+            ],
+            [
+              -10,
+              20
+            ],
+            [
+              -20,
+              20
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 40
+        },
+        {
+          "id": "b",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            10,
+            -5
+          ],
+          "max": [
+            20,
+            5
+          ]
+        },
+        {
+          "id": "be",
+          "kind": "extrude",
+          "sketch": "b",
+          "height": 3
+        },
+        {
+          "id": "bm",
+          "kind": "translate",
+          "target": "be",
+          "offset": [
+            0,
+            0,
+            2
+          ]
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "bm"
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "u",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 5285.401153701776,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            -2.2507792569617733,
+            7.529598667697215
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.side4",
+          "e.side5",
+          "e.top",
+          "sh_p0.bottom",
+          "sh_p1.bottom",
+          "sh_p2.bottom",
+          "sh_p3.bottom",
+          "sh_p4.bottom",
+          "sh_p5.bottom",
+          "sh_p6.bottom",
+          "sh_p7.bottom"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: a prism along X (the small box joined inside it only makes it a general B-rep), so the hollow is the section's sharp-join inset (each side's offset line, met at every corner; shoelace area) times L − 2t. Centroid from this kernel."
+}

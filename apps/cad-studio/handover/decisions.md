@@ -4936,3 +4936,39 @@ The coordinator accepted D105 and asked for fixes (A) and (B) first, each with a
   - The general route gives the same body 6624 mm³ (sharp join).
   - Ledges are sharp in both. Kept as is; say which join a concave edge should get, and the other route follows.
 - Checks: lint and type-check clean; kernel 1140/1145 (only the env-only Split test fails); conformance 108/108; studio 413/413; full flow 143/143 (new step: the rod on the plate shelled). RB rows in the next commit.
+
+## D107 — R11.1b: concave plane–plane edges at any angle and vertices of concave edges; the join as one switch (2026-10-20)
+
+The coordinator accepted D106 and asked for vertex fills first, then concave plane–plane corners off a right angle. The owner has not yet decided the join, so the join kind is one switch, not baked in.
+
+- **Concave edges between two planes.** A plane's slab grows across such an edge by t·tan(θ/2), where θ is the angle between the two normals.
+  - That is as far as the two offsets reach before they meet. The band beyond the edge (depth 0 to t) then lies within both walls, for θ ≤ 90°.
+  - At a right angle the growth is the wall exactly (snapped), as before.
+  - For θ > 90°, a band of either plane, however wide, misses the far corner of the offsets' meeting. Those edges are filled apart, as R11.1a fills edges beside curved faces.
+- **Vertices.** Where two growing sides of a plane region turn away from each other at a concave edge between lines, the bands are joined by a mitre instead of a round: the corner of the two grown lines, or a bevel past 10× the growth.
+  - Under the sharp join, the planes' growth then meets at a vertex of concave edges with no extra piece.
+  - First tried: fills along every concave edge plus a vertex fill (near the vertex, within the wall of every face's offset there).
+    - Pieces touched only along the vertex's edge, so the analytic Boolean refused the result. With the fills placed first, the volume was exact.
+    - Coplanar fill faces then left a slit edge in a hollow face, which failed the strict check. Not kept.
+  - Every other region is grown as before, to the bit: when each side grows by t or not at all and no corner needs a mitre, the region is still the round dilation less the strips.
+  - The fills still go after the slabs, as in R11.1a. Putting them first changed which intermediate unions meet, and a ray test degenerated on the r 1, t 0.5 rod.
+- **The join switch:** `generalShell(…, join: ShellJoin = 'sharp')`.
+  - Under `'arc'`, every concave edge stops and is filled with the disc of the wall about E, beyond both normals: every point within the wall of the boundary, and no other.
+  - A vertex where concave edges meet is refused typed under `'arc'`: the ball there meets its edges' rounds tangentially along their end circles, and the Boolean fails, even with the ball clipped to the region beyond every edge.
+  - Part documents still get the sharp join. The switch is internal until the owner decides, and a document setting would be a versioned shell node (D16).
+- **Evidence** (`test/r11-1b.test.mjs`, new; each case fails on HEAD 519606e7e; every result passes the strict check):
+
+  | Case | Oracle | HEAD | Now |
+  |---|---|---|---|
+  | Prism, 225° inside corner, t 1–2 | sharp-join inset of the section × (L − 2t) | 2.5e-3 – 5.0e-3 over | exact |
+  | Prism, 315° inside corner, t 1–2 | the same | 5.2e-4 – 1.05e-3 over | ≤ 5e-15 |
+  | Prism, 270° inside corner | the same | exact | unchanged |
+  | Box with a notched corner (three concave edges), t 1–4 | cube erosion, (A − 2t)(B − 2t)(C − 2t) − (A − a)(B − b)(C − c) | −1.2e-5 to −2.4e-4: under-filled, a wall thinner than t at the vertex | exact |
+  | L-prism, arc join | the upright route's value (6610.265 at t 2) | not run | 1e-12 |
+  | Rod on a plate, arc join | sharp shell less 2 × (kite − quarter disc) × 38, t 1 | not run | 1e-12 |
+
+  - The kite in the rod row is the polygon E, E − t·n, the offsets' meeting point, E − t·n′ less its circular segment.
+  - Conformance `r11/shell-inside-corner-225`, `shell-notched-corner`; a flow step (the notched box, 9 024 mm³).
+- **Not fixed (TODO, Boolean robustness):** the notched box at t 2.9–3.1 fails, untyped ("not a manifold solid"), as on HEAD. Three slabs' bounding planes meet along one short edge there (x = A − t, y = b + t, z from c + 1.37t to C − t). t 2.5 and t 3.5 build exactly.
+- **Next:** R11.1 is done apart from that TODO. The note's remaining R11.1 items are typed refusals for slabs that cannot be made, and the history route for variable-radius fillets (r(s) − t on the same spine). Then R11.2.
+- Checks: lint and type-check clean; kernel 1145/1150 (only the env-only Split test fails); conformance 110/110; studio 429/429; full flow 146/146 (new step: the notched box shelled 2; also the first full flow on the R14.5 merge 519606e7e, every R14 and drawing step passing). RB rows in the next commit.

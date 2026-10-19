@@ -103,10 +103,37 @@ function edgeMeets(body: Brep, shapes: ReadonlyMap<string, Shape>): Map<string, 
   return meets;
 }
 /** Whether a slab stops at this edge (not grown across it): smooth, or concave beside a curved face (its corner filled apart). */
-const stopsAt = (m: EdgeMeet | undefined) => !!m && (m.kind === 'smooth' || (m.kind === 'concave' && (curved(m.a) || curved(m.b))));
+/**
+ * Whether a concave edge's corner is filled apart rather than by its planes' growth: beside a curved face; between two
+ * planes whose normals are more than a right angle apart (a band of either, however wide, misses the far corner of
+ * their offsets' meeting); every one under an arc join.
+ */
+const filled = (m: EdgeMeet, join: ShellJoin) => m.kind === 'concave' && (join === 'arc' || curved(m.a) || curved(m.b) || dot(m.nA, m.nB) < -1e-12);
+/** Whether a slab stops at this edge (not grown across it): smooth, or a concave edge whose corner is filled apart. */
+const stopsAt = (m: EdgeMeet | undefined, join: ShellJoin) => !!m && (m.kind === 'smooth' || filled(m, join));
+/**
+ * How far a plane's slab grows across an edge in its plane: the wall across a convex edge (it lies outside
+ * the body there); across a sharp concave edge between two planes, as far as the two offsets reach before they
+ * meet — t·tan(θ/2), θ the angle between the normals (the wall at a right angle); not at all where it stops.
+ */
+function growthAcross(m: EdgeMeet | undefined, t: number, join: ShellJoin): number {
+  if (!m) return t;
+  if (stopsAt(m, join)) return 0;
+  if (m.kind === 'convex') return t;
+  // (At most a right angle here: the band beyond the edge lies within both walls. At a right angle, the wall exactly.)
+  const c = dot(m.nA, m.nB);
+  return Math.abs(c) < 1e-12 ? t : t * Math.tan(Math.acos(Math.min(1, c)) / 2);
+}
+
+/**
+ * How the hollow meets itself at a concave edge of the body: 'sharp', its faces' offsets extended until they meet (as
+ * offset faces do; the default); 'arc', a round of the wall's radius about the edge (and a ball at a vertex) — every
+ * point within the wall of the boundary, and no other. The owner's decision (D106/D107); one switch.
+ */
+export type ShellJoin = 'sharp' | 'arc';
 
 /** The shell of `body` with walls `t` thick, the faces named in `open` removed. */
-export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, id: string): Brep {
+export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, id: string, join: ShellJoin = 'sharp'): Brep {
   if (body.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'shell of a mesh body: faceted (mesh) faces are not supported yet');
   const size = Math.max(1, ...body.vertices.flatMap(v => v.point.map(Math.abs))), tol = 1e-9 * size, out = 1.37 * t;
   const loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
@@ -116,10 +143,10 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
   /** A face's loops as point chains, each coedge as its curve in its direction (and its edge). */
   const usesOf = (f: BrepFace) => f.loops.map(lid => { const l = loops.get(lid)!; return { outer: l.kind === 'outer', uses: l.coedges.map(cid => { const c = coedges.get(cid)!; return { curve: edges.get(c.edge)!.curve, forward: c.sense === 'forward', edge: c.edge }; }) }; });
   const ends = (u: { curve: Curve; forward: boolean }) => { const [t0, t1] = curveDomain(u.curve), a = evaluateCurve(u.curve, t0), b = evaluateCurve(u.curve, t1), m = evaluateCurve(u.curve, (t0 + t1) / 2); return u.forward ? { s: a, m, e: b } : { s: b, m, e: a }; };
-  const stops = (edge: string) => stopsAt(meets.get(edge));
+  const stops = (edge: string) => stopsAt(meets.get(edge), join);
   const slabs: Brep[] = [], revolutions: { R: Revolution; face: BrepFace; name: string }[] = [];
   // Faces on one plane (or one cylinder) — a face split by an earlier Boolean — share one slab.
-  const planes: { n: Point; o: Point; e1: Point; e2: Point; regions: CurveRegion2[]; strips: CurveSegment2[][] }[] = [];
+  const planes: { n: Point; o: Point; e1: Point; e2: Point; regions: CurveRegion2[] }[] = [];
   /** A cylinder face's rectangle and which of its sides the slab stops at (angle start, end; height low, high). */
   type Rect = { th0: number; span: number; z0: number; z1: number; stop: [boolean, boolean, boolean, boolean] };
   const cylinders: { c: Point; a: Point; r: number; out: number; e1: Point; e2: Point; rects: Rect[]; name: string }[] = [];
@@ -130,12 +157,12 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       // The face's region in the plane (e1, e2, n outward), grown by the wall; extruded from −t to out.
       const g = sh.plane;
       let P = planes.find(q => len(sub(q.n, g.n)) < 1e-9 && Math.abs(dot(sub(g.o, q.o), q.n)) < tol);
-      if (!P) { const n = g.n, e1 = unit(Math.abs(n[0]) < 0.9 ? cross([1, 0, 0], n) : cross([0, 1, 0], n)); P = { n, o: scale(n, dot(g.o, n)), e1, e2: cross(n, e1), regions: [], strips: [] }; planes.push(P); }
+      if (!P) { const n = g.n, e1 = unit(Math.abs(n[0]) < 0.9 ? cross([1, 0, 0], n) : cross([0, 1, 0], n)); P = { n, o: scale(n, dot(g.o, n)), e1, e2: cross(n, e1), regions: [] }; planes.push(P); }
       const { e1, e2, o } = P;
       const to2 = (p: Point): XY => { const d = sub(p, o); return [dot(d, e1), dot(d, e2)]; };
       const ring = (uses: ReturnType<typeof usesOf>[number]['uses']): CurveSegment2[] => uses.map(u => {
         const c = u.curve, { s, m, e } = ends(u);
-        if (c.degree === 1 && c.controlPoints.length === 2) return { kind: 'line', a: to2(s), b: to2(e) };
+        if (c.degree === 1 && c.controlPoints.length === 2) return { kind: 'line', a: to2(s), b: to2(e), tag: u.edge };
         // An arc, exact or fitted (a Boolean's curve on a curved face): the circle through its ends and middle, if it lies on it.
         const circ = circleOf(c);
         let c2: XY, r: number;
@@ -150,7 +177,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
         }
         const ang = (p: Point) => { const q = to2(p); return Math.atan2(q[1] - c2[1], q[0] - c2[0]); };
         const a0 = ang(s), ccw = wrap(ang(e) - a0) || TAU, viaM = wrap(ang(m) - a0);
-        return { kind: 'arc', c: c2, r, t0: a0, sweep: viaM < ccw ? ccw : ccw - TAU };
+        return { kind: 'arc', c: c2, r, t0: a0, sweep: viaM < ccw ? ccw : ccw - TAU, tag: u.edge };
       });
       // Neighbouring arcs on one circle (a circle a Boolean fitted in pieces) share its centre and
       // radius exactly, so the ring closes.
@@ -170,8 +197,6 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       };
       const L = usesOf(f), rings = L.map(l => unify(ring(l.uses)));
       P.regions.push({ outer: rings[L.findIndex(l => l.outer)], holes: rings.filter((_, k) => !L[k].outer) });
-      // The sides the slab stops at: the strip beyond each, taken off the grown region.
-      L.forEach((l, k) => l.uses.forEach((u, j) => { if (stops(u.edge)) P!.strips.push(...stripBeyond(rings[k][j], 1.5 * t)); }));
       return;
     }
     if (sh.cylinder) {
@@ -204,10 +229,9 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
     revolutions.push({ R: sh.rev.R, face: f, name });
   });
   planes.forEach((P, k) => {
+    // (Its sides keep their edges as tags through the union of the faces on the plane.)
     const regions = booleanCurveRegions(P.regions.flatMap(r => [r.outer, ...r.holes]), [], 'union', tol);
-    let grown = growSection(regions, t, tol);
-    // Not grown across the sides it stops at; the face's own region kept whole.
-    if (P.strips.length) grown = booleanCurveRegions([...booleanCurveRegions(ringsOf(grown), P.strips, 'difference', tol).flatMap(r => [r.outer, ...r.holes])], ringsOf(regions), 'union', tol);
+    const grown = grownRegion(regions, tag => growthAcross(tag === undefined ? undefined : meets.get(tag), t, join), tag => { const m = tag === undefined ? undefined : meets.get(tag); return !!m && m.kind === 'concave'; }, t, tol);
     const { n, e1, e2, o } = P;
     const prism = brepFromPrismatic(prismaticExtrude(ringsOf(grown), -t, out), { id: `${id}_p${k}` });
     slabs.push(transformBrep(prism, { matrix: [e1[0], e2[0], n[0], e1[1], e2[1], n[1], e1[2], e2[2], n[2]], offset: [o[0], o[1], o[2]] }));
@@ -228,10 +252,17 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
     });
   });
   revolutions.forEach((x, k) => slabs.push(...revolutionSlab(x.R, x.face, x.name, usesOf(x.face).flatMap(l => l.uses).map(u => ({ curve: u.curve, stop: stops(u.edge) })), t, out, size, `${id}_v${k}`)));
-  // The corners at concave edges beside curved faces.
+  // The corners at concave edges, and at vertices where two or more of them meet.
   const corners: Corner[] = [];
-  for (const [eid, m] of meets) if (m.kind === 'concave' && (curved(m.a) || curved(m.b))) { const c = concaveCorner(m, edges.get(eid)!.curve, t, size); if (c) corners.push(c); }
+  for (const [eid, m] of meets) if (filled(m, join)) { const c = concaveCorner(m, edges.get(eid)!.curve, t, size, join); if (c) corners.push(c); }
   slabs.push(...cornerSolids(corners, size, id));
+  // (Under the sharp join two planes' growth meets at a vertex, mitred. An arc join's vertex would take a ball, which
+  // meets its edges' rounds tangentially along their end circles: refused for now.)
+  if (join === 'arc') {
+    const concaveAt = new Map<string, number>();
+    for (const e of body.edges) if (meets.get(e.id)?.kind === 'concave') for (const v of e.vertices) concaveAt.set(v, (concaveAt.get(v) ?? 0) + 1);
+    if ([...concaveAt.values()].some(n => n >= 2)) refuse('an arc join at a vertex where concave edges meet is not supported yet');
+  }
   if (!slabs.length) refuse('every face is opened');
   let wall = slabs[0];
   for (const s of slabs.slice(1)) wall = booleanAnalytic(wall, s, 'union', { id: `${id}_wall`, exactEdges: true });
@@ -272,6 +303,51 @@ function stripBeyond(g: CurveSegment2, G: number): CurveSegment2[][] {
     : ccw([{ kind: 'arc', c: g.c, r: r1, t0: a0, sweep: sw }, { kind: 'line', a: at(r1, a0 + sw), b: g.c }, { kind: 'line', a: g.c, b: at(r1, a0) }])];
 }
 
+/**
+ * A plane face's region (its sides tagged by their edges) grown in its plane by `g(tag)` across each side: a band
+ * beyond each side that grows; at a corner where two growing sides turn away from each other, a mitre where a concave
+ * edge is one of two lines (the offsets meeting there), else a round; the strip beyond each side that does not grow
+ * taken off, and the region itself kept whole. Grown by t everywhere it is the region grown by the wall (D106).
+ */
+function grownRegion(regions: readonly CurveRegion2[], g: (tag: string | undefined) => number, mitre: (tag: string | undefined) => boolean, t: number, tol: number): CurveRegion2[] {
+  // Every side grown by the wall or not at all, and no corner of two growing sides at a concave edge: the region grown
+  // by the wall (rounds at every corner), less the strips beyond the sides it stops at — as before D107, to the bit.
+  const rings = ringsOf(regions), simple = rings.every(ring => ring.every((s, i) => {
+    const gs = g(s.tag), n = ring[(i + 1) % ring.length], gn = g(n.tag);
+    return (gs === 0 || gs === t) && !(gs > 0 && gn > 0 && s.kind === 'line' && n.kind === 'line' && (mitre(s.tag) || mitre(n.tag)) && turnsLeft(s, n));
+  }));
+  if (simple) {
+    const cut = rings.flatMap(ring => ring.filter(s => g(s.tag) === 0).flatMap(s => stripBeyond(s, 1.5 * t))), grown = growSection(regions, t, tol);
+    return cut.length ? booleanCurveRegions(ringsOf(booleanCurveRegions(ringsOf(grown), cut, 'difference', tol)), rings, 'union', tol) : grown;
+  }
+  const add: CurveSegment2[][] = [], cut: CurveSegment2[][] = [];
+  for (const ring of ringsOf(regions)) ring.forEach((s, i) => {
+    const gs = g(s.tag);
+    if (gs > 0) add.push(...stripBeyond(s, gs)); else cut.push(...stripBeyond(s, 1.5 * Math.max(t, gs)));
+    const n = ring[(i + 1) % ring.length], gn = g(n.tag);
+    if (!(gs > 0 || gn > 0)) return;
+    const d1 = tangentAt(s, 1), d2 = tangentAt(n, 0), v = endOf(s, 1);
+    if (d1[0] * d2[1] - d1[1] * d2[0] <= 1e-12) return;
+    // Turning left (the region on the left): the bands leave a gap beyond the corner — a round (where one side stops,
+    // the strip beyond it then takes off what lies within its normals), or a mitre.
+    const o1: XY = [d1[1], -d1[0]], o2: XY = [d2[1], -d2[0]], P1: XY = [v[0] + gs * o1[0], v[1] + gs * o1[1]], P2: XY = [v[0] + gn * o2[0], v[1] + gn * o2[1]];
+    if (gs > 0 && gn > 0 && s.kind === 'line' && n.kind === 'line' && (mitre(s.tag) || mitre(n.tag))) {
+      const det = d1[0] * d2[1] - d1[1] * d2[0], w = [P2[0] - P1[0], P2[1] - P1[1]], k = (w[0] * d2[1] - w[1] * d2[0]) / det, M: XY = [P1[0] + d1[0] * k, P1[1] + d1[1] * k];
+      add.push(Math.hypot(M[0] - v[0], M[1] - v[1]) <= 10 * Math.max(gs, gn) ? polygon([v, P1, M, P2]) : polygon([v, P1, P2]));
+    } else add.push(disc(v, Math.max(gs, gn)));
+  });
+  const whole = booleanCurveRegions([...ringsOf(regions), ...add], [], 'union', tol);
+  return cut.length ? booleanCurveRegions(ringsOf(booleanCurveRegions(ringsOf(whole), cut, 'difference', tol)), ringsOf(regions), 'union', tol) : whole;
+}
+/** Whether the boundary turns left (the region's convex corner) from s into the next n. */
+function turnsLeft(s: CurveSegment2, n: CurveSegment2): boolean { const d1 = tangentAt(s, 1), d2 = tangentAt(n, 0); return d1[0] * d2[1] - d1[1] * d2[0] > 1e-12; }
+/** A segment's unit direction at its start (0) or end (1). */
+function tangentAt(s: CurveSegment2, k: 0 | 1): XY {
+  if (s.kind === 'line') return unit2([s.b[0] - s.a[0], s.b[1] - s.a[1]]);
+  if (s.kind === 'arc') { const a = s.t0 + k * s.sweep, sg = s.sweep > 0 ? 1 : -1; return [-Math.sin(a) * sg, Math.cos(a) * sg]; }
+  return refuse('a region bounded by a free curve');
+}
+
 /** A face's section in the plane across an edge (or its meridian): a line through the edge's point, or a circle. */
 type Section = { readonly kind: 'line'; readonly n: XY; readonly u: XY } | { readonly kind: 'circle'; readonly c: XY; readonly r: number; readonly convex: boolean; readonly n: XY; readonly u: XY };
 const unit2 = (v: XY): XY => { const l = Math.hypot(v[0], v[1]); return [v[0] / l, v[1] / l]; };
@@ -294,7 +370,7 @@ const keyOf = (xs: readonly number[], q: number) => xs.map(x => Math.round(x / q
  * edge's point E beyond both faces' normals there and within the wall of both their offsets — the
  * sharp join of the offsets — to be extruded along the edge or turned about the axis.
  */
-function concaveCorner(m: EdgeMeet, curve: Curve, t: number, size: number): Corner | null {
+function concaveCorner(m: EdgeMeet, curve: Curve, t: number, size: number, join: ShellJoin): Corner | null {
   const [c0, c1] = curveDomain(curve), P0 = evaluateCurve(curve, c0), P1 = evaluateCurve(curve, c1), Pm = evaluateCurve(curve, (c0 + c1) / 2);
   const uA3 = cross(m.nA, m.T), uB3 = cross(m.nB, scale(m.T, -1)), names = `${m.a.name} and ${m.b.name}`, q = 1e-7 * size;
   const straight = len(cross(sub(Pm, P0), sub(P1, P0))) < 1e-9 * size * size && len(sub(P1, P0)) > 1e-9 * size;
@@ -303,7 +379,7 @@ function concaveCorner(m: EdgeMeet, curve: Curve, t: number, size: number): Corn
     for (const s of [m.a, m.b]) if (!(s.plane ? Math.abs(dot(s.plane.n, d)) < 1e-9 : s.cylinder ? len(cross(s.cylinder.a, d)) < 1e-9 : false)) refuse(`the concave edge between ${names} is straight, but not along both faces (not supported yet)`);
     const to2 = (p: Point): XY => [dot(p, e1), dot(p, e2)], v2 = (v: Point): XY => [dot(v, e1), dot(v, e2)];
     const sec = (s: Shape, n: Point, u: Point): Section => s.cylinder ? { kind: 'circle', c: to2(s.cylinder.c), r: s.cylinder.r, convex: s.cylinder.out > 0, n: unit2(v2(n)), u: unit2(v2(u)) } : { kind: 'line', n: unit2(v2(n)), u: unit2(v2(u)) };
-    const regions = cornerRegion(to2(m.p), sec(m.a, m.nA, uA3), sec(m.b, m.nB, uB3), t, false, names);
+    const regions = cornerRegion(to2(m.p), sec(m.a, m.nA, uA3), sec(m.b, m.nB, uB3), t, false, names, join);
     if (!regions.length) return null;
     const s0 = Math.min(dot(P0, d), dot(P1, d)), s1 = Math.max(dot(P0, d), dot(P1, d));
     return { kind: 'line', key: `${keyOf(d, 1e-9)}|${keyOf([s0, s1], q)}`, d, e1, e2, s0, s1, regions };
@@ -323,7 +399,7 @@ function concaveCorner(m: EdgeMeet, curve: Curve, t: number, size: number): Corn
     }
     return { kind: 'line', n: n2, u: u2 };
   };
-  const regions = cornerRegion(E, sec(m.a, m.nA, uA3), sec(m.b, m.nB, uB3), t, true, names);
+  const regions = cornerRegion(E, sec(m.a, m.nA, uA3), sec(m.b, m.nB, uB3), t, true, names, join);
   if (!regions.length) return null;
   // The turn: the edge's whole circle, or its arc from its start through its middle to its end (angles from e1 towards e2).
   const ang = (p: Point) => wrap(Math.atan2(dot(sub(p, ca), e2), dot(sub(p, ca), e1))), a0 = ang(P0), closed = len(sub(P0, P1)) < 1e-9 * size;
@@ -370,7 +446,19 @@ function cornerSolids(corners: readonly Corner[], size: number, id: string): Bre
  * normals at E, and within the wall of both their offsets (outside a convex circle's offset, inside a
  * concave one's, on the near side of a line's). `meridian`: the half-plane ρ ≥ 0 only.
  */
-function cornerRegion(E: XY, A: Section, B: Section, t: number, meridian: boolean, names: string): CurveRegion2[] {
+function cornerRegion(E: XY, A: Section, B: Section, t: number, meridian: boolean, names: string, join: ShellJoin): CurveRegion2[] {
+  if (join === 'arc') {
+    // The round: the disc of the wall about E, beyond both normals.
+    const tol = 1e-9 * Math.max(1, Math.abs(E[0]), Math.abs(E[1]), t);
+    let K = booleanCurveRegions([disc(E, t)], [], 'union', tol);
+    for (const s of [A, B]) {
+      if (!K.length) break;
+      const m: XY = s.kind === 'line' ? s.u : (() => { const w = unit2([-(E[1] - s.c[1]), E[0] - s.c[0]]), sg = w[0] * s.u[0] + w[1] * s.u[1] > 0 ? 1 : -1; return [w[0] * sg, w[1] * sg] as XY; })();
+      K = booleanCurveRegions(ringsOf(K), [halfPlane(E, m, t)], 'intersection', tol);
+    }
+    if (meridian && K.length) K = booleanCurveRegions(ringsOf(K), [halfPlane([0, E[1]], [-1, 0], Math.max(t, Math.abs(E[0]) + t))], 'intersection', tol);
+    return K;
+  }
   // The offsets' meeting point nearest E beyond both normals sizes the square.
   const offsetOf = (s: Section) => s.kind === 'line' ? { kind: 'line' as const, p: [E[0] - t * s.n[0], E[1] - t * s.n[1]] as XY, d: [-s.n[1], s.n[0]] as XY } : { kind: 'circle' as const, c: s.c, r: s.convex ? s.r - t : s.r + t };
   const beyond = (s: Section, x: XY) => s.kind === 'line' ? (x[0] - E[0]) * s.u[0] + (x[1] - E[1]) * s.u[1] <= 1e-9 * t : sideOfRay(s, E, x) <= 1e-9 * t;
@@ -424,6 +512,7 @@ function meet(a: Offset2, b: Offset2): XY[] {
   const x = (A.r * A.r - Bc.r * Bc.r + D * D) / (2 * D), y = Math.sqrt(Math.max(0, A.r * A.r - x * x)), ux = dx / D, uy = dy / D;
   return [[A.c[0] + ux * x - uy * y, A.c[1] + uy * x + ux * y], [A.c[0] + ux * x + uy * y, A.c[1] + uy * x - ux * y]];
 }
+
 
 /** A body turned `span` about local Y placed about the axis (c, a): Y → a, X → the direction `start` from e1 towards e2. */
 function placeTurned(turned: Brep, sid: string, span: number, start: number, c: Point, a: Point, e1: Point, e2: Point): Brep {
