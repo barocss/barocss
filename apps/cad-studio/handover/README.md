@@ -7,6 +7,75 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
+### Kernel lane: hand-over at the R10 → R11 boundary (2026-10-19) — read this block first
+
+The kernel lane continues in a new session at each track boundary (the owner, 2026-10-19; "Two lanes" under the
+roadmap below). This block is that hand-over. R10 is complete; the next kernel session starts R11. Nothing of R11 has
+been started.
+
+**State**
+- Branch `review/cad-gpu-engine-2026-10-14` (the integration branch, local only). The tip is the commit that adds this block (`git log -1 -- apps/cad-studio/handover/README.md`). The last code commit is `1e2d7c13a` (R10.5b, D103), with RB rows in `b2436b5fb`.
+- R10 general fillet and chamfer is done, D87–D103:
+  - S0, then R10.1–R10.4b;
+  - the plane–plane reach fix and the wedge chamfer's ends;
+  - R10.B, the analytic Boolean with coincident tool faces;
+  - R10.5a variable radius and R10.5b conic / G2 sections;
+  - D101 determinism and D102 trimmed-end slivers.
+- Checks at `1e2d7c13a`:
+
+  | Check | Result |
+  |---|---|
+  | Kernel | 1114/1119; only "actual native Split source…" fails, an environment failure |
+  | Conformance | 105/105 |
+  | Studio | 384/384 |
+  | Full browser flow | 138/138 |
+  | RB | 243 cases, 0 new, the 8 known TODOs |
+  | Properties | 11/11 |
+
+- The tree is clean, apart from the earlier review session's untracked drafts (see "Where the work is").
+
+**What R11 (general shell and offset) needs**
+- **Design input:** `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`, sections R11.1–R11.3 and their tests. Run an S0-style feasibility checkpoint first, as R10's S0 did (D87; §4, "before each large step").
+- **Today's shell:**
+  - `part-model.ts` `shellOf` dispatches by how the part was made: an upright body with its edge-finish history, revolved, swept, or a moved copy.
+  - `general-shell.ts` takes the union of a slab per face. It handles planes with line/arc regions, cylinders on rectangular domains and surfaces of revolution trimmed by circles and meridians.
+  - It refuses freeform faces by name: every rolling-ball fillet face (R10.2a on) is one. It also refuses facet (mesh) faces.
+  - No shell history is recorded past a variable-radius fillet (D100) or a conic or G2 one (D103), so a shell after them is refused.
+  - `thicken-solid.ts` has an unchecked fold-over, which R11.3 should replace with a refusal.
+- **Available pieces:**
+  - `local-curvature.ts` and `second-derivatives.ts`: principal curvature, for R11.2's `OFFSET_FOLDS` (t·κmax ≥ 1 on the concave side).
+  - `section-offset.ts`.
+  - The rolling-ball loft (`rolling-ball.ts`, `loftTool`) and its reported deviation, as a pattern for "fit, then report how far off".
+  - The analytic Boolean (R10.B), which the slab union goes through.
+- **Oracles the note lists:**
+  - a hollow sphere, 4/3 π (R³ − (R − t)³);
+  - hole radius < t, and a torus's minor radius < t;
+  - a NURBS bump whose curvature radius is < t;
+  - walls thinner than 2t;
+  - a fillet radius below the wall, which gives a sharp inner corner (closed form);
+  - the enclosure-lip offset that waits on R11.
+
+**Open items carried over** (none blocks R11):
+- Conic and G2 corners (the ball round an edge at a corner) are refused. Rho and tension do not vary along a chain. There is no G2 at a chain's ends (D103).
+- Closed loops round curved paths are only as accurate as the loft's reported deviation (`sectionMM`), not 1e-9: a boss's foot is 3.5e-7 at its default stations (D103).
+- Why HEAD's lens-free station counts were 1e-4 mm³ off before D102 was not traced (D102).
+- No test compares the browser worker with Node (D101).
+- PERF3 C16 review findings: `handover/notes/c16-review-findings.md`.
+
+**How to resume**
+1. Read this block, then D99–D103 in `decisions.md`, then the research note's R11 part.
+2. Set up as in "How to run" below.
+   - Node 22.
+   - `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+   - Kernel: `node --test --test-concurrency=8 test/*.test.mjs`.
+   - Studio: `pnpm test` in `apps/cad-studio`.
+   - The flow, run from `apps/cad-studio`. Don't edit studio files while it runs: vite reloads the page and later steps fail.
+     `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR="$HOME/.cache/barocss-playwright/node_modules/playwright" node test/browser-flow.mjs <out>`
+   - RB: `node scripts/rb/run.mjs --record`, then `node scripts/rb/props.mjs --record`.
+3. **Each step** has a decision record, tests (failing on HEAD where a defect is fixed), conformance fixtures, lint, type-check, the kernel, studio and flow runs, a flow step, a §0 row, a commit, an RB-rows commit, and a checkpoint to the coordinating session. After the checkpoint, end the turn and wait for the go-ahead.
+4. **Ownership.** The kernel core files stay this lane's: `edge-finish`, `part-model`, `analytic-boolean`, `rolling-ball`, `fillet-section`, `brep-*`, `solid-mass`, tessellation. The outer lane asks for changes there through the coordinator. A merge commit from the coordinator on this branch at the start of a turn is the outer lane's work, merged while this lane was idle.
+
+
 The owner's usage ran out on 2026-10-18; work continues from another account. This section is current.
 The sections after it are the older hand-over (2026-10-16/17), kept as history: where they disagree, this one wins.
 
@@ -61,8 +130,17 @@ Done:
 - **PERF3 C17** (D82 § C17): closures hoisted or written out on hot paths (rays, vertex normals, frustum planes, frame sorts, lights, vertex snap, display-edge mates now by face pair, SubD nets); the same results hashed; the AM4 wall-clock test given headroom.
 - **PERF3 D20** (D82 § D20): RB trend and properties rows for HEAD (205 cases, 0 new, the 8 known TODOs); todo.json checked, unchanged. **PERF3 done.**
 
+**Two lanes (owner, 2026-10-19):** "B로 가자. 커널 줄은 트랙 경계마다 새 세션으로 이어 가고, 커널과 무관한 바깥 줄(R11b DXF → R14 → A5 → RM) 구현 세션을 하나 더 띄워서 병렬로 진행해. 합치기는 네가 순서대로 해줘."
+(Go with B: the kernel lane goes on in a new session at each track boundary, and one more implementation session runs the outer lane, which is independent of the kernel, in parallel. The coordinator merges, in order.)
+- **The kernel lane** works on this branch, `review/cad-gpu-engine-2026-10-14`, the integration branch. Its order is R11 → R12 → FR1–FR4 → R12b → R12c → RD / IM / CNC → … It keeps `decisions.md` (D-ids) and this §0.
+  - It is handed over at every track boundary: a hand-over block at the top of §0, a checkpoint, then a fresh session.
+  - It owns the kernel core files (see the hand-over block above).
+- **The outer lane** covers R11b DXF writer → R14 drawings → A5 → RM. It works in its own worktree and branch, cut from this branch's tip.
+  - It keeps its own decision log, `handover/decisions-outer.md` (ids O1, O2, …), and its own §0 subsection.
+- **Merging:** the coordinator merges the outer lane's steps into this branch, in order, only while the kernel lane is idle after a checkpoint with a clean tree. It then runs the checks.
+
 **Next, in this order:**
-1. **R11** general shell/offset (R10.5b, conic / G2 sections, done: D103; R10.5a, variable radius, done: D100) → **R11b DXF writer** → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RM1–RM6 robot kinematics + RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6 → R14 drawings → A5–A8 (DSL/MCP, inputs, multi-agent).
+1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103) → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6. Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics. A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
    - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5 taken as R10's order by its S0, D87; R11.1–R11.3 proposed).
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
    - A7 (multi-agent v1, the Integrator's op patches against a base revision): design input the same note.
@@ -77,7 +155,7 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
 - No functions inside functions on hot paths (per frame, per element, per sample): hoist them to module level.
-- One serial implementation session; parallel agents only for read-only research.
+- Two implementation lanes (above), each serial; parallel agents only for read-only research.
 - Every step:
   - a decision record (`decisions.md`);
   - tests and conformance fixtures;
