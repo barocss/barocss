@@ -197,6 +197,12 @@ export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | '
 }
 
 export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>): Mark[] {
+  if (r.kind === 'pcd') {
+    // A pitch circle (R14.5): the circle in chain line through the holes' centres, a leader to it like a diameter's.
+    const C = toSheet(v, r.center), R = r.radius * v.scale;
+    const asDiameter = { ...r, kind: 'diameter', dim: { ...r.dim, kind: 'diameter', edge: '', near: [0, 0, 0] } } as unknown as Extract<Resolved, { ok: true; kind: 'diameter' }>;
+    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center' }, ...dimensionMarks(v, asDiameter)];
+  }
   const marks: Mark[] = [];
   const place = toSheet(v, r.dim.place);
   if (r.kind === 'angle') {

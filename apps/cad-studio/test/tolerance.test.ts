@@ -76,6 +76,8 @@ test('position values from the fastener data, by the floating and fixed fastener
   assert.deepEqual([holePosition('4× Ø6.6 THRU', 6.6).value, holePosition('4× Ø6.6 THRU', 6.6).estimate], [0.6, false]);
   assert.match(holePosition('Ø6.6 THRU', 6.6).basis, /M6.*medium.*6\.6 − 6/);
   assert.deepEqual([holePosition('Ø5.5 THRU', 5.5).value, holePosition('Ø9 THRU', 9).value, holePosition('Ø3.4 THRU', 3.4).value], [0.5, 1, 0.4]);
+  // Near an ISO 273 hole only: the screw assumed, an estimate (Ø6 is M5's nearest, its coarse hole Ø5.8).
+  const near = holePosition('Ø6 THRU', 6); assert.equal(near.estimate, true); assert.equal(near.value, 1); assert.match(near.basis, /no ISO 273 hole; M5 assumed \(its coarse hole is Ø5\.8\)/);
   // Tapped: (medium clearance − d) / 2 — M6 (6.6 − 6)/2, M8 (9 − 8)/2, M4 (4.5 − 4)/2.
   assert.deepEqual(['M6×1 × 12 DEEP', 'M8×1.25 THRU', 'M4×0.7 × 8 DEEP'].map(c => holePosition(c, 5).value), [0.3, 0.5, 0.25]);
   assert.deepEqual(holePosition('Ø8 THRU', 8), { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true });

@@ -1,0 +1,140 @@
+{
+ "id": "r14-pcd-flange",
+ "step": "R14.5",
+ "decisions": [
+  "O2",
+  "O6"
+ ],
+ "about": "a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      100,
+      100
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      50,
+      50
+     ],
+     "radius": 10,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      80,
+      50
+     ],
+     "radius": 3,
+     "pattern": {
+      "count": 4,
+      "about": [
+       50,
+       50
+      ]
+     },
+     "id": "n3"
+    }
+   ],
+   "nextId": 4,
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {}
+ },
+ "expect": {
+  "dimensions": [
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "100"
+   },
+   {
+    "view": "front",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "10"
+   },
+   {
+    "view": "top",
+    "kind": "diameter",
+    "text": "4× Ø6 THRU"
+   },
+   {
+    "view": "top",
+    "kind": "diameter",
+    "text": "Ø20 THRU"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "horizontal",
+    "text": "50"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "100"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "50"
+   },
+   {
+    "view": "top",
+    "kind": "pcd",
+    "text": "Ø60 PCD · 4× EQ SP"
+   }
+  ],
+  "added": {
+   "overall": 3,
+   "levels": 0,
+   "holePositions": 2,
+   "pitches": 0,
+   "callouts": 3
+  },
+  "skipped": [],
+  "crowded": [
+   "top below"
+  ]
+ },
+ "oracle": "the part’s design values (round numbers), checked by hand against the definitions in decisions-outer.md O2; run by apps/cad-studio/test/auto-dimension.test.ts"
+}

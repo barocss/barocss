@@ -4,7 +4,7 @@
  "decisions": [
   "O2"
  ],
- "about": "six holes on a Ø40 circle: located by their positions, the pitch circle listed as not available; on A4 at 1:1 too crowded below the top view (listed), on A3 not",
+ "about": "six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout",
  "input": {
   "document": {
    "format": "barocss-cad-model",
@@ -85,31 +85,7 @@
     "view": "top",
     "kind": "linear",
     "orient": "horizontal",
-    "text": "20"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "orient": "horizontal",
-    "text": "30"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "orient": "horizontal",
-    "text": "50"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "orient": "horizontal",
-    "text": "60"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "orient": "vertical",
-    "text": "22.68"
+    "text": "40"
    },
    {
     "view": "top",
@@ -121,25 +97,22 @@
     "view": "top",
     "kind": "linear",
     "orient": "vertical",
-    "text": "57.32"
+    "text": "80"
    },
    {
     "view": "top",
-    "kind": "linear",
-    "orient": "vertical",
-    "text": "80"
+    "kind": "pcd",
+    "text": "Ø40 PCD · 6× EQ SP"
    }
   ],
   "added": {
    "overall": 3,
    "levels": 0,
-   "holePositions": 7,
+   "holePositions": 2,
    "pitches": 0,
-   "callouts": 1
+   "callouts": 2
   },
-  "skipped": [
-   "6 holes on a Ø40 circle"
-  ],
+  "skipped": [],
   "crowded": [
    "top below"
   ]

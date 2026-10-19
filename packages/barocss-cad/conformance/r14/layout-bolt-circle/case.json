@@ -4,7 +4,7 @@
  "decisions": [
   "O4"
  ],
- "about": "the bolt-circle plate, crowded on A4 at 1:1 (R14.1): laid out on A4 at 1:2 with room, clean, its Ø6 holes 3 mm on paper",
+ "about": "the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen",
  "input": {
   "document": {
    "format": "barocss-cad-model",
@@ -99,17 +99,7 @@
    {
     "view": "top",
     "kind": "linear",
-    "text": "20"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "text": "22.68"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "text": "30"
+    "text": "40"
    },
    {
     "view": "top",
@@ -119,22 +109,12 @@
    {
     "view": "top",
     "kind": "linear",
-    "text": "50"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "text": "57.32"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
-    "text": "60"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
     "text": "80"
+   },
+   {
+    "view": "top",
+    "kind": "pcd",
+    "text": "Ø40 PCD · 6× EQ SP"
    }
   ]
  },

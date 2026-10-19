@@ -59,8 +59,10 @@ export function holePosition(callout: string | null, diameter: number): { value:
   }
   const s = sizeForHole(diameter);
   if (s && s.fit.fit === 'clearance') {
-    const F = FASTENER_SIZES[s.size].d, T = floor2(diameter - F);
-    if (T > 0) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${s.fit.series}, studio fastener data), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
+    const size = FASTENER_SIZES[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
+    // An ISO 273 hole: the data says which screw. Near one only: the screw is assumed (an estimate, said so).
+    if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, studio fastener data), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
+    if (T > 0) return { value: T, basis: `an estimate: Ø${diameter} is no ISO 273 hole; ${s.size} assumed (its ${series} hole is Ø${H}), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: true };
   }
   return { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true };
 }
@@ -88,8 +90,11 @@ function holeKinds(ctx: IssueContext): HoleKind[] {
  * The linear dimensions locating holes: horizontal or vertical ones along an axis square to the holes' with an end (or a
  * counted pitch's reach) at a hole's position, in their own view — so a dimension shared by holes that line up locates all.
  */
-function locating(ctx: IssueContext, centres: readonly Centre[]): string[] {
+function locating(ctx: IssueContext, given: readonly Centre[]): string[] {
   const out: string[] = [];
+  // (Holes of a pitch circle: the circle itself, and its centre's location, R14.5.)
+  const centres: Centre[] = [...given];
+  for (const r of ctx.sheet.dimensions) if (r.ok && r.kind === 'pcd' && given.some(({ c }) => { const p = inView(ctx.views[r.dim.view], c); return r.members.some(m => Math.abs(m[0] - p[0]) <= SAME && Math.abs(m[1] - p[1]) <= SAME); })) { out.push(r.dim.id); centres.push({ c: r.center3, n: given[0].n }); }
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok || r.kind !== 'linear' || r.dim.orient === 'aligned') continue;
     const k = r.dim.orient === 'horizontal' ? 0 : 1, pr = ctx.views[r.dim.view], step = r.b[k] - r.a[k];

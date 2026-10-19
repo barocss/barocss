@@ -5,7 +5,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
-import type { DrawingDimension } from '../drawing/types';
+import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
 
 type Spec = Record<string, string>;
@@ -167,8 +167,13 @@ const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {
   if ('edge' in d) { const edge = rename(d.edge); return edge === null ? null : { ...d, edge }; }
-  const a = rename(d.a.edge), b = rename(d.b.edge);
-  return a === null || b === null ? null : { ...d, a: { ...d.a, edge: a }, b: { ...d.b, edge: b } } as DrawingDimension;
+  // (A pitch circle's members, and a point at its centre: R14.5.)
+  const ring = (r: readonly CentreRef[]) => { const out = r.map(m => { const e = rename(m.edge); return e === null ? null : { ...m, edge: e }; }); return out.some(m => m === null) ? null : out as CentreRef[]; };
+  if (d.kind === 'pcd') { const r = ring(d.ring); return r ? { ...d, ring: r } : null; }
+  const point = (p: DimPoint): DimPoint | null => { if (p.at === 'pcd') { const r = ring(p.ring ?? []); return r ? { ...p, edge: r[0].edge, ring: r } : null; } const e = rename(p.edge); return e === null ? null : { ...p, edge: e }; };
+  const a = d.kind === 'linear' ? point(d.a) : (() => { const e = rename(d.a.edge); return e === null ? null : { ...d.a, edge: e }; })();
+  const b = d.kind === 'linear' ? point(d.b) : (() => { const e = rename(d.b.edge); return e === null ? null : { ...d.b, edge: e }; })();
+  return a === null || b === null ? null : { ...d, a, b } as DrawingDimension;
 }
 /**
  * Records by body key (`b<k>`, `b<k>_<side>`, keyed by the stable id `n<k>` of the feature that made the body):

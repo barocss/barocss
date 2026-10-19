@@ -13,7 +13,13 @@ export type XY = [number, number];
  * A point of a dimension: an end of an edge (the end nearest `near`, the model point it was picked
  * at) or a circle's centre.
  */
-export interface DimPoint { edge: string; at: 'end' | 'center'; near: Vec3; sig?: Sig; was?: string }
+/** A hole's centre by an edge of its circle (R14.5, O6): a member of a pitch circle. */
+export interface CentreRef { edge: string; near: Vec3; sig?: Sig; was?: string }
+/**
+ * `at: 'pcd'` (R14.5, O6): the centre of the circle through the centres of `ring`'s holes (a bolt circle's centre, which
+ * no edge has); `edge`/`near` are then its first member's.
+ */
+export interface DimPoint { edge: string; at: 'end' | 'center' | 'pcd'; near: Vec3; sig?: Sig; was?: string; ring?: CentreRef[] }
 /** A dimension's tolerance: ± one value, an upper and a lower deviation, or a fit (H7, h6, …). */
 export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviation'; upper: number; lower: number } | { kind: 'fit'; code: string };
 /**
@@ -25,6 +31,8 @@ export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviatio
 export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; basic?: true }) & (
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
   | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
+  /** A pitch circle (R14.5, O6): the circle through the centres of three or more holes, its diameter as `Ø40 PCD`. */
+  | { id: string; view: ViewId; kind: 'pcd'; ring: CentreRef[]; place: XY }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
   | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
 /**
@@ -108,7 +116,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
-    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)).map(x => {
+    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view) && (x.kind !== 'pcd' || ringOk(x.ring)) && (x.kind !== 'linear' || ((x.a?.at !== 'pcd' || ringOk(x.a.ring)) && (x.b?.at !== 'pcd' || ringOk(x.b.ring))))).map(x => {
       const { tol, count, auto, basic, ...rest } = x; const t = readTolerance(tol);
       return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}), ...(basic === true ? { basic: true } : {}) } as DrawingDimension;
     }) : [],
@@ -134,6 +142,8 @@ function readRoom(raw: unknown): ViewRoom | null {
 }
 const isDatum = (d: unknown): d is DrawingDatum => { const x = d as DrawingDatum; return !!x && typeof x.id === 'string' && typeof x.letter === 'string' && /^[A-HJ-NPR-Z]$/.test(x.letter) && VIEW_IDS.includes(x.view) && !!x.edge && typeof x.edge.edge === 'string' && Array.isArray(x.edge.near) && x.edge.near.length === 3 && isXY(x.place); };
 const isFrame = (f: unknown): f is DrawingFrame => { const x = f as DrawingFrame; return !!x && typeof x.id === 'string' && typeof x.dim === 'string' && x.characteristic === 'position' && typeof x.value === 'number' && x.value > 0 && x.value < 100 && Array.isArray(x.datums) && x.datums.length <= 3 && x.datums.every(l => typeof l === 'string' && /^[A-HJ-NPR-Z]$/.test(l)); };
+/** A pitch circle's members: three or more holes, each by an edge name and a point. */
+const ringOk = (ring: unknown): boolean => Array.isArray(ring) && ring.length >= 3 && ring.length <= 360 && ring.every(m => m && typeof m.edge === 'string' && Array.isArray(m.near) && m.near.length === 3);
 const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
 const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);
 function readTolerance(t: unknown): Tolerance | null {

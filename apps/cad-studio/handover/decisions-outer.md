@@ -154,3 +154,32 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Tests: the relations for M3–M10 clearance and tapped holes; modes change only the offer; a user's own general note respected; save and read back; drawn in the SVG, PDF (no missing characters) and DXF; the four new issues; bad datums and frames dropped on reading.
   - A browser-flow step: a plate with a Ø6.6 hole. ± mode offers ±0.21; geometric mode offers three datums, a Ø0.6 position frame and the note; Accept all leaves no suggestion and no issue, with A, B, C, the frame and two basic dimensions on the sheet.
   - Benches: `drawing: tolerance suggestions, 120-hole plate` 1.9 ms (budget 5); the issue list now 1.9 ms with R14.3's segment grid (13.7 ms before; budget 4).
+
+## O6 — R14.5: pitch circles, and the agent's drawing tools (2026-10-19)
+
+- **Pitch circles** (`kind: 'pcd'` dimensions, `at: 'pcd'` dimension points; versioned, read back validated, old files unchanged):
+  - A `pcd` dimension names three or more holes by their circles' edges (`ring`). It resolves to the circle through their centres: the circumcentre of the first three, every member within 1e-6 of its radius, else lost. It reads "Ø40 PCD · 6× EQ SP" (EQ SP when every member is 360°/n from the next round the circle). It is drawn as a chain-line circle through the centres with a leader like a diameter's; in the DXF as lines, an arrow and text (DXF has no pitch-circle dimension type).
+  - A dimension point at `pcd` is that circle's centre, which no edge has, so a linear dimension can locate a bolt circle with nothing at its middle.
+  - The references panel, re-matching and renaming walk every member.
+  - **Auto** finds rings: three or more holes of one kind, evenly round a point, and not a grid. A rectangle's corners are lined up both ways, so they stay positions.
+    - A ring gets its pitch circle (placed like a callout) and its centre's position, not each hole's: by the hole on its centre if there is one (a flange's bore), else by the `pcd` point.
+    - Its angular position is given when a hole lies on a centre line through it (the usual 0°). When none does, it is listed as not placed (an angle to the first hole is not yet a dimension kind).
+  - The **issue list** counts a ring's holes as located when a pitch circle names them and its centre is located both ways.
+  - **Tolerances**: in geometric mode a ring's pitch circle and its centre's dimensions become basic with the frame. In ± mode the pitch circle gets the same ± as the centre's location: a hole's radial error is half the diameter's, so this is tighter than the zone needs, never looser.
+  - The bolt-circle fixtures of R14.1/R14.3 (`bolt-circle`, `bolt-circle-a3`, `layout-bolt-circle`) now read Ø40 PCD · 6× EQ SP and the centre 40/40, in place of six holes' positions; no other case changed. At the R14.1 layout (no room), two leaders below the top view report that side crowded: a reserve that also counts the view's name (the drawing itself has no issue there; R14.3's layout gives the room).
+- **The agent's drawing tools** (`apps/cad-studio/src/chat/drawing.ts`, offered with the part tools):
+  - Reading: `drawing_issues` (the issue list, its fixes, and the sheet: size, scale, views, dimensions, mode) and `tolerance_suggestions` (with basis and the estimate flag; `mode` looks at the other mode without changing it).
+  - Changing: `auto_dimension` (Auto layout and dimensions; `layout: false` dimensions only), `fix_drawing` (Fix all, or only given issue codes), `accept_tolerances` (all, or by id; `mode` first) and `set_drawing` (sheet, a standard scale or auto, projection, views, mode, title).
+  - A drawing change is always the user's (D41). Made directly, it is refused `needs_approval` by the existing gate. The change tools ride as ops of `propose` (they are batchable, not part mutators). The agent may not accept such a proposal at any autonomy; the user accepts it in the studio.
+  - The system prompt says so, and asks the agent to say which tolerances are estimates and which come from the fastener data.
+- **An estimate made explicit** (the R14.4 data): a hole near, but not equal to, an ISO 273 clearance hole (Ø6 for M5, whose coarse hole is Ø5.8) was reported as from the data. Its screw is now said to be assumed, flagged as an estimate; only an exact ISO 273 diameter is "from the data".
+- **Evidence**:
+  - Conformance `conformance/r14/pcd-*` (R14.5 cases in the Auto-dimension runner):
+    - `pcd-flange`: Ø60 PCD · 4× EQ SP about a Ø20 bore located at 50/50.
+    - `pcd-three`: 3× at 120°, Ø40 PCD, centre 40/40.
+    - `pcd-square-grid`: four corners, positions 15/45 each way, no pitch circle.
+    - `pcd-turned`: six turned 15°; its angular position listed.
+  - Each non-crowded R14.1/R14.5 part has no issue after Auto.
+  - `test/chat-drawing.test.ts`: the tools offered with schemas; reading changes nothing; every change tool refused directly (`needs_approval`, the drawing unchanged); a proposal of Auto plus geometric tolerances has risk approval `drawing`, the agent cannot accept it, and the user's acceptance gives the drawing its dimensions (a 3× pitch), datums A B C, a Ø0.6 frame and no issue; through dispatch, layout off, set_drawing (a non-standard scale refused), accepting one suggestion by id (an unknown id refused), and a fix by code.
+  - A browser-flow step: the flange opened from its case file; Auto gives Ø60 PCD · 4× EQ SP, 4× Ø6 THRU, Ø20 THRU, its bore at 50/50, no issue; the DXF holds the pitch circle's text.
+- **R14 done** with this step: R14.1 auto-dimension, R14.2 issue list, R14.3 layout, R14.4 tolerances, R14.5 pitch circles and agent tools. Pending (README): R14.3b, the front view's side; then A5.
