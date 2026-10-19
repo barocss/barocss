@@ -818,3 +818,64 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - **Not reproduced**: the full flow ran 164/164 here with the kernel suite running alongside it, and no page error.
   - The flow now records each page error's first stack lines (`test/browser-flow.mjs`), so the next occurrence names the code that threw.
 
+
+## O22 — RD3: motor and reducer envelopes, source records, the selection solver (2026-10-20)
+
+- **Source records** (`src/robot/actuators.ts`): every catalogue value is `{v, unit, src}`. `src` is one of:
+  - `{page, read, label}`: the product page's URL, the date read and the page's own label for the value;
+  - `{derived}`: how it follows from sourced values;
+  - `{estimate}`: why it is estimated and what would replace it.
+  - Units are as the pages give them (mNm, gcm², rpm/mNm …), converted to SI by one table. An unknown unit is refused.
+- **Read for RD3** (2026-10-20, in the built-in browser): read only, no sign-in, nothing downloaded, non-essential cookies declined. maxon's dialog was answered "Deny". Harmonic Drive's banner offers only "I Accept", which was left unanswered.
+  - **maxon 608131**, EC 45 flat Ø43.5 mm, 60 W (the page marks it NRND). Ten values under the page's labels: nominal voltage; no load speed and current; nominal torque (max. continuous torque); stall torque; speed / torque gradient; torque constant; rotor inertia; max. speed; weight.
+    - Two other maxon part numbers (608141, 608139) and 353519 show no specifications here, so they were not used.
+  - **Harmonic Drive CSG-2A-LW**: 18 component sets, sizes 14–32 at ratios 50–160. Each set's product page gives its ratio, Rated Torque L10, the limits for average, repeated peak and momentary peak torque, the Ave. Input Speed and the mass.
+- **Estimated and flagged.** These values are not on the HTML pages; the catalogue is a PDF.
+  - The values: the rated input speed, the L10 life the rated torque is given for, the maximum input speed, the wave generator's inertia, and the efficiency (70 %, which varies with speed, load and temperature).
+  - Each estimate says so in its record, every check says whether its limit is `page`, `estimate` or `rule`, and the tool lists the chosen pair's estimates with why.
+  - The inertia-ratio limit of 10 is a rule of thumb (`rule`), and can be set.
+- **The model**, stated in the tool's `model` line:
+  - rigid;
+  - motor torque `τ_m = τ/(N η) + (J_m + J_in) N q̈ + T_f sgn q̇`, with η dividing in every quadrant (conservative);
+  - friction `T_f = I_0 k_t`, from the page's no-load current and torque constant;
+  - q̇'s sign is the move's, including its one-sided limit at the ends;
+  - motor speed `N |q̇|`.
+- **The cycle**: the move out, a dwell at the end, the move back and a dwell at the start, repeated. The dwells hold the static torque exactly, with no friction at rest.
+- **The checks**:
+  - motor:
+    - the RMS over the cycle ≤ the nominal (max. continuous) torque;
+    - |τ_m| ≤ the torque–speed line `(n_0 − n)/(Δn/ΔM)` at the nominal voltage, at every instant;
+    - speed ≤ max. speed;
+    - load inertia `M_jj(q)/N²` ≤ ratio × (J_m + J_in), with M_jj the largest over the segment ends.
+  - reducer:
+    - |τ| ≤ repeated peak;
+    - input speed ≤ max. input speed;
+    - the speed-weighted cube mean `T_av = (∫ n|τ|³ / ∫ n)^⅓` ≤ the average-torque limit;
+    - `n_av = ∫ n / T_cycle` ≤ Ave. Input Speed;
+    - life `L10 = L_n (T_r/T_av)³ (n_r/n_av)`, checked when a life is asked for.
+  - Not checked: the momentary peak (emergency stops). The actuators' own mass is not added to the links, so each joint is sized alone. A slide is skipped, since there is no linear actuator data yet.
+- **The solver**:
+  - Every motor × reducer pair is checked over the sampled cycle. The feasible pairs are ranked by mass, ties going to the larger least margin.
+  - The lightest is refined: golden section around each segment's worst sample for |τ_m|, the line margin and |τ|. It is then checked again; if it fails, the next pair is taken.
+  - Sampling, stated: 256 samples a segment by its own polynomial, Simpson's rule for the integrals, the dwells exact.
+- **Where**:
+  - tool `size_actuators {to, profile, limits | joint_limits, from?, dwell_s?, life_h?, inertia_ratio_max?, motors?, reducers?, only_given?}`: read, with an output schema; v2 `assembly.size`; a compatible addition.
+  - A caller's entries are refused without a source on every field.
+  - `motion_torques` and `size_actuators` share one argument reader. RD2's `moveTorques` now builds its profile through `moveMotion` / `moveState`, which RD3 reuses, with no change in its results.
+  - No studio UI: the profile limits must be given (as RD2).
+- **Pending until the owner allows the documents** (opening a PDF is a download). The tool names them in `pending_worked_examples`:
+  - the Harmonic Drive CSG-2A / CSF catalogue's gear-selection worked example (cube mean, average input speed, life);
+  - the maxon catalogue's motor-selection example (operating point, RMS, the speed–torque line).
+  - Either one, reproduced, would check the formulas against a published answer. The same documents would replace the five estimated reducer values.
+- **Evidence**: `test/robot-actuators.test.ts` (5 tests).
+  - **The closed forms to 1e-9** on a joint with no gravity load, on a trapezoid out and back with dwells, for two reducers. The checks: the motor RMS `√(2(t_a(A+T_f)² + t_v T_f² + t_a(A−T_f)²)/T_c)`, the line `A + T_f − (n_0 − N v)/(Δn/ΔM)`, the speeds, the inertia ratio, the peak `J a`, `T_av = J a (v t_a/d)^⅓`, `n_av = 2dN/T_c` and L10.
+  - An S-curve's RMS against a dense independent sum (RNEA at 20 000 points a segment), to 1e-7.
+  - **The dwell's share is exact** on a gravity-loaded joint: RMS²·T_c grows by `dwell (τ_hold(q1)² + τ_hold(q0)²)/(N η)²`, to 1e-9. The cube mean is unchanged; the mean speed scales with the cycle.
+  - **The choice is the lightest that passes.** On a heavy one-joint arm (10 kg at 300 mm), with a test motor whose every value is a flagged estimate, the solver picks CSG-17-120. An enumeration one pair at a time shows every lighter set fails a check of its own: the three size 14s and the lower-ratio 17s. A longer life rejects at least as many.
+  - **Every catalogue value is sourced**: a page (maxon or Harmonic Drive URL, 2026-10-20, a label) or an estimate with why.
+    - Each reducer's page values come from its own page.
+    - The torque limits are in the pages' order.
+    - The motor page's values hold together: k_t × stall current ≈ stall torque within 1 %; n_0/(Δn/ΔM) ≈ stall torque within 3 %.
+  - The tool, its refusals (no source, an unknown unit, nothing to choose from, no limits) and a slide skipped. The conformance case `conformance/rm/size-1r` is written from the closed forms.
+  - Browser flow 165/165, with a step "RD3" just before the last. `size_actuators` runs through the real chat and tool servers on the size-1r case, and the move's and cycle's times are as the closed form has them. Studio 531/531.
+  - Bench: sizing the 12-link arm's 11 joints over the 18 pairs (an S-curve out and back, refined) takes 735 ms (budget 2000). The refinement is most of it: an RNEA per probe for one joint.

@@ -13,7 +13,7 @@ import type { JointTree } from './joints';
 import { applyTo, forwardKinematics, type Motion } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
 import { pathOf } from './sweep';
-import { onSegment, sCurve, trapezoid, ProfileError, type ProfileKind, type Segment } from './profile';
+import { onSegment, sCurve, trapezoid, ProfileError, type Profile, type ProfileKind, type Segment } from './profile';
 
 export const STANDARD_GRAVITY = 9.80665;
 /** A link's mass (kg) and its centre of mass at home (world, mm). */
@@ -184,6 +184,23 @@ export interface MoveTorques {
   sampling: string;
 }
 const SAMPLES_PER_SEGMENT = 256;
+/** A straight move on one profile on the path parameter s ∈ [0, 1]; null profile when nothing moves. */
+export interface MoveMotion { keys: string[]; q0: Readonly<Record<string, number>>; dq: Record<string, number>; profile: Profile | null }
+/** The move's profile: its limits the tightest over the joints (each joint's limit over its share |Δq|). */
+export function moveMotion(tree: JointTree, q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>, kind: ProfileKind, limits: (key: string) => MoveLimits): MoveMotion {
+  const keys = coordinates(tree), dq = Object.fromEntries(keys.map(k => [k, (q1[k] ?? 0) - (q0[k] ?? 0)]));
+  let v = Infinity, a = Infinity, jk = Infinity;
+  for (const k of keys) { const D = Math.abs(dq[k]); if (!D) continue; const l = limits(k); v = Math.min(v, l.velocity / D); a = Math.min(a, l.acceleration / D); jk = Math.min(jk, (l.jerk ?? Infinity) / D); }
+  if (!Number.isFinite(v)) return { keys, q0, dq, profile: null };
+  if (kind === 's-curve' && !Number.isFinite(jk)) throw new ProfileError('an S-curve needs a jerk limit for each moving joint');
+  return { keys, q0, dq, profile: kind === 'trapezoid' ? trapezoid(1, v, a) : sCurve(1, v, a, jk) };
+}
+/** The joints' values, rates and accelerations at time t within one segment of the move (by its own polynomial). */
+export function moveState(m: MoveMotion, seg: Segment, t: number): { q: Record<string, number>; qd: Record<string, number>; qdd: Record<string, number> } {
+  const s = onSegment(seg, t), q: Record<string, number> = {}, qd: Record<string, number> = {}, qdd: Record<string, number> = {};
+  for (const k of m.keys) { q[k] = (m.q0[k] ?? 0) + s.s * m.dq[k]; qd[k] = s.v * m.dq[k]; qdd[k] = s.a * m.dq[k]; }
+  return { q, qd, qdd };
+}
 /**
  * The torques of a straight move from q0 to q1 under a profile: one profile on the path parameter s ∈ [0, 1], its
  * limits the tightest over the joints (each joint's limit over its share |Δq|), so every joint stays within its own;
@@ -191,15 +208,10 @@ const SAMPLES_PER_SEGMENT = 256;
  * motion is a polynomial), the largest |τ| refined by golden section between its neighbours, the RMS by Simpson's rule.
  */
 export function moveTorques(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>, kind: ProfileKind, limits: (key: string) => MoveLimits, g: V3 = [0, 0, -STANDARD_GRAVITY]): MoveTorques {
-  const keys = coordinates(tree), dq = Object.fromEntries(keys.map(k => [k, (q1[k] ?? 0) - (q0[k] ?? 0)]));
-  let v = Infinity, a = Infinity, jk = Infinity;
-  for (const k of keys) { const D = Math.abs(dq[k]); if (!D) continue; const l = limits(k); v = Math.min(v, l.velocity / D); a = Math.min(a, l.acceleration / D); jk = Math.min(jk, (l.jerk ?? Infinity) / D); }
-  if (!Number.isFinite(v)) { const zero = Object.fromEntries(keys.map(k => [k, { peak: 0, rms: 0, atPeak: 0, distance: 0, vPeak: 0, aPeak: 0, jPeak: 0 }])); return { kind, duration: 0, joints: zero, sampling: 'no motion' }; }
-  if (kind === 's-curve' && !Number.isFinite(jk)) throw new ProfileError('an S-curve needs a jerk limit for each moving joint');
-  const prof = kind === 'trapezoid' ? trapezoid(1, v, a) : sCurve(1, v, a, jk);
-  const state = (seg: Segment, t: number) => { const s = onSegment(seg, t); return { q: Object.fromEntries(keys.map(k => [k, (q0[k] ?? 0) + s.s * dq[k]])), qd: Object.fromEntries(keys.map(k => [k, s.v * dq[k]])), qdd: Object.fromEntries(keys.map(k => [k, s.a * dq[k]])) }; };
+  const motion = moveMotion(tree, q0, q1, kind, limits), { keys, dq } = motion, prof = motion.profile;
+  if (!prof) { const zero = Object.fromEntries(keys.map(k => [k, { peak: 0, rms: 0, atPeak: 0, distance: 0, vPeak: 0, aPeak: 0, jPeak: 0 }])); return { kind, duration: 0, joints: zero, sampling: 'no motion' }; }
   // (Each segment by its own polynomial: at its ends one-sided, so a jump in acceleration is on the right side of the RMS.)
-  const tauAt = (seg: Segment, t: number) => { const x = state(seg, t); return rnea(tree, bodies, x.q, x.qd, x.qdd, g); };
+  const tauAt = (seg: Segment, t: number) => { const x = moveState(motion, seg, t); return rnea(tree, bodies, x.q, x.qd, x.qdd, g); };
   const out: MoveTorques['joints'] = {};
   for (const k of keys) out[k] = { peak: 0, rms: 0, atPeak: 0, distance: dq[k], vPeak: prof.vPeak * Math.abs(dq[k]), aPeak: prof.aPeak * Math.abs(dq[k]), jPeak: prof.jPeak * Math.abs(dq[k]) };
   const sq: Record<string, number> = Object.fromEntries(keys.map(k => [k, 0]));
