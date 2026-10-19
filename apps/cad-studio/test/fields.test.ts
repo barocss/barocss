@@ -29,6 +29,7 @@ function full(): StudioDoc {
     direct: { sources: { s: 'cube' }, objects: [] }, instances: [{ id: 'i1', name: 'pin', doc: rectanglePart(4, 4, 10), position: [0, 0, 20], rotation: [0, 0, 0] }],
     drawing: defaultDrawing(), bodies: { b2: { color: '#ff0000', faceSigs: {}, facesWas: {} } },
     mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top', sig: { k: 'plane', p: [0, 0, 8], d: [0, 0, 1], s: 0 } }, b: { part: 'i1', face: 'n1.bottom' } }],
+    robot: { version: 1, base: 'i1', joints: { 'base~i1': { lower: -1, upper: 1 } } },
     requirements: [{ id: 'R1', source: '40 long', hard: true, basis: 'assumed', confirmed: { by: 'user', at: '2026-10-18T00:00:00Z' }, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } }],
     proposals: [{ id: 'P1', title: 'thicker', status: 'rejected', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', base: '00000000', ops: [], summary: 'no change',
       risk: { level: 'low', features_touched: 0, references_broken: 0, hard_requirements_changed: [], approval: [] } }],

@@ -1,6 +1,8 @@
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
+import type { RobotSettings } from '../robot/joints';
+
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
 /** `part<k>`: solid k of an imported STEP file that holds several (see the import node's `solids`). */
@@ -246,6 +248,8 @@ export interface StudioDoc {
   bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
+  /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
+  robot?: RobotSettings;
   /** The brief as requirements with executable checks (chat/spec.ts). */
   requirements?: Requirement[];
   /** Changes agents proposed without making them, accepted or rejected ones kept (chat/proposals.ts). */
@@ -324,7 +328,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

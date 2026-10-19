@@ -959,6 +959,60 @@
    }
   },
   {
+   "name": "get_joints",
+   "annotations": {
+    "title": "Get joints",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "base": {
+      "type": "string"
+     },
+     "couplings": {
+      "type": "array"
+     },
+     "joints": {
+      "type": "array"
+     },
+     "links": {
+      "type": "array"
+     },
+     "loops": {
+      "type": "array"
+     },
+     "notes": {
+      "type": "array"
+     },
+     "problems": {
+      "type": "array"
+     },
+     "version": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "version",
+     "base",
+     "links",
+     "joints",
+     "loops",
+     "couplings",
+     "problems",
+     "notes"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "get_part_summary",
    "annotations": {
     "title": "Get part summary",
@@ -2015,6 +2069,34 @@
        "type": "string"
       },
       "type": "array"
+     }
+    },
+    "type": "object"
+   }
+  },
+  {
+   "name": "set_joints",
+   "annotations": {
+    "title": "Set joints",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "base": {
+      "type": "string"
+     },
+     "joints": {
+      "additionalProperties": {
+       "type": [
+        "object",
+        "null"
+       ]
+      },
+      "type": "object"
      }
     },
     "type": "object"

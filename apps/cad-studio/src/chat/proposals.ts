@@ -96,6 +96,7 @@ export function approvalOf(a: StudioDoc, b: StudioDoc): string[] {
   if (!same(a.instances, b.instances)) out.push('assembly');
   if (!same(a.mates, b.mates)) out.push('mates');
   if (!same(a.drawing, b.drawing)) out.push('drawing');
+  if (!same(a.robot, b.robot)) out.push('robot');
   const was = new Map((a.instances ?? []).map(i => [i.id, i]));
   if ([...(b.instances ?? []), ...(a.instances ?? [])].some(i => (i.part?.source || was.get(i.id)?.part?.source) && !same(was.get(i.id), (b.instances ?? []).find(x => x.id === i.id)))) out.push('locked part');
   return out;

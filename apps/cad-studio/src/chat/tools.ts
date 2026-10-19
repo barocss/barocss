@@ -12,6 +12,7 @@ import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageT
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { GROUPS, v1Call, viaV2 } from './groups';
+import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
@@ -115,7 +116,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
 const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
@@ -306,6 +307,12 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
   if (name === 'describe') { const d = describe(isObj(input) ? input : {}); return 'error' in d ? fail(state, String(d.error)) : { state, content: json(d), isError: false, changed: false, summary: 'described' }; }
   const args = isObj(input) ? input : {};
+  // (The robot, RM1: the assembly's joint tree and its settings.)
+  if (ROBOT_TOOL_NAMES.has(name)) {
+    const out = await runRobotTool(state.doc, state.bodies, name, args, evaluate);
+    if ('error' in out) return fail(state, out.error);
+    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+  }
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
     const out = await runAssemblyTool(state, name, args, evaluate);
     return { state: { ...state, doc: out.doc }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
@@ -345,7 +352,7 @@ export function autonomy(): 1 | 2 | 3 | 4 {
   return n === 1 || n === 3 || n === 4 ? n : 2;
 }
 // (add_library changes no model: it adds data to the document, marked as the agent's until a person confirms it.)
-const ASSEMBLY_CHANGES = new Set(['add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part']);
+const ASSEMBLY_CHANGES = new Set(['set_joints', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part']);
 /** Whether a call changes the part (requirements are the brief, not the part; a dry run changes nothing). */
 function changesPart(name: string, input: unknown): boolean {
   if (name === 'set_requirements' || name === 'accept_proposal') return false;
@@ -1204,6 +1211,7 @@ for (const t of PART_TOOLS) if (MUTATORS.has(t.name) && t.name !== 'set_requirem
 export const TOOLS: ToolDefinition[] = [
   ...PART_TOOLS.map(t => t.name === 'select' ? t : { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: { type: 'string', description: 'The part to work on: an instance id from add_part (default "base", the document\'s own part).' } } } }),
   ...ASSEMBLY_TOOLS,
+  ...ROBOT_TOOLS,
 ];
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
@@ -1218,7 +1226,7 @@ For the part's 2D drawing: drawing_issues and tolerance_suggestions read it; aut
 
 A picture that is not an engineering drawing — a character, mascot, logo or icon bitmap — has been traced for you: get_image_layers lists its silhouette and colour regions, and extrude_image_layer turns them into solids at one shared scale. Unless the user asks otherwise, make a relief of it: the silhouette as a base about 3–5 mm thick at a size that suits the request (around 60 mm wide if none is given), then the colour layers that carry the character's features raised 0.6–2 mm on top of the base (base = the base's thickness), the small dark details (eyes, outlines) highest. Skip layers that are just the main body colour or the background. When the user wants it three-dimensional or "realistic" (a figure, toy, plush, 실사화), use inflate_image_layer: the silhouette as a rounded body (depth about 35–50 % of its width; orientation "standing" for a figure that stands up), then the features as bumps on it (eyes, nose, muzzle, cheeks; 1–4 mm), each from its colour layer — leave out the body colour itself and thin outline strokes. Add what the picture implies but a silhouette cannot show — a flat base to stand on, a separate inflated part — with the other tools, sized from the picture's proportions; spheres are a revolved half-circle loop (add_features: a loop sketch of a line and an arc, revolved 360° about its axis). Say which approach you took.
 
-For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly. Assembly changes always need the user's approval, so you propose them: build the main or fixed part as the base part directly, then propose the rest — ops that add each other part with add_part (ids p1, p2, … in order) and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read the proposal's result: what each part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly once the user has accepted it.
+For a machine, mechanism or anything made of several parts (a gearbox, a hinge, a vice, a robot arm, furniture), make an assembly. Assembly changes always need the user's approval, so you propose them: build the main or fixed part as the base part directly, then propose the rest — ops that add each other part with add_part (ids p1, p2, … in order) and build it with the part tools and "part": its id, in its own coordinates (so a shaft is modelled along its own Z, centred), then place it with mates — concentric for shafts in bores and pins in holes, coincident or distance for faces that sit on each other, angle for set orientations — and read the proposal's result: what each part can still do, or why a mate was refused. Copy repeated parts with add_part copy_of. Check the whole with get_assembly once the user has accepted it. For a robot or a mechanism that moves, get_joints reads the assembly as links and joints from its base link (what each pair's mates leave free); set its base link and joint limits with set_joints, as ops of propose.
 
 For a smooth, organic shape (a handle, a mouse shell, a bottle), start from run_command subd-box, subd-torus or subd-tube and shape its cage: subd_select finds faces (by the way they face, or a box), vertices, loops and rings, and the open edges; subd_extrude, subd_insert_loop (its "t" places a holding loop near an edge, for a tighter rounding) and subd_move shape it; subd_crease makes edges sharp; subd_fill, subd_bridge, subd_weld and subd_delete mend or open it; subd_cage reports its validation. Moving vertices is a value edit; changing the cage's topology is proposed for the user.
 

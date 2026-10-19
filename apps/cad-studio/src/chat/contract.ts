@@ -44,6 +44,7 @@ const READ: Record<string, JsonSchema | null> = {
   get_assembly: o({ base: obj, instances: arr, mates: arr, note: str }, ['base']),
   list_library: o({ libraries: arr, note: str }, ['libraries']),
   check_printability: o({ direction: { type: ['object', 'null'] }, rules: arr }, ['rules']),
+  get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
 };
 /** Changes that only add (a feature, a part, a mate, a proposal, a library): nothing there before is altered. */
 const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
@@ -52,7 +53,7 @@ const ALTERS: Record<string, boolean> = {
   edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
-  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true,
+  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,
 };
 
 const titleOf = (name: string) => name.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());

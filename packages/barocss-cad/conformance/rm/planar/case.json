@@ -1,0 +1,192 @@
+{
+ "case": "planar",
+ "step": "RM1",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      100,
+      40
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      20,
+      20
+     ],
+     "radius": 5,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      80,
+      20
+     ],
+     "radius": 5,
+     "id": "n3"
+    }
+   ],
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   },
+   "nextId": 4,
+   "instances": [
+    {
+     "id": "slider",
+     "name": "slider",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "id": "n1"
+       }
+      ],
+      "outputs": {
+       "b1": {
+        "node": 1,
+        "side": "solid"
+       }
+      },
+      "nextId": 2
+     },
+     "position": [
+      0,
+      0,
+      30
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "mates": [
+    {
+     "id": "m1",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.top"
+     },
+     "b": {
+      "part": "slider",
+      "face": "n1.bottom"
+     }
+    }
+   ]
+  }
+ },
+ "expect": {
+  "base": "base",
+  "links": [
+   "base",
+   "slider",
+   "slider__1",
+   "slider__2"
+  ],
+  "joints": [
+   {
+    "key": "base~slider#0",
+    "type": "prismatic",
+    "parent": "base",
+    "child": "slider__1",
+    "axis": [
+     1,
+     0,
+     0
+    ],
+    "origin": [
+     0,
+     0,
+     10
+    ]
+   },
+   {
+    "key": "base~slider#1",
+    "type": "prismatic",
+    "parent": "slider__1",
+    "child": "slider__2",
+    "axis": [
+     0,
+     1,
+     0
+    ],
+    "origin": [
+     0,
+     0,
+     10
+    ]
+   },
+   {
+    "key": "base~slider#2",
+    "type": "continuous",
+    "parent": "slider__2",
+    "child": "slider",
+    "axis": [
+     0,
+     0,
+     1
+    ],
+    "origin": [
+     0,
+     0,
+     10
+    ]
+   }
+  ],
+  "loops": [],
+  "problems": [],
+  "couplings": 0
+ }
+}
