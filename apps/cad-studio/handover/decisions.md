@@ -4728,5 +4728,30 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
     - A flow step opens a box and fillets its top edge 1→3 in the UI (−37.20 mm³).
 - **Found, not fixed (follow-ups):**
   - The trimmed-end sliver above: a Boolean end case, not this step's.
-  - Within one process, the same fillet at the same fixed station count gave different results depending on what ran before (seen at 342 stations). Some state outlives an evaluation; that is a determinism defect to find.
+  - ~~Within one process, the same fillet at the same fixed station count gave different results depending on what ran before (seen at 342 stations).~~ A misdiagnosis: the runs compared were at 342 and 350 stations. There is no order dependence (D101); the station-count sensitivity is the trimmed-end sliver above.
 - **Next:** R10.5b (conic / G2 sections), then R11.
+
+## D101 — determinism: no state outlives an evaluation (the "order dependence" of D100 was a misdiagnosis) (2026-10-19)
+
+- **The report (D100):** the same variable-radius fillet at the same fixed station count seemed to give different results depending on what the process had run before ("seen at 342").
+  - Reproduced as asked (A, then B, then A, compared to the bit), it does not occur.
+  - The two runs compared were at different counts: the test's "twice the stations" was 2 × 175 = 350, and the script it was checked against ran 342.
+  - At 350 (and 200) the groove's run past leaves a two-vertex sliver at its trimmed end and loses 1e-4 mm³. At 342, 300, 400 and 600 it does not.
+  - Each count gives one result, to the bit, in any order: 200 and 350 always 8983.117241379, 342 always 8983.117143146.
+  - The station-count sensitivity is real, and it is D100's follow-up (the Boolean's trimmed-end sliver). It is not state.
+- **Checked, all to the bit** (vertex coordinates hashed, face counts, volumes):
+  - every conformance case (109) and every RB corpus part (131), each evaluated in order, in reverse and again, in one process: 0 differ;
+  - the D97/R10.B step foot at 12 radii, in one process and each alone: identical (the R10.B-time observation that r 11 built only in a sequence can no longer be reproduced; the code it ran on is gone);
+  - the variable-radius groove at 200, 342 and 350 interleaved with other models.
+- **Module-level state reviewed** (`src/*.ts`). None of it can change a result:
+  - **Per-object WeakMaps** (keyed by B-reps, faces, curves, segments, surfaces, libraries, parameters): `contactCuts`, `sampled` (analytic-boolean, curved-arrangement), `areas`, `denseSampled`, `ruledFrames`, `quadratures`, `polyhedral`, `faceGeometries`, `meshes`, `built` (facet BVH), `crossings`, `builds`, `checkedArrays`, `arrayHashes` and modeling's four. They hold derived values of immutable inputs.
+  - **Keyed LRUs:**
+    - the spur-gear pair and rack checks, keyed by both specs (widths left out and the width-dependent ratios redone, as documented);
+    - SubD's `keptCaps`, keyed by the local cage's exact positions, faces and creases, with the size-dependent conditions re-checked per call;
+    - part-model's long-text ids, a memo key only (a miss, never a wrong reuse);
+    - the evaluation cache, which is per document and handed on by `withDocument`.
+  - **Scratch buffers** fully written before read: `faceScratch`, mesh-decimate's `place`, facet BVH's `stack`, SubD's evaluation vectors.
+  - **Test hooks:** `fixedStations` (`setRingStations`), the traces, `facetLimit`, `observationTolerance`, all reset by their tests.
+- **Kept:** `packages/barocss-cad/test/determinism.test.mjs`. Eight models are evaluated in order, in reverse and again, and must match to the bit: the groove at 200, 342 and its default count, R10.B's capped step foot, a rounded box, the mitred L-plate top, the cone rim and a gear pair.
+- **Not covered:** the browser worker against Node. The kernel is the same code in both, but no test runs one model in both and compares them.
+- **Next:** R10.5b. The trimmed-end sliver (D100) remains a follow-up.
