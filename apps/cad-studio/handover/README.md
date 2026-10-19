@@ -14,8 +14,8 @@ roadmap below). This block is that hand-over. R10 is complete; the next kernel s
 been started.
 
 **State**
-- Branch `review/cad-gpu-engine-2026-10-14` (the integration branch, local only). The tip is the commit that adds this block (`git log -1 -- apps/cad-studio/handover/README.md`). The last code commit is `1e2d7c13a` (R10.5b, D103), with RB rows in `b2436b5fb`.
-- R10 general fillet and chamfer is done, D87–D103:
+- Branch `review/cad-gpu-engine-2026-10-14` (the integration branch, local only). The tip is the commit that adds this block (`git log -1 -- apps/cad-studio/handover/README.md`). The last code commits are `1e2d7c13a` (R10.5b, D103), with RB rows in `b2436b5fb`, and the D104 tessellation fix after it (see below).
+- R10 general fillet and chamfer is done, D87–D103 (and D104, a tessellation fix at the boundary):
   - S0, then R10.1–R10.4b;
   - the plane–plane reach fix and the wedge chamfer's ends;
   - R10.B, the analytic Boolean with coincident tool faces;
@@ -55,6 +55,8 @@ been started.
   - a fillet radius below the wall, which gives a sharp inner corner (closed form);
   - the enclosure-lip offset that waits on R11.
 
+**Fixed at the boundary (D104):** the bench regression the outer lane found, "tessellate: SubD body of a ~2k-face cage", 7 s against a 2 s budget. D91 had raised the tessellation's flip-pass cap to 50 + n, and flat triangles flipping into flat triangles cycled to that cap. Now a flat triangle is flipped only if fewer stay flat. The bench is 659 ms and the mesh is the same to the bit.
+
 **Open items carried over** (none blocks R11):
 - Conic and G2 corners (the ball round an edge at a corner) are refused. Rho and tension do not vary along a chain. There is no G2 at a chain's ends (D103).
 - Closed loops round curved paths are only as accurate as the loft's reported deviation (`sectionMM`), not 1e-9: a boss's foot is 3.5e-7 at its default stations (D103).
@@ -86,7 +88,7 @@ The sections after it are the older hand-over (2026-10-16/17), kept as history: 
 | Worktree | `.claude/worktrees/barocss-cad-gpu-review-efbb2c` |
 | HEAD at hand-over | the commit that adds this section (`git log -1 -- apps/cad-studio/handover/README.md`); last code commit `2831d318a` (PERF3 A6) |
 | Uncommitted, not ours | `REVIEW-2026-10-14-cad-gpu.md`, `review-drafts/`, `packages/barocss-gpu/src/engine-uv-material-wgsl.ts`, `.claude/`: the earlier review session's drafts — keep, do not commit or delete |
-| Decision log | `handover/decisions.md`, D1–D103 (D82 = PERF3, with sections A1–A6; D84 = R8.3 and the owner's pipe clamp; D85 = R9 QEM decimation; D86 = R10a side ids; D87 = R10 S0; D88 = R10.1; D89 = R10.2a; D90 = R10.2b; D91 = mass on trimmed patches; D92 = R10.3a; D93 = R10.3b; D94 = R10.3c; D95 = R10.4a; D96 = R10.4b; D97 = the plane–plane reach past a round; D98 = the wedge chamfer's ends; D99 = R10.B; D100 = R10.5a variable radius; D101 = determinism; D102 = no sliver at a trimmed end; D103 = R10.5b conic / G2 sections) |
+| Decision log | `handover/decisions.md`, D1–D104 (D82 = PERF3, with sections A1–A6; D84 = R8.3 and the owner's pipe clamp; D85 = R9 QEM decimation; D86 = R10a side ids; D87 = R10 S0; D88 = R10.1; D89 = R10.2a; D90 = R10.2b; D91 = mass on trimmed patches; D92 = R10.3a; D93 = R10.3b; D94 = R10.3c; D95 = R10.4a; D96 = R10.4b; D97 = the plane–plane reach past a round; D98 = the wedge chamfer's ends; D99 = R10.B; D100 = R10.5a variable radius; D101 = determinism; D102 = no sliver at a trimmed end; D103 = R10.5b conic / G2 sections; D104 = the tessellation's flat-flip cycle) |
 | Conformance fixtures | `packages/barocss-cad/conformance/` (`r5/`, `r6/`, `r7/`, …; superseded cases carry `supersededBy`) and the RB corpus `packages/barocss-cad/corpus/` |
 | Coordination hand-over | `handover/notes/coordination-2026-10-18.md`: the owner's coordinating session's direction and research decisions, the "why" (copied from `.claude/worktrees/amazing-euler-c18b94/HANDOVER-coordination-2026-10-18.md`) |
 

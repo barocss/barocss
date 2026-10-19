@@ -845,7 +845,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     const dx = X(d), dy = Y(d), r0x = X(a) - dx, r0y = Y(a) - dy, r1x = X(b) - dx, r1y = Y(b) - dy, r2x = X(c) - dx, r2y = Y(c) - dy;
     return (0 + (r0x * r0x + r0y * r0y) * (r1x * r2y - r1y * r2x) + (r1x * r1x + r1y * r1y) * (r2x * r0y - r2y * r0x) + (r2x * r2x + r2y * r2y) * (r0x * r1y - r0y * r1x)) / 3;
   };
-  const flat3 = (t: number) => { const [a, b, c] = tris[t], l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
+  const flatOf = (a: number, b: number, c: number) => { const l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
+  const flat3 = (t: number) => { const [a, b, c] = tris[t]; return flatOf(a, b, c); };
   const flipAll = () => {
     for (let pass = 0, changed = true; changed && pass < 50 + tris.length; pass++) {
       changed = false;
@@ -861,6 +862,10 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
         if (!isFlat && incircle(x, y, c, d) <= 1e-9 * scale2) continue;
         const lcd2 = len2(c, d) ** 2;
         if (orient(c, x, d) <= 1e-12 * lcd2 || orient(d, y, c) <= 1e-12 * lcd2) continue;
+        // (A flat triangle is flipped only if that leaves fewer flat ones: among points on one line — a long straight
+        // boundary sampled finely, a SubD face's — flat triangles flip into flat triangles for ever, and every pass
+        // up to the cap went round that cycle: a ~2k-face cage's tessellation 1 → 7 s.)
+        if (isFlat && (+flatOf(c, x, d) + +flatOf(d, y, c)) >= 1 + +flat3(o)) continue;
         unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
         }
       }

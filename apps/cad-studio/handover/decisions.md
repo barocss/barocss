@@ -4826,3 +4826,23 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
   - Variable rho or tension along the chain.
   - G2 continuity at the chain's ends, which are square or clipped as before.
 - **Next:** R11 (general shell and offset), as §0 lists it.
+
+## D104 — the tessellation's flat-flip cycle: a SubD bench 7 s → 0.7 s (2026-10-19)
+
+- **The report** (the outer lane, through the coordinator, on the D102 tip `4055ec1d9`): the studio bench "tessellate: SubD body of a ~2k-face cage" ran 7.04 s and 7.05 s against its 2 s budget. PERF3 A5 (D82) had it at about 1 s. Reproduced at `cc1e16fee`: 7.0 s, the same in three runs.
+- **Bisect, by profile and history:** 44 % of the time was in `flipAll` (`brep-tessellate.ts`), 70 % with its helpers.
+  - Since PERF3 A5, one commit touched that file: `889ce7bec` (D91/D92). It raised the Lawson flips' pass cap from 50 to 50 + the triangle count.
+  - Counted per call on this body: 48 of 504 `flipAll` calls ran exactly to the cap, 1 644 passes at most.
+  - Every flip in those passes was a flat triangle flipping into flat triangles: about 91 000 of them.
+  - **The cause:** a flat triangle (three points on one line) is flipped "whenever it can be". Among points on one line (a SubD face's long straight boundary, sampled finely), flat triangles flip into flat triangles for ever. Under the old cap that cycle cost 50 passes a face; under D91's cap it cost about n² per face.
+- **The fix:** a flat triangle is flipped only if the flip leaves fewer flat triangles (of t and its neighbour) than before.
+  - The D91 cap stays: D91 needed more than 50 passes on real faces, and those flips are not flat cycles.
+  - No tolerance changed.
+- **Evidence:**
+  - The bench body's mesh is the same to the bit: the positions, normals and indices hash equal. The cycle ended where it began.
+  - The bench is 659 ms (budget 2 000 ms); the other 36 benches in the run were within budget.
+  - `test/tessellate-flips.test.mjs` (new) tessellates the same 18-quads-a-side box cage, built inline. It asserts under 3.5 s and every welded mesh edge used twice.
+    - It fails on HEAD (6 855 ms) and takes 0.7–1.7 s with the fix (1.7 s under the full suite's concurrency).
+    - It is a wall-clock bound, so it has headroom: 7 s against under 1.
+  - Kernel 1118/1123 (only the env-only Split test fails); studio 384/384; full flow 138/138.
+- **Next:** R11 (unchanged); this was a fix at the R10 boundary.
