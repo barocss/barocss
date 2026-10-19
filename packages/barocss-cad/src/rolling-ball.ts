@@ -517,7 +517,7 @@ function stationOn(As: Side[], Bs: Side[], last: [number, number], sigma: number
  * finished) joins the faces `before` and `next` on side `side`; the ball keeps touching `shared`, on the other side.
  */
 export interface CornerInput { readonly after: number; readonly side: 'A' | 'B'; readonly shared: Face; readonly edge: Curve; readonly before: Face; readonly next: Face }
-export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[] }
+export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly noCliffs?: boolean; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[] }
 export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[]; sides: string[] } {
   if (input.corners?.length) return cornerFillet(body, input);
   const { r, id, scaleMM, tolMM } = input, closed = input.closed !== false, sigma = input.convex ? -1 : 1, name = input.names[0];
@@ -546,6 +546,9 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     // (Off its faces: where the last contact's face goes on smoothly across an edge — a round already made — the ball
     // rolls on over it, R10.4a, D95.)
     for (let k = 0; !got && k < 3 && growSides(body, As, Bs, first.at(-1) ?? { a: 0, b: 0 }, !closed, scaleMM); k++) got = solveAt(x, first.at(-1), beside(x));
+    // (Still off them: perhaps at a sharp edge of a face, where the ball rolls on along that edge — the span machinery's,
+    // R10.4b, D96.)
+    if (!got && input.facesOf && !input.noCliffs) return cornerFillet(body, { ...input, corners: [], noCliffs: true });
     if (!got) throw leaves(x);
     first.push({ ...got, s: x });
   }
@@ -758,6 +761,51 @@ export function solveCorner(S: Sheet, sigma: number, r: number, C: Curve, before
   if (!(dot(sub(c, foot), m) > 0) || Math.abs(len(sub(c, foot)) - r) > 1e-9 * size) return null;
   return { c, pS, uvS, nS, foot, t: q[2], m };
 }
+/** F(q) for q = (u, v, t): the ball on S (its centre c) r from the edge C(t), the foot square to C there, its centre in the station's plane. */
+function cliffResidual(S: Sheet, sigma: number, r: number, C: Curve, X: Point, tn: Point, q: readonly number[]): number[] {
+  const c = offsetPoint(S, sigma, r, q[0], q[1]), [t0, t1] = curveDomain(C), t = Math.min(t1, Math.max(t0, q[2]));
+  const e = unit(curveTangent(C, t)), d = sub(c, evaluateCurve(C, t));
+  return [dot(d, e), len(d) - r, dot(sub(c, X), tn)];
+}
+/**
+ * The ball of radius r touching S and the edge C — rolling on along that edge where the face beside it ends (a cliff
+ * edge, R10.4b, D96) — its centre in the plane through X square to tn: Newton in (u, v, t). Null when it does not
+ * converge; `m` the unit way from the foot to the centre.
+ */
+export function solveCliff(S: Sheet, sigma: number, r: number, C: Curve, X: Point, tn: Point, seedS: XY, seedT: number, size: number): { c: Point; pS: Point; uvS: XY; nS: Point; foot: Point; t: number; m: Point } | null {
+  const [t0, t1] = curveDomain(C), clampT = (t: number) => Math.min(t1, Math.max(t0, t)), tol = 1e-12 * size, hs = [10 * S.hu, 10 * S.hv, 1e-7 * (t1 - t0)];
+  let q = [clampU(S, seedS[0]), clampV(S, seedS[1]), clampT(seedT)], f = cliffResidual(S, sigma, r, C, X, tn, q);
+  for (let it = 0; it < 40 && norm(f) > tol; it++) {
+    const J = [0, 1, 2].map(() => [0, 0, 0]);
+    for (let k = 0; k < 3; k++) {
+      const qp = q.map((x, i) => i === k ? x + hs[k] : x), qm = q.map((x, i) => i === k ? x - hs[k] : x);
+      qp[0] = clampU(S, qp[0]); qp[1] = clampV(S, qp[1]); qp[2] = clampT(qp[2]); qm[0] = clampU(S, qm[0]); qm[1] = clampV(S, qm[1]); qm[2] = clampT(qm[2]);
+      const fp = cliffResidual(S, sigma, r, C, X, tn, qp), fm = cliffResidual(S, sigma, r, C, X, tn, qm);
+      for (let i = 0; i < 3; i++) J[i][k] = (fp[i] - fm[i]) / (qp[k] - qm[k]);
+    }
+    let step: number[];
+    try { step = solveDense(J, f.map(x => [-x])).map(x => x[0]); } catch { return null; }
+    if (!step.every(Number.isFinite)) return null;
+    let lambda = 1, nextQ = q, fn = f;
+    for (let k = 0; k < 20; k++) {
+      nextQ = [clampU(S, q[0] + lambda * step[0]), clampV(S, q[1] + lambda * step[1]), clampT(q[2] + lambda * step[2])];
+      fn = cliffResidual(S, sigma, r, C, X, tn, nextQ);
+      if (norm(fn) < norm(f)) break;
+      lambda /= 2;
+    }
+    if (!(norm(fn) < norm(f))) break;
+    q = nextQ; f = fn;
+  }
+  if (!(norm(f) <= 1e-9 * size)) return null;
+  const uvS: XY = [q[0], q[1]], pS = pointOn(S, ...uvS), nS = normalOn(S, ...uvS), c = add(pS, scale(nS, sigma * r)), foot = evaluateCurve(C, q[2]);
+  return { c, pS, uvS, nS, foot, t: q[2], m: unit(sub(c, foot)) };
+}
+/** Whether a ball's way from its foot on an edge (`m`) lies within the wedge outside the edge's two faces (normals n1, n2, σ as for the ball), off both. */
+function withinWedge(m: Point, n1: Point, n2: Point, sigma: number, slack = 1e-9): boolean {
+  const a = scale(n1, sigma), b = scale(n2, sigma), w = Math.acos(Math.max(-1, Math.min(1, dot(a, b))));
+  const ta = Math.acos(Math.max(-1, Math.min(1, dot(m, a)))), tb = Math.acos(Math.max(-1, Math.min(1, dot(m, b))));
+  return ta < w - slack && tb < w - slack && Math.abs(ta + tb - w) < 1e-6;
+}
 /** A corner ball as a station: its contacts on sides A and B (the foot standing for the edge's side, its normal from the foot to the centre). */
 function cornerStation(b: NonNullable<ReturnType<typeof solveCorner>>, side: 'A' | 'B', sigma: number, r: number, X: Point, t: Point): Station {
   const nE = scale(sub(b.c, b.foot), 1 / (sigma * r)), uvE: XY = [b.t, 0];
@@ -780,7 +828,11 @@ function planeThrough(P: (x: number) => Point, h: number, c: Point, lo: number, 
   for (let k = 0; k < 80; k++) { const m = (a + b) / 2, fm = f(m); if ((fm > 0) === (fa > 0)) { a = m; fa = fm; } else b = m; }
   return (a + b) / 2;
 }
-type Span = { kind: 'edge'; x0: number; x1: number; lo: number; hi: number; rho: number; length: number } | { kind: 'corner'; k: number; rho: number; length: number };
+/** A cliff (R10.4b, D96): where a face of a side ends at a sharp edge, the ball rolls on touching the other side's face and that edge. */
+interface Cliff { readonly side: 'A' | 'B'; readonly S: Side; readonly edge: Curve; readonly F: Sheet; readonly F2: Sheet; readonly F2face: Face }
+type CliffBall = NonNullable<ReturnType<typeof solveCliff>>;
+type Span = { kind: 'edge'; x0: number; x1: number; lo: number; hi: number; rho: number; length: number; extra?: Face[] } | { kind: 'corner'; k: number; rho: number; length: number }
+  | { kind: 'cliff'; x0: number; x1: number; lo: number; hi: number; rho: number; length: number; c: Cliff; first: CliffBall; last: CliffBall };
 /**
  * The fillet tool of a closed loop whose ball rolls round edges at some of its corners (R10.3a, D92): the loop in spans
  * — along an edge (stations square to the chain, on the faces) and round a corner (stations at a fraction of the turn
@@ -796,7 +848,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
   const alpha = Math.acos(Math.max(-1, Math.min(1, dot(input.start.wA, input.start.wB))));
   if (alpha > Math.PI - 1e-6) throw new BrepError('GEOMETRY', `SELECTION: [TANGENT_FACES] edge ${name}: its faces meet tangentially; there is no corner to finish`);
   const back = r / Math.tan(alpha / 2), path = chainPath(input.loop, closed), L = path.length, g = 0.5 * r, ext: Ext = [[], []], P = (x: number) => pastAt(path, closed, ext, x).X;
-  const corners = [...input.corners!].sort((a, b) => a.after - b.after);
+  const corners = [...(input.corners ?? [])].sort((a, b) => a.after - b.after);
   // Each corner: the faces, its first and last balls, and where the chain's stations reach them.
   const rolls = corners.map(k => {
     const list = k.side === 'A' ? Bs : As, si = list.findIndex(sd => sd.face.id === k.shared.id);
@@ -836,7 +888,9 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
   // The spans in order. A loop: from the end of the last corner round, an edge span (wrapped below 0) and its corner, and
   // so on. An open chain: from its start, edge span, corner, …, edge span to its end (run past either end, R10.2b).
   const spans: Span[] = [], R = rolls.length;
-  for (let j = 0; j <= R; j++) {
+  // (No corner — a ring or a chain the plain ring sent here for its cliffs, R10.4b: one edge span.)
+  if (!R) spans.push({ kind: 'edge', x0: 0, x1: L, lo: -Infinity, hi: Infinity, rho: 0, length: L });
+  for (let j = 0; R && j <= R; j++) {
     if (closed && j === R) break;
     const prev = j > 0 ? rolls[j - 1] : closed ? rolls[R - 1] : null, next = j < R ? rolls[j] : null;
     const x0 = prev ? (j === 0 ? prev.s2 - L : prev.s2) : 0, x1 = next ? next.s1 : L;
@@ -853,6 +907,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
       const c0 = path.starts[c], c1 = c + 1 < n ? path.starts[c + 1] : L, lo0 = closed ? [-L, 0, L] : [0];
       for (const shift of lo0) if (Math.min(c1 + shift, sp.x1) - Math.max(c0 + shift, sp.x0) > 1e-9 * L || (!closed && ((c === 0 && sp.x0 < 0) || (c === n - 1 && sp.x1 > L)))) for (const f of input.facesOf![c]) own.add(f);
     }
+    for (const f of sp.extra ?? []) own.add(f.id);
     const ia = As.map((_, i) => i).filter(i => own.has(As[i].face.id)), ib = Bs.map((_, i) => i).filter(i => own.has(Bs[i].face.id));
     return { ia, ib, Asp: ia.map(i => As[i]), Bsp: ib.map(i => Bs[i]) };
   };
@@ -861,18 +916,22 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
   const reach = back + 2 * g, beside = (x: number) => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0));
   const solverOn = (sp: Extract<Span, { kind: 'edge' }>, seed: { pA: Point; pB: Point }) => {
     const { ia, ib, Asp, Bsp } = facesIn(sp);
-    return { Asp, Bsp, solve: (x: number, prev: { st: Station; a: number; b: number } | undefined, check: boolean) => {
+    return { Asp, Bsp, ia, ib, solve: (x: number, prev: { st: Station; a: number; b: number } | undefined, check: boolean) => {
       const { X, t } = spanAt(P, hd, x, sp.lo, sp.hi);
       const got = stationOn(Asp, Bsp, prev ? [Math.max(0, ia.indexOf(prev.a)), Math.max(0, ib.indexOf(prev.b))] : [0, 0], sigma, r, X, t, prev ? prev.st.pA : seed.pA, prev ? prev.st.pB : seed.pB, prev?.st.uvA, prev?.st.uvB, scaleMM, check);
       return got && { st: got.st, a: ia[got.a], b: ib[got.b] };
     } };
   };
   // The ball at a span's start: the last of the corner before it; at an open chain's start, from the faces' corner.
+  const neighbour = (si: number, d: -1 | 1): Span | null => { const k = si + d; return k >= 0 && k < spans.length ? spans[k] : closed && spans.length > 1 ? spans[(k + spans.length) % spans.length] : null; };
   const seedOf = (si: number, x: number) => {
-    const j = si / 2, prev = j > 0 ? rolls[j - 1] : closed ? rolls[R - 1] : null, X = path.at(Math.max(0, Math.min(L, x))).X;
-    if (prev) { const st = cornerStation(prev.b1, prev.k.side, sigma, r, X, X); return { pA: st.pA, pB: st.pB }; }
+    const prev = neighbour(si, -1), X = path.at(Math.max(0, Math.min(L, x))).X;
+    if (prev?.kind === 'corner') { const roll = rolls[prev.k], st = cornerStation(roll.b1, roll.k.side, sigma, r, X, X); return { pA: st.pA, pB: st.pB }; }
+    if (prev?.kind === 'cliff') { const st = cornerStation(prev.last, prev.c.side, sigma, r, X, X); return { pA: st.pA, pB: st.pB }; }
     return { pA: add(X, scale(input.start.wA, back)), pB: add(X, scale(input.start.wB, back)) };
   };
+  // (Into the wedge at a cliff's foot: −σ along the bisector of its two faces' normals.)
+  const cliffWedge = (c: Cliff, foot: Point) => { const fr = edgeNormals(c.F, c.F2, foot, [undefined, undefined]); return scale(unit(add(fr.n1, fr.n2)), -sigma); };
   // An open chain's ends run past (R10.2b): marched on along the faces' junction until the section clears the end.
   if (!closed) for (const [k, plane] of (input.past ?? []).entries()) if (plane) {
     const si = k ? spans.length - 1 : 0, sp = spans[si] as Extract<Span, { kind: 'edge' }>, x = k ? L : 0, { Asp, Bsp, solve } = solverOn(sp, seedOf(si, x));
@@ -882,6 +941,155 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
     const stop = marchPast(k as 0 | 1, plane, { path, ext, As: Asp, Bs: Bsp, first, solveAt: (y, prev, check) => solve(y, prev, check), sigma, r, g, h, N0, scaleMM, name, leaves: y => leaves(path.at(y < 0 ? 0 : L).X) });
     if (k) { sp.x1 = stop; sp.hi = Infinity; } else { sp.x0 = stop; sp.lo = -Infinity; }
     sp.length = sp.x1 - sp.x0;
+  }
+  // R10.4b (D96): cliffs. Each edge span walked: where a station no longer solves on its faces and the last contact on
+  // one side lies at a sharp edge of its face, the ball rolls on along that edge, touching the other side's face, until
+  // it can touch a face again — that face, or the one beyond the edge; the span is cut where it starts and ends
+  // (bisection: where the face ball's contact reaches the edge; where the edge ball leaves the wedge outside it).
+  const byId = new Map(body.faces.map(f => [f.id, f])), loopsById = new Map(body.loops.map(l => [l.id, l])), coById = new Map(body.coedges.map(c => [c.id, c])), edgesById = new Map(body.edges.map(e => [e.id, e]));
+  const facesOfEdge = new Map<string, string[]>(); for (const c of body.coedges) facesOfEdge.set(c.edge, [...(facesOfEdge.get(c.edge) ?? []), loopsById.get(c.loop)!.face]);
+  const own = new Set(input.loop.map(l => l.curve));
+  const findCliff = (face: { st: Station; a: number; b: number }, X: Point, t: Point): { c: Cliff; ball: CliffBall } | null => {
+    // (The side whose contact runs off its face: the ball on the last faces, unchecked, here.)
+    // (On the faces' surfaces carried on along their straight directions: past a face's end its own patch stops.)
+    const ext = (sd: Side) => sheetOf(extendedSurface(sd.face.surface as Surface), sd.face.sense), eA = ext(As[face.a]), eB = ext(Bs[face.b]);
+    const off = solveStation(eA, sigma, eB, sigma, r, X, t, invertOn(eA, face.st.pA), invertOn(eB, face.st.pB), scaleMM);
+    if (!off) return null;
+    const outA = !insideFace(As[face.a], invertOn(As[face.a].sheet, off.pA)) || len(sub(pointOn(As[face.a].sheet, ...invertOn(As[face.a].sheet, off.pA)), off.pA)) > 1e-6 * scaleMM;
+    const outB = !insideFace(Bs[face.b], invertOn(Bs[face.b].sheet, off.pB)) || len(sub(pointOn(Bs[face.b].sheet, ...invertOn(Bs[face.b].sheet, off.pB)), off.pB)) > 1e-6 * scaleMM;
+    if (outA === outB) return null;
+    for (const side of [outB ? 'B' : 'A'] as const) {
+      const F = side === 'B' ? Bs[face.b] : As[face.a], S = side === 'B' ? As[face.a] : Bs[face.b], q = side === 'B' ? off.pB : off.pA, uvS = invertOn(S.sheet, side === 'B' ? off.pA : off.pB);
+      // (The face's edge nearest where the contact runs off — not one of the chain's own edges.)
+      let best: { e: Brep['edges'][number]; d: number } | null = null;
+      for (const lid of F.face.loops) for (const cid of loopsById.get(lid)!.coedges) { const e = edgesById.get(coById.get(cid)!.edge)!; if (own.has(e.curve)) continue; const d = curveDistance(e.curve, q); if (!best || d < best.d) best = { e, d }; }
+      if (!best || best.d > r) continue;
+      const otherId = (facesOfEdge.get(best.e.id) ?? []).find(f => f !== F.face.id), other = otherId ? byId.get(otherId) : undefined;
+      if (!other) continue;
+      const F2 = sheetOf(other.surface as Surface, other.sense), ball = solveCliff(S.sheet, sigma, r, best.e.curve, X, t, uvS, footOn(best.e.curve, q), scaleMM);
+      if (!ball) continue;
+      const fr = edgeNormals(F.sheet, F2, ball.foot, [undefined, undefined]);
+      if (len(sub(fr.n1, fr.n2)) < 1e-6 || !withinWedge(ball.m, fr.n1, fr.n2, sigma)) continue;
+      return { c: { side, S, edge: best.e.curve, F: F.sheet, F2, F2face: other }, ball };
+    }
+    return null;
+  };
+  const cliffsIn = (sp: Extract<Span, { kind: 'edge' }>, si: number): Span[] => {
+    const m = Math.max(16, 2 * Math.ceil(N0 * sp.length / (L + rolls.reduce((a, x) => a + x.length, 0)) / 2)), parts: Span[] = [];
+    let solver = solverOn(sp, seedOf(si, sp.x0)), cur: Extract<Span, { kind: 'edge' }> = { ...sp };
+    let face: { st: Station; a: number; b: number; x: number } | null = null, cl: { c: Cliff; first: CliffBall; last: CliffBall; x0: number; xLast: number } | null = null;
+    for (let j = 0; j <= m; j++) {
+      const x = sp.x0 + sp.length * j / m, { X, t } = spanAt(P, hd, x, sp.lo, sp.hi);
+      if (!cl) {
+        const got = solver.solve(x, face ?? undefined, beside(x));
+        if (got) { face = { ...got, x }; continue; }
+        // (At the span's start already off its faces — a ring wholly on a cliff: from the ball on its faces unchecked.)
+        if (!face && j === 0) {
+          const seed = seedOf(si, x);
+          for (const a of solver.ia) for (const b of solver.ib) {
+            const eA = sheetOf(extendedSurface(As[a].face.surface as Surface), As[a].face.sense), eB = sheetOf(extendedSurface(Bs[b].face.surface as Surface), Bs[b].face.sense);
+            const st = solveStation(eA, sigma, eB, sigma, r, X, t, invertOn(eA, seed.pA), invertOn(eB, seed.pB), scaleMM), found0 = st && findCliff({ st, a, b }, X, t);
+            if (found0) { cl = { c: found0.c, first: found0.ball, last: found0.ball, x0: x, xLast: x }; break; }
+          }
+          if (cl) continue;
+        }
+        const fc = face as { st: Station; a: number; b: number; x: number } | null, found: { c: Cliff; ball: CliffBall } | null = fc ? findCliff(fc, X, t) : null;
+        if (!fc || !found) return [sp];
+        face = fc;
+        // (Where the face ball's contact reaches the edge: its last station strictly on the face, by bisection.)
+        const F = found.c.side === 'B' ? Bs[face.b] : As[face.a];
+        let lo = face.x, hi = x;
+        for (let k = 0; k < 60; k++) {
+          const mid = (lo + hi) / 2, at = spanAt(P, hd, mid, sp.lo, sp.hi), st = solveStation(As[face.a].sheet, sigma, Bs[face.b].sheet, sigma, r, at.X, at.t, face.st.uvA, face.st.uvB, scaleMM);
+          if (st && strictlyInside(F, found.c.side === 'B' ? st.uvB : st.uvA)) lo = mid; else hi = mid;
+        }
+        const at0 = spanAt(P, hd, hi, sp.lo, sp.hi), q0 = found.c.side === 'B' ? face.st.pB : face.st.pA, uv0 = found.c.side === 'B' ? face.st.uvA : face.st.uvB;
+        const first = solveCliff(found.c.S.sheet, sigma, r, found.c.edge, at0.X, at0.t, uv0, footOn(found.c.edge, q0), scaleMM) ?? found.ball;
+        if (hi - cur.x0 > 1e-6 * L) { cur.x1 = hi; cur.length = hi - cur.x0; parts.push(cur); }
+        cl = { c: found.c, first, last: found.ball, x0: hi, xLast: x };
+        continue;
+      }
+      const b = solveCliff(cl.c.S.sheet, sigma, r, cl.c.edge, X, t, cl.last.uvS, cl.last.t, scaleMM), fr = b && edgeNormals(cl.c.F, cl.c.F2, b.foot, [undefined, undefined]);
+      if (b && fr && withinWedge(b.m, fr.n1, fr.n2, sigma) && insideFace(cl.c.S, b.uvS)) { cl.last = b; cl.xLast = x; continue; }
+      // (Across a seam — the other contact onto the next face of its side, or the foot off the end of its edge onto the
+      // edge going on from there (a rim's halves) with their faces: a new cliff span from where the old one stops holding,
+      // by bisection.)
+      const holds = (c: Cliff, bb: CliffBall | null) => { if (!bb) return false; const f2 = edgeNormals(c.F, c.F2, bb.foot, [undefined, undefined]); const [t0, t1] = curveDomain(c.edge), span = t1 - t0; return withinWedge(bb.m, f2.n1, f2.n2, sigma) && insideFace(c.S, bb.uvS) && bb.t > t0 + 1e-9 * span && bb.t < t1 - 1e-9 * span; };
+      const nextCfg = (): { c: Cliff; ball: CliffBall } | null => {
+        // (The edge itself — the other contact across a seam — or one going on from an end of it.)
+        const list = cl!.c.side === 'B' ? As : Bs, [ta, tb] = curveDomain(cl!.c.edge), ends = [evaluateCurve(cl!.c.edge, ta), evaluateCurve(cl!.c.edge, tb)], pts = [b?.foot ?? cl!.last.foot];
+        const endOf = (e: Brep['edges'][number]) => { const [u0, u1] = curveDomain(e.curve); return [evaluateCurve(e.curve, u0), evaluateCurve(e.curve, u1)]; };
+        const edgesHere = body.edges.filter(e => !own.has(e.curve) && (e.curve === cl!.c.edge || endOf(e).some(q => ends.some(w => len(sub(q, w)) < 1e-6 * scaleMM))));
+        for (const e of edgesHere) {
+          const fs = (facesOfEdge.get(e.id) ?? []).map(id => byId.get(id)!);
+          if (fs.length !== 2) continue;
+          // (Compared where the two edges meet — or, the same edge, at the foot.)
+          const q = e.curve === cl!.c.edge ? pts[0] : endOf(e).find(w => ends.some(z => len(sub(w, z)) < 1e-6 * scaleMM))!;
+          for (const [f1, f2] of [[fs[0], fs[1]], [fs[1], fs[0]]]) {
+            // (The face standing for the old F: the one whose normal there is the old F's.)
+            const s1 = sheetOf(f1.surface as Surface, f1.sense), s2 = sheetOf(f2.surface as Surface, f2.sense);
+            if (len(sub(normalOn(s1, ...invertOn(s1, q)), normalOn(cl!.c.F, ...invertOn(cl!.c.F, q)))) > 1e-6) continue;
+            for (const S of list) for (const dx of [0, 0.01 * sp.length / m]) {
+              // (Just past where the edges meet too: there the foot sits at the end of both, and neither holds it inside.)
+              const at = dx ? spanAt(P, hd, x + dx, sp.lo, sp.hi) : { X, t };
+              const bb = solveCliff(S.sheet, sigma, r, e.curve, at.X, at.t, invertOn(S.sheet, (b ?? cl!.last).pS), footOn(e.curve, (b ?? cl!.last).foot), scaleMM), c: Cliff = { side: cl!.c.side, S, edge: e.curve, F: s1, F2: s2, F2face: f2 };
+              if (holds(c, bb)) return { c, ball: bb! };
+            }
+          }
+        }
+        return null;
+      };
+      const nx = nextCfg();
+      if (nx) {
+        let lo: number = cl.xLast, hi: number = x, keep: CliffBall = cl.last;
+        for (let k = 0; k < 60; k++) {
+          const mid = (lo + hi) / 2, at = spanAt(P, hd, mid, sp.lo, sp.hi), bm = solveCliff(cl.c.S.sheet, sigma, r, cl.c.edge, at.X, at.t, keep.uvS, keep.t, scaleMM);
+          if (holds(cl.c, bm)) { lo = mid; keep = bm!; } else hi = mid;
+        }
+        parts.push({ kind: 'cliff', x0: cl.x0, x1: lo, lo: sp.lo, hi: sp.hi, rho: 0, length: lo - cl.x0, c: cl.c, first: cl.first, last: keep });
+        // (The new span starts with the old one's last ball — where the edges meet, it is on both — on the new faces' terms.)
+        const first: CliffBall = { ...keep, uvS: invertOn(nx.c.S.sheet, keep.pS), t: footOn(nx.c.edge, keep.foot) };
+        cl = { c: nx.c, first, last: nx.ball, x0: lo, xLast: x };
+        continue;
+      }
+      // (Back onto a face: where the edge ball leaves the wedge, by bisection; on from there on the faces, the one beyond
+      // the edge among them.)
+      let lo = cl.xLast, hi = x, keep = cl.last;
+      for (let k = 0; k < 60; k++) {
+        const mid = (lo + hi) / 2, at = spanAt(P, hd, mid, sp.lo, sp.hi), bm = solveCliff(cl.c.S.sheet, sigma, r, cl.c.edge, at.X, at.t, keep.uvS, keep.t, scaleMM), fm = bm && edgeNormals(cl.c.F, cl.c.F2, bm.foot, [undefined, undefined]);
+        if (bm && fm && withinWedge(bm.m, fm.n1, fm.n2, sigma, 0)) { lo = mid; keep = bm; } else hi = mid;
+      }
+      parts.push({ kind: 'cliff', x0: cl.x0, x1: lo, lo: sp.lo, hi: sp.hi, rho: 0, length: lo - cl.x0, c: cl.c, first: cl.first, last: keep });
+      if (!Bs.some(sd => sd.face.id === cl!.c.F2face.id) && !As.some(sd => sd.face.id === cl!.c.F2face.id)) (cl.c.side === 'B' ? Bs : As).push(sideOf(body, cl.c.F2face, !closed, scaleMM));
+      cur = { kind: 'edge', x0: lo, x1: sp.x1, lo: sp.lo, hi: sp.hi, rho: 0, length: sp.x1 - lo, extra: [...(sp.extra ?? []), cl.c.F2face] };
+      const st0 = cornerStation(keep, cl.c.side, sigma, r, X, t);
+      solver = solverOn(cur, { pA: st0.pA, pB: st0.pB }); cl = null;
+      const got = solver.solve(x, undefined, beside(x));
+      if (!got) throw leaves(X);
+      face = { ...got, x };
+    }
+    const end = cl as { c: Cliff; first: CliffBall; last: CliffBall; x0: number; xLast: number } | null;
+    if (end && closed && !R && end.x0 === sp.x0 && !parts.length) return [{ kind: 'cliff', x0: sp.x0, x1: sp.x1, lo: sp.lo, hi: sp.hi, rho: 0, length: sp.length, c: end.c, first: end.first, last: end.last }];
+    if (end && closed && !R) { parts.push({ kind: 'cliff', x0: end.x0, x1: sp.x1, lo: sp.lo, hi: sp.hi, rho: 0, length: sp.x1 - end.x0, c: end.c, first: end.first, last: end.last }); return parts; }
+    if (end) throw new BrepError('GEOMETRY', `CAPABILITY: [CONTACT_LEAVES_FACE] edge ${name}: the fillet of ${r} mm rolls along a sharp edge to the end of its run there; that is not supported yet`);
+    if (!parts.length) return [sp];
+    parts.push(cur);
+    return parts;
+  };
+  // (A ring with no corner starting where its ball is off its faces — on a cliff — starts instead at the first place it
+  // touches them.)
+  if (!R && closed) {
+    const sp = spans[0] as Extract<Span, { kind: 'edge' }>, { solve } = solverOn(sp, seedOf(0, 0));
+    if (!solve(0, undefined, true)) {
+      let found = false;
+      for (let j = 1; j < 64 && !found; j++) { const x = L * j / 64; if (solve(x, undefined, true)) { sp.x0 = x; sp.x1 = x + L; found = true; } }
+      // (Nowhere on them — wholly on a cliff: from off the chain's vertices, where the edge it rolls on may be in pieces.)
+      if (!found) { sp.x0 = L / 128; sp.x1 = sp.x0 + L; }
+    }
+  }
+  for (let si = 0; si < spans.length; si++) {
+    const sp = spans[si]; if (sp.kind !== 'edge') continue;
+    const parts = cliffsIn(sp, si); if (parts.length > 1) { spans.splice(si, 1, ...parts); si += parts.length - 1; }
   }
   let rho = 0; for (const sp of spans) { sp.rho = rho; rho += sp.length; }
   const total = rho;
@@ -903,6 +1111,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
       breaks.push({ rho: sp.rho, a: -1, b: -1, span: si });
       continue;
     }
+    if (sp.kind === 'cliff') { breaks.push({ rho: sp.rho, a: -1, b: -1, span: si }); continue; }
     const { solve } = solverOn(sp, seedOf(si, sp.x0)), m = Math.max(8, 2 * Math.ceil(N0 * sp.length / total / 2)), first: { st: Station; a: number; b: number; x: number }[] = [];
     for (let j = 0; j <= m; j++) {
       const x = sp.x0 + sp.length * j / m, got = solve(x, first.at(-1), beside(x));
@@ -935,7 +1144,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
   // (Breaks at one place are one: the later's faces.)
   for (let k = breaks.length - 1; k > 0; k--) if (breaks[k].rho - breaks[k - 1].rho < 1e-6 * total && breaks[k].span === breaks[k - 1].span) { breaks[k - 1] = { ...breaks[k], rho: breaks[k - 1].rho }; breaks.splice(k, 1); }
   // 2. Stations evenly within each stretch between breaks, refined as the h⁴ rate predicts.
-  const edgesRolled = rolls.map(x => x.k.edge);
+  const edgesRolled = [...rolls.map(x => x.k.edge), ...spans.flatMap(sp => sp.kind === 'cliff' ? [sp.c.edge] : [])];
   for (let N = fixedStations ?? N0, tries = 0; ; tries++) {
     if (N > 4096) throw new BrepError('GEOMETRY', `CAPABILITY: [APPROX_TOLERANCE_NOT_MET] edge ${name}: the fillet's lofted contacts stay over ${tolMM} mm off their faces (or its sections over ${4 * tolMM} mm off the true ones) at 4096 stations`);
     const sols: Station[] = [], cuts: number[] = [], grows: [Point | undefined, Point | undefined][] = [];
@@ -954,8 +1163,21 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
         }
         continue;
       }
-      // (Beside a corner, within 2r of the span's end, the contact's growth turns smoothly into that corner's wedge.)
-      const j0 = br.span / 2, rollIn = j0 > 0 ? rolls[j0 - 1] : closed ? rolls[R - 1] : null, rollOut = j0 < R ? rolls[j0] : null, blend = Math.min(2 * r, sp.length / 3);
+      if (sp.kind === 'cliff') {
+        let prev: CliffBall = sp.first;
+        for (let j = 0; j < cnt + (last ? 1 : 0); j++) {
+          const x = sp.x0 + (a0 + (a1 - a0) * j / cnt - sp.rho), { X, t } = spanAt(P, hd, x, sp.lo, sp.hi);
+          const b = j === 0 ? sp.first : solveCliff(sp.c.S.sheet, sigma, r, sp.c.edge, X, t, prev.uvS, prev.t, scaleMM);
+          if (!b) throw leaves(X);
+          sols.push(cornerStation(b, sp.c.side, sigma, r, X, t)); prev = b;
+          const w = cliffWedge(sp.c, b.foot);
+          grows.push(sp.c.side === 'A' ? [w, undefined] : [undefined, w]);
+        }
+        continue;
+      }
+      // (Beside a corner or a cliff, within 2r of the span's end, the contact's growth turns smoothly into its wedge.)
+      const target = (nb: Span | null, atStart: boolean): { side: 'A' | 'B'; w: Point } | null => nb?.kind === 'corner' ? { side: rolls[nb.k].k.side, w: atStart ? rolls[nb.k].w0 : rolls[nb.k].w1 } : nb?.kind === 'cliff' ? { side: nb.c.side, w: cliffWedge(nb.c, atStart ? nb.first.foot : nb.last.foot) } : null;
+      const tIn = target(neighbour(br.span, -1), false), tOut = target(neighbour(br.span, 1), true), blend = Math.min(2 * r, sp.length / 3);
       const A = As[br.a], B = Bs[br.b];
       for (let j = 0; j < cnt + (last ? 1 : 0); j++) {
         const x = sp.x0 + (a0 + (a1 - a0) * j / cnt - sp.rho), { X, t } = spanAt(P, hd, x, sp.lo, sp.hi), prev = sols.at(-1);
@@ -967,9 +1189,9 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
         if (!st || (beside(x) && (!insideFace(A, st.uvA) || !insideFace(B, st.uvB)))) throw leaves(X);
         sols.push(st);
         const grow: [Point | undefined, Point | undefined] = [undefined, undefined];
-        for (const [roll, d, to] of [[rollIn, x - sp.x0, rollIn?.w1], [rollOut, sp.x1 - x, rollOut?.w0]] as const) if (roll && to && d < blend) {
-          const kk = roll.k.side === 'A' ? 0 : 1, own = scale(kk ? st.nB : st.nA, -sigma), w = smooth(1 - d / blend);
-          grow[kk] = unit(add(scale(grow[kk] ?? own, 1 - w), scale(to, w)));
+        for (const [tg, d] of [[tIn, x - sp.x0], [tOut, sp.x1 - x]] as const) if (tg && d < blend) {
+          const kk = tg.side === 'A' ? 0 : 1, own = scale(kk ? st.nB : st.nA, -sigma), w = smooth(1 - d / blend);
+          grow[kk] = unit(add(scale(grow[kk] ?? own, 1 - w), scale(tg.w, w)));
         }
         grows.push(grow);
       }

@@ -4,7 +4,7 @@
   "decisions": [
     "D89"
   ],
-  "about": "R10.2a: a tee whose branch stands 12 high (its foot at 8.66–10), the junction filleted 3 mm: the ball would touch the branch up to 13, past its top — CONTACT_LEAVES_FACE (rolling over is R10.4).",
+  "about": "R10.2a: a tee whose branch stands 12 high (its foot at 8.66\u201310), the junction filleted 3 mm: the ball would touch the branch up to 13, past its top \u2014 CONTACT_LEAVES_FACE (rolling over is R10.4).",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -85,5 +85,9 @@
       "messageIncludes": "[CONTACT_LEAVES_FACE]"
     }
   },
-  "oracle": "At the junction's top (y = 0, z = 10) the concave ball touches the branch r above the tube: 13 > 12."
+  "oracle": "At the junction's top (y = 0, z = 10) the concave ball touches the branch r above the tube: 13 > 12.",
+  "supersededBy": {
+    "step": "R10",
+    "why": "R10.4b (D96) rolls the ball on along the branch's top rim where its contact would run off the branch: the short branch's junction builds (r10-cliff-tee-short-branch)."
+  }
 }

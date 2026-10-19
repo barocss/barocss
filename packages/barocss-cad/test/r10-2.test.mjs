@@ -54,9 +54,7 @@ test('R10.2a a pipe tee and crossing rods (no closed form): valid, the fillet\'s
   }
 });
 
-test('R10.2a refusals: a fillet running off its faces (a short branch) — CONTACT_LEAVES_FACE; general chamfers not yet (an open chain of general edges, refused here at first, is R10.2b\'s: r10-2b.test.mjs)', () => {
-  // The branch stands 12 high, its foot at 8.66–10: a ball of 3 would touch it up to 13.
-  assert.throws(() => out([...tee(12), fillet('u', junction(tee(12)), 3)]), e => e.code === 'PARAMETER' && /\[CONTACT_LEAVES_FACE\]/.test(e.message));
+test('R10.2a refusals: general chamfers not yet (an open chain of general edges and a fillet running off its faces — a short branch, CONTACT_LEAVES_FACE — refused here at first, are R10.2b\'s and R10.4b\'s: r10-2b, r10-4b)', () => {
   assert.throws(() => out([...tee(), { id: 'f', kind: 'chamfer', target: 'u', edges: [junction(tee())], distance: 1 }]), e => e.code === 'CAPABILITY' && /chamfers between general faces/.test(e.message));
 });
 

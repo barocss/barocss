@@ -3040,6 +3040,30 @@ try {
     await snap('r10-4a-boss-rounded-top');
   });
 
+  await check('R10.4b a pipe tee with a short branch (a file): its junction filleted 3 — where the ball would run off the branch, it rolls along the branch\'s top rim', async () => {
+    const fs = await import('node:fs'), file = join(out, 'tee-short-branch.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n1', kind: 'extrude', sketch: 0, height: 60 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 12 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = await bodyVolume();
+    const edge = await (await page.waitForFunction(() => { for (const a of ['n1.side0#1', 'n1.side0#2', 'n1.side0']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (let k = 1; k <= 8; k++) for (const n of [`${a}|${b}#${k}`, `${b}#${k}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
+    assert.ok(edge, 'a junction edge picked by its name');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('3');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    const after = await bodyVolume();
+    // (+32.34 mm³ — conformance r10/cliff-tee-short-branch; the panel rounds to 1 mm³.)
+    assert.ok(Math.abs(after - before - 32.34) <= 1, `${before} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-4b-tee-short-branch');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

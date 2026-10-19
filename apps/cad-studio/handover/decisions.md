@@ -4558,3 +4558,32 @@ R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face acr
   - **Conformance:** `r10/overflow-boss-rounded-top` (r 5, 1e-7).
   - **Studio:** a flow step opens the boss file, rounds its top 2, then fillets the foot 5 in the UI (+289.0 mm³).
 - **Not done:** R10.4b (rolling onto a sharp edge, the cliff edge: CONTACT_LEAVES_FACE as before); closed-form straight edges between planes whose face runs smoothly onto a round (their reach check, `planeReach`, still walks across); R10.5.
+
+## D96 — R10.4b: overflow onto a sharp edge — the ball rolls on along the edge (a cliff) (2026-10-19)
+
+- **The case:** where a rolling-ball fillet's contact would run off its face across a sharp (not smooth) edge of it, the ball rolls on touching the other side's face and that edge. The fillet meets the edge along a curve on it, and the face beyond is untouched (NX's "roll onto edges"). It goes on until the ball can touch a face again: that face, or the one beyond the edge.
+  - Example: a tee whose branch stands 12 high, its junction filleted 3, refused at R10.2a. The ball touches the branch up to 13, so near y = 0 it rolls along the branch's top rim.
+- **The span machinery** (`cornerFillet`, now any chain of spans): edge spans, corner spans (R10.3a) and cliff spans.
+  - A chain with no corner that the plain ring cannot finish (a station off its faces after `growSides`) is sent here.
+  - Each edge span is walked (`cliffsIn`). Where a station fails, the ball on the last faces is solved unchecked on their surfaces carried on (`extendedSurface`: past a face's end its own patch stops). The side whose contact runs off its face says which face; its nearest edge (not one of the chain's own) is the cliff's edge.
+  - The ball is solved touching the other face and that edge, its centre in the station's plane (`solveCliff`). It must lie in the wedge outside the edge's two faces (`withinWedge`).
+  - The span is cut where the face ball's contact reaches the edge and where the edge ball leaves the wedge (bisection). Cliff spans are cut again where the other contact crosses a seam of its side, or the foot runs off the end of its edge onto the one going on from there (a rim's halves): `nextCfg`. At a shared vertex the new span starts with the old one's last ball, on the new faces' terms.
+  - A ring wholly on a cliff starts off the chain's vertices.
+  - The neighbours of an edge span (corner or cliff) now give its seeds and the targets of its growth blend, not span indices.
+  - Cliff stations are sections with the edge's side on the edge, grown along the wedge's bisector (as R10.3a's corners).
+- **R10.1 unchanged:** a closed-form fillet larger than its face, the face ending at a sharp edge (a boss's foot larger than the boss), still refuses RADIUS_EXCEEDS_FACE. Only the rolling ball rolls onto edges.
+- **Evidence** (`packages/barocss-cad/test/r10-4b.test.mjs`, 2 tests):
+  - **A boss's foot larger than the boss** (R 8, 4 high, forced through the rolling ball, r 4.5, 5, 6): the ball touches the plate and the sharp top rim all round. Against Pappus (the meridian region between plate, wall, rim point and the ball's arc) to 7e-8.
+  - **The short-branch tee:**
+    - valid, one body;
+    - contacts 4.8e-8 mm, G1 3.7e-5°, sections 8.7e-8 mm;
+    - fillet edges on the rim (b.top);
+    - volume within 1e-6 of a loft through twice the stations;
+    - 2.5 s.
+  - **Conformance:** `r10/cliff-tee-short-branch` (this kernel's value, relTol 1e-7); `r10/refuse-contact-leaves-face` superseded.
+  - **Studio:** a flow step opens the short-branch tee and fillets its junction 3 in the UI (+32.34 mm³).
+- **Not done:**
+  - a cliff running to an open chain's end;
+  - cliffs within R10.1's closed forms (they refuse);
+  - a cliff whose ball would then roll onto the face beyond the edge across another edge of it;
+  - R10.5 (variable radius).

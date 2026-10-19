@@ -1,0 +1,123 @@
+{
+  "id": "r10-cliff-tee-short-branch",
+  "step": "R10",
+  "decisions": [
+    "D96"
+  ],
+  "about": "R10.4b: a pipe tee (radius 10 and 5) whose branch stands 12 high, its junction filleted 3 mm — the ball would touch the branch up to 13: there it rolls along the branch's top rim, the fillet meeting the rim (refused at R10.2a: r10-refuse-contact-leaves-face).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 12
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|b.side0#2#4"
+          ],
+          "radius": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 19064.355677863,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            29.999999999999133,
+            -5.25892935483472e-12,
+            0.12046989984079977
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "a.bottom",
+          "a.side0",
+          "a.top",
+          "b.side0",
+          "b.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "This kernel (no closed form), mass by quadrature: the fillet's contacts within 2.5e-7 mm of their faces (on the rim along it), its sections within 1e-6 mm of the true ones, the same through twice the stations to 1e-6 of the fillet (test/r10-4b.test.mjs); the same cliff method round a boss's sharp rim matches Pappus to 2e-7. relTol 1e-7 of the part is about 1e-4 of the fillet."
+}
