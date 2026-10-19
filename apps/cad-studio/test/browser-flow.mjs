@@ -57,6 +57,16 @@ async function bodyVolume() {
   }
   return Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
 }
+/**
+ * A model file opened: until the studio shows the bodies computed for this document — not the last one's. (Waiting only
+ * for its node count let a step read the previous step's body as its own when both had the same count and the machine
+ * was loaded: R10.3c's "before" was R10.3b's filleted boss, 39 603 mm³, D109.)
+ */
+async function openModel(file, nodes, timeout = 30000) {
+  await page.evaluate(() => { window.__flowLastDoc = window.__studioDoc; });
+  await page.setInputFiles('input[aria-label="Model file"]', file);
+  await page.waitForFunction(n => window.__studioDoc !== window.__flowLastDoc && window.__studioDoc.nodes.length === n && window.__studioFresh === true, nodes, { timeout });
+}
 const history = () => page.locator('.history').innerText().catch(() => '');
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
@@ -2857,8 +2867,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const junction = await page.evaluate(() => ['n1.top#1|n3.side0', 'n1.top#2|n3.side0', 'n3.side0|n1.top#1', 'n3.side0|n1.top#2'].find(n => window.__studioPickEdge(n)));
     assert.ok(junction, 'the junction is picked by its name');
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
@@ -2889,8 +2899,8 @@ try {
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
       { id: 'n5', kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 1, open: [] }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await openModel(file, 6, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
     // (Conformance r11/shell-rod-on-plate-sharp-join: the body less the plate's box eroded and the rod's offset disc above
     // the plate's offset, × 38: 4762.95 mm³.)
@@ -2909,8 +2919,8 @@ try {
       { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [18, 12], max: [35, 25], plane: { origin: [25, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 40 },
       { id: 'n4', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
       { id: 'n5', kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: [] }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await openModel(file, 6, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
     // (Conformance r11/shell-notched-corner: 22 560 − (36 · 26 · 16 − 15 · 12 · 8) = 9 024 mm³.)
     const vol = await bodyVolume();
@@ -2925,8 +2935,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 },
       { id: 'n2', kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2, radii: [{ at: [0, 0, 20], radius: 2 }, { at: [40, 0, 20], radius: 4 }] },
       { id: 'n3', kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 1, open: ['n1.bottom'] }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await openModel(file, 4, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
     // (Conformance r11/shell-variable-radius-box-edge: the box less its round, (1 − π/4) ∫ r², less the hollow box less its round, (1 − π/4) ∫ (r − 1)².)
     const k = 1 - Math.PI / 4, I = (a, b, x0, x1) => { const m = (b - a) / 40; return ((a + m * x1) ** 3 - (a + m * x0) ** 3) / (3 * m); };
@@ -2942,8 +2952,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n1', kind: 'extrude', sketch: 0, height: 60 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 25 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     // (Polled: just after a file opens, the bodies shown can still be the last part's.)
     const edge = await (await page.waitForFunction(() => { for (const a of ['n1.side0#1', 'n1.side0#2', 'n1.side0']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (let k = 1; k <= 8; k++) for (const n of [`${a}|${b}#${k}`, `${b}#${k}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
@@ -2968,8 +2978,8 @@ try {
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -10 },
       { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] },
       { id: 'n5', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 6, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     const edge = await (await page.waitForFunction(() => { for (const a of ['n1.top#1', 'n1.top#2']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (const n of [`${a}|${b}`, `${b}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
     assert.ok(edge, 'a rim picked by its name');
@@ -2992,8 +3002,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [-10, -6], max: [10, 6] }, { id: 'n3', kind: 'extrude', sketch: 2, height: 15, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     const picked = await (await page.waitForFunction(() => { let n = 0; for (let k = 0; k < 4; k++) for (const e of [`n1.top|n3.side${k}`, `n3.side${k}|n1.top`]) if (window.__studioPickEdge(e, n > 0)) { n++; break; } return n === 4 ? n : null; }, null, { timeout: 30000 })).jsonValue();
     assert.equal(picked, 4, 'the four foot edges picked by name');
@@ -3017,8 +3027,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'rectangle', min: [-10, -6], max: [10, 6] }, { id: 'n3', kind: 'extrude', sketch: 2, height: 15, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     const picked = await (await page.waitForFunction(() => {
       let n = 0;
@@ -3047,8 +3057,8 @@ try {
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -30 },
       { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angleDegrees: 45, pivot: [0, 0, 10] },
       { id: 'n5', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 4, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 6, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     // (Each foot once, by the first of its names found: picking an edge again would take it out of the selection.)
     const picked = await (await page.waitForFunction(() => { const got = []; for (const b of ['n1.top#1', 'n1.top#2', 'n1.top']) { let done = false; for (const a of ['n3.side0#1', 'n3.side0#2', 'n3.side0']) { for (const e of [`${a}|${b}`, `${b}|${a}`]) if (!done && window.__studioPickEdge(e, got.length > 0)) { got.push(e); done = true; } } } return got.length === 2 ? got : null; }, null, { timeout: 30000 })).jsonValue();
@@ -3067,14 +3077,25 @@ try {
     await snap('r10-3c-rod-on-disc');
   });
 
+  await check('D109 files of one node count opened back to back: each volume read is the file\'s own, never the last one\'s (R10.3c once read R10.3b\'s boss)', async () => {
+    const fs = await import('node:fs'), plate = join(out, 'd109-plate.bcad'), bar = join(out, 'd109-bar.bcad');
+    const two = (w, d, h) => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [w, d] }, { id: 'n1', kind: 'extrude', sketch: 0, height: h }] });
+    fs.writeFileSync(plate, JSON.stringify(two(40, 30, 10))); fs.writeFileSync(bar, JSON.stringify(two(50, 5, 4)));
+    for (let k = 0; k < 6; k++) {
+      const [file, expected] = k % 2 ? [bar, 1000] : [plate, 12000];
+      await openModel(file, 2);
+      assert.equal(await bodyVolume(), expected, `open ${k}`);
+    }
+  });
+
   await check('R10.4a a boss with a rounded top (a file): its foot filleted larger than the wall below the round — the ball rolls over onto the round', async () => {
     const fs = await import('node:fs'), file = join(out, 'boss-rounded-top.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [-30, -30], max: [30, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 8 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 6, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     // The top edge rounded 2, then the foot 5 (the wall below the round is 4 high).
     let roundedVolume = NaN;
     for (const [names, radius] of [[['n3.side0#1|n3.top', 'n3.top|n3.side0#1', 'n3.side0|n3.top'], 2], [['n1.top|n3.side0#1', 'n3.side0#1|n1.top', 'n1.top|n3.side0'], 5]]) {
@@ -3100,8 +3121,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n1', kind: 'extrude', sketch: 0, height: 60 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 12 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     const edge = await (await page.waitForFunction(() => { for (const a of ['n1.side0#1', 'n1.side0#2', 'n1.side0']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (let k = 1; k <= 8; k++) for (const n of [`${a}|${b}#${k}`, `${b}#${k}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
     assert.ok(edge, 'a junction edge picked by its name');
@@ -3124,8 +3145,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'polygon', points: q(30) }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'polygon', points: q(15) }, { id: 'n3', kind: 'extrude', sketch: 2, height: 10, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     let roundedVolume = NaN;
     for (const [names, radius] of [[['n3.side2|n3.top', 'n3.top|n3.side2'], 4], [['n1.top|n3.side2', 'n3.side2|n1.top', 'n1.top|n3.side2#1', 'n3.side2#1|n1.top'], 12]]) {
       await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, names, { timeout: 30000 })).jsonValue();
@@ -3150,8 +3171,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'polygon', points: q(30) }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'polygon', points: q(15) }, { id: 'n3', kind: 'extrude', sketch: 2, height: 10, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.top|n3.side2', 'n3.side2|n1.top'], { timeout: 30000 })).jsonValue();
     await press(' '); await page.locator('.palette input').fill('chamfer'); await press('Enter'); await hudReady();
@@ -3173,8 +3194,8 @@ try {
       { id: 'n0', kind: 'sketch', profile: 'polygon', points: q(30) }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'polygon', points: q(15) }, { id: 'n3', kind: 'extrude', sketch: 2, height: 10, from: 10 },
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 5, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     let roundedVolume = NaN;
     for (const [names, radius] of [[['n3.side2|n3.top', 'n3.top|n3.side2'], 4], [['n1.top|n3.side2', 'n3.side2|n1.top', 'n1.top|n3.side2#1', 'n3.side2#1|n1.top'], 8]]) {
       await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, names, { timeout: 30000 })).jsonValue();
@@ -3197,8 +3218,8 @@ try {
     const fs = await import('node:fs'), file = join(out, 'box-variable.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.side0|n1.top', 'n1.top|n1.side0'], { timeout: 30000 })).jsonValue();
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
@@ -3219,8 +3240,8 @@ try {
     const fs = await import('node:fs'), file = join(out, 'box-conic.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     const before = await bodyVolume();
     await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.side0|n1.top', 'n1.top|n1.side0'], { timeout: 30000 })).jsonValue();
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
@@ -3640,8 +3661,8 @@ try {
     // The conformance case's flange: a Ø20 bore and four Ø6 holes evenly round it on a Ø60 circle.
     const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r14/pcd-flange/case.json'), 'utf8')), file = join(out, 'flange.bcad');
     fs.writeFileSync(file, JSON.stringify(c.input.document));
-    await page.setInputFiles('input[aria-label="Model file"]', file);
-    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await openModel(file, 4);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     try {
       await page.click('.mode button:text-is("Drawing")');
       await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });

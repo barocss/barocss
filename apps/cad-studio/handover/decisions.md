@@ -5002,3 +5002,30 @@ The coordinator asked to finish R11.1 before R11.2: the typed refusals and the v
 - Evidence: `test/r11-1c.test.mjs` (new). Each case fails on HEAD 44399c726: untyped there; built there with its core; or refused by "no shell history" there.
 - **R11.1 is done.** The note's R11.1 also listed a fillet radius below the wall giving a sharp inner corner, which already holds on the history route (`part-model.test`: a fillet of 1 under a wall of 2 leaves the hollow sharp). Next: **R11.2**, offset sheets (D105's verdict).
 - Checks: lint and type-check clean; kernel 1150/1155 (only the env-only Split test fails); conformance 112/112; studio 429/429; full flow 147/147 (new step: the box edge rounded 2 → 4, shelled). RB rows in the next commit.
+
+## D109 — the step-116 flake: a flow step read the previous step's body, not a wrong body (2026-10-20)
+
+The outer lane reported step 116, "R10.3c a rod across a round plate", failing once in four full flows on unchanged kernel code: 39603 → 14594 where +12.04 was expected, at a load average of about 8. The coordinator asked to suspect the studio's evaluation path first, then anything time-based in the kernel, and to reproduce under load.
+
+- **Cause: the flow's wait, not the studio or the kernel.**
+  - **The body was right.** The failing run's screenshot (`notes/flaky-step116-flow12.png`, in the outer lane's worktree) shows the filleted rod on its disc at 14594 mm³. The kernel gives the unfilleted body 14582.04, and the fillet adds 12.04.
+  - **"Before" was the previous step's body.** 39603 is R10.3b's filleted box boss: 60·60·10 + 20·12·15 + 2.9 = 39602.9, read off the panel.
+  - **Why.** R10.3b's document ends with 6 nodes and 1 body, and R10.3c waited only for "6 nodes and 1 body" after choosing its file. When the file is read slowly (a loaded machine), that wait passes on the old document, and the body's panel shows the old body.
+- **Ruled out:**
+  - The studio's evaluation already guards against stale results. A cancelled or superseded evaluation never applies (`live`), and `bodiesFor` records which document the shown bodies belong to (`fresh`).
+  - The kernel has no deadline or time budget; only decimation reports its milliseconds.
+  - The studio's one time-based path, stopping a slow computation, is a button the user presses.
+- **Fix:**
+  - `App.tsx` (development builds only) sets `window.__studioFresh = fresh && !busy`. It is set in the same commit that changes the document, since `evaluated` derives from it in the same render.
+  - The flow's `openModel(file, nodes)` waits for a document other than the last one, with that node count, whose bodies are fresh. The 16 file-loading steps that waited on a node count use it, as does the R14.5 flange (the outer lane's step, the same latent race).
+  - The other count waits follow "New part" and a command, from 0 nodes, so they cannot match the last document. They are left as they are.
+- **Stress test:** a flow step opens two files of one node count back to back, six times (a 40 × 30 × 10 plate and a 50 × 5 × 4 bar), and checks each volume read is its own.
+
+  | Wait | Failed runs (8 each) | Load average |
+  |---|---|---|
+  | Old (node count only) | 2 | 60–210, under a kernel suite in a loop and the other lane's runs |
+  | `openModel` | 0 | the same |
+
+  - Reproducing the original R10.3b → R10.3c pair alone took more than 6 rounds without a failure, at loads up to 30.
+- No kernel change; nothing in R10.3c's geometry was wrong.
+- Checks: studio 429/429, type-check clean; full flow 148/148 (new step: the back-to-back opens). Kernel unchanged (1150/1155 at D108), so RB not rerun.
