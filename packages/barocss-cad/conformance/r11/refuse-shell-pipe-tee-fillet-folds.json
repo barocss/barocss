@@ -1,0 +1,100 @@
+{
+  "id": "r11-refuse-shell-pipe-tee-fillet-folds",
+  "step": "R11",
+  "decisions": [
+    "D112"
+  ],
+  "about": "R11.2c-1: the filleted pipe tee with its ends opened, shelled 4.1: past the fillet's convex radius (4.048 mm, where it turns round the branch) — the offset would turn over.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 60
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            30,
+            0
+          ],
+          "radius": 5
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 25
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|b.side0#2#4"
+          ],
+          "radius": 2
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 4.1,
+          "open": [
+            "a.top",
+            "a.bottom",
+            "b.top"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[OFFSET_FOLDS]"
+    }
+  },
+  "oracle": "Refused by name (this kernel)."
+}

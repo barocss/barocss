@@ -2974,6 +2974,23 @@ try {
     await snap('r11-2b-subd-cube-open');
   });
 
+  await check('R11.2c-1 a filleted pipe tee shelled 1 with its three ends opened (a file): two trimmed cylinders offset exactly and the fillet\'s patches fitted, one smooth region — the kept faces\' normal bands (refused before D112)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'pipe-tee-open.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 7, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n1', kind: 'extrude', sketch: 0, height: 60 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [30, 0], radius: 5 }, { id: 'n3', kind: 'extrude', sketch: 2, height: 25 },
+      { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+      { id: 'n5', kind: 'fillet', parent: { node: 4, side: 'solid' }, edges: ['n1.side0#1|n3.side0#2#4'], radius: 2 },
+      { id: 'n6', kind: 'shell', parent: { node: 5, side: 'solid' }, thickness: 1, open: ['n1.top', 'n1.bottom', 'n3.top'] }] }));
+    await openModel(file, 7, 90000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 90000 }); await idle();
+    // (Conformance r11/shell-pipe-tee-open-ends: 3955.21 mm³; the panel rounds to 1 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 3955.21) <= 1, `${vol}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r11-2c1-pipe-tee-open');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
