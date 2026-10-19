@@ -183,3 +183,33 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - `test/chat-drawing.test.ts`: the tools offered with schemas; reading changes nothing; every change tool refused directly (`needs_approval`, the drawing unchanged); a proposal of Auto plus geometric tolerances has risk approval `drawing`, the agent cannot accept it, and the user's acceptance gives the drawing its dimensions (a 3× pitch), datums A B C, a Ø0.6 frame and no issue; through dispatch, layout off, set_drawing (a non-standard scale refused), accepting one suggestion by id (an unknown id refused), and a fix by code.
   - A browser-flow step: the flange opened from its case file; Auto gives Ø60 PCD · 4× EQ SP, 4× Ø6 THRU, Ø20 THRU, its bore at 50/50, no issue; the DXF holds the pitch circle's text.
 - **R14 done** with this step: R14.1 auto-dimension, R14.2 issue list, R14.3 layout, R14.4 tolerances, R14.5 pitch circles and agent tools. Pending (README): R14.3b, the front view's side; then A5.
+
+## O7 — R14.3b: the front view's side, versioned; annotations re-mapped or the turn refused (2026-10-20)
+
+- **The setting** `orientation` (the D16 pattern): the side the front view looks from, `x+`, `y+` or `x-`. **None means `y-`**, from −Y: every drawing saved before has none and reopens exactly as it was. `viewsFor('y-')` gives the very numbers the views always had (tested against the literal), and the R11b DXF document fixture and every R14 case are unchanged byte for byte. A bad value is dropped on reading.
+  - For each side: the top view looks down Z keeping the front's horizontal axis; the right view is the front turned a quarter to its right; the isometric is from the front-right-top corner. So for every side, front and top share u, front and right share Z, and the top's v is the right's u (tested). Auto's and the issue list's shared-axis rules hold without change.
+  - **Section A–A** is cut square to the front's depth: `section.y` is the position along it (model Y from −Y; X = −y from +X, Y = −y from +Y, X = y from −X). The far side is kept, as before.
+  - Wired through the worker, the client, the agent's tools and the DXF/PDF/SVG (which draw what the sheet holds).
+- **The rule for what is on a drawing when it turns** (`drawing/reorient.ts`, `cad-studio-reorient-v1`):
+  - **Re-map**: each annotation goes to the view of the new side that looks along the same model axis as its own. One always does: the top view stays, the front and right views swap or turn round. Its places, note leader points and datum symbol spots are carried through the model. A horizontal or vertical dimension turns where the axes swap. The views shown turn with them: a view shown before keeps its annotations shown.
+  - **Refuse, typed**, and change nothing, when:
+    - a dimension would not read what it read before — the same edges, the same kind and value to 1e-9, or no longer resolves (`ORIENTATION_REMAP_FAILED`, with each dimension's before and after);
+    - section A–A would be cut across the present front (`SECTION_ACROSS`: turn it off first). Along it (−Y ↔ +Y, ±X ↔ ∓X) it is kept, its position turned.
+  - Nothing is dropped silently, and nothing is kept in a view that no longer shows its axes.
+- **Auto's choice** (`frontByInformation`): the side the right view looks from, when it tells clearly more than the front. Information is visible edges, plus three for each circle that shows round, less half the hidden ones; "clearly" means a fifth more and two more. Only for a drawing with no side set and nothing placed by hand on it (dimensions, leaders, datums); otherwise the front stays. The studio's Auto and the agent's `auto_dimension` project the part for that side, turn by the rule above, and lay out; the toast and the tool's `front` say why. The block with a hole along X gets its front from +X, so its hole shows round in the front view; a plate keeps −Y.
+- **Studio**: "Front from" in the SHEET card (−Y default, +X, +Y, −X), turning by the rule (a refusal says why, its list in the details). The workspace shows no views of the old side while the new ones come. The agent's `set_drawing` takes `front`.
+- **Evidence**:
+  - Conformance `conformance/r14/orient-*` (`test/reorient.test.ts`):
+    - `orient-plate-x-plus`: the plate's 64 and 8 move from the front to the right view, which is shown again; top unchanged; every value kept.
+    - `orient-cross-hole-y-plus`: from behind, the same views mirrored, every value kept.
+    - `orient-section-across`: refused SECTION_ACROSS.
+  - Tests:
+    - an old drawing (no side) reads back, lays out and draws exactly as with the old views;
+    - the shared axes for all four sides;
+    - a turn and its way back give the places to 1e-9;
+    - section along kept at −16, across refused;
+    - a turn against views where the hole is gone refused with the Ø8 and positions listed;
+    - section A–A from +X: the plane X = 30, the far side kept, a 30 × 30 cut face less the hole, "Nothing … behind X = −10";
+    - Auto's choice for the block, none for a plate, none with a side set or a dimension by hand;
+    - the agent's auto_dimension on the block: front from +X, the hole's diameter in the front view, no issue; set_drawing back to −Y re-maps it to the right view; a bad side refused.
+  - A browser-flow step: the auto-dimensioned plate turned to +X — the same six values, no error, the old front's dimensions in the right view (shown) — then back to −Y as it was; with section A–A on, turning to +X is refused and nothing changes.

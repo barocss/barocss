@@ -189,10 +189,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     located by a bore on the centre or by the circle's own centre; the agent's drawing tools (`drawing_issues`,
     `tolerance_suggestions`; `auto_dimension`, `fix_drawing`, `accept_tolerances`, `set_drawing` only as proposals).
     Conformance `conformance/r14/pcd-*` (four parts).
-- Next: **R14.3b** (the front view's side), then **A5** DSL + MCP.
-- Pending decisions (outer lane, reversible defaults taken):
-  - **R14.3b, the front view's side** (coordinator, 2026-10-19: after R14.5): the front view stays the part's −Y side.
-    Choosing it by information needs a versioned view-orientation setting and a rule for existing dimensions.
+  - **R14.3b** (O7): done. `orientation` (none: −Y, as every saved drawing): the front from −Y, +X, +Y or −X; turning
+    re-maps every annotation to the view showing its axes or is refused, typed (ORIENTATION_REMAP_FAILED, SECTION_ACROSS);
+    section A–A square to the front's depth; Auto takes the side that tells more when nothing by hand ties it.
+    Conformance `conformance/r14/orient-*`.
+- Next: **A5** DSL + MCP (design input `notes/research-cad-server-2026-10-18.md`).
+- Pending decisions (outer lane, reversible defaults taken): none open.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
