@@ -3901,6 +3901,23 @@ try {
     await snap('rm4-urdf');
   });
 
+  // ---- RM5 (O18): MJCF export -------------------------------------------------------------------------------------
+  await check('RM5: the 6R arm opened, Export MJCF — a zip of robot.xml (seven nested bodies, six hinges) and its meshes, the CLI\'s model', async () => {
+    const fs = await import('node:fs'), { spawnSync } = await import('node:child_process');
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'));
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint l5~l6"]', { timeout: 30000 });
+    const [d] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.click('[aria-label="Export MJCF"]')]);
+    assert.match(d.suggestedFilename(), /-mjcf\.zip$/);
+    const py = spawnSync('python3', ['-I', '-c', 'import sys, zipfile, xml.etree.ElementTree as ET; z = zipfile.ZipFile(sys.argv[1]); r = ET.fromstring(z.read("robot.xml")); print(len(r.findall(".//body")), len(r.findall(".//joint[@type=\'hinge\']")), len([n for n in z.namelist() if n.startswith("meshes/")])); print(z.read("robot.xml").decode())', await d.path()], { encoding: 'utf8' });
+    assert.equal(py.status, 0, py.stderr);
+    const [counts, ...xml] = py.stdout.split('\n');
+    assert.equal(counts, '7 6 14');
+    const norm = t => t.trim().replace(/<mujoco model="[^"]*">/, '<mujoco>').replace(/-?\d+(\.\d+)?(e-?\d+)?/g, x => { const v = Number(x); return Math.abs(v) < 1e-15 ? '0' : String(Number(v.toPrecision(12))); });
+    assert.equal(norm(xml.join('\n')), norm(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.xml'), 'utf8')), 'the studio\'s MJCF is the CLI\'s');
+    await snap('rm5-arm');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

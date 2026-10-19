@@ -27,6 +27,7 @@
        "pose",
        "inertia",
        "urdf",
+       "mjcf",
        "set_joints"
       ],
       "type": "string"

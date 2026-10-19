@@ -9,12 +9,14 @@ import { composeInto, forwardKinematics, gearPairAt } from '../robot/fk';
 import { treeInertia, type LinkInertia } from '../robot/inertia';
 import { exportUrdf, type UrdfResult } from '../robot/urdf';
 import { readUrdf } from '../robot/urdfCheck';
+import { exportMjcf, type MjcfResult } from '../robot/mjcf';
+import { readMjcf } from '../robot/mjcfCheck';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -39,6 +41,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: { name: { type: 'string' } }, additionalProperties: false },
   },
   {
+    name: 'export_mjcf',
+    description: 'The robot as a MuJoCo MJCF model (the same frames, inertia and meshes as export_urdf; bodies nested at their link frames, hinge and slide joints at the body origin, the base fixed in the world, gravity −9.81 on Z; a passive model: no damping, friction or actuators invented; a gear follower as an equality). The model\'s text, its mesh files, notes, and our structural check of it. Refused as export_urdf is. Changes nothing.',
+    input_schema: { type: 'object', properties: { name: { type: 'string' } }, additionalProperties: false },
+  },
+  {
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
@@ -56,6 +63,12 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (name === 'get_joints') {
     const t = await treeOfDoc(doc, bodies, evaluate);
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
+  }
+  if (name === 'export_mjcf') {
+    const r = await mjcfOfDoc(doc, bodies, evaluate, typeof args.name === 'string' ? args.name : 'robot');
+    if (!r.ok) return { error: `MJCF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}` };
+    const check = readMjcf(r.xml, new Set(r.files.map(f => f.path)));
+    return { doc, content: { mjcf: r.xml, files: r.files.map(f => ({ path: f.path, bytes: f.data.length })), notes: r.notes, check: check.issues }, changed: false, summary: `MJCF: ${check.model.bodies.length} bodies${check.issues.length ? `, ${check.issues.length} issues` : ''}` };
   }
   if (name === 'export_urdf') {
     const r = await urdfOfDoc(doc, bodies, evaluate, typeof args.name === 'string' ? args.name : 'robot');
@@ -123,9 +136,14 @@ export function inertiaJson(l: LinkInertia) {
     frame: { origin_mm: l.frame.origin.map(sig), axes: [l.frame.R.slice(0, 3), l.frame.R.slice(3, 6), l.frame.R.slice(6, 9)].map(r => r.map(sig)) }, bodies: l.bodies.map(b => ({ ...b, massKg: sig(b.massKg) })), issues: l.issues };
 }
 
-/** The document's robot as URDF: its instances evaluated in their own coordinates, each with its placement. */
-export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> {
+/** The document's robot and its parts: its instances evaluated in their own coordinates, each with its placement. */
+async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate) {
   const t = await treeOfDoc(doc, bodies, evaluate), solved = solveDoc(doc).doc, own = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
   for (const inst of solved.instances ?? []) { const r = await evaluate(inst.doc); own.set(inst.id, r?.ok ? r.bodies : []); }
-  return exportUrdf(t, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: own.get(p) ?? [], position: i.position, rotation: i.rotation } : null; }, name);
+  const partOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: own.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
+  return { tree: t, partOf };
 }
+/** The document's robot as URDF (RM4). */
+export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportUrdf(r.tree, r.partOf, name); }
+/** The document's robot as MJCF (RM5). */
+export async function mjcfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<MjcfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportMjcf(r.tree, r.partOf, name); }

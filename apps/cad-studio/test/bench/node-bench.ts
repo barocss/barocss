@@ -30,6 +30,8 @@ import { posedInstances } from '../../src/robot/preview';
 import { treeInertia } from '../../src/robot/inertia';
 import { exportUrdf } from '../../src/robot/urdf';
 import { readUrdf } from '../../src/robot/urdfCheck';
+import { exportMjcf } from '../../src/robot/mjcf';
+import { readMjcf } from '../../src/robot/mjcfCheck';
 import { solveDoc } from '../../src/chat/assembly';
 import { tablesFor } from '../../src/assembly/faces';
 import { dispatchTool } from '../../src/chat/tools';
@@ -234,6 +236,15 @@ const scenarios: Scenario[] = [
       const u = exportUrdf(tree, p => { const i = solved.doc.instances!.find(x => x.id === p); return i ? { doc: i.doc, bodies: r.bodies, position: i.position, rotation: i.rotation } : { doc: solved.doc, bodies: rb.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; }, 'arm');
       if (!u.ok) throw new Error(JSON.stringify(u.refusals));
       const c = readUrdf(u.urdf, new Set(u.files.map(f => f.path))); if (c.issues.length) throw new Error(c.issues.join()); return c;
+    };
+  } },
+  // (RM5, O18: the MJCF of the 12-link arm, then read back and checked.)
+  { name: 'robot: MJCF export and check, 12-link arm', budgetMS: BUDGET_URDF, runs: 3, setup() {
+    const { tree, solved } = twelveLinkArm(), r = evaluateDoc(solved.doc.instances![0].doc, 1), rb = evaluateDoc(solved.doc, 1); if (!r.ok || !rb.ok) throw new Error('eval');
+    return () => {
+      const m = exportMjcf(tree, p => { const i = solved.doc.instances!.find(x => x.id === p); return i ? { doc: i.doc, bodies: r.bodies, position: i.position, rotation: i.rotation } : { doc: solved.doc, bodies: rb.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; }, 'arm');
+      if (!m.ok) throw new Error(JSON.stringify(m.refusals));
+      const c = readMjcf(m.xml, new Set(m.files.map(f => f.path))); if (c.issues.length) throw new Error(c.issues.join()); return c;
     };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)

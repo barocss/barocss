@@ -63,7 +63,7 @@ export const GROUPS: Record<string, Group> = {
       get: ['get_assembly', 'faces_of?'], add_part: ['add_part', 'name, copy_of?, position?, rotation?, grounded?'], place: ['place_part', 'part, position?, rotation?, name?, grounded?, hidden?'],
       delete_part: ['delete_part', 'part'], add_mate: ['add_mate', 'kind, a, b, distance?, angle?, flip?'], edit_mate: ['edit_mate', 'id, distance?, angle?, flip?'],
       delete_mate: ['delete_mate', 'id'], insert: ['insert_part', 'library, part, variant?, params?, name?, position?, rotation?'], snap: ['snap_part', 'a, b, offset?'],
-      joints: ['get_joints', '— the assembly as links and joints from its base link'], pose: ['forward_kinematics', 'values: {joint key: radians | mm} — where each part is'], inertia: ['link_inertia', '— each link\'s mass, centre of mass and inertia (SI, link frame)'], urdf: ['export_urdf', 'name? — the robot as URDF, checked'], set_joints: ['set_joints', 'base?, joints?: {key: {lower?, upper?, effort?, velocity?} | null}'],
+      joints: ['get_joints', '— the assembly as links and joints from its base link'], pose: ['forward_kinematics', 'values: {joint key: radians | mm} — where each part is'], inertia: ['link_inertia', '— each link\'s mass, centre of mass and inertia (SI, link frame)'], urdf: ['export_urdf', 'name? — the robot as URDF, checked'], mjcf: ['export_mjcf', 'name? — the robot as a MuJoCo MJCF model, checked'], set_joints: ['set_joints', 'base?, joints?: {key: {lower?, upper?, effort?, velocity?} | null}'],
     },
   },
   library: {

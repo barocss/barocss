@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!-- barocss-mjcf-v1: barocss CAD Studio. SI units; each body at its link frame (at its joint, Z on the axis); joint values 0 at the pose the mates solve to; a passive model (no damping, friction or actuators). -->
+<mujoco model="robot">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81"/>
+  <asset>
+    <mesh name="base" file="base.stl"/>
+    <mesh name="base_collision" file="base_collision.stl"/>
+    <mesh name="l1" file="l1.stl"/>
+    <mesh name="l1_collision" file="l1_collision.stl"/>
+    <mesh name="l2" file="l2.stl"/>
+    <mesh name="l2_collision" file="l2_collision.stl"/>
+    <mesh name="l3" file="l3.stl"/>
+    <mesh name="l3_collision" file="l3_collision.stl"/>
+    <mesh name="l4" file="l4.stl"/>
+    <mesh name="l4_collision" file="l4_collision.stl"/>
+    <mesh name="l5" file="l5.stl"/>
+    <mesh name="l5_collision" file="l5_collision.stl"/>
+    <mesh name="l6" file="l6.stl"/>
+    <mesh name="l6_collision" file="l6_collision.stl"/>
+  </asset>
+  <worldbody>
+    <body name="base" pos="0 0 0" quat="1 0 0 0">
+      <inertial pos="0.04999999999999991 0.04999999999999991 0.005" mass="0.2686428319736498" fullinertia="0.0002272332615943428 0.0002272332615943428 0.00044998914265579145 0 0 0"/>
+      <geom name="base_visual" type="mesh" mesh="base" contype="0" conaffinity="0" group="1"/>
+      <geom name="base_collision" type="mesh" mesh="base_collision" group="3"/>
+      <body name="l1" pos="0.05000000000000001 0.05000000000000001 0.01" quat="1 0 0 0">
+        <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+        <joint name="base_to_l1" type="hinge" pos="0 0 0" axis="0 0 1"/>
+        <geom name="l1_visual" type="mesh" mesh="l1" contype="0" conaffinity="0" group="1"/>
+        <geom name="l1_collision" type="mesh" mesh="l1_collision" group="3"/>
+        <body name="l2" pos="0 0.009999999999999993 0.059999999999999984" quat="0.7071067811865476 -0.7071067811865475 0 0">
+          <inertial pos="0 -0.020000000000000028 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+          <joint name="l1_to_l2" type="hinge" pos="0 0 0" axis="0 0 1"/>
+          <geom name="l2_visual" type="mesh" mesh="l2" contype="0" conaffinity="0" group="1"/>
+          <geom name="l2_collision" type="mesh" mesh="l2_collision" group="3"/>
+          <body name="l3" pos="0 -0.03999999999999997 0.02" quat="1 0 0 0">
+            <inertial pos="0 -0.020000000000000056 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+            <joint name="l2_to_l3" type="hinge" pos="0 0 0" axis="0 0 1"/>
+            <geom name="l3_visual" type="mesh" mesh="l3" contype="0" conaffinity="0" group="1"/>
+            <geom name="l3_collision" type="mesh" mesh="l3_collision" group="3"/>
+            <body name="l4" pos="0 -0.06000000000000004 0.009999999999999986" quat="0.7071067811865476 0.7071067811865475 0 0">
+              <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+              <joint name="l3_to_l4" type="hinge" pos="0 0 0" axis="0 0 1"/>
+              <geom name="l4_visual" type="mesh" mesh="l4" contype="0" conaffinity="0" group="1"/>
+              <geom name="l4_collision" type="mesh" mesh="l4_collision" group="3"/>
+              <body name="l5" pos="0 0.010000000000000014 0.06000000000000006" quat="0.7071067811865476 -0.7071067811865475 0 0">
+                <inertial pos="0 -0.01999999999999996 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+                <joint name="l4_to_l5" type="hinge" pos="0 0 0" axis="0 0 1"/>
+                <geom name="l5_visual" type="mesh" mesh="l5" contype="0" conaffinity="0" group="1"/>
+                <geom name="l5_collision" type="mesh" mesh="l5_collision" group="3"/>
+                <body name="l6" pos="0 -0.05999999999999994 0.009999999999999986" quat="0.7071067811865476 0.7071067811865475 0 0">
+                  <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+                  <joint name="l5_to_l6" type="hinge" pos="0 0 0" axis="0 0 1"/>
+                  <geom name="l6_visual" type="mesh" mesh="l6" contype="0" conaffinity="0" group="1"/>
+                  <geom name="l6_collision" type="mesh" mesh="l6_collision" group="3"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

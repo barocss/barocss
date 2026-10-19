@@ -809,6 +809,48 @@
    }
   },
   {
+   "name": "export_mjcf",
+   "annotations": {
+    "title": "Export mjcf",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "name": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "check": {
+      "type": "array"
+     },
+     "files": {
+      "type": "array"
+     },
+     "mjcf": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "mjcf",
+     "files",
+     "notes",
+     "check"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "export_urdf",
    "annotations": {
     "title": "Export urdf",

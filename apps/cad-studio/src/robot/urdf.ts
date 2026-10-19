@@ -39,11 +39,11 @@ export function rpyOf(R: Mat3): V3 {
   return [Math.atan2(R[7], R[8]), pitch, Math.atan2(R[3], R[0])];
 }
 /** URDF's numbers: shortest exact decimal (JavaScript's own), a rounding of zero as 0. */
-const num = (v: number) => (Math.abs(v) < 1e-15 ? '0' : String(v));
-const nums = (v: readonly number[]) => v.map(num).join(' ');
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+export const num = (v: number) => (Math.abs(v) < 1e-15 ? '0' : String(v));
+export const nums = (v: readonly number[]) => v.map(num).join(' ');
+export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 /** A name URDF tools take everywhere: letters, digits and _, unique. */
-function namer() {
+export function namer() {
   const used = new Set<string>();
   return (raw: string) => { let n = raw.replace(/~/g, '_to_').replace(/[^A-Za-z0-9_]/g, '_').replace(/^(?=\d)/, 'n_'), k = 2; const base = n; while (used.has(n)) n = `${base}_${k++}`; used.add(n); return n; };
 }
@@ -55,8 +55,13 @@ function frameOnAxis(j: Joint): { R: Mat3; o: V3 } {
   return { R: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], o: [...j.origin] as V3 };
 }
 
-/** The robot as a URDF document and its mesh files, or what refuses it. `partOf(part)`: a part's document, bodies (own coordinates) and placement. */
-export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart | null, robotName: string): UrdfResult {
+/** What URDF and MJCF both write (RM4, RM5): each link's world frame at home, its inertia and its meshes; or the refusals. */
+export interface RobotParts {
+  world: Map<string, { R: Mat3; o: V3 }>; inertias: Map<string, LinkInertia>;
+  meshes: Map<string, { visual: { positions: Float32Array; indices: Uint32Array }; hull: { positions: Float64Array; indices: Uint32Array } }>;
+  notes: string[];
+}
+export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart | null): RobotParts | { refusals: { code: UrdfRefusal; message: string }[] } {
   const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [];
   for (const p of tree.problems) {
     if (p.code === 'MOTION_UNSUPPORTED') refusals.push({ code: 'MOTION_UNSUPPORTED', message: p.message });
@@ -66,12 +71,12 @@ export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart |
   for (const j of tree.joints) {
     const l = j.limit;
     if ((j.type === 'revolute' || j.type === 'prismatic') && (l?.lower === undefined || l.upper === undefined || l.effort === undefined || l.velocity === undefined))
-      refusals.push({ code: 'LIMITS_MISSING', message: `${j.key}: a ${j.type} joint needs lower, upper, effort and velocity in URDF (set_joints).` });
+      refusals.push({ code: 'LIMITS_MISSING', message: `${j.key}: a ${j.type} joint needs lower, upper, effort and velocity (set_joints).` });
   }
   if (tree.links.length < 1) refusals.push({ code: 'EMPTY', message: 'the robot has no link' });
-  for (const l of tree.loops) notes.push(`${l.message} URDF is a tree: the closure (${l.mates.join(', ')}) is not written.`);
+  for (const l of tree.loops) notes.push(`${l.message} A tree format: the closure (${l.mates.join(', ')}) is not written.`);
   // Link frames: a part's in its coordinates (RM3), then into the world through its placement; a dummy's on its joint.
-  const local = linkFrames(tree, p => partOf(p)), world = new Map<string, { R: Mat3; o: V3 }>(), inertias = new Map<string, LinkInertia>();
+  const local = linkFrames(tree, p => partOf(p)), world = new Map<string, { R: Mat3; o: V3 }>(), inertias = new Map<string, LinkInertia>(), meshes: RobotParts['meshes'] = new Map();
   for (const l of tree.links) {
     if (l.part === null) { const j = tree.joints.find(x => x.child === l.id)!; world.set(l.id, frameOnAxis(j)); continue; }
     const part = partOf(l.part), F = local.get(l.id)!, P = (part ? rotationMatrix(part.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1]) as Mat3, t = (part?.position ?? [0, 0, 0]) as V3;
@@ -82,9 +87,20 @@ export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart |
     for (const i of li.issues) if (i.code === 'NOT_SPD' || i.code === 'TRIANGLE' || i.code === 'NO_BODY') refusals.push({ code: 'INERTIA', message: `${l.name}: ${i.message}` });
       else if (i.code !== 'MATERIAL_ASSUMED') notes.push(`${l.name}: ${i.message}`);
     if (li.issues.some(i => i.code === 'MATERIAL_ASSUMED')) notes.push(`${l.name}: a body without a material, aluminium assumed for its mass.`);
+    // The part's bodies into the link frame, in metres: a visual mesh, and its convex hull for collision.
+    const visual = linkMesh(part?.bodies ?? [], F);
+    if (visual.indices.length) {
+      try { meshes.set(l.id, { visual, hull: convexHull(visual.positions) }); } catch (e) { if (e instanceof HullError) refusals.push({ code: 'NO_HULL', message: `${l.name}: ${e.message}` }); else throw e; }
+    }
   }
-  if (refusals.length) return { ok: false, refusals };
+  return refusals.length ? { refusals } : { world, inertias, meshes, notes };
+}
 
+/** The robot as a URDF document and its mesh files, or what refuses it. `partOf(part)`: a part's document, bodies (own coordinates) and placement. */
+export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart | null, robotName: string): UrdfResult {
+  const parts = robotParts(tree, partOf);
+  if ('refusals' in parts) return { ok: false, refusals: parts.refusals };
+  const { world, inertias, meshes, notes } = parts;
   const linkName = namer(), jointName = namer(), names = { links: {} as Record<string, string>, joints: {} as Record<string, string> };
   for (const l of tree.links) names.links[l.id] = linkName(l.id);
   for (const j of tree.joints) names.joints[j.key] = jointName(j.key);
@@ -98,16 +114,11 @@ export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart |
       out.push(`    <inertial>`, `      <origin xyz="${nums(li.comM)}" rpy="0 0 0"/>`, `      <mass value="${num(li.massKg)}"/>`,
         `      <inertia ixx="${num(I[0])}" ixy="${num(I[1])}" ixz="${num(I[2])}" iyy="${num(I[4])}" iyz="${num(I[5])}" izz="${num(I[8])}"/>`, `    </inertial>`);
     } else out.push(`    <inertial>`, `      <origin xyz="0 0 0" rpy="0 0 0"/>`, `      <mass value="${num(DUMMY_MASS)}"/>`, `      <inertia ixx="${num(DUMMY_INERTIA)}" ixy="0" ixz="0" iyy="${num(DUMMY_INERTIA)}" iyz="0" izz="${num(DUMMY_INERTIA)}"/>`, `    </inertial>`);
-    if (l.part !== null) {
-      // The part's bodies into the link frame, in metres: a visual mesh, and its convex hull for collision.
-      const part = partOf(l.part)!, F = local.get(l.id)!, mesh = linkMesh(part.bodies, F);
-      if (mesh.indices.length) {
-        let hull;
-        try { hull = convexHull(mesh.positions); } catch (e) { if (e instanceof HullError) return { ok: false, refusals: [{ code: 'NO_HULL', message: `${l.name}: ${e.message}` }] }; throw e; }
-        files.push({ path: `meshes/${n}.stl`, data: encodeBinaryStl(mesh.positions, mesh.indices, `barocss ${n} visual (m)`) }, { path: `meshes/${n}_collision.stl`, data: encodeBinaryStl(hull.positions, hull.indices, `barocss ${n} convex hull (m)`) });
-        out.push(`    <visual>`, `      <origin xyz="0 0 0" rpy="0 0 0"/>`, `      <geometry><mesh filename="meshes/${n}.stl"/></geometry>`, `    </visual>`,
-          `    <collision>`, `      <origin xyz="0 0 0" rpy="0 0 0"/>`, `      <geometry><mesh filename="meshes/${n}_collision.stl"/></geometry>`, `    </collision>`);
-      }
+    const mesh = meshes.get(l.id);
+    if (mesh) {
+      files.push({ path: `meshes/${n}.stl`, data: encodeBinaryStl(mesh.visual.positions, mesh.visual.indices, `barocss ${n} visual (m)`) }, { path: `meshes/${n}_collision.stl`, data: encodeBinaryStl(mesh.hull.positions, mesh.hull.indices, `barocss ${n} convex hull (m)`) });
+      out.push(`    <visual>`, `      <origin xyz="0 0 0" rpy="0 0 0"/>`, `      <geometry><mesh filename="meshes/${n}.stl"/></geometry>`, `    </visual>`,
+        `    <collision>`, `      <origin xyz="0 0 0" rpy="0 0 0"/>`, `      <geometry><mesh filename="meshes/${n}_collision.stl"/></geometry>`, `    </collision>`);
     }
     out.push(`  </link>`);
   }

@@ -1,0 +1,5 @@
+{
+ "case": "arm-6r",
+ "step": "RM5",
+ "note": "A 6R arm (axes Z, Y, Y, Z, Y, Z) of six 20 × 20 × 80 aluminium blocks on a base plate, from its mates. robot.xml is its MJCF (frozen); expect.json is what scripts/mjcf-oracle.py checks in MuJoCo: masses, centres, principal inertia, body frames at two poses, and the arm hanging under gravity (pending the owner's go-ahead, O18)."
+}

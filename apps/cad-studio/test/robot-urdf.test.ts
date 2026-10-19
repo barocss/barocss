@@ -143,7 +143,7 @@ test('what URDF cannot hold is refused, typed: limits missing, an unsupported mo
   const cyl = await urdfOfDoc(caseDoc('cylindrical'), await bodiesOf(caseDoc('cylindrical')), evaluate, 'r');
   assert.ok(!cyl.ok && cyl.refusals.every(x => x.code === 'LIMITS_MISSING'), 'its slide needs limits');
   const loop = await exported(caseDoc('loop'));
-  assert.ok(loop.notes.some(n => /URDF is a tree: the closure \(m3\) is not written/.test(n)), loop.notes.join('\n'));
+  assert.ok(loop.notes.some(n => /A tree format: the closure \(m3\) is not written/.test(n)), loop.notes.join('\n'));
   // A continuous joint without ratings is a URDF one as it is: no <limit>.
   assert.doesNotMatch((await exported(caseDoc('revolute'))).urdf, /<limit/);
 });
