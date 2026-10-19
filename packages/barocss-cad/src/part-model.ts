@@ -49,6 +49,7 @@ import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
 import { regionShell } from './region-shell.js';
+import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -284,6 +285,8 @@ export interface CadPartOutput {
   readonly decimate?: DecimateReport;
   /** A general fillet's reports (R10.2, D89), one a rolling-ball tool: its stations, patches and measured deviations. */
   readonly fillet?: readonly FilletReport[];
+  /** A mesh body's shell (R11.3, D114): the wall asked for and the wall its offset achieves, measured. */
+  readonly shell?: MeshShellReport;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -342,6 +345,7 @@ interface Part {
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
+  readonly shell?: MeshShellReport;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -941,7 +945,12 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       try { validateSurface(surface); } catch (cause) { fail('INPUT', `surface: ${cause instanceof Error ? cause.message : String(cause)}`); }
       return () => {
         try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
-        catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+        catch (cause) {
+          const m = cause instanceof BrepError ? /CAPABILITY: shell: (.*)$/s.exec(cause.message) : null;
+          if (m) fail('CAPABILITY', m[1]);
+          if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+          throw cause;
+        }
       };
     }
     case 'subd': {
@@ -1443,6 +1452,23 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
  */
 /** The shell of a part, by how it was made (its mass exact when that can be). */
 function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  // A mesh body (facet faces): its cavity its triangles offset in, the wall it achieves measured (R11.3, D114).
+  const s = part.solid;
+  if (s.kind === 'brep' && s.brep.faces.length && s.brep.faces.every(isFacetFace)) {
+    if (open.length) fail('CAPABILITY', `opening a face of a mesh body (${open.join(', ')}) is not supported yet: shell it closed`);
+    if (s.brep.bodies.some(b => b.kind === 'sheet')) fail('CAPABILITY', 'a mesh sheet encloses nothing to shell: thicken it instead');
+    const mesh = facetTriangles(s.brep);
+    try {
+      const r = meshInnerOffset(mesh.positions, mesh.indices, t);
+      const cavity = facetBrepFromTriangles(r.positions, mesh.indices, { id: `${at}_in`, maximumTriangles: CadPartLimits.meshTriangles, groups: mesh.groups, groupName: g => `${at}.in.${mesh.names[g]}`, creaseDegrees: 180 });
+      return { solid: { kind: 'brep', brep: withCavities(s.brep, cavity, { family: 'shell', id: at }) }, shell: r.report };
+    } catch (cause) {
+      const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
+      if (m) fail('CAPABILITY', m[1]);
+      if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+      throw cause;
+    }
+  }
   if (part.solid.kind !== 'upright') {
     if (part.revolved) return shellRevolved(part, part.revolved, t, open, at, fail);
     if (part.swept) return shellSwept(part, part.swept, t, open, at, fail);
@@ -1879,7 +1905,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

@@ -11,6 +11,7 @@ import { BrepError, buildBrep, isFacetFace, lineCurve, nurbsOf, type Brep, type 
 import { faceGeometry } from './analytic-boolean.js';
 import { curveDomain, curveEvaluator, evaluateCurve, surfaceDomain, surfaceEvaluator } from './math.js';
 import { tessellateBrepWithParameters } from './brep-tessellate.js';
+import { evaluateSurfaceCurvature } from './local-curvature.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
 
@@ -108,6 +109,31 @@ export function offsetShell(body: Brep, t: number, open: ReadonlySet<string>, id
 export function regionSlab(body: Brep, region: ReadonlySet<string>, t: number, id: string, label = id): { slab: Brep; report: OffsetCavityReport } {
   const made = offsetWall(body, t, id, label, new Set(), { region });
   return { slab: made.brep, report: made.report };
+}
+
+/**
+ * Refused where a surface thickened from `lo` to `hi` along its normal (∂S/∂u × ∂S/∂v) turns over (R11.3, D114): an
+ * offset towards the side it curves to, deeper than its radius there (t·κ ≥ 1) — the same check as a shell's, each knot
+ * span sampled with its edges and climbed (D110). Degrees above 3: sampled on a fine grid.
+ */
+export function thickenFoldCheck(surface: Surface, name: string, lo: number, hi: number): void {
+  if (surface.degreeU <= 3 && surface.degreeV <= 3) {
+    const F = patchOf({ id: name, name, surface, sense: 'forward', loops: [], shell: '' } as BrepFace, 1);
+    if (hi > 0) foldCheck([F], hi, -1);
+    if (lo < 0) foldCheck([F], -lo, 1);
+    return;
+  }
+  const { u, v } = surfaceDomain(surface), n = 64;
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
+    const uu = i === n ? u[1] : u[0] + (u[1] - u[0]) * i / n, vv = j === n ? v[1] : v[0] + (v[1] - v[0]) * j / n;
+    let k: readonly number[];
+    try { k = evaluateSurfaceCurvature(surface, uu, vv).principalCurvaturesPerMM; } catch { continue; }
+    for (const x of k) {
+      // (Positive bends towards the normal: an offset along it folds past 1/κ, one against it past −1/κ.)
+      const t = x > 0 ? hi : -lo;
+      if (t > 0 && t * Math.abs(x) >= 1) refuse(`[OFFSET_FOLDS] face ${name} curves more tightly than the wall at (${+uu.toFixed(6)}, ${+vv.toFixed(6)}): its radius there ${+(1 / Math.abs(x)).toPrecision(6)} mm, the wall ${t} mm — the offset turns over`);
+    }
+  }
 }
 
 /** The faces' smooth edges: each edge between two of the faces named by id, its largest angle between their normals. */

@@ -43,7 +43,7 @@ const sector = (c, r0, r1, a0, a1) => r0 > 0
   ? [{ kind: 'line', start: pol(c, r0, a0) }, { kind: 'arc', start: pol(c, r1, a0), center: c, direction: 'ccw' }, { kind: 'line', start: pol(c, r1, a1) }, { kind: 'arc', start: pol(c, r0, a1), center: c, direction: 'cw' }]
   : [{ kind: 'line', start: c }, { kind: 'arc', start: pol(c, r1, a0), center: c, direction: 'ccw' }, { kind: 'line', start: pol(c, r1, a1) }];
 
-test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bounded and mesh faces refused by name; thicken folds through its axis unchecked', () => {
+test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bounded and mesh faces refused by name; thicken folds through its axis unchecked (then; each shelled or refused by name since R11.2–R11.3)', () => {
   // A sphere R 10 (a revolved half disc), shelled 1: 4/3 π (R³ − (R − t)³).
   const sphere = [{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -10] }, { kind: 'arc', start: [0, 10], center: [0, 0], direction: 'cw' }], plane: xz }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
   const hollow = vol([...sphere, { id: 'sh', kind: 'shell', target: 'r', thickness: 1 }]);
@@ -59,15 +59,13 @@ test('R11 S0 today: the hollow sphere exact; freeform, saddle-trimmed, conic-bou
   // (R11.2c-2, D113, shells it: the end faces' bands need no outline.)
   const box = [{ id: 'q', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 'q', height: 20 }];
   assert.equal(out([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: 3, section: { kind: 'conic', rho: 0.5 } }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.bottom'] }]).brep.shells.length, 1);
-  // A mesh body (an octahedron of facets).
+  // A mesh body (an octahedron of facets): refused at S0 (faceted faces). (R11.3, D114, shells it: its triangles offset in.)
   const P = [10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10, 0, 0, 0, 10, 0, 0, -10], I = [0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 4, 2, 0, 5, 1, 2, 5, 3, 1, 5, 0, 3, 5];
-  refused([{ id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' }, { id: 'sh', kind: 'shell', target: 'm', thickness: 1 }], 'CAPABILITY', /faceted \(mesh\) faces are not supported yet/);
-  // thicken: a quarter cylinder R 10 thickened 12 towards its axis — its inner sheet crosses the axis (radius 10 − 12 → 2 on
-  // the far side). Accepted as a valid solid (the mesh's topology is sound); nothing checks t·κ ≥ 1 (R11.3 refuses it).
+  assert.equal(out([{ id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' }, { id: 'sh', kind: 'shell', target: 'm', thickness: 1 }]).brep.shells.length, 2);
+  // thicken: a quarter cylinder R 10 thickened 12 towards its axis — at S0 its inner sheet crossed the axis (radius 10 − 12 →
+  // 2 on the far side), accepted as a valid solid with nothing checking t·κ ≥ 1. (R11.3, D114, refuses it by name.)
   const w = Math.SQRT1_2, QUARTER = { degreeU: 2, degreeV: 1, knotsU: [0, 0, 0, 1, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[10, 0, 0], [10, 10, 0]], [[10, 0, 10], [10, 10, 10]], [[0, 0, 10], [0, 10, 10]]], weights: [[1, 1], [w, w], [1, 1]] };
-  const folded = out([{ id: 't', kind: 'thicken', surface: QUARTER, thickness: 12 }]);
-  assert.equal(folded.validate().valid, true);
-  assert.ok(Math.abs(Math.min(...folded.brep.vertices.map(v => Math.hypot(v.point[0], v.point[2]))) - 2) < 1e-9, 'the inner sheet has passed through the axis');
+  refused([{ id: 't', kind: 'thicken', surface: QUARTER, thickness: 12 }], 'CAPABILITY', /\[OFFSET_FOLDS\]/);
 });
 
 test('R11 S0 then and now: a slab grown across a smooth edge into a concave face over-thickened the wall — the same slabs not grown there are exact, as the shell now is (D106)', () => {

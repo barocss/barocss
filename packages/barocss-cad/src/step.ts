@@ -12,6 +12,7 @@ import { tessellateBrep } from './brep-tessellate.js';
 import { dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { brepFromTriangles } from './mesh-brep.js';
+import { withCavities } from './brep-glue.js';
 import { weldVertices } from './facet-brep.js';
 
 // ---- export ------------------------------------------------------------------------------------------
@@ -231,11 +232,19 @@ export { importStep, stepMeshes, stepTessellatedChars, stepValidationProperties,
 function planarFacets(brep: Brep): Brep {
   if (!brep.faces.some(f => f.surface.kind === 'facets')) return brep;
   if (!brep.faces.every(f => f.surface.kind === 'facets')) throw new BrepError('GEOMETRY', 'STEP: a body mixing mesh and other faces cannot be written yet');
-  const positions: number[] = [], indices: number[] = [];
-  for (const f of brep.faces) {
-    const F = f.surface as FacetPatch, base = positions.length / 3, X = F.indices, fw = f.sense === 'forward';
-    for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
-    for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
+  const planar = (faces: readonly Brep['faces'][number][], id: string) => {
+    const positions: number[] = [], indices: number[] = [];
+    for (const f of faces) {
+      const F = f.surface as FacetPatch, base = positions.length / 3, X = F.indices, fw = f.sense === 'forward';
+      for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
+      for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
+    }
+    return brepFromTriangles(positions, indices, { id, maximumTriangles: Infinity });
+  };
+  // (A hollow mesh body — a mesh shelled, R11.3, D114 — each shell apart: its outer one, its voids as cavities.)
+  if (brep.bodies.length === 1 && brep.bodies[0].shells.length > 1) {
+    const [outer, ...voids] = brep.bodies[0].shells.map(sh => brep.faces.filter(f => f.shell === sh)), id = brep.bodies[0].id;
+    return voids.reduce((acc, fs, k) => withCavities(acc, planar(fs, `${id}_v${k}`), { family: brep.source.family, id }), planar(outer, id));
   }
-  return brepFromTriangles(positions, indices, { id: brep.bodies[0]?.id ?? brep.source.id, maximumTriangles: Infinity });
+  return planar(brep.faces, brep.bodies[0]?.id ?? brep.source.id);
 }
