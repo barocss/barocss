@@ -146,7 +146,14 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       if (node.countersink !== undefined) number('csk', 'Countersink Ø', 'mm', n => (n as typeof node).countersink ?? 0, (n, v) => ({ ...(n as typeof node), countersink: v }));
       if (node.pattern) number('count', 'Copies', undefined, n => (n as typeof node).pattern?.count ?? 1, (n, v) => ({ ...(n as typeof node), pattern: { ...(n as typeof node).pattern!, count: Math.max(1, Math.round(v)) } }));
       break;
-    case 'fillet': number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v })); break;
+    case 'fillet':
+      // (A varying radius: its two ends' radii, D100.)
+      if (node.radii) {
+        const k = (n: ModelNode) => n as typeof node, last = node.radii.length - 1;
+        number('r', 'Start radius', 'mm', n => num(k(n).radii![0].radius), (n, v) => ({ ...k(n), radius: v, radii: k(n).radii!.map((p, i) => i === 0 ? { ...p, radius: v } : p) }));
+        number('r1', 'End radius', 'mm', n => num(k(n).radii![last].radius), (n, v) => ({ ...k(n), radii: k(n).radii!.map((p, i) => i === last ? { ...p, radius: v } : p) }));
+      } else number('r', 'Radius', 'mm', n => num((n as typeof node).radius), (n, v) => ({ ...(n as typeof node), radius: v }));
+      break;
     case 'chamfer': number('d', 'Distance', 'mm', n => num((n as typeof node).distance), (n, v) => ({ ...(n as typeof node), distance: v })); break;
     case 'rack': {
       const k = (n: ModelNode) => n as typeof node;

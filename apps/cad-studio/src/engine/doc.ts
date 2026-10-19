@@ -151,7 +151,8 @@ type ModelNodeBase = SketchNode
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
   | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
-  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
+  /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. */
+  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim; radii?: { at: [number, number, number]; radius: Dim }[] }
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   /** A body in several pieces made bodies of their own (`b<i>_part<k>`). */
   | { kind: 'separate'; parent: BodyRef }
@@ -488,7 +489,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
-    case 'fillet': return `Fillet R${n(node.radius)}`;
+    case 'fillet': return node.radii ? `Fillet R${n(node.radii[0].radius)}→${n(node.radii[node.radii.length - 1].radius)}` : `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';

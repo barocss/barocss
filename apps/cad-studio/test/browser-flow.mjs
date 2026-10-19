@@ -1435,7 +1435,7 @@ try {
     }
     nodes.push({ kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
     const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
-    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
+    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2,"endRadius":0} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
       { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
     const requests = [];
     const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
@@ -3137,6 +3137,28 @@ try {
     assert.ok(Math.abs(after - roundedVolume - 503.14) <= 1, `${roundedVolume} → ${after}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r10b-step-square');
+  });
+
+  await check('R10.5 a variable-radius fillet (a file): a box\'s top edge from 1 mm to 3 mm — Radius and End radius in the HUD, the history reads the two', async () => {
+    const fs = await import('node:fs'), file = join(out, 'box-variable.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = await bodyVolume();
+    await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.side0|n1.top', 'n1.top|n1.side0'], { timeout: 30000 })).jsonValue();
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('1'); await field('End radius (0: same)').fill('3');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet' && !!window.__studioDoc.nodes.at(-1)?.radii, null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    const after = await bodyVolume();
+    // (−37.20 mm³ — conformance r10/variable-radius-linear, (1 − π/4) · 40 · (1 + 3 + 9) / 3.)
+    assert.ok(Math.abs(before - after - 37.20) <= 1, `${before} → ${after}`);
+    assert.match(await page.textContent('.history'), /Fillet R1→3/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-5-variable-radius');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {

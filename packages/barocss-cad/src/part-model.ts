@@ -225,7 +225,13 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
   /** Vertical edges of upright bodies. */
-  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius: CadPartDim }
+  /**
+   * `radius` rounds the edges with one radius. `radii` instead gives the radius at points of the edges (2–16, each on
+   * one of them; R10.5, D100): between them it varies smoothly by arc length along each chain (shape-preserving cubic,
+   * two points: linear), carried on at its end slopes past the outer points of an open chain (it must stay positive
+   * to the chain's ends), periodic round a closed one. Give one of them.
+   */
+  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[] }
 );
 export interface CadPartDocument {
   readonly format: 'barocss-cad-part'; readonly version: 1; readonly units: 'mm';
@@ -1171,14 +1177,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'chamfer': case 'fillet': {
-      const target = solids(f.target, 'target'), size = dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
+      const target = solids(f.target, 'target'), varying = f.kind === 'fillet' && f.radii !== undefined;
+      if (varying && f.radius !== undefined) fail('INPUT', 'give radius or radii, not both');
+      if (varying && (!Array.isArray(f.radii) || f.radii.length < 2 || f.radii.length > 16)) fail('INPUT', 'radii must list 2 to 16 points, each { at: [x, y, z], radius }');
+      const radii = varying ? (f.radii as { at: CadPartPoint3; radius: CadPartDim }[]).map((p, k) => ({ at: xyz(p?.at, `radii[${k}].at`), radius: dim(p?.radius as CadPartDim, `radii[${k}].radius`, true) })) : undefined;
+      const size = radii ? Math.max(...radii.map(p => p.radius)) : dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
       if (!Array.isArray(f.edges) || !f.edges.length || f.edges.length > CadPartLimits.edges || !f.edges.every(e => typeof e === 'string')) fail('INPUT', 'edges must list 1 to 64 edge names');
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
       return () => {
-        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [], solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports);
-        // A body that left the upright family keeps how it was made, so that it can still be shelled.
+        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [], solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii);
+        // A body that left the upright family keeps how it was made, so that it can still be shelled (not past a
+        // variable-radius fillet: its hollow would need the radius offset along the chain, D100).
         const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
-        const history = solid.kind === 'brep' && base ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
+        const history = solid.kind === 'brep' && base && !radii ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
         return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}) }] };
       };
     }
@@ -1636,7 +1647,7 @@ function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, 
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
-function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[]): Solid {
+function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[], radii?: readonly { at: Point; radius: number }[]): Solid {
   // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
   // tool (finishBrepEdges).
@@ -1649,6 +1660,8 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
     if (!e) fail('SELECTION', `no edge named ${name}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
     const p = e!.curve.controlPoints, a = p[0], b = p[p.length - 1], straight = e!.curve.degree === 1 && p.length === 2;
     const tol = 1e-9 * Math.max(1, ...a.map(Math.abs), ...b.map(Math.abs));
+    // (A variable radius: every edge the rolling ball's, D100.)
+    if (radii) { general.push(name); continue; }
     if (straight && part.solid.kind === 'upright' && Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol && uprightCorner(part.solid.solid, a[0], a[1], tol)) vertical.push({ x: a[0], y: a[1], z0: Math.min(a[2], b[2]), z1: Math.max(a[2], b[2]), name: name });
     else if (straight && kind === 'chamfer') wedges.push(e!);
     else general.push(name);
@@ -1666,7 +1679,7 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
   if (general.length) {
     const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports }) }; }
+    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports, ...(radii ? { radii } : {}) }) }; }
     catch (cause) {
       const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;
       if (m) fail(m[1] as CadPartErrorCode, m[2]);

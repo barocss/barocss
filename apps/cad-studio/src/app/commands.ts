@@ -190,6 +190,19 @@ function edgesOfOneBody(ctx: Ctx): { body: BodyResult; edges: DisplayEdge[] } | 
   return edges.length ? { body, edges } : null;
 }
 
+/**
+ * The two ends of the picked edges' chain — the endpoints only one of them has — the one nearer the first edge's start
+ * first; null where they close a loop or branch.
+ */
+function chainEnds(edges: readonly DisplayEdge[]): [V3, V3] | null {
+  const key = (p: readonly number[]) => p.map(x => Math.round(x * 1e4)).join(','), count = new Map<string, { p: V3; n: number }>();
+  for (const e of edges) for (const p of [e.a, e.b]) { const k = key(p), c = count.get(k); if (c) c.n++; else count.set(k, { p: [p[0], p[1], p[2]], n: 1 }); }
+  const loose = [...count.values()].filter(c => c.n === 1).map(c => c.p);
+  if (loose.length !== 2 || [...count.values()].some(c => c.n > 2)) return null;
+  const a = edges[0].a, d = (p: V3) => Math.hypot(p[0] - a[0], p[1] - a[1], p[2] - a[2]);
+  return d(loose[0]) <= d(loose[1]) ? [loose[0], loose[1]] : [loose[1], loose[0]];
+}
+
 const edgeSteps = (ctx: Ctx) => {
   const sel = edgesOfOneBody(ctx), n = sel?.edges.length ?? 0, faces = ctx.selection.edges.length ? 0 : ctx.selection.faces.length;
   return [{ label: 'Edges', text: !n ? 'pick edges or a face' : `${n} edge${n === 1 ? '' : 's'}${faces ? ` round the picked face${faces === 1 ? '' : 's'}` : ''}`, done: n > 0 }];
@@ -422,13 +435,19 @@ const allCommands: Command[] = [
       if (!sel) return no('Select edges of one body to round (Shift-click for more), or a face for all its edges.');
       return ok;
     },
-    fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }],
-    defaults: () => ({ radius: 3 }),
+    fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }, { key: 'endRadius', label: 'End radius (0: same)', kind: 'mm', min: 0 }],
+    defaults: () => ({ radius: 3, endRadius: 0 }),
     steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'radius', Number(v.radius), 'fillet'),
     build: (ctx, v) => {
-      const { body, edges } = edgesOfOneBody(ctx)!;
-      return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: edges.flatMap(e => e.names), radius: Number(v.radius) });
+      const { body, edges } = edgesOfOneBody(ctx)!, r = Number(v.radius), r1 = Number(v.endRadius) || 0, names = edges.flatMap(e => e.names);
+      // (An end radius: the radius varies along the picked chain from its start to its end, R10.5, D100.)
+      if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
+        const ends = chainEnds(edges);
+        if (!ends) throw new Error('A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
+        return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }] });
+      }
+      return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r });
     },
   },
   // (R9, D85: a mesh body simplified; its faces keep their regions and names, its report in the body's notes.)

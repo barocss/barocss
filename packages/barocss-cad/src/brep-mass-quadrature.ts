@@ -144,6 +144,11 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   const { mesh, parameters, segments } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
   const moments = new Map<Curve, Point>(), surfaces = new Map(brep.faces.map(f => [f.id, f.surface as Surface])), faces = new Map(brep.faces.map(f => [f.id, f])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
+  // (A face whose area is a millionth of the body's size squared — a sliver a Boolean left at a fillet's end, R10.5 —
+  // that the checks below would turn down is taken by its flat triangles: its sag is below the volume's rounding, D100.)
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const v of brep.vertices) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], v.point[k]); hi[k] = Math.max(hi[k], v.point[k]); }
+  const tinyArea = 1e-6 * ((hi[0] - lo[0]) ** 2 + (hi[1] - lo[1]) ** 2 + (hi[2] - lo[2]) ** 2);
   for (const face of mesh.faces) {
     const flat = Array(10).fill(0) as number[], tris: [number, number, number][] = [];
     for (let t = face.indexOffset; t < face.indexOffset + face.indexCount; t += 3) tris.push([ix[t], ix[t + 1], ix[t + 2]]);
@@ -158,7 +163,9 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     let fp: FaceParameters | undefined = parameters.get(face.faceId);
     if (!fp) {
       const S = surfaces.get(face.faceId)!, invert = inverter(S), uv: XY[] = []; let hint: XY | null = null;
-      for (let i = 0; i < face.vertexCount; i++) { const q = invert(point(face.vertexOffset + i), hint); if (!q) return null; uv.push(q); hint = q; }
+      let lost = false;
+      for (let i = 0; i < face.vertexCount; i++) { const q = invert(point(face.vertexOffset + i), hint); if (!q) { lost = true; break; } uv.push(q); hint = q; }
+      if (lost) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
       fp = { uv: uv as [number, number][], at: surfaceEvaluator(S) };
     }
     const { uv, at } = fp, curved = Array(10).fill(0) as number[], curvedVec: Point = [0, 0, 0];
@@ -175,7 +182,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
       const [qa, qb, qc] = t.map(i => uv[i - face.vertexOffset]), s0 = Math.sign(dot(J((qa[0] + qb[0] + qc[0]) / 3, (qa[1] + qb[1] + qc[1]) / 3), o)) * Math.sign(uvArea(t));
       if (s0) { sigma = s0; best = l; }
     }
-    if (!sigma) return null;
+    if (!sigma) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
     // (The hottest loop of a curved body's mass: no callbacks or temporary vectors per point.)
     const off = face.vertexOffset;
     sink.at = at; sink.hu = hu; sink.hv = hv; sink.sigma = sigma; sink.curved = curved; sink.vec = curvedVec; sink.area = 0;
@@ -183,7 +190,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // The surface over the domain and the flat triangles share the boundary samples: their areas differ by the
     // surface's sag inside the triangles alone, a few % at most at 8 segments a quarter. Coverage gone wrong
     // shows as much more. (Before the strips: those add the chord error, no small part of a thin face's area.)
-    if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) return null;
+    if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
     // The curved strips between the domain's boundary chords and the edges, each integrated at once (`strip`).
     // (Not beside a surface's pole: there the parameters crowd and inversions are not to be trusted; such a face
     // keeps the square-of-the-step error, extrapolated as such.)
@@ -212,7 +219,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // Its vector area (∫ n dA) against the exact one, ½∮ x × dx along its edges: coverage or orientation gone
     // wrong shows as a large part of its area. (Beside a pole, without strips, the chords' sag is in it too.)
     const exact = boundaryVectorArea(faces.get(face.faceId)!, maps, moments);
-    if (!(Math.hypot(curvedVec[0] - exact[0], curvedVec[1] - exact[1], curvedVec[2] - exact[2]) <= 5e-2 * areaSum)) return null;
+    if (!(Math.hypot(curvedVec[0] - exact[0], curvedVec[1] - exact[1], curvedVec[2] - exact[2]) <= 5e-2 * areaSum)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
     // (A face whose surface has a pole keeps an error falling with the square of the step beside it; the
     // others, their trims' strips integrated, with its cube: their parts are extrapolated apart.)
     const part = pole ? squared : cubed;
@@ -222,6 +229,8 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed) };
 }
 
+/** A face's flat triangles' integrals (and area) into a part of the sum. */
+function flatInto(part: number[], flat: readonly number[], area: number): void { for (let k = 0; k < 10; k++) part[k] += flat[k]; part[10] += area; }
 /** A facet patch's ten integrals and area by the faces' common field F·N, the triangle rule exact for it (degree 4). */
 const fieldPoint: Point = [0, 0, 0], fieldNormal: Point = [0, 0, 0];
 function facetFieldIntegrals(f: FacetPatch, sign: 1 | -1, I: number[]): void {

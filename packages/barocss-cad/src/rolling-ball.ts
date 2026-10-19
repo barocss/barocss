@@ -551,20 +551,85 @@ function stationOn(As: Side[], Bs: Side[], last: [number, number], sigma: number
  * (refused when it falls off them all: the fillet would run off its faces). A closed chain makes a ring; an open one a
  * capped tool, run on past an end by `past` (the body ends there: the Boolean trims it) or stopped at it.
  */
+/** The radius at a point of a chain (R10.5, D100). */
+export interface RadiusAt { readonly at: Point; readonly radius: number }
+/** A radius along a chain by arc length: knots and values, their slopes (C¹ cubic Hermite), the chain's length. */
+interface RadiusProfile { readonly x: number[]; readonly y: number[]; readonly m: number[]; readonly L: number; readonly closed: boolean; readonly min: number; readonly max: number }
+/**
+ * The radius profile through the given points, each placed at the chain's nearest point (it must lie on the chain, to
+ * within 1e-6 of the model's size): shape-preserving (Fritsch–Carlson) cubic Hermite in arc length, so the radius never
+ * overshoots the values given; on an open chain constant before the first point and after the last, on a closed one
+ * periodic. Two points: linear between them.
+ */
+function radiusProfile(path: ChainPath, closed: boolean, radii: readonly RadiusAt[], scaleMM: number, name: string): RadiusProfile {
+  const L = path.length, N = 1024, pts: { x: number; y: number }[] = [];
+  for (const { at, radius } of radii) {
+    let x0 = 0, d0 = Infinity;
+    for (let i = 0; i <= N; i++) { const x = L * i / N, d = len(sub(path.at(x).X, at)); if (d < d0) { d0 = d; x0 = x; } }
+    let lo = Math.max(0, x0 - L / N), hi = Math.min(L, x0 + L / N);
+    for (let k = 0; k < 80; k++) { const m1 = lo + (hi - lo) * 0.382, m2 = lo + (hi - lo) * 0.618; if (len(sub(path.at(m1).X, at)) < len(sub(path.at(m2).X, at))) hi = m2; else lo = m1; }
+    const x = (lo + hi) / 2, d = len(sub(path.at(x).X, at));
+    if (d > 1e-6 * scaleMM) throw new BrepError('INPUT', `SELECTION: edge ${name}: the radius point (${at.map(q => +q.toFixed(6)).join(', ')}) is ${+d.toFixed(6)} mm off the chain; a variable radius is given at points of the edges it rounds`);
+    pts.push({ x: closed && x >= L - 1e-9 * L ? 0 : x, y: radius });
+  }
+  pts.sort((p, q) => p.x - q.x);
+  for (let k = 1; k < pts.length; k++) if (pts[k].x - pts[k - 1].x <= 1e-9 * L) throw new BrepError('INPUT', `SELECTION: edge ${name}: two radius points lie at one place on the chain`);
+  // (Closed: one period, the last point repeated a period before the first and the first a period after the last.)
+  const x = closed ? [pts[pts.length - 1].x - L, ...pts.map(p => p.x), pts[0].x + L] : pts.map(p => p.x), y = closed ? [pts[pts.length - 1].y, ...pts.map(p => p.y), pts[0].y] : pts.map(p => p.y);
+  const n = x.length, d = Array.from({ length: n - 1 }, (_, k) => (y[k + 1] - y[k]) / (x[k + 1] - x[k])), m = new Array<number>(n).fill(0);
+  // (One point on this chain — the others on another: the radius there, constant.)
+  if (n === 1) return { x, y, m, L, closed, min: y[0], max: y[0] };
+  // (Closed: the secants on either side of a knot are its neighbours' round the loop, so the repeated end knots get the
+  // slopes of the points they repeat.)
+  for (let k = 0; k < n; k++) {
+    const a = k > 0 ? d[k - 1] : closed ? d[n - 3] : d[0], b = k < n - 1 ? d[k] : closed ? d[1] : d[n - 2];
+    m[k] = n === 2 ? d[0] : a * b <= 0 ? 0 : !closed && (k === 0 || k === n - 1) ? (k === 0 ? b : a) : (a + b) / 2;
+  }
+  for (let k = 0; k < n - 1; k++) {
+    if (d[k] === 0) { m[k] = 0; m[k + 1] = 0; continue; }
+    const al = m[k] / d[k], be = m[k + 1] / d[k], t = al * al + be * be;
+    if (t > 9) { const tau = 3 / Math.sqrt(t); m[k] = tau * al * d[k]; m[k + 1] = tau * be * d[k]; }
+  }
+  // (A repeated knot keeps one slope, the smaller — still monotone on both its segments — so the loop is C¹ there too.)
+  if (closed) for (const [i, j] of [[0, n - 2], [1, n - 1]]) { const v = Math.abs(m[i]) < Math.abs(m[j]) ? m[i] : m[j]; m[i] = v; m[j] = v; }
+  const prof = { x, y, m, L, closed, min: Math.min(...y), max: Math.max(...y) };
+  // (Carried on at its end slopes to the chain's ends, it must stay positive there, and within the radii given.)
+  if (!closed) for (const e of [0, L]) { const v = radiusOn(prof, e); if (!(v > 0.5 * prof.min + 1e-12)) throw new BrepError('INPUT', `PARAMETER: edge ${name}: the radius, carried on past its outer points at their slope, falls to ${+v.toFixed(6)} mm by the chain's end; give the radius at its ends`); }
+  return { ...prof, min: Math.min(prof.min, ...(closed ? [] : [radiusOn(prof, 0), radiusOn(prof, L)])), max: Math.max(prof.max, ...(closed ? [] : [radiusOn(prof, 0), radiusOn(prof, L)])) };
+}
+/**
+ * The profile's radius at arc length s along the chain. Beyond an open chain's outer points it goes on at its end slope
+ * (C¹: held flat there, the slope's jump would sit in a patch of the loft), but no lower than half its least value —
+ * past the chain's ends, where the tool runs on to be trimmed.
+ */
+function radiusOn(p: RadiusProfile, s: number): number {
+  let u = s;
+  if (p.closed) { u = ((s % p.L) + p.L) % p.L; if (u < p.x[0]) u += p.L; }
+  const n = p.x.length;
+  if (u <= p.x[0]) return Math.max(0.5 * p.min, p.y[0] + p.m[0] * (u - p.x[0]));
+  if (u >= p.x[n - 1]) return Math.max(0.5 * p.min, p.y[n - 1] + p.m[n - 1] * (u - p.x[n - 1]));
+  let k = 0; while (k < n - 2 && u > p.x[k + 1]) k++;
+  const h = p.x[k + 1] - p.x[k], t = (u - p.x[k]) / h, t2 = t * t, t3 = t2 * t;
+  return (2 * t3 - 3 * t2 + 1) * p.y[k] + (t3 - 2 * t2 + t) * h * p.m[k] + (-2 * t3 + 3 * t2) * p.y[k + 1] + (t3 - t2) * h * p.m[k + 1];
+}
 /**
  * Where the ball leaves a face at one of its edges and rolls round that edge onto the next face (R10.3a, D92): between
  * the loop's curve `after` and the next, which meet at an inside corner of the face they share. The edge (`edge`, not
  * finished) joins the faces `before` and `next` on side `side`; the ball keeps touching `shared`, on the other side.
  */
 export interface CornerInput { readonly after: number; readonly side: 'A' | 'B'; readonly shared: Face; readonly edge: Curve; readonly before: Face; readonly next: Face }
-export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly noCliffs?: boolean; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[] }
+export interface RingInput { readonly loop: readonly { curve: Curve; reversed: boolean }[]; readonly facesOf?: readonly (readonly string[])[]; readonly noCliffs?: boolean; readonly names: readonly string[]; readonly sideA: readonly Face[]; readonly sideB: readonly Face[]; readonly start: { wA: Point; wB: Point }; readonly convex: boolean; readonly r: number; readonly id: string; readonly scaleMM: number; readonly tolMM: number; readonly closed?: boolean; readonly past?: readonly (EndPlane | null)[]; readonly corners?: readonly CornerInput[]; /** A variable radius (R10.5, D100): the radius at points of the chain, `r` their largest. */ readonly radii?: readonly RadiusAt[]; /** Which ends run past are cut by their plane (a clipped tool), not trimmed by the Boolean. */ readonly clipped?: readonly [boolean, boolean] }
 export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: FilletReport; contactFaces: string[]; sides: string[] } {
+  // (A variable radius — R10.5, D100 — along plain chains for now: not where the ball rolls round an edge or onto one.)
+  if (input.corners?.length && input.radii) throw new BrepError('GEOMETRY', `CAPABILITY: edge ${input.names[0]}: a variable-radius fillet where the ball rolls round an edge at a corner is not supported yet`);
   if (input.corners?.length) return cornerFillet(body, input);
   const { r, id, scaleMM, tolMM } = input, closed = input.closed !== false, sigma = input.convex ? -1 : 1, name = input.names[0];
   const As = input.sideA.map(f => sideOf(body, f, !closed, scaleMM)), Bs = input.sideB.map(f => sideOf(body, f, !closed, scaleMM));
   const alpha = Math.acos(Math.max(-1, Math.min(1, dot(input.start.wA, input.start.wB))));
   if (alpha > Math.PI - 1e-6) throw new BrepError('GEOMETRY', `SELECTION: [TANGENT_FACES] edge ${name}: its faces meet tangentially; there is no corner to finish`);
-  const back = r / Math.tan(alpha / 2), path = chainPath(input.loop, closed), L = path.length;
+  const path = chainPath(input.loop, closed), L = path.length, prof = input.radii ? radiusProfile(path, closed, input.radii, scaleMM, name) : null;
+  // (The radius at arc length x along the chain: the profile's, or the one radius.)
+  const rAt = (x: number) => prof ? radiusOn(prof, x) : r, back = rAt(0) / Math.tan(alpha / 2), rMin = prof ? prof.min : r;
   // Past an end the chain goes on along the faces' own junction (their extended surfaces), marched a step at a time:
   // a straight run would leave it where it bends (an ellipse's tip) and the tool would miss the corner there.
   const ext: Ext = [[], []], at = (x: number) => pastAt(path, closed, ext, x);
@@ -573,13 +638,16 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   //    bisection to rounding, so the tool's patches break there with the contacts on the seam. An open chain run past
   //    an end goes on, a step at a time, until the section there lies beyond that end's plane (the body ends there; the
   //    Boolean trims the tool), refused where the ball no longer touches both faces first.
-  const g = 0.5 * r, N0 = Math.max(64, 2 * Math.ceil(L / (r / 4) / 2)), h = L / N0, first: { st: Station; a: number; b: number; s: number }[] = [];
+  const g = 0.5 * r, N0 = Math.max(64, 2 * Math.ceil(L / (rMin / 4) / 2)), h = L / N0, first: { st: Station; a: number; b: number; s: number }[] = [];
   const solveAt = (x: number, prev: { st: Station; a: number; b: number } | undefined, check: Check) => {
     const { X, t } = at(x);
-    return stationOn(As, Bs, prev ? [prev.a, prev.b] : [0, 0], sigma, r, X, t, prev ? prev.st.pA : add(X, scale(input.start.wA, back)), prev ? prev.st.pB : add(X, scale(input.start.wB, back)), prev?.st.uvA, prev?.st.uvB, scaleMM, check);
+    return stationOn(As, Bs, prev ? [prev.a, prev.b] : [0, 0], sigma, rAt(x), X, t, prev ? prev.st.pA : add(X, scale(input.start.wA, back)), prev ? prev.st.pB : add(X, scale(input.start.wB, back)), prev?.st.uvA, prev?.st.uvB, scaleMM, check);
   };
   // (Within reach of an end run past, a contact may run off its face across that end — beyond it, it is not checked —
   // but not off across the face's side, D97.)
+  // (The ends the tool is cut at by their plane: there a break where a contact crosses it is put in the plane, R10.B; where
+  // the Boolean trims the run past, a tool vertex in the body's end face would be a touch at a point, D100.)
+  const clippedEnds = closed ? [] : pastEnds((input.past ?? []).map((pl, k) => input.clipped?.[k] ? pl : null), path.at(L / 2).X, scaleMM);
   const reach = back + 2 * g, endsPast = closed ? [] : pastEnds(input.past, path.at(L / 2).X, scaleMM), beside = (x: number): Check => closed || (x >= (input.past?.[0] ? reach : 0) && x <= L - (input.past?.[1] ? reach : 0)) || endsPast;
   for (let j = 0; j < (closed ? N0 : N0 + 1); j++) {
     const x = L * j / N0;
@@ -589,13 +657,13 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     for (let k = 0; !got && k < 3 && growSides(body, As, Bs, first.at(-1) ?? { a: 0, b: 0 }, !closed, scaleMM); k++) got = solveAt(x, first.at(-1), beside(x));
     // (Still off them: perhaps at a sharp edge of a face, where the ball rolls on along that edge — the span machinery's,
     // R10.4b, D96.)
-    if (!got && input.facesOf && !input.noCliffs) return cornerFillet(body, { ...input, corners: [], noCliffs: true });
+    if (!got && input.facesOf && !input.noCliffs && !prof) return cornerFillet(body, { ...input, corners: [], noCliffs: true });
     if (!got) throw leaves(x);
     first.push({ ...got, s: x });
   }
   let s0 = 0, s1 = L;
   if (!closed) for (const [k, plane] of (input.past ?? []).entries()) if (plane) {
-    const x = marchPast(k as 0 | 1, plane, { path, ext, As, Bs, first, solveAt, sigma, r, g, h, N0, scaleMM, name, leaves });
+    const x = marchPast(k as 0 | 1, plane, { path, ext, As, Bs, first, solveAt, sigma, r: rAt(k ? L : 0), g, h, N0, scaleMM, name, leaves });
     if (k) s1 = x; else s0 = x;
   }
   const span = s1 - s0, M0 = first.length, N1 = closed ? N0 : M0 - 1;
@@ -607,13 +675,13 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     if (closed ? p.a === q.a && p.b === q.b : key === state(q)) continue;
     let lo = p.s, hi = closed && j + 1 === M0 ? L : q.s;
     for (let k = 0; k < 60; k++) {
-      const m = (lo + hi) / 2, { X, t } = at(m), st = solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, r, X, t, p.st.uvA, p.st.uvB, scaleMM);
+      const m = (lo + hi) / 2, { X, t } = at(m), st = solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, rAt(m), X, t, p.st.uvA, p.st.uvB, scaleMM);
       if (st && (closed ? strictlyInside(As[p.a], st.uvA) && strictlyInside(Bs[p.b], st.uvB) : state({ st, a: p.a, b: p.b }) === key)) lo = m; else hi = m;
     }
     // (Where a contact leaves its face across an end run past — the face's edge in that end's plane — the break is put
     // in the plane itself: found on the face's sampled outline it lay up to 1e-5 off, and the plane that clips the tool
     // there then passed a hair beside the tool's vertex, cutting a corner of 1e-4 off a patch, R10.B, D99.)
-    if (!closed) hi = breakOnEnd(endsPast, hi, p.s, q.s, x => solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, r, at(x).X, at(x).t, p.st.uvA, p.st.uvB, scaleMM), scaleMM);
+    if (!closed) hi = breakOnEnd(clippedEnds, hi, p.s, q.s, x => solveStation(As[p.a].sheet, sigma, Bs[p.b].sheet, sigma, rAt(x), at(x).X, at(x).t, p.st.uvA, p.st.uvB, scaleMM), scaleMM);
     breaks.push({ s: hi, a: q.a, b: q.b });
   }
   // (An open chain's first stretch starts at its start, on the first station's faces; where it runs past an end, the
@@ -628,6 +696,16 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     breaks.sort((p, q) => p.s - q.s);
     breaks.unshift({ s: s0, a: first[0].a, b: first[0].b });
   }
+  // (A variable radius: a break at each of its inner points too — there its cubic's second derivative jumps: inside a
+  // patch the loft's error would fall more slowly there, D100. Not within two steps of another break, as above.)
+  if (prof) {
+    const knots = closed ? prof.x.slice(1, -1).map(x => ((x % L) + L) % L) : prof.x.slice(1, -1);
+    for (const x of knots) if (x > s0 + 2 * h && x < s1 - 2 * h && !breaks.some(b => Math.abs(b.s - x) < 2 * h)) {
+      const f = first.reduce((best, c) => Math.abs(c.s - x) < Math.abs(best.s - x) ? c : best);
+      breaks.push({ s: x, a: f.a, b: f.b });
+    }
+    breaks.sort((p, q) => p.s - q.s);
+  }
   if (!breaks.length) breaks.push({ s: 0, a: first[0].a, b: first[0].b });
   // (Breaks at one place — both contacts leaving their faces where a chain ends square — are one: the later's faces.)
   for (let k = breaks.length - 1; k > 0; k--) if (breaks[k].s - breaks[k - 1].s < 1e-6 * L) { breaks[k - 1] = { ...breaks[k], s: breaks[k - 1].s }; breaks.splice(k, 1); }
@@ -635,7 +713,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
   //    with one more at its end), each solved on its stretch's faces; refined as the h⁴ rate predicts.
   for (let N = fixedStations ?? N0, tries = 0; ; tries++) {
     if (N > 4096) throw new BrepError('GEOMETRY', `CAPABILITY: [APPROX_TOLERANCE_NOT_MET] edge ${name}: the fillet's lofted contacts stay over ${tolMM} mm off their faces (or its sections over ${4 * tolMM} mm off the true ones) at 4096 stations`);
-    const sols: Station[] = [], cuts: number[] = [];
+    const sols: Station[] = [], cuts: number[] = [], radiusOf: number[] = [];
     for (let k = 0; k < breaks.length; k++) {
       const a0 = breaks[k].s, a1 = k + 1 < breaks.length ? breaks[k + 1].s : closed ? breaks[0].s + L : s1, n = Math.max(4, 2 * Math.round(N * (a1 - a0) / span / 2));
       const A = As[breaks[k].a], B = Bs[breaks[k].b], last = !closed && k === breaks.length - 1;
@@ -645,17 +723,17 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
         // (Seeded by the last station in the stretch; its first by the previous contact, inverted afresh on this face —
         // the last one's (u, v) belong to the face across the seam.)
         const near = prev ?? first.reduce((best, c) => Math.abs(c.s - x) < Math.abs(best.s - x) ? c : best).st, seedA = j ? invertOn(A.sheet, near.pA, near.uvA) : invertOn(A.sheet, near.pA), seedB = j ? invertOn(B.sheet, near.pB, near.uvB) : invertOn(B.sheet, near.pB);
-        const st = solveStation(A.sheet, sigma, B.sheet, sigma, r, X, t, seedA, seedB, scaleMM);
+        const st = solveStation(A.sheet, sigma, B.sheet, sigma, rAt(x), X, t, seedA, seedB, scaleMM);
         if (!st || !contactOk(A, st.uvA, st.pA, beside(x)) || !contactOk(B, st.uvB, st.pB, beside(x))) throw leaves(x);
-        sols.push(st);
+        sols.push(st); radiusOf.push(rAt(x));
       }
     }
-    const sections = sols.map(st => sectionOf(st, sigma, sigma, r, g));
+    const sections = sols.map((st, j) => sectionOf(st, sigma, sigma, radiusOf[j], g));
     if (sections.some(x => !x)) throw new BrepError('GEOMETRY', `SELECTION: [TANGENT_FACES] edge ${name}: the fillet's section degenerates (its faces nearly tangent)`);
     const { brep, report, contactFaces } = loftTool(sections as Section[], id, cuts, closed);
     const { contact, turn } = contactsOf(brep, id, As, Bs, []);
     ringTrace?.({ stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM });
-    let ball = 0; for (const st of sols) ball = Math.max(ball, Math.abs(len(sub(st.c, st.pA)) - r), Math.abs(len(sub(st.c, st.pB)) - r));
+    let ball = 0; sols.forEach((st, j) => { ball = Math.max(ball, Math.abs(len(sub(st.c, st.pA)) - radiusOf[j]), Math.abs(len(sub(st.c, st.pB)) - radiusOf[j])); });
     // (Done when the contacts lie within tolMM of their faces and the fillet within 4 tolMM of the true sections — on
     // planes the contacts are exact at any count, and the sections round a corner, R10.3a, then set it.)
     const worst = Math.max(contact / tolMM, report.maxDeviationMM / (4 * tolMM));

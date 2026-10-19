@@ -4686,3 +4686,47 @@ R10.B took the five items blocked on the analytic Boolean, each with a fixture t
   - dropping sliver pieces;
   - snapping on cylinder pairs (no help for the rim, above).
 - **Next:** R10.5 (variable radius).
+
+## D100 — R10.5a: variable-radius fillets (2026-10-19)
+
+R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:** conic and G2 sections.
+- **The contract** (`part-model.ts`, versioned as D16 asks: an optional field, old documents unchanged): a fillet gives `radius` (one radius) or `radii` (2–16 points `{ at: [x, y, z], radius }`), not both.
+  - Each point must lie on one of the chains filleted (within 1e-6 of the model's size), else SELECTION.
+  - Along each chain the radius is a shape-preserving (Fritsch–Carlson) cubic Hermite through its points by arc length, so it never overshoots the values given. Two points give a linear radius.
+  - On a closed chain it is periodic: the slopes round the loop come from neighbours on either side, and a repeated knot keeps one slope.
+  - On an open chain, past its outer points it goes on at its end slope (C¹), never below half the least radius. It must stay positive to the chain's ends, else PARAMETER. A chain carrying only one of the points takes that radius, constant.
+  - A variable-radius body is not recorded for shell (its hollow would need the radius offset along the chain).
+- **The section** (`rolling-ball.ts`): at each station, as before, the ball centred in the plane square to the chain touching both faces, now of radius r(s). Its section is the arc of that ball between the contacts.
+  - On planes along the edge (and round a circle between coaxial faces) that is the circle of radius r(s) in the plane square to the chain. So the volume is ∫ A(r(s)) ds, or round a circle the meridian section's first moment integrated over θ.
+  - The surface is tangent to both faces along its contacts: there the arc meets the face square to its normal, and the contact runs on the face.
+  - The tool's patches also break at the profile's inner points, where its second derivative jumps (inside a patch the loft would converge more slowly), unless within two steps of another break.
+- **Plumbing:**
+  - Every chain with `radii` is the rolling ball's (`general`). No closed form, no three-edge corner ball, no two-pass mixed corners.
+  - A chain that rolls round an edge at a corner, or onto a cliff, is refused (CAPABILITY).
+  - The open chain's end logic now takes several faces in one plane (a step's two blocks' ends) as one end plane. That also lifts a refusal ("meets more than one face") for constant radii there.
+- **Two fixes found here:**
+  - **Breaks at Boolean-trimmed ends.** R10.B's break on an end plane (`breakOnEnd`) is now used only where the tool is cut at that end by its plane (`clipped`). Where the Boolean trims the run past (a convex end where the body ends), a tool vertex in the body's end face is a touch at a point, and one groove case failed there.
+  - **Quadrature on tiny faces.** A face of less than 1e-6 of the body's size squared that fails one of the quadrature's checks is now taken by its flat triangles (`flatInto`), not the whole body by tessellation. A 1.8e-4 mm² sliver at a trimmed end had moved the body's mass method from quadrature to tessellation: 8 % of the fillet, 3e-5 of the part.
+- **Evidence** (`packages/barocss-cad/test/r10-5.test.mjs`, 5 tests):
+  - **A box's top edge** (convex, square planes):
+    - 1→3, 3→1 and 0.5→4 match (1 − π/4) L (r0² + r0 r1 + r1²)/3 to 1e-9 (1e-11).
+    - Three points (1, 2, 4 at x 0, 10, 40) match (1 − π/4) ∫ r² ds of a monotone cubic written apart in the test.
+    - Contacts, sections and G1 are in bounds.
+  - **A concave step foot**, 1→4: to 1e-9.
+  - **A boss's foot round its circle** at 1, 2, 1, 2 (and 0.5, 3): ∫ of the meridian section's first moment to 1e-7 (1.3e-8–2.6e-8).
+  - **An oblique groove's rim** (curved faces), 0.6→1.2:
+    - valid and G1, the report in bounds, its volume between the constant fillets at 0.6 and 1.2;
+    - within 1e-7 of the part of a loft through twice the stations.
+    - **Not tighter:** at some station counts (200 here) a sliver of the run past at the trimmed end becomes a two-vertex face and the result loses 1e-4 mm³ (2e-5 of the fillet, 1e-8 of the part). At the default count, and at 300, 600 and 1200, the results agree to 2e-7 of the fillet.
+  - **Refusals:**
+    - a point off the edges (SELECTION);
+    - `radius` and `radii` both, or one point (INPUT);
+    - the box boss's foot, which rolls round its corners (CAPABILITY).
+  - **Conformance:** `r10/variable-radius-linear` (1e-9) and `r10/variable-radius-boss-foot` (1e-8). Both are closed forms with a STEP round trip.
+  - **Studio:** the Fillet HUD has an End radius (0: the same). With it, the radius varies from the picked chain's end nearer the first edge's start to its other end; the picked edges must form one open chain. The history reads "Fillet R1→3", and the edit panel has Start and End radius.
+    - The agent's tool schema documents `endRadius` for the command and `radii` for add_features. A run_command result now echoes `endRadius: 0` among the values, and its summary test moved with it.
+    - A flow step opens a box and fillets its top edge 1→3 in the UI (−37.20 mm³).
+- **Found, not fixed (follow-ups):**
+  - The trimmed-end sliver above: a Boolean end case, not this step's.
+  - Within one process, the same fillet at the same fixed station count gave different results depending on what ran before (seen at 342 stations). Some state outlives an evaluation; that is a determinism defect to find.
+- **Next:** R10.5b (conic / G2 sections), then R11.

@@ -148,7 +148,7 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   const s = await stateOf(saved.doc);
   const expected = 64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8;
   assert.ok(Math.abs(volume(s) - expected) / expected < 1e-6, String(volume(s)));
-  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2} → 1 body, ${Math.round(expected)} mm³`);
+  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2,"endRadius":0} → 1 body, ${Math.round(expected)} mm³`);
 });
 
 test('add_features checks nodes before the kernel; revolve and polygon profiles build', async () => {
