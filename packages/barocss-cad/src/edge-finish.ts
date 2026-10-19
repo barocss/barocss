@@ -29,7 +29,7 @@ import { circleOf } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
 import { revolutionOf, type Revolution } from './surface-revolution.js';
 import { acrossOf, filletSection, refuseFillet, type SectionSide } from './fillet-section.js';
-import { invertOn, normalOn, ringFillet, sheetOf, type FilletReport } from './rolling-ball.js';
+import { contactFacesOf, invertOn, normalOn, ringFillet, sheetOf, type EndPlane, type FilletReport } from './rolling-ball.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { linearToleranceMM } from './numeric-policy.js';
 import type { Curve, Point, Surface } from './types.js';
@@ -83,8 +83,10 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (!e) refuse('SELECTION', `no edge named ${name}; edges: ${body.edges.slice(0, 12).map(x => x.name).join(', ')}${body.edges.length > 12 ? ', …' : ''}`);
     chain.set(e!.id, e!);
   }
+  // (Not onto a smooth edge — its faces tangent there, a seam or a split of one surface: there is no corner to go on.)
+  const smoothAt = (o: Brep['edges'][number], x: Point) => { const ns = (usesOf.get(o.id) ?? []).map(u => normalOf(u.geometry, x) ?? sheetNormal(u.face, x)); return ns.length === 2 && len(sub(ns[0], ns[1])) < 1e-9; };
   const continues = (e: Brep['edges'][number], end: { v: string; x: Point; out: Point }) => (atVertex.get(end.v) ?? []).filter(o => {
-    if (o.id === e.id || !(facesOf(o).some(f => facesOf(e).includes(f)) || sameSection(e, o, end.x))) return false;
+    if (o.id === e.id || !(facesOf(o).some(f => facesOf(e).includes(f)) || sameSection(e, o, end.x)) || smoothAt(o, end.x)) return false;
     return ends(o).some(oe => oe.v === end.v && dot(oe.out, end.out) <= -1 + 1e-9);
   });
   for (const queue = [...chain.values()]; queue.length;) {
@@ -117,7 +119,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (Math.abs(total - 2 * Math.PI) <= 1e-9) { closedCircle.add(list[0].id); for (const e of list.slice(1)) skip.add(e.id); }
   }
 
-  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[] }[] = [];
+  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[]; sides: string[]; report: FilletReport }[] = [];
   // Corner blends: where three filleted straight edges between three planes meet at a convex vertex,
   // the rolling ball rounds the corner with a sphere about the point r from all three planes. Each
   // edge's tool then stops at the plane through that centre square to the edge (where its cylinder
@@ -147,15 +149,56 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (t0 + t1 >= L - tol) refuse('PARAMETER', `edge ${e.name}: a fillet of ${size} mm is too large (the corners at its ends need ${+(t0 + t1).toFixed(6)} mm of a ${+L.toFixed(6)} mm edge)`);
   }
   // R10.2a (D89): a closed loop of the chain with an edge no closed form finishes gets one rolling-ball tool.
-  for (const comp of components([...chain.values()].filter(e => !skip.has(e.id)))) {
+  for (const comp of components([...chain.values()].filter(e => !skip.has(e.id)), (e, o) => ends(e).some(end => continues(e, end).some(x => x.id === o.id)))) {
     for (const e of comp) if ((usesOf.get(e.id) ?? []).length !== 2) refuse('SELECTION', `edge ${e.name} does not join exactly two faces`);
     const straightOf = (e: Brep['edges'][number]) => e.curve.degree === 1 && e.curve.controlPoints.length === 2;
-    const general = options.general && kind === 'fillet' && closedLoop(comp) ? comp : comp.filter(e => !(straightOf(e) && usesOf.get(e.id)!.every(u => u.geometry.kind === 'plane')) && pairOf(e, usesOf.get(e.id)!, straightOf(e), kind, tol, true) === 'general');
+    const general = options.general && kind === 'fillet' && (closedLoop(comp) || openChain(comp)) ? comp : comp.filter(e => !(straightOf(e) && usesOf.get(e.id)!.every(u => u.geometry.kind === 'plane')) && pairOf(e, usesOf.get(e.id)!, straightOf(e), kind, tol, true) === 'general');
     if (!general.length) continue;
     if (kind === 'chamfer') refuse('CAPABILITY', `edge ${general[0].name}: chamfers between general faces are not supported yet`);
-    const loop = closedLoop(comp);
-    if (!loop) pairOf(general[0], usesOf.get(general[0].id)!, straightOf(general[0]), kind, tol);
-    const ring = generalRing(body, loop!, usesOf, ends, size, id, scaleMM);
+    // A closed loop makes a ring; an open chain (R10.2b) a capped tool, run on past an end where the body ends there
+    // (a convex finish) or into a wall (a concave one), else stopped at it.
+    const loop = closedLoop(comp), open = loop ? null : openChain(comp);
+    if (!loop && !open) refuse('CAPABILITY', `edge ${general[0].name}: its chain branches; finishing it there is not supported yet`);
+    // Each end runs past: where the body ends there a convex tool's run is trimmed by the Boolean, a concave one's (it
+    // would add material beyond the end) is clipped by the end face's plane; into a wall a concave tool's run adds
+    // nothing, a convex one's (it would cut the wall) is clipped by the wall's plane. A clip needs one plane there.
+    let past: (EndPlane | null)[] = [null, null];
+    const clips: { o: Point; n: Point }[] = [];
+    if (open) {
+      const sideFaces = new Set(comp.flatMap(facesOf)), convex0 = convexAt(generalInto(open[0], usesOf, ends));
+      past = [0, 1].map(i => {
+        const o = open[i === 0 ? 0 : open.length - 1], E = ends(o.e), end = i === 0 ? (o.reversed ? E[1] : E[0]) : (o.reversed ? E[0] : E[1]);
+        if ((atVertex.get(end.v) ?? []).some(x => !comp.includes(x) && chain.has(x.id))) refuse('CAPABILITY', `edge ${o.e.name}: it meets another finished edge at its end; blending them there arrives with R10.3`);
+        // (The end's other faces: not the sides, nor a side's smooth continuation past the end — the same normal there.)
+        const nOf = (f: string) => normalOf(geom(f), end.x) ?? sheetNormal(faces.get(f)!, end.x), sideNs = [...sideFaces].filter(f => (atVertex.get(end.v) ?? []).some(x => facesOf(x).includes(f))).map(nOf);
+        const others = [...new Set((atVertex.get(end.v) ?? []).flatMap(facesOf).filter(x => !sideFaces.has(x)))].filter(f => !sideNs.some(n => len(sub(n, nOf(f))) < 1e-9));
+        let worst = Infinity;
+        for (const f of others) worst = Math.min(worst, -dot(nOf(f), end.out));
+        if (worst === Infinity) return null;
+        const clip = convex0 ? worst <= 1e-6 : worst >= -1e-6;
+        if (clip) {
+          const g = others.length === 1 ? geom(others[0]) : null;
+          if (!g || g.kind !== 'plane') refuse('CAPABILITY', `edge ${o.e.name}: its end meets ${others.length === 1 ? 'a curved face' : 'more than one face'}; ending a general fillet there arrives with R10.3`);
+          const pl = g as Extract<FaceGeometry, { kind: 'plane' }>;
+          // (An end plane square to the chain: the tool's end lies in it, its contact on the face's own edge — a case the
+          // analytic Boolean's arrangement does not yet take, D90.)
+          if (Math.abs(dot(pl.n, end.out)) > 1 - 1e-9) refuse('CAPABILITY', `edge ${o.e.name}: the fillet would end square on a face (its last section in that face's plane); that end is not supported yet`);
+          clips.push({ o: pl.o, n: pl.n });
+          return { o: pl.o, n: pl.n };
+        }
+        // (Run past where the body ends: until the section clears the end — its one plane, or the end face's tangent
+        // plane at the vertex.)
+        const g = others.length === 1 ? geom(others[0]) : null;
+        return g?.kind === 'plane' ? { o: g.o, n: g.n } : { o: end.x, n: nOf(others[0]) };
+      });
+    }
+    const ring = generalRing(body, (loop ?? open)!, usesOf, ends, size, id, scaleMM, !!loop, past);
+    for (const c of clips) {
+      // The end plane's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
+      const away = dot(c.n, sub(ring.mid, c.o)) < 0 ? c.n : scale(c.n, -1);
+      ring.brep = booleanAnalytic(ring.brep, halfSpace(c.o, away, 4 * scaleMM + 10, `${id}_clip`), 'difference', { id });
+      ring.contactFaces = contactFacesOf(ring.brep, id);
+    }
     rings.push(ring);
     reports?.push(ring.report);
     for (const e of comp) handled.add(e.id);
@@ -178,7 +221,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     // How far the tool may run past each end: past the end of the body, else not at all. Where another
     // finished edge leaves the same vertex (a corner of a rounded box top), both tools run past it: with
     // one size, removing (or adding) both is exactly the mitre between the two finishes.
-    const [E0, E1] = ends(e), sharedCorner = [false, false], blocked = [false, false];
+    const [E0, E1] = ends(e), sharedCorner = [false, false], blocked = [false, false], endPlanes: (Extract<FaceGeometry, { kind: 'plane' }> | null)[] = [null, null], ends1 = [0, 0], endKind: ('ends' | 'wall' | null)[] = [null, null];
     const reach = [E0, E1].map((end, i) => {
       if (continues(e, end).some(o => chain.has(o.id))) return 0;
       const meeting = (atVertex.get(end.v) ?? []).filter(o => o.id !== e.id && chain.has(o.id) && facesOf(o).some(f => facesOf(e).includes(f)));
@@ -192,10 +235,22 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
         }
         sharedCorner[i] = true; return 1;
       }
-      const others = new Set((atVertex.get(end.v) ?? []).flatMap(facesOf).filter(f => !facesOf(e).includes(f)));
+      // (Not the edge's faces, nor their smooth continuations past the end — the same normal there, D90.)
+      const own = uses.map(u => outwardNormal(u.geometry, end.x) ?? normalOf(u.geometry, end.x));
+      const others = new Set((atVertex.get(end.v) ?? []).flatMap(facesOf).filter(f => !facesOf(e).includes(f)).filter(f => { const n = outwardNormal(geom(f), end.x); return !n || !own.some(m => m && len(sub(m, n)) < 1e-9); }));
       if (!others.size) return 0;
       let worst = Infinity;
       for (const f of others) { const n = outwardNormal(geom(f), end.x); if (!n) return 0; worst = Math.min(worst, -dot(n, end.out)); }
+      // (One plane across the edge there — faces running along it aside — oblique to it: where the tool must stop at
+      // it, it runs past and is cut by it, D90.)
+      const across = [...others].filter(f => { const n = outwardNormal(geom(f), end.x)!; return Math.abs(dot(n, end.out)) > 1e-9; });
+      // (Pieces of one plane — an end face split where something meets it — are that one plane.)
+      const planes = across.map(geom), first0 = planes[0];
+      const only = first0?.kind === 'plane' && planes.every(g => g.kind === 'plane' && len(sub(g.n, first0.n)) < 1e-9 && Math.abs(dot(sub(g.o, first0.o), first0.n)) < 1e3 * tol) ? first0 : null;
+      if (only?.kind === 'plane' && Math.abs(dot(only.n, end.out)) < 1 - 1e-9) {
+        const w = -dot(only.n, end.out);
+        endPlanes[i] = only; ends1[i] = 1 / Math.max(Math.abs(w), 0.25); endKind[i] = w > 1e-6 ? 'ends' : w < -1e-6 ? 'wall' : null;
+      }
       if (worst > 1e-6) return 1 / Math.max(worst, 0.25); // the body ends there
       if (worst < -1e-6) blocked[i] = true; // a wall faces back along the edge
       return 0;
@@ -203,14 +258,21 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     // A concave finish adds material: past an end where the body stops it would add it to the air, so
     // it stops there; where the edge runs into a wall it runs on into the wall.
     const convex = convexAt(intoFaces(e, uses, E0.x, E0.out));
-    const run = convex ? reach : reach.map((_, i) => sharedCorner[i] || blocked[i] ? 1 : 0);
-    const curve = e.curve, straight = curve.degree === 1 && curve.controlPoints.length === 2;
+    // Stopped at an oblique end face — a concave finish where the body ends, a convex one at a wall — a square stop
+    // would leave a wedge (added beyond the end, or left unrounded): it runs past and is cut by that face's plane.
+    // (Straight tools: their sections are the same along the edge, so a cut at the plane is the fillet's own end there.)
+    const curve = e.curve, straight = curve.degree === 1 && curve.controlPoints.length === 2, pair = pairOf(e, uses, straight, kind, tol);
+    const clipAt = [0, 1].map(i => (pair === 'planes' || pair === 'translational') && !sharedCorner[i] && !continues(e, i === 0 ? E0 : E1).some(o => chain.has(o.id)) && endPlanes[i] && endKind[i] === (convex ? 'wall' : 'ends') ? endPlanes[i] : null);
+    const run = (convex ? reach : reach.map((_, i) => sharedCorner[i] || blocked[i] ? 1 : 0)).map((x, i) => clipAt[i] ? ends1[i] : x);
     const trim = trims.get(e.id), runs = trim ? run.map((r, i) => trim[i] ? 0 : r) : run;
-    const pair = pairOf(e, uses, straight, kind, tol);
     const tool = pair === 'planes' ? straightTool(e, uses, E0.x, E1.x, runs, size, kind, id, trim)
       : pair === 'translational' ? translationalTool(body, e, uses, E0.x, E1.x, runs, size, id, scaleMM)
       : pair === 'plane-cylinder' ? arcTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol, scaleMM)
       : coaxialTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, id, tol, scaleMM);
+    for (const [i, pl] of clipAt.entries()) if (pl && !(trim && trim[i])) {
+      const end = i === 0 ? E0 : E1, away = dot(pl.n, end.out) < 0 ? pl.n : scale(pl.n, -1);
+      tool.brep = booleanAnalytic(tool.brep, halfSpace(end.x, away, 4 * scaleMM + 10, `${id}_clip`), 'difference', { id: `${id}_t` });
+    }
     (tool.convex ? convexTools : concaveTools).push(tool.brep);
   }
   // Tools apart from the others (touching at most along lines: a corner blend's trimmed tools) are applied
@@ -234,7 +296,13 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     }
   };
   // The rolling-ball tools first, each on its own: its contact faces meet the body along their contacts only.
-  for (const ring of rings) out = booleanAnalytic(out, ring.brep, ring.convex ? 'difference' : 'union', { id, contactFaces: ring.contactFaces });
+  // (A result in more bodies than the part had: the fillet ran off its faces near an end and cut a piece free — it would
+  // have rolled onto the face there, R10.4: refused, D90.)
+  for (const ring of rings) {
+    const was = out.bodies.length;
+    out = booleanAnalytic(out, ring.brep, ring.convex ? 'difference' : 'union', { id, contactFaces: ring.contactFaces, contactWith: ring.sides });
+    if (out.bodies.length > was) refuseFillet('CONTACT_LEAVES_FACE', `edge ${ring.report.edges[0]}: a fillet of ${size} mm runs off its faces near its end and cuts a piece free; rolling over the next face arrives with R10.4`);
+  }
   apply(convexTools, 'difference');
   apply(cornerTools, 'difference');
   apply(concaveTools, 'union');
@@ -243,14 +311,42 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
 
 type Edge = Brep['edges'][number];
 type Ends = (e: Edge) => { v: string; x: Point; out: Point }[];
-/** The chain's edges in groups joined at vertices. */
-function components(edges: readonly Edge[]): Edge[][] {
+/** The chain's edges in groups joined where one continues another (tangentially, at a vertex they share). */
+function components(edges: readonly Edge[], joins: (e: Edge, o: Edge) => boolean): Edge[][] {
   const root = edges.map((_, i) => i), find = (x: number): number => root[x] === x ? x : (root[x] = find(root[x]));
   const at = new Map<string, number[]>();
   edges.forEach((e, i) => { for (const v of new Set(e.vertices)) at.set(v, [...(at.get(v) ?? []), i]); });
-  for (const list of at.values()) for (const i of list.slice(1)) root[find(i)] = find(list[0]);
+  for (const list of at.values()) for (const i of list) for (const j of list) if (i < j && (joins(edges[i], edges[j]) || joins(edges[j], edges[i]))) root[find(i)] = find(j);
   const groups = new Map<number, Edge[]>(); edges.forEach((e, i) => groups.set(find(i), [...(groups.get(find(i)) ?? []), e]));
   return [...groups.values()];
+}
+/** A group of edges as one open chain from one end to the other, in order (each with whether it runs backwards), or null. */
+function openChain(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | null {
+  const at = new Map<string, Edge[]>();
+  for (const e of comp) for (const v of e.vertices) at.set(v, [...(at.get(v) ?? []), e]);
+  const tips = [...at.entries()].filter(([, l]) => l.length === 1).map(([v]) => v);
+  if (tips.length !== 2 || [...at.values()].some(l => l.length > 2)) return null;
+  const out: { e: Edge; reversed: boolean }[] = [], seen = new Set<string>();
+  for (let v = tips[0]; ;) {
+    const next = at.get(v)!.find(o => !seen.has(o.id));
+    if (!next) break;
+    const reversed = next.vertices[1] === v && next.vertices[0] !== v;
+    out.push({ e: next, reversed }); seen.add(next.id); v = reversed ? next.vertices[0] : next.vertices[1];
+  }
+  return out.length === comp.length ? out : null;
+}
+/** The half-space beyond the plane through o (outward n) as a box of side `size`, its face on the plane. */
+function halfSpace(o: Point, n: Point, size: number, id: string): Brep {
+  const m = unit(n), e1 = unit(Math.abs(m[0]) < 0.9 ? cross([1, 0, 0], m) : cross([0, 1, 0], m)), e2 = cross(m, e1), h = size / 2;
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer: [{ kind: 'line', start: [-h, -h] }, { kind: 'line', start: [h, -h] }, { kind: 'line', start: [h, h] }, { kind: 'line', start: [-h, h] }], heightMM: size, fromMM: 0, tag: id }), { id });
+  return transformBrep(prism, { matrix: [e1[0], e2[0], m[0], e1[1], e2[1], m[1], e1[2], e2[2], m[2]], offset: [o[0], o[1], o[2]] });
+}
+/** A face's outward normal at x from its surface (any face). */
+function sheetNormal(f: Brep['faces'][number], x: Point): Point { const s = sheetOf(f.surface as Surface, f.sense); return normalOn(s, ...invertOn(s, x)); }
+/** Into the two faces at a chain piece's start (its own direction turned by each coedge's sense). */
+function generalInto(first: { e: Edge; reversed: boolean }, usesOf: Map<string, Use[]>, ends: Ends): { n: Point; w: Point }[] {
+  const [E0, E1] = ends(first.e), X0 = first.reversed ? E1.x : E0.x, own = first.reversed ? scale(E1.out, -1) : E0.out;
+  return usesOf.get(first.e.id)!.map(u => { const n = sheetNormal(u.face, X0); return { n, w: unit(cross(n, u.sense === 'forward' ? own : scale(own, -1))) }; });
 }
 /** A group of edges as one closed loop, in order (each with whether it runs backwards), or null (open, or branching). */
 function closedLoop(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | null {
@@ -270,13 +366,11 @@ function closedLoop(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | n
  * The rolling-ball tool of a closed loop (R10.2a): its faces sorted to the loop's two sides (by the first edge's,
  * then by a shared face or by the normals where consecutive edges meet), its convexity from the first edge.
  */
-function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf: Map<string, Use[]>, ends: Ends, r: number, id: string, scaleMM: number): { brep: Brep; convex: boolean; report: FilletReport; contactFaces: string[] } {
+function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf: Map<string, Use[]>, ends: Ends, r: number, id: string, scaleMM: number, closed = true, past: (EndPlane | null)[] = [null, null]): { brep: Brep; convex: boolean; report: FilletReport; contactFaces: string[]; mid: Point; sides: string[] } {
   const normalAt = (f: Brep['faces'][number], x: Point) => { const s = sheetOf(f.surface as Surface, f.sense); return normalOn(s, ...invertOn(s, x)); };
   const first = loop[0], u0 = usesOf.get(first.e.id)!, A = new Set([u0[0].face.id]), B = new Set([u0[1].face.id]), sideA = [u0[0].face], sideB = [u0[1].face];
-  // Into each face at the loop's start, square to the edge (the face left of its coedge seen from outside): the edge's
-  // own direction there, turned by the coedge's sense.
-  const [E0, E1] = ends(first.e), X0 = first.reversed ? E1.x : E0.x, own = first.reversed ? scale(E1.out, -1) : E0.out;
-  const into = u0.map(u => { const n = normalAt(u.face, X0); return { n, w: unit(cross(n, u.sense === 'forward' ? own : scale(own, -1))) }; });
+  // Into each face at the loop's start, square to the edge (the face left of its coedge seen from outside).
+  const into = generalInto(first, usesOf, ends);
   const convex = convexAt(into);
   for (let k = 1; k < loop.length; k++) {
     const { e, reversed } = loop[k], us = usesOf.get(e.id)!, [F, G] = [us[0].face, us[1].face];
@@ -291,8 +385,10 @@ function generalRing(body: Brep, loop: { e: Edge; reversed: boolean }[], usesOf:
     if (!B.has(toB.id)) { B.add(toB.id); sideB.push(toB); }
   }
   const tolMM = 0.25 * 10 * linearToleranceMM(scaleMM), names = loop.map(l => l.e.name ?? l.e.id);
-  const { brep, report, contactFaces } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM });
-  return { brep, convex, report, contactFaces };
+  const { brep, report, contactFaces } = ringFillet(body, { loop: loop.map(l => ({ curve: l.e.curve, reversed: l.reversed })), names, sideA, sideB, start: { wA: into[0].w, wB: into[1].w }, convex, r, id, scaleMM, tolMM, closed, past });
+  // (A point of the chain halfway along it: the side of an end plane the fillet lies on.)
+  const m = loop[Math.floor(loop.length / 2)], [t0, t1] = curveDomain(m.e.curve), mid = evaluateCurve(m.e.curve, (t0 + t1) / 2);
+  return { brep, convex, report, contactFaces, mid, sides: [...sideA, ...sideB].map(f => f.name ?? f.id) };
 }
 
 /**

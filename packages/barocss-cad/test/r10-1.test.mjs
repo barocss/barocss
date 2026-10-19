@@ -123,7 +123,7 @@ test('R10.1 (b) coaxial: a cylinder × cone rim and a cone × plane top (convex)
   assert.ok(offRadius(o.brep, p => Math.hypot(Math.hypot(p[0], p[1]) - C[0], p[2] - C[1]), r) < 1e-12, 'the dome\'s fillet is the torus about the ball\'s centre circle');
 });
 
-test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translational, coaxial), RADIUS_EXCEEDS_CURVATURE, NOT_ANALYTIC_PAIR; chamfers of the new pairs are refused (not yet)', () => {
+test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translational, coaxial), RADIUS_EXCEEDS_CURVATURE (NOT_ANALYTIC_PAIR\'s cases built since, D89–D90); chamfers of the new pairs are refused (not yet)', () => {
   // A fillet's torus meets the top it rounded tangentially.
   const rounded = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 10 }];
   const rim = out(rounded).brep.edges.find(e => /ce\.top/.test(e.name) && /ce\.side0/.test(e.name)).name;
@@ -138,11 +138,8 @@ test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translat
   // The D shaft's flat: a ball of 5 inside a rod of 5.
   const flat = straightEdge(out(dShaft).brep, p => Math.abs(p[0][1] - 3) < 1e-9 && p[0][2] > 0);
   refused([...dShaft, fillet('d', [flat], 5)], 'PARAMETER', 'RADIUS_EXCEEDS_CURVATURE');
-  // An oblique groove's rim on the top (a tilted cylinder: ellipse arcs running out at the plate's ends) — neither class,
-  // and an open chain. (Two crossing rods' closed saddle was this case until R10.2a built it, D89.)
-  const groove = [...plate, ...rodAt('c0', [0, 10], 4).map(f => f.kind === 'extrude' ? { ...f, height: 60, from: -10 } : f), { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
-  const grooveRim = out(groove).brep.edges.find(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).name;
-  refused([...groove, fillet('g', [grooveRim], 1)], 'CAPABILITY', 'NOT_ANALYTIC_PAIR');
+  // (NOT_ANALYTIC_PAIR's cases — two crossing rods' saddle, an oblique groove's rim — are built since by the rolling ball,
+  // R10.2a and R10.2b, D89 and D90: test/r10-2.test.mjs and r10-2b.test.mjs.)
   assert.throws(() => evaluateCadPart(D([...rodOnPlate, { id: 'f', kind: 'chamfer', target: 'u', edges: [junction], distance: 1 }])), e => e.code === 'CAPABILITY' && /chamfers along horizontal edges need planar faces/.test(e.message));
   assert.throws(() => evaluateCadPart(D([...coneBody, { id: 'f', kind: 'chamfer', target: 'r', edges: [ringEdge(coneBody, 'r.side1#1', 'r.side2#1')], distance: 1 }])), e => e.code === 'CAPABILITY' && /chamfers along a circle between curved faces/.test(e.message));
 });

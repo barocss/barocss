@@ -1,0 +1,133 @@
+{
+  "id": "r10-plane-rib-oblique-ends",
+  "step": "R10",
+  "decisions": [
+    "D90"
+  ],
+  "about": "R10.1 (D90): a rib turned 10° on a plate, both feet filleted 1 mm — concave plane/plane fillets ending on the plate's oblique ends, cut by their planes (0.6 % over when they stopped square).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "rs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -10,
+            -2
+          ],
+          "max": [
+            50,
+            2
+          ]
+        },
+        {
+          "id": "r0",
+          "kind": "extrude",
+          "sketch": "rs",
+          "height": 6,
+          "from": 10
+        },
+        {
+          "id": "r",
+          "kind": "rotate",
+          "target": "r0",
+          "axis": "z",
+          "angleDegrees": 10,
+          "pivot": [
+            20,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "pe",
+          "tool": "r"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "pe.top#1|r0.side0#2",
+            "pe.top#2|r0.side2#2"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 17457.432993267663,
+          "relTol": 2e-7
+        },
+        "centroidMM": {
+          "value": [
+            20.000000000001027,
+            -7.892951987720657e-13,
+            5.665106888568107
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "f.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side1",
+          "pe.side2",
+          "pe.side3",
+          "pe.top",
+          "r0.bottom",
+          "r0.side0",
+          "r0.side1",
+          "r0.side2",
+          "r0.side3",
+          "r0.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: the plate 16000 and the rib 4 × 6 × 60 = 1440 (standing on it, turned), its two feet (1 − π/4) r² × 40 / cos 10° each."
+}

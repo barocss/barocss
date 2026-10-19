@@ -2900,6 +2900,33 @@ try {
     await snap('r10-2-pipe-tee');
   });
 
+  await check('R10.2b an oblique groove (a file): a rod tilted 10° cut from a plate, one rim (an open chain of ellipse arcs) filleted in the studio — the rolling-ball tool run past both ends of the plate', async () => {
+    const fs = await import('node:fs'), file = join(out, 'oblique-groove.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -10 },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] },
+      { id: 'n5', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
+    const edge = await page.evaluate(() => { for (const a of ['n1.top#1', 'n1.top#2']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (const n of [`${a}|${b}`, `${b}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; });
+    assert.ok(edge, 'a rim picked by its name');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('1');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
+    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    // (A convex fillet removes material: 8983.23 mm³ after it — conformance r10/general-oblique-groove; the panel rounds to 1 mm³.)
+    assert.ok(after < before && Math.abs(after - 8983.23) <= 1, `${before} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-2b-oblique-groove');
+  });
+
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('subd torus'); await press('Enter'); await hudReady();

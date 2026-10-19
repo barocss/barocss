@@ -24,8 +24,8 @@ export interface FilletSection {
   readonly g: number;
 }
 /** Why a fillet has no closed-form section here (R10.1's typed refusals). */
-export type FilletRefusal = 'TANGENT_FACES' | 'RADIUS_EXCEEDS_FACE' | 'RADIUS_EXCEEDS_CURVATURE' | 'NOT_ANALYTIC_PAIR';
-const KIND: Record<FilletRefusal, 'SELECTION' | 'CAPABILITY' | 'PARAMETER'> = { TANGENT_FACES: 'SELECTION', RADIUS_EXCEEDS_FACE: 'PARAMETER', RADIUS_EXCEEDS_CURVATURE: 'PARAMETER', NOT_ANALYTIC_PAIR: 'CAPABILITY' };
+export type FilletRefusal = 'TANGENT_FACES' | 'RADIUS_EXCEEDS_FACE' | 'RADIUS_EXCEEDS_CURVATURE' | 'NOT_ANALYTIC_PAIR' | 'CONTACT_LEAVES_FACE' | 'APPROX_TOLERANCE_NOT_MET';
+const KIND: Record<FilletRefusal, 'SELECTION' | 'CAPABILITY' | 'PARAMETER'> = { TANGENT_FACES: 'SELECTION', RADIUS_EXCEEDS_FACE: 'PARAMETER', RADIUS_EXCEEDS_CURVATURE: 'PARAMETER', NOT_ANALYTIC_PAIR: 'CAPABILITY', CONTACT_LEAVES_FACE: 'PARAMETER', APPROX_TOLERANCE_NOT_MET: 'CAPABILITY' };
 /** A typed refusal: `B-rep: <SELECTION|CAPABILITY|PARAMETER>: [<code>] <detail>` (finishEdges maps it to the part error). */
 export const refuseFillet = (code: FilletRefusal, detail: string): never => { throw new BrepError(KIND[code] === 'PARAMETER' ? 'INPUT' : 'GEOMETRY', `${KIND[code]}: [${code}] ${detail}`); };
 

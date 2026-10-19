@@ -18,6 +18,7 @@
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
 import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
+import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './facet-patch.js';
 import { circleOf, polesOf } from './brep-tessellate.js';
@@ -115,7 +116,7 @@ interface GFace {
 /** A 3D curve piece: a segment, or an arc about c in the plane ⊥ n from u through `sweep` (≥ 0, CCW about n). */
 type Curve3 = { kind: 'line'; p: P3; q: P3 } | { kind: 'arc'; c: P3; n: P3; r: number; u: P3; sweep: number }
   /** A smooth curve on the parameter range t0 → t1 (either order). */
-  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number; /** `at` is an exact curve (a line or arc's map onto a general face), not a fit. */ exact?: boolean };
+  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number; /** `at` is an exact curve (a line or arc's map onto a general face), not a fit. */ exact?: boolean; /** `at` is this input edge's curve (t its own parameter): its pieces stay it, exactly (D90). */ src?: Curve };
 const paramAt = (k: Extract<Curve3, { kind: 'param' }>, u: number) => k.at(k.t0 + (k.t1 - k.t0) * u);
 const arcAt = (k: Extract<Curve3, { kind: 'arc' }>, phi: number): P3 => add(k.c, add(scale(k.u, k.r * Math.cos(phi)), scale(cross(k.n, k.u), k.r * Math.sin(phi))));
 
@@ -199,7 +200,7 @@ function curve3(c: Curve, forward: boolean): Curve3 {
   const [t0, t1] = curveDomain(c), p = evaluateCurve(c, t0), q = evaluateCurve(c, t1);
   if (c.degree === 1 && c.controlPoints.length === 2) return forward ? { kind: 'line', p, q } : { kind: 'line', p: q, q: p };
   const k = circleOf(c);
-  if (!k) { const at = curveEvaluator(c); return { kind: 'param', at, t0: forward ? t0 : t1, t1: forward ? t1 : t0 }; }
+  if (!k) { const at = curveEvaluator(c); return { kind: 'param', at, t0: forward ? t0 : t1, t1: forward ? t1 : t0, src: c }; }
   // The turning direction from the circle's own frame (robust for a full turn, where start = end).
   const total = k.spans.reduce((s, x) => s + x.phi, 0), n = scale(cross(k.e1, k.e2), k.sign);
   const from = forward ? p : q;
@@ -223,9 +224,9 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
       const toward = Math.abs(x - t0) < Math.abs(x - t1) ? 1 : -1, n1 = to2(f, at3(x + toward * 1e-3 * span), hint), n2 = to2(f, at3(x + toward * 2e-3 * span), hint);
       return q.along === 0 ? [2 * n1[0] - n2[0], q.at] : [q.at, 2 * n1[1] - n2[1]];
     };
-    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}) } as CurveSegment2;
+    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}), ...(k.kind === 'param' && k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   }
-  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t };
+  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t, ...(k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   if (k.kind === 'line') {
     const a = to2(f, k.p), b = to2(f, k.q);
     if (s.kind === 'cylinder' && Math.abs(a[0] - b[0]) > Math.max(tol, 1e-9 * s.r)) throw new BrepError('GEOMETRY', 'analytic Boolean: a straight edge on a cylinder runs across its axis direction');
@@ -297,7 +298,7 @@ function memo(g: (x: number) => XY): (x: number) => XY {
 /** A 2D segment of a face's domain as a 3D curve. */
 function curve3Of(f: { surf: Surf }, g: CurveSegment2): Curve3 {
   const s = f.surf;
-  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1, ...(src && (g as { exact?: boolean }).exact ? { exact: true } : {}) }; }
+  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined, curve = (g as { srcCurve?: Curve }).srcCurve; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1, ...(src && (g as { exact?: boolean }).exact ? { exact: true } : {}), ...(src && curve ? { src: curve } : {}) }; }
   if (s.kind === 'nurbs') { const seg = g; return { kind: 'param', at: x => to3(f, segAtAny(seg, x)), t0: 0, t1: 1 }; }
   if (s.kind === 'plane') {
     if (g.kind === 'line') return { kind: 'line', p: to3(f, g.a), q: to3(f, g.b) };
@@ -437,6 +438,8 @@ const boxesMeet = (f: GFace, g: GFace, tol: number) => [0, 1, 2].every(k => f.mi
 
 class Refused extends BrepError { constructor(detail: string) { super('GEOMETRY', 'analytic Boolean: ' + detail); } }
 
+/** The source curves already cut into a face along a contact (each once). */
+const contactCuts = new WeakMap<GFace, Set<unknown>>();
 /** Whether one of f's boundary edges lies on g's surface. */
 function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
   for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
@@ -449,10 +452,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
   // (Faces the caller says meet only along edges of one lying on the other — a fillet tool's contacts with the faces it
   // rounds, D89 — are cut there, and nothing is computed: their contact is tangent or along a face's own boundary.)
   if (touching) {
-    // (As the edges are: made exact arcs, neighbouring pieces' ends would move apart by their fit.)
+    // (As the edges are: made exact arcs, neighbouring pieces' ends would move apart by their fit. An edge shared by
+    // two contact faces — the fillet and its wall — is one cut: two copies of a curve would cross all along it.)
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
-      const k = curve3Of(f, seg);
-      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) g.cuts.push(curve2(g, k, tol));
+      const k = curve3Of(f, seg), key = (k.kind === 'param' && k.src) || null, seen = contactCuts.get(g) ?? new Set<unknown>();
+      if (key && seen.has(key)) continue;
+      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); if (key) { seen.add(key); contactCuts.set(g, seen); } }
     }
     return;
   }
@@ -960,7 +965,7 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  * Edges that are an exact curve's map onto a general face and lie on a circle are made that arc
  * (`exactEdges: false` keeps them fitted).
  */
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's only along their own edges lying on them (a fillet tool's contact faces, D89). */ readonly contactFaces?: readonly string[] } = {}): Brep {
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
@@ -969,8 +974,8 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
-  const contact = new Set(options.contactFaces ?? []);
-  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && edgeOnSurface(fb, fa, tol));
+  const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
+  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && (!options.contactWith || rounded.has(fa.name ?? '')) && edgeOnSurface(fb, fa, tol));
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
   // there) adds nothing but slivers.
   for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
@@ -1158,9 +1163,18 @@ function part(k: Curve3, t0: number, t1: number, p: P3, q: P3): Curve3 {
   const e2 = cross(k.n, k.u), phi = k.sweep * t0;
   return { ...k, u: unit(add(scale(k.u, Math.cos(phi)), scale(e2, Math.sin(phi)))), sweep: k.sweep * (t1 - t0) };
 }
+/** An input edge's curve between two of its parameters (either order), exactly, its ends at the stitched vertices p, q. */
+function pieceOf(src: Curve, t0: number, t1: number, id: string, p: P3, q: P3): Curve {
+  const piece = curvePiece(src, Math.min(t0, t1), Math.max(t0, t1), id), c = t0 <= t1 ? piece : curveReversed(piece), cp = c.controlPoints.map(x => [...x] as P3);
+  cp[0] = p; cp[cp.length - 1] = q;
+  // (On [0, 1], as the kernel's other edges: a walk back along a coedge then ends on its domain, not an ulp off it.)
+  const lo = c.knots[0], span = c.knots[c.knots.length - 1] - lo;
+  return { ...c, id, controlPoints: cp, knots: c.knots.map((k, i) => i === c.knots.length - 1 ? 1 : (k - lo) / span) };
+}
 /** A curve as a NURBS edge: lines degree 1; arcs rational quadratic in spans of at most a quarter turn. */
 function nurbs(k: Curve3, id: string, p: P3, q: P3, tol = 0): Curve {
   if (k.kind === 'line') return lineCurve(id, p, q);
+  if (k.kind === 'param' && k.src) return pieceOf(k.src, k.t0, k.t1, id, p, q);
   if (k.kind === 'param') return fitCubic(k, id, p, q, tol);
   const spans = Math.max(1, Math.ceil(k.sweep / (Math.PI / 2) - 1e-12)), dt = k.sweep / spans, w = Math.cos(dt / 2);
   const cp: P3[] = [p], wt = [1], knots = [0, 0, 0];
@@ -1225,7 +1239,8 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   };
   // Curves of no length (a domain side at a pole) are not edges.
   const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => fitPieces(x, tol / 4)); })));
+  // (A piece of an input edge's own curve stays that curve: no fit, D90.)
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, tol / 4)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Consecutive pieces of one ring meet at one vertex: a traced curve's end lands within its tracing

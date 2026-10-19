@@ -4360,3 +4360,55 @@ R10.2 split in two, as the research note's R10.2 is large. **R10.2a** (this): cl
   - The Boolean takes most of it: the march, the curved arrangement of the many cut pieces, and stitching.
   - Candidates: fewer patches (a higher-order loft), and the Boolean's arrangement of many short cuts.
 - **Not done:** open chains (R10.2b); variable radius, vertex blends, overflow (R10.3–R10.5); general chamfers.
+- **Names across a radius edit (settled in R10.2b, the coordinator's question; tests in `apps/cad-studio/test/filletNames.test.ts`):** the kernel's fillet faces stay `f.face#k`, one a patch, and they are not made independent of the patch count.
+  - **Face references resolve.** The studio shows a fillet's patches as one face by its base name (`n5.face`), and a document refers to that name (a colour, a shell opening, a mate face, a drawing's face). On the pipe tee, a colour on the fillet keeps its key across r 2 → 1 with nothing re-matched.
+  - **Ring edges:** a closed fillet meets both faces tangentially, so the studio shows no edge along it; there is nothing to reference.
+  - **Edges of an open fillet** (R10.2b, its end edges on a crease): a reference is one piece's name, `…#k`. On a radius edit, the D28 prior-document match finds the edge again by its signature. It resolves, marked re-matched until confirmed (one change, tested on the oblique groove, r 1 → 0.7).
+    - That needed two studio fixes. First, candidates with identical signatures (the pieces of one shown edge) count as one in `matchSignature`. Second, a display-edge piece shorter than the weld distance joins as a point, so it no longer collapses the edge.
+  - **Why not one name per contact chain:** the 16-pole limit forces several faces along one chain. The base pair of faces is not unique either (a pattern of holes gives the same pair many times). A stable-parameter index would still renumber when a break moves. No saved name changed, so no D16 version step.
+
+## D90 — R10.2b: open chains of general edges, R10.1's oblique ends, contact cuts once (2026-10-19)
+
+The rolling-ball fillet (D89) for an **open** tangent chain: its ends, plus three fixes found on the way.
+- **Chains** (`edge-finish.ts`):
+  - Selected edges join into a chain by tangent continuation only, no longer by any shared vertex.
+  - A chain's smooth continuations (a seam into the same surface) are excluded from the end tests (`smoothAt`).
+  - A branching chain is refused (CAPABILITY "its chain branches").
+- **An end**, for each end of the chain, looking at the faces there other than the two sides (faces parallel to the edge ignored, coplanar pieces merged):
+  - **Run past:** the body ends past a convex end. The station march continues beyond the edge's end, a step at a time, until the section clears the end face's plane. Past the end the true junction is marched: an r = 0 station solve over all face pairs, with Hermite stations between the samples. The Boolean trims the tool where the body ends.
+    - The faces it marches on are extended: a full-turn analytic cylinder for a cylinder face (`runSheet`, its seam opposite the face's middle), else the surface extended linearly ×2 in its non-periodic directions (`extendedSurface`).
+  - **Clip:** a concave end where the body ends, or a convex one at a wall. The tool runs on and is cut by that end face's plane, a half-space Boolean.
+  - **Refused (CAPABILITY):**
+    - an end square on a face (its last section in that face's plane), since the cap would lie in the face; the coplanar cut gave a wrong 374 mm² region;
+    - an end at a curved face or at more than one face (R10.3);
+    - an end meeting another finished edge (a vertex blend, R10.3).
+  - The tool's open path ends exactly at the edge's end point; it fell 1e-12 short before. Breaks closer than 1e-6 of the length merge, and path-joint breaks within 2h of another break are dropped (no slivers).
+  - A sliver body after the Boolean (the round running off the top before the rim ends, the groove on a plate from 0 to 40) is refused `[CONTACT_LEAVES_FACE] … cuts a piece free` (overflow is R10.4).
+- **R10.1's oblique ends (a fix):** R10.1's closed-form tools (planes, translational pairs) stopped square at the edge's ends, so at an oblique end face the fillet was 0.6–1.5 % too large. Seen with a rib turned 10° and 25° on a plate, and a rod lying across one at 10°.
+  - Now a tool at a single oblique planar end face runs past and is clipped by that plane, as above.
+  - No earlier conformance case had an oblique end; their values are unchanged.
+- **Contact cuts once (a fix, found on the tee):** each tool contact edge cut every body face it touched, once per touching pair. Coincident duplicate cuts split each patch edge into up to 64 pieces: the pipe tee had 3109 edges.
+  - Contact cuts are now made once per source curve (`contactCuts`).
+  - A cut that is a piece of an input edge stays that curve: the exact piece by knot insertion (`curve-segment.ts`, Boehm in homogeneous coordinates, exact to 4e-15), its knots normalised to [0, 1], instead of fitted Hermite pieces.
+  - The tee now has 82 edges and takes 1.8 s, down from 3–5 s; the volume is unchanged (15.709223).
+  - The Boolean's `contactWith` keeps a tool's contact faces to the side faces by base name.
+- **Evidence** (`packages/barocss-cad/test/r10-2b.test.mjs`, 4 tests):
+  - **Against closed forms, the general path forced:**
+    - a groove along a plate (convex, run past both ends) to 6e-12;
+    - a rod lying across the plate at 10° (concave, clipped by both oblique ends) to 5.7e-7;
+    - contacts ≤ 2.5e-7 mm, G1 < 1e-3°.
+  - **An oblique groove** (a rod of 4 tilted 10° about Y cut from a plate from 8 to 32, rims ellipse arcs, r 1): both rims build, one body, valid. It took 0.5 s, 7 patches, 109 stations, contacts 6e-8 mm, sections 2.4e-7 mm. On a plate from 0 to 40 it is refused CONTACT_LEAVES_FACE.
+  - **R10.1's rib** at 0°, 10° and 25°: (1 − π/4) r² · 40 / cos θ a foot, to 2e-7. The rod at 10° by R10.1: to 2e-6.
+  - **Refusals:** a square end (forced); an end meeting another finished edge.
+  - **Conformance (`conformance/r10/`):**
+    - `general-oblique-groove`: this kernel's volume. Its mass is by tessellation, since quadrature's finer pass declines here (the D88 item); the value is at 64 segments a quarter (128 the same), tolerance 5e-5 of the part (the default 32 is 2.7e-5 off), STEP round trip 5e-5.
+    - `translational-rod-across-oblique` (closed form, 2.3e-10) and `plane-rib-oblique-ends` (closed form, 6e-11).
+    - `refuse-overflow-end`.
+    - `refuse-open-general-chain` superseded.
+  - **Studio:** errors.ts hints for the three new refusals (and the general-fillet scope text). A flow step opens an oblique-groove file and fillets one rim in the UI (8983 mm³, as the conformance case). Names: D89's last bullet.
+- **Known:**
+  - At a run-past end, where the end plane meets the tangent contacts, the result can keep a tiny edge (4e-4 mm on the groove; 1e-4 to 3e-5 mm seen while building).
+  - A filleted oblique groove's mass is by tessellation (above).
+  - General fillets still take seconds where there are many patches.
+  - Square ends, ends at curved or several faces, vertex blends and overflow are refused: R10.3–R10.4.
+- **Not done:** R10.3 (vertex blends, mixed corners such as the pipe clamp's lug loop, the ends refused here), R10.4 (overflow), R10.5; general chamfers.

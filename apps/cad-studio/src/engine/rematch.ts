@@ -61,7 +61,12 @@ export function rankAlike(old: Signature, candidates: ReadonlyMap<string, Signat
  * candidates when that cannot be told (none alike: an empty list).
  */
 export function matchSignature(old: Signature, candidates: ReadonlyMap<string, Signature>, edge: boolean): string | string[] {
-  const near = [...candidates].filter(([, s]) => alike(old, s, edge)).map(([name, s]) => ({ name, d: Math.hypot(s.at[0] - old.at[0], s.at[1] - old.at[1], s.at[2] - old.at[2]) })).sort((x, y) => x.d - y.d);
+  // (Names sharing one signature are one face or edge — the pieces of a display edge, a general fillet's patches,
+  // D90: the first of them by name stands for it.)
+  const seen = new Set<string>(), key = (s: Signature) => JSON.stringify([s.kind, s.at, s.dir, s.size, s.radius]);
+  const near = [...candidates].filter(([, s]) => alike(old, s, edge)).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .filter(([, s]) => { const k = key(s); if (seen.has(k)) return false; seen.add(k); return true; })
+    .map(([name, s]) => ({ name, d: Math.hypot(s.at[0] - old.at[0], s.at[1] - old.at[1], s.at[2] - old.at[2]) })).sort((x, y) => x.d - y.d);
   if (!near.length) return [];
   if (near.length === 1 || near[1].d >= CLEARLY_NEARER * near[0].d && near[1].d > 0) return near[0].name;
   return near.filter(x => x.d <= CLEARLY_NEARER * near[0].d).map(x => x.name);

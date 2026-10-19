@@ -123,8 +123,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
       if (straight) {
         const ext = [mate.a, mate.b, a, z], d0 = norm(sub(mate.b, mate.a)), t = ext.map(p => dot(sub(p, mate.a), d0));
         mate.a = ext[t.indexOf(Math.min(...t))]; mate.b = ext[t.indexOf(Math.max(...t))];
-      } else {
-        // Keep the chain's two free ends (a closed chain has none left; its ends then coincide).
+      } else if (!near(a, z)) {
+        // Keep the chain's two free ends (a closed chain has none left; its ends then coincide). (A piece shorter than
+        // `near` — a general fillet's end meeting a face tangentially, D90 — joins as a point: the ends stay.)
         const ends = [mate.a, mate.b, a, z].filter((p, k, all) => all.filter(q => near(p, q)).length === 1);
         if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
       }

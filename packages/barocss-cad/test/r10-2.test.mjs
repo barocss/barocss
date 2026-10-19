@@ -54,11 +54,7 @@ test('R10.2a a pipe tee and crossing rods (no closed form): valid, the fillet\'s
   }
 });
 
-test('R10.2a refusals: an open chain of general edges (an oblique groove\'s rim) — R10.2b; a fillet running off its faces (a short branch) — CONTACT_LEAVES_FACE; general chamfers not yet', () => {
-  const groove = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
-    { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 }, { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] },
-    { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
-  assert.throws(() => out([...groove, fillet('g', junction(groove, /c0\.side0/, /pe\.top/), 1)]), e => e.code === 'CAPABILITY' && /\[NOT_ANALYTIC_PAIR\].*open general chains arrive with R10\.2b/.test(e.message));
+test('R10.2a refusals: a fillet running off its faces (a short branch) — CONTACT_LEAVES_FACE; general chamfers not yet (an open chain of general edges, refused here at first, is R10.2b\'s: r10-2b.test.mjs)', () => {
   // The branch stands 12 high, its foot at 8.66–10: a ball of 3 would touch it up to 13.
   assert.throws(() => out([...tee(12), fillet('u', junction(tee(12)), 3)]), e => e.code === 'PARAMETER' && /\[CONTACT_LEAVES_FACE\]/.test(e.message));
   assert.throws(() => out([...tee(), { id: 'f', kind: 'chamfer', target: 'u', edges: [junction(tee())], distance: 1 }]), e => e.code === 'CAPABILITY' && /chamfers between general faces/.test(e.message));

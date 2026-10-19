@@ -1,0 +1,141 @@
+{
+  "id": "r10-general-oblique-groove",
+  "step": "R10",
+  "decisions": [
+    "D90"
+  ],
+  "about": "R10.2b: a groove cut by a rod (radius 4) tilted 10\u00b0, on a plate from 8 to 32, one rim (an open chain of ellipse arcs) filleted 1 mm \u2014 the tool run past both ends until its section clears them, the Boolean trimming it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            8,
+            -20
+          ],
+          "max": [
+            32,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -10
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "y",
+          "angleDegrees": 10,
+          "pivot": [
+            20,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "g",
+          "kind": "difference",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "c0.side0|pe.top#1#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 8983.23263666066,
+          "relTol": 5e-05
+        },
+        "centroidMM": {
+          "value": [
+            19.822211704700937,
+            -0.0020703232694016765,
+            4.790157417400981
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c0.side0",
+          "f.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side1",
+          "pe.side2",
+          "pe.side3",
+          "pe.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 5e-05
+    }
+  },
+  "oracle": "This kernel (no closed form), by its tessellated mass: the result's quadrature declines here (its finer pass cannot place a mesh point on a trimmed patch, the D88 item), so the value is the tessellation at 64 segments a quarter (128 gives the same) and the tolerance 5e-5 of the part covers the default 32 (2.7e-5 off) \u2014 about 4 % of the fillet's own volume: this case pins the build, the fillet's accuracy is pinned by the closed-form cases (test/r10-2b.test.mjs: the general path forced on a groove along a plate and a rod across one at 10\u00b0, to 4e-12 and 6e-7). The rolling ball's contacts within 2.5e-7 mm of their faces, G1 to 1e-3\u00b0."
+}

@@ -1,0 +1,105 @@
+{
+  "id": "r10-refuse-overflow-end",
+  "step": "R10",
+  "decisions": [
+    "D90"
+  ],
+  "about": "R10.2b: the same oblique groove on a plate from 0 to 40, where the rims end near their ellipses' tips: near the end the round runs off the top across the plate's end before the rim ends, and would cut a piece free — CONTACT_LEAVES_FACE (rolling onto the end face is R10.4).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -10
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "y",
+          "angleDegrees": 10,
+          "pivot": [
+            20,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "g",
+          "kind": "difference",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "c0.side0|pe.top#1#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[CONTACT_LEAVES_FACE]"
+    }
+  },
+  "oracle": "The rim meets the plate's end at a shallow angle near its ellipse's tip (x ≈ 43): the fillet's contact on the top crosses x = 40 before the rim does."
+}
