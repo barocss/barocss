@@ -404,3 +404,63 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 468/468, and 468/468 replayed through v2. Browser flow 152/152, with the new step "A5.4" (just before the last step): a part written by cad-cli from a script (with `--check`) opens in the studio with its five features, one body and its requirement.
 - **Pending (reversible default taken)**: cad-mcp's default autonomy is L2, the studio's. An owner who drives the agent from their own client may want L4 by default; it is one flag today.
 - **Not in A5.4**: editing one file from the studio and cad-mcp at once (the last writer wins; the studio does not watch files). That belongs to the document service (out of A5, O8).
+
+## O13 — A5.5: the A/B harness, dry-run with the scripted agent (2026-10-20)
+
+- **What** (`server/ab/briefs.ts`, `server/ab/harness.ts`, `server/ab/main.ts`, `scripts/ab.mjs`, `pnpm ab`):
+  - **Arms**:
+    - **json**: the v1 tools without run_script, and the prompt without its paragraph (today's tools before A5.2; `CAD_TOOLSET=json`);
+    - **hybrid**: the v2 tools with `model.run` (A5.3).
+  - **Briefs**: 10 single-part rungs of the RB9 ladder, each with 3 parameter variants (run k takes variant k):
+    - block-hole, washer, phone-stand (RB9.3), machined-plate (RB9.4), l-bracket (RB9.5);
+    - flange, open-box (RB9.8), pcb-enclosure (RB9.9), stepped-shaft, knob (RB9.13).
+    - Each brief is a few sentences of words. Its dimensions are the brief's own, taken from no standard.
+    - The assembly, sheet-metal and stress rungs are left for later: an agent can only propose an assembly, and the kernel has no stress oracle.
+  - **The oracle**: each brief's hard requirements (bounding box ±0.1, volume in closed form ±0.5 % or between closed-form bounds for the knob's fillet, one solid).
+    - The kernel checks them on the part the agent leaves, with the agent's own requirements set aside. The agent never sees them.
+    - They depend on no face names, so any construction that makes the part passes.
+  - **Every run takes the product path**:
+    - a fresh empty document, one turn through the real chat server in-process;
+    - the CLI spawned with the arm's tools and prompt, and the MCP tool server on a state file;
+    - autonomy L2 (an empty part's first build applies directly).
+    - The agent is the `claude` CLI (live) or the scripted stand-in (dry run), which makes the brief's ideal calls through the same path: requirements, then the build, then the check.
+  - **Measures per run**: pass (every hard oracle requirement), each outcome, tool calls, refusals, the tools called, wall time, and tokens.
+    - Live: the CLI's own usage and cost (the chat server now forwards the result message's `usage`, `num_turns` and `total_cost_usd` in its `done` event).
+    - Dry run: an estimate of what each model turn would read: prompt, tools, the brief, and the calls and results so far, at 4 characters a token, one call a turn. Input not read from the prompt cache is reported apart.
+  - **Summaries**: per brief and arm, passes, pass@k (any), pass^k (all) and means; per arm, the totals. Written to `results.json` and `report.md`.
+  - **Live runs need `--live` and `CAD_AB_LIVE=1`**; either alone is refused with exit 2, and nothing runs. The owner decides.
+- **Found by writing the briefs, fixed here**:
+  - (1) The `between` edge selector missed edges whose name marks a face's second occurrence (`n1.side0#2|n1.top`, a cylinder's top edge), so a fillet on a cylinder's top edge by `edge(k.top, k.side0)` was refused. Fixed in `names.ts`.
+  - (2) A script's feature handle as a body (`h.body`, or `h` in a selection) was the body as that feature made it, a key gone after its holes or a union. It is now the body that holds that feature's faces now. So `difference([plate, tool])` after the plate's holes works, and `union([b, cylinder(…)])` in a loop keeps joining onto one body.
+  - (3) `const a = 1, b = 2` (several names in one `const`) was a syntax error; it is now in the language. It made 2 of 10 hybrid briefs fail on the first dry run.
+- **The dry run** (`handover/notes/ab-dry-run-2026-10-20/`): 60 runs (10 briefs × 2 arms × 3 runs), **all pass in both arms**.
+
+  | Arm | Calls a brief | Input tokens a brief | Not from the cache | Output |
+  |---|---|---|---|---|
+  | json | 6.4 | 151 944 | 21 918 | 396 |
+  | hybrid | 2.0 | 14 175 | 4 993 | 342 |
+
+  - These are estimates for an ideal agent: a lower bound.
+  - Each model turn re-reads the prompt and tools: about 17.9k tokens in json, 4.1k in hybrid.
+  - The dry run proves the harness, not value: the scripted agent is written to succeed (L2 for the harness; value needs the live L3 run).
+- **Live cost estimate** (for the owner's decision; tokens, not money: the CLI reports the cost per run):
+  - The plan: 10 briefs × 2 arms × 3 runs = 60 turns, at most 24 model turns each (the chat server's cap).
+  - **Lower bound** (the ideal calls):
+    - json 30 × 152k = 4.6M input (0.66M not from the cache), 12k output;
+    - hybrid 30 × 14k = 0.43M (0.15M), 10k output;
+    - **about 5.0M input tokens in all (0.8M uncached), 22k output**.
+  - **If a live agent makes 3× the ideal calls** (an assumption, not a measurement: reading, inspecting, repairing):
+    - json 19 calls, 515k input a run;
+    - hybrid 6 calls, 40k;
+    - in all 15.5M + 1.2M = **about 16.7M input tokens (1.1M uncached), 57k output**.
+  - The json arm is about 92 % of either total.
+  - A smaller first live run, 1 run a brief and arm, is a third of these.
+- **Evidence**: `test/ab.test.ts` (6 tests):
+  - every brief's ideal calls pass the oracle in every variant in both arms (60 builds in process), each in its arm's tool names;
+  - the oracle fails wrong parts (no hole, too wide, two solids, nothing built);
+  - what each arm reads (json has no run_script; the estimate grows each turn; json about 4.4× hybrid a turn);
+  - pass@k and pass^k;
+  - **the real `scripts/ab.mjs` dry run** of two briefs × both arms (4 runs: calls 4/2/13/2, json's input over 10× hybrid's on the enclosure);
+  - the live guard.
+  - script.test gains `const a, b`. Studio 474/474; replayed through v2 474/474. Browser flow 152/152 (no UI change, no new step). Bench 45/45 within budget.
+- **Pending (the owner's)**: the live runs (L3). After them, the decision A5.3 left open: the default tool list and whether the v1 aliases go.

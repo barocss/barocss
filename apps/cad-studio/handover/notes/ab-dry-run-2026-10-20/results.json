@@ -1,0 +1,3014 @@
+[
+ {
+  "brief": "block-hole",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 46429.204
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 154,
+  "end": "done",
+  "tokens": {
+   "input": 94453,
+   "output": 320,
+   "newInput": 19617,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "block-hole",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 46429.204
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 144,
+  "end": "done",
+  "tokens": {
+   "input": 13864,
+   "output": 320,
+   "newInput": 4844,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "block-hole",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 59672.567
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 148,
+  "end": "done",
+  "tokens": {
+   "input": 94474,
+   "output": 320,
+   "newInput": 19625,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "block-hole",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 59672.567
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 140,
+  "end": "done",
+  "tokens": {
+   "input": 13867,
+   "output": 321,
+   "newInput": 4845,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "block-hole",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 15
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 35246.018
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 170,
+  "end": "done",
+  "tokens": {
+   "input": 94457,
+   "output": 320,
+   "newInput": 19618,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "block-hole",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 15
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 35246.018
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 141,
+  "end": "done",
+  "tokens": {
+   "input": 13862,
+   "output": 320,
+   "newInput": 4843,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 1.6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 233.031
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 3,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 141,
+  "end": "done",
+  "tokens": {
+   "input": 73878,
+   "output": 286,
+   "newInput": 18794,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 1.6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 233.031
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 149,
+  "end": "done",
+  "tokens": {
+   "input": 13714,
+   "output": 308,
+   "newInput": 4775,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 1.6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 129.484
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 3,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 150,
+  "end": "done",
+  "tokens": {
+   "input": 73878,
+   "output": 286,
+   "newInput": 18794,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 1.6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 129.484
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 149,
+  "end": "done",
+  "tokens": {
+   "input": 13713,
+   "output": 308,
+   "newInput": 4775,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 2
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 455.138
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 3,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 147,
+  "end": "done",
+  "tokens": {
+   "input": 73871,
+   "output": 285,
+   "newInput": 18792,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "washer",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 2
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 455.138
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 146,
+  "end": "done",
+  "tokens": {
+   "input": 13711,
+   "output": 307,
+   "newInput": 4774,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 53200
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 155,
+  "end": "done",
+  "tokens": {
+   "input": 163207,
+   "output": 406,
+   "newInput": 22767,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 53200
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 151,
+  "end": "done",
+  "tokens": {
+   "input": 14210,
+   "output": 342,
+   "newInput": 5002,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 55
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 41300
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 156,
+  "end": "done",
+  "tokens": {
+   "input": 163240,
+   "output": 407,
+   "newInput": 22773,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 55
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 41300
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 148,
+  "end": "done",
+  "tokens": {
+   "input": 14212,
+   "output": 343,
+   "newInput": 5003,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 68850
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 149,
+  "end": "done",
+  "tokens": {
+   "input": 163255,
+   "output": 408,
+   "newInput": 22777,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "phone-stand",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 68850
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 144,
+  "end": "done",
+  "tokens": {
+   "input": 14214,
+   "output": 343,
+   "newInput": 5004,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 8
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 44505.218
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 9,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 226,
+  "end": "done",
+  "tokens": {
+   "input": 209870,
+   "output": 478,
+   "newInput": 24372,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 8
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 44505.218
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 217,
+  "end": "done",
+  "tokens": {
+   "input": 14420,
+   "output": 370,
+   "newInput": 5113,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 120
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 10
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 87455.31
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 9,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 217,
+  "end": "done",
+  "tokens": {
+   "input": 210242,
+   "output": 478,
+   "newInput": 24459,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 120
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 10
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 87455.31
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 213,
+  "end": "done",
+  "tokens": {
+   "input": 14417,
+   "output": 371,
+   "newInput": 5112,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 25529.801
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 9,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 221,
+  "end": "done",
+  "tokens": {
+   "input": 209925,
+   "output": 478,
+   "newInput": 24407,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "machined-plate",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 6
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 25529.801
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 213,
+  "end": "done",
+  "tokens": {
+   "input": 14414,
+   "output": 369,
+   "newInput": 5110,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 14012.417
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 167,
+  "end": "done",
+  "tokens": {
+   "input": 162246,
+   "output": 415,
+   "newInput": 22434,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 14012.417
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 169,
+  "end": "done",
+  "tokens": {
+   "input": 14294,
+   "output": 355,
+   "newInput": 5039,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 29349.457
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 170,
+  "end": "done",
+  "tokens": {
+   "input": 162199,
+   "output": 414,
+   "newInput": 22417,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 29349.457
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 168,
+  "end": "done",
+  "tokens": {
+   "input": 14291,
+   "output": 355,
+   "newInput": 5038,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 35
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 7972.765
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 170,
+  "end": "done",
+  "tokens": {
+   "input": 162277,
+   "output": 414,
+   "newInput": 22442,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "l-bracket",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 35
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 7972.765
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 166,
+  "end": "done",
+  "tokens": {
+   "input": 14293,
+   "output": 355,
+   "newInput": 5039,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 10
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 41144.182
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 199,
+  "end": "done",
+  "tokens": {
+   "input": 113954,
+   "output": 361,
+   "newInput": 19965,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 10
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 41144.182
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 280,
+  "end": "done",
+  "tokens": {
+   "input": 14485,
+   "output": 347,
+   "newInput": 5153,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 73060.879
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 209,
+  "end": "done",
+  "tokens": {
+   "input": 114256,
+   "output": 362,
+   "newInput": 20113,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 73060.879
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 359,
+  "end": "done",
+  "tokens": {
+   "input": 14651,
+   "output": 347,
+   "newInput": 5236,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 8
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 19345.928
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 183,
+  "end": "done",
+  "tokens": {
+   "input": 113613,
+   "output": 361,
+   "newInput": 19799,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "flange",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 8
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 19345.928
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 227,
+  "end": "done",
+  "tokens": {
+   "input": 14279,
+   "output": 347,
+   "newInput": 5050,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 15552
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 133,
+  "end": "done",
+  "tokens": {
+   "input": 94986,
+   "output": 317,
+   "newInput": 19895,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 15552
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 136,
+  "end": "done",
+  "tokens": {
+   "input": 13802,
+   "output": 317,
+   "newInput": 4817,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 37312.5
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 137,
+  "end": "done",
+  "tokens": {
+   "input": 95082,
+   "output": 318,
+   "newInput": 19941,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 37312.5
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 137,
+  "end": "done",
+  "tokens": {
+   "input": 13814,
+   "output": 318,
+   "newInput": 4823,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 11248.384
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 4,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 144,
+  "end": "done",
+  "tokens": {
+   "input": 95098,
+   "output": 318,
+   "newInput": 19947,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "open-box",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 50
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 11248.384
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 141,
+  "end": "done",
+  "tokens": {
+   "input": 13814,
+   "output": 318,
+   "newInput": 4823,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 29736.956
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 13,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 340,
+  "end": "done",
+  "tokens": {
+   "input": 337400,
+   "output": 602,
+   "newInput": 30873,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 100
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 25
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 29736.956
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 323,
+  "end": "done",
+  "tokens": {
+   "input": 14789,
+   "output": 384,
+   "newInput": 5280,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 120
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 51610.465
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 13,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 329,
+  "end": "done",
+  "tokens": {
+   "input": 340730,
+   "output": 608,
+   "newInput": 31418,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 120
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 80
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 51610.465
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 314,
+  "end": "done",
+  "tokens": {
+   "input": 14809,
+   "output": 387,
+   "newInput": 5290,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 22
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 22831.858
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 13,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 549,
+  "end": "done",
+  "tokens": {
+   "input": 336659,
+   "output": 601,
+   "newInput": 30760,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "pcb-enclosure",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 60
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 22
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 22831.858
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 311,
+  "end": "done",
+  "tokens": {
+   "input": 14786,
+   "output": 384,
+   "newInput": 5279,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 19438.605
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 266,
+  "end": "done",
+  "tokens": {
+   "input": 155122,
+   "output": 405,
+   "newInput": 20654,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 20
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 90
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 19438.605
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 185,
+  "end": "done",
+  "tokens": {
+   "input": 14126,
+   "output": 338,
+   "newInput": 4972,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 110
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 34353.316
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 187,
+  "end": "done",
+  "tokens": {
+   "input": 155123,
+   "output": 405,
+   "newInput": 20657,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 110
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 34353.316
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 177,
+  "end": "done",
+  "tokens": {
+   "input": 14126,
+   "output": 338,
+   "newInput": 4972,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 9613.274
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 7,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 184,
+  "end": "done",
+  "tokens": {
+   "input": 154987,
+   "output": 404,
+   "newInput": 20624,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "stepped-shaft",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 16
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 70
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 9613.274
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 178,
+  "end": "done",
+  "tokens": {
+   "input": 14116,
+   "output": 337,
+   "newInput": 4967,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "json",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 15
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 10241.638
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 261,
+  "end": "done",
+  "tokens": {
+   "input": 113285,
+   "output": 364,
+   "newInput": 19601,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "hybrid",
+  "run": 0,
+  "variant": 0,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 30
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 15
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 10241.638
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 260,
+  "end": "done",
+  "tokens": {
+   "input": 14054,
+   "output": 339,
+   "newInput": 4935,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "json",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 18
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 21781.704
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 271,
+  "end": "done",
+  "tokens": {
+   "input": 113285,
+   "output": 364,
+   "newInput": 19601,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "hybrid",
+  "run": 1,
+  "variant": 1,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 40
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 18
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 21781.704
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 267,
+  "end": "done",
+  "tokens": {
+   "input": 14054,
+   "output": 339,
+   "newInput": 4935,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "json",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 5236.203
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 5,
+  "refusals": 0,
+  "tools": [
+   "set_requirements",
+   "run_command",
+   "run_command",
+   "run_command",
+   "check_spec"
+  ],
+  "wallMs": 279,
+  "end": "done",
+  "tokens": {
+   "input": 113276,
+   "output": 363,
+   "newInput": 19600,
+   "estimated": true
+  }
+ },
+ {
+  "brief": "knob",
+  "arm": "hybrid",
+  "run": 2,
+  "variant": 2,
+  "pass": true,
+  "oracle": [
+   {
+    "id": "X",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Y",
+    "status": "pass",
+    "measured": 24
+   },
+   {
+    "id": "Z",
+    "status": "pass",
+    "measured": 12
+   },
+   {
+    "id": "V",
+    "status": "pass",
+    "measured": 5236.203
+   },
+   {
+    "id": "S",
+    "status": "pass",
+    "measured": 1
+   }
+  ],
+  "calls": 2,
+  "refusals": 0,
+  "tools": [
+   "model",
+   "requirements"
+  ],
+  "wallMs": 269,
+  "end": "done",
+  "tokens": {
+   "input": 14055,
+   "output": 339,
+   "newInput": 4935,
+   "estimated": true
+  }
+ }
+]
