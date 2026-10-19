@@ -5281,3 +5281,157 @@ D105's R11.3: mesh bodies get an offset mesh as their cavity, with the wall it a
   - R11 S0's mesh refusal and its unchecked thicken fold now say then and now.
 - **Not done:** opened faces on mesh bodies; round (arc) joins at a mesh's concave edges (the sharp join, as the slab route's default); the mesh's offset is a vertex move, so a mesh coarser than its curvature is refused (`MESH_WALL_THIN`) rather than refined; thicken's sheets are still a sampled grid.
 - Checks: lint and type-check clean (kernel and studio); kernel 1182/1187 (4 skipped; only the env-only Split test fails); conformance 129/129 with the 4 new cases; studio 519/519; full flow 164/164 on 3f2bf159b plus this change, run on its own, the new step included (every outer-lane step passing). RB rows in the next commit.
+
+## D115 — R12 S0: feasibility of sheet metal (2026-10-20)
+
+The roadmap's feasibility checkpoint before R12 (§4 item 12: base flange from a sketch, edge flange, bend with radius and K-factor, reliefs, flat pattern, its DXF, bend table data in the part). There is no research note; this record is the design input. The questions:
+- Does today's kernel build a sheet's pieces exactly?
+- Can a sheet's B-rep be unfolded, and against which oracles?
+- What is kernel work, and what is app work?
+
+Evidence: `packages/barocss-cad/test/r12-s0.test.mjs` (kept), against closed forms and the kernel's own volume. The probe unfolder lives in the test. No product code changed.
+
+**The standard model** (the definitions only; no data values):
+- A sheet has thickness T. A bend is a cylinder piece of inner radius R turned θ.
+- Its neutral layer lies at R + K·T. The K-factor is defined by the bend allowance BA = θ(R + K·T), the developed length of the bend.
+- Outside setback OSSB = (R + T)·tan(θ/2). Bend deduction BD = 2·OSSB − BA (θ < 180°).
+- Flat length = Σ legs + Σ BA, or the outside dimensions to the virtual sharps less Σ BD.
+- Real values of K (and of BA/BD tables) come from a shop's bend tests. Data rules below.
+
+**Today, as it stands:**
+- **Construction is exact.**
+  - **A contour flange.** An L-bracket's section (lines and two arcs, R and R + T) as one `loop` sketch, extruded: volume W(aT + bT + θT(R + T/2)) to 1e-16, area to 3.5e-14, valid.
+  - **An edge flange.** The flange's section (bend and leg) extruded along the edge and united onto a plate: every angle 30°–175°, up and down, full or part width; valid, volume to ≤ 1.7e-12 (asserted 1e-11).
+  - **A rectangular relief** at each end of a part-width flange, by difference: exact.
+  - **A tray**: a plate, four 90° flanges a gap g short of each corner, a hole in the plate and one in a flange. Valid, 2.8e-12, 42 faces, 60–120 ms.
+  - `sweep` (straight runs and bends up to 180°, `toward` ±x/±y; `sweepBrep`) is a second route for contour flanges.
+  - `thicken` is not a route: its sheet is a sampled grid (faceted).
+- **Missing sheet semantics.** Faces are named after the sections' sides and split by the Booleans: an L-bracket's bends are `e.side3` and `e.side7`; a tray's flange side is `fe3.side3#1` … `#4`. Thickness, K and the bends are recorded nowhere.
+- **A silent wrong sheet.** Flanges leaning in (turned past 90°) cross their neighbours near the corners. The union takes the overlap once and returns a valid solid, under its pieces' sum by 0.88 % (120°), 1.8 % (150°), and 0.32 % at a 5 mm gap. No sheet folds into it, and nothing says so.
+- **No gap at a corner is fine.** The neighbouring bends' ends meet only along the plate's corner edge, a reflex edge of a valid solid (90° and 60°, exact). In the flat, the tabs touch at the plate's corner.
+
+**Unfolding the B-rep (the probe):**
+- **The method.**
+  - Fix a planar face. Its skin is the faces joined to it across smooth edges (normals agreeing to 1e-9). The thickness's side faces meet it at sharp edges.
+  - Planes move rigidly into the fixed face's plane.
+  - A bend (a cylinder by `faceGeometry`) develops by angle × its neutral radius: ρ − T + K·T when its normal points away from its axis (the skin is the outer side), else ρ + K·T.
+  - Each new face's frame comes from the tangent line it shares with the face before.
+  - The flat's outline is the skin's edges not shared by two skin faces. Its area comes from Green's theorem on their developed images.
+- **Oracles**, all independent of the unfolder:
+  - **The area identity**, flat area = V/T + (K − ½)·T·Σθw. At K = ½ the neutral layer is the middle, so the flat is the volume over T. V is the kernel's mass quadrature.
+  - **The textbook reach**: a flange's far edge lies h + θ(R + K·T) beyond the plate's edge.
+  - **Agreement**: each edge between skin faces lands at one place from both sides. Either skin, fixed, gives the same flat.
+- **Results:**
+  - Internal edges coincide to ≤ 7e-15.
+  - The area identity holds to ≤ 4.7e-12 (asserted 1e-11) for K 0.5, 0.44 and 0.33. It holds on the tray with holes, at no gap, at 30°–175° up and down, and from either skin.
+  - It also holds after a **STEP round trip**: the imported body (no names, no history) unfolds to the same flat, its fixed face found by its plane.
+  - The reach holds to 4e-15.
+  - The outline's images are lines and circles to 3.7e-14: planar edges move rigidly, and a bend's end arcs develop straight.
+  - The tray unfolds in 25–30 ms.
+- **The DXF writer (R11b) needs nothing new** (O1 said so). The tray's flat as 28 LINEs and 4 ARCs on layers OUTLINE and BEND_UP (a DASHED line type) through `writeDxf`.
+  - ezdxf 1.4.5's audit (`scripts/dxf-oracle.py`, by hand, L1): no errors, no fixes.
+  - The 28 lines include collinear pieces where the Booleans split the plate's edges; the flat merges them.
+- **So the flat comes from the B-rep itself, given T and K.** It works for any sheet whose cuts are normal to it, made by any feature, and for imported sheets. The sheet features need only carry the rules and name the bends.
+
+**Kernel versus app:**
+- **Kernel:**
+  - the sheet features and their B-rep with role names;
+  - the rules and a bend list on the output (`sheet`: T, K or table, each bend's faces, axis, R, θ, up/down, BA);
+  - the flat pattern (outline loops, bend lines, bend notes), and the flat's DXF document for `writeDxf`;
+  - bend-table lookup;
+  - typed refusals.
+- **App (studio):**
+  - commands, HUDs and node kinds;
+  - picking a flange's edge;
+  - a flat-pattern view and "Export flat DXF";
+  - the agent's sheet tools.
+- **The outer lane (R14, drawings):** a flat on a drawing sheet and a drawing's bend table, from the kernel's flat and bend data.
+
+**Verdict — R12 in five stages, this order:**
+- **R12.1 — sheet rules, base flange, contour flange.**
+  - **New kinds:**
+    - a base flange from a closed sketch (a plate T thick, either side of its plane);
+    - a contour flange from an open path of lines in a sketch plane: a bend of radius R at every corner, the material on a chosen side, extruded a width.
+  - **The rules on the feature:**
+    - T, R and K are explicit.
+    - The kernel has no hidden default (a data value, below).
+    - R is overridable per bend later.
+  - **Faces named by role**, e.g. `<id>.bend<k>.inner/outer`, the skins, the legs, sides by the sketch's tags (D86). They are new kinds, so no migration.
+  - **The output's `sheet` report.**
+  - **Oracles:** closed-form volume and area, and BA.
+  - **Refusals** by name:
+    - a path crossing itself;
+    - a bend that does not fit between its legs (a leg shorter than its setbacks);
+    - θ at 0 or 180°;
+    - T or R not positive.
+  - **Studio:** node, command, chat spec, a flow step.
+- **R12.2 — the flat pattern and its DXF.**
+  - **The unfolder** as probed, in product code with hoisted functions.
+  - **The flat:**
+    - outline loops, collinear pieces merged, lines, arcs and circles;
+    - bend lines: the centre and both tangent lines;
+    - bend notes (up/down, θ, R, K, BA).
+  - **The sheet report** carries through a `difference` whose target is a sheet, so holes and cuts normal to a flat face reach the flat.
+  - **A body with no sheet report** (an import, a plain extrusion) unfolds when T and K are given with it. T is checked against the body's own skins, not trusted.
+  - **Refusals** by name:
+    - `NOT_A_SHEET`: a face of neither skin nor side, or the opposite skin not at T;
+    - `NON_NORMAL_CUT`: a side face not square to the skin;
+    - `BEND_NOT_CYLINDRICAL`;
+    - `FLAT_OVERLAPS`: the developed outline crosses itself;
+    - an image neither line nor arc, such as a cut across a bend, refused until a later step.
+  - **Oracles:**
+    - the area identity, with a cut bend's θw taken as its inner face's area over R (the kernel's face area);
+    - the textbook lengths;
+    - a refold: developed vertices mapped back lie on the body to 1e-9;
+    - either skin;
+    - a STEP round trip.
+  - **DXF** through `writeDxf`:
+    - layers OUTLINE, BEND_UP, BEND_DOWN and BEND_NOTES;
+    - expected DXF files and ezdxf readings committed as `conformance/r12/` data, as R11b did.
+  - **Studio:** a flat-pattern view, "Export flat DXF", a flow step.
+  - **Why second:** the unfolder is the oracle-heavy core, and every later stage then checks its own flat.
+- **R12.3 — edge flanges, reliefs and corners.**
+  - **(a) Edge flange.** On a straight edge of a skin face (by name or selector), with:
+    - an angle in (0°, 180°);
+    - a length to the outer or inner virtual sharp, or to the tangent;
+    - a position: material inside, material outside, or bend outside;
+    - a part width by offsets from the edge's ends;
+    - its own radius;
+    - end reliefs for a part width: rectangular, obround or none, with width and depth.
+  - It is built as a section piece united on (exact, probed).
+  - **Refusals:**
+    - `FLANGES_COLLIDE`: the union's volume under its pieces' sum, the S0 case;
+    - an edge that is not a straight edge of a skin;
+    - a flange or relief that does not fit.
+  - **Oracles:** the closed-form volume, the flange face at OSSB, the flat length A + B − BD.
+  - **(b) Corners of neighbouring flanges:** a corner gap, and corner reliefs (square, round) through both bend zones. Closed corners are not in R12.
+- **R12.4 — bend tables.**
+  - **A table in the part:** rows (T, R, θ) → K, BA or BD, each row with a source id or `estimate: true`.
+  - **Lookup:** an exact row, or linear inside the table's grid; outside it, refused by name.
+  - **Conversions** between K, BA and BD in closed form.
+  - **The report and the flat** name the row used.
+  - **Data:** see below.
+- **R12.5 — acceptance.**
+  - The RB9 ladder's rungs 5 and 10: a sheet-metal L-bracket and a sheet-metal PCB enclosure (base, four flanges, corner reliefs, mounting holes).
+  - Both are built by the agent through the real chat with the sheet tools.
+  - Their flats are exported to DXF and audited.
+  - RB rows; the R12 → FR hand-over.
+
+**Every stage:** a D-record, tests failing on the previous HEAD where a defect is fixed, `conformance/r12/` fixtures, a flow step, RB rows, a checkpoint.
+
+**Data and defaults:**
+- **No K, BA or BD values are built in** unless a named public source with a record is found (R12.4). Reading public pages for that needs the owner's OK through the coordinator; it is asked at R12.4. Otherwise values are flagged estimates, and a shop's own table is entered as data in the part.
+- **The studio's prefill for a new sheet is a reversible default, flagged an estimate wherever shown:**
+  - T 1.5 mm;
+  - R = T;
+  - K 0.5: the mid-plane, no material data. Real air bends usually lie lower, so a flat at K 0.5 is long.
+- **Relief defaults** (width T, depth T past the bend zone) are estimates, flagged likewise.
+
+**Not in R12** (listed for the owner to place):
+- hems, jogs, sketched bends, miter and lofted flanges;
+- closed corners, louvres and forming tools;
+- cuts across a bend made in the flat (unfold, cut, refold);
+- converting a solid or shell to sheet metal;
+- sheet DFM rules (minimum flange, hole-to-bend distance, minimum radius per material), as a process profile with warn and error levels and sourced values, like AM/IM/CNC.
+
+**Checks:** no product code changed. Kernel 1186/1191 (4 skipped; only the env-only "actual native Split source…" fails; r12-s0 4/4, 1.5 s). Lint clean. Studio, flow and RB were not rerun, as at D87/D105 (no source change).
