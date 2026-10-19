@@ -879,3 +879,130 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - The tool, its refusals (no source, an unknown unit, nothing to choose from, no limits) and a slide skipped. The conformance case `conformance/rm/size-1r` is written from the closed forms.
   - Browser flow 165/165, with a step "RD3" just before the last. `size_actuators` runs through the real chat and tool servers on the size-1r case, and the move's and cycle's times are as the closed form has them. Studio 531/531.
   - Bench: sizing the 12-link arm's 11 joints over the 18 pairs (an S-curve out and back, refined) takes 735 ms (budget 2000). The refinement is most of it: an RNEA per probe for one joint.
+
+## O23 — A6 S0: inputs — scope and acceptance frozen per item (2026-10-20)
+
+Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 → A6.3 → A6.4 → A6.5, with a checkpoint after each.
+
+**What is already there** (surveyed; not rebuilt):
+- **Requirements.** D36–D38: `requirements` with basis stated / assumed / ambiguous; Confirm in the requirements panel records `confirmed: {by, at}`.
+- **Process.** `doc.process` holds the print and moulding processes (fdm, sla, sls, mjf, injection), with print rules. There is no CNC or sheet-metal process.
+- **Materials.** Materials carry source ids, but every value is a flagged "typical" estimate; aluminium is assumed when none is set.
+- **STEP and mesh.** They open as a new part (an `import` or `mesh` node). There are no reference, locked, datum or keep-out bodies.
+- **Clearance.** `clearance` and `interference` exist: exact kernel `intersect` for overlap volume, display-mesh distance otherwise.
+- **Images.** The image tools build solids directly from one `width_mm`, and nothing is confirmed. DXF is written only, never read.
+- **Fasteners.** One `CATALOGUE` source list for the whole table; no per-value records.
+- **Scripted agent.** It is stateless, one fixed list of calls per message, so a question-and-answer exchange is one scripted message per turn.
+
+**Limits on every A6 step:**
+- **No live-model run** without the owner's OK. Acceptance is deterministic: the scripted agent through the real chat and tool servers, plus fixtures for briefs and answers (`conformance/a6/`).
+- **The kernel boundary.** A6.3 must not need kernel-core changes. If it turns out to need STEP import of assembly structure (instances, transforms) or an exact B-rep clearance, I stop and tell the coordinator.
+- **Data provenance.** No ISO/ANSI text, no GPL tables. Every value carries its source record (as RD3's `{v, unit, src}`) or an estimate flag.
+
+### A6.1 — the brief template (process and material required)
+- **Scope**
+  - **The brief.** `doc.brief` (versioned, in `STUDIO_DOC_FIELDS`), one record per field: `{value, basis: stated | assumed | ambiguous, source?: the user's words quoted, confirmed?}`.
+  - **Fields**
+    - Required: purpose, **process**, **material**.
+    - Optional: quantity, envelope (max size), interfaces (mating parts, holes, fasteners), loads and environment, finish and appearance, notes.
+  - **Process values.** The five existing processes, plus `cnc-milling`, `cnc-turning` and `sheet-metal`, recorded as intent only: their checks belong to the kernel lane's later steps (R12, CNC1–6) and are said to be not checked yet.
+  - **Material values.** A library material id, or a named material not in the library (kept, its density unknown).
+  - **Tools.**
+    - `set_brief`: adds fields; a field the user stated is never overwritten by an assumption.
+    - `get_brief`: returns the brief, with `gaps` listing the required fields still missing or not stated.
+    - Both are added to the v2 groups.
+  - **The link to the document.** A stated process sets `doc.process` when it is one of the existing processes. A stated library material sets the bodies' material only through the existing material setting, proposed (D41) when there are bodies.
+  - **The prompt.** The system prompt says to fill the brief first.
+- **Acceptance**
+  - Brief fixtures (complete; process missing; material missing; both missing; a non-library material; CNC) give the expected gaps.
+  - An assumption never overwrites a stated field.
+  - The field registry test covers `brief`.
+  - The v1/v2 contract records the tools.
+  - A flow step: the scripted agent sets a brief through the real servers, and the studio shows it.
+
+### A6.2 — the clarifying policy (blocking unknowns only; 1–2 batches of at most 5)
+- **Scope**
+  - **A question tool.** `ask_user {questions: [{id, field | requirement, text, kind: choice | number | text, options?, blocks: why the design cannot go on without it}]}`. The tool layer enforces the policy, not just the prompt:
+    - at most **5 questions a batch** and **2 batches a brief** (counted in the session policy, D37);
+    - each question names what it **blocks**: a required brief field, or a hard requirement whose value is unknown;
+    - a question that blocks nothing is refused with "make it an assumption", and so is a 6th question or a 3rd batch;
+    - typed refusals: `TOO_MANY`, `NOT_BLOCKING`, `BATCHES_USED`.
+  - **Everything else is an editable assumption.** It goes into the brief or the requirements with `basis: assumed`.
+  - **The Specify panel** (in the Browser, beside the requirements). It is our own, following the reference's pattern only (required / worth a check / accept all; nothing copied):
+    - "N to answer, M to check";
+    - the required questions with their inputs;
+    - the assumptions worth a check, each editable;
+    - **Accept all as they are**;
+    - "nothing is blocked": the user may skip, and the agent goes on with the assumptions said.
+  - **Answers.** They are written into the brief or requirement as `stated` with `confirmed: {by: 'user', at}`, then sent to the chat as one message.
+  - **Questions are not asked** about values the brief or the model already has.
+- **Acceptance**
+  - Fixtures of briefs with scripted question batches, against the expected verdicts: accepted; refused as too many; as not blocking; as batches used.
+  - Answer fixtures applied through the panel give the expected stated and confirmed fields.
+  - Accept-all turns every listed assumption into a confirmed one.
+  - A flow step drives one turn of scripted questions, the panel's answers, and a second scripted turn that sets the requirements from them.
+  - No live model.
+
+### A6.3 — a STEP or mesh file as a locked reference body, with datums and keep-outs
+- **Scope**
+  - **The reference node.** `{kind: 'reference', name, source: {step} | {mesh}, locked: true, at?: placement}` is added to an existing part. It reuses the kernel's STEP reader and the studio's mesh path as they are: one or more solids as one reference, with **no assembly structure**.
+  - **Locked.**
+    - No feature may take a reference as a parent: Booleans, fillets and edits are refused with a typed `REFERENCE_LOCKED`.
+    - A reference is left out of mass, exports and printability unless asked.
+    - It is shown ghosted. Moving it is an explicit, recorded placement.
+  - **Datums.** Named planes, axes and points, taken from a reference's planar face, cylindrical face or vertex, or given explicitly. They are stable through the A1 signatures. They are usable as a sketch plane, as `measure`, `distance_between` and requirement subjects, and as mate targets.
+  - **Keep-outs.** Regions the part must not enter:
+    - the reference itself offset by d mm (an envelope as a box or cylinder);
+    - an explicit box or cylinder.
+  - **The check.** The requirement query `keepout {keepout, body?}` reports the overlap volume (exact kernel `intersect`, as `interference` today) and the clearance (display-mesh distance, its chord tolerance stated).
+- **The boundary.** If an exact B-rep clearance or STEP assembly structure turns out to be necessary, stop and ask (kernel lane).
+- **Acceptance**
+  - Fixtures: a STEP block and an STL bracket as references.
+  - Their datums equal the faces' planes and axes to 1e-9.
+  - Locked operations are refused, typed.
+  - A keep-out overlap volume against a closed form (box ∩ box), and the clearance against a closed form within the stated chord tolerance.
+  - The reference is not in mass or export.
+  - Save and open keep it, with its signatures verified.
+  - A flow step: open a part, add a STEP reference, add a datum from its face, sketch on it, and see a keep-out violation reported.
+
+### A6.4 — images and drawings give drafts only; their dimensions confirmed by the user
+- **Scope**
+  - **Drafts.** A feature built from an image (the existing image tools) or from a drawing is marked `draft: {from, dims: [{name, value, basis: scaled | from-drawing, confirmed?}]}`.
+  - **A DXF reader of our own** (LINE, ARC, CIRCLE, LWPOLYLINE, the units header) makes a sketch draft.
+  - **Raster and PDF drawings** go through the image path: a PDF that is a file the user gives is read locally, and nothing is downloaded.
+  - **Unconfirmed dimensions** are listed:
+    - in the panel, each with a value and **Confirm**: confirming one re-drives the feature parameter;
+    - by `check_spec` as unknown, "from an image, not confirmed";
+    - by an export, which warns "draft: N dimensions unconfirmed".
+  - **The prompt.** It says to ask for or confirm the key dimensions, within A6.2's batches.
+- **Acceptance**
+  - DXF fixtures written by our own writer and by hand give the expected sketch geometry and units. Malformed or unsupported entities are refused, typed.
+  - An image fixture gives a draft with its scaled dims unconfirmed.
+  - Confirming one sets it and rebuilds the feature to the value (closed form).
+  - `check_spec` lists the unconfirmed dims as unknowns.
+  - Exports warn.
+  - A flow step: a drawing opened as a draft, its dimensions confirmed in the panel.
+
+### A6.5 — standards data with provenance
+- **Scope**
+  - **One provenance format for standards-derived tables**, RD3's source record per value or per row: `{page, read, label}`, `{derived}` or `{estimate}`, plus a **licence** on each source. A GPL or unknown licence is refused for a table.
+  - **The tables migrate to it.**
+    - Fasteners: per-row source records in place of the one `CATALOGUE` list. The values are unchanged and their checks stay; values the old list cannot source per row are flagged as estimates.
+    - The drawing tolerance suggestions are already estimate-flagged and keep their format.
+  - **A lookup tool.** `standards_lookup {table, key}` returns the value with its source.
+  - **Prompts and tool descriptions name standards only by number.**
+    - A test lists every standard named in the system prompts and tool descriptions, and checks each against an allowlist of names.
+    - It also checks that no description carries a sentence of more than a few words in quotes attributed to a standard.
+  - **Legal review before release** is the owner's step, recorded rather than performed.
+- **Acceptance**
+  - Every table value carries a source with a licence.
+  - A table with a GPL or unknown licence is refused.
+  - The fastener values are identical before and after the migration.
+  - The allowlist test.
+  - The lookup tool returns the record.
+
+**Not in A6:**
+- Live runs: an agent actually answering the questions. That needs the owner, as A7's single-versus-multi comparison will.
+- Process checks for CNC or sheet metal (the kernel lane).
+- A STEP assembly structure, and an exact B-rep clearance (the kernel lane, if needed).
+- The legal review (the owner).
