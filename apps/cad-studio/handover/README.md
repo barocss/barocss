@@ -210,9 +210,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A5.3** (O11): done. The consolidated tools `barocss-cad-tools-v2`: 13 tools, each action a v1 tool (one layer,
     the same gates), `describe` for the detail, `CAD_TOOLSET=v2` to serve them (v1 the default until A5.5). tools/list
     10 985 characters (v1 79 171), system prompt 7 094 (v1 6 870); the whole suite replays through v2.
+  - **A5.4** (O12): done. `cad-mcp --doc part.bcad` (any MCP client; each change saved atomically with its blobs;
+    local files only; the studio's gates) and `cad-cli run script -o part.bcad [--step] [--stl] [--check]` (exit 3 on a
+    failing hard requirement); scripts may state `requirements([...])`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
-- Pending decisions (outer lane, reversible defaults taken): none open.
+- Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

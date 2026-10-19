@@ -369,3 +369,38 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - **The whole studio suite replayed through v2**: `CAD_TOOLS_VIA_V2=1` sends every v1 call (tests, ops, proposals) as its v2 call. **462/462**, the same as without it, which covers every chat, proposal, assembly, drawing and cage test (O8's acceptance).
   - Bench: all 45 rows within budget (dispatch adds one table lookup a call; run_script 12 calls 238 ms, check_spec 24 ms).
 - **Deferred to A5.5**: which list is the default, and whether the v1 aliases go. That is a measured decision (pass rate, calls, tokens), not a size one.
+
+## O12 — A5.4: the external MCP server (`cad-mcp --doc`) and the CLI (`cad-cli`) (2026-10-20)
+
+- **`cad-mcp --doc part.bcad [--toolset v1|v2] [--autonomy 1–4] [--libraries dir]`** (`server/cadDoc.ts`, `scripts/cad-mcp.mjs`, `pnpm mcp`):
+  - serves the studio's tools over stdio to any MCP client (Claude Code, Claude Desktop) for as long as the client keeps it. An MCP config entry is `{"command": "node", "args": ["<repo>/apps/cad-studio/scripts/cad-mcp.mjs", "--doc", "<abs>/part.bcad"]}`.
+  - **One tool layer** with the chat: `serveMcp` now takes a store, either the chat server's per-turn state file (as before) or the document. The calls, results, gates and both tool lists are the same.
+  - **Saves each change at once, atomically**: a temporary file beside it, renamed over it, so a reader sees the old file or the new one. Mesh blobs are saved in the container (`encodeStudioFile`); a part without them is plain JSON, as the studio saves. A read writes nothing; reopening without a change leaves the file byte-identical. A change the file cannot take (a missing folder, a blob not loaded) is answered as an error, `Not saved: …`.
+  - A file that does not exist yet is a new, empty part, written on the first change.
+  - **Local files only**: a path with a URL scheme is refused (a drive letter is fine), and so is one that is not `.bcad`/`.json`. The tools touch no other file.
+  - **Autonomy as in the studio** (default L2; one MCP session is one turn, its base the file as opened):
+    - an empty part is built directly, values are edited directly, and the rest is proposed;
+    - proposals stay in the file for the user to accept in the studio (assemblies, drawings and locked parts always need that);
+    - `--autonomy 3|4` lets the agent accept its own, as in the studio.
+  - stdout carries only the protocol; usage errors go to stderr with exit code 2.
+- **`cad-cli`** (`server/cadCli.ts`, `scripts/cad-cli.mjs`, `pnpm cli`), for batch work and CI:
+  - `run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]` runs a run_script script on base.bcad or an empty part and writes what is asked.
+    - STL is one file per body when there are several (`part-b1.stl`, …): the kernel's writer, else the display mesh.
+    - It prints a JSON summary (calls, names, facts, files written, checks).
+  - `check part.bcad` runs a saved part's requirements.
+  - The person running it is the author, so no autonomy gate applies.
+  - **Exit codes**: 0 done; 1 the script or a tool refused (printed `file:line:col: [CODE] reason`, nothing written); 2 usage; 3 a hard requirement fails.
+- **The script language gains `requirements([...])`** (set_requirements), so a script carries what it must meet and `--check` gates CI on it. It is a compatible addition to `barocss-cad-script-v1`, and the contracts are unchanged (descriptions are not frozen).
+- **Sizes after it**: v1 tools/list 79 259, v2 11 073; prompts 6 870 / 7 094.
+- **Evidence**:
+  - `test/cad-external.test.ts` (6 tests):
+    - **cad-mcp spawned as a client would** (the real script, stdio): initialize, list, run a script, the file saved on the change and not on a read, no temporary file left. A second session (v2) reopens the file and finds the same facts, and the file is byte-identical.
+    - A container with mesh blobs: changed, saved with its blobs, read back whole.
+    - The options (local files only, the flags), and the real script's usage error (exit 2, stdout empty).
+    - A save failure reported as `Not saved`.
+    - **cad-cli** in process: .bcad, STEP (`ISO-10303-21`) and binary STL (its size from its triangle count); `--check` passing and failing (exit 3); `check`; a refused line (exit 1, nothing written); `--doc` and `--dry-run`; one STL per body; the usage errors.
+    - cad-cli spawned for real.
+  - Conformance `a5/requirements-in-script`.
+  - Studio 468/468, and 468/468 replayed through v2. Browser flow 152/152, with the new step "A5.4" (just before the last step): a part written by cad-cli from a script (with `--check`) opens in the studio with its five features, one body and its requirement.
+- **Pending (reversible default taken)**: cad-mcp's default autonomy is L2, the studio's. An owner who drives the agent from their own client may want L4 by default; it is one flag today.
+- **Not in A5.4**: editing one file from the studio and cad-mcp at once (the last writer wins; the studio does not watch files). That belongs to the document service (out of A5, O8).
