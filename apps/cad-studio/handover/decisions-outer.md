@@ -278,3 +278,49 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - the breaking-change rules on a synthetic contract (removal, a narrowed enum, newly required, no longer required, no longer read only: break; additions: do not);
   - all 21 output schemas validated against real results (both `measure` forms, the SubD tools on a cage), each read call leaving the document the same object and `changed` false;
   - an MCP client over in-memory pipes: initialize (protocol 2025-06-18, the contract version), tools/list (titles, annotations, output schemas where due), a read call (structured content equal to the text, valid), a change (none), a refusal (`isError`, none), the JSON-RPC errors, the change saved to the state file.
+
+## O10 — A5.2: `run_script`, a part in one call (`barocss-cad-script-v1`) (2026-10-20)
+
+- **What** (`apps/cad-studio/src/chat/script.ts`; the tool in `src/chat/tools.ts`):
+  - **A small JS-like language**, our own lexer, parser and interpreter (no `eval`, no dependency):
+    - statements: `const name = expr`, an expression, `for (const i of list) { … }`, `if (c) { … } else { … }`, `//` and `/* */` comments;
+    - expressions: numbers, strings, booleans, lists, objects (with `{ w }` shorthand), member and index access, calls, `+ - * / %`, comparisons, `&& || !`, `a ? b : c`;
+    - built in: `range`, `min`, `max`, `abs`, `sqrt`, `round`, `floor`, `ceil`, `sin`/`cos`/`tan` in degrees, `PI`.
+    - Not in the language, refused with a pointer: `let`/`var` (names are set once), `function`, `while`, `return`.
+  - **Every command is a call** by its id with `-` as `_` (`box`, `hole`, `linear_pattern`, …): `cmd(selection?, {values})`, the values by run_command's keys. It runs as `run_command`. The selection may be a face, an edge, a feature (its body), a body or a list.
+  - **Handles**: a command or `feature({...})` returns its feature (the last node it added).
+    - `h.top`, `h.bottom`, `h.cut`, `h.side0`, `h.side(2)`, `h.side("e3")`, `h.face(role)` are faces by role (A1.2 selectors);
+    - `h.body` is its body; `h.id` its id;
+    - `edge(a, b)` is the edge between two faces; `face({normal, pick})` a face by direction;
+    - `node("n3")` or `node(index)` is a feature there before the script.
+  - **Raw features**: `feature({kind: …})` adds one node, as add_features takes it. A handle inside its JSON is that feature's node index, so `extrude {sketch: s}` works; `ref(h, side)` is a body reference.
+  - `edit(h, {values})` and `remove(h)` run edit_feature and delete_feature, with the index found by id at that moment.
+  - Handles are told from a script's own objects by identity (a WeakSet), never by their keys (`{h: 8}` is a box height).
+- **All or nothing**, like apply_ops:
+  - each call goes through the dispatcher on a working copy, in order, with a concise result (the `because` of the script passed to each);
+  - the first refusal or error stops it, nothing is applied, and the result says so.
+  - Typed errors: `script_syntax`, `script_unknown_name` (with near names), `script_type`, `script_limit`, `script_refused` (the tool's own reason), each with `line` and `col`.
+  - Limits: 20 000 characters, 200 calls, 2 000 loop iterations, nesting 48, lists of 1 000.
+  - `dryRun: true` returns what would change.
+- **The result**: `script` (the language version), `calls` [{line, tool, did, features}], `names` (top-level names bound to features), the feature-tree `diff`, the facts' `change`, broken references, and `facts`.
+- **Gates**: run_script is a mutator, so autonomy L1/L2 and the approval gate apply to it as to any change; a dry run changes nothing. It is batchable, so `propose` can hold a script and accepting replays it. At L2 a turn's script on an empty part builds directly (the owner's exception); on a built part, adding features is proposed.
+- **Contract**: classified as alters, not idempotent (it may edit and delete). Recorded in `tools-v1.json` as a compatible addition (no breaking change).
+- **Sizes**:
+  - **tools: 58; tools/list 79 171 characters** (+2 474 for the tool, whose description carries the language);
+  - **system prompt 6 870** (+282: one paragraph, "write a part of many steps as one run_script").
+  - A5.3 consolidates against these.
+- **Evidence**:
+  - `test/script.test.ts` (8 tests):
+    - a part built in one change (commands, a loop, faces by role, an edge between faces, raw features with a handle, an edit), its volume in closed form less the fillet;
+    - all or nothing: a refused value, a refused fillet, a name set twice, arithmetic on a face, an unknown node, `let`, a call limit — each leaves the very same state, with code and line;
+    - a dry run; existing features by index; a feature handle as a body (linear pattern);
+    - the gates: L2 builds an empty part directly, refuses an addition on a built part (`needs_proposal`), and a proposed script is accepted by replay;
+    - the language against a recording host (precedence, conditionals, shorthand, side and face selectors);
+    - parser limits and errors with positions;
+    - a fuzz of 4 000 seeded scripts (token soup and valid scripts with characters dropped, doubled or swapped): every one ends in a result or a typed `ScriptError` with a position. All five outcomes are seen.
+  - Conformance `packages/barocss-cad/conformance/a5/` (9 cases):
+    - plate-hole-row, flange-trig, raw-feature-handle and edit-and-remove, with volumes in closed form;
+    - refused-line, syntax-line, unknown-name, type-error and loop-limit, each with its code and line.
+  - Browser flow 149/149, with the new step "A5.2" (just before the last step) through the real chat and tool servers with the scripted agent: a plate, a loop of three holes and a fillet in one call (6 nodes, one Undo takes it all back); a refused second line applies nothing and names line 2.
+  - Bench: parsing a 6k-character script takes 1.16 ms (budget 4); a plate with 10 holes in a loop and a fillet, 12 calls each evaluated, takes 231 ms (budget 700).
+- **Deferred**: `script_of(doc)`, writing a part back as a script. It is not needed for A5.5's A/B, and it comes later if the A/B shows value.
