@@ -3777,6 +3777,20 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- A5.4 (O12): a part made by cad-cli -------------------------------------------------------------------------
+  await check('A5.4: a part written by cad-cli from a script opens in the studio — its features, its body and its requirement', async () => {
+    const fs = await import('node:fs'), { spawnSync } = await import('node:child_process');
+    const script = join(out, 'cli-plate.cad.js'), part = join(out, 'cli-plate.bcad');
+    fs.writeFileSync(script, 'const p = box({w: 80, d: 40, h: 8})\nfor (const i of range(3)) { hole(p.top, {d: 5, x: 20 + 20 * i, y: 20}) }\nrequirements([{id: "R1", source: "80 long", hard: true, check: {op: "==", query: {fn: "bbox", axis: "x"}, value: 80, tol: 0.1}}])');
+    const r = spawnSync(process.execPath, [join(root, 'scripts/cad-cli.mjs'), 'run', script, '-o', part, '--check'], { encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    await page.setInputFiles('input[aria-label="Model file"]', part);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const d = await doc();
+    assert.deepEqual([d.nodes.map(n => n.kind), d.requirements.map(q => q.id)], [['sketch', 'extrude', 'hole', 'hole', 'hole'], ['R1']]);
+    await snap('a5-cli');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -14,7 +14,9 @@
     "bench:memory": "node test/memory-session.mjs",
     "bench:assembly": "node test/bench-assembly.mjs",
     "bench:mesh": "node scripts/bench-mesh.mjs",
-    "chat": "node scripts/chat-server.mjs"
+    "chat": "node scripts/chat-server.mjs",
+    "mcp": "node scripts/cad-mcp.mjs",
+    "cli": "node scripts/cad-cli.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",

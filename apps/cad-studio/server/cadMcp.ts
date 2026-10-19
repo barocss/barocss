@@ -27,19 +27,39 @@ const structuredOf = (text: string): Record<string, unknown> | undefined => { tr
 let revision = 1;
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
 
-export async function serveMcp(statePath: string, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, set?: Toolset) {
+/**
+ * Where the server's part lives: the chat server's per-turn state file, or a .bcad document (A5.4, `cad-mcp --doc`).
+ * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
+ */
+export interface McpStore {
+  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; changed: boolean; version: number }>;
+  save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number }, why: 'change' | 'select'): string | null;
+}
+/** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
+export function stateFileStore(statePath: string): McpStore {
+  return {
+    async open() {
+      const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
+      for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
+      return { doc: saved.doc, ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), changed: saved.changed, version: saved.version ?? 0 };
+    },
+    save(s) {
+      const tmp = `${statePath}.tmp`;
+      writeFileSync(tmp, JSON.stringify({ doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version } satisfies StateFile));
+      renameSync(tmp, statePath);
+      return null;
+    },
+  };
+}
+
+export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, set?: Toolset) {
   // (The tool list the client reads, A5.3: v1, or the consolidated v2 with CAD_TOOLSET=v2. Both names are callable.)
   const tools = toolsetOf(set), list = tools.tools.map(listed);
-  const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
-  for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
+  const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
-  let changed = saved.changed, version = saved.version ?? 0;
-  const save = () => {
-    const tmp = `${statePath}.tmp`;
-    writeFileSync(tmp, JSON.stringify({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version } satisfies StateFile));
-    renameSync(tmp, statePath);
-  };
+  let changed = saved.changed, version = saved.version;
+  const save = (why: 'change' | 'select') => store.save({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version }, why);
   const reply = (id: unknown, result: unknown) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\n');
   const error = (id: unknown, code: number, message: string) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, error: { code, message } }) + '\n');
 
@@ -55,10 +75,11 @@ export async function serveMcp(statePath: string, input: NodeJS.ReadableStream =
       case 'tools/call': {
         const out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
         state = out.state; changed ||= out.changed; if (out.changed) version++;
-        if (out.changed || v1Name(String(msg.params?.name), msg.params?.arguments) === 'select') save();
+        const unsaved = out.changed ? save('change') : v1Name(String(msg.params?.name), msg.params?.arguments) === 'select' ? save('select') : null;
         // (A read tool's result also as structured content, its output schema's shape; the text keeps the same JSON.)
-        const structured = !out.isError && outputSchemaOf(v1Name(String(msg.params?.name), msg.params?.arguments)) ? structuredOf(out.content) : undefined;
-        return reply(msg.id, { content: [{ type: 'text', text: out.content }, ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError });
+        const structured = !out.isError && !unsaved && outputSchemaOf(v1Name(String(msg.params?.name), msg.params?.arguments)) ? structuredOf(out.content) : undefined;
+        // (A change the store could not keep is said so, as an error: the part changed here but not on disk.)
+        return reply(msg.id, { content: [{ type: 'text', text: out.content }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
       }
       default: return error(msg.id, -32601, `Unknown method ${msg.method}`);
     }

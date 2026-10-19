@@ -16,7 +16,8 @@
 // Expressions: numbers, "strings", true/false, [arrays], { objects }, names, a.b, a[i], calls, + - * / %, comparisons,
 // && || !, ( ). Built in: range(n) | range(a, b[, step]), min, max, abs, sqrt, round, floor, ceil, sin, cos, tan
 // (degrees), PI; face({normal, pick?, on?, all?}), edge(a, b), body("b1"), ref(feature[, side]), node("f3" | index) (a
-// feature there before the script).
+// feature there before the script), requirements([{id, source, hard?, check}]) (the part's requirements, as
+// set_requirements takes them).
 // A feature handle: `.top`, `.bottom`, `.cut`, `.side0` … (its faces by role), `.side(k)` or `.side("e3")`, `.face(role)`,
 // `.id`, `.body` (the body it made, for commands that take bodies).
 
@@ -223,7 +224,7 @@ const PURE: Record<string, (args: number[]) => number> = {
   min: a => Math.min(...a), max: a => Math.max(...a), abs: a => Math.abs(a[0]), sqrt: a => Math.sqrt(a[0]), round: a => Math.round(a[0]),
   floor: a => Math.floor(a[0]), ceil: a => Math.ceil(a[0]), sin: a => Math.sin(a[0] * Math.PI / 180), cos: a => Math.cos(a[0] * Math.PI / 180), tan: a => Math.tan(a[0] * Math.PI / 180),
 };
-const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove']);
+const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove', 'requirements']);
 
 /** Runs a parsed script against the host. Throws ScriptError (typed, with its line) on the first problem. */
 export async function runScript(program: Stmt[], host: ScriptHost): Promise<ScriptRun> {
@@ -353,6 +354,11 @@ export async function runScript(program: Stmt[], host: ScriptHost): Promise<Scri
         const h = args[0]; if (!isHandle(h) || h.h !== 'feature') fail('TYPE', 'edit takes a feature and its new values', at);
         const values = args[1]; if (!values || typeof values !== 'object' || Array.isArray(values) || isHandle(values)) fail('TYPE', 'edit takes {key: value} values', at);
         await tool('edit_feature', { index: indexOf((h as { id: string }).id, at), values: plain(values, at) }, at); return h;
+      }
+      case 'requirements': {
+        // (The brief as checks, A5.4: set_requirements, so a script carries what it must meet and cad-cli --check runs it.)
+        if (args.length !== 1 || !Array.isArray(args[0])) fail('TYPE', 'requirements takes a list of {id, source, hard?, check}', at);
+        await tool('set_requirements', { requirements: plain(args[0], at) }, at); return true;
       }
       case 'remove': { const h = args[0]; if (!isHandle(h) || h.h !== 'feature') fail('TYPE', 'remove takes a feature', at); await tool('delete_feature', { index: indexOf((h as { id: string }).id, at) }, at); return true; }
     }
