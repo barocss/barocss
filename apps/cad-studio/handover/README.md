@@ -199,6 +199,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   tool list every turn, a per-turn MCP on a state file without annotations or output schemas; a script is 2.5× smaller
   than op JSON per part, so its value is fewer calls and a smaller surface. Steps: A5.1 tool contract v1 → A5.2
   `run_script` → A5.3 consolidated tools (≤ 15k characters) → A5.4 external MCP + CLI → A5.5 A/B (live runs on a go-ahead).
+  - **A5.1** (O9): done. The tool contract `barocss-cad-tools-v1`: every tool classified (read / adds / alters),
+    MCP annotations, output schemas and structured results for read tools, frozen in `src/chat/tools-v1.json` with a
+    breaking-change test. tools/list 76 697 characters (64 531 before), system prompt 6 588.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): none open.

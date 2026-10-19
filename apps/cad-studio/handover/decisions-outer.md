@@ -248,3 +248,33 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
     - Measures: hard-requirement pass rate, tool calls, input and output tokens, wall time, refusals.
     - A scripted agent dry-runs the harness in CI. **Live model runs (L3 evidence, the owner's usage) only on a go-ahead**, at least 3 runs a brief and arm.
 - **Out of A5**: the chat-turn overwrite (README TODO, the owner's decision), the document service, accounts and concurrent editing (A7/A8 and a server track, per the research note).
+
+## O9 — A5.1: the tool contract v1 (`barocss-cad-tools-v1`) (2026-10-20)
+
+- **What** (`apps/cad-studio/src/chat/contract.ts`; frozen in `src/chat/tools-v1.json`):
+  - **Every tool classified** in one table:
+    - read (22 tools: they change nothing in the document — part, drawing, requirements, proposals, assembly);
+    - additive change (10: a feature, part, mate, library or proposal added, nothing altered);
+    - other change (25, each marked idempotent or not).
+    - A tool the table does not name throws, so a new tool cannot ship unclassified.
+    - (`checkpoint` keeps a session snapshot and `select` sets the viewport selection: both are read tools, the document unchanged.)
+  - **MCP annotations** from it: `title`; `readOnlyHint`; `destructiveHint` (true for every change that may alter or remove); `idempotentHint`; `openWorldHint: false` for all (nothing reaches outside the document).
+  - **Output schemas** for 21 of the 22 read tools: their result's top-level shape, with what is always there required and the rest optional. `get_image_layers` has none (its shape varies). Change tools have none in v1.
+  - **The frozen list**: each tool's name, annotations, input schema and output schema, descriptions stripped (wording may change; shape may not). A test compares the tools with it:
+    - a **breaking** difference fails and needs `barocss-cad-tools-v2`: a tool gone; an input property gone, retyped, an enum narrowed or added, a property newly required; a read tool no longer read only, or a non-destructive one now destructive; an output property gone, retyped or no longer required, or an output schema removed;
+    - a **compatible** one (new tools, new optional properties, wider input enums, new output properties) fails until recorded with `UPDATE_TOOL_CONTRACT=1`, which refuses to record a breaking one.
+- **MCP** (`server/cadMcp.ts`):
+  - `initialize` answers with `serverInfo.version = barocss-cad-tools-v1` (and a title);
+  - `tools/list` gives each tool its `title`, `annotations` and, for read tools, `outputSchema`;
+  - `tools/call` on a read tool returns `structuredContent` (the same JSON as its text, so text-only clients see no change); a change or a refused call has none.
+  - JSON-RPC errors as before (−32601 unknown method, −32700 not JSON).
+- **Sizes** (what a model reads every turn; A5.3 measures against them):
+  - **tools/list 76 697 characters** with the contract (64 531 without: annotations and output schemas add 12 166);
+  - **system prompt 6 588 characters**.
+  - A5.3's target (≤ 15k characters for tools/list, coordinator 2026-10-20) is against the 76.7k; both numbers are reported again there.
+- **Evidence** (`test/tool-contract.test.ts`):
+  - every tool classified (none reaching out; read tools neither destructive nor non-idempotent; an unknown tool throws);
+  - the frozen comparison;
+  - the breaking-change rules on a synthetic contract (removal, a narrowed enum, newly required, no longer required, no longer read only: break; additions: do not);
+  - all 21 output schemas validated against real results (both `measure` forms, the SubD tools on a cage), each read call leaving the document the same object and `changed` false;
+  - an MCP client over in-memory pipes: initialize (protocol 2025-06-18, the contract version), tools/list (titles, annotations, output schemas where due), a read call (structured content equal to the text, valid), a change (none), a refusal (`isError`, none), the JSON-RPC errors, the change saved to the state file.
