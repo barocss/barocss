@@ -21,6 +21,8 @@ export type Mark =
   | { kind: 'arc'; center: XY; u: XY; v: XY; t0: number; t1: number; pen: Pen }
   | { kind: 'polyline'; points: XY[]; pen: Pen }
   | { kind: 'fill'; points: XY[] }
+  /** Parallel lines `spacing` apart at `angle` degrees (counter-clockwise as read) over rings, even–odd (R11b, O1: kept as one mark so a DXF gets a HATCH; SVG and PDF draw its lines). */
+  | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: 45; pen: Pen }
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
 export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note'; id?: string; view?: ViewId; marks: Mark[] }
@@ -81,6 +83,7 @@ function markPoints(m: Mark): XY[] {
   switch (m.kind) {
     case 'line': return [m.a, m.b];
     case 'polyline': case 'fill': return m.points;
+    case 'hatch': return m.rings.flat();
     case 'text': return [m.at];
     case 'arc': return Array.from({ length: 9 }, (_, k) => { const t = m.t0 + (m.t1 - m.t0) * k / 8; return [m.center[0] + m.u[0] * Math.cos(t) + m.v[0] * Math.sin(t), m.center[1] + m.u[1] * Math.cos(t) + m.v[1] * Math.sin(t)] as XY; });
   }
@@ -252,7 +255,7 @@ const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, 
 function sectionMarks(layout: SheetLayout, views: DrawingViews, section: { projection: BrepProjection; rings: XY[][] }, y: number): Mark[] {
   const v = layout.section!, marks: Mark[] = [];
   for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
-  marks.push(...hatch(section.rings.map(r => r.map(q => toSheet(v, q))), 2.5));
+  marks.push({ kind: 'hatch', rings: section.rings.map(r => r.map(q => toSheet(v, q))), spacing: 2.5, angle: 45, pen: 'thin' });
   const top = layout.views.top, pr = views.top, k = 6 / top.scale;
   const a = toSheet(top, [pr.min[0] - k, y]), b = toSheet(top, [pr.max[0] + k, y]);
   marks.push({ kind: 'line', a, b, pen: 'center' });
@@ -266,12 +269,12 @@ function sectionMarks(layout: SheetLayout, views: DrawingViews, section: { proje
 }
 
 /** Parallel hatch lines `spacing` apart at 45° over rings (even–odd: holes stay clear). */
-export function hatch(rings: XY[][], spacing: number): Mark[] {
+export function hatch(rings: readonly (readonly XY[])[], spacing: number): Extract<Mark, { kind: 'line' }>[] {
   // In coordinates turned by −45°, the hatch lines are horizontal: scan them and pair the crossings.
   const c = Math.SQRT1_2, to = (p: XY): XY => [c * p[0] + c * p[1], -c * p[0] + c * p[1]], back = (q: XY): XY => [c * q[0] - c * q[1], c * q[0] + c * q[1]];
   const rs = rings.map(r => r.map(to)), ys = rs.flat().map(p => p[1]);
   if (!ys.length) return [];
-  const marks: Mark[] = [], lo = Math.min(...ys), hi = Math.max(...ys);
+  const marks: Extract<Mark, { kind: 'line' }>[] = [], lo = Math.min(...ys), hi = Math.max(...ys);
   for (let yy = Math.ceil(lo / spacing) * spacing; yy <= hi; yy += spacing) {
     const xs: number[] = [];
     for (const r of rs) for (let i = 0; i < r.length; i++) {

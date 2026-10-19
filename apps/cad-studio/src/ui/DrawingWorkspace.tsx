@@ -1,7 +1,8 @@
 // The Drawing workspace: the part's standard views on a sheet, dimensioned by clicking in a view.
 // Tools: Select (click a dimension to select it, drag to move it, Delete removes it), Linear (two
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
-// that shows round in the view, then where the text goes). The sheet exports as SVG or PDF.
+// that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
+// section A–A also alone as a 1:1 DXF.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
@@ -11,6 +12,8 @@ import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
+import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
+import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
 import { SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet } from '../drawing/views';
@@ -292,6 +295,21 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     const missing = pdfMissing(sheet);
     if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
   };
+  const [dxfVersion, setDxfVersion] = useState<DxfVersion>('AC1015');
+  const dxfFailed = (e: unknown) => onToast({ title: 'Could not write the DXF', hint: 'Nothing was downloaded.', detail: e instanceof Error ? e.message : String(e) });
+  const exportDxf = () => {
+    if (!sheet || !layout) return;
+    try {
+      const r = sheetDxf(sheet, layout, dxfVersion);
+      downloadBytes(r.bytes, `${fileName}.dxf`, 'image/vnd.dxf');
+      // R12 has no ellipses, splines, hatches, line weights or units: say what was changed to fit it.
+      if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
+    } catch (e) { dxfFailed(e); }
+  };
+  const exportSectionDxf = () => {
+    if (!cut) return;
+    try { downloadBytes(writeDxf(sectionDxfDocument(cut), { version: dxfVersion }).bytes, `${fileName}-section-A-A.dxf`, 'image/vnd.dxf'); } catch (e) { dxfFailed(e); }
+  };
   useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]);
 
   // What follows the cursor: the snap, the hovered edge, and the dimension being placed or dragged.
@@ -450,6 +468,11 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <div className="dw-actions">
           <button className="primary" disabled={!sheet} onClick={exportSvg} aria-label="Export SVG"><Icon name="download" small /> SVG</button>
           <button className="ghost" disabled={!sheet} onClick={exportPdf} aria-label="Export PDF">PDF</button>
+          <button className="ghost" disabled={!sheet} onClick={exportDxf} aria-label="Export DXF" title="The sheet as DXF, at true size in mm, layers by line kind">DXF</button>
+          <select aria-label="DXF version" value={dxfVersion} onChange={e => setDxfVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs (curves as polylines)">
+            <option value="AC1015">2000</option><option value="AC1009">R12</option>
+          </select>
+          {cut && <button className="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title="Section A–A alone, 1:1 in model mm">A–A DXF</button>}
         </div>
         {sheet && <div className="empty">{scaleLabel(layout!.scale)} · {settings.sheet} · {VIEW_IDS.map(id => `${VIEWS[id].label.toLowerCase()} ${views![id].edges.length}`).join(', ')} edges</div>}
       </aside>

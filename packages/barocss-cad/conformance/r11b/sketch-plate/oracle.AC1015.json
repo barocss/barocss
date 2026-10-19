@@ -1,0 +1,162 @@
+{
+ "audit": {
+  "errors": [],
+  "fixes": []
+ },
+ "blocks": {},
+ "dxfversion": "AC1015",
+ "ezdxf": "1.4.5",
+ "insunits": 4,
+ "layers": [
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": -3,
+   "name": "0"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 35,
+   "name": "PROFILE"
+  },
+  {
+   "color": 5,
+   "linetype": "Continuous",
+   "lineweight": 35,
+   "name": "HOLES"
+  },
+  {
+   "color": 8,
+   "linetype": "BC_CONSTRUCTION",
+   "lineweight": 18,
+   "name": "CONSTRUCTION"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": null,
+   "name": "Defpoints"
+  }
+ ],
+ "linetypes": [
+  {
+   "name": "ByBlock",
+   "pattern": []
+  },
+  {
+   "name": "ByLayer",
+   "pattern": []
+  },
+  {
+   "name": "Continuous",
+   "pattern": []
+  },
+  {
+   "name": "BC_CONSTRUCTION",
+   "pattern": [
+    2.0,
+    -1.0
+   ]
+  }
+ ],
+ "modelspace": [
+  {
+   "bulges": [
+    0.0,
+    0.0,
+    0.9999999999999999,
+    0.0,
+    0.0
+   ],
+   "closed": true,
+   "layer": "PROFILE",
+   "points": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     50.0,
+     0.0
+    ],
+    [
+     50.0,
+     20.0
+    ],
+    [
+     50.0,
+     30.0
+    ],
+    [
+     0.0,
+     30.0
+    ]
+   ],
+   "type": "LWPOLYLINE"
+  },
+  {
+   "center": [
+    10.0,
+    15.0
+   ],
+   "layer": "HOLES",
+   "radius": 4.0,
+   "type": "CIRCLE"
+  },
+  {
+   "bulges": [
+    -0.9999999999999999,
+    -0.9999999999999999
+   ],
+   "closed": true,
+   "layer": "HOLES",
+   "points": [
+    [
+     32.0,
+     15.0
+    ],
+    [
+     28.0,
+     15.0
+    ]
+   ],
+   "type": "LWPOLYLINE"
+  },
+  {
+   "bulges": [
+    0.0,
+    0.9999999999999999,
+    0.0,
+    0.9999999999999999
+   ],
+   "closed": true,
+   "layer": "CONSTRUCTION",
+   "points": [
+    [
+     5.0,
+     3.0
+    ],
+    [
+     15.0,
+     3.0
+    ],
+    [
+     15.0,
+     7.0
+    ],
+    [
+     5.0,
+     7.0
+    ]
+   ],
+   "type": "LWPOLYLINE"
+  }
+ ],
+ "styles": [
+  {
+   "font": "txt",
+   "name": "Standard"
+  }
+ ]
+}

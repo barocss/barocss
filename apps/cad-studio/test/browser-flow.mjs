@@ -3378,6 +3378,58 @@ try {
     assert.equal(n.holes?.length, 1); assert.deepEqual(n.on, { node: 1, side: 'solid' });
   });
 
+  // ---- R11b (O1): the drawing, its section and a sketch as DXF ---------------------------------------------------
+  await check('R11b: the drawing, section A–A and a sketch export as DXF (2000 and R12)', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const read = async (label) => { const [f] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]); return { name: f.suggestedFilename(), bytes: fs.readFileSync(await f.path()) }; };
+    const groups = (bytes) => { const l = bytes.toString('latin1').split('\n'); const out = []; for (let i = 0; i + 1 < l.length; i += 2) out.push([Number(l[i]), l[i + 1]]); return out; };
+    const count = (g, type) => g.filter(([c, v]) => c === 0 && v === type).length;
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
+      await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40);
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 2, null, { timeout: 5000 });
+      await press('Escape'); await page.click('[aria-label="Section A–A"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.section?.rings === 2, null, { timeout: 20000 });
+      // DXF 2000: the sheet in mm, its layers, two dimensions with their blocks, the section's hatch, ellipses in the isometric view.
+      const a = await read('Export DXF'); fs.writeFileSync(join(out, 'drawing.dxf'), a.bytes);
+      assert.match(a.name, /\.dxf$/); const g = groups(a.bytes);
+      assert.deepEqual(g.slice(0, 4), [[0, 'SECTION'], [2, 'HEADER'], [9, '$ACADVER'], [1, 'AC1015']]);
+      assert.equal(g[g.findIndex(([c, v]) => c === 9 && v === '$INSUNITS') + 1][1], '4');
+      for (const layer of ['VISIBLE', 'HIDDEN', 'CENTER', 'DIMENSIONS', 'HATCH']) assert.ok(g.some(([c, v], i) => c === 0 && v === 'LAYER' && g.slice(i, i + 12).some(([c2, v2]) => c2 === 2 && v2 === layer)), `layer ${layer}`);
+      assert.equal(count(g, 'DIMENSION'), 2); assert.equal(count(g, 'HATCH') >= 1, true); assert.ok(count(g, 'ELLIPSE') >= 1, 'the isometric hole');
+      assert.ok(g.some(([c, v]) => c === 1 && v === '%%c8 THRU'), 'the callout as the dimension text');
+      assert.equal(g.at(-1)[1], 'EOF');
+      // R12: no HATCH, ELLIPSE or LWPOLYLINE; a toast says what changed.
+      await page.selectOption('[aria-label="DXF version"]', 'AC1009');
+      const b = await read('Export DXF'), g12 = groups(b.bytes);
+      assert.equal(g12[3][1], 'AC1009'); assert.equal(count(g12, 'HATCH') + count(g12, 'ELLIPSE') + count(g12, 'LWPOLYLINE'), 0); assert.ok(count(g12, 'POLYLINE') >= 1);
+      await page.waitForFunction(() => /DXF R12 written/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+      await page.selectOption('[aria-label="DXF version"]', 'AC1015');
+      // Section A–A alone at 1:1: its two cut faces in one hatch, 64 mm across.
+      const c = await read('Export section DXF'), gs = groups(c.bytes);
+      assert.match(c.name, /section-A-A\.dxf$/); assert.equal(count(gs, 'HATCH'), 1);
+      assert.equal(gs[gs.findIndex(([k, v]) => k === 9 && v === '$EXTMAX') + 1][1], '64.0');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+    // The box's sketch from its history menu: the 64 × 32 rectangle as one closed polyline, 1:1 in its plane.
+    await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
+    const [sk] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('.ctx-item', { hasText: 'Export sketch DXF' }).click()]);
+    const gk = groups(fs.readFileSync(await sk.path()));
+    assert.equal(count(gk, 'LWPOLYLINE'), 1); assert.equal(gk[gk.findIndex(([k, v]) => k === 9 && v === '$EXTMAX') + 1][1], '64.0');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
