@@ -4846,3 +4846,46 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
     - It is a wall-clock bound, so it has headroom: 7 s against under 1.
   - Kernel 1118/1123 (only the env-only Split test fails); studio 384/384; full flow 138/138.
 - **Next:** R11 (unchanged); this was a fix at the R10 boundary.
+
+## D105 — R11 S0: feasibility of general shell and offset (2026-10-19)
+
+The roadmap's feasibility checkpoint before R11, with the research note's R11.1–R11.3 (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) as design input. The questions: does today's method — the wall as the union of a slab per face, each face's region grown by the wall within its own surface and reaching 1.37t out (`general-shell.ts`), the shell the body within it — hold on the faces it takes now, and can it take B-spline and mesh faces? Evidence: `packages/barocss-cad/test/r11-s0.test.mjs` (kept), against closed forms and Steiner's formula; hand-built slabs and fitted offsets, no product code changed.
+
+- **Today, as it stands:**
+  - Exact where it is exact: a hollow sphere (the revolve route) is 4/3 π (R³ − (R − t)³) to 1e-9.
+  - Refused by name: a SubD body (freeform faces); the filleted pipe tee (its branch, a cylinder trimmed by the junction's saddle, before its fillet face); a box edge with a conic fillet (D103 records no shell history; its end faces are bounded by the conic); a mesh body (facets).
+  - `thicken` folds silently: a quarter cylinder R 10 thickened 12 towards its axis is a valid solid whose inner sheet has crossed the axis (radius 2 on the far side). Nothing checks t·κ ≥ 1.
+- **Two silent over-thick walls found** (bodies that reach `generalShell`: unions and other non-upright bodies; upright, revolved and swept bodies have their own exact routes):
+  - **A slab grown across a smooth edge into a concave face.** A rod R 5 on a plate with both junctions filleted 2 (R10.1, closed form): a prism along X, so its hollow is the section eroded (A − Pt + 4t², the section having no reflex corner and ∫κ ds = 0) times L − 2t. Today's shell is 6.9e-4 over at t 0.5, 2.65e-3 at 1, 6.4e-3 at 1.5 and 7.9 % at 2.5, valid. The plate's top, grown t past its tangent edge, sits under the concave fillet deeper than t; so does the rod's slab grown round past its contact.
+    - Built by hand, today's grown slabs reproduce the error to 1e-9 of the shell: the growth is the cause.
+    - Not grown across the four tangent edges, the slabs meet there in one plane (the normal at the contact): coincident side walls, which the analytic Boolean takes. The shell is then exact to 1e-12 (seen 1e-14) at t 0.5 and 1.
+  - **A cylinder slab past a concave junction.** A rod r 1 half sunk in a plate, a wall of 2: the rod is all wall, so the hollow is the plate's eroded box. Today's shell is 3.4 % over.
+    - The rod slab's inner radius is clamped to 1e-3 r, so its angular growth t / (1e-3 r) closes it into a full ring of radius r + 1.37t, which reaches 1.74 below the plate's top.
+    - By hand (the rod's slab the half disc above the plate, not grown; the plate's top grown across the sharp junction): exact to 1e-12.
+    - A rod r 5 at t 1 is 1.1 % over even the sharp (intersection) join's wall, the thicker of the two joins: the rod slab's outer band, carried past the junction by its angular growth t / (r − t), lies inside the plate. A hand-built version with the outer band not grown there was not completed: hand slabs with coincident heights made the Boolean fail. R11.1 proves that case in code.
+- **R11.2's offsets as faces on the body's own topology.** A closed body whose faces all meet smoothly (a SubD body) needs no slab: its cavity is its faces offset, with no Boolean.
+  - Built here: every face's surface offset and fitted (cubic; its knots refined; each interior knot once more), every edge and vertex offset along a face's normal, and the cavity built with `buildBrep` on the body's own loops, edges and vertices.
+  - `sewSolid` does not apply: SubD faces meet at T-junctions, 4–8 edges a loop.
+  - The oracle is Steiner's formula, V(−t) = V − At + Mt² − (2πχ/3)t³, with A, M = ∫H dA and ∫K dA taken by quadrature from the body's own curvature (χ 2.000000 and 0.000000). The exact offset's own divergence integral agrees with it to 1e-8.
+  - The SubD cube (24 caps, C1 knots), t 0.5: a valid B-rep; fit deviation 9e-6 mm; the enclosed volume 9e-7 off Steiner.
+  - The SubD torus 8 × 6, t 1: valid; deviation 7.6e-5 mm; 4.5e-6 off Steiner.
+  - **Findings for R11.2:**
+    - (a) An offset is one order less continuous at each knot. Fitted without the extra knot, the cube cap's C1 knot leaves 5e-3 → 3e-4 mm; with it, 3e-5 at four pieces a span.
+    - (b) The kernel caps a surface at 16 × 16 control points. A torus face of 13 spans cannot be refined at all; the 16 × 8 torus cage's faces fit only to 1e-1 mm. Offset faces must be split, or the cap raised (a contract question for R11.2).
+    - (c) The error gathers beside a cap's extraordinary corner. Graded refinement is needed there, not uniform.
+    - (d) The kernel's mass quadrature does not take these fitted faces as whole patches, because their edges lie within the fit's tolerance of the patch boundaries, not on them. Its mass of the cube's cavity is 7.7e-5 off the faces' own integral. The offset faces' edges should be their exact boundaries (with the neighbour within tolerance), or the whole-patch test should take tolerant edges.
+  - **Folding:** t·κmax ≥ 1 on the convex side predicts the turn-over. On the SubD cube 1/κmax = 1.509 mm: the offset map's Jacobian against the face's is positive at t 1.5 (at the curvature's peak, and nowhere turned on an 8 × 8 grid a span) and negative at 1.6 at the peak. `OFFSET_FOLDS` can come from `local-curvature.ts`, as the note proposes.
+- **Verdict — R11 in three stages, the note's order, with these changes:**
+  - **R11.1 — fix the slabs of the faces taken now, then extend them.**
+    - Grow a slab's region only across sharp edges. Across a smooth edge, the slabs share the normal plane as a coincident wall (probed exact).
+    - Grow its outer band (the part reaching outside) only across convex edges.
+    - No clamp: a convex cylinder, sphere or torus thinner than the wall gets a slab with no inner band (a sector to the axis).
+    - Closed-form fixtures: the prism oracle (any union that is a prism along an axis: eroded section × (L − 2t)); the hollow sphere; a torus and a hole thinner than the wall; walls thinner than 2t; a fillet below the wall, sharp inside.
+    - Typed refusals where a slab cannot be made.
+    - The history route for variable-radius fillets: r(s) − t on the same spine is exact. Conic and G2 sections have no exact offset and go to R11.2.
+  - **R11.2 — offset sheets on the body's topology.**
+    - (a) A closed body whose faces meet smoothly: the cavity directly, with the fit's deviation reported and kept within the stated accuracy, splitting faces past the 16-pole cap, knots +1 at each interior knot, graded near poles. Typed refusals: `OFFSET_FOLDS(face, u, v, minRadius)` at t·κmax ≥ 1; walls closer than 2t (the cavity meets itself); tolerances never loosened.
+    - (b) Bodies with sharp edges and freeform or otherwise trimmed faces (the tee's saddle-trimmed cylinders, the conic fillet's ends): a slab per smooth region, made of its inner and outer offset sheets and walls at its sharp boundary, grown there by extending the surfaces, then through the analytic Boolean as now.
+  - **R11.3 — mesh bodies:** an offset mesh as the cavity, with the wall it achieves reported, and refusals for inverted triangles (folds) and self-intersection (mesh repair's grid). `thicken`'s fold-over becomes the same refusal. Not probed here; a mini-probe at its step.
+- **Not decided here:** splitting offset faces or raising the kernel's 16-control-point cap (finding b); which join (sharp or arc) a concave edge gets in the hollow — sharp, as today and as upright shells do, unless the owner asks.
+- Checks: no product code changed. Kernel 1134/1139 (only the env-only "actual native Split source…" fails; r11-s0 5/5, 20 s); lint clean; studio, flow and RB not rerun (no source change), as at D87.
