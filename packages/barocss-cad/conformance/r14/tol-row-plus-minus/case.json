@@ -1,0 +1,361 @@
+{
+ "id": "r14-tol-row-plus-minus",
+ "step": "R14.4",
+ "decisions": [
+  "O5"
+ ],
+ "about": "± mode on the hole-row plate: the general note (an estimate); ±0.21 on the clearance holes’ positions (M6 floating, Ø0.6 / 2√2), ±0.1 on the tapped M6 hole’s (fixed, Ø0.3 / 2√2)",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      100,
+      40
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      20,
+      12
+     ],
+     "radius": 3.3,
+     "pattern": {
+      "count": 4,
+      "step": [
+       20,
+       0
+      ]
+     },
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "center": [
+      20,
+      30
+     ],
+     "radius": 2.5,
+     "thread": "M6×1",
+     "depth": 12,
+     "id": "n3"
+    }
+   ],
+   "nextId": 4,
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {
+   "sheet": "A4",
+   "projection": "third",
+   "hidden": true,
+   "dimensions": [
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n2_p0.side0#2",
+      "at": "center",
+      "near": [
+       20.000000000000004,
+       12,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n2_p1.side0#2",
+      "at": "center",
+      "near": [
+       40,
+       12,
+       0
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "count": 3,
+     "place": [
+      30,
+      50
+     ],
+     "id": "d1"
+    },
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n2_p0.side0#2",
+      "at": "center",
+      "near": [
+       20.000000000000004,
+       12,
+       0
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      10,
+      58
+     ],
+     "id": "d2"
+    },
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n2_p0.side0#2",
+      "at": "center",
+      "near": [
+       20.000000000000004,
+       12,
+       0
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      110,
+      6
+     ],
+     "id": "d3"
+    },
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n3.side0#2",
+      "at": "center",
+      "near": [
+       20,
+       30,
+       0
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -10,
+      15
+     ],
+     "id": "d4"
+    },
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side2",
+      "at": "end",
+      "near": [
+       0,
+       40,
+       0
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -18,
+      20
+     ],
+     "id": "d5"
+    },
+    {
+     "view": "top",
+     "kind": "diameter",
+     "edge": "n1.bottom|n3.side0#2",
+     "near": [
+      20,
+      30,
+      0
+     ],
+     "auto": true,
+     "place": [
+      28.5,
+      -6
+     ],
+     "id": "d6"
+    },
+    {
+     "view": "top",
+     "kind": "diameter",
+     "edge": "n1.bottom|n2_p0.side0#2",
+     "near": [
+      20.000000000000004,
+      12,
+      0
+     ],
+     "count": 4,
+     "auto": true,
+     "place": [
+      29.300000000000004,
+      -14
+     ],
+     "id": "d7"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       100,
+       0,
+       0
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      50,
+      -10
+     ],
+     "id": "d8"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side0|n1.top",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       10
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      110,
+      5
+     ],
+     "id": "d9"
+    }
+   ],
+   "views": [
+    "front",
+    "top",
+    "iso"
+   ]
+  }
+ },
+ "expect": {
+  "offered": [
+   {
+    "kind": "general-note",
+    "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+    "estimate": true
+   },
+   {
+    "kind": "hole-plus-minus",
+    "message": "M6×1 × 12 DEEP: ±0.1 on 2 location dimensions.",
+    "estimate": false
+   },
+   {
+    "kind": "hole-plus-minus",
+    "message": "4× Ø6.6 THRU: ±0.21 on 3 location dimensions.",
+    "estimate": false
+   }
+  ],
+  "after": {
+   "issues": [],
+   "datums": [],
+   "frames": [],
+   "basic": 0,
+   "tolerances": [
+    0.1,
+    0.1,
+    0.21,
+    0.21
+   ],
+   "left": 0
+  }
+ },
+ "oracle": "the fastener data’s ISO 273 clearances (app/fasteners.ts, sourced) and the floating / fixed fastener relations and T/(2√2), worked by hand; estimates said so; run by apps/cad-studio/test/tolerance.test.ts"
+}

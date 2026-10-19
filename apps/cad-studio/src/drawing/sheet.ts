@@ -1,13 +1,13 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import { fmtMM, resolveDimension, type Resolved } from './dimensions';
+import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
-import { fitText, textWidth } from './text';
+import { fitText, textCorners, textWidth } from './text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
-import type { DrawingNote, DrawingSettings, DrawingViews, Tolerance, ViewId, XY } from './types';
+import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingViews, Tolerance, ViewId, XY } from './types';
 import { VIEW_IDS } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
@@ -25,7 +25,8 @@ export type Mark =
   | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: 45; pen: Pen }
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note'; id?: string; view?: ViewId; marks: Mark[] }
+/** `datum`, `control` (R14.4, O5): a datum feature symbol, a feature control frame. */
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control'; id?: string; view?: ViewId; marks: Mark[] }
 export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[] }
 
 export const TEXT = 3.5;
@@ -53,14 +54,24 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it.)
   const dimensions: Resolved[] = settings.dimensions.map((d): Resolved => layout.views[d.view].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
-  for (const r of dimensions) if (r.ok) groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(layout.views[r.dim.view], r) });
+  for (const r of dimensions) if (r.ok) {
+    const marks = dimensionMarks(layout.views[r.dim.view], r);
+    if (r.dim.basic) marks.push(...basicBox(marks));
+    groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks });
+  }
+  // Datum features and feature control frames (R14.4, O5): a frame under its dimension's text.
+  for (const d of settings.datums ?? []) { if (layout.views[d.view].hidden) continue; const marks = datumMarks(layout, views, d); if (marks) groups.push({ role: 'datum', id: d.id, view: d.view, marks }); }
+  for (const f of settings.frames ?? []) {
+    const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+  }
   for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
     if (layout.views[id].hidden) continue;
     const [x0, , x1, y1] = layout.views[id].box;
     let below = y1;
-    for (const g of groups) if (g.role === 'dimension' && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
+    for (const g of groups) if ((g.role === 'dimension' || g.role === 'datum' || g.role === 'control') && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
     groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
   }
   if (section && layout.section && settings.section) {
@@ -308,5 +319,61 @@ export function noteMarks(layout: SheetLayout, n: DrawingNote): Mark[] {
     const y = n.at[1] + TEXT * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
     marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee)));
   }
+  return marks;
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Geometric tolerancing (R14.4, O5)
+
+/** A box round a dimension's text (its first text): a basic (theoretically exact) dimension. */
+export function basicBox(marks: readonly Mark[]): Mark[] {
+  const t = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+  if (!t) return [];
+  const q = textCorners(t.at, t.text, t.size, t.anchor, t.angle ?? 0, !!t.bold), pad = 0.8;
+  // Grown by `pad` along the text's own axes.
+  const ux = unit(sub(q[1], q[0])), uy = unit(sub(q[3], q[0]));
+  const p0 = add(add(q[0], ux, -pad), uy, -pad), p1 = add(add(q[1], ux, pad), uy, -pad), p2 = add(add(q[2], ux, pad), uy, pad), p3 = add(add(q[3], ux, -pad), uy, pad);
+  return [{ kind: 'polyline', points: [p0, p1, p2, p3, p0], pen: 'thin' }];
+}
+
+/** Sheet mm: a datum symbol's box, its triangle's base and height. */
+const DATUM_BOX = 6, DATUM_BASE = 3, DATUM_HEIGHT = 2.6;
+/** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */
+export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
+  const v = layout.views[d.view], line = resolveLine(views[d.view], d.edge);
+  if (!line) return null;
+  const a = toSheet(v, line[0]), b = toSheet(v, line[1]), P = toSheet(v, d.place), ab = sub(b, a), l2 = dot2(ab, ab);
+  if (l2 < 1e-12) return null;
+  // The foot on the edge nearest the box, kept off its ends; past an end, on the edge's extension line (drawn).
+  const t0 = dot2(sub(P, a), ab) / l2, past = t0 < 0 || t0 > 1, t = past ? t0 : Math.max(0.1, Math.min(0.9, t0)), F = add(a, ab, t), e = unit(ab);
+  let n: XY = [-e[1], e[0]]; if (dot2(sub(P, F), n) < 0) n = [-n[0], -n[1]];
+  const apex = add(F, n, DATUM_HEIGHT), h = DATUM_BOX / 2;
+  const extension: Mark[] = past ? [{ kind: 'line', a: add(t0 < 0 ? a : b, e, t0 < 0 ? -1 : 1), b: add(F, e, t0 < 0 ? -(DATUM_BASE / 2 + 1) : DATUM_BASE / 2 + 1), pen: 'thin' }] : [];
+  const marks: Mark[] = [...extension,
+    { kind: 'fill', points: [add(F, e, DATUM_BASE / 2), add(F, e, -DATUM_BASE / 2), apex] },
+    { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin' },
+    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' },
+  ];
+  // The leader from the box's edge to the triangle's apex.
+  const dir = sub(apex, P), m = Math.max(Math.abs(dir[0]), Math.abs(dir[1]));
+  if (m > h + 0.5) marks.push({ kind: 'line', a: add(P, dir, h / m), b: apex, pen: 'thin' });
+  return marks;
+}
+
+/** Sheet mm: a frame's height and its symbol and datum cells' widths. */
+const FRAME_H = 6, FRAME_SYMBOL = 7, FRAME_DATUM = 6;
+/** A feature control frame under a text: the position symbol, Ø and the value, the datums in order. */
+export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame): Mark[] {
+  const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
+  const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6, value = `Ø${fmtMM(f.value)}`, vw = textWidth(value, TEXT, false) + 2.5;
+  const cells = [FRAME_SYMBOL, vw, ...f.datums.map(() => FRAME_DATUM)], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
+  const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin' }];
+  let x = x0;
+  cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin' }); x += w; });
+  // The position symbol: a circle with a cross through it.
+  const c: XY = [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2], r = 1.7, arm = 2.3;
+  marks.push({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin' }, { kind: 'line', a: [c[0] - arm, c[1]], b: [c[0] + arm, c[1]], pen: 'thin' }, { kind: 'line', a: [c[0], c[1] - arm], b: [c[0], c[1] + arm], pen: 'thin' });
+  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
+  f.datums.forEach((l, k) => marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw + FRAME_DATUM * (k + 0.5), y0 + 4.5], text: l, size: TEXT, anchor: 'middle' }));
   return marks;
 }

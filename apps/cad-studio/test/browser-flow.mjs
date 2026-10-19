@@ -3545,6 +3545,41 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  // ---- R14.4 (O5): tolerance and GD&T suggestions ------------------------------------------------------------------
+  await check('R14.4: geometric tolerancing suggested — datums A B C, the hole’s position frame, basic locations — and accepted all, cleanly', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady(); await field('Diameter').fill('6.6'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø6.6/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6, null, { timeout: 10000 });
+      // ± mode: the general note (an estimate) and ±0.21 on the hole's positions (M6 clearance, floating: Ø0.6 / 2√2).
+      await page.waitForFunction(() => window.__studioDrawing().suggestions.map(x => x.kind).sort().join() === 'general-note,hole-plus-minus', null, { timeout: 5000 });
+      assert.match(await page.locator('[aria-label="Tolerance suggestions"]').innerText(), /±0\.21 on 2 location dimensions/);
+      await page.selectOption('[aria-label="Tolerancing"]', 'geometric');
+      await page.waitForFunction(() => window.__studioDrawing().suggestions.map(x => x.kind).sort().join() === 'datum,datum,datum,general-note,position', null, { timeout: 5000 });
+      assert.match(await page.locator('[aria-label="Tolerance suggestions"]').innerText(), /position Ø0\.6 to A, B, C/);
+      await page.click('[aria-label="Accept all suggestions"]');
+      await page.waitForFunction(() => window.__studioDrawing().suggestions.length === 0, null, { timeout: 10000 });
+      assert.deepEqual((await page.evaluate(() => window.__studioDrawing())).issues, []);
+      const d = (await doc()).drawing;
+      assert.deepEqual(d.datums.map(x => x.letter).sort(), ['A', 'B', 'C']); assert.equal(d.frames.length, 1); assert.equal(d.frames[0].value, 0.6);
+      assert.equal(d.dimensions.filter(x => x.basic).length, 2); assert.equal(d.tolerancing, 'geometric');
+      const texts = await page.evaluate(() => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].map(t => t.textContent));
+      assert.ok(texts.includes('Ø0.6') && ['A', 'B', 'C'].every(l => texts.filter(t => t === l).length >= 2), 'the frame and the datum letters on the sheet');
+      await snap('r14-geometric');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

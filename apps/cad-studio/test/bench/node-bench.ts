@@ -20,6 +20,7 @@ import { sheetDxf } from '../../src/drawing/dxf';
 import { autoDimensions } from '../../src/drawing/auto';
 import { drawingIssues } from '../../src/drawing/issues';
 import { autoLayout } from '../../src/drawing/layout';
+import { toleranceSuggestions } from '../../src/drawing/tolerance';
 import { defaultDrawing } from '../../src/drawing/types';
 import { checkSpec, type Requirement } from '../../src/chat/spec';
 import { withLook } from '../../src/app/bodies';
@@ -86,10 +87,12 @@ const benchUuid = () => `00000000-0000-4000-8000-${(++uuidSeq).toString(16).padS
 const BUDGET_DXF_2000 = 8, BUDGET_DXF_R12 = 20;
 /** R14.1 (O2), 2026-10-19: about twice the first measurement. */
 const BUDGET_AUTO_DIMENSION = 16;
-/** R14.2 (O3), 2026-10-19: about twice the first measurement. */
-const BUDGET_ISSUES = 26;
+/** R14.2 (O3), 2026-10-19: about twice the measurement (13.7 ms before the segment grid of R14.3, 1.9 ms after). */
+const BUDGET_ISSUES = 4;
 /** R14.3 (O4), 2026-10-19: about twice the first measurement. */
 const BUDGET_AUTO_LAYOUT = 100;
+/** R14.4 (O5), 2026-10-19: about twice the first measurement. */
+const BUDGET_SUGGESTIONS = 5;
 const scenarios: Scenario[] = [
   { name: 'evaluate: 16-hole plate (cold)', budgetMS: 2800, runs: 3, setup() { let k = 0; return () => evaluateDoc(holePlate(100 + 1e-3 * ++k), k); } },
   { name: 'tessellate: 12-edge filleted box', budgetMS: 70, runs: 5, setup() {
@@ -152,6 +155,15 @@ const scenarios: Scenario[] = [
     let t = 'e'; for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) { const id = `h${i}_${j}`; f.push({ id, kind: 'hole', target: t, center: [10 + 20 * i, 6 + 12 * j], radius: 2 }); t = id; }
     const r = projectViews([evaluateCadPart(D(f)).outputs[0].brep]); if (!r.ok) throw new Error('views');
     return () => autoLayout({ views: r.views, settings: defaultDrawing(), callout: () => null, meta: { title: 'bench', date: '2026-10-19' } });
+  } },
+  // (R14.4, O5: the tolerance suggestions after every drawing change, geometric mode: three datums placed, a frame.)
+  { name: 'drawing: tolerance suggestions, 120-hole plate', budgetMS: BUDGET_SUGGESTIONS, runs: 3, setup() {
+    const f: unknown[] = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [240, 120] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
+    let t = 'e'; for (let i = 0; i < 12; i++) for (let j = 0; j < 10; j++) { const id = `h${i}_${j}`; f.push({ id, kind: 'hole', target: t, center: [10 + 20 * i, 6 + 12 * j], radius: 2 }); t = id; }
+    const r = projectViews([evaluateCadPart(D(f)).outputs[0].brep]); if (!r.ok) throw new Error('views');
+    const laid = autoLayout({ views: r.views, settings: defaultDrawing(), callout: () => null, meta: { title: 'bench', date: '2026-10-19' } }).settings, settings = { ...laid, tolerancing: 'geometric' as const };
+    const layout = layoutSheet(r.views, settings), sheet = buildSheet(r.views, layout, settings, { title: 'bench', date: '2026-10-19' });
+    return () => toleranceSuggestions({ views: r.views, layout, settings, sheet: { ...sheet }, callout: () => null });
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {
