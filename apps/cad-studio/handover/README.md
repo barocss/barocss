@@ -85,7 +85,13 @@ stays out of the kernel's core files (requests for them go through the coordinat
   the section a HATCH), section A–A alone 1:1, a sketch's profile 1:1 (history menu). Oracle ezdxf 1.4.5 run
   outside the product: every case audits clean, its reading matches to 1e-9. Opening in a free viewer: the
   owner's L1 check. Flat patterns: with R12.
-- Next: **R14** (design input `notes/research-draftwright-2026-10-19.md`).
+- **R14** (design input `notes/research-draftwright-2026-10-19.md`), steps R14.1 auto-dimension → R14.2 issue list →
+  R14.3 views and layout for the dimensions → R14.4 tolerance/GD&T suggestions → R14.5 agent tools and pitch circles (O2).
+  - **R14.1** (O2): done. The drawing's “Auto” button: overall sizes, steps, hole positions from the view's extremes
+    (a row at one pitch as `3× 20`), one callout per kind of hole with its count (`4× Ø6.6 THRU`, the feature's
+    THRU/DEEP/thread/counterbore/countersink); its own replaced, hand-placed kept; skipped and crowded sides listed.
+    Conformance `conformance/r14/` (six parts). Fixed: a pattern copy's diameter reads the hole's callout.
+- Next: **R14.2** the drawing issue list.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
