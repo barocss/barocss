@@ -563,3 +563,41 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Bench: FK of the 12-link arm takes 0.02 ms (budget 0.1); its 11 moving links' meshes posed take 0.45 ms (budget 2).
   - Studio 489/489, 489/489 replayed through v2; browser flow 155/155; bench 48/48 within budget (screenshot `notes/acceptance/rm2-posed.png`).
 - **Next**: RM3, link-frame inertia about the CoM (I_L = R·I·Rᵀ), checked against an analytic rotated off-origin cuboid; SPD and the triangle inequality.
+
+## O16 — RM3: link inertia about the centre of mass, in the link frame (2026-10-20)
+
+- **What** (`src/robot/inertia.ts`):
+  - **Each link's bodies** (its part's, in the part's own coordinates) are combined by mass:
+    - each at its own material's density (the kernel's mass and inertia are aluminium's, scaled by ρ/2.70);
+    - each inertia moved to the common centre by the parallel-axis theorem, `I + m(|d|²E − d dᵀ)`.
+  - **Then into the link frame**: `I_L = Rᵀ·I·R` (R's columns: the link frame's axes in the part's coordinates), the centre `Rᵀ(c − o)`. SI units, as URDF and MJCF take them: kg, m, kg·m².
+  - **Principal moments and axes** by cyclic Jacobi rotations: our own, exact to rounding for 3 × 3.
+  - **The link frame**, the one RM4 writes the child link in (onshape-to-robot: the child frame at the joint):
+    - the base link: its part frame;
+    - a link on a moving joint: at the joint's point, Z along its axis, X the part's X square to it (else the part's Y), right-handed;
+    - a link on a fixed joint: its part frame;
+    - a dummy link: massless.
+  - **Checks, typed**:
+    - NOT_SPD (the least principal moment not above 0) and TRIANGLE (the largest above the sum of the other two) are problems;
+    - NO_VOLUME (a body without a closed volume, not counted) and NO_BODY (massless) are reported;
+    - MATERIAL_ASSUMED is said for each body without a material (aluminium taken).
+- **Tool**: `link_inertia` (read, output schema; v2 `assembly.inertia`). Per link: mass, centre, inertia, principal moments and axes, the frame, the bodies counted (material, assumed, mass) and the issues, to 10 significant figures. Compatible additions to both contracts.
+- **Studio**: the Joints card lists each link's mass and centre of mass (mm, link frame), "material assumed" where it is, and any problem; the principal moments are in its tooltip.
+  - In the studio the bodies are already placed in the world, so the link frames are taken in world coordinates there. Same answer, other coordinates; checked by the flow against the tool's numbers.
+- **Sizes**: v1 62 tools, tools/list 83 287 characters; v2 11 421; prompts unchanged.
+- **Evidence**: `test/robot-inertia.test.ts` (8 tests).
+  - **An analytic rotated, off-origin cuboid** (40 × 20 × 10 from (15, −7, 3), turned 30° about Z then 50° about X):
+    - mass, the moved centre `R·c`, and `I = R·diag(m(d²+h²)/12, …)·Rᵀ`, all to 1e-12 relative;
+    - its principal moments the cuboid's own;
+    - in 10 arbitrary link frames, `I_L = Rᵀ I R` and the centre `Rᵀ(c − o)` to 1e-12, the principal moments unchanged.
+  - A cylinder's `m r²/2` and `m(3r² + h²)/12` to 1e-12; another material scaling mass and inertia exactly by its density.
+  - Two separate blocks combined by the parallel-axis theorem against the pair's closed form.
+  - The checks on synthetic bodies (TRIANGLE for diag(1, 1, 3), NOT_SPD, NO_VOLUME and NO_BODY, a massless dummy).
+  - The eigen-solver on 200 random symmetric matrices (rebuilt to 1e-12, vectors orthonormal).
+  - The link frames checked through world coordinates on an instance turned three ways (origin and Z on the joint's point and axis, right-handed).
+  - The tool on the 2R arm (the arm's mass 60·20·5 − 2π·25·5 mm³ of aluminium, its centre (0.02, 0, 0.0025) m from its turning hole).
+  - Conformance `conformance/rm/inertia-cuboid`: the cuboid's document and its answer written from the closed form, not the code.
+  - The positive-definite and triangle checks hold for every real body here; the kernel's mass properties are exact for these planar and cylindrical bodies.
+  - Studio 497/497, 497/497 replayed through v2. Bench: link inertia of the 12-link arm takes 0.1 ms (budget 0.5); 49 rows within budget.
+  - Browser flow 157/157, with a step "RM3" just before the last: the 2R arm's links in the Joints card (base 103.8 g; each arm 14.1 g, CoM (20.0, 0.0, 2.5) mm, material assumed). The step found a "−0.0" shown for a rounding of zero and a cramped row; both fixed. Screenshot `notes/acceptance/rm3-mass.png`.
+- **Next**: RM4, URDF export. Child frame at the joint, meshes in the link frame, convex-hull collision, mm→m. Acceptance by `check_urdf`, and by MuJoCo or PyBullet as external oracles for mass, CoM, principal inertia and FK.

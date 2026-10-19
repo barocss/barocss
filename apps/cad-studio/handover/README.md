@@ -228,6 +228,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **RM2** (O15): done. FK by the product of exponentials (`src/robot/fk.ts`): planar 2R to 1e-9, equal to the
     moving-axis form on random 3D trees; gear followers with the tooth phase re-checked and held at every pose; joint
     sliders, Home and play in the Joints card, a preview on copies (nothing saved); tool forward_kinematics.
+  - **RM3** (O16): done. Link inertia (`src/robot/inertia.ts`): bodies combined at their densities by the parallel-axis
+    theorem, `I_L = Rᵀ I R` in the link frame (at the joint, Z on its axis), SI; principal moments by Jacobi; SPD and
+    triangle checks typed. An analytic rotated off-origin cuboid to 1e-12; tool link_inertia; masses in the Joints card.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
