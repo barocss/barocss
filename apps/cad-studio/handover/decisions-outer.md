@@ -464,3 +464,58 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - the live guard.
   - script.test gains `const a, b`. Studio 474/474; replayed through v2 474/474. Browser flow 152/152 (no UI change, no new step). Bench 45/45 within budget.
 - **Pending (the owner's)**: the live runs (L3). After them, the decision A5.3 left open: the default tool list and whether the v1 aliases go.
+
+## O14 — RM1: the mate graph as a joint tree (2026-10-20)
+
+- **Starting point** (S0, read here):
+  - The assembly is instances placed by six mate kinds (coincident, distance, angle, concentric, tangent, lock), solved analytically.
+  - The solver gives each instance's remaining freedom as counts (turns, slides) but not the axes. It refuses directed placement loops (`mates.ts`).
+  - Spur gears carry their placement (`GearPlacement`, the part's own coordinates); D56's `checkPlacedSpurGears` checks a placed pair.
+  - There is no gear mate kind and no ball face or mate.
+- **What** (`src/robot/joints.ts`, versioned `doc.robot`):
+  - **Links**: one a part (the base part and each instance), plus dummy links inside joint chains.
+  - **One joint a pair of parts with mates between them.** Its kind is read from the mates' first-order constraints at the solved pose, not from the mate kinds by name:
+    - each mate adds rows on the child's twist relative to its parent (directions that must not turn, points that must not move along a direction, lengths scaled by the assembly's size);
+    - the free twists are the rows' null space (Gram–Schmidt).
+    - So any combination the solver accepts is classified the same way, a redundant mate adding nothing.
+  - **Classes**:
+    - no freedom → **fixed**;
+    - one turn → **revolute**, or **continuous** without lower and upper limits;
+    - one slide → **prismatic**;
+    - slides and one turn → a **chain through dummy links**, slides first (cylindrical = a slide and the turn on its axis; planar = two slides and the turn about the normal);
+    - three turns about one point → a **ball** chain of three revolutes. The classifier knows it, but no mate kind makes it yet.
+    - A screw motion, two turns on different axes, or more is **MOTION_UNSUPPORTED**, typed, never guessed.
+  - **Joint frame**: the axis and a point on it (the child's origin projected onto it), world frame, mm. Joint values are 0 at the pose the mates solve to (onshape-to-robot's convention).
+  - **The tree**: grown from the chosen base link (the base part by default; `robot.base` sets another) by **Prim's algorithm weighted by each pair's degrees of freedom**, ties in the document's order. A loose mate therefore closes a loop rather than replacing a stiffer joint. This was found by the loop case: breadth first took a planar `distance` pair over a revolute one.
+    - Pairs the tree does not take are **loops**, reported with their mates and freedom, never dropped (closures are RM8's).
+    - A grounded instance is fixed to the base; a part joined to nothing is **NOT_CONNECTED**.
+    - A mate the solver could not meet makes no joint (**MATE_PROBLEM**).
+  - **Joint keys**: the pair's parts in the document's order (`base~arm`), a chain's `#0`, `#1`, … whichever part is the parent. So settings survive a change of base link; with key `parent~child` they were orphaned.
+  - **Limits and ratings** (`robot.joints[key]`: lower, upper, effort, velocity; radians or mm; N·m or N; rad/s or mm/s):
+    - read leniently, malformed ones dropped;
+    - **LIMITS_BAD** (lower above upper, a rating ≤ 0) is a problem;
+    - **LIMITS_MISSING** is a note (a prismatic joint's range, or a joint's ratings, which export needs).
+  - **Gear couplings** (D56's mate as a coupled joint): two spur gears on turning joints of one carrier, their axes on the joints' axes and their tip circles overlapping.
+    - They are checked with `checkPlacedSpurGears` in a common frame (centre distance, backlash, contact ratio).
+    - The second **mimics** the first: multiplier −z1/z2, offset 0.
+    - Not coupled, with a note: gears on different carriers, gears facing opposite ways, or a pair the kernel refuses. A rack (a prismatic coupling) is left for later.
+- **Tools**:
+  - `get_joints` (read, output schema) and `set_joints` (base link and joint settings by key, null clearing; alters, idempotent), in v1 and as v2 `assembly.joints` / `assembly.set_joints`. These are compatible additions to both contracts.
+  - The robot settings are the assembly's, so `approvalOf` now names `robot`: an agent proposes, the user accepts (D41).
+  - One line in the system prompt.
+- **Studio**: a **Joints** card (when the assembly has mates and nothing is selected) with the base-link select and each joint (parent → child, type, axis, limits, a gear follower), loops and problems.
+- **Sizes**: v1 60 tools, tools/list 81 405 characters; v2 11 266; prompts 7 086 / 7 334.
+- **Evidence**:
+  - `test/robot-joints.test.ts` (8 tests) over assemblies built from real parts and solved:
+    - revolute (axis +Z, origin on the hole axis at the child, continuous; limited → revolute with the limits kept);
+    - prismatic along +X;
+    - cylindrical and planar chains with their dummy links;
+    - fixed by mates, by a lock and by grounding; a loose part NOT_CONNECTED;
+    - a 2R chain from either end (keys kept, parents swapped); a loop kept; an unknown base link;
+    - ball, screw and two-axis twists; a tangent pin MOTION_UNSUPPORTED;
+    - two meshing gears (centre distance 50 = m(z1+z2)/2 exactly, follower ×−2/3);
+    - the settings reader and both tools, gated (`needs_approval`), validated and proposable.
+  - Conformance `packages/barocss-cad/conformance/rm/` (11 cases: each document and its expected tree; `UPDATE_RM_FIXTURES=1`), each also read back from its file.
+  - Browser flow, a step "RM1" just before the last: an assembly opened, the Joints card reads `Base part → arm Continuous +Z`, and the base link moved to the arm (saved in `robot.base`).
+  - Bench: the joint tree of a 12-link serial arm takes 0.27 ms (budget 1); 46 rows within budget. Studio 482/482, 482/482 replayed through v2; browser flow 154/154 (screenshot `notes/acceptance/rm1-joints.png`).
+- **Next**: RM2, forward kinematics over the tree and the joint-slider preview (the gear pair turning together, its clearance shown).

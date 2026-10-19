@@ -218,6 +218,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     real chat server, a hidden kernel oracle; all 60 pass. Ideal calls 6.4 against 2, estimated input 152k against 14k
     tokens a brief. Live runs (`--live` with `CAD_AB_LIVE=1`) wait for the owner: about 5M input tokens at the least,
     about 17M if an agent makes 3× the ideal calls. Report: `notes/ab-dry-run-2026-10-20/`.
+- **RM** robot kinematics:
+  - **RM1** (O14): done. The mate graph as a joint tree (`src/robot/joints.ts`, `doc.robot` v1): each pair's joint read
+    from its mates' free twists (fixed, revolute/continuous, prismatic, dummy-link chains for cylindrical, planar, ball;
+    the rest typed MOTION_UNSUPPORTED), a minimum-freedom spanning tree from the base link, loops reported, gear pairs
+    coupled (mimic −z1/z2), limits by pair key; tools get_joints / set_joints (proposed); a Joints card. Conformance
+    `conformance/rm/`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
