@@ -26,7 +26,7 @@ import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, type Mark
 import { textCorners } from './text';
 import { SCALES, layoutSheet, type SheetLayout } from './views';
 import type { Resolved } from './dimensions';
-import { VIEW_IDS, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
+import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
@@ -255,7 +255,8 @@ function ids(ps: Placed[]): { dims?: string[]; notes?: string[] } {
   return { ...(dims.length ? { dims } : {}), ...(notes.length ? { notes } : {}) };
 }
 function rematched(d: DrawingDimension): boolean {
-  return d.kind === 'linear' ? d.a.was !== undefined || d.b.was !== undefined : d.kind === 'angle' ? d.a.was !== undefined || d.b.was !== undefined : d.was !== undefined;
+  const point = (p: DimPoint) => p.was !== undefined || (p.ring ?? []).some(m => m.was !== undefined);
+  return d.kind === 'linear' ? point(d.a) || point(d.b) : d.kind === 'angle' ? d.a.was !== undefined || d.b.was !== undefined : d.kind === 'pcd' ? d.ring.some(m => m.was !== undefined) : d.was !== undefined;
 }
 function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
   const rank = (p: Placed) => p.owner.kind === 'dimension' ? (settings.dimensions.find(d => d.id === p.owner.id)?.auto ? 0 : 1) : p.owner.kind === 'note' ? 2 : p.owner.kind === 'datum' ? 3 : 4;
@@ -393,6 +394,7 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
   const sizes = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }> => r.ok && (r.kind === 'diameter' || r.kind === 'radius'));
   const kindOf = (callout: string | null, radius: number) => (callout ?? `Ø${round(2 * radius)}`).replace(/^\d+× /, '');
   let unsized = 0, unlocated = 0; const where: ViewId[] = [];
+  const rings = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'pcd' }> => r.ok && r.kind === 'pcd');
   const hiddenOwners = new Map<ViewId, number>();
   for (const h of holes) {
     if (ctx.layout.views[h.view].hidden) { hiddenOwners.set(h.view, (hiddenOwners.get(h.view) ?? 0) + 1); continue; }
@@ -402,9 +404,12 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
     const inCallout = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && r.radius < h.radius && /CBORE|CSK/.test(r.text));
     if (!own && !ofKind && !inCallout) { unsized++; where.push(h.view); }
     const pr = views[h.view];
+    // (A hole of a pitch circle is located by the circle's centre, R14.5.)
+    const ring = rings.find(r => r.dim.view === h.view && r.members.some(m => Math.abs(m[0] - h.at[0]) <= SAME && Math.abs(m[1] - h.at[1]) <= SAME));
+    const at = ring ? ring.center : h.at;
     for (const k of [0, 1] as const) {
-      if (Math.abs(h.at[k] - pr.min[k]) <= SAME || Math.abs(h.at[k] - pr.max[k]) <= SAME) continue;
-      if (!covers(given(axisOf(h.view, k)), h.at[k])) { unlocated++; where.push(h.view); break; }
+      if (Math.abs(at[k] - pr.min[k]) <= SAME || Math.abs(at[k] - pr.max[k]) <= SAME) continue;
+      if (!covers(given(axisOf(h.view, k)), at[k])) { unlocated++; where.push(h.view); break; }
     }
   }
   for (const [view, n] of hiddenOwners) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `${n} hole${n > 1 ? 's show' : ' shows'} round only in the ${view} view, which is not shown.`, view, fix: { kind: 'show-view', view } });
@@ -456,7 +461,10 @@ export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
   }
 }
 function accepted(d: DrawingDimension): DrawingDimension {
-  if (d.kind === 'linear') { const { was: _a, ...a } = d.a, { was: _b, ...b } = d.b; void _a; void _b; return { ...d, a, b }; }
+  const clean = <T extends { was?: string }>(x: T): T => { const { was: _w, ...rest } = x; void _w; return rest as T; };
+  const point = (p: DimPoint): DimPoint => ({ ...clean(p), ...(p.ring ? { ring: p.ring.map(clean) } : {}) });
+  if (d.kind === 'pcd') return { ...d, ring: d.ring.map(clean) };
+  if (d.kind === 'linear') return { ...d, a: point(d.a), b: point(d.b) };
   if (d.kind === 'angle') { const { was: _a, ...a } = d.a, { was: _b, ...b } = d.b; void _a; void _b; return { ...d, a, b }; }
   const { was: _w, ...rest } = d; void _w; return rest as DrawingDimension;
 }
@@ -477,11 +485,11 @@ export function issueContext(i: SheetInputs): IssueContext {
  * Returns the settings and what is left.
  */
 /** `only`: the fixes to apply (all by default). */
-export function fixAll(i: SheetInputs, max = 40, only: (fix: DrawingFix) => boolean = () => true): { settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] } {
+export function fixAll(i: SheetInputs, max = 40, only: (fix: DrawingFix, issue: DrawingIssue) => boolean = () => true): { settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] } {
   let settings = i.settings, ctx = issueContext(i), issues = drawingIssues(ctx);
   const applied: DrawingFix[] = [], tried = new Set<string>();
   for (let n = 0; n < max; n++) {
-    const next = [...issues.filter(x => x.severity === 'error'), ...issues.filter(x => x.severity === 'warning')].find(x => x.fix && only(x.fix) && !tried.has(JSON.stringify(x.fix)));
+    const next = [...issues.filter(x => x.severity === 'error'), ...issues.filter(x => x.severity === 'warning')].find(x => x.fix && only(x.fix, x) && !tried.has(JSON.stringify(x.fix)));
     if (!next) break;
     const key = JSON.stringify(next.fix); tried.add(key);
     const changed = applyFix(ctx, next.fix!);

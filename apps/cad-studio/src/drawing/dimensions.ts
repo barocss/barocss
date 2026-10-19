@@ -2,7 +2,7 @@
 // dimension's references resolve against the current projection, and the value it reads — always
 // from the model's 3D geometry in mm, so a dimension follows the part as it changes.
 import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad';
-import type { DimPoint, DrawingDimension, EdgeRef, Vec3, ViewId, XY } from './types';
+import type { CentreRef, DimPoint, DrawingDimension, EdgeRef, Vec3, ViewId, XY } from './types';
 import { dot } from '../engine/vec3';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -58,6 +58,7 @@ export function arcPoints(c: Extract<ProjectedCurve, { kind: 'arc' }>, n: number
 
 /** A dimension point on the current model (null: its edge is gone). */
 export function resolvePoint(pr: BrepProjection, ref: DimPoint): Vec3 | null {
+  if (ref.at === 'pcd') { const c = pitchCircle(pr, ref.ring ?? []); return c && c.center; }
   const edges = pr.edges.filter(e => e.name === ref.edge);
   let best: Vec3 | null = null, bestD = Infinity;
   for (const e of edges) {
@@ -67,11 +68,38 @@ export function resolvePoint(pr: BrepProjection, ref: DimPoint): Vec3 | null {
   return best;
 }
 
+/**
+ * The circle through holes' centres (each the centre of the circle of its edge nearest its point): its centre, radius,
+ * axis and the members, and whether they are evenly spaced round it. Null when a member is gone, fewer than three
+ * remain, or they no longer lie on one circle (to 1e-6 of its radius).
+ */
+export function pitchCircle(pr: BrepProjection, ring: readonly CentreRef[]): { center: Vec3; radius: number; normal: Vec3; members: Vec3[]; even: boolean } | null {
+  if (ring.length < 3) return null;
+  const members: Vec3[] = [];
+  for (const m of ring) { const p = resolvePoint(pr, { edge: m.edge, at: 'center', near: m.near }); if (!p) return null; members.push(p); }
+  // The circumcentre of the first three; every member as far from it.
+  const [a, b, c] = members, ab = sub3(b, a), ac = sub3(c, a), n = cross3(ab, ac), nn = dot(n, n);
+  if (nn < 1e-18) return null;
+  const t1 = cross3(n, ab), t2 = cross3(ac, n), k1 = dot(ac, ac) / (2 * nn), k2 = dot(ab, ab) / (2 * nn);
+  const center: Vec3 = [a[0] + t1[0] * k1 + t2[0] * k2, a[1] + t1[1] * k1 + t2[1] * k2, a[2] + t1[2] * k1 + t2[2] * k2];
+  const radius = dist3(a, center);
+  if (members.some(p => Math.abs(dist3(p, center) - radius) > 1e-6 * Math.max(1, radius))) return null;
+  const l = Math.sqrt(nn), normal: Vec3 = [n[0] / l, n[1] / l, n[2] / l];
+  // Evenly spaced: every member's nearest neighbour round the circle 360°/n away.
+  const u = sub3(a, center), v = cross3(normal, u), angle = (p: Vec3) => { const d = sub3(p, center); return ((Math.atan2(dot(d, v), dot(d, u)) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); };
+  const angles = members.map(angle).sort((x, y) => x - y), step = 2 * Math.PI / members.length;
+  const even = angles.every((x, i) => Math.abs((i + 1 < angles.length ? angles[i + 1] : angles[0] + 2 * Math.PI) - x - step) <= 1e-6);
+  return { center, radius, normal, members, even };
+}
+const cross3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+
 export type Resolved =
   | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string }
   | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string }
   /** `vertex`: where the two lines meet; `from`/`to`: the sector's bounding directions (counter-clockwise from → to); `ends`: each edge's far end from the vertex. */
   | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string }
+  /** A pitch circle (R14.5): `center` in the view, `center3` in the model, `radius` (mm), `members` in the view; `value` its diameter. */
+  | { ok: true; kind: 'pcd'; dim: Extract<DrawingDimension, { kind: 'pcd' }>; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string }
   | { ok: false; dim: DrawingDimension; reason: string };
 
 export const fmtMM = (v: number) => { const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? String(r) : r.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); };
@@ -121,6 +149,13 @@ export function resolveDimension(views: Record<ViewId, BrepProjection>, dim: Dra
     const g = angleBetween(a, b, dim.place);
     if (!g) return { ok: false, dim, reason: 'Its two edges are now parallel in this view.' };
     return { ok: true, kind: 'angle', dim, vertex: g.vertex, from: g.from, to: g.to, ends: g.ends, value: g.degrees, text: `${fmtMM(g.degrees)}°` };
+  }
+  if (dim.kind === 'pcd') {
+    const c = pitchCircle(pr, dim.ring);
+    if (!c) return { ok: false, dim, reason: 'Its holes are gone, or no longer on one circle.' };
+    if (Math.abs(dot(c.normal, pr.toward)) < 1 - 1e-6) return { ok: false, dim, reason: 'Its circle no longer shows round in this view.' };
+    const n = c.members.length;
+    return { ok: true, kind: 'pcd', dim, center: inView(pr, c.center), center3: c.center, radius: c.radius, members: c.members.map(p => inView(pr, p)), even: c.even, value: 2 * c.radius, text: `Ø${fmtMM(2 * c.radius)} PCD${c.even ? ` · ${n}× EQ SP` : ''}` };
   }
   if (dim.kind === 'linear') {
     const a = resolvePoint(pr, dim.a), b = resolvePoint(pr, dim.b);

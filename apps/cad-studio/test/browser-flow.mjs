@@ -3580,6 +3580,29 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  // ---- R14.5 (O6): pitch circles --------------------------------------------------------------------------------------
+  await check('R14.5: a flange’s bolt circle is dimensioned by its pitch circle, located by its bore; clean; in the DXF', async () => {
+    const fs = await import('node:fs');
+    // The conformance case's flange: a Ø20 bore and four Ø6 holes evenly round it on a Ø60 circle.
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r14/pcd-flange/case.json'), 'utf8')), file = join(out, 'flange.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDrawing().dimensions.some(d => d.text === 'Ø60 PCD · 4× EQ SP'), null, { timeout: 10000 });
+      const s = await page.evaluate(() => window.__studioDrawing());
+      assert.deepEqual(s.issues, []);
+      assert.ok(s.dimensions.some(d => d.text === '4× Ø6 THRU') && s.dimensions.some(d => d.text === 'Ø20 THRU'), JSON.stringify(s.dimensions));
+      assert.equal(s.dimensions.filter(d => d.text === '50').length, 2, 'the bore (and the circle’s centre) located once each way');
+      const [f] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export DXF"]')]);
+      assert.ok(fs.readFileSync(await f.path()).toString('latin1').includes('\n%%c60 PCD'), 'the pitch circle in the DXF');
+      await snap('r14-pcd');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

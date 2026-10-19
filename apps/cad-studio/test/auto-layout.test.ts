@@ -24,7 +24,7 @@ const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ 
 const CASES: Record<string, { about: string; doc: () => StudioDoc; settings?: (v: DrawingViews) => DrawingSettings }> = {
   'layout-plate': { about: 'the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean', doc: starterDoc },
   'layout-cross-hole': { about: 'a block with a hole along X: the right view shows it round and stays; the hole located and called out there', doc: () => withNode(rectanglePart(60, 30, 30), hole(1, [15, 15], 4, { axis: 'x' })) },
-  'layout-bolt-circle': { about: 'the bolt-circle plate, crowded on A4 at 1:1 (R14.1): laid out on A4 at 1:2 with room, clean, its Ø6 holes 3 mm on paper', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })) },
+  'layout-bolt-circle': { about: 'the bolt-circle plate: its pitch circle and centre (R14.5); A4, clean, its Ø6 holes 3 mm on paper at the scale chosen', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })) },
   'layout-long-plate': { about: 'a 240 × 120 plate with a row of Ø8 holes: 1:5 on A4 would put them at 1.6 mm, so A3 at 1:2', doc: () => withNode(rectanglePart(240, 120, 10), hole(1, [20, 20], 4, { pattern: { count: 10, step: [20, 0] } })) },
   'layout-hand-in-right': {
     about: 'the starter plate with a dimension placed by hand in the right view: the right view stays, the dimension kept',

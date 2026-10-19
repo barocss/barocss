@@ -99,7 +99,12 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
   }
   for (const d of doc.drawing?.dimensions ?? []) {
     if (d.kind === 'diameter' || d.kind === 'radius') { const x: Pointed & { edge: string } = d; refs.push(pointed(`dimension ${d.id}`, true, x, () => x.edge, e => { x.edge = e; })); }
-    else if ('a' in d) for (const p of [d.a, d.b] as (Pointed & { edge: string })[]) refs.push(pointed(`dimension ${d.id}`, true, p, () => p.edge, e => { p.edge = e; }));
+    // (A pitch circle, or a point at its centre: each member hole's edge, R14.5.)
+    else if (d.kind === 'pcd') for (const m of d.ring as (Pointed & { edge: string })[]) refs.push(pointed(`dimension ${d.id}`, true, m, () => m.edge, e => { m.edge = e; }));
+    else if ('a' in d) for (const p of [d.a, d.b] as unknown as (Pointed & { edge: string; at?: string; ring?: (Pointed & { edge: string })[] })[]) {
+      if (p.at === 'pcd' && p.ring) for (const m of p.ring) refs.push(pointed(`dimension ${d.id}`, true, m, () => m.edge, e => { m.edge = e; }));
+      else refs.push(pointed(`dimension ${d.id}`, true, p, () => p.edge, e => { p.edge = e; }));
+    }
   }
   for (const [key, look] of Object.entries(doc.bodies ?? {})) {
     if (!look.faces) continue;
@@ -131,7 +136,10 @@ function unsigned(doc: StudioDoc): boolean {
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
   for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !side.face.startsWith('origin:') && !side.sig) return true;
-  for (const d of doc.drawing?.dimensions ?? []) if ('a' in d ? !d.a.sig || !d.b.sig : !d.sig) return true;
+  for (const d of doc.drawing?.dimensions ?? []) {
+    const unsignedPoint = (p: { sig?: unknown; at?: string; ring?: { sig?: unknown }[] }) => p.at === 'pcd' ? (p.ring ?? []).some(m => !m.sig) : !p.sig;
+    if (d.kind === 'pcd' ? d.ring.some(m => !m.sig) : 'a' in d ? (d.kind === 'linear' ? unsignedPoint(d.a) || unsignedPoint(d.b) : !d.a.sig || !d.b.sig) : !d.sig) return true;
+  }
   for (const look of Object.values(doc.bodies ?? {})) if (look.faces && Object.keys(look.faces).some(f => !look.faceSigs?.[f])) return true;
   return false;
 }

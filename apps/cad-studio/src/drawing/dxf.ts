@@ -125,7 +125,8 @@ export function sheetDxfDocument(sheet: Sheet, layout: SheetLayout, version: Dxf
     if (g.role === 'frame' || g.role === 'title') { for (const m of g.marks) markEntities(m, H, title, solidFills); continue; }
     if (g.role === 'dimension') {
       const r = sheet.dimensions.find((x): x is Extract<Resolved, { ok: true }> => x.ok && x.dim.id === g.id);
-      if (r) { entities.push(dimensionEntity(r, layout.views[r.dim.view], g, H, solidFills)); continue; }
+      // (A pitch circle has no DXF dimension type: its lines, arrow and text as they are.)
+      if (r && r.kind !== 'pcd') { entities.push(dimensionEntity(r, layout.views[r.dim.view], g, H, solidFills)); continue; }
     }
     for (const m of g.marks) markEntities(m, H, entities, solidFills);
   }

@@ -19,13 +19,17 @@ import { snapPoints } from '../src/drawing/dimensions';
 
 const root = resolve(process.cwd(), '../../packages/barocss-cad/conformance/r14');
 const hole = (node: number, center: [number, number], radius: number, extra: object = {}) => ({ kind: 'hole' as const, parent: { node, side: 'solid' as const }, center, radius, ...extra });
-const PARTS: Record<string, { about: string; doc: () => StudioDoc; drawing?: Partial<DrawingSettings> }> = {
+const PARTS: Record<string, { about: string; doc: () => StudioDoc; drawing?: Partial<DrawingSettings>; step?: string }> = {
   'starter-plate': { about: 'the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout', doc: () => withNode(rectanglePart(64, 32, 8), hole(1, [32, 16], 4)) },
   'hole-row': { about: 'a row of four clearance holes at one pitch (the first located, then 3× 20) and a tapped blind hole above the first', doc: () => withNode(withNode(rectanglePart(100, 40, 10), hole(1, [20, 12], 3.3, { pattern: { count: 4, step: [20, 0] } })), hole(2, [20, 30], 2.5, { thread: 'M6×1', depth: 12 })) },
   'counterbore': { about: 'a counterbored hole: one callout for both circles, located once', doc: () => withNode(withNode(rectanglePart(50, 50, 12), hole(1, [25, 25], 3.3)), hole(2, [25, 25], 5.5, { depth: 6.5 })) },
   'l-plate': { about: 'an L-shaped plate: its steps across and along in the top view, from the left and front edges', doc: () => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [60, 0], [60, 20], [30, 20], [30, 40], [0, 40]] }), { kind: 'extrude', sketch: 0, height: 15 }) },
-  'bolt-circle': { about: 'six holes on a Ø40 circle: located by their positions, the pitch circle listed as not available; on A4 at 1:1 too crowded below the top view (listed), on A3 not', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })) },
-  'bolt-circle-a3': { about: 'the bolt-circle plate on A3: the same dimensions, nothing crowded', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })), drawing: { sheet: 'A3', scale: 1 } },
+  'bolt-circle': { about: 'six holes evenly on a Ø40 circle (R14.5): their pitch circle Ø40 PCD · 6× EQ SP and its centre located, not each hole; one callout', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })) },
+  'pcd-flange': { about: 'a flange: four holes evenly round a Ø20 bore (R14.5) — their pitch circle Ø60 PCD · 4× EQ SP, located by the bore’s own position', step: 'R14.5', doc: () => withNode(withNode(rectanglePart(100, 100, 10), hole(1, [50, 50], 10)), hole(2, [80, 50], 3, { pattern: { count: 4, about: [50, 50] } })) },
+  'pcd-three': { about: 'three holes at 120° on a Ø40 circle (R14.5), one on the vertical centre line: the pitch circle and its centre, nothing left out', step: 'R14.5', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [40, 60], 3, { pattern: { count: 4 - 1, about: [40, 40] } })) },
+  'pcd-square-grid': { about: 'four holes at a square’s corners (R14.5): a grid, located by their positions, not a pitch circle', step: 'R14.5', doc: () => withNode(withNode(withNode(withNode(rectanglePart(60, 60, 8), hole(1, [15, 15], 3)), hole(2, [45, 15], 3)), hole(3, [45, 45], 3)), hole(4, [15, 45], 3)) },
+  'pcd-turned': { about: 'six holes on a Ø40 circle turned 15° (R14.5): the pitch circle and its centre; its angular position listed as not placed (no hole on a centre line)', step: 'R14.5', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [40 + 20 * Math.cos(Math.PI / 12), 40 + 20 * Math.sin(Math.PI / 12)], 3, { pattern: { count: 6, about: [40, 40] } })) },
+  'bolt-circle-a3': { about: 'the bolt-circle plate on A3: the same dimensions', doc: () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pattern: { count: 6, about: [40, 40] } })), drawing: { sheet: 'A3', scale: 1 } },
 };
 
 function viewsOf(doc: StudioDoc): DrawingViews {
@@ -43,7 +47,7 @@ if (process.env.UPDATE_R14_FIXTURES) for (const [name, p] of Object.entries(PART
   const doc = p.doc(), r = run(doc, p.drawing), dir = resolve(root, name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, 'case.json'), JSON.stringify({
-    id: `r14-${name}`, step: 'R14.1', decisions: ['O2'], about: p.about,
+    id: `r14-${name}`, step: p.step ?? 'R14.1', decisions: p.step === 'R14.5' ? ['O2', 'O6'] : ['O2'], about: p.about,
     input: { document: { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, nextId: doc.nextId, outputs: doc.outputs }, drawing: p.drawing ?? {} },
     expect: { dimensions: r.read, added: r.report.added, skipped: r.report.skipped.map(s => s.what), crowded: r.report.crowded.map(c => `${c.view} ${c.side}`) },
     oracle: 'the part’s design values (round numbers), checked by hand against the definitions in decisions-outer.md O2; run by apps/cad-studio/test/auto-dimension.test.ts',
@@ -53,7 +57,7 @@ if (process.env.UPDATE_R14_FIXTURES) for (const [name, p] of Object.entries(PART
 for (const name of existsSync(root) ? readdirSync(root).filter(n => existsSync(resolve(root, n, 'case.json'))) : []) {
   const c = JSON.parse(readFileSync(resolve(root, name, 'case.json'), 'utf8'));
   // (R14.2's issue cases have their own runner, test/drawing-issues.test.ts.)
-  if (c.step !== 'R14.1') continue;
+  if (c.step !== 'R14.1' && c.step !== 'R14.5') continue;
   test(`conformance ${c.id}: ${c.about}`, () => {
     assert.equal(c.id, `r14-${name}`);
     const r = run(c.input.document as StudioDoc, c.input.drawing);

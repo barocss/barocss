@@ -6,14 +6,17 @@
 // - Levels: the distinct positions of the visible straight edges inside a view (steps, notches), baseline from the
 //   view's left or bottom extreme: across and along in the top view, heights in the front view.
 // - Holes: each hole in the first view it shows round in (top, front, right), located from that view's extremes;
-//   three or more in a row (on one line) at one pitch dimensioned as the first and one pitch for all (`3× 20`).
+//   three or more in a row (on one line) at one pitch dimensioned as the first and one pitch for all (`3× 20`);
+//   three or more of a kind evenly round a point, not a grid (R14.5, O6): their pitch circle (`Ø40 PCD · 6× EQ SP`)
+//   and its centre located (a hole there, or the circle's own centre), not each hole.
 // - Callouts: one diameter per kind of hole, its text the feature's (THRU, DEEP, thread, counterbore, countersink)
 //   and the number of such holes (`4× Ø6.6 THRU`); a counterbore's or countersink's outer circle is in it already.
 // Each kind stacks in rows beside its view, on the side with more free room; inner rows the shorter; callouts on the
 // other side, a row each.
-// What it cannot dimension is listed with the reason, never guessed: holes on a circle (their pitch circle) for now.
+// What it cannot dimension is listed with the reason, never guessed: a ring's angular position when no hole of it lies on
+// a centre line.
 import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
-import { resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
+import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
 import type { DimPoint, DrawingDimension, DrawingSettings, DrawingViews, ViewId, XY } from './types';
 
@@ -45,7 +48,7 @@ export interface AutoDimensionReport {
 
 export interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
 type Side = 'above' | 'below' | 'left' | 'right';
-type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'>;
+type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'pcd' }>, 'id' | 'place'>;
 interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added']; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
 
 const r6 = (v: number) => Math.round(v / SAME) * SAME;
@@ -110,6 +113,28 @@ export function holesOf(views: DrawingViews, callout: (edge: string) => string |
   return out;
 }
 
+/** Holes of one kind evenly round a point, three or more and not a grid: a ring, with its centre (a point, or the hole on it). */
+interface Ring { members: Hole[]; at: XY; radius: number; centre: DimPoint | null }
+function ringsOf(pr: BrepProjection, holes: readonly Hole[]): Ring[] {
+  const kinds = new Map<string, Hole[]>();
+  for (const h of holes) { const key = `${(h.callout ?? '').replace(/^\d+× /, '')}|${r6(h.radius)}`; kinds.set(key, [...(kinds.get(key) ?? []), h]); }
+  const out: Ring[] = [];
+  for (const group of kinds.values()) {
+    if (group.length < 3) continue;
+    // A grid (every hole lined up with another both ways: a rectangle's corners) is dimensioned by its positions.
+    const lined = (h: Hole, k: 0 | 1) => group.some(o => o !== h && Math.abs(o.at[k] - h.at[k]) <= SAME);
+    if (group.every(h => lined(h, 0) && lined(h, 1))) continue;
+    const ring = group.map(h => ({ edge: h.ref.edge, near: h.ref.near })), c = pitchCircle(pr, ring);
+    if (!c || !c.even) continue;
+    const at: XY = [dot3(c.center, pr.right), dot3(c.center, pr.up)];
+    // A hole on its centre locates it; else the circle's own centre does.
+    const onCentre = holes.some(h => !group.includes(h) && Math.abs(h.at[0] - at[0]) <= SAME && Math.abs(h.at[1] - at[1]) <= SAME);
+    out.push({ members: group, at, radius: c.radius, centre: onCentre ? null : { edge: ring[0].edge, at: 'pcd', near: ring[0].near, ring } });
+  }
+  return out;
+}
+const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
 /** Positions inside a view along one axis: edge levels and hole centres, each with a reference point. */
 export interface Mark { x: number; ref: DimPoint; hole: boolean }
 
@@ -153,7 +178,9 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     if (layout.views[id].hidden) continue;
     const pr = views[id], snaps = snapPoints(pr), list = planned[id];
     const lo = [extreme(snaps, 0, false), extreme(snaps, 1, false)] as const, hi = [extreme(snaps, 0, true), extreme(snaps, 1, true)] as const;
-    const mine = holes.filter(h => h.view === id);
+    const all = holes.filter(h => h.view === id), rings = ringsOf(pr, all);
+    // (A ring's holes are located by its centre and its pitch circle, not one by one; a hole on its centre as usual.)
+    const inRing = new Set(rings.flatMap(r => r.members)), mine = all.filter(h => !inRing.has(h));
     for (const k of [0, 1] as const) {
       // Overall: width (u) and height (v) in the front view, depth (v) in the top view.
       const overall = (id === 'front') || (id === 'top' && k === 1);
@@ -167,8 +194,8 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       }
       // Positions: levels (top: both ways; front: heights) and this view's holes, from the low extreme.
       const wantLevels = id === 'top' || (id === 'front' && k === 1);
-      if (!okMin || (!wantLevels && !mine.length)) { if (mine.length && !okMin) report.skipped.push({ view: id, what: `${mine.length} hole position${mine.length > 1 ? 's' : ''} ${k === 0 ? 'across' : 'up'}`, why: 'no edge end at the view’s extreme to measure from' }); continue; }
-      const marks: Mark[] = [...(wantLevels ? levels(pr, k) : []), ...mine.map(h => ({ x: h.at[k], ref: h.ref, hole: true }))]
+      if (!okMin || (!wantLevels && !mine.length && !rings.length)) { if (mine.length && !okMin) report.skipped.push({ view: id, what: `${mine.length} hole position${mine.length > 1 ? 's' : ''} ${k === 0 ? 'across' : 'up'}`, why: 'no edge end at the view’s extreme to measure from' }); continue; }
+      const marks: Mark[] = [...(wantLevels ? levels(pr, k) : []), ...mine.map(h => ({ x: h.at[k], ref: h.ref, hole: true })), ...rings.filter(r => r.centre).map(r => ({ x: r.at[k], ref: r.centre!, hole: true }))]
         .filter(m => m.x > pr.min[k] + SAME && m.x < pr.max[k] - SAME);
       // One mark a position, a hole's centre before an edge.
       marks.sort((a, b) => a.x - b.x || Number(b.hole) - Number(a.hole));
@@ -198,8 +225,8 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     }
     // Callouts: one a kind of hole (concentric outer circles of a counterbore or countersink are in the callout).
     const kinds = new Map<string, Hole[]>();
-    for (const h of mine) {
-      const inner = mine.find(o => o !== h && sameXY(o.at, h.at) && o.radius < h.radius - SAME && o.callout && /CBORE|CSK/.test(o.callout));
+    for (const h of all) {
+      const inner = all.find(o => o !== h && sameXY(o.at, h.at) && o.radius < h.radius - SAME && o.callout && /CBORE|CSK/.test(o.callout));
       if (inner) continue;
       const key = (h.callout ?? `Ø${r6(2 * h.radius)}`).replace(/^\d+× /, '');
       kinds.set(key, [...(kinds.get(key) ?? []), h]);
@@ -208,11 +235,11 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       const h = [...group].sort((a, b) => a.at[0] - b.at[0] || a.at[1] - b.at[1])[0];
       list.push({ dim: { view: id, kind: 'diameter', edge: h.edge.name, near: h.ref.near, ...(group.length > 1 ? { count: group.length } : {}), auto: true }, row: 0, kind: 'callouts', along: 'leader', span: [h.at, h.at], radius: h.radius });
     }
-    if (mine.length >= 3) {
-      // Holes evenly round a point (a bolt circle) are located by their pitch circle: not yet (listed, not guessed).
-      const c: XY = [mine.reduce((s, h) => s + h.at[0], 0) / mine.length, mine.reduce((s, h) => s + h.at[1], 0) / mine.length];
-      const d = mine.map(h => Math.hypot(h.at[0] - c[0], h.at[1] - c[1]));
-      if (d.every(x => Math.abs(x - d[0]) <= 1e-6 * Math.max(1, d[0])) && d[0] > SAME) report.skipped.push({ view: id, what: `${mine.length} holes on a Ø${r6(2 * d[0])} circle`, why: 'a pitch-circle dimension is not available yet: they are located by their positions' });
+    for (const r of rings) {
+      // The pitch circle, its leader placed like a callout's.
+      list.push({ dim: { view: id, kind: 'pcd', ring: r.members.map(h => ({ edge: h.ref.edge, near: h.ref.near })), auto: true }, row: 0, kind: 'callouts', along: 'leader', span: [r.at, r.at], radius: r.radius });
+      // Its angular position needs a hole on a centre line through it (an angle to the first is not placed yet).
+      if (!r.members.some(h => Math.abs(h.at[0] - r.at[0]) <= SAME || Math.abs(h.at[1] - r.at[1]) <= SAME)) report.skipped.push({ view: id, what: `the angular position of the ${r.members.length} holes on a Ø${fmtMM(2 * r.radius)} circle`, why: 'no hole lies on a centre line through it: an angle to the first hole is not placed yet' });
     }
   }
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
