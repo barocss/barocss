@@ -112,6 +112,7 @@ test('text boxes and lines: overlap by the separating-axis test, a segment throu
 test('Auto-dimension leaves no issue on the R14.1 parts it does not report crowded', () => {
   for (const name of readdirSync(root).filter(n => !n.startsWith('issues-') && existsSync(resolve(root, n, 'case.json')))) {
     const c = JSON.parse(readFileSync(resolve(root, name, 'case.json'), 'utf8')), doc = c.input.document as StudioDoc;
+    if (c.step !== 'R14.1') continue;
     const settings: DrawingSettings = { ...defaultDrawing(), ...c.input.drawing }, dims = auto(doc, settings), list = drawingIssues(issueContext(inputsOf(doc, { ...settings, dimensions: dims })));
     if (c.expect.crowded.length) assert.ok(list.length > 0, `${name}: crowded, so issues`);
     else assert.deepEqual(list.map(x => `${x.code}: ${x.message}`), [], name);

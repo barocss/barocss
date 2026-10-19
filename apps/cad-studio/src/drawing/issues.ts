@@ -15,24 +15,26 @@
 //   HOLE_NOT_LOCATED   a hole whose position is not given across or up                   fix: Auto-dimension
 //   STEP_NOT_LOCATED   a step's (an inner edge's) position not given                     fix: Auto-dimension
 //   OVERALL_MISSING    the part's width, height or depth not given                         fix: Auto-dimension
+//   VIEW_NEEDED        a hole shows round only in a view not shown (R14.3)                 fix: show the view
 import type { BrepProjection } from '@barocss/cad';
-import { autoDimensions, holesOf, levels } from './auto';
+import { autoDimensions, axisOf, holesOf, levels } from './auto';
 import { buildSheet, dimensionMarks, type Mark, type MarkGroup, type Sheet } from './sheet';
 import { textWidth } from './text';
 import { SCALES, layoutSheet, type SheetLayout } from './views';
 import type { Resolved } from './dimensions';
-import type { DrawingDimension, DrawingSettings, DrawingViews, ViewId, XY } from './types';
+import { VIEW_IDS, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING';
+export type DrawingIssueCode = 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
   | { kind: 'move-note'; note: string; at: XY }
   | { kind: 'accept'; dim: string }
   | { kind: 'scale'; scale?: number; sheet?: 'A3' }
-  | { kind: 'auto-dimension' };
+  | { kind: 'auto-dimension' }
+  | { kind: 'show-view'; view: ViewId };
 export interface DrawingIssue {
   code: DrawingIssueCode;
   severity: 'error' | 'warning';
@@ -98,6 +100,31 @@ export function segmentHitsQuad(p: XY, q: XY, box: Quad, clear = CLEAR): boolean
   return true;
 }
 
+/** Segments in square cells (sheet mm), to test a box against only those near it. */
+export class SegmentGrid {
+  private readonly cells = new Map<number, number[]>();
+  constructor(readonly segs: readonly (readonly [XY, XY])[], private readonly size = 10) {
+    for (let i = 0; i < segs.length; i++) {
+      const [p, q] = segs[i];
+      const x0 = Math.floor(Math.min(p[0], q[0]) / size), x1 = Math.floor(Math.max(p[0], q[0]) / size), y0 = Math.floor(Math.min(p[1], q[1]) / size), y1 = Math.floor(Math.max(p[1], q[1]) / size);
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) { const k = cellKey(x, y), c = this.cells.get(k); if (c) c.push(i); else this.cells.set(k, [i]); }
+    }
+  }
+  /** Whether any segment passes through the box. */
+  hits(box: Quad): boolean {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const [x, y] of box) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const seen = new Set<number>();
+    for (let x = Math.floor(x0 / this.size); x <= Math.floor(x1 / this.size); x++) for (let y = Math.floor(y0 / this.size); y <= Math.floor(y1 / this.size); y++) {
+      const c = this.cells.get(cellKey(x, y)); if (!c) continue;
+      for (const i of c) { if (seen.has(i)) continue; seen.add(i); const [p, q] = this.segs[i]; if (segmentHitsQuad(p, q, box)) return true; }
+    }
+    return false;
+  }
+}
+/** A cell's key: x and y in 16 bits each (offset, so negatives fit). */
+const cellKey = (x: number, y: number) => ((x + 32768) & 0xffff) * 65536 + ((y + 32768) & 0xffff);
+
 /** A mark's straight pieces on the sheet (arcs in 16 pieces a half turn; text and fills none). */
 function segments(m: Mark, out: [XY, XY][]): void {
   if (m.kind === 'line') out.push([m.a, m.b]);
@@ -149,6 +176,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   const placed = sheet.groups.filter(g => g.role === 'dimension' || g.role === 'note' || g.role === 'label').map(placedOf);
   const viewLines: [XY, XY][] = [];
   for (const g of sheet.groups) if (g.role === 'view' || g.role === 'section') for (const m of g.marks) segments(m, viewLines);
+  const viewGrid = new SegmentGrid(viewLines);
   const flagged = new Set<string>();
   for (let i = 0; i < placed.length; i++) for (let j = i + 1; j < placed.length; j++) {
     const a = placed[i], b = placed[j];
@@ -157,19 +185,19 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const mover = pickMover(a, b, settings);
     const key = `${mover.owner.kind}:${mover.owner.id}`;
     if (flagged.has(key) && mover.owner.kind !== 'label') continue; flagged.add(key);
-    out.push({ code: 'TEXT_OVERLAP', severity: 'error', message: `The text of ${name(a.owner, sheet)} overlaps ${name(b.owner, sheet)}.`, ...ids([a, b]), at: center(mover.boxes[0]), ...fixFor(ctx, mover, placed, viewLines) });
+    out.push({ code: 'TEXT_OVERLAP', severity: 'error', message: `The text of ${name(a.owner, sheet)} overlaps ${name(b.owner, sheet)}.`, ...ids([a, b]), at: center(mover.boxes[0]), ...fixFor(ctx, mover, placed, viewGrid) });
   }
   for (const p of placed) {
     if (p.owner.kind === 'label') {
       // A view's name sits under the dimensions below its view: pushed into the next view, it needs room, not a move.
-      if (p.boxes.some(b => viewLines.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, b, p.owner.view))) out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing: the dimensions under its view push it there (a larger sheet or a smaller scale gives room).`, ...(p.owner.view ? { view: p.owner.view } : {}), at: center(p.boxes[0]) });
+      if (p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, b, p.owner.view))) out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing: the dimensions under its view push it there (a larger sheet or a smaller scale gives room).`, ...(p.owner.view ? { view: p.owner.view } : {}), at: center(p.boxes[0]) });
       continue;
     }
     if (p.owner.kind !== 'dimension' || flagged.has(`dimension:${p.owner.id}`)) continue;
     const others = placed.filter(q => q !== p && q.owner.kind === 'dimension').flatMap(q => q.lines);
-    if (p.boxes.some(b => viewLines.some(([s, t]) => segmentHitsQuad(s, t, b)) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, b, p.owner.view))) {
+    if (p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, b, p.owner.view))) {
       flagged.add(`dimension:${p.owner.id}`);
-      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewLines) });
+      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) });
     }
   }
   const [fx0, fy0, fx1, fy1] = layout.frame, [tx0, ty0, tx1, ty1] = layout.title;
@@ -178,7 +206,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const off = p.points.some(([x, y]) => x < fx0 || x > fx1 || y < fy0 || y > fy1 || (x > tx0 && x < tx1 && y > ty0 && y < ty1));
     if (!off || flagged.has(`${p.owner.kind}:${p.owner.id}`)) continue;
     flagged.add(`${p.owner.kind}:${p.owner.id}`);
-    out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewLines) });
+    out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewGrid) });
   }
   out.push(...duplicates(ctx), ...coverage(ctx));
   return out;
@@ -186,7 +214,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
 
 /** Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). */
 function onOtherView(layout: SheetLayout, b: Quad, own: ViewId | undefined): boolean {
-  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own).map(v => layout.views[v].box).concat(layout.section ? [layout.section.box] : []);
+  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && !layout.views[v].hidden).map(v => layout.views[v].box).concat(layout.section ? [layout.section.box] : []);
   return areas.some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
 }
 
@@ -209,11 +237,11 @@ function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
  * A place for an annotation clear of every other text, of the views' lines and inside the frame: a dimension moved
  * row by row outward (or inward) square to its line, a callout or note along its leader's way; none if nothing clears.
  */
-function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewLines: readonly [XY, XY][]): { fix?: DrawingFix } {
+function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGrid: SegmentGrid): { fix?: DrawingFix } {
   if (p.owner.kind === 'label') return {};
-  const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = [...viewLines, ...others.filter(q => q.owner.kind === 'dimension').flatMap(q => q.lines)];
+  const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = others.filter(q => q.owner.kind === 'dimension').flatMap(q => q.lines);
   const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
-  const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, b, p.owner.view))
+  const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !viewGrid.hits(b) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, b, p.owner.view))
     && q.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
   if (p.owner.kind === 'note') {
     const n = ctx.settings.notes?.find(x => x.id === p.owner.id); if (!n) return {};
@@ -267,13 +295,6 @@ const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0
 // ---------------------------------------------------------------------------------------------------------
 // Duplicates and coverage
 
-/** A view's axis as the model axis it shows (front and top share X, front and right share Z). */
-function axisOf(view: ViewId, k: 0 | 1): string {
-  if (view === 'front') return k === 0 ? 'X' : 'Z';
-  if (view === 'top') return k === 0 ? 'X' : 'Y';
-  if (view === 'right') return k === 0 ? 'Y' : 'Z';
-  return `${view}${k}`;
-}
 
 function duplicates(ctx: IssueContext): DrawingIssue[] {
   const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>>();
@@ -318,7 +339,9 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
   const sizes = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }> => r.ok && (r.kind === 'diameter' || r.kind === 'radius'));
   const kindOf = (callout: string | null, radius: number) => (callout ?? `Ø${round(2 * radius)}`).replace(/^\d+× /, '');
   let unsized = 0, unlocated = 0; const where: ViewId[] = [];
+  const hiddenOwners = new Map<ViewId, number>();
   for (const h of holes) {
+    if (ctx.layout.views[h.view].hidden) { hiddenOwners.set(h.view, (hiddenOwners.get(h.view) ?? 0) + 1); continue; }
     const own = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && Math.abs(r.radius - h.radius) <= SAME);
     const ofKind = sizes.some(r => r.dim.count && Math.abs(r.radius - h.radius) <= SAME && kindOf(ctx.callout(r.dim.kind === 'diameter' || r.dim.kind === 'radius' ? r.dim.edge : ''), r.radius) === kindOf(h.callout, h.radius));
     // (A counterbore's or countersink's outer circle: sized by the callout on its centre.)
@@ -330,6 +353,7 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
       if (!covers(given(axisOf(h.view, k)), h.at[k])) { unlocated++; where.push(h.view); break; }
     }
   }
+  for (const [view, n] of hiddenOwners) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `${n} hole${n > 1 ? 's show' : ' shows'} round only in the ${view} view, which is not shown.`, view, fix: { kind: 'show-view', view } });
   if (unsized) out.push({ code: 'HOLE_SIZE_MISSING', severity: 'warning', message: `${unsized} hole${unsized > 1 ? 's have' : ' has'} no size on the drawing.`, view: where[0], fix: auto });
   if (unlocated) out.push({ code: 'HOLE_NOT_LOCATED', severity: 'warning', message: `${unlocated} hole${unlocated > 1 ? 's are' : ' is'} not located (a position across or up is missing).`, view: where[0], fix: auto });
   // Steps: inner edge positions (top: both ways; front: heights), as Auto-dimension gives them.
@@ -372,6 +396,7 @@ export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
     case 'accept': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? accepted(d) : d) };
     case 'scale': { const { scale: _drop, ...rest } = s; void _drop; return { ...rest, ...(fix.scale !== undefined && SCALES.includes(fix.scale) ? { scale: fix.scale } : {}), ...(fix.sheet ? { sheet: fix.sheet } : {}) }; }
     case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout).dimensions };
+    case 'show-view': { if (!s.views || s.views.includes(fix.view)) return s; const views = [...s.views, fix.view]; return { ...s, views: VIEW_IDS.filter(v => views.includes(v)) }; }
   }
 }
 function accepted(d: DrawingDimension): DrawingDimension {
@@ -395,11 +420,12 @@ export function issueContext(i: SheetInputs): IssueContext {
  * first, then the warnings'. Stops when nothing fixable is left, when a fix changes nothing, or after `max` fixes.
  * Returns the settings and what is left.
  */
-export function fixAll(i: SheetInputs, max = 40): { settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] } {
+/** `only`: the fixes to apply (all by default). */
+export function fixAll(i: SheetInputs, max = 40, only: (fix: DrawingFix) => boolean = () => true): { settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] } {
   let settings = i.settings, ctx = issueContext(i), issues = drawingIssues(ctx);
   const applied: DrawingFix[] = [], tried = new Set<string>();
   for (let n = 0; n < max; n++) {
-    const next = [...issues.filter(x => x.severity === 'error'), ...issues.filter(x => x.severity === 'warning')].find(x => x.fix && !tried.has(JSON.stringify(x.fix)));
+    const next = [...issues.filter(x => x.severity === 'error'), ...issues.filter(x => x.severity === 'warning')].find(x => x.fix && only(x.fix) && !tried.has(JSON.stringify(x.fix)));
     if (!next) break;
     const key = JSON.stringify(next.fix); tried.add(key);
     const changed = applyFix(ctx, next.fix!);
