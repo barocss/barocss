@@ -104,11 +104,11 @@
         },
         "centroidMM": {
           "value": [
-            19.822211704700937,
-            -0.0020703232694016765,
-            4.790157417400981
+            19.822180361832057,
+            -0.0020035705221454307,
+            4.790063633659322
           ],
-          "absTol": 1e-05
+          "absTol": 0.0002
         },
         "bodies": 1,
         "topology": [
@@ -137,5 +137,5 @@
       "relTol": 5e-05
     }
   },
-  "oracle": "This kernel (no closed form), by its tessellated mass: the result's quadrature declines here (its finer pass cannot place a mesh point on a trimmed patch, the D88 item), so the value is the tessellation at 64 segments a quarter (128 gives the same) and the tolerance 5e-5 of the part covers the default 32 (2.7e-5 off) \u2014 about 4 % of the fillet's own volume: this case pins the build, the fillet's accuracy is pinned by the closed-form cases (test/r10-2b.test.mjs: the general path forced on a groove along a plate and a rod across one at 10\u00b0, to 4e-12 and 6e-7). The rolling ball's contacts within 2.5e-7 mm of their faces, G1 to 1e-3\u00b0."
+  "oracle": "This kernel (no closed form), by its tessellated mass: the result's quadrature declines here (its finer pass cannot place a mesh point on a trimmed patch, the D88 item), so the value is the tessellation at 64 segments a quarter (128 gives the same) and the tolerance 5e-5 of the part covers the default 32 (2.7e-5 off); the centroid likewise at 64, to 2e-4 mm (32 is 1.2e-4 mm off) \u2014 about 4 % of the fillet's own volume: this case pins the build, the fillet's accuracy is pinned by the closed-form cases (test/r10-2b.test.mjs: the general path forced on a groove along a plate and a rod across one at 10\u00b0, to 4e-12 and 6e-7). The rolling ball's contacts within 2.5e-7 mm of their faces, G1 to 1e-3\u00b0."
 }
