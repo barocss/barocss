@@ -41,7 +41,7 @@ export interface AutoDimensionReport {
   crowded: { view: ViewId; side: 'above' | 'below' | 'left' | 'right'; neededMM: number; roomMM: number }[];
 }
 
-interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
+export interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
 type Side = 'above' | 'below' | 'left' | 'right';
 type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'>;
 interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added']; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
@@ -86,7 +86,7 @@ function across(a: readonly number[], b: readonly number[], n: readonly number[]
 }
 
 /** The holes of every orthographic view: whole circles that show round, each in the first view it does (by its 3D centre). */
-function holesOf(views: DrawingViews, callout: (edge: string) => string | null): Hole[] {
+export function holesOf(views: DrawingViews, callout: (edge: string) => string | null): Hole[] {
   const out: Hole[] = [], seen: Circle[] = [];
   for (const id of ORTHO) {
     const pr = views[id], circles = new Map<string, Circle>();
@@ -109,10 +109,10 @@ function holesOf(views: DrawingViews, callout: (edge: string) => string | null):
 }
 
 /** Positions inside a view along one axis: edge levels and hole centres, each with a reference point. */
-interface Mark { x: number; ref: DimPoint; hole: boolean }
+export interface Mark { x: number; ref: DimPoint; hole: boolean }
 
 /** Straight visible edges across `k` (constant along it): their position and an end to measure from. */
-function levels(pr: BrepProjection, k: 0 | 1): Mark[] {
+export function levels(pr: BrepProjection, k: 0 | 1): Mark[] {
   const out: Mark[] = [];
   for (const e of pr.edges) {
     if (!e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette') || !e.pieces.some(p => p.visible)) continue;

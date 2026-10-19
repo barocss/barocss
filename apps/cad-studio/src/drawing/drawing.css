@@ -34,3 +34,10 @@
 .note { cursor: move; }
 .note.sel line, .note.sel path { stroke: #c27a00; }
 .note.sel path[fill='#000'], .note.sel text { fill: #c27a00; }
+
+/* The drawing's issue list (R14.2). */
+.dw-issues { display: flex; flex-direction: column; gap: 2px; }
+.dw-issue { display: flex; align-items: flex-start; gap: 6px; padding: 3px 4px 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; line-height: 1.35; color: var(--text-2); }
+.dw-issue > span { flex: 1; }
+.dw-issue.error > .ms { color: var(--warn); }
+.dw-issue:hover { background: var(--accent-soft); }

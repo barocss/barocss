@@ -172,7 +172,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
     (a row at one pitch as `3× 20`), one callout per kind of hole with its count (`4× Ø6.6 THRU`, the feature's
     THRU/DEEP/thread/counterbore/countersink); its own replaced, hand-placed kept; skipped and crowded sides listed.
     Conformance `conformance/r14/` (six parts). Fixed: a pattern copy's diameter reads the hole's callout.
-- Next: **R14.2** the drawing issue list.
+  - **R14.2** (O3): done. The drawing's ISSUES card: lost, overlapping, over-lines and off-sheet annotations, views that do
+    not fit (errors); duplicates, re-matched references, holes without size or position, unlocated steps, missing
+    overall sizes (warnings); a fix each where safe (remove, move clear, accept, automatic scale, Auto-dimension) and Fix
+    all. Conformance `conformance/r14/issues-*` (five drawings).
+- Next: **R14.3** views chosen and laid out for their dimensions.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

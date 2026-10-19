@@ -60,3 +60,34 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Tests: the dimensions measure whole millimetres on whole-millimetre parts; a wider plate reads 120, not 100 (they follow the model); a hand-placed width is kept and its auto twin left out; a second run gives the same set; `count` survives a save. A browser-flow step: plate, one dimension by hand, Auto: six dimensions `16, 32, 32, 64, 8, Ø8 THRU`, five of them auto, the same set after a second run.
   - Bench `drawing: auto-dimension, 120-hole plate`: 7.7 ms (budget 16).
 - **Why geometry first**: the views already carry persistent names, exact ends and circles; feature intent comes in through the existing callout (the hole feature's own record), so nothing is inferred that the document does not say.
+
+## O3 — R14.2: the drawing's issue list, R14's "the drawing is right" check (2026-10-19)
+
+- **What** (`apps/cad-studio/src/drawing/issues.ts`, `cad-studio-drawing-issues-v1`): every issue found on the built sheet, each with a severity, a message, the dimensions or notes it is about, where it is, and a fix where one is safe. The drawing's ISSUES card lists them; a row selects its dimension; Fix applies one fix and Fix all applies every fix in turn, building the sheet again after each (errors first, then warnings; it stops when nothing fixable is left, when a fix changes nothing, or after 40 fixes). Undo takes a fix back like any edit.
+- **Wrong on the sheet (errors)**:
+  - `DIMENSION_LOST`: an edge it measures is gone or no longer shows as it did. Fix: remove it.
+  - `TEXT_OVERLAP`: two texts overlap (dimensions, notes, view names). Text boxes are drawn from Helvetica's widths, from just under the baseline to the cap height, turned with the text, and tested by the separating-axis test with a 0.2 mm allowance. The one moved is an auto dimension before a hand-placed one, before a note; the later of two equals.
+  - `TEXT_OVER_LINES`: a dimension's text lies over a view's lines, over another dimension's lines, or on the area of a view other than its own. A view's name pushed by dimensions into the next view is listed with no fix: it needs room, which is R14.3's.
+  - `OFF_SHEET`: an annotation reaches past the frame or into the title block.
+  - `VIEWS_DONT_FIT`: the views don't fit at the scale. Fix: back to an automatic scale, or A3 when the scale already is automatic.
+  - Moves for the three text issues: a place clear of every text, line, other view and the title block, inside the frame. A linear dimension tries 8 mm rows each way from where it is, then fresh rows beside its view either side (for one far off); a leader tries further out and round the circle in eighths; an angle tries further from its vertex; a note tries steps in four directions. None is offered when nothing clears.
+- **Worth a check (warnings)**:
+  - `DUPLICATE`: the same size given twice, in one view or in two that share the axis (front and top share X, front and right Z). Its fix removes the auto one, or the later of two placed by hand.
+  - `REMATCHED`: a reference was matched again after an edit (its `was`). Fix: accept it, which clears the mark, as the references panel does.
+  - `HOLE_SIZE_MISSING`: a hole with no diameter of its own, no counted diameter of its kind, and not the outer circle of a counterbore or countersink callout on its centre.
+  - `HOLE_NOT_LOCATED`: a hole's position across or up is not given by a linear dimension's end or by a counted pitch's reach. Views sharing an axis count; a position at the view's extreme needs nothing.
+  - `STEP_NOT_LOCATED`: the inner straight-edge levels Auto-dimension would give (top view both ways, front view heights).
+  - `OVERALL_MISSING`: width (X), height (Z) or depth (Y) is not one linear dimension over the whole extent in a view showing it. A round outline's diameter counts.
+  - Fix for the four missing kinds: Auto-dimension, which keeps the hand-placed ones.
+- **Evidence**:
+  - Conformance `conformance/r14/issues-*` (run by `apps/cad-studio/test/drawing-issues.test.ts`; `UPDATE_R14_FIXTURES=1`): the issue codes found and those left after Fix all.
+    - `issues-undimensioned`: the starter plate bare gives the three missing kinds; nothing is left after Fix all.
+    - `issues-auto-clean`: none.
+    - `issues-wrong-on-sheet`: a lost dimension; the width given again three times by hand, two of them on one spot and one far off the sheet; a re-matched reference. Seven issues, nothing left.
+    - `issues-scale-too-big`: 10:1 gives VIEWS_DONT_FIT and six off-sheet dimensions; nothing left.
+    - `issues-crowded-a4`: the bolt-circle plate on A4. The callout over lines is moved clear; the top view's name pushed into the front view is left — it needs R14.3.
+  - Every R14.1 part Auto-dimension doesn't report crowded comes out with no issue. That check found the counterbore's outer circle listed as unsized, now fixed.
+  - Tests of the box and segment geometry (turned text, the separating axis), each fix, a move clearing what it moved, accept clearing only its mark.
+  - A browser-flow step: the bare plate lists 3 issues; Fix all leaves none and six dimensions. The width added by hand lists "given twice"; its fix leaves yours and removes the auto one.
+  - Bench `drawing: issue list, 120-hole plate` (auto-dimensioned, 480 circles in its views): 13 ms (budget 26).
+- **Not done**: dimension lines (not text) crossing other views are not listed; text against hatching and the iso view's lines are checked only as a view's area; the R14.3 layout is what removes the crowded cases' remaining issue.
