@@ -185,7 +185,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
     position frame per kind of hole with basic locations. T from the studio's ISO 273 fastener data: floating
     (H − F) or fixed ((H − F)/2, mating medium clearance assumed), else an estimate said so. No fit codes (no sourced
     limits-and-fits table). Conformance `conformance/r14/tol-*` (four drawings).
-- Next: **R14.5** agent tools (auto-dimension, issues, suggestions) and the pitch circle of holes on a circle.
+  - **R14.5** (O6): done. Pitch circles (`Ø40 PCD · 6× EQ SP`, a point at their centre) for holes evenly round a point,
+    located by a bore on the centre or by the circle's own centre; the agent's drawing tools (`drawing_issues`,
+    `tolerance_suggestions`; `auto_dimension`, `fix_drawing`, `accept_tolerances`, `set_drawing` only as proposals).
+    Conformance `conformance/r14/pcd-*` (four parts).
+- Next: **R14.3b** (the front view's side), then **A5** DSL + MCP.
 - Pending decisions (outer lane, reversible defaults taken):
   - **R14.3b, the front view's side** (coordinator, 2026-10-19: after R14.5): the front view stays the part's −Y side.
     Choosing it by information needs a versioned view-orientation setting and a rule for existing dimensions.
