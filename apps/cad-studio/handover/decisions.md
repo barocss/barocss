@@ -5127,3 +5127,54 @@ D110 refused a shell that opens faces of a smooth freeform body. A shell's wall 
   - `r11-2a`'s opened-face refusal is removed (noted in place).
 - **Not done:** bodies with sharp edges and freeform faces (region slabs) are R11.2c. Creased SubD bodies have sharp edges and are not on this route. A wall's end is square to its kept face; there is no option for an end square to the opened face.
 - Checks: lint and type-check clean (kernel and studio); kernel 1162/1167 (4 skipped; only the env-only Split test fails); conformance 119/119 with the 3 new cases; studio 474/474; full flow 154/154 on 05679aff2 plus this change, the new step included (every R14 and A5 step passing; the file has 154 steps, against the 155 the coordinator counted after the merge). RB rows in the next commit.
+
+## D112 — R11.2c-1: trimmed planes and cylinders in the offset route; a filleted pipe tee shelled with its ends opened (2026-10-20)
+
+R11.2c is D105's verdict (b): bodies with sharp edges and freeform or trimmed faces. It is split in two:
+- **R11.2c-1 (this step):** the offset route's faces. Planes and cylinders however trimmed join it, beside fitted patches. That covers bodies whose kept faces form one smooth region once the opening takes the sharp edges away: a pipe fitting with its ends open.
+- **R11.2c-2 (next):** sharp edges between kept faces, by region slabs through the analytic Boolean (the closed tee, the conic-filleted box).
+
+R11.2c-1 builds what R11.2c-2's region slabs need too: the inner and outer sheets of trimmed analytic faces.
+
+- **Route** (`offset-cavity.ts`). A kept face is taken in one of two ways:
+  - an untrimmed patch whose edges all run along its domain's sides (fitted cells, as D110);
+  - else an **exact face**: a plane or a circular cylinder (`faceGeometry`) with any loops.
+  - An exact face's offset is an affine map of its own NURBS surface and edges, so it is exact and keeps its trims. A plane moves along its normal; a cylinder scales about its axis, a convex one to r − t and a hole to r + t.
+  - An edge with a patch on it is fitted from the patch's side, as before. An edge of exact faces only is the face's map of it, cut so no piece has more than 16 poles (a band goes on each).
+  - A rim band along an exact face is the ruled surface between the piece and its map, so it is exact.
+  - Faces keep all their loops: the main pipe's half has its hole.
+- **The gate** (`smoothOffsetBody(body, open)`): one closed body; every kept face a patch or an exact face; every edge between two kept faces smooth.
+  - The pipe tee's rolling-ball fillet meets its cylinders within 1.5e-5 rad (at the edges' middles). The route's smooth threshold is now 1e-4 rad (0.006°).
+  - The offsets part by t times the kink along such an edge. That gap (the largest kink, sampled along each edge at its ends, quarters and middle) is counted in the deviation, so the tolerances cover it.
+  - `shellPart` takes the route when `generalShell` refuses a face's kind or trim (freeform, a curve-trimmed cylinder, a plane bounded by a free curve) and the gate passes. Every other refusal of the slab route stands, `[WALL_NEAR_RADIUS]` among them.
+- **Checks for exact faces:**
+  - `[OFFSET_FOLDS]` where a convex cylinder is no wider than the wall.
+  - The thin-wall check samples each exact face's tessellation points, mapped. A distance to an exact face is the one to its foot on the surface (along the normal), taken only where the foot lies on that triangle. Elsewhere another triangle's foot decides, so a trim does not count as a wall.
+- **Three latent bugs found by the tee:**
+  - **The cell fit's span search** (`spanOf`, D110) never ended when the first Greville point, (a + a + a)/3, rounded below a. One fillet patch's last cell hung the route. It now returns the first span there.
+  - **The tessellator's boundary check** took a small cell's edges for off its surface beyond 1e-5 of the cell's own size. The tee's fillet cells are 1–2 mm, so that is 3e-5 mm, while their edges are tolerant to 1.2e-4 mm (1e-6 of the 60 mm body, twice). It now accepts an edge within its own tolerance, as `checkBrep` does (kernel core, `brep-tessellate.ts`).
+  - **The tessellator's mean of a run of one parameter** (`snapIsoRuns`) could round one ulp past the domain's end ("Parameter is outside the knot domain" at 16 a quarter). It is now kept within the run's own values (kernel core).
+- **Evidence** (`test/r11-2c1.test.mjs`, new; refused on HEAD bc468b3e9 "a cylinder trimmed by a curve other than its rulings and circles"; every result strictly valid, one shell, mass by quadrature):
+
+  | Pipe tee (R along X, r up Z, fillet), ends opened | Wall | Faces (hollow, rim) | Deviation (target) | Volume against the bands | Time |
+  |---|---|---|---|---|---|
+  | R 10, r 5, fillet 2 | 0.5 | 333 (297, 8) | 5.9e-5 (6.0e-5) mm | −1.6e-6 | 1.5 s |
+  | R 10, r 5, fillet 2 | 1 | 333 (297, 8) | 5.9e-5 mm | −1.6e-6 | 1.8 s |
+  | R 10, r 5, fillet 2 | 2 | 333 (297, 8) | 5.9e-5 mm | −1.6e-6 | 2.2 s |
+  | R 10, r 6, fillet 1.5 | 1 | 343 (309, 8) | 6.0e-5 mm | −1.5e-6 | 1.8 s |
+
+  - The oracle: each kept face's normal band ∫∫ (t − Ht² + Kt³/3) dA.
+    - A cylinder's band is A·(t − t²/2r), with its area r ∮ −h dθ over its own edges (Green's theorem on the cylinder; the main pipe's two halves give 3635.32 of 3769.91 mm², the junction's hole taken).
+    - A fillet patch's band is by quadrature of its curvature. The bound checked is kept area × target.
+  - The shells tessellate at 8 and 16 a quarter.
+  - Refused by name:
+    - the wall at 4.1, past the fillet's convex radius of 4.048 mm where it turns round the branch (`[OFFSET_FOLDS]`, a fillet patch);
+    - an end kept, which leaves a sharp edge between kept faces: the slab route's refusal stands until R11.2c-2.
+  - Conformance `r11/shell-pipe-tee-open-ends` (the bands' volume, the tolerance from the accuracy contract, STEP round trip 1e-9) and `refuse-shell-pipe-tee-fillet-folds`.
+  - A flow step: the tee from a file, shelled 1 with its ends opened (3955 mm³).
+  - R11.2a/b and S0 unchanged: their tests pass as they were.
+- **Not done:**
+  - Sharp edges between kept faces: R11.2c-2's region slabs (the closed tee, the conic-filleted box).
+  - Trimmed freeform patches, and exact faces other than planes and cylinders (cones, spheres, tori trimmed).
+  - The exact faces' thin-wall path has no case of its own that refuses: none of the tees comes near it.
+- Checks: lint and type-check clean (kernel and studio); kernel 1166/1171 (4 skipped; only the env-only Split test fails); conformance 121/121 with the 2 new cases; studio 482/482; full flow 156/156 on bc468b3e9 plus this change, the new step included (every outer-lane step passing). RB rows in the next commit.

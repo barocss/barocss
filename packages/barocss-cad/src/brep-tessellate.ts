@@ -420,7 +420,9 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       if (rails === undefined) {
         // Any other parametric surface without a seam: triangulated in its (u, v) domain.
         if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
-        const { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null, exact, sign);
+        // (Its edges' own tolerance: a fitted offset's edges lie within theirs of its cells, D112.)
+        const near = Math.max(0, ...[outerId, ...innerIds].flatMap(l => loops.get(l)!.coedges.map(c => edges.get(coedges.get(c)!.edge)!.toleranceMM)));
+        const { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter, near); emit(face.id, 'trimmed', pts, tris, null, exact, sign);
         // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
         const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
         for (const [a, b, c] of tris) {
@@ -761,13 +763,14 @@ function snapIsoRuns(ring: XY[], U: readonly number[], V: readonly number[]): XY
     for (let i = 0; i < n;) {
       const a = (start + i) % n; let j = i + 1;
       while (j < n && Math.abs(out[(start + j) % n][k] - out[a][k]) <= eps) j++;
-      if (j - i >= 3) { let m = 0; for (let q = i; q < j; q++) m += out[(start + q) % n][k]; m /= j - i; for (let q = i; q < j; q++) out[(start + q) % n][k] = m; }
+      // (The mean kept within the run's own values: (x + x + x) / 3 can round past x, at the domain's end outside it.)
+      if (j - i >= 3) { let m = 0, lo = Infinity, hi = -Infinity; for (let q = i; q < j; q++) { const x = out[(start + q) % n][k]; m += x; lo = Math.min(lo, x); hi = Math.max(hi, x); } m = Math.min(hi, Math.max(lo, m / (j - i))); for (let q = i; q < j; q++) out[(start + q) % n][k] = m; }
       i = j;
     }
   }
   return out;
 }
-function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
+function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number, near = 0): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
   const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
@@ -798,8 +801,9 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   }
   rings = []; { let o = 0; for (const n of ringSizes) { rings.push(pts.slice(o, o + n)); o += n; } }
   const flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
-  // The boundary must lie on the surface (a curve off it would be projected, not tessellated).
-  const off3 = 1e-5 * (Lu + Lv) + 1e-6;
+  // The boundary must lie on the surface (a curve off it would be projected, not tessellated): within 1e-5 of the face's
+  // size, or its edges' own tolerance where that is more.
+  const off3 = Math.max(1e-5 * (Lu + Lv) + 1e-6, near);
   pts.forEach((p, i) => { const q = at(uv[i][0], uv[i][1]); if (Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > off3) throw new BrepError('GEOMETRY', `tessellation: an edge of face ${face.id} does not lie on its surface`); });
   let area = 0; const outerN = rings[0].length;
   for (let i = 0; i < outerN; i++) { const a = flat(uv[i]), b = flat(uv[(i + 1) % outerN]); area += a[0] * b[1] - b[0] * a[1]; }

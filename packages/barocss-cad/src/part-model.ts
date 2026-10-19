@@ -47,7 +47,7 @@ import { combineMassProperties, prismaticMassProperties, brepMassProperties, bre
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
-import { offsetCavity, offsetShell, smoothClosedBody } from './offset-cavity.js';
+import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -1455,6 +1455,8 @@ function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools[
   return { solid: shellPart(part, t, open, at, fail) };
 }
 
+/** The slab route's refusals of a face's kind or trim, which the offset route may take instead (other refusals stand). */
+const OFFSET_ROUTE = /freeform faces joined to others|trimmed by a curve other than its rulings and circles|bounded by a curve that is not a line or an arc/;
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
   if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
   if (!part.history) {
@@ -1463,8 +1465,9 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
     for (const n of open) if (!names.has(n)) fail('SELECTION', `no face named ${n} to open; faces: ${[...names].slice(0, 12).join(', ')}`);
     try { return { kind: 'brep', brep: generalShell(body, t, new Set(open), at) }; }
     catch (cause) {
-      // A closed body of freeform faces meeting smoothly (a SubD body): its cavity, its faces offset (R11.2a, D110).
-      if (cause instanceof BrepError && /freeform faces joined to others/.test(cause.message) && smoothClosedBody(body)) {
+      // A closed body of freeform faces meeting smoothly (a SubD body): its cavity, its faces offset (R11.2a, D110); kept
+      // faces trimmed planes and cylinders too, offset exactly, where the opening leaves no sharp edge (R11.2c-1, D112).
+      if (cause instanceof BrepError && OFFSET_ROUTE.test(cause.message) && smoothOffsetBody(body, new Set(open))) {
         // Opened faces (R11.2b, D111): the kept faces, their offset and the wall's end at the opening's edges.
         try { return { kind: 'brep', brep: open.length ? offsetShell(body, t, new Set(open), at, at).shell : withCavities(body, offsetCavity(body, t, `${at}_in`, at).cavity, { family: 'shell', id: at }) }; }
         catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
