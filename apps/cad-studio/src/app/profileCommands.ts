@@ -14,7 +14,7 @@ import { refOf } from './bodyRef';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */
-function oneProfile(ctx: Ctx): { index: number; node: SketchNode } | null {
+export function oneProfile(ctx: Ctx): { index: number; node: SketchNode } | null {
   const [i, ...rest] = pickedSketches(ctx.doc.nodes, ctx.selection.sketches);
   return i !== undefined && !rest.length ? { index: i, node: ctx.doc.nodes[i] as SketchNode } : null;
 }

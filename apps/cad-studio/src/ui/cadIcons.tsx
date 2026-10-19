@@ -187,6 +187,13 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     <path d="M7.8 11.6a4.2 2.1 0 0 0 8.4 0" strokeOpacity={0.6} /><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" /></>,
   'cad-tube': <>{cylinder(0.5, 0.5, -0.05, 0.95, 0.5, { bore: 0.27 })}</>,
   'cad-wedge': <>{prism([[0, 0], [1, 0], [0, 1]])}</>,
+  // Sheet metal (R12.1): a thin plate, its top the sheet; an L of sheet, its bend in the accent colour.
+  'cad-sheet-plate': <>{prism([[0, 0.3], [1, 0.3], [1, 0.44], [0, 0.44]], 0, 1, { accent: i => i === 2 })}</>,
+  'cad-sheet-profile': <>{(() => {
+    const t = 0.14, r = 0.16, c: XY = [t + r, t + r];
+    const pts: XY[] = [[1, 0], [1, t], ...arc(c, r, 270, 180, 6), [t, 1], [0, 1], ...arc(c, r + t, 180, 270, 6)];
+    return prism(pts, 0, 1, { accent: i => i >= 2 && i < 8 });
+  })()}</>,
   'cad-prism': <>{(() => {
     // A hexagonal prism, axis up: the top hexagon, then the three faces toward the view.
     const h = Array.from({ length: 6 }, (_, k) => { const a = (k * 60 + 30) * Math.PI / 180; return [0.5 + 0.55 * Math.cos(a), 0.5 + 0.55 * Math.sin(a)] as XY; });

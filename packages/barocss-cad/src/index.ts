@@ -635,3 +635,5 @@ export type { FilletReport } from './rolling-ball.js';
 /** R11b (O1): an ASCII DXF writer (AC1015, with an R12 option) for drawings, sketches and sections. */
 export { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from './dxf-writer.js';
 export type { DxfDocument, DxfEntity, DxfLayer, DxfLinetype, DxfTextStyle, DxfBlock, DxfHatchLoop, DxfHatchFill, DxfDimensionGeometry, DxfVersion, DxfUnits, DxfXY, DxfWriteOptions, DxfWriteReport, DxfWriteResult, DxfWriteErrorCode } from './dxf-writer.js';
+export { bendAllowance, outsideSetback, bendDeduction, contourFlangeSection, SheetMetalError } from './sheet-metal.js';
+export type { SheetReport, SheetBendReport, ContourSection, ContourBend } from './sheet-metal.js';

@@ -32,6 +32,9 @@ const SPECS: Record<string, Spec> = {
   // (`radii`: a varying radius, R10.5a, D100; `section`: a conic or G2 section, R10.5b, D103.)
   fillet: { parent: 'ref', edges: 'names1', radius: 'dim', 'radii?': 'radii', 'section?': 'section' },
   hole: { parent: 'ref', center: 'dim2', radius: 'dim', 'axis?': 'enum:x|y|z', 'side?': 'enum:min|max', 'depth?': 'dim' },
+  // (R12.1, D116: sheet metal, its rules on each feature.)
+  'sheet-base': { sketch: 'sketch', thickness: 'dim', bendRadius: 'dim', kFactor: 'num', 'reverse?': 'bool' },
+  'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', kFactor: 'num' },
 };
 const PROFILE: Record<string, Spec> = {
   rectangle: { min: 'dim2', max: 'dim2' },
@@ -96,6 +99,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'dim2': return pair(v) ? null : 'two numbers [a, b]';
     case 'dim3': return Array.isArray(v) && v.length === 3 && v.every(dim) ? null : 'three numbers [x, y, z]';
     case 'points': return Array.isArray(v) && v.length >= 3 && v.every(pair) ? null : 'at least three [x, y] points';
+    case 'points2': return Array.isArray(v) && v.length >= 2 && v.length <= 64 && v.every(pair) ? null : '2 to 64 [x, y] points';
     case 'loop': return loop(v);
     case 'loops': { if (!Array.isArray(v)) return 'a list of loops'; for (const l of v) { const w = loop(l); if (w) return w; } return null; }
     case 'plane': {

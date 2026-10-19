@@ -50,6 +50,7 @@ import { generalShell } from './general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
 import { regionShell } from './region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
+import { bendAllowance, bendDeduction, contourFlangeSection, outsideSetback, SheetMetalError, type SheetReport } from './sheet-metal.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -224,6 +225,19 @@ export type CadPartFeature = Base & (
    * output's `decimate` reports the counts and the measured distance both ways.
    */
   | { readonly kind: 'decimate'; readonly target: string; readonly triangles?: number; readonly ratio?: number; readonly maxError?: CadPartDim; readonly featureAngle?: number }
+  /**
+   * Sheet metal (R12.1, D116). Each sheet feature gives its rules, none defaulted: `thickness` T, `bendRadius` R (its
+   * bends' inner radius) and `kFactor` K from 0 to 1 (the neutral layer at R + K·T: a bend's developed length is
+   * θ(R + K·T)). The output reports them and its bends (`sheet`).
+   * `sheet-base`: a plate from a closed sketch (one loop, holes allowed), T thick from its plane along its normal
+   * (`reverse`: the other way); its faces an extrude's (`top`, `bottom`, the sides).
+   * `sheet-contour`: an open `path` of 2–64 points in a plane (`plane`, default XY) is one skin of the sheet, the material
+   * T thick to its `side` (looking along it), a bend of inner radius R at each corner, extruded `width` along the plane's
+   * normal. Faces: `.leg<i>.a` (on the path) and `.leg<i>.b`, `.bend<k>.inner` / `.outer` (k the corner's point),
+   * `.start` / `.end` (the path's ends), `.front` (in the plane) and `.back`.
+   */
+  | { readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number; readonly reverse?: boolean }
+  | { readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -287,6 +301,8 @@ export interface CadPartOutput {
   readonly fillet?: readonly FilletReport[];
   /** A mesh body's shell (R11.3, D114): the wall asked for and the wall its offset achieves, measured. */
   readonly shell?: MeshShellReport;
+  /** A sheet-metal body's rules and bends (R12.1, D116). */
+  readonly sheet?: SheetReport;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -346,6 +362,7 @@ interface Part {
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
   readonly shell?: MeshShellReport;
+  readonly sheet?: SheetReport;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -648,6 +665,10 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
   const x = snap(unit(sub(x0, scale(n, dot(x0, n))))), y = snap(cross(n, x));
   return { m: [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]], o: xyz(plane.origin, 'plane origin') };
 }
+/** A point of a sketch's own XYZ in the part. */
+const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
+/** A sheet feature's result: its one part carrying the sheet's report. */
+const withSheet = (r: Result, sheet: SheetReport): Result => r.kind === 'solid' ? { kind: 'solid', parts: r.parts.map(p => ({ ...p, sheet })) } : r;
 /** A result built on a sketch's own XY, moved onto its plane. */
 const placed = (frame: Frame | undefined, compute: () => Result): (() => Result) =>
   !frame ? compute : () => { const r = compute(); return r.kind === 'solid' ? moveAll(r.parts, frame.m, frame.o) : r; };
@@ -833,6 +854,33 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => many(target.map(p => {
         return unionAll(Array.from({ length: count }, (_, k) => k ? rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`) : p.solid), at);
       }));
+    }
+    case 'sheet-base': case 'sheet-contour': {
+      const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor;
+      if (typeof K !== 'number' || !Number.isFinite(K) || K < 0 || K > 1) fail('PARAMETER', 'kFactor must be a number from 0 to 1 (the neutral layer lies within the sheet)');
+      if (f.kind === 'sheet-base') {
+        const sketch = ref(f.sketch, 'sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+        const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+        if (regions?.length) fail('CAPABILITY', 'a sheet\'s base takes one outer loop (holes allowed) yet');
+        if (f.reverse !== undefined && typeof f.reverse !== 'boolean') fail('INPUT', 'reverse must be true or false');
+        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, bends: [] };
+        return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: T, fromMM: f.reverse ? -T : 0, tag: at }) }))(), report);
+      }
+      const list = f.path as unknown;
+      if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'path must list 2 to 64 points');
+      const path = (list as CadPartPoint2[]).map((p, i) => xy(p, `path[${i}]`));
+      if (f.side !== 'left' && f.side !== 'right') fail('INPUT', 'side must be left or right (where the material lies, looking along the path)');
+      const width = dim(f.width as CadPartDim, 'width', true), frame = f.plane === undefined ? undefined : frameOf(f.plane as CadPartSketchPlane, xyz, fail);
+      let section: ReturnType<typeof contourFlangeSection>;
+      try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
+      catch (cause) { if (cause instanceof SheetMetalError) fail(cause.code, cause.message); throw cause; }
+      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, bends: section!.bends.map(b => {
+        const angle = Math.abs(b.angle);
+        return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
+          allowanceMM: bendAllowance(angle, R, T, K as number), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, K as number) };
+      }) };
+      return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, heightMM: width, fromMM: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
     }
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
@@ -1905,7 +1953,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

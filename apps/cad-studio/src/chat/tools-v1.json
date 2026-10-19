@@ -2093,6 +2093,8 @@
        "offset-face",
        "revolve",
        "pipe",
+       "sheet-plate",
+       "sheet-profile",
        "box",
        "cylinder",
        "sphere",

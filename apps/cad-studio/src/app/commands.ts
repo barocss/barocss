@@ -1,6 +1,7 @@
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
+import { sheetCommands } from './sheetCommands';
 import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
@@ -291,6 +292,7 @@ const allCommands: Command[] = [
     available: () => ok, action: 'sketch',
   },
   ...profileCommands,
+  ...sheetCommands,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

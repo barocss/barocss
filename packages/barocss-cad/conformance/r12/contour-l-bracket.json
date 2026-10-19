@@ -1,0 +1,99 @@
+{
+  "id": "r12-contour-l-bracket",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: an L-bracket contour flange, its path the outer skin (the corner its outer virtual sharp): the textbook volume and area, role names, the bend's allowance.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              30,
+              0
+            ],
+            [
+              30,
+              25
+            ]
+          ],
+          "side": "left",
+          "width": 40,
+          "thickness": 2,
+          "bendRadius": 3,
+          "kFactor": 0.4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4102.654824574367,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            20.784843211827493,
+            6.631463922638867,
+            19.999999999999996
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.back",
+          "c.bend1.inner",
+          "c.bend1.outer",
+          "c.end",
+          "c.front",
+          "c.leg0.a",
+          "c.leg0.b",
+          "c.leg1.a",
+          "c.leg1.b",
+          "c.start"
+        ],
+        "areaMM2": {
+          "value": 4467.787565803085,
+          "relTol": 1e-12
+        },
+        "sheet": {
+          "thicknessMM": 2,
+          "bendRadiusMM": 3,
+          "kFactor": 0.4,
+          "absTol": 1e-9,
+          "bends": [
+            {
+              "name": "c.bend1",
+              "angleDegrees": 90,
+              "allowanceMM": 5.969026041820607
+            }
+          ]
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Volume: width × T × the middle line from the path by the virtual-sharp relations (each corner less 2(R + T)·tan(θ/2) where the path is the outer skin, 2R·tan(θ/2) where it is the inner, plus θ(R + T/2)); area likewise (closed form); allowances θ(R + K·T) by definition. Centroid: this kernel (exact prismatic integration)."
+}

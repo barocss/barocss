@@ -1,0 +1,151 @@
+{
+  "id": "r12-contour-hat-channel",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: a hat section, four bends turning both ways (the path the outer skin at two, the inner at two), on the XZ plane.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "h",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              15
+            ],
+            [
+              40,
+              15
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              50,
+              0
+            ]
+          ],
+          "side": "left",
+          "plane": {
+            "origin": [
+              0,
+              5,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          },
+          "width": 25,
+          "thickness": 1.5,
+          "bendRadius": 2,
+          "kFactor": 0.44
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 2822.9534848028948,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            24.99999999999998,
+            -7.5,
+            9.545186059452645
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "h.back",
+          "h.bend1.inner",
+          "h.bend1.outer",
+          "h.bend2.inner",
+          "h.bend2.outer",
+          "h.bend3.inner",
+          "h.bend3.outer",
+          "h.bend4.inner",
+          "h.bend4.outer",
+          "h.end",
+          "h.front",
+          "h.leg0.a",
+          "h.leg0.b",
+          "h.leg1.a",
+          "h.leg1.b",
+          "h.leg2.a",
+          "h.leg2.b",
+          "h.leg3.a",
+          "h.leg3.b",
+          "h.leg4.a",
+          "h.leg4.b",
+          "h.start"
+        ],
+        "sheet": {
+          "thicknessMM": 1.5,
+          "bendRadiusMM": 2,
+          "kFactor": 0.44,
+          "absTol": 1e-9,
+          "bends": [
+            {
+              "name": "h.bend1",
+              "angleDegrees": 90,
+              "allowanceMM": 4.178318229274425
+            },
+            {
+              "name": "h.bend2",
+              "angleDegrees": 90,
+              "allowanceMM": 4.178318229274425
+            },
+            {
+              "name": "h.bend3",
+              "angleDegrees": 90,
+              "allowanceMM": 4.178318229274425
+            },
+            {
+              "name": "h.bend4",
+              "angleDegrees": 90,
+              "allowanceMM": 4.178318229274425
+            }
+          ]
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Volume: width × T × the middle line from the path by the virtual-sharp relations (each corner less 2(R + T)·tan(θ/2) where the path is the outer skin, 2R·tan(θ/2) where it is the inner, plus θ(R + T/2)); area likewise (closed form); allowances θ(R + K·T) by definition. Centroid: this kernel (exact prismatic integration)."
+}
