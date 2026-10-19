@@ -4767,7 +4767,10 @@ R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:
   - Not where the section lies in the plane to rounding: a square end's section is the end face's edge exactly, and that break stays, as its curvature jump needs.
   - Not at ends the tool is clipped at (D99's `breakOnEnd` puts those breaks in the plane).
   - (Dropping those breaks instead was tried. It broke the plate-0-to-40 groove's typed refusal, which became an untyped Boolean failure.)
-- **The check** (`brep-check-geometry.ts`, strict): a face of one loop of two edges between the same two vertices that lie within 1e-2 of their chord of each other is a sliver. It flags every lens above on HEAD's tool. Two-edge faces in general (a lens between two arcs, a disc's one-edge loop) are not flagged.
+- **The check** (`brep-check-geometry.ts`, strict): a face is a sliver if it has one loop of two edges between the same two vertices, the edges lie within 1e-2 of their chord of each other, and one of them is a seam to a tangent face (normals within 1e-4 rad at its middle). That is a piece of one smooth surface split a hair beside the face that cut it.
+  - It flags every lens above on HEAD's tool (the seam there: 1.2e-6 rad).
+  - The first version, without the tangency condition, flagged real geometry too. RB found 9 new failures: cylinders grazing a box by 1e-4 make lenses as thin (1.75e-3 of the chord), and so does one STEP round trip. Their faces meet at 1.75e-2 rad or more. That version's RB rows went in with the fix commit (87d772843: 9 new); the corrected check is recorded in the next rows.
+  - Two-edge faces in general (a lens between two arcs, a disc's one-edge loop) are not flagged.
 - **Evidence** (`test/r10-5.test.mjs`, new test, failing on HEAD):
   - the variable-radius groove at 150, 175, 200, 250, 300, 350 and 400 stations: strict-valid, the same body faces, the same volume to 1e-9 (8983.1172428 at every count);
   - the groove's two rims filleted 1: strict-valid, equal to 1e-11 of the part (2e-12).

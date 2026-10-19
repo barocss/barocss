@@ -114,8 +114,10 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
   for (const v of brep.vertices) if (v.toleranceMM > cap) add('tolerance', `vertex ${v.id} tolerance ${v.toleranceMM} mm is past the cap ${cap} mm`);
   for (const face of brep.faces) {
     // (A lens: one loop of two edges between the same two vertices, the curves within a hundredth of their chord of
-    // each other all along — a patch's edge a hair beside the face that cut it, D102.)
-    const lens = lensGap(face, maps);
+    // each other all along, and across one of them a face tangent to it — a seam between patches of one smooth surface
+    // a hair beside the face that cut it, D102. Not a thin face of real geometry: a cylinder grazing a box makes lenses
+    // as thin, their faces meeting at an angle.)
+    const lens = lensGap(brep, face, maps);
     if (lens) add('geometry', `face ${face.id} is a sliver: its two edges lie within ${lens.gap.toExponential(2)} mm of each other over a ${lens.chord.toExponential(2)} mm chord`);
     // (A facet face's edges are polylines through its own vertices: on it by construction. Checked here: each
     // polyline vertex is one of the patch's.)
@@ -158,8 +160,11 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
   return { maximumEdgeSurfaceGapMM };
 }
 
-/** A face of one loop of two edges joining the same two vertices that lie within 1e-2 of their chord of each other. */
-function lensGap(face: Brep['faces'][number], maps: Maps): { gap: number; chord: number } | null {
+/**
+ * A face of one loop of two edges joining the same two vertices that lie within 1e-2 of their chord of each other, one
+ * of them a seam to a face tangent to it (normals within 1e-4 rad at its middle).
+ */
+function lensGap(brep: Brep, face: Brep['faces'][number], maps: Maps): { gap: number; chord: number } | null {
   if (face.loops.length !== 1) return null;
   const loop = maps.loops.get(face.loops[0]);
   if (!loop || loop.coedges.length !== 2) return null;
@@ -177,7 +182,22 @@ function lensGap(face: Brep['faces'][number], maps: Maps): { gap: number; chord:
     gap = Math.max(gap, best);
     if (gap >= 1e-2 * chord) return null;
   }
-  return { gap, chord };
+  const seam = [e1, e2].some(e => {
+    const other = brep.coedges.filter(c => c.edge === e.id).map(c => brep.faces.find(f => f.loops.includes(c.loop))).find(f => f && f !== face);
+    if (!other || other.surface.kind === 'facets' || face.surface.kind === 'facets') return false;
+    const [t0, t1] = curveDomain(e.curve), x = curveEvaluator(e.curve)((t0 + t1) / 2), n1 = normalAt(face, x), n2 = normalAt(other, x);
+    return !!n1 && !!n2 && Math.acos(Math.min(1, Math.abs(n1[0] * n2[0] + n1[1] * n2[1] + n1[2] * n2[2]))) < 1e-4;
+  });
+  return seam ? { gap, chord } : null;
+}
+/** A face's unit normal (either way) at its point nearest x: a plane's, else by differences at its parameters there. */
+function normalAt(face: Brep['faces'][number], x: Point): Point | null {
+  const S = face.surface as Surface, plane = planeMapper(face);
+  if (plane) { const [[p00, p01], [p10]] = S.controlPoints, n = cross(sub(p10, p00), sub(p01, p00)), l = Math.hypot(n[0], n[1], n[2]); return l > 0 ? [n[0] / l, n[1] / l, n[2] / l] : null; }
+  const q = surfaceMapper(face).uv(x, null), at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S), hu = 1e-6 * (U[1] - U[0]), hv = 1e-6 * (V[1] - V[0]);
+  const ua = Math.min(U[1], q[0] + hu), ub = Math.max(U[0], q[0] - hu), va = Math.min(V[1], q[1] + hv), vb = Math.max(V[0], q[1] - hv);
+  const du = sub(at(ua, q[1]), at(ub, q[1])), dv = sub(at(q[0], va), at(q[0], vb)), n = cross(du, dv), l = Math.hypot(n[0], n[1], n[2]);
+  return l > 0 ? [n[0] / l, n[1] / l, n[2] / l] : null;
 }
 function segmentDistance(x: Point, a: Point, b: Point): number {
   const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], l2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
