@@ -65,9 +65,5 @@ test('R10.3a the pipe clamp\'s lug loop in one feature (the coordinator\'s probe
   try { const fine = out([...lug, fillet('c', edges, 2)]).massProperties(1).volumeMM3 - v0; assert.ok(Math.abs(fine / added - 1) < 1e-6, `${added} vs ${fine}`); }
   finally { setRingStations(null); }
 });
-
-test('R10.3a refusals: a corner of three finished edges (a vertex blend, R10.3b) — VERTEX_BLEND_UNSUPPORTED', () => {
-  // The box boss's foot and one of its upright edges: three finished edges at a corner.
-  const upright = out(boss).brep.edges.find(e => /b\.side0/.test(e.name) && /b\.side1/.test(e.name)).name;
-  assert.throws(() => out([...boss, fillet('u', [...foot(boss), upright], 1)]), e => e.code === 'CAPABILITY' && /\[VERTEX_BLEND_UNSUPPORTED\]/.test(e.message));
-});
+// (R10.3a refused a corner of three finished edges — the boss's foot and one upright edge — as VERTEX_BLEND_UNSUPPORTED;
+// R10.3b blends it: r10-3b.test.mjs.)

@@ -4,7 +4,7 @@
   "decisions": [
     "D92"
   ],
-  "about": "R10.3a: the box boss's foot and one of its upright edges in one fillet — three finished edges at a corner: no ball rolls round an edge there, it is a vertex blend (R10.3b): VERTEX_BLEND_UNSUPPORTED.",
+  "about": "R10.3a: the box boss's foot and one of its upright edges in one fillet \u2014 three finished edges at a corner: no ball rolls round an edge there, it is a vertex blend (R10.3b): VERTEX_BLEND_UNSUPPORTED.",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -79,5 +79,9 @@
       "messageIncludes": "[VERTEX_BLEND_UNSUPPORTED]"
     }
   },
-  "oracle": "At the corner the foot edges meet the upright one: the round of all three there is a corner blend between a concave and a convex fillet, not a ball rolling round an unfinished edge."
+  "oracle": "At the corner the foot edges meet the upright one: the round of all three there is a corner blend between a concave and a convex fillet, not a ball rolling round an unfinished edge.",
+  "supersededBy": {
+    "step": "R10",
+    "why": "R10.3b (D93) blends a corner of three finished edges the two ways round in two passes: the boss's upright edge first, then its foot round it (r10-corner-boss-uprights-and-foot)."
+  }
 }

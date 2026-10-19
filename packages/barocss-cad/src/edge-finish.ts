@@ -47,7 +47,7 @@ interface Use { face: Brep['faces'][number]; geometry: Geo; sense: 'forward' | '
  * Fillets (radius) or chamfers (distance) the named edges of `body` and the edges continuing them
  * tangentially. Tool faces are named `${id}.face` (the fillet or chamfer surface).
  */
-export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: { readonly reports?: FilletReport[]; readonly general?: boolean } = {}): Brep {
+export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean } = {}): Brep {
   // (`general`: every closed loop by the rolling ball, even where a closed form exists — to check one against the other.)
   const reports = options.reports;
   let scaleMM = 1; for (const v of body.vertices) for (const x of v.point) scaleMM = Math.max(scaleMM, Math.abs(x));
@@ -94,6 +94,41 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     for (const end of ends(e)) for (const o of continues(e, end)) if (!chain.has(o.id)) { chain.set(o.id, o); queue.push(o); }
   }
 
+  // R10.3b (D93): a corner where three finished edges meet the two ways round — a boss's upright edge and its foot, an
+  // L-plate's inner upright edge and its top — is blended in two passes: the odd one out first (rounding the boss's
+  // upright edge down to the plate), then the others, which now run tangentially round the first's round (the foot round
+  // the rounded corner: R10.1's or the rolling ball's). More edges at a corner, or an edge odd at one corner and not at
+  // another, are refused.
+  if (kind === 'fillet' && !options.phased) {
+    const convexOf = new Map<string, boolean>(), convex = (e: Brep['edges'][number]) => {
+      let c = convexOf.get(e.id);
+      if (c === undefined) { const [E0] = ends(e); c = convexAt((usesOf.get(e.id) ?? []).map(u => { const n = sheetNormal(u.face, E0.x); return { n, w: unit(cross(n, u.sense === 'forward' ? E0.out : scale(E0.out, -1))) }; })); convexOf.set(e.id, c); }
+      return c;
+    };
+    const first = new Set<string>(), later = new Set<string>();
+    for (const [v, incident] of atVertex) {
+      const here = [...new Set(incident.filter(e => chain.has(e.id)))];
+      if (here.length < 3) continue;
+      const cs = here.map(convex), nConvex = cs.filter(c => c).length;
+      if (nConvex === 0 || nConvex === here.length) continue;
+      const where = body.vertices.find(x => x.id === v)!.point.map(x => +x.toFixed(3)).join(', ');
+      if (here.length > 3) refuse('CAPABILITY', `[VERTEX_BLEND_UNSUPPORTED] ${here.length} finished edges meet at (${where}), the two ways round; blending more than three there is not supported yet`);
+      const odd = nConvex === 1 ? cs.indexOf(true) : cs.indexOf(false);
+      here.forEach((e, k) => (k === odd ? first : later).add(e.id));
+    }
+    if (first.size) {
+      for (const x of first) if (later.has(x)) refuse('CAPABILITY', `[VERTEX_BLEND_UNSUPPORTED] edge ${body.edges.find(e => e.id === x)!.name} is the odd one out at one corner and not at another; blending those corners is not supported yet`);
+      const pass1 = finishBrepEdges(body, [...first].map(x => { const e = body.edges.find(q => q.id === x)!; return e.name ?? e.id; }), size, kind, id, { ...options, phased: true });
+      // (The rest by their faces: an edge keeps the names of the faces it joins; the first pass may have cut it shorter or
+      // in pieces, and the edges round its round continue it.)
+      const pairOfNames = (n: string) => n.split('|').map(x => x.replace(/#\d+$/, '')).sort().join('|');
+      const rest = new Set([...chain.values()].filter(e => !first.has(e.id)).map(e => pairOfNames(e.name ?? e.id)));
+      const names2 = pass1.edges.filter(e => rest.has(pairOfNames(e.name ?? e.id))).map(e => e.name ?? e.id);
+      if (!names2.length) return pass1;
+      return finishBrepEdges(pass1, names2, size, kind, id, { ...options, phased: true });
+    }
+  }
+
   // Arcs covering a whole circle between the same plane and cylinder make one closed tool (the first of
   // them stands for the rest).
   const skip = new Set<string>(), closedCircle = new Set<string>();
@@ -119,7 +154,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (Math.abs(total - 2 * Math.PI) <= 1e-9) { closedCircle.add(list[0].id); for (const e of list.slice(1)) skip.add(e.id); }
   }
 
-  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[]; sides: string[]; report: FilletReport }[] = [];
+  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [], concaveCorners: Brep[] = [], handled = new Set<string>(), rings: { brep: Brep; convex: boolean; contactFaces: string[]; sides: string[]; report: FilletReport }[] = [];
   // Corner blends: where three filleted straight edges between three planes meet at a convex vertex,
   // the rolling ball rounds the corner with a sphere about the point r from all three planes. Each
   // edge's tool then stops at the plane through that centre square to the edge (where its cylinder
@@ -132,8 +167,11 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     const fids = [...new Set(here.flatMap(facesOf))];
     if (fids.length !== 3 || !fids.every(f => geom(f).kind === 'plane')) continue;
     const V = body.vertices.find(x => x.id === v)!.point;
-    if (!here.every(e => convexAt(intoFaces(e, usesOf.get(e.id)!, ends(e)[0].x, ends(e)[0].out)))) continue;
-    const ns = fids.map(f => (geom(f) as Extract<FaceGeometry, { kind: 'plane' }>).n), C = solve3(ns, ns.map(n => dot(n, V) - size));
+    // (All convex: the ball inside the material, r in from each plane; all concave — a pocket's corner, R10.3b, D93 — in
+    // the air, r out from each, its corner tool added. Mixed corners are blended in two passes, below.)
+    const convexity = here.map(e => convexAt(intoFaces(e, usesOf.get(e.id)!, ends(e)[0].x, ends(e)[0].out)));
+    if (!(convexity.every(c => c) || convexity.every(c => !c))) continue;
+    const inward = convexity[0], ns = fids.map(f => (geom(f) as Extract<FaceGeometry, { kind: 'plane' }>).n), C = solve3(ns, ns.map(n => dot(n, V) + (inward ? -size : size)));
     if (!C) continue;
     const outs = here.map(e => ends(e).find(x => x.v === v)!.out), setbacks = outs.map(d => dot(sub(C, V), d));
     here.forEach((e, k) => {
@@ -141,7 +179,11 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
       if (!(setbacks[k] > 0) || setbacks[k] >= L) refuse('PARAMETER', `edge ${e.name}: a fillet of ${size} mm does not fit (the corner needs ${+setbacks[k].toFixed(6)} mm of a ${+L.toFixed(6)} mm edge)`);
       const t = trims.get(e.id) ?? [0, 0]; t[ends(e)[0].v === v ? 0 : 1] = setbacks[k]; trims.set(e.id, t);
     });
-    cornerTools.push(cornerTool(V, C, outs, size, id));
+    // (Added, a concave corner's tool is kept within g of the air side of each face: its cone reaches well past V, and
+    // past a wall thinner than that it would add material outside the body.)
+    let ct = cornerTool(V, C, outs, size, id);
+    if (!inward) for (const n of ns) ct = booleanAnalytic(ct, halfSpace(sub(V, scale(n, size / 2)), scale(n, -1), 8 * (len(sub(V, C)) + size), `${id}_k`), 'difference', { id: `${id}_c` });
+    (inward ? cornerTools : concaveCorners).push(ct);
   }
   // Corner blends at both ends of one edge must leave some of it between them.
   for (const [eid, [t0, t1]] of trims) {
@@ -341,6 +383,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
   apply(convexTools, 'difference');
   apply(cornerTools, 'difference');
   apply(concaveTools, 'union');
+  apply(concaveCorners, 'union');
   return out;
 }
 
@@ -532,7 +575,8 @@ function cornerTool(V: Point, C: Point, outs: Point[], r: number, id: string): B
   const reach = 4 * (len(sub(V, C)) + r), pts: Point[] = [C, ...rays.map(u => add(C, scale(u, reach)))];
   const cone = tetrahedron(pts, `${id}.tool`);
   // The ball about an axis through the cone towards V (its pole is the corner's apex, its seams lie in no
-  // plane of the cone).
+  // plane of the cone). (Turned so its poles and seam lie off the patch, the patch integrates exactly — 2e-10 on one
+  // corner — but the Boolean's march along the ball's tangent circles with the edge tools then fails on some boxes, D93.)
   const axis = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), e1 = unit(sub(any, scale(axis, dot(any, axis)))), e3 = cross(e1, axis);
   const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
   const placed = transformBrep(ball, { matrix: [e1[0], axis[0], e3[0], e1[1], axis[1], e3[1], e1[2], axis[2], e3[2]], offset: [C[0], C[1], C[2]] });

@@ -1,0 +1,114 @@
+{
+  "id": "r10-corner-l-plate-top-and-inner-upright",
+  "step": "R10",
+  "decisions": [
+    "D93"
+  ],
+  "about": "R10.3b: an L-plate's whole top and its inner upright edge filleted 2 mm in one feature — at the inner corner a concave edge meeting two convex ones: the upright rounded first, then the top round it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              20
+            ],
+            [
+              20,
+              20
+            ],
+            [
+              20,
+              40
+            ],
+            [
+              0,
+              40
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top",
+            "e.side1|e.top",
+            "e.side2|e.top",
+            "e.side3|e.top",
+            "e.side4|e.top",
+            "e.side5|e.top",
+            "e.side2|e.side3"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11875.208203694834,
+          "relTol": 5e-8
+        },
+        "centroidMM": {
+          "value": [
+            16.660805565628014,
+            16.66080556567396,
+            4.9489106277839525
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.side4",
+          "e.side5",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: the L-plate 12000; its inner upright edge's round adds (1 − π/4) r² × 10; the top takes (1 − π/4) r² along 160 − 2r mm of straight edge, less the five mitres' overlaps r³ (5/3 − π/2), and round the inner round a quarter turn of its section (π/2)(r A + r³ (5/6 − π/4))."
+}

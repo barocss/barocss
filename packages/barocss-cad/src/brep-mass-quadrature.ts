@@ -189,7 +189,9 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // keeps the square-of-the-step error, extrapolated as such.)
     // (Edges counted by position, not vertex index: a face's vertex list repeats points, and a chord counted
     // twice would add its strip twice. Triangles of no area in (u, v) bound nothing.)
-    const pole = polesOf(surfaces.get(face.faceId)!).length > 0, users = new Map<string, { t: number; e: number }[]>();
+    // (A pole counts where the face reaches it: a ball's patch away from both poles — a corner blend's, D93 — is a plain
+    // trimmed face.)
+    const span = Math.max(du, dv, 1e-300), pole = polesOf(surfaces.get(face.faceId)!).some(q => uv.some(x => Math.abs(x[q.along === 0 ? 1 : 0] - q.at) <= 1e-9 * span)), users = new Map<string, { t: number; e: number }[]>();
     if (!pole) for (let t = 0; t < domain.length; t++) {
       const [i, j, k] = domain[t], qa = uv[i - off], qb = uv[j - off], qc = uv[k - off];
       if ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0]) === 0) continue;

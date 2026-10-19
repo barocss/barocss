@@ -58,7 +58,7 @@ const rules: { test: RegExp; title: string; hint: string }[] = [
     hint: 'Use a radius a little smaller than the circle’s radius.' },
   { test: /VERTEX_BLEND_UNSUPPORTED|meets another finished edge at its end/i,
     title: 'These fillets meet at a corner',
-    hint: 'Where three rounded edges meet at one corner, the corner blend comes next. For now, leave one of the edges out (round it in a second fillet), or round edges that meet two at a corner.' },
+    hint: 'Up to three rounded edges can meet at a corner. Where more meet, or one edge would have to be rounded first at one corner and last at another, leave one of them out and round it in a second fillet.' },
   { test: /end square on a face|its end meets a curved face|its end meets more than one face/i,
     title: 'The fillet can’t end here yet',
     hint: 'This round would stop square on a face, or where more than one face meets. Extend the body past the edge’s end, or pick an edge that ends on one flat face at an angle.' },

@@ -4488,3 +4488,31 @@ R10.3 is split, as R10.2 was:
   - Mitres with curved faces are refused.
   - The lug loop takes about 3 s; the box boss 3.5 s (1356 stations, set by the corner sections).
 - **Not done:** R10.3b (vertex blends), R10.3c (R10.2b's end refusals), R10.4 (overflow), R10.5; general chamfers.
+
+## D93 — R10.3b: corners of three finished edges — concave sphere corners, mixed corners in two passes (2026-10-19)
+
+R10.3b: corners where three finished edges meet.
+- Three planes all convex (a box's corner) already had the ball's eighth (D22).
+- **All concave** (a pocket's corner) now has it too. The ball is in the air, r out from each plane: `solve3` with +r, and the same corner tool (the cone from the ball's centre bounded by the planes through it square to the edges, less the ball), added rather than removed.
+  - Added, the cone reaches well past the vertex and would add material outside a wall thinner than its reach. So it is kept within g = r/2 of the air side of each face (three half-space cuts), and applied after the edge tools.
+- **The two ways round** (a boss's upright edge meeting its two foot edges; an L-plate's inner upright edge meeting its two top edges) are blended in two passes in one feature: the odd one out first, then the others.
+  - The boss's uprights are rounded down to the plate. The foot then runs tangentially round each round (a torus quarter, R10.1's plane–cylinder tool, or the rolling ball where other corners need it).
+  - The second pass finds its edges by their faces' names: the first pass shortens them, or cuts them in pieces, and the new edges round its round continue them tangentially.
+  - Refused (CAPABILITY `[VERTEX_BLEND_UNSUPPORTED]`): more than three finished edges at a mixed corner; an edge that is odd one out at one corner and not at another.
+  - Corners of three edges the same way round between faces other than planes keep their R10.1 behaviour (mitres): not yet the ball touching three curved faces.
+- **Evidence** (`packages/barocss-cad/test/r10-3b.test.mjs`, 3 tests; closed forms by Pappus about each round's axis):
+  - **Pocket corner** (30 × 20 pocket, 10 deep, floor and uprights, r 2): A = (1 − π/4) r² along each edge less r at each corner, plus 4 × (1 − π/6) r³. The result is 2.1e-4 of the fillet high (5.8e-7 of the part), the corner patch's quadrature (below).
+  - **Box boss's foot with its four uprights:** A (64 − 8r) + 4 (π/2)(r A + M) − 4 A × 15 (M = r³ (5/6 − π/4)), to 1e-13. The same as the two fillets one after the other, to 1e-9.
+  - **Box boss's foot with one upright** (one corner the two ways round, three rolling round their uprights, R10.3a): to 1e-10.
+  - **L-plate's top with its inner upright edge:** −A × 10 + A (160 − 2r) − 5 r³ (5/3 − π/2) + (π/2)(r A + M), to 2e-10.
+  - **R10.3a's refusal** (the foot and one upright) now builds: `r10/refuse-vertex-blend` is superseded.
+  - **Conformance:**
+    - `r10/corner-pocket` (closed form, relTol 1e-6 of the part, its oracle naming the quadrature);
+    - `r10/corner-boss-uprights-and-foot` (2e-8);
+    - `r10/corner-l-plate-top-and-inner-upright` (5e-8).
+  - **Studio:** the VERTEX_BLEND hint reworded (up to three can meet). A flow step opens a box-boss file, picks its foot and four uprights (8 edges) and fillets them (+2.90 mm³, the closed form).
+- **Mass at a ball's corner (found here, recorded as a TODO):** the corner patch is a piece of a revolved ball with its pole at the corner's apex, inside the patch. There the quadrature over the trimmed domain does not converge cleanly: on the pocket corner, q 8, 16, 32 and 64 give 1.3e-4, −3.3e-5, 3.4e-6 and −1.3e-4 of the fillet. The convex box corner (D22) is the same, which is why its test holds 5e-5 of the part.
+  - Turning the ball so that its poles and seam lie off the patch makes the patch integrate exactly (one convex corner to 1.7e-10). But the analytic Boolean's march along the ball's tangent circles with the edge tools then failed on some boxes ("a straight edge on a cylinder runs across its axis direction"), so it was not kept.
+  - A pole now counts in the quadrature only where the face's domain reaches it, a no-op for these patches.
+  - Next: exact integration of a ball patch, or the march along tangent circles.
+- **Not done:** the ball touching three curved faces; corners of four or more finished edges; R10.3c (R10.2b's refused ends); R10.4–R10.5.

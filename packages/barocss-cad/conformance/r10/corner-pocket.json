@@ -1,0 +1,126 @@
+{
+  "id": "r10-corner-pocket",
+  "step": "R10",
+  "decisions": [
+    "D93"
+  ],
+  "about": "R10.3b: a pocket 30 \u00d7 20, 10 deep, in a block, its floor and upright edges filleted 2 mm \u2014 three concave fillets between planes at each corner: the ball in the air touching all three, its eighth (as the convex box corner, D22).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            60,
+            40
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 20
+        },
+        {
+          "id": "ps",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            15,
+            10
+          ],
+          "max": [
+            45,
+            30
+          ]
+        },
+        {
+          "id": "p",
+          "kind": "extrude",
+          "sketch": "ps",
+          "height": 15,
+          "from": 10
+        },
+        {
+          "id": "c",
+          "kind": "difference",
+          "target": "b",
+          "tool": "p"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "c",
+          "edges": [
+            "p.bottom|p.side0",
+            "p.side0|p.side3",
+            "p.side0|p.side1",
+            "p.bottom|p.side3",
+            "p.side2|p.side3",
+            "p.bottom|p.side2",
+            "p.side1|p.side2",
+            "p.bottom|p.side1"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 42114.82009136444,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            30.00000038914931,
+            20.000000176479077,
+            9.292602915613402
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "f.face",
+          "p.bottom",
+          "p.side0",
+          "p.side1",
+          "p.side2",
+          "p.side3"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-07
+    }
+  },
+  "oracle": "Closed form: the block 48000 less the pocket 6000; the fillet (1 \u2212 \u03c0/4) r\u00b2 along its edges, each shortened by r at each corner, and at each of the four corners the cube r\u00b3 less the ball's eighth, (1 \u2212 \u03c0/6) r\u00b3. relTol 1e-6 of the part (about 4e-4 of the fillet; this kernel is 5.8e-7, 2.1e-4 of the fillet, high): the corner patches hold their ball's pole, where the quadrature over a trimmed domain is least accurate (D22, D93); the geometry is exact."
+}
