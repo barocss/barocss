@@ -63,6 +63,8 @@ Done:
    - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5 taken as R10's order by its S0, D87; R11.1–R11.3 proposed).
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
    - A7 (multi-agent v1, the Integrator's op patches against a base revision): design input the same note.
+   - R14 (automatic drawings): design input `handover/notes/research-draftwright-2026-10-19.md` (a web drawing editor's flow: grouped hole dimensions, feature callouts, a drawing issue list; order unchanged).
+   - A6 (inputs): design input `handover/notes/research-draftwright-2026-10-19.md` (its spec-question panel: required vs. worth-a-check, accept-all, nothing blocked).
 2. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
    - PCB/ECAD: see `handover/notes/research-pcb-ecad-2026-10-19.md`, not scheduled; deferred by the owner (2026-10-19).
 3. RB5–RB9.
@@ -145,12 +147,11 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 - `pnpm build:library` in `packages/barocss-cad` and `packages/barocss-gpu` before their tests and the studio (never bare `tsc` there).
 - Studio: `pnpm test`, `pnpm type-check`, `pnpm bench` (Node benches with budgets), `pnpm bench:browser` (submits per frame; needs `CHROME`/`PW_DIR` as in §2), `pnpm test:browser` (the browser flow, `node test/browser-flow.mjs <out-dir>`).
 - Kernel (`packages/barocss-cad`): `pnpm test`, `pnpm rb` (robustness bench; TODO rows are the known items above), `pnpm rb:props`, and the conformance suite `node --test test/conformance.test.mjs`.
-- **The flow's Playwright (`PW_DIR`, 2026-10-19):** the flow needs only the `playwright` package (it drives the system Chrome given as `CHROME`, so no browser download is needed).
-  - The npx cache it used (`~/.npm/_npx/e41f203b7505f1fb/…`) is gone. D99 and D100 ran with a read-only install from another checkout (`/Users/user/github/zero-js/editor-editor-generated/design-system-product-ui-custom-design-system/node_modules/playwright`, 1.62.1); do not rely on it.
-  - Make a stable one, then point `PW_DIR` at it:
-    `npm install --prefix "$HOME/.cache/barocss-playwright" --no-save playwright@1.62.1` → `PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright`.
-  - Or use npx: `npx -y playwright@1.62.1 --version` → `PW_DIR=$(ls -d ~/.npm/_npx/*/node_modules/playwright | head -1)`.
-  - Verified with 1.62.1 only; other versions are untested.
+- **The flow's Playwright (`PW_DIR`, owner 2026-10-19: "download Playwright and use that"):** the flow needs only the `playwright` package; it drives the system Chrome given as `CHROME`, so no browser download is needed.
+  - It is installed outside the repo, so no manifest or lockfile changes. Its own npm cache is used because `~/.npm/_cacache` has entries this user cannot write (EACCES):
+    `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --prefix "$HOME/.cache/barocss-playwright" --cache "$HOME/.cache/barocss-playwright/.npm-cache" --no-audit --no-fund playwright@1.62.1`
+  - `PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright` (1.62.1).
+  - The old npx cache path (`~/.npm/_npx/e41f203b7505f1fb/…`) is gone. The read-only install in another checkout, used for D99–D100, is no longer needed.
 
 ## 1. Where the work is
 
