@@ -1,0 +1,39 @@
+{
+ "case": "not-blocking-stated",
+ "step": "A6.2",
+ "note": "The material is already stated: a question about it blocks nothing (NOT_BLOCKING).",
+ "input": {
+  "setup": {
+   "brief": {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a wall bracket for a 30 mm pipe"
+    },
+    "material": {
+     "value": "petg",
+     "basis": "stated",
+     "source": "in PETG"
+    }
+   }
+  },
+  "steps": [
+   {
+    "questions": [
+     {
+      "id": "q2",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     }
+    ],
+    "expect": "NOT_BLOCKING"
+   }
+  ]
+ },
+ "expect": {
+  "batches": []
+ }
+}

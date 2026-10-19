@@ -1,0 +1,39 @@
+{
+ "case": "not-blocking-optional",
+ "step": "A6.2",
+ "note": "The finish is assumed but not required: a question about it blocks nothing (NOT_BLOCKING).",
+ "input": {
+  "setup": {
+   "brief": {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a wall bracket for a 30 mm pipe"
+    },
+    "finish": {
+     "value": "matte",
+     "basis": "assumed",
+     "why": "a bracket"
+    }
+   }
+  },
+  "steps": [
+   {
+    "questions": [
+     {
+      "id": "q1",
+      "text": "What finish?",
+      "kind": "text",
+      "blocks": {
+       "field": "finish"
+      }
+     }
+    ],
+    "expect": "NOT_BLOCKING"
+   }
+  ]
+ },
+ "expect": {
+  "batches": []
+ }
+}

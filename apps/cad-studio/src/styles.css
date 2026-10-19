@@ -116,7 +116,7 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .outliner .card-title .muted { flex: 1; }
 .ol-head { margin: 8px 0 2px; color: var(--muted); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
 /* Requirements (chat/spec.ts): each with its status; assumed ones editable. */
-.req-head { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.req-head, .specify-head { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
 .req { display: flex; flex-direction: column; gap: 2px; border-radius: 5px; }
 .req-row { display: block; width: 100%; padding: 3px 4px; border: 0; border-radius: 4px; background: transparent; color: var(--text); font: inherit; font-size: 12px; line-height: 1.4; text-align: left; white-space: normal; cursor: pointer; }
 .req-row:hover { background: rgba(255, 255, 255, 0.05); }
@@ -425,3 +425,9 @@ button.chip.snap:hover { background: #3a3c41; }
 .cage-panel .cage-ops { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 .cage-panel .row-buttons { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
 .cage-panel .row-buttons .grow { flex: 1; }
+/* The Specify panel (A6.2): the agent's open questions and its assumptions worth a check. */
+.specify { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+.specify-q { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+.specify-q input, .specify-q select { width: 100%; }
+.specify-sub { margin-top: 4px; }
+.specify .row { display: flex; gap: 6px; }

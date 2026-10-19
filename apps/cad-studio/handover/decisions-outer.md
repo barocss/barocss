@@ -1057,3 +1057,70 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - Studio 536/536. Bench: every row within budget; the mass rows are unchanged.
 - **Found by the flow**: the Browser's headers are upper-cased by CSS, so the step reads them case-insensitively.
 - **Next**: A6.2, the clarifying policy. Its questions must cite a gap `get_brief` reports, or a hard requirement whose value is unknown.
+
+## O25 — A6.2: the clarifying policy; a quote said to be the user's is checked against what they typed (2026-10-20)
+
+- **The user's say** (the coordinator's gap, closed first since it is the same trust boundary).
+  - The studio sends **what the user typed this conversation** (`turns`) with each turn. These are their own messages as typed, without the selection or attachment notes, reset by New conversation. The Specify panel's answers are messages too, so they are in it.
+  - The path: the chat server checks the turns (at most 500, each at most 20 000 characters) and puts them in the turn's state file. The MCP server puts them in `ChatState.turns`. The agent never writes them.
+  - **A stated quote must be verbatim in one of the user's messages**, with whitespace runs normalised to one space and nothing else (`saidIn`); a quote across two messages is not one quote. Otherwise it is refused, typed **`SOURCE_NOT_SAID`**.
+  - This applies to the brief's stated fields and to stated requirements (basis stated, or none).
+  - **Where there is no conversation** (cad-cli, `cad-mcp --doc`, a plain script, `dispatchTool` without turns), a stated field or requirement is kept as **stated but unverified** (`said: 'unverified'`). The Browser marks it ✓? with "unverified: no conversation to check the quote against", `get_brief` lists it, and the user can Confirm it.
+  - **Only the user confirms** — in the requirements too now: `confirmed` or `said` given by the agent is refused (`CONFIRM_IS_THE_USERS`, or `BAD_FIELD` in the brief).
+  - **A requirement the user stated (verified) or confirmed is not replaced** by an assumed one, **nor dropped** by `replace: true` (`STATED_KEPT`), as the brief's fields are not.
+- **The questions** (`src/chat/questions.ts`, tool `ask_user`; v2 `requirements.ask`). The tool holds the policy, not just the prompt:
+  - at most **5 questions a batch** (`TOO_MANY`), at most **2 batches a brief** (`BATCHES_USED`), one open at a time (`OPEN_BATCH`). The log is in the document (`questions`, version 1), so it holds across turns and sessions;
+  - each question names what it **blocks**: `{field}`, a required brief field that `get_brief` reports as a gap, or `{requirement}`, a hard requirement whose value was assumed or ambiguous and not confirmed. Anything else is refused as **`NOT_BLOCKING`**, with what may be asked now, and is to be made an assumption: a stated field, an optional field, a soft requirement, a stated one, an unknown one;
+  - `BAD_QUESTION` covers the rest: two questions on one gap, a choice outside 2–8 options, a process option that is not a process, a requirement's value asked as anything but a number;
+  - the prompt: ask only what blocks; assume everything else with why, and say so; nothing waits on the answers. The image line now asks for a key dimension within the batches and builds at an assumed size meanwhile.
+- **The Specify panel** (`src/ui/SpecifyPanel.tsx`, in the Browser above the brief). It is our own layout, following the reference's required / worth-a-check / accept-all pattern only:
+  - "N to answer · M to check";
+  - the open questions with a choice, number or text input; **Send answers** (a blank one is skipped) and **Skip**;
+  - the assumptions worth a check: the brief's assumed or ambiguous fields and the unconfirmed assumed requirements, each with its why. Each is editable in its own row: the brief's Confirm and the requirement's value.
+  - **Accept N as they are**;
+  - "Nothing is blocked: the agent goes on with its assumptions."
+- **Answers** (`answerBatch`):
+  - each is written where it belongs as the user's: stated, with the answer as its source, `said: 'verified'` and `confirmed: {by: 'user', at}`. A requirement's value is set;
+  - the batch is marked answered (or skipped) with the answers kept;
+  - a value that does not fit is refused before anything is written;
+  - the result is one message, "My answers to your questions (batch n): …", which the studio sends to the chat as the user's. ChatPanel takes an `outbox` and sends it once the chat is free.
+  - **Accept all** confirms every listed assumption and sends "I accept your N assumptions as they are: …".
+- **The listed tools' size**: `tools/list` had grown past A5.1's guard on what the contract adds (15 173 over 15 000).
+  - A read tool now lists `readOnlyHint` and `openWorldHint` without `destructiveHint` and `idempotentHint`, which MCP defines as meaningful only when `readOnlyHint` is false. That gives 13 701.
+  - The internal annotations, the frozen contract and the guard are unchanged.
+- **Evidence**: `test/clarify.test.ts` (5 tests).
+  - **The made-up quote**:
+    - stated PETG is verified ("PETG please" against "PETG\nplease");
+    - the agent's invented "switch it to PLA" is refused `SOURCE_NOT_SAID`, the state the very same object, PETG kept;
+    - case is not normalised;
+    - a quote spanning two messages is refused;
+    - once the user does say it, the change is theirs;
+    - an empty conversation verifies nothing.
+  - **No conversation**: stated but unverified, listed by `get_brief`; the agent cannot mark it verified. The MCP state file carries the turns into the tools' state, and absent turns stay absent.
+  - **Requirements**:
+    - a stated source must be said;
+    - an assumed one needs no quote;
+    - an agent-supplied `confirmed` is refused;
+    - the user's R1 is not replaced by an assumed R1, nor dropped by `replace: true`;
+    - an assumed R2 may be replaced;
+    - without a conversation, it is unverified.
+  - **The eight question fixtures** in `conformance/a6/questions` are hand-written:
+    - two batches answered, then a third refused;
+    - too many;
+    - not blocking: a stated field (the coordinator's test), an optional field, a soft requirement, a hard stated one, an unknown one;
+    - an open batch;
+    - all skipped;
+    - malformed questions.
+    - Each is run through the tool, checking the batch states, and the answered fields and requirements as the user's (stated, confirmed, verified, their words).
+  - **The message's exact text**; a bad answer refused before anything is written; the answer then in the conversation (a later quote of it verified); accept-all confirming every assumption, then nothing left.
+  - Browser flow 168/168, with a step "A6.2" before the last, run through the real chat and tool servers. The scripted agent:
+    - writes the purpose quoting the user's message (verified) and an assumed finish;
+    - asks process and material ("2 to answer · 1 to check").
+  - The user answers fdm and petg in the Specify panel. The answers are stated, confirmed, verified; the part's process is fdm; the batch answered; the chat shows their message.
+  - In a second turn, a question on the stated material is refused `NOT_BLOCKING`, and a requirement quoting "30 mm pipe" is kept verified, with one batch used.
+  - Accept all confirms the finish and sends its message.
+  - Studio 541/541. Bench: every row within budget. Lint and type-check clean.
+- **Found by the flow, fixed before commit**:
+  - (1) the Specify and Brief headers carried the requirements' `req-head` class, so a step reading the first `.req-head` read theirs; they have their own class now;
+  - (2) a step's title became a screenshot file name past the 255-character limit, so it is shorter.
+- **Next**: A6.3, the locked reference body. A keep-out decided on mesh clearance states its chord tolerance; within it of the limit, it is undecided.

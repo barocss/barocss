@@ -12,15 +12,15 @@ function shown(key: BriefKey, f: Field<unknown>): string {
 export function BriefPanel({ brief, onConfirm }: { brief: Brief; onConfirm: (key: BriefKey) => void }) {
   const gaps = briefGaps(brief), missing = gaps.filter(g => g.why === 'missing');
   return <>
-    <div className="ol-head req-head">Brief <span className="muted" aria-label="Brief gaps">{gaps.length ? `${gaps.length} to settle${missing.length ? ` · ${missing.map(g => LABEL[g.field]).join(', ')} missing` : ''}` : 'complete'}</span></div>
+    <div className="ol-head specify-head">Brief <span className="muted" aria-label="Brief gaps">{gaps.length ? `${gaps.length} to settle${missing.length ? ` · ${missing.map(g => LABEL[g.field]).join(', ')} missing` : ''}` : 'complete'}</span></div>
     {BRIEF_FIELDS.map(key => {
       const f = brief[key] as Field<unknown> | undefined;
       if (!f) return REQUIRED.includes(key) ? <div key={key} className="req unknown" role="listitem" aria-label={`Brief ${key}`}><span className="req-row"><span className="req-mark">?</span><b>{LABEL[key]}</b> <span className="muted">missing · required</span></span></div> : null;
-      const open = f.basis !== 'stated';
+      const open = f.basis !== 'stated', unchecked = !open && f.said === 'unverified' && !f.confirmed;
       return <div key={key} className={'req ' + (open ? 'unknown' : 'pass')} role="listitem" aria-label={`Brief ${key}`}>
-        <span className="req-row" title={f.source ?? f.why ?? ''}><span className="req-mark">{open ? '?' : '✓'}</span><b>{LABEL[key]}</b> {shown(key, f)}
-          <span className="muted"> · {f.basis}{f.confirmed ? ` (confirmed by ${f.confirmed.by})` : ''}{open && f.why ? ` · ${f.why}` : ''}</span></span>
-        {open && <span className="req-edit"><button className="ghost small" aria-label={`Confirm brief ${key}`} onClick={() => onConfirm(key)}>Confirm</button></span>}
+        <span className="req-row" title={f.source ?? f.why ?? ''}><span className="req-mark">{open ? '?' : f.said === 'unverified' && !f.confirmed ? '✓?' : '✓'}</span><b>{LABEL[key]}</b> {shown(key, f)}
+          <span className="muted"> · {f.basis}{f.confirmed ? ` (confirmed by ${f.confirmed.by})` : f.said === 'unverified' ? ' (unverified: no conversation to check the quote against)' : ''}{open && f.why ? ` · ${f.why}` : ''}</span></span>
+        {(open || unchecked) && <span className="req-edit"><button className="ghost small" aria-label={`Confirm brief ${key}`} onClick={() => onConfirm(key)}>Confirm</button></span>}
       </div>;
     })}
   </>;

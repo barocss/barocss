@@ -25,6 +25,9 @@ export interface Field<T> {
   why?: string;
   /** Set by the studio when the user confirms it: stated since. */
   confirmed?: { by: 'user'; at: string };
+  /** A stated field's quote checked against what the user typed this conversation (verified), or with no conversation
+   * to check it against (unverified: cad-cli, cad-mcp --doc, a plain script). */
+  said?: 'verified' | 'unverified';
 }
 export interface Envelope { x: number; y: number; z: number }
 export interface Brief {
@@ -48,7 +51,7 @@ export const isLibraryMaterial = (id: string) => MATERIALS_DATA.materials.some(m
 const text = (v: unknown) => (typeof v === 'string' && v.trim().length > 0 && v.length <= MAX_TEXT ? null : `a text of 1–${MAX_TEXT} characters`);
 const pos = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v > 0;
 /** Why a value does not fit its field (null: it fits). */
-function badValue(key: BriefKey, v: unknown): string | null {
+export function badValue(key: BriefKey, v: unknown): string | null {
   switch (key) {
     case 'process': return (PROCESSES as readonly string[]).includes(v as string) ? null : `one of ${PROCESSES.join(', ')}`;
     case 'quantity': return Number.isInteger(v) && (v as number) > 0 ? null : 'a whole number above 0';
@@ -71,15 +74,21 @@ export function briefGaps(b: Brief | undefined): Gap[] {
 /** Whether a field is stated: by the user's words or confirmed by them. */
 export const isStated = (f: Field<unknown> | undefined) => f?.basis === 'stated';
 
-export type BriefCode = 'BAD_FIELD' | 'STATED_KEPT' | 'NO_SOURCE' | 'CONFIRM_IS_THE_USERS';
+export type BriefCode = 'BAD_FIELD' | 'STATED_KEPT' | 'NO_SOURCE' | 'SOURCE_NOT_SAID' | 'CONFIRM_IS_THE_USERS';
+/** Whitespace runs as one space, the ends trimmed: the only normalisation a quote gets. */
+export const squash = (t: string) => t.replace(/\s+/g, ' ').trim();
+/** Whether a quote is verbatim in one of the user's messages (whitespace normalised only). */
+export const saidIn = (quote: string, turns: readonly string[]) => { const q = squash(quote); return q.length > 0 && turns.some(t => squash(t).includes(q)); };
 export interface BriefError { code: BriefCode; message: string }
 /**
  * A patch to the brief, all or nothing: each field {value, basis, source?, why?} or null to clear it. Refused, typed:
  * an unknown field or a value that does not fit (BAD_FIELD); a stated field overwritten or cleared by an assumption
  * (STATED_KEPT, naming the user's words); a stated field without the user's words (NO_SOURCE); `confirmed` set by the
- * agent (CONFIRM_IS_THE_USERS: only the user confirms, in the studio).
+ * agent (CONFIRM_IS_THE_USERS: only the user confirms, in the studio). With the conversation (`turns`, what the user
+ * typed), a stated field's quote must be verbatim in it, whitespace aside (SOURCE_NOT_SAID); without one it is kept as
+ * stated but unverified, and shown so.
  */
-export function patchBrief(was: Brief | undefined, patch: unknown): { brief: Brief | undefined; changed: BriefKey[] } | { error: BriefError } {
+export function patchBrief(was: Brief | undefined, patch: unknown, turns?: readonly string[]): { brief: Brief | undefined; changed: BriefKey[] } | { error: BriefError } {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return { error: { code: 'BAD_FIELD', message: `"fields" is {field: {value, basis, source?, why?} | null}; fields: ${BRIEF_FIELDS.join(', ')}.` } };
   const next: Brief = { ...(was ?? { version: BRIEF_VERSION }) }, changed: BriefKey[] = [];
   for (const [key, raw] of Object.entries(patch as Record<string, unknown>)) {
@@ -98,8 +107,9 @@ export function patchBrief(was: Brief | undefined, patch: unknown): { brief: Bri
     const bad = badValue(k, f.value); if (bad) return { error: { code: 'BAD_FIELD', message: `${k}.value is ${bad}.` } };
     for (const t of ['source', 'why'] as const) if (f[t] !== undefined && text(f[t])) return { error: { code: 'BAD_FIELD', message: `${k}.${t} is ${text(f[t])}.` } };
     if (f.basis === 'stated' && f.source === undefined) return { error: { code: 'NO_SOURCE', message: `${k} is stated: quote the user's words in "source", or say it is assumed.` } };
+    if (f.basis === 'stated' && turns && !saidIn(f.source as string, turns)) return { error: { code: 'SOURCE_NOT_SAID', message: `${k}: "${f.source as string}" is not in what the user wrote this conversation; quote their words exactly, or say it is assumed.` } };
     if (f.basis !== 'stated' && isStated(old)) return { error: { code: 'STATED_KEPT', message: `${k} was stated by the user${old!.source ? ` ("${old!.source}")` : ''}: an assumption does not replace it.` } };
-    const field: Field<unknown> = { value: f.value, basis: f.basis, ...(f.source !== undefined ? { source: f.source as string } : {}), ...(f.why !== undefined ? { why: f.why as string } : {}) };
+    const field: Field<unknown> = { value: f.value, basis: f.basis, ...(f.source !== undefined ? { source: f.source as string } : {}), ...(f.why !== undefined ? { why: f.why as string } : {}), ...(f.basis === 'stated' ? { said: turns ? 'verified' as const : 'unverified' as const } : {}) };
     if (JSON.stringify(field) !== JSON.stringify(old)) { (next as unknown as Record<string, unknown>)[k] = field; changed.push(k); }
   }
   const empty = BRIEF_FIELDS.every(k => next[k] === undefined);
@@ -137,6 +147,9 @@ export function briefReport(doc: StudioDoc) {
   const b = doc.brief, p = b?.process, m = b?.material;
   return {
     brief: b ?? null, gaps: briefGaps(b), complete: !briefGaps(b).some(g => REQUIRED.includes(g.field)),
+    unverified: BRIEF_FIELDS.filter(k => b?.[k]?.said === 'unverified' && !b[k]!.confirmed),
+    // (The clarifying questions, A6.2: batches used of two, and the open one's ids.)
+    asked: { batches: doc.questions?.batches?.length ?? 0, of: 2, open: doc.questions?.batches?.find(x => x.status === 'open')?.questions.map(q => q.id) ?? [] },
     process: p ? { value: p.value, checked: !!processProfile(p.value), ...(UNCHECKED[p.value] ? { note: UNCHECKED[p.value] } : {}), applied: isStated(p) && doc.process === p.value } : null,
     material: m ? { value: m.value, library: isLibraryMaterial(m.value), applied: briefMaterial(doc) === m.value, ...(!isLibraryMaterial(m.value) ? { note: `not in the material library (${MATERIALS_DATA.materials.map(x => x.id).join(', ')}): kept as written, its density unknown, so a mass stays assumed` } : !isStated(m) ? { note: 'assumed: not applied to the bodies until the user states or confirms it' } : {}) } : null,
   };
@@ -147,7 +160,10 @@ export function readBrief(raw: unknown): Brief | undefined {
   const out: Brief = { version: BRIEF_VERSION };
   for (const k of BRIEF_FIELDS) {
     const f = (raw as Record<string, unknown>)[k] as Field<unknown> | undefined;
-    if (f && typeof f === 'object' && (f.basis === 'stated' || f.basis === 'assumed' || f.basis === 'ambiguous') && !badValue(k, f.value)) (out as unknown as Record<string, unknown>)[k] = f;
+    if (f && typeof f === 'object' && (f.basis === 'stated' || f.basis === 'assumed' || f.basis === 'ambiguous') && !badValue(k, f.value)) {
+      const { said, ...rest } = f;
+      (out as unknown as Record<string, unknown>)[k] = said === 'verified' || said === 'unverified' ? f : rest;
+    }
   }
   return BRIEF_FIELDS.some(k => out[k]) ? out : undefined;
 }
@@ -158,7 +174,7 @@ const FIELD_SCHEMA = { type: ['object', 'null'], properties: { value: {}, basis:
 export const BRIEF_TOOLS = [
   {
     name: 'set_brief',
-    description: `Writes the brief, the part's intent, before modelling: fields ${BRIEF_FIELDS.join(', ')}, each {value, basis, source?, why?} or null to clear. Purpose, process and material are required. basis "stated" quotes the user's words in "source"; what the user did not say is "assumed" (say why) or "ambiguous" (say the readings) — never stated. A field the user stated is not replaced or cleared by an assumption (refused: STATED_KEPT). Only the user confirms a field, in the studio. process: ${PROCESSES.join(', ')} (CNC and sheet metal recorded as intent, not checked yet); a stated process with rules becomes the part's process. material: a library id (${MATERIALS_DATA.materials.map(m => m.id).join(', ')}) or a name; a stated library material is every body's without its own. quantity: a whole number; envelope: {x, y, z} mm, the largest size; interfaces: a list of texts. All or nothing. Returns the brief and its gaps.`,
+    description: `Writes the brief, the part's intent, before modelling: fields ${BRIEF_FIELDS.join(', ')}, each {value, basis, source?, why?} or null to clear. Purpose, process and material are required. basis "stated" quotes the user's words in "source", exactly as they wrote them (checked against the conversation: SOURCE_NOT_SAID); what the user did not say is "assumed" (say why) or "ambiguous" (say the readings) — never stated. A field the user stated is not replaced or cleared by an assumption (refused: STATED_KEPT). Only the user confirms a field, in the studio. process: ${PROCESSES.join(', ')} (CNC and sheet metal recorded as intent, not checked yet); a stated process with rules becomes the part's process. material: a library id (${MATERIALS_DATA.materials.map(m => m.id).join(', ')}) or a name; a stated library material is every body's without its own. quantity: a whole number; envelope: {x, y, z} mm, the largest size; interfaces: a list of texts. All or nothing. Returns the brief and its gaps.`,
     input_schema: { type: 'object', properties: { fields: { type: 'object', properties: Object.fromEntries(BRIEF_FIELDS.map(k => [k, FIELD_SCHEMA])), additionalProperties: false } }, required: ['fields'], additionalProperties: false },
   },
   {
@@ -168,9 +184,9 @@ export const BRIEF_TOOLS = [
   },
 ];
 /** Runs a brief tool on the document. */
-export function runBriefTool(doc: StudioDoc, name: string, args: Record<string, unknown>): { doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string } {
+export function runBriefTool(doc: StudioDoc, name: string, args: Record<string, unknown>, turns?: readonly string[]): { doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string } {
   if (name === 'get_brief') { const r = briefReport(doc); return { doc, content: r, changed: false, summary: `${r.gaps.length} gap${r.gaps.length === 1 ? '' : 's'}${r.complete ? '' : ', incomplete'}` }; }
-  const p = patchBrief(readBrief(doc.brief), args.fields);
+  const p = patchBrief(readBrief(doc.brief), args.fields, turns);
   if ('error' in p) return { error: `[${p.error.code}] ${p.error.message}` };
   const next = applyBrief(doc, p.brief), r = briefReport(next), changed = p.changed.length > 0 || next.process !== doc.process;
   return { doc: changed ? next : doc, content: { ok: true, did: p.changed.length ? `set ${p.changed.join(', ')}` : 'no change', ...(next.process !== doc.process ? { process_set: next.process } : {}), ...r }, changed, summary: p.changed.length ? `brief: ${p.changed.join(', ')}` : 'brief: no change' };

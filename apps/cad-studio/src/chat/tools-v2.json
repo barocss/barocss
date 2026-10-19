@@ -335,7 +335,7 @@
     "title": "Requirements",
     "readOnlyHint": false,
     "destructiveHint": true,
-    "idempotentHint": true,
+    "idempotentHint": false,
     "openWorldHint": false
    },
    "input": {
@@ -345,7 +345,8 @@
        "set",
        "check",
        "brief",
-       "gaps"
+       "gaps",
+       "ask"
       ],
       "type": "string"
      }

@@ -4074,6 +4074,57 @@ try {
     assert.match(await page.locator('[aria-label="Brief process"]').innerText(), /confirmed by user/);
   });
 
+  // ---- A6.2 (O25): the clarifying policy -------------------------------------------------------------------------------
+  // (The scripted agent asks two blocking questions; the user answers in the Specify panel — to the chat as their message,
+  // into the brief as theirs; a later question on a stated field is refused; a requirement quoting the user is verified.)
+  await check('A6.2: two blocking questions answered in the Specify panel as the user\'s; a question on a stated field refused; quotes verified', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && !window.__studioDoc.brief && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    const turn = async (text) => {
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', text); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+    };
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      // (Turn 1: the user's words, then the scripted calls; the purpose quotes the words, the finish is assumed.)
+      const calls = [
+        { tool: 'set_brief', args: { fields: { purpose: { value: 'a wall bracket for a 30 mm pipe', basis: 'stated', source: 'A wall bracket for a 30 mm pipe' }, finish: { value: 'matte', basis: 'assumed', why: 'a bracket out of sight' } } } },
+        { tool: 'ask_user', args: { questions: [{ id: 'q1', text: 'How will it be made?', kind: 'choice', options: ['fdm', 'injection', 'cnc-milling'], blocks: { field: 'process' } }, { id: 'q2', text: 'What material?', kind: 'text', blocks: { field: 'material' } }] } },
+      ];
+      await turn(`A wall bracket for a 30 mm pipe. script ${JSON.stringify({ calls })}`);
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => window.__studioDoc?.questions?.batches?.[0]?.status === 'open', null, { timeout: 15000 });
+      assert.equal(await page.evaluate(() => window.__studioDoc.brief.purpose.said), 'verified');
+      assert.match(await page.locator('[aria-label="Specify counts"]').innerText(), /^2 to answer · 1 to check$/i);
+      await page.selectOption('[aria-label="Answer q1"]', 'fdm'); await page.fill('[aria-label="Answer q2"]', 'petg');
+      await snap('a6-2-specify');
+      await page.click('[aria-label="Send answers"]');
+      // (Written as the user's: stated, confirmed, verified; the process the part's; the chat sent their message.)
+      await page.waitForFunction(() => { const b = window.__studioDoc?.brief; return b?.material?.value === 'petg' && b.material.confirmed?.by === 'user' && b.material.said === 'verified' && b.process?.confirmed && window.__studioDoc.process === 'fdm' && window.__studioDoc.questions.batches[0].status === 'answered'; }, null, { timeout: 15000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('.chat-msg.user')].some(m => /My answers to your questions \(batch 1\)/.test(m.textContent)) && !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 60000 });
+      // (Turn 2: asking about the stated material again is refused; a requirement quoting the user is kept, verified.)
+      const calls2 = [
+        { tool: 'ask_user', args: { questions: [{ id: 'q3', text: 'Which material?', kind: 'text', blocks: { field: 'material' } }] } },
+        { tool: 'set_requirements', args: { requirements: [{ id: 'R1', source: '30 mm pipe', hard: true, check: { op: '>=', query: { fn: 'bbox', axis: 'x' }, value: 40 } }] } },
+      ];
+      await turn(`Size it for the 30 mm pipe. script ${JSON.stringify({ calls: calls2 })}`);
+      const lines = await page.locator('.chat-tool').allInnerTexts();
+      assert.ok(lines.some(l => /ask_user/.test(l) && /NOT_BLOCKING/.test(l)), lines.slice(-3).join(' | '));
+      await page.waitForFunction(() => window.__studioDoc?.requirements?.[0]?.said === 'verified', null, { timeout: 15000 });
+      assert.equal(await page.evaluate(() => window.__studioDoc.questions.batches.length), 1);
+      await page.click('[aria-label="Close chat"]');
+      // (Accept all: the assumed finish confirmed by the user.)
+      await page.click('[aria-label="Accept all assumptions"]');
+      await page.waitForFunction(() => window.__studioDoc?.brief?.finish?.confirmed?.by === 'user', null, { timeout: 15000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('.chat-msg.user')].some(m => /I accept your 1 assumption as they are: finish/.test(m.textContent)) && !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 60000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

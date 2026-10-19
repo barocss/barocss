@@ -197,12 +197,14 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
+    let body: { text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
     if (imageError) return sendJson(res, 400, { error: imageError });
     const images = (body.images ?? []) as TurnImage[];
+    // (What the user typed this conversation, A6.2: the tools check a quote said to be theirs against it.)
+    if (body.turns !== undefined && (!Array.isArray(body.turns) || body.turns.length > 500 || body.turns.some(t => typeof t !== 'string' || t.length > 20000))) return sendJson(res, 400, { error: '"turns" is a list of the user\'s messages (at most 500, each at most 20 000 characters).' });
     if (body.traces !== undefined && (!Array.isArray(body.traces) || body.traces.length > 16 || body.traces.some(t => typeof t !== 'object' || !t || !Array.isArray((t as { layers?: unknown }).layers)))) return sendJson(res, 400, { error: '"traces" is a list of image traces.' });
 
     // The document's mesh blobs (D45): kept per conversation on disk, each received once; a turn names them, and
@@ -224,7 +226,7 @@ export function createChatServer(options: ChatServerOptions) {
     }
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), CAD_TOOLSET: toolset(), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });

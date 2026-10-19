@@ -33,6 +33,9 @@ export interface ChatPanelProps {
   /** A turn that only selected (the part unchanged). */
   onSelect(selection: NameSelection): void;
   onClose(): void;
+  /** A message the studio sends as the user's (the Specify panel's answers, A6.2): sent once, when the chat is free. */
+  outbox?: { id: number; text: string } | null;
+  onOutboxSent?(id: number): void;
 }
 
 /** What each autonomy level lets the agent do (D41). */
@@ -62,6 +65,8 @@ export function ChatPanel(props: ChatPanelProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
+  // (What the user typed this conversation, as typed: the tools check a quote said to be theirs against it, A6.2.)
+  const said = useRef<string[]>([]);
   /** The traces of every image attached in this conversation (image 1 first). */
   const traces = useRef<ChatImage['trace'][]>([]);
   const abort = useRef<AbortController | null>(null);
@@ -76,6 +81,11 @@ export function ChatPanel(props: ChatPanelProps) {
   useEffect(() => { setDropped([]); }, [contextKey]);
   const chips = props.context.filter(c => !dropped.includes(c.name));
 
+  // (The studio's message as the user's — the Specify panel's answers — once the chat is free.)
+  useEffect(() => {
+    const o = props.outbox; if (!o || running || !status?.enabled || props.blocked) return;
+    props.onOutboxSent?.(o.id); void send(o.text);
+  }, [props.outbox?.id, running, status?.enabled, props.blocked]);
   useEffect(() => { let live = true; chatStatus().then(s => { if (live) setStatus(s); }); return () => { live = false; }; }, []);
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [items]);
   useEffect(() => () => abort.current?.abort(), []);
@@ -88,17 +98,19 @@ export function ChatPanel(props: ChatPanelProps) {
     }
   };
 
-  const send = async () => {
+  const send = async (typed?: string) => {
+    const said0 = typed ?? text;
     const attached = images;
     const first = traces.current.length + 1;
     const note = attached.length ? `\n\n[Attached: ${attached.map((img, k) => `image ${first + k} (${img.name}, traced into ${img.trace.layers.length} layers: ${img.trace.layers.map(l => l.id).join(', ')})`).join('; ')}]` : '';
     // (The selection as context: names the tools take, A4.3.)
     const sel = chips.length ? `\n\n[Selected in the viewport: ${(['face', 'edge', 'body'] as const).flatMap(k => { const n = chips.filter(c => c.kind === k).map(c => c.name); return n.length ? [`${k}${n.length > 1 ? 's' : ''} ${n.join(', ')}`] : []; }).join('; ')}]` : '';
-    const message = (text.trim() || (attached.length ? 'Model what the image shows.' : '')) + (text.trim() || attached.length ? sel : '') + note;
+    const message = (said0.trim() || (attached.length ? 'Model what the image shows.' : '')) + (said0.trim() || attached.length ? sel : '') + note;
     if (!message || running || !status?.enabled || props.blocked) return;
-    setText(''); setImages([]); setRunning(true);
+    if (typed === undefined) setText(''); setImages([]); setRunning(true);
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
-    setItems(list => [...list, { kind: 'user', text: text.trim(), ...(attached.length ? { images: attached } : {}) }]);
+    if (said0.trim()) said.current = [...said.current, said0.trim()];
+    setItems(list => [...list, { kind: 'user', text: said0.trim(), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null;
@@ -108,7 +120,7 @@ export function ChatPanel(props: ChatPanelProps) {
     let shared = base;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (abort.current === controller && bodies) latest.current.onPreview(bodies); });
     const done = await runServerTurn({
-      text: message, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
+      text: message, turns: said.current, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -146,7 +158,7 @@ export function ChatPanel(props: ChatPanelProps) {
         <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
           onChange={e => { const n = Number(e.currentTarget.value); setAutonomy(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } }}>
           {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; said.current = []; traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
