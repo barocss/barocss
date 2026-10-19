@@ -205,7 +205,8 @@ function moveAll(a: Float32Array, m: readonly number[], t: readonly number[] | n
     a[i] = m[0] * x + m[1] * y + m[2] * z + (t ? t[0] : 0); a[i + 1] = m[3] * x + m[4] * y + m[5] * z + (t ? t[1] : 0); a[i + 2] = m[6] * x + m[7] * y + m[8] * z + (t ? t[2] : 0);
   }
 }
-function placeBody(b: BodyResult, m: readonly number[], t: readonly number[]): BodyResult {
+/** A body moved rigidly (x ↦ m x + t: its mesh, faces, edges, centroid and inertia), as an instance is placed; RM2's pose preview too. */
+export function placeBody(b: BodyResult, m: readonly number[], t: readonly number[]): BodyResult {
   // (Moved in place: a copy first when the kept mesh itself was handed out.)
   const src = b.mesh, positions = sharing ? src.positions.slice() : src.positions, normals = sharing ? src.normals.slice() : src.normals, edgeLines = sharing ? src.edgeLines.slice() : src.edgeLines;
   moveAll(positions, m, t); moveAll(normals, m, null); moveAll(edgeLines, m, t);

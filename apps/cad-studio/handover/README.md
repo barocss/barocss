@@ -226,10 +226,21 @@ stays out of the kernel's core files (requests for them go through the coordinat
     the rest typed MOTION_UNSUPPORTED), a minimum-freedom spanning tree from the base link, loops reported, gear pairs
     coupled (mimic −z1/z2), limits by pair key; tools get_joints / set_joints (proposed); a Joints card. Conformance
     `conformance/rm/`.
+  - **RM2** (O15): done. FK by the product of exponentials (`src/robot/fk.ts`): planar 2R to 1e-9, equal to the
+    moving-axis form on random 3D trees; gear followers with the tooth phase re-checked and held at every pose; joint
+    sliders, Home and play in the Joints card, a preview on copies (nothing saved); tool forward_kinematics.
+  - **RM3** (O16): done. Link inertia (`src/robot/inertia.ts`): bodies combined at their densities by the parallel-axis
+    theorem, `I_L = Rᵀ I R` in the link frame (at the joint, Z on its axis), SI; principal moments by Jacobi; SPD and
+    triangle checks typed. An analytic rotated off-origin cuboid to 1e-12; tool link_inertia; masses in the Joints card.
+  - **RM4** (O17): done, except the external oracle. URDF export (`src/robot/urdf.ts`): frames at the joints, RM3
+    inertials, meshes and own-quickhull collision hulls in metres, mimic for gears, typed refusals; our reader checks
+    the URDF spec's structure, and its FK equals RM2's to 1e-12. Export URDF (zip), `cad-cli urdf`, tool export_urdf.
+    **Pending**: MuJoCo/PyBullet comparison (`scripts/urdf-oracle.py`, commands in O17) on the owner's go-ahead.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
+- Waiting for the owner: installing MuJoCo as RM4's test oracle (O17; the commands there). RM5 needs it as well.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

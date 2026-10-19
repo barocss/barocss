@@ -41,7 +41,11 @@ export interface Joint {
 export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED';
 export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
-export interface Coupling { leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number }
+export interface Coupling {
+  leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number;
+  /** The two gears in their common frame (Z on the first's axis), and how each joint's positive turn reads about that Z (RM2: the pair at any pose). */
+  g1: GearPlacement; g2: GearPlacement; s1: 1 | -1; s2: 1 | -1;
+}
 export interface JointTree {
   version: 1; base: string; links: Link[]; joints: Joint[];
   /** Pairs joined again round the graph: kept as loop closures, with their mates. */
@@ -302,7 +306,8 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
     try {
       const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' }), multiplier = -g1.spec.teeth / g2.spec.teeth;
       B.j.mimic = { joint: A.j.key, multiplier, offset: 0 };
-      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistanceMM: c.centerDistanceMM, nominalCenterDistanceMM: c.nominalCenterDistanceMM, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio });
+      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistanceMM: c.centerDistanceMM, nominalCenterDistanceMM: c.nominalCenterDistanceMM, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio,
+        g1, g2, s1: dot(A.j.axis, z) < 0 ? -1 : 1, s2: dot(B.j.axis, z) < 0 ? -1 : 1 });
     } catch (cause) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}` }); }
   }
   return out;

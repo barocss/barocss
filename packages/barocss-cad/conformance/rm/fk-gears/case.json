@@ -1,0 +1,37 @@
+{
+ "case": "fk-gears",
+ "step": "RM2",
+ "of": "gears",
+ "note": "The leader turned; the follower takes -20/30 of it, and the tooth phase stays the home phase (degrees, modulo the follower's pitch of 12 degrees).",
+ "tol_deg": 1e-06,
+ "samples": [
+  {
+   "values": {
+    "base~g1": 0.5
+   },
+   "follower": "base~g2",
+   "expect_follower": -0.3333333333333333
+  },
+  {
+   "values": {
+    "base~g1": -1.25
+   },
+   "follower": "base~g2",
+   "expect_follower": 0.8333333333333334
+  },
+  {
+   "values": {
+    "base~g1": 3.0
+   },
+   "follower": "base~g2",
+   "expect_follower": -2.0
+  },
+  {
+   "values": {
+    "base~g1": 10.0
+   },
+   "follower": "base~g2",
+   "expect_follower": -6.666666666666667
+  }
+ ]
+}

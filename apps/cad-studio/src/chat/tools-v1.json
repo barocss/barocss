@@ -809,6 +809,48 @@
    }
   },
   {
+   "name": "export_urdf",
+   "annotations": {
+    "title": "Export urdf",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "name": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "check": {
+      "type": "array"
+     },
+     "files": {
+      "type": "array"
+     },
+     "notes": {
+      "type": "array"
+     },
+     "urdf": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "urdf",
+     "files",
+     "notes",
+     "check"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "extrude_image_layer",
    "annotations": {
     "title": "Extrude image layer",
@@ -894,6 +936,51 @@
       "type": "string"
      }
     },
+    "type": "object"
+   }
+  },
+  {
+   "name": "forward_kinematics",
+   "annotations": {
+    "title": "Forward kinematics",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "values": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "gears": {
+      "type": "array"
+     },
+     "links": {
+      "type": "array"
+     },
+     "out_of_limits": {
+      "type": "array"
+     },
+     "values": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "values",
+     "links",
+     "gears",
+     "out_of_limits"
+    ],
     "type": "object"
    }
   },
@@ -1287,6 +1374,32 @@
     },
     "required": [
      "pairs"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "link_inertia",
+   "annotations": {
+    "title": "Link inertia",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "links": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "links"
     ],
     "type": "object"
    }

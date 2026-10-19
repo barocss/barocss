@@ -24,6 +24,9 @@
        "insert",
        "snap",
        "joints",
+       "pose",
+       "inertia",
+       "urdf",
        "set_joints"
       ],
       "type": "string"

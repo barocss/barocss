@@ -1,0 +1,6 @@
+{
+ "case": "urdf-2r",
+ "step": "RM4",
+ "of": "chain-2r",
+ "note": "The exported URDF (robot.urdf, frozen) and, in expect.json, what scripts/urdf-oracle.py compares in MuJoCo: per link mass, centre and principal inertia; link frames at sampled joint values. The MuJoCo run is pending the owner's go-ahead (O17)."
+}

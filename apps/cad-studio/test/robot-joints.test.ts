@@ -71,7 +71,7 @@ test('the cases (conformance/rm): every assembly\'s joint tree as frozen', async
     const again = name === 'gears' ? await treeOfDoc(c.input.document, await bodiesOf(c.input.document), evaluate) : treeOf(c.input.document);
     assert.deepEqual(shape(again), c.expect, `${name} from its file`);
   }
-  assert.deepEqual(readdirSync(CASES).sort(), Object.keys(CASE_DOCS).sort());
+  assert.deepEqual(readdirSync(CASES).filter(n => JSON.parse(readFileSync(join(CASES, n, 'case.json'), 'utf8')).step === 'RM1').sort(), Object.keys(CASE_DOCS).sort());
 });
 
 test('revolute and prismatic: the axis, a point on it at the child, continuous without limits, the limits kept', () => {

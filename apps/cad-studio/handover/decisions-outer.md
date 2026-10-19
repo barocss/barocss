@@ -519,3 +519,142 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Browser flow, a step "RM1" just before the last: an assembly opened, the Joints card reads `Base part → arm Continuous +Z`, and the base link moved to the arm (saved in `robot.base`).
   - Bench: the joint tree of a 12-link serial arm takes 0.27 ms (budget 1); 46 rows within budget. Studio 482/482, 482/482 replayed through v2; browser flow 154/154 (screenshot `notes/acceptance/rm1-joints.png`).
 - **Next**: RM2, forward kinematics over the tree and the joint-slider preview (the gear pair turning together, its clearance shown).
+
+## O15 — RM2: forward kinematics over the joint tree, the joint sliders (2026-10-20)
+
+- **FK** (`src/robot/fk.ts`): the product of exponentials in the space frame (Lynch & Park).
+  - Each joint's screw is its axis and point at the solved pose, where every value is 0. So a link's motion from its solved pose is `D = exp([S1] q1) · exp([S2] q2) · …` along its path from the base link, and its pose is `D · M`.
+  - Revolute and continuous joints turn q radians about the axis through the point; prismatic ones slide q mm along it; fixed ones stay.
+  - **Followers** (a gear's `mimic`) take multiplier × leader + offset, whatever was given for them.
+  - **Limits are reported, not clamped**: `outOfLimits` (a preview may show them; an export refuses). Unknown keys are reported too.
+  - It runs per slider move: module-level helpers writing into given arrays, no closures, one motion allocated a link.
+- **The gear pair at any pose** (`gearPairAt`, D56):
+  - each coupling now carries both gears in its common frame and each joint's sense about that frame's Z;
+  - at joint values, both gears are turned by their joints and the kernel's `checkPlacedSpurGears` is run again.
+  - With the right ratio and sign, the tooth phase stays the home phase, so the pair turns together; the check is what proves it.
+- **The preview** (`src/robot/preview.ts`):
+  - the instances shown are moved by FK on copies of their meshes (`placeBody`, now exported); the evaluated bodies are untouched;
+  - at home nothing is copied;
+  - when the base link is an instance, motions are shown relative to the base part's: the same relative motion, the base part still.
+  - Nothing is saved: the placements in the document do not change.
+- **Studio**:
+  - in the Joints card, a slider for each moving joint that is not a follower, in degrees or mm (its limits; else a turn either way, or ±50 mm for a slide without limits);
+  - a follower's value shown with it;
+  - each gear pair's line: "mesh held" or "teeth out of phase", and its backlash at that pose;
+  - **Home**, and **▶** to play one joint through its range (4 s a swing, `requestAnimationFrame`, stopped by touching a slider).
+  - Exploding the view applies after the pose.
+  - The sliders take any value (`step="any"`): with a step of a 720th of the range, the browser snapped π to 179.5°. This was found by the flow step.
+- **Tool**: `forward_kinematics {values}` (read, output schema; v2 `assembly.pose`). It returns each part's placement at the values (position mm, rotation in degrees as `place_part` takes it), the values used, joints out of limits, and each gear pair's phase against home (`held`). Compatible additions to both contracts.
+- **Sizes**: v1 61 tools, tools/list 82 438 characters; v2 11 336; prompts unchanged (7 086 / 7 334).
+- **Evidence**:
+  - `test/robot-fk.test.ts` (7 tests):
+    - **the planar 2R tip by its closed form to 1e-9** over 200 random poses;
+    - **the product of exponentials equals the moving-axis form** (each axis carried by its parent's motion, then turned about there) on 20 random 3D trees of 8 turning and sliding joints, to 1e-9, every rotation orthonormal to 1e-12;
+    - the gear follower from its leader (even when given another value), the **tooth phase held at 25 random poses** to 1e-6°, the backlash and centre distance unchanged, and a wrong ratio caught;
+    - limits reported not clamped, slider ranges, unknown keys, a prismatic slide;
+    - the tool (a quarter turn: placements `[30, 10, …]` and `[0, 0, 90]`; the gear `held`; refusals);
+    - the preview on copies (the evaluated mesh unchanged, a half turn's bounds, the same bodies at home);
+    - the RM2 conformance cases.
+  - Conformance `conformance/rm/fk-chain-2r` (5 poses' tip by the closed form, written from the formula, not the code) and `fk-gears` (4 leader values: the follower's value and the held phase). The RM1 case list now counts only its own step.
+  - Browser flow, a step "RM2" just before the last:
+    - the 2R arm from its conformance file; the second arm swung a half turn by its slider, shown at x 10…70 from 50…110 and reading 180.0°;
+    - the document's placements unchanged; Home back;
+    - the first joint played (moving by itself) and stopped.
+  - Bench: FK of the 12-link arm takes 0.02 ms (budget 0.1); its 11 moving links' meshes posed take 0.45 ms (budget 2).
+  - Studio 489/489, 489/489 replayed through v2; browser flow 155/155; bench 48/48 within budget (screenshot `notes/acceptance/rm2-posed.png`).
+- **Next**: RM3, link-frame inertia about the CoM (I_L = R·I·Rᵀ), checked against an analytic rotated off-origin cuboid; SPD and the triangle inequality.
+
+## O16 — RM3: link inertia about the centre of mass, in the link frame (2026-10-20)
+
+- **What** (`src/robot/inertia.ts`):
+  - **Each link's bodies** (its part's, in the part's own coordinates) are combined by mass:
+    - each at its own material's density (the kernel's mass and inertia are aluminium's, scaled by ρ/2.70);
+    - each inertia moved to the common centre by the parallel-axis theorem, `I + m(|d|²E − d dᵀ)`.
+  - **Then into the link frame**: `I_L = Rᵀ·I·R` (R's columns: the link frame's axes in the part's coordinates), the centre `Rᵀ(c − o)`. SI units, as URDF and MJCF take them: kg, m, kg·m².
+  - **Principal moments and axes** by cyclic Jacobi rotations: our own, exact to rounding for 3 × 3.
+  - **The link frame**, the one RM4 writes the child link in (onshape-to-robot: the child frame at the joint):
+    - the base link: its part frame;
+    - a link on a moving joint: at the joint's point, Z along its axis, X the part's X square to it (else the part's Y), right-handed;
+    - a link on a fixed joint: its part frame;
+    - a dummy link: massless.
+  - **Checks, typed**:
+    - NOT_SPD (the least principal moment not above 0) and TRIANGLE (the largest above the sum of the other two) are problems;
+    - NO_VOLUME (a body without a closed volume, not counted) and NO_BODY (massless) are reported;
+    - MATERIAL_ASSUMED is said for each body without a material (aluminium taken).
+- **Tool**: `link_inertia` (read, output schema; v2 `assembly.inertia`). Per link: mass, centre, inertia, principal moments and axes, the frame, the bodies counted (material, assumed, mass) and the issues, to 10 significant figures. Compatible additions to both contracts.
+- **Studio**: the Joints card lists each link's mass and centre of mass (mm, link frame), "material assumed" where it is, and any problem; the principal moments are in its tooltip.
+  - In the studio the bodies are already placed in the world, so the link frames are taken in world coordinates there. Same answer, other coordinates; checked by the flow against the tool's numbers.
+- **Sizes**: v1 62 tools, tools/list 83 287 characters; v2 11 421; prompts unchanged.
+- **Evidence**: `test/robot-inertia.test.ts` (8 tests).
+  - **An analytic rotated, off-origin cuboid** (40 × 20 × 10 from (15, −7, 3), turned 30° about Z then 50° about X):
+    - mass, the moved centre `R·c`, and `I = R·diag(m(d²+h²)/12, …)·Rᵀ`, all to 1e-12 relative;
+    - its principal moments the cuboid's own;
+    - in 10 arbitrary link frames, `I_L = Rᵀ I R` and the centre `Rᵀ(c − o)` to 1e-12, the principal moments unchanged.
+  - A cylinder's `m r²/2` and `m(3r² + h²)/12` to 1e-12; another material scaling mass and inertia exactly by its density.
+  - Two separate blocks combined by the parallel-axis theorem against the pair's closed form.
+  - The checks on synthetic bodies (TRIANGLE for diag(1, 1, 3), NOT_SPD, NO_VOLUME and NO_BODY, a massless dummy).
+  - The eigen-solver on 200 random symmetric matrices (rebuilt to 1e-12, vectors orthonormal).
+  - The link frames checked through world coordinates on an instance turned three ways (origin and Z on the joint's point and axis, right-handed).
+  - The tool on the 2R arm (the arm's mass 60·20·5 − 2π·25·5 mm³ of aluminium, its centre (0.02, 0, 0.0025) m from its turning hole).
+  - Conformance `conformance/rm/inertia-cuboid`: the cuboid's document and its answer written from the closed form, not the code.
+  - The positive-definite and triangle checks hold for every real body here; the kernel's mass properties are exact for these planar and cylindrical bodies.
+  - Studio 497/497, 497/497 replayed through v2. Bench: link inertia of the 12-link arm takes 0.1 ms (budget 0.5); 49 rows within budget.
+  - Browser flow 157/157, with a step "RM3" just before the last: the 2R arm's links in the Joints card (base 103.8 g; each arm 14.1 g, CoM (20.0, 0.0, 2.5) mm, material assumed). The step found a "−0.0" shown for a rounding of zero and a cramped row; both fixed. Screenshot `notes/acceptance/rm3-mass.png`.
+- **Next**: RM4, URDF export. Child frame at the joint, meshes in the link frame, convex-hull collision, mm→m. Acceptance by `check_urdf`, and by MuJoCo or PyBullet as external oracles for mass, CoM, principal inertia and FK.
+
+## O17 — RM4: URDF export, our reader and the URDF spec's structure; the MuJoCo comparison pending (2026-10-20)
+
+- **Export** (`src/robot/urdf.ts`, `barocss-urdf-v1`):
+  - One `<link>` a link, the base link the root. A joint chain's dummy links carry a tiny mass (1e-9 kg) and inertia (1e-15 kg·m²) rather than none: PyBullet takes a massless moving link as static, and MuJoCo refuses one. Documented here.
+  - Each `<joint>`'s origin is the child link's frame in the parent link's (xyz in m; rpy as URDF's Rz·Ry·Rx) at the solved pose, where every value is 0.
+    - Link frames are RM3's (at the joint, Z on its axis), taken into the world through each part's placement; a dummy link's is on its joint.
+    - The axis is written in the child frame (computed: Z for a moving joint).
+  - `<limit>`:
+    - revolute: lower, upper, effort, velocity;
+    - prismatic: the same, its limits and velocity in metres;
+    - continuous: effort and velocity when both are set, else none, as URDF allows.
+    - A gear follower is written as `<mimic joint multiplier offset>`.
+  - `<inertial>`: RM3's mass, centre (m) and inertia about it (kg·m²) in the link frame.
+  - `<visual>` and `<collision>`: the part's tessellation and its **convex hull** (`src/robot/hull.ts`, our own quickhull), binary STL in metres in the link frame, as `meshes/<link>.stl` and `meshes/<link>_collision.stl`.
+  - Names: URDF-safe (`base~arm` → `base_to_arm`, a chain's `#1` → `_1`), unique.
+- **Refused, typed** (`URDF_REFUSED`): MOTION_UNSUPPORTED, LIMITS_BAD, LIMITS_MISSING (a revolute or prismatic joint needs all four), INERTIA (a real link failing RM3's checks or massless), NO_HULL.
+  - **Written with a note**: loops (URDF is a tree; the closure's mates are named), unconnected parts left out, materials assumed.
+- **Read back and checked** (`src/robot/urdfCheck.ts`):
+  - our own small XML reader (elements, attributes, comments, the declaration, the five entities, numeric references; typed errors with their place);
+  - the robot model;
+  - **the URDF spec's structural rules**: `<robot name>`; unique link and joint names; a joint's parent and child links exist; one parent a link; exactly one root; no cycle; a known joint type; revolute and prismatic `<limit>` complete; lower ≤ upper; a unit axis; mimic of an existing joint; inertials with mass > 0, positive definite and a triangle; every mesh file present.
+  - **FK in URDF's own composition** (each joint's origin, then its motion about its axis in the child frame), against RM2's space-frame product of exponentials.
+- **Where**:
+  - tool `export_urdf` (read: the URDF text, the files with sizes, notes, our check; v2 `assembly.urdf`), a compatible addition to both contracts;
+  - **Export URDF** in the Joints card (a zip: `robot.urdf` and `meshes/`);
+  - `cad-cli urdf part.bcad -o folder [--name]`, which checks its output and exits 1 on any issue.
+- **Pending: the external oracles** (the owner's go-ahead to install MuJoCo; the coordinator, 2026-10-20). `packages/barocss-cad/scripts/urdf-oracle.py` is written and not run. It loads the URDF in MuJoCo (no fusing, meshes by path) and compares each link's mass, centre and principal inertia, and link frames at sampled values (`xpos`, `xmat`), against `conformance/rm/urdf-*/expect.json`, tolerance 1e-6. The exact commands:
+
+  ```
+  uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0
+  node apps/cad-studio/scripts/cad-cli.mjs urdf packages/barocss-cad/conformance/rm/urdf-2r/robot.bcad -o /tmp/urdf-2r
+  ~/.cache/barocss-mujoco/bin/python -I packages/barocss-cad/scripts/urdf-oracle.py /tmp/urdf-2r/robot.urdf packages/barocss-cad/conformance/rm/urdf-2r/expect.json
+  ```
+
+  The same applies to `urdf-gears`. `check_urdf` (ROS urdfdom, not on PyPI) runs where a ROS install is at hand. Until then the acceptance rests on our own checks below.
+- **Evidence**: `test/robot-urdf.test.ts` (8 tests).
+  - The hull:
+    - a cube with points inside: 12 triangles, volume 1 to 1e-12, closed and oriented;
+    - 2 000 random points: closed, Euler 2, every point inside to 1e-6;
+    - flat and too few points refused, typed.
+  - The XML reader and its six typed errors.
+  - **The export read back**:
+    - no structural issue;
+    - the revolute-limited joint `base_to_arm` revolute, axis (0, 0, 1), its limits, origin (0.02, 0.02, 0.01) m;
+    - the arm's inertial mass to 1e-15, its centre (0.02, 0, 0.0025);
+    - the four mesh files present, their STL sizes consistent;
+    - the checker catching a missing file, a cycle, a non-unit axis and a missing `<limit>`.
+  - **FK read back from the URDF equals RM2's to 1e-12**: the 2R arm (50 random poses), the gear pair with its `<mimic>` multiplier −2/3 (20), and a slide-and-turn chain through a dummy link with limits in metres (30). Positions in the root frame and the full rotation.
+  - Every visual vertex is inside its link's collision hull (1e-7 m); the arm's mesh lies in its link frame in metres (x −0.01…0.05 from its turning hole).
+  - Refusals: a revolute without ratings, a slide without limits; a loop written with its note; a continuous joint without `<limit>`.
+  - rpy read back through the reader's own Rz·Ry·Rx matrix, gimbal lock included.
+  - The tool, the CLI (its folder's URDF equal to the frozen one), and the conformance cases `conformance/rm/urdf-2r` and `urdf-gears` (document, frozen `robot.urdf`, and `expect.json` for the pending oracle).
+  - By hand: Python's standard `xml.etree` parses the frozen URDFs (an independent XML reader; no install).
+  - Studio 505/505, 505/505 replayed through v2. Bench: URDF export and check of the 12-link arm takes 2.7 ms (budget 10); 50 rows within budget.
+  - Browser flow 158/158, with a step "RM4" just before the last: Export URDF downloads a zip, read by Python's `zipfile`. Its `robot.urdf` is the CLI's frozen one to 12 significant figures. The studio works from world-placed bodies and the CLI from part coordinates, so only the last digits differ; the robot is named after the file.
+- **Next**: RM5, MJCF export with the same checks; a 6R arm hangs under gravity stably. That step needs a simulator, so it depends on the same go-ahead.

@@ -3851,6 +3851,73 @@ try {
     await snap('rm1-joints');
   });
 
+  // ---- RM2 (O15): forward kinematics and the joint sliders ----------------------------------------------------------
+  await check('RM2: the 2R arm posed by its sliders — the second arm swung a half turn, shown moved and not saved; Home puts it back; a joint played', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 20000 });
+    const before = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
+    const placed = JSON.stringify((await doc()).instances);
+    // (A half turn of b about a's far hole at x = 60: its box, x 50…110, swings to 10…70.)
+    // (A range input set as a person's drag sets it: the native value, then an input event React hears.)
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint a~b value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI);
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 10) < 1e-3, null, { timeout: 10000 });
+    assert.ok(Math.abs(before.min[0] - 50) < 1e-3, JSON.stringify(before));
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
+    assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
+    await snap('rm2-posed');
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
+    // Played: the first arm swings by itself, then stopped.
+    await page.click('[aria-label="Play joint base~a"]');
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'a').min[0] - 10) > 1, null, { timeout: 10000 });
+    await page.click('[aria-label="Play joint base~a"]');
+    await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RM3 (O16): link inertia ------------------------------------------------------------------------------------
+  await check('RM3: the 2R arm\'s links with their mass and centre of mass in the link frame, the material said to be assumed', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r-mass.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Link a mass"]', { timeout: 20000 });
+    // (An arm 60 × 20 × 5 less two Ø10 holes, aluminium: 14.1 g; its centre 20 mm along from its turning hole, 2.5 up.)
+    const a = await page.locator('[aria-label="Link a mass"]').innerText();
+    assert.match(a, /14\.1 g/); assert.match(a, /CoM \(20\.0, 0\.0, 2\.5\) mm · material assumed/);
+    assert.match(await page.locator('[aria-label="Link base mass"]').innerText(), /103\.8 g/);
+    await snap('rm3-mass');
+  });
+
+  // ---- RM4 (O17): URDF export -------------------------------------------------------------------------------------
+  await check('RM4: Export URDF from the Joints card — a zip of robot.urdf and each link\'s mesh and convex hull; the same URDF as cad-cli writes', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')), file = join(out, 'chain-2r-urdf.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Export URDF"]', { timeout: 20000 });
+    const [d] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export URDF"]')]);
+    assert.match(d.suggestedFilename(), /-urdf\.zip$/);
+    const zip = fs.readFileSync(await d.path());
+    assert.equal(zip.readUInt32LE(0), 0x04034b50, 'a zip');
+    const names = zip.toString('latin1');
+    for (const n of ['robot.urdf', 'meshes/base.stl', 'meshes/a_collision.stl', 'meshes/b.stl']) assert.ok(names.includes(n), n);
+    // (The URDF inside, inflated by the browser's own zip reader is not at hand here: python3's zipfile reads it.)
+    const { spawnSync } = await import('node:child_process');
+    const py = spawnSync('python3', ['-I', '-c', 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1]); print(z.read("robot.urdf").decode())', await d.path()], { encoding: 'utf8' });
+    assert.equal(py.status, 0, py.stderr);
+    // (The studio's bodies are placed in the world, the CLI's in their parts: the same URDF to rounding, the robot named
+    // after the file. Compared with the name set aside and every number to 12 significant figures.)
+    const norm = t => t.trim().replace(/<robot name="[^"]*">/, '<robot>').replace(/-?\d+(\.\d+)?(e-?\d+)?/g, x => { const v = Number(x); return Math.abs(v) < 1e-15 ? '0' : String(Number(v.toPrecision(12))); });
+    assert.equal(norm(py.stdout), norm(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/urdf-2r/robot.urdf'), 'utf8')), 'the studio\'s URDF is the CLI\'s');
+    await snap('rm4-urdf');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

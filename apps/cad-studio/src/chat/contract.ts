@@ -44,6 +44,9 @@ const READ: Record<string, JsonSchema | null> = {
   get_assembly: o({ base: obj, instances: arr, mates: arr, note: str }, ['base']),
   list_library: o({ libraries: arr, note: str }, ['libraries']),
   check_printability: o({ direction: { type: ['object', 'null'] }, rules: arr }, ['rules']),
+  link_inertia: o({ links: arr }, ['links']),
+  export_urdf: o({ urdf: str, files: arr, notes: arr, check: arr }, ['urdf', 'files', 'notes', 'check']),
+  forward_kinematics: o({ values: obj, links: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
   get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
 };
 /** Changes that only add (a feature, a part, a mate, a proposal, a library): nothing there before is altered. */

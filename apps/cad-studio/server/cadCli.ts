@@ -4,8 +4,10 @@
 // 3 a hard requirement fails (--check).
 //   cad-cli run part.cad.js -o part.bcad [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
 //   cad-cli check part.bcad
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { urdfOfDoc } from '../src/chat/robot';
+import { readUrdf } from '../src/robot/urdfCheck';
 import { encodeStudioFile } from '../src/engine/container';
 import { evaluateDoc, stepFor, stlFor } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
@@ -18,7 +20,9 @@ export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bc
   --stl writes one file per body when there are several (part-b1.stl, part-b3.stl, …).
   --check runs the part's requirements; a failing hard one exits 3.
 cad-cli check part.bcad
-  Runs a saved part's requirements: the summary, exit 3 when a hard one fails.`;
+  Runs a saved part's requirements: the summary, exit 3 when a hard one fails.
+cad-cli urdf part.bcad -o folder [--name robot]
+  Writes the assembly as URDF (folder/robot.urdf and folder/meshes/*.stl), checked against the URDF spec; exit 1 when refused.`;
 
 export interface CliIo { stdout: NodeJS.WritableStream; stderr: NodeJS.WritableStream; stdin?: () => Promise<string> }
 
@@ -69,6 +73,23 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const c = await checks(s);
     say(io.stdout, { ok: !c.summary.hard_failing, checks: c });
     return c.summary.hard_failing ? 3 : 0;
+  }
+  if (cmd === 'urdf') {
+    const file = rest.find(a => !a.startsWith('-') && rest[rest.indexOf(a) - 1] !== '-o' && rest[rest.indexOf(a) - 1] !== '--name'), oi = rest.indexOf('-o'), ni = rest.indexOf('--name');
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('urdf takes a .bcad file and -o folder');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    const s = await stateOf(opened.doc);
+    if ('error' in s) return failed(s.error);
+    const r = await urdfOfDoc(opened.doc, s.bodies, evaluate, ni >= 0 ? rest[ni + 1] ?? 'robot' : 'robot');
+    if (!r.ok) return failed(`URDF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}`);
+    const dir = resolve(rest[oi + 1]);
+    mkdirSync(join(dir, 'meshes'), { recursive: true });
+    writeAtomic(join(dir, 'robot.urdf'), r.urdf);
+    for (const f of r.files) writeAtomic(join(dir, f.path), f.data);
+    const check = readUrdf(r.urdf, new Set(r.files.map(f => f.path)));
+    say(io.stdout, { ok: !check.issues.length, links: check.model.links.length, joints: check.model.joints.length, wrote: [join(dir, 'robot.urdf'), ...r.files.map(f => join(dir, f.path))], notes: r.notes, check: check.issues });
+    return check.issues.length ? 1 : 0;
   }
   if (cmd !== 'run') return usage(`unknown command "${cmd}"`);
   const o = runOptions(rest);
