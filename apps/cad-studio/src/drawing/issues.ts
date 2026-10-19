@@ -1,0 +1,411 @@
+// The drawing's issue list (R14.2, O3): what is wrong on the sheet and what is missing from it, each with where it
+// is and, where one is safe, a fix. It is R14's "the drawing is right" check: a sheet with no errors reads cleanly,
+// and with no warnings it dimensions every hole, step and overall size the views show.
+//
+// Wrong on the sheet (errors):
+//   DIMENSION_LOST     a dimension's edge is gone or no longer shows as it did            fix: remove it
+//   TEXT_OVERLAP       two annotations' texts overlap (dimensions, notes, view names)     fix: move one out
+//   TEXT_OVER_LINES    a dimension's text lies over a view's lines or another dimension   fix: move it out
+//   OFF_SHEET          an annotation reaches past the frame or into the title block       fix: move it in
+//   VIEWS_DONT_FIT     the views do not fit the sheet at its scale                        fix: an automatic scale (or A3)
+// Worth a check (warnings):
+//   DUPLICATE          the same size given twice (in one view or two that share the axis) fix: remove the auto one or the later
+//   REMATCHED          a reference was matched again after an edit: check it              fix: accept it as it is
+//   HOLE_SIZE_MISSING  a hole without a diameter (or a callout for its kind of hole)     fix: Auto-dimension
+//   HOLE_NOT_LOCATED   a hole whose position is not given across or up                   fix: Auto-dimension
+//   STEP_NOT_LOCATED   a step's (an inner edge's) position not given                     fix: Auto-dimension
+//   OVERALL_MISSING    the part's width, height or depth not given                         fix: Auto-dimension
+import type { BrepProjection } from '@barocss/cad';
+import { autoDimensions, holesOf, levels } from './auto';
+import { buildSheet, dimensionMarks, type Mark, type MarkGroup, type Sheet } from './sheet';
+import { textWidth } from './text';
+import { SCALES, layoutSheet, type SheetLayout } from './views';
+import type { Resolved } from './dimensions';
+import type { DrawingDimension, DrawingSettings, DrawingViews, ViewId, XY } from './types';
+
+export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
+
+export type DrawingIssueCode = 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING';
+export type DrawingFix =
+  | { kind: 'remove'; dim: string }
+  | { kind: 'move'; dim: string; place: XY }
+  | { kind: 'move-note'; note: string; at: XY }
+  | { kind: 'accept'; dim: string }
+  | { kind: 'scale'; scale?: number; sheet?: 'A3' }
+  | { kind: 'auto-dimension' };
+export interface DrawingIssue {
+  code: DrawingIssueCode;
+  severity: 'error' | 'warning';
+  message: string;
+  /** The dimensions and notes it is about; `view`; `at`: a sheet point to show it at. */
+  dims?: string[]; notes?: string[]; view?: ViewId; at?: XY;
+  fix?: DrawingFix;
+}
+
+const SAME = 1e-6;
+/** Sheet mm two texts may come closer than before they count as overlapping (their boxes are generous). */
+const CLEAR = 0.2;
+/** How far a fix looks to move a dimension: this many 8 mm rows each way. */
+const MOVE_ROWS = 6, ROW = 8;
+const ORTHO: readonly ViewId[] = ['top', 'front', 'right'];
+
+// ---------------------------------------------------------------------------------------------------------
+// Boxes of text on the sheet
+
+/** A text's box on the sheet (y down): its corners in order, from its baseline point, anchor, size and angle. */
+export type Quad = [XY, XY, XY, XY];
+export function textBox(m: Extract<Mark, { kind: 'text' }>): Quad {
+  const w = textWidth(m.text, m.size, !!m.bold), x0 = m.anchor === 'start' ? 0 : m.anchor === 'middle' ? -w / 2 : -w;
+  // From a little under the baseline to the capital height.
+  const top = -0.8 * m.size, bottom = 0.22 * m.size, a = -(m.angle ?? 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const at = (x: number, y: number): XY => [m.at[0] + c * x - s * y, m.at[1] + s * x + c * y];
+  return [at(x0, top), at(x0 + w, top), at(x0 + w, bottom), at(x0, bottom)];
+}
+
+function axesOf(q: Quad): XY[] { return [[q[1][0] - q[0][0], q[1][1] - q[0][1]], [q[3][0] - q[0][0], q[3][1] - q[0][1]]]; }
+function project(q: Quad, ax: XY): [number, number] {
+  let lo = Infinity, hi = -Infinity;
+  for (const p of q) { const t = p[0] * ax[0] + p[1] * ax[1]; if (t < lo) lo = t; if (t > hi) hi = t; }
+  return [lo, hi];
+}
+/** Two boxes overlap by more than `clear` along every separating axis (the separating-axis test). */
+export function quadsOverlap(a: Quad, b: Quad, clear = CLEAR): boolean {
+  for (const ax of [...axesOf(a), ...axesOf(b)]) {
+    const l = Math.hypot(ax[0], ax[1]); if (l < 1e-12) continue;
+    const u: XY = [ax[0] / l, ax[1] / l], [a0, a1] = project(a, u), [b0, b1] = project(b, u);
+    if (a1 - clear <= b0 || b1 - clear <= a0) return false;
+  }
+  return true;
+}
+/** Whether a segment passes through a box (shrunk by `clear`): clipped in the box's own frame. */
+export function segmentHitsQuad(p: XY, q: XY, box: Quad, clear = CLEAR): boolean {
+  const o = box[0], ex: XY = [box[1][0] - o[0], box[1][1] - o[1]], ey: XY = [box[3][0] - o[0], box[3][1] - o[1]];
+  const lx = Math.hypot(ex[0], ex[1]), ly = Math.hypot(ey[0], ey[1]);
+  if (lx < 1e-12 || ly < 1e-12) return false;
+  const ux: XY = [ex[0] / lx, ex[1] / lx], uy: XY = [ey[0] / ly, ey[1] / ly];
+  const loc = (r: XY): XY => [(r[0] - o[0]) * ux[0] + (r[1] - o[1]) * ux[1], (r[0] - o[0]) * uy[0] + (r[1] - o[1]) * uy[1]];
+  const a = loc(p), b = loc(q), lo = [clear, clear], hi = [lx - clear, ly - clear];
+  if (hi[0] <= lo[0] || hi[1] <= lo[1]) return false;
+  let t0 = 0, t1 = 1;
+  for (const k of [0, 1]) {
+    const d = b[k] - a[k];
+    if (Math.abs(d) < 1e-15) { if (a[k] < lo[k] || a[k] > hi[k]) return false; continue; }
+    let ta = (lo[k] - a[k]) / d, tb = (hi[k] - a[k]) / d;
+    if (ta > tb) [ta, tb] = [tb, ta];
+    t0 = Math.max(t0, ta); t1 = Math.min(t1, tb);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
+/** A mark's straight pieces on the sheet (arcs in 16 pieces a half turn; text and fills none). */
+function segments(m: Mark, out: [XY, XY][]): void {
+  if (m.kind === 'line') out.push([m.a, m.b]);
+  else if (m.kind === 'polyline') for (let i = 0; i + 1 < m.points.length; i++) out.push([m.points[i], m.points[i + 1]]);
+  else if (m.kind === 'arc') {
+    const n = Math.max(2, Math.ceil(Math.abs(m.t1 - m.t0) / (Math.PI / 16)));
+    let prev: XY = [m.center[0] + m.u[0] * Math.cos(m.t0) + m.v[0] * Math.sin(m.t0), m.center[1] + m.u[1] * Math.cos(m.t0) + m.v[1] * Math.sin(m.t0)];
+    for (let k = 1; k <= n; k++) {
+      const t = m.t0 + (m.t1 - m.t0) * k / n, p: XY = [m.center[0] + m.u[0] * Math.cos(t) + m.v[0] * Math.sin(t), m.center[1] + m.u[1] * Math.cos(t) + m.v[1] * Math.sin(t)];
+      out.push([prev, p]); prev = p;
+    }
+  }
+}
+
+interface Owner { kind: 'dimension' | 'note' | 'label'; id?: string; view?: ViewId }
+interface Placed { owner: Owner; boxes: Quad[]; lines: [XY, XY][]; points: XY[] }
+
+function placedOf(g: MarkGroup): Placed {
+  const owner: Owner = g.role === 'dimension' ? { kind: 'dimension', id: g.id, view: g.view } : g.role === 'note' ? { kind: 'note', id: g.id } : { kind: 'label', view: g.view };
+  const boxes: Quad[] = [], lines: [XY, XY][] = [], points: XY[] = [];
+  for (const m of g.marks) {
+    if (m.kind === 'text') { const b = textBox(m); boxes.push(b); points.push(...b); }
+    else { segments(m, lines); if (m.kind === 'fill') points.push(...m.points); }
+  }
+  for (const [p, q] of lines) points.push(p, q);
+  return { owner, boxes, lines, points };
+}
+
+const same = (a: Owner, b: Owner) => a.kind === b.kind && a.id === b.id && a.view === b.view;
+const name = (o: Owner, sheet: Sheet) => o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : `the ${o.view ?? 'section'} view’s name`;
+function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.find(d => d.dim.id === id); return r?.ok ? r.text : id; }
+
+// ---------------------------------------------------------------------------------------------------------
+// The list
+
+export interface IssueContext { views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string) => string | null }
+
+export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
+  const { layout, settings, sheet } = ctx, out: DrawingIssue[] = [];
+  if (!layout.fits) {
+    const next = settings.scale !== undefined ? { kind: 'scale' as const } : settings.sheet === 'A4' ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
+    out.push({ code: 'VIEWS_DONT_FIT', severity: 'error', message: `The views do not fit the ${settings.sheet} sheet at the scale${settings.scale !== undefined ? ' set' : ''}.`, ...(next ? { fix: next } : {}) });
+  }
+  for (const r of sheet.dimensions) {
+    if (!r.ok) { out.push({ code: 'DIMENSION_LOST', severity: 'error', message: `A ${r.dim.kind} dimension in the ${r.dim.view} view is lost: ${r.reason}`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: r.dim.id } }); continue; }
+    if (rematched(r.dim)) out.push({ code: 'REMATCHED', severity: 'warning', message: `Dimension ${r.text}: an edge it measures was matched again after an edit. Check it measures what you meant.`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'accept', dim: r.dim.id } });
+  }
+  // What lies on the sheet: annotations and the lines they must keep clear of.
+  const placed = sheet.groups.filter(g => g.role === 'dimension' || g.role === 'note' || g.role === 'label').map(placedOf);
+  const viewLines: [XY, XY][] = [];
+  for (const g of sheet.groups) if (g.role === 'view' || g.role === 'section') for (const m of g.marks) segments(m, viewLines);
+  const flagged = new Set<string>();
+  for (let i = 0; i < placed.length; i++) for (let j = i + 1; j < placed.length; j++) {
+    const a = placed[i], b = placed[j];
+    if (!a.boxes.some(x => b.boxes.some(y => quadsOverlap(x, y)))) continue;
+    // The one to move: a dimension before a note before a view's name; the auto one, the later one.
+    const mover = pickMover(a, b, settings);
+    const key = `${mover.owner.kind}:${mover.owner.id}`;
+    if (flagged.has(key) && mover.owner.kind !== 'label') continue; flagged.add(key);
+    out.push({ code: 'TEXT_OVERLAP', severity: 'error', message: `The text of ${name(a.owner, sheet)} overlaps ${name(b.owner, sheet)}.`, ...ids([a, b]), at: center(mover.boxes[0]), ...fixFor(ctx, mover, placed, viewLines) });
+  }
+  for (const p of placed) {
+    if (p.owner.kind === 'label') {
+      // A view's name sits under the dimensions below its view: pushed into the next view, it needs room, not a move.
+      if (p.boxes.some(b => viewLines.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, b, p.owner.view))) out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing: the dimensions under its view push it there (a larger sheet or a smaller scale gives room).`, ...(p.owner.view ? { view: p.owner.view } : {}), at: center(p.boxes[0]) });
+      continue;
+    }
+    if (p.owner.kind !== 'dimension' || flagged.has(`dimension:${p.owner.id}`)) continue;
+    const others = placed.filter(q => q !== p && q.owner.kind === 'dimension').flatMap(q => q.lines);
+    if (p.boxes.some(b => viewLines.some(([s, t]) => segmentHitsQuad(s, t, b)) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, b, p.owner.view))) {
+      flagged.add(`dimension:${p.owner.id}`);
+      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewLines) });
+    }
+  }
+  const [fx0, fy0, fx1, fy1] = layout.frame, [tx0, ty0, tx1, ty1] = layout.title;
+  for (const p of placed) {
+    if (p.owner.kind === 'label') continue;
+    const off = p.points.some(([x, y]) => x < fx0 || x > fx1 || y < fy0 || y > fy1 || (x > tx0 && x < tx1 && y > ty0 && y < ty1));
+    if (!off || flagged.has(`${p.owner.kind}:${p.owner.id}`)) continue;
+    flagged.add(`${p.owner.kind}:${p.owner.id}`);
+    out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewLines) });
+  }
+  out.push(...duplicates(ctx), ...coverage(ctx));
+  return out;
+}
+
+/** Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). */
+function onOtherView(layout: SheetLayout, b: Quad, own: ViewId | undefined): boolean {
+  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own).map(v => layout.views[v].box).concat(layout.section ? [layout.section.box] : []);
+  return areas.some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
+}
+
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+const center = (q: Quad): XY => [(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2];
+function ids(ps: Placed[]): { dims?: string[]; notes?: string[] } {
+  const dims = ps.filter(p => p.owner.kind === 'dimension').map(p => p.owner.id!), notes = ps.filter(p => p.owner.kind === 'note').map(p => p.owner.id!);
+  return { ...(dims.length ? { dims } : {}), ...(notes.length ? { notes } : {}) };
+}
+function rematched(d: DrawingDimension): boolean {
+  return d.kind === 'linear' ? d.a.was !== undefined || d.b.was !== undefined : d.kind === 'angle' ? d.a.was !== undefined || d.b.was !== undefined : d.was !== undefined;
+}
+function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
+  const rank = (p: Placed) => p.owner.kind === 'dimension' ? (settings.dimensions.find(d => d.id === p.owner.id)?.auto ? 0 : 1) : p.owner.kind === 'note' ? 2 : 3;
+  const ra = rank(a), rb = rank(b);
+  return ra < rb ? a : rb < ra ? b : b;
+}
+
+/**
+ * A place for an annotation clear of every other text, of the views' lines and inside the frame: a dimension moved
+ * row by row outward (or inward) square to its line, a callout or note along its leader's way; none if nothing clears.
+ */
+function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewLines: readonly [XY, XY][]): { fix?: DrawingFix } {
+  if (p.owner.kind === 'label') return {};
+  const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = [...viewLines, ...others.filter(q => q.owner.kind === 'dimension').flatMap(q => q.lines)];
+  const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
+  const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, b, p.owner.view))
+    && q.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
+  if (p.owner.kind === 'note') {
+    const n = ctx.settings.notes?.find(x => x.id === p.owner.id); if (!n) return {};
+    for (let k = 1; k <= MOVE_ROWS; k++) for (const [dx, dy] of [[0, ROW * k], [0, -ROW * k], [ROW * k, 0], [-ROW * k, 0]]) {
+      const shifted: Placed = { ...p, boxes: p.boxes.map(b => b.map(([x, y]) => [x + dx, y + dy]) as Quad), points: p.points.map(([x, y]) => [x + dx, y + dy] as XY) };
+      if (clear(shifted)) return { fix: { kind: 'move-note', note: n.id, at: [n.at[0] + dx, n.at[1] + dy] } };
+    }
+    return {};
+  }
+  const r = ctx.sheet.dimensions.find((d): d is Extract<Resolved, { ok: true }> => d.ok && d.dim.id === p.owner.id);
+  if (!r) return {};
+  const v = ctx.layout.views[r.dim.view];
+  for (const place of candidates(r, v.scale, ctx.views[r.dim.view])) {
+    // (The sheet's resolved dimension carries its shown text, callout and count included.)
+    const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
+    if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(v, moved) }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
+  }
+  return {};
+}
+
+/** Places to try for a dimension (view coordinates): rows each way square to a linear one, round the circle for a leader. */
+function candidates(r: Extract<Resolved, { ok: true }>, scale: number, pr: BrepProjection): XY[] {
+  const p = r.dim.place, out: XY[] = [];
+  if (r.kind === 'linear') {
+    const o = r.dim.orient, d: XY = o === 'horizontal' ? [1, 0] : o === 'vertical' ? [0, 1] : unit([r.b[0] - r.a[0], r.b[1] - r.a[1]]), n: XY = [-d[1], d[0]];
+    // Further from the measured points first.
+    const side = Math.sign((p[0] - r.a[0]) * n[0] + (p[1] - r.a[1]) * n[1]) || 1;
+    for (let k = 1; k <= MOVE_ROWS; k++) for (const sg of [side, -side]) out.push([p[0] + sg * n[0] * ROW * k / scale, p[1] + sg * n[1] * ROW * k / scale]);
+    // Then rows beside the view itself, either side (for one far off): the first 10 mm out, then 8 mm apart.
+    const corners: XY[] = [[pr.min[0], pr.min[1]], [pr.max[0], pr.min[1]], [pr.max[0], pr.max[1]], [pr.min[0], pr.max[1]]];
+    const along = corners.map(c => c[0] * n[0] + c[1] * n[1]), hi = Math.max(...along), lo = Math.min(...along);
+    const mid: XY = [(r.a[0] + r.b[0]) / 2, (r.a[1] + r.b[1]) / 2], at = mid[0] * n[0] + mid[1] * n[1];
+    for (let k = 0; k <= MOVE_ROWS + 2; k++) for (const [edge, sg] of [[hi, 1], [lo, -1]] as const) {
+      const t = edge + sg * (10 + ROW * k) / scale - at;
+      out.push([mid[0] + n[0] * t, mid[1] + n[1] * t]);
+    }
+    return out;
+  }
+  if (r.kind === 'angle') { for (let k = 1; k <= MOVE_ROWS; k++) out.push([r.vertex[0] + (p[0] - r.vertex[0]) * (1 + 0.25 * k), r.vertex[1] + (p[1] - r.vertex[1]) * (1 + 0.25 * k)]); return out; }
+  // A leader: the text further out, then round the circle in eighths.
+  const c = r.center, d0 = Math.atan2(p[1] - c[1], p[0] - c[0]), reach = Math.hypot(p[0] - c[0], p[1] - c[1]);
+  for (let k = 0; k <= MOVE_ROWS; k++) for (let e = 0; e < 8; e++) {
+    if (k === 0 && e === 0) continue;
+    const a = d0 + (e % 2 ? 1 : -1) * Math.ceil(e / 2) * Math.PI / 4, l = reach + k * ROW / scale;
+    out.push([c[0] + Math.cos(a) * l, c[1] + Math.sin(a) * l]);
+  }
+  return out;
+}
+const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+
+// ---------------------------------------------------------------------------------------------------------
+// Duplicates and coverage
+
+/** A view's axis as the model axis it shows (front and top share X, front and right share Z). */
+function axisOf(view: ViewId, k: 0 | 1): string {
+  if (view === 'front') return k === 0 ? 'X' : 'Z';
+  if (view === 'top') return k === 0 ? 'X' : 'Y';
+  if (view === 'right') return k === 0 ? 'Y' : 'Z';
+  return `${view}${k}`;
+}
+
+function duplicates(ctx: IssueContext): DrawingIssue[] {
+  const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>>();
+  for (const r of ctx.sheet.dimensions) {
+    if (!r.ok) continue;
+    let key: string;
+    if (r.kind === 'linear' && r.dim.orient !== 'aligned') {
+      const k = r.dim.orient === 'horizontal' ? 0 : 1, lo = Math.min(r.a[k], r.b[k]), hi = Math.max(r.a[k], r.b[k]);
+      // (Views sharing an axis share its coordinates: the front and top views' u, the front and right views' v.)
+      key = `L|${axisOf(r.dim.view, k)}|${round(lo)}|${round(hi)}|${r.dim.count ?? 1}`;
+    } else if (r.kind === 'diameter' || r.kind === 'radius') key = `C|${r.dim.view}|${round(r.center[0])}|${round(r.center[1])}|${round(r.radius)}`;
+    else continue;
+    const had = seen.get(key);
+    if (!had) { seen.set(key, r); continue; }
+    const drop = r.dim.auto && !had.dim.auto ? r : had.dim.auto && !r.dim.auto ? had : r;
+    out.push({ code: 'DUPLICATE', severity: 'warning', message: `${r.text} is given twice (${had.dim.view} and ${r.dim.view} view).`, dims: [had.dim.id, r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: drop.dim.id } });
+  }
+  return out;
+}
+const round = (v: number) => Math.round(v / SAME) * SAME;
+
+/** Coordinates a view's linear dimensions give along an axis: their ends, and the positions a counted pitch reaches. */
+function givenAlong(sheet: Sheet, axis: string): number[] {
+  const out: number[] = [];
+  for (const r of sheet.dimensions) {
+    if (!r.ok || r.kind !== 'linear' || r.dim.orient === 'aligned') continue;
+    const k = r.dim.orient === 'horizontal' ? 0 : 1;
+    if (axisOf(r.dim.view, k) !== axis) continue;
+    out.push(r.a[k], r.b[k]);
+    if (r.dim.count) { const step = r.b[k] - r.a[k]; for (let j = 2; j <= r.dim.count; j++) out.push(r.a[k] + step * j); }
+  }
+  return out;
+}
+const covers = (xs: readonly number[], x: number) => xs.some(y => Math.abs(y - x) <= 1e-6 * Math.max(1, Math.abs(x)));
+
+function coverage(ctx: IssueContext): DrawingIssue[] {
+  const { views, sheet } = ctx, out: DrawingIssue[] = [], auto: DrawingFix = { kind: 'auto-dimension' };
+  const along: Record<string, number[]> = {};
+  const given = (axis: string) => along[axis] ??= givenAlong(sheet, axis);
+  // Holes: a size (its own diameter, or a counted one of its kind), and a position both ways in its view.
+  const holes = holesOf(views, ctx.callout);
+  const sizes = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }> => r.ok && (r.kind === 'diameter' || r.kind === 'radius'));
+  const kindOf = (callout: string | null, radius: number) => (callout ?? `Ø${round(2 * radius)}`).replace(/^\d+× /, '');
+  let unsized = 0, unlocated = 0; const where: ViewId[] = [];
+  for (const h of holes) {
+    const own = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && Math.abs(r.radius - h.radius) <= SAME);
+    const ofKind = sizes.some(r => r.dim.count && Math.abs(r.radius - h.radius) <= SAME && kindOf(ctx.callout(r.dim.kind === 'diameter' || r.dim.kind === 'radius' ? r.dim.edge : ''), r.radius) === kindOf(h.callout, h.radius));
+    // (A counterbore's or countersink's outer circle: sized by the callout on its centre.)
+    const inCallout = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && r.radius < h.radius && /CBORE|CSK/.test(r.text));
+    if (!own && !ofKind && !inCallout) { unsized++; where.push(h.view); }
+    const pr = views[h.view];
+    for (const k of [0, 1] as const) {
+      if (Math.abs(h.at[k] - pr.min[k]) <= SAME || Math.abs(h.at[k] - pr.max[k]) <= SAME) continue;
+      if (!covers(given(axisOf(h.view, k)), h.at[k])) { unlocated++; where.push(h.view); break; }
+    }
+  }
+  if (unsized) out.push({ code: 'HOLE_SIZE_MISSING', severity: 'warning', message: `${unsized} hole${unsized > 1 ? 's have' : ' has'} no size on the drawing.`, view: where[0], fix: auto });
+  if (unlocated) out.push({ code: 'HOLE_NOT_LOCATED', severity: 'warning', message: `${unlocated} hole${unlocated > 1 ? 's are' : ' is'} not located (a position across or up is missing).`, view: where[0], fix: auto });
+  // Steps: inner edge positions (top: both ways; front: heights), as Auto-dimension gives them.
+  let steps = 0;
+  for (const [view, ks] of [['top', [0, 1]], ['front', [1]]] as const) {
+    const pr: BrepProjection = views[view];
+    for (const k of ks) {
+      const xs = levels(pr, k).map(m => m.x).filter(x => x > pr.min[k] + SAME && x < pr.max[k] - SAME);
+      const distinct = xs.sort((a, b) => a - b).filter((x, i) => !i || x - xs[i - 1] > SAME);
+      steps += distinct.filter(x => !covers(given(axisOf(view, k)), x)).length;
+    }
+  }
+  if (steps) out.push({ code: 'STEP_NOT_LOCATED', severity: 'warning', message: `${steps} step${steps > 1 ? 's are' : ' is'} not located (an inner edge’s position is missing).`, fix: auto });
+  // Overall sizes: width (X), height (Z), depth (Y), each as one linear dimension over the whole extent in a view showing it.
+  const missing: string[] = [];
+  for (const [axis, label] of [['X', 'width'], ['Z', 'height'], ['Y', 'depth']] as const) {
+    const has = ORTHO.some(view => ([0, 1] as const).some(k => {
+      if (axisOf(view, k) !== axis) return false;
+      const pr = views[view], ext = k === 0 ? pr.max[0] - pr.min[0] : pr.max[1] - pr.min[1];
+      return sheet.dimensions.some(r => r.ok && r.kind === 'linear' && r.dim.view === view && r.dim.orient === (k === 0 ? 'horizontal' : 'vertical') && Math.abs(r.value - ext) <= 1e-6 * Math.max(1, ext));
+    }));
+    // (A round outline's size is its diameter.)
+    const round = ORTHO.some(view => sizes.some(r => r.dim.view === view && Math.abs(2 * r.radius - (views[view].max[0] - views[view].min[0])) <= 1e-6 * Math.max(1, 2 * r.radius)));
+    if (!has && !round) missing.push(label);
+  }
+  if (missing.length) out.push({ code: 'OVERALL_MISSING', severity: 'warning', message: `The part’s overall ${missing.join(', ')} ${missing.length > 1 ? 'are' : 'is'} not given.`, fix: auto });
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Fixes
+
+/** The settings with one fix applied. */
+export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
+  const s = ctx.settings;
+  switch (fix.kind) {
+    case 'remove': return { ...s, dimensions: s.dimensions.filter(d => d.id !== fix.dim) };
+    case 'move': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? { ...d, place: fix.place } : d) };
+    case 'move-note': return { ...s, notes: (s.notes ?? []).map(n => n.id === fix.note ? { ...n, at: fix.at } : n) };
+    case 'accept': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? accepted(d) : d) };
+    case 'scale': { const { scale: _drop, ...rest } = s; void _drop; return { ...rest, ...(fix.scale !== undefined && SCALES.includes(fix.scale) ? { scale: fix.scale } : {}), ...(fix.sheet ? { sheet: fix.sheet } : {}) }; }
+    case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout).dimensions };
+  }
+}
+function accepted(d: DrawingDimension): DrawingDimension {
+  if (d.kind === 'linear') { const { was: _a, ...a } = d.a, { was: _b, ...b } = d.b; void _a; void _b; return { ...d, a, b }; }
+  if (d.kind === 'angle') { const { was: _a, ...a } = d.a, { was: _b, ...b } = d.b; void _a; void _b; return { ...d, a, b }; }
+  const { was: _w, ...rest } = d; void _w; return rest as DrawingDimension;
+}
+
+/** What a sheet is built from, to build it again after a fix. */
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string) => string | null; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
+
+/** The context of a sheet built from its inputs (its layout from the settings, the section's extent with it). */
+export function issueContext(i: SheetInputs): IssueContext {
+  const layout = layoutSheet(i.views, i.settings, i.section && i.settings.section ? i.section.projection : undefined);
+  const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.section);
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout };
+}
+
+/**
+ * Every fix applied, one at a time and the sheet built again after each (a fix can clear or make others): the errors'
+ * first, then the warnings'. Stops when nothing fixable is left, when a fix changes nothing, or after `max` fixes.
+ * Returns the settings and what is left.
+ */
+export function fixAll(i: SheetInputs, max = 40): { settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] } {
+  let settings = i.settings, ctx = issueContext(i), issues = drawingIssues(ctx);
+  const applied: DrawingFix[] = [], tried = new Set<string>();
+  for (let n = 0; n < max; n++) {
+    const next = [...issues.filter(x => x.severity === 'error'), ...issues.filter(x => x.severity === 'warning')].find(x => x.fix && !tried.has(JSON.stringify(x.fix)));
+    if (!next) break;
+    const key = JSON.stringify(next.fix); tried.add(key);
+    const changed = applyFix(ctx, next.fix!);
+    if (JSON.stringify(changed) === JSON.stringify(settings)) continue;
+    settings = changed; applied.push(next.fix!);
+    ctx = issueContext({ ...i, settings }); issues = drawingIssues(ctx);
+  }
+  return { settings, applied, left: issues };
+}

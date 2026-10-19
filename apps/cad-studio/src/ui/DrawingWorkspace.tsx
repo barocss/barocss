@@ -14,6 +14,7 @@ import { toleranceText } from '../drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
 import { autoDimensions } from '../drawing/auto';
+import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '../drawing/issues';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
@@ -97,6 +98,15 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const callout = useCallback((edge: string) => holeCallout(doc.nodes, edge), [doc.nodes]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads }, cut), [views, layout, settings, title, cut, callout, threads]);
+  // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
+  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
+  const fixEvery = () => {
+    if (!views) return;
+    const r = fixAll({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    onChange(r.settings);
+    onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
+  };
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
@@ -285,9 +295,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     };
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
       hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
-      section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null };
+      section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null,
+      issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}) })) };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
-  }, [layout, sheet, views, section]);
+  }, [layout, sheet, views, section, issues]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {
@@ -424,6 +435,17 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
             {stale && <div className="empty" style={{ color: 'var(--warn)' }} aria-label="Revision out of date">The model changed since revision {settings.revision}: give the drawing its next revision when you issue it.</div>}
           </>; })()}
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
+
+        <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>
+          {issues.some(x => x.fix) && <button className="ghost small" onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Every fix the list offers, one at a time, the sheet checked again after each">Fix all</button>}</div>
+        <div className="dw-issues" aria-label="Drawing issues">
+          {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
+            onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
+            <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
+            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : 'Auto scale') : 'Move'}</button>}
+          </div>)}
+          {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
+        </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
           <button className="ghost small" disabled={!views || !layout} onClick={autoDimension} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Overall sizes, steps, hole positions and callouts from the part: replaces its own earlier ones, keeps yours">Auto</button></div>

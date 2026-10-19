@@ -52,6 +52,8 @@ if (process.env.UPDATE_R14_FIXTURES) for (const [name, p] of Object.entries(PART
 
 for (const name of existsSync(root) ? readdirSync(root).filter(n => existsSync(resolve(root, n, 'case.json'))) : []) {
   const c = JSON.parse(readFileSync(resolve(root, name, 'case.json'), 'utf8'));
+  // (R14.2's issue cases have their own runner, test/drawing-issues.test.ts.)
+  if (c.step !== 'R14.1') continue;
   test(`conformance ${c.id}: ${c.about}`, () => {
     assert.equal(c.id, `r14-${name}`);
     const r = run(c.input.document as StudioDoc, c.input.drawing);
