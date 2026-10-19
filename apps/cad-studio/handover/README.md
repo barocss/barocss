@@ -195,7 +195,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     re-maps every annotation to the view showing its axes or is refused, typed (ORIENTATION_REMAP_FAILED, SECTION_ACROSS);
     section A–A square to the front's depth; Auto takes the side that tells more when nothing by hand ties it.
     Conformance `conformance/r14/orient-*`.
-- Next: **A5** DSL + MCP (design input `notes/research-cad-server-2026-10-18.md`).
+- **A5** DSL + MCP (design input `notes/research-cad-server-2026-10-18.md`): S0 done (O8) — 57 tools, a 64.5k-character
+  tool list every turn, a per-turn MCP on a state file without annotations or output schemas; a script is 2.5× smaller
+  than op JSON per part, so its value is fewer calls and a smaller surface. Steps: A5.1 tool contract v1 → A5.2
+  `run_script` → A5.3 consolidated tools (≤ 15k characters) → A5.4 external MCP + CLI → A5.5 A/B (live runs on a go-ahead).
+- Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
+  `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): none open.
 
 ### Standing rules

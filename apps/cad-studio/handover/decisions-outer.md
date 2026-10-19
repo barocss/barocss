@@ -213,3 +213,38 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
     - Auto's choice for the block, none for a plate, none with a side set or a dimension by hand;
     - the agent's auto_dimension on the block: front from +X, the hole's diameter in the front view, no issue; set_drawing back to −Y re-maps it to the right view; a bad side refused.
   - A browser-flow step: the auto-dimensioned plate turned to +X — the same six values, no error, the old front's dimensions in the right view (shown) — then back to −Y as it was; with section A–A on, turning to +X is refused and nothing changes.
+
+## O8 — A5 S0: what the tool layer is today, and A5's steps (2026-10-20)
+
+- **Measured** (HEAD `975a62fed`; deterministic, no model run):
+  - The agent's tool layer (`src/chat/tools.ts` `TOOLS`): **57 tools**. Their `tools/list` JSON is **64 531 characters** (about 16k tokens), and the system prompt another 6 588, sent every turn. The largest: `run_command` 11 697 (every toolbar command's value keys in one description), `add_features` 3 656, `set_requirements` 2 283, the image tools about 1.8k each, `inspect` and `measure` about 1.5k.
+  - **MCP** (`server/cadMcp.ts`): a per-turn stdio process the chat server starts on a state file. It answers `initialize`, `tools/list` and `tools/call`. It has no tool annotations, no `outputSchema`, no `structuredContent` (results are JSON in a text item), no document of its own, and no way for an external client (Claude Code, Desktop) to open or save a `.bcad`.
+  - **Command-only modelling works headless**: `dispatchTool` / `apply_ops` build any part in Node (every chat test does), all-or-nothing with op ids.
+    - A bracket (a 100 × 40 × 10 plate, a row of four Ø6.6 holes, a tapped M6 hole), built here through `apply_ops`, is **391 characters of op JSON**. The same as the draft DSL below is **156: 2.5×**.
+    - The owner's SubD pipe clamp is 43 calls, 4 188 characters of call JSON.
+    - So a script saves little text per operation. What it saves is round trips (a part in one call, not one call per feature) and a tool surface the model must read each turn.
+  - The kernel's `cad.model()` builder (`CONCISE_API.md`) is an older, narrower surface (convex polygons, a few features), not the studio's feature set. The DSL should compile to the studio's feature ops (`run_command` commands and `add_features` kinds), the format proposals, undo and the A1 references already use.
+- **A5's steps** (a proposal):
+  - **A5.1 tool contract v1** (`barocss-cad-tools-v1`):
+    - every tool gets MCP annotations: title, and read-only / destructive / idempotent hints from the existing mutator and approval sets;
+    - read tools get an `outputSchema` and return `structuredContent` beside the text;
+    - the names and input schemas are frozen in a committed list, with a test that fails on any unversioned change.
+    - Acceptance: the schema test; an MCP conformance test (a JSON-RPC client: initialize, list, call, structured results).
+  - **A5.2 `run_script`** — a small TypeScript-like language, our own lexer and parser, no `eval`, no new dependency:
+    - parameters, `const` names, numbers in mm, arrays and objects, arithmetic, bounded `for` loops;
+    - calls named after the commands and feature kinds with their HUD value keys; faces and edges by A1 names or selectors (`plate.top`);
+    - compiled to ops and run as one `apply_ops` (all or nothing, never raw B-rep), returning each statement's feature ids and the part's facts;
+    - typed errors with line and column; limits on statements and loop iterations;
+    - later, `script_of(doc)`: the feature tree written back as a script for reading.
+    - Acceptance: conformance `conformance/a5/` (script → features and volume); the parser fuzzed for typed errors; round trip where the decompiler covers the tree.
+  - **A5.3 consolidated tools** (about a dozen): `model` (run_script), `features` (feature JSON add/edit/delete), `query` (summary, inspect, measure, mass, interference, section, wall, draft, render), `history`, `requirements`, `proposals`, `assembly`, `library`, `print`, `drawing`, `subd`, `describe` (one command's or feature's full schema on request).
+    - The old names stay as versioned aliases until A5.5 decides.
+    - Acceptance: `tools/list` at most 15k characters (from 64.5k); every existing chat, proposal and cage test replayed through the consolidated layer.
+  - **A5.4 external MCP server and CLI** (one tool layer with the in-app chat):
+    - `cad-mcp --doc part.bcad`: long-lived stdio, saves on change atomically with its blob files, local files only;
+    - `cad-cli run script -o part.bcad [--step] [--stl] [--check]` for batch and CI.
+    - Acceptance: a client test (spawn, list, run a script, save, reopen identical) and a CLI test.
+  - **A5.5 A/B**: JSON-only (today's tools) against the hybrid (consolidated tools and `run_script`), on 8–12 briefs from the AI scenario ladder, each with A3 requirements as the kernel oracle.
+    - Measures: hard-requirement pass rate, tool calls, input and output tokens, wall time, refusals.
+    - A scripted agent dry-runs the harness in CI. **Live model runs (L3 evidence, the owner's usage) only on a go-ahead**, at least 3 runs a brief and arm.
+- **Out of A5**: the chat-turn overwrite (README TODO, the owner's decision), the document service, accounts and concurrent editing (A7/A8 and a server track, per the research note).
