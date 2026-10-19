@@ -49,6 +49,14 @@ async function check(name, fn) {
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
+/** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
+async function bodyVolume() {
+  for (let k = 0; k < 3; k++) {
+    await page.locator('.outliner .ol').first().click();
+    try { await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 }); break; } catch { /* clicked off: again */ }
+  }
+  return Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+}
 const history = () => page.locator('.history').innerText().catch(() => '');
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
@@ -2882,8 +2890,9 @@ try {
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
-    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
-    const edge = await page.evaluate(() => { for (const a of ['n1.side0#1', 'n1.side0#2', 'n1.side0']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (let k = 1; k <= 8; k++) for (const n of [`${a}|${b}#${k}`, `${b}#${k}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; });
+    const before = await bodyVolume();
+    // (Polled: just after a file opens, the bodies shown can still be the last part's.)
+    const edge = await (await page.waitForFunction(() => { for (const a of ['n1.side0#1', 'n1.side0#2', 'n1.side0']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (let k = 1; k <= 8; k++) for (const n of [`${a}|${b}#${k}`, `${b}#${k}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
     assert.ok(edge, 'a junction edge picked by its name');
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('2');
@@ -2891,9 +2900,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 60000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 60000 });
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
-    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    const after = await bodyVolume();
     // (The kernel's fillet adds 15.71 mm³ — conformance r10/general-tee; the panel rounds to 1 mm³.)
     assert.ok(Math.abs(after - before - 15.71) <= 1, `${before} → ${after}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -2909,8 +2916,8 @@ try {
       { id: 'n5', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } }] }));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
-    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
-    const edge = await page.evaluate(() => { for (const a of ['n1.top#1', 'n1.top#2']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (const n of [`${a}|${b}`, `${b}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; });
+    const before = await bodyVolume();
+    const edge = await (await page.waitForFunction(() => { for (const a of ['n1.top#1', 'n1.top#2']) for (const b of ['n3.side0#1', 'n3.side0#2']) for (const n of [`${a}|${b}`, `${b}|${a}`]) if (window.__studioPickEdge(n)) return n; return null; }, null, { timeout: 30000 })).jsonValue();
     assert.ok(edge, 'a rim picked by its name');
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('1');
@@ -2918,9 +2925,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
-    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    const after = await bodyVolume();
     // (A convex fillet removes material: 8983.23 mm³ after it — conformance r10/general-oblique-groove; the panel rounds to 1 mm³.)
     assert.ok(after < before && Math.abs(after - 8983.23) <= 1, `${before} → ${after}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -2935,8 +2940,8 @@ try {
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
-    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
-    const picked = await page.evaluate(() => { let n = 0; for (let k = 0; k < 4; k++) for (const e of [`n1.top|n3.side${k}`, `n3.side${k}|n1.top`]) if (window.__studioPickEdge(e, n > 0)) { n++; break; } return n; });
+    const before = await bodyVolume();
+    const picked = await (await page.waitForFunction(() => { let n = 0; for (let k = 0; k < 4; k++) for (const e of [`n1.top|n3.side${k}`, `n3.side${k}|n1.top`]) if (window.__studioPickEdge(e, n > 0)) { n++; break; } return n === 4 ? n : null; }, null, { timeout: 30000 })).jsonValue();
     assert.equal(picked, 4, 'the four foot edges picked by name');
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('2');
@@ -2945,9 +2950,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.at(-1).edges.length), 4);
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
-    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    const after = await bodyVolume();
     // (The fillet adds 57.35 mm³ — conformance r10/corner-box-boss-foot, in closed form; the panel rounds to 1 mm³.)
     assert.ok(Math.abs(after - before - 57.35) <= 1, `${before} → ${after}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -2962,13 +2965,13 @@ try {
       { id: 'n4', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } }] }));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 5 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
-    const before = Number(/Volume\s*([\d,]+) mm³/.exec(await (async () => { await page.locator('.outliner .ol').first().click(); return page.textContent('.props'); })())?.[1].replace(/,/g, ''));
-    const picked = await page.evaluate(() => {
+    const before = await bodyVolume();
+    const picked = await (await page.waitForFunction(() => {
       let n = 0;
       for (let k = 0; k < 4; k++) for (const e of [`n1.top|n3.side${k}`, `n3.side${k}|n1.top`]) if (window.__studioPickEdge(e, n > 0)) { n++; break; }
       for (let k = 0; k < 4; k++) { const a = `n3.side${k}`, b = `n3.side${(k + 1) % 4}`; for (const e of [`${a}|${b}`, `${b}|${a}`]) if (window.__studioPickEdge(e, true)) { n++; break; } }
-      return n;
-    });
+      return n === 8 ? n : null;
+    }, null, { timeout: 30000 })).jsonValue();
     assert.equal(picked, 8, 'the foot and the four upright edges picked by name');
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('2');
@@ -2976,13 +2979,38 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
     await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 60000 });
-    const after = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+    const after = await bodyVolume();
     // (+2.90 mm³ — conformance r10/corner-boss-uprights-and-foot, in closed form; the panel rounds to 1 mm³.)
     assert.ok(Math.abs(after - before - 2.9) <= 1, `${before} → ${after}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r10-3b-box-boss-all');
+  });
+
+  await check('R10.3c a rod across a round plate (a file): both feet filleted in the studio — the translational tools cut by the plate\'s rim at their ends', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rod-on-disc.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
+      { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -30 },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angleDegrees: 45, pivot: [0, 0, 10] },
+      { id: 'n5', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 4, side: 'solid' } }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const before = await bodyVolume();
+    // (Each foot once, by the first of its names found: picking an edge again would take it out of the selection.)
+    const picked = await (await page.waitForFunction(() => { const got = []; for (const b of ['n1.top#1', 'n1.top#2', 'n1.top']) { let done = false; for (const a of ['n3.side0#1', 'n3.side0#2', 'n3.side0']) { for (const e of [`${a}|${b}`, `${b}|${a}`]) if (!done && window.__studioPickEdge(e, got.length > 0)) { got.push(e); done = true; } } } return got.length === 2 ? got : null; }, null, { timeout: 30000 })).jsonValue();
+    assert.equal(picked.length, 2, `both feet picked by name: ${picked.join(' ')}`);
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('1');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 90000 }); await idle();
+    await page.waitForFunction(() => !/Working/.test(document.body.innerText), null, { timeout: 90000 });
+    const after = await bodyVolume();
+    // (+12.04 mm³ — conformance r10/translational-rod-across-disc, by quadrature of the section across the disc; it stopped
+    // square before, +12.24; the panel rounds to 1 mm³.)
+    assert.ok(Math.abs(after - before - 12.04) <= 1, `${before} → ${after}`);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r10-3c-rod-on-disc');
   });
 
   await check('SubD torus (SD1): a regular cage as its exact limit surface — B-spline faces, a smooth ring, a split of it', async () => {

@@ -1,0 +1,102 @@
+{
+  "id": "r10-refuse-general-end-at-cylinder",
+  "step": "R10",
+  "decisions": [
+    "D94"
+  ],
+  "about": "R10.3c: a rod tilted 5° about Y lying on a round plate, one foot (ellipse arcs: a general chain) filleted 1 mm — its ends at the plate's rim, a cylinder: not yet (the analytic Boolean cutting the lofted tool by a cylinder fails on the cases tried).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 20
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -30
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "y",
+          "angleDegrees": 5,
+          "pivot": [
+            0,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "g",
+          "kind": "union",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "c0.side0#2|pe.top#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "meets a curved face"
+    }
+  },
+  "oracle": "The foot is a general (rolling-ball) chain; R10.1 cuts only its closed-form tools by cylinders (D94)."
+}

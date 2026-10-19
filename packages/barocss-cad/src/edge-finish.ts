@@ -47,7 +47,21 @@ interface Use { face: Brep['faces'][number]; geometry: Geo; sense: 'forward' | '
  * Fillets (radius) or chamfers (distance) the named edges of `body` and the edges continuing them
  * tangentially. Tool faces are named `${id}.face` (the fillet or chamfer surface).
  */
-export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean } = {}): Brep {
+export function finishBrepEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions = {}): Brep {
+  // (Where a closed-form tool cut at a cylinder its end runs across — R10.3c — leaves the analytic Boolean a result it
+  // cannot close, the finish is made again with those ends stopped at their vertices, as before R10.3c, D94.)
+  if (options.squareAtCylinders) return finishEdges(body, names, size, kind, id, options);
+  const used = { cylinder: false };
+  try { return finishEdges(body, names, size, kind, id, options, used); }
+  catch (cause) {
+    if (!(cause instanceof BrepError) || !used.cylinder) throw cause;
+    return finishEdges(body, names, size, kind, id, { ...options, squareAtCylinders: true });
+  }
+}
+interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean }
+function finishEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions, used: { cylinder: boolean } = { cylinder: false }): Brep {
+  let usedCylinder = false;
+  try {
   // (`general`: every closed loop by the rolling ball, even where a closed form exists — to check one against the other.)
   const reports = options.reports;
   let scaleMM = 1; for (const v of body.vertices) for (const x of v.point) scaleMM = Math.max(scaleMM, Math.abs(x));
@@ -59,6 +73,19 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
   const atVertex = new Map<string, Brep['edges'][number][]>();
   for (const e of body.edges) for (const v of new Set(e.vertices)) atVertex.set(v, [...(atVertex.get(v) ?? []), e]);
   const byName = new Map(body.edges.map(e => [e.name, e]));
+  // (Where the body's faces on a cylinder meet each other: the straight edges along its axis between two of them, as
+  // vectors from its axis, D94.)
+  const seamsOf = (g: Extract<FaceGeometry, { kind: 'cylinder' }>): Point[] => {
+    const a = unit(g.a), on = (f: string) => { const h = geom(f); return h.kind === 'cylinder' && len(cross(unit(h.a), a)) < 1e-9 && Math.abs(h.r - g.r) < 1e3 * tol && len(cross(sub(h.c, g.c), a)) < 1e3 * tol; };
+    const out: Point[] = [];
+    for (const e of body.edges) {
+      const fs = facesOf(e); if (fs.length !== 2 || !fs.every(on)) continue;
+      const p = e.curve.controlPoints, d = sub(p[p.length - 1], p[0]);
+      if (e.curve.degree !== 1 || len(cross(unit(d), a)) > 1e-9) continue;
+      const q = sub(p[0], g.c); out.push(sub(q, scale(a, dot(q, a))));
+    }
+    return out;
+  };
 
   // Ends and end tangents (pointing away from the vertex, along the edge).
   const ends = (e: Brep['edges'][number]) => {
@@ -223,7 +250,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     // would add material beyond the end) is clipped by the end face's plane; into a wall a concave tool's run adds
     // nothing, a convex one's (it would cut the wall) is clipped by the wall's plane. A clip needs one plane there.
     let past: (EndPlane | null)[] = [null, null];
-    const clips: { o: Point; n: Point }[] = [];
+    const clips: EndClip[] = [];
     if (open) {
       const sideFaces = new Set(comp.flatMap(facesOf)), convex0 = convexAt(generalInto(open[0], usesOf, ends));
       past = [0, 1].map(i => {
@@ -254,13 +281,16 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
         if (worst === Infinity) return null;
         const clip = convex0 ? worst <= 1e-6 : worst >= -1e-6;
         if (clip) {
+          // (One plane — square to the chain too since R10.3c, D94 — or one cylinder: the tool runs past and is cut by it.)
           const g = others.length === 1 ? geom(others[0]) : null;
-          if (!g || g.kind !== 'plane') refuse('CAPABILITY', `edge ${o.e.name}: its end meets ${others.length === 1 ? 'a curved face' : 'more than one face'}; ending a general fillet there arrives with R10.3`);
+          // (A cylinder there — a general fillet ending on a round plate's rim — not yet: the analytic Boolean cutting a
+          // lofted tool by a cylinder fails on the cases tried, D94.)
+          if (!g || g.kind !== 'plane') refuse('CAPABILITY', `edge ${o.e.name}: its end meets ${others.length === 1 ? 'a curved face' : 'more than one face'}; ending a general fillet there is not supported yet`);
           const pl = g as Extract<FaceGeometry, { kind: 'plane' }>;
-          // (An end plane square to the chain: the tool's end lies in it, its contact on the face's own edge — a case the
-          // analytic Boolean's arrangement does not yet take, D90.)
+          // (An end plane square to the chain: the tool's end section lies in it, partly on the end face and on along a
+          // side face's continuation — the analytic Boolean's arrangement fails there on most radii tried, D90, D94.)
           if (Math.abs(dot(pl.n, end.out)) > 1 - 1e-9) refuse('CAPABILITY', `edge ${o.e.name}: the fillet would end square on a face (its last section in that face's plane); that end is not supported yet`);
-          clips.push({ o: pl.o, n: pl.n });
+          clips.push({ kind: 'plane', o: pl.o, n: pl.n });
           return { o: pl.o, n: pl.n };
         }
         // (Run past where the body ends: until the section clears the end — its one plane, or the end face's tangent
@@ -271,9 +301,8 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     }
     const ring = generalRing(body, (loop ?? open)!, usesOf, ends, size, id, scaleMM, !!loop, past, cornerOf);
     for (const c of clips) {
-      // The end plane's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
-      const away = dot(c.n, sub(ring.mid, c.o)) < 0 ? c.n : scale(c.n, -1);
-      ring.brep = booleanAnalytic(ring.brep, halfSpace(c.o, away, 4 * scaleMM + 10, `${id}_clip`), 'difference', { id });
+      // The end face's side away from the chain (the fillet lies on the chain's side) is cut from the tool.
+      ring.brep = clipTool(ring.brep, c, ring.mid, 4 * scaleMM + 10, 4 * size, id, id);
       ring.contactFaces = contactFacesOf(ring.brep, id);
     }
     rings.push(ring);
@@ -298,7 +327,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     // How far the tool may run past each end: past the end of the body, else not at all. Where another
     // finished edge leaves the same vertex (a corner of a rounded box top), both tools run past it: with
     // one size, removing (or adding) both is exactly the mitre between the two finishes.
-    const [E0, E1] = ends(e), sharedCorner = [false, false], blocked = [false, false], endPlanes: (Extract<FaceGeometry, { kind: 'plane' }> | null)[] = [null, null], ends1 = [0, 0], endKind: ('ends' | 'wall' | null)[] = [null, null];
+    const [E0, E1] = ends(e), sharedCorner = [false, false], blocked = [false, false], endPlanes: (EndClip | null)[] = [null, null], ends1 = [0, 0], endKind: ('ends' | 'wall' | null)[] = [null, null];
     const reach = [E0, E1].map((end, i) => {
       if (continues(e, end).some(o => chain.has(o.id))) return 0;
       const meeting = (atVertex.get(end.v) ?? []).filter(o => o.id !== e.id && chain.has(o.id) && facesOf(o).some(f => facesOf(e).includes(f)));
@@ -326,7 +355,23 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
       const only = first0?.kind === 'plane' && planes.every(g => g.kind === 'plane' && len(sub(g.n, first0.n)) < 1e-9 && Math.abs(dot(sub(g.o, first0.o), first0.n)) < 1e3 * tol) ? first0 : null;
       if (only?.kind === 'plane' && Math.abs(dot(only.n, end.out)) < 1 - 1e-9) {
         const w = -dot(only.n, end.out);
-        endPlanes[i] = only; ends1[i] = 1 / Math.max(Math.abs(w), 0.25); endKind[i] = w > 1e-6 ? 'ends' : w < -1e-6 ? 'wall' : null;
+        endPlanes[i] = { kind: 'plane', o: only.o, n: only.n }; ends1[i] = 1 / Math.max(Math.abs(w), 0.25); endKind[i] = w > 1e-6 ? 'ends' : w < -1e-6 ? 'wall' : null;
+      }
+      // (One cylinder across it — a round plate's rim, a boss's wall: square to the edge or not, it curves away from the
+      // vertex, so a square stop would leave a wedge or a step: the tool runs past and is cut by that cylinder, D94.)
+      const cyl = across.map(geom), c0 = cyl[0];
+      // (Not where the tool's end would lie across a seam of the body's faces on that cylinder — between its two halves:
+      // the analytic Boolean then loses a face there; the tool stops at the vertex as before, D94.)
+      if (c0?.kind === 'cylinder' && cyl.every(g => g.kind === 'cylinder' && len(sub(g.a, c0.a)) < 1e-9 && Math.abs(g.r - c0.r) < 1e3 * tol && len(cross(sub(g.c, c0.c), c0.a)) < 1e3 * tol)) {
+        const w = -dot(outwardNormal(c0, end.x)!, end.out), run = 1 / Math.max(Math.abs(w), 0.25), seams = seamsOf(c0), a = unit(c0.a);
+        // (The tool's end on the cylinder spans, about its axis, from the edge to its section's reach into each face:
+        // its setback there and its growth, with a margin.)
+        const angleOf = (q: Point) => { const d = sub(q, c0.c), r0 = sub(d, scale(a, dot(d, a))); return r0; }, tangent = sub(E1.x, E0.x), sd = intoFaces(e, uses, end.x, len(tangent) > 0 ? unit(tangent) : end.out);
+        const halfAngle = Math.acos(Math.max(-1, Math.min(1, dot(sd[0].w, sd[1].w)))) / 2, reachLat = size / Math.max(Math.tan(halfAngle), 1e-3) + size;
+        const ref = unit(angleOf(end.x)), side = cross(a, ref), ang = (q: Point) => { const v = angleOf(q); return Math.atan2(dot(v, side), dot(v, ref)); };
+        const span = [0, ...sd.flatMap(x => [x.w, x.n, scale(x.n, -1)].map(d => ang(add(end.x, scale(d, reachLat)))))], lo = Math.min(...span) - 0.1 * size / c0.r, hi = Math.max(...span) + 0.1 * size / c0.r;
+        const clear = seams.every(q => { const t = ang(add(c0.c, q)); return t < lo || t > hi; });
+        if (clear && !options.squareAtCylinders) { usedCylinder = true; endPlanes[i] = { kind: 'cylinder', c: c0.c, a: c0.a, r: c0.r, seams }; ends1[i] = run; endKind[i] = w > 1e-6 ? 'ends' : w < -1e-6 ? 'wall' : null; }
       }
       if (worst > 1e-6) return 1 / Math.max(worst, 0.25); // the body ends there
       if (worst < -1e-6) blocked[i] = true; // a wall faces back along the edge
@@ -347,8 +392,8 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
       : pair === 'plane-cylinder' ? arcTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol, scaleMM)
       : coaxialTool(body, e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, id, tol, scaleMM);
     for (const [i, pl] of clipAt.entries()) if (pl && !(trim && trim[i])) {
-      const end = i === 0 ? E0 : E1, away = dot(pl.n, end.out) < 0 ? pl.n : scale(pl.n, -1);
-      tool.brep = booleanAnalytic(tool.brep, halfSpace(end.x, away, 4 * scaleMM + 10, `${id}_clip`), 'difference', { id: `${id}_t` });
+      const end = i === 0 ? E0 : E1, kept = add(end.x, scale(end.out, 1e-3 * len(sub(E1.x, E0.x))));
+      tool.brep = clipTool(tool.brep, pl.kind === 'plane' ? { kind: 'plane', o: end.x, n: pl.n } : pl, kept, 4 * scaleMM + 10, ends1[i] * 4 * size, id, `${id}_t`, { x: end.x, out: end.out, back: Math.min(0.45 * len(sub(E1.x, E0.x)), 4 * size) });
     }
     (tool.convex ? convexTools : concaveTools).push(tool.brep);
   }
@@ -385,6 +430,7 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
   apply(concaveTools, 'union');
   apply(concaveCorners, 'union');
   return out;
+  } finally { if (usedCylinder) used.cylinder = true; }
 }
 
 type Edge = Brep['edges'][number];
@@ -414,6 +460,35 @@ function openChain(comp: readonly Edge[]): { e: Edge; reversed: boolean }[] | nu
   return out.length === comp.length ? out : null;
 }
 /** The half-space beyond the plane through o (outward n) as a box of side `size`, its face on the plane. */
+/** Where an end face cuts a tool that runs past it (D90, D94): a plane, or a cylinder (its axis point, unit axis, radius). */
+type EndClip = { readonly kind: 'plane'; readonly o: Point; readonly n: Point } | { readonly kind: 'cylinder'; readonly c: Point; readonly a: Point; readonly r: number; readonly seams: readonly Point[] };
+/**
+ * The tool less the end face's side away from `kept` (a point on the fillet's side): beyond a plane, or — keeping
+ * `kept`'s side of a cylinder — inside or outside it. Kept outside a cylinder (a hole's wall, a boss's), the tool's run
+ * past must not reach across it: refused when the cylinder is narrower than twice the run.
+ */
+function clipTool(tool: Brep, clip: EndClip, kept: Point, size: number, run: number, id: string, opId: string, end?: { x: Point; out: Point; back: number }): Brep {
+  if (clip.kind === 'plane') {
+    const away = dot(clip.n, sub(kept, clip.o)) < 0 ? clip.n : scale(clip.n, -1);
+    return booleanAnalytic(tool, halfSpace(clip.o, away, size, `${id}_clip`), 'difference', { id: opId });
+  }
+  const a = unit(clip.a), d = sub(kept, clip.c), inside = len(sub(d, scale(a, dot(d, a)))) < clip.r;
+  if (!inside && 2 * clip.r < 2 * run) refuse('CAPABILITY', `the fillet ends at a cylinder of radius ${+clip.r.toFixed(6)} mm, too narrow for its end to run past and be cut there; that end is not supported yet`);
+  // (Its faces split where the body's faces on that cylinder are — at their seams — so the pieces the tool lays on the
+  // body's cylinder match the body's own, not straddle a seam of it.)
+  const e1 = clip.seams.length ? unit(sub(clip.seams[0], scale(a, dot(clip.seams[0], a)))) : unit(Math.abs(a[0]) < 0.9 ? cross([1, 0, 0], a) : cross([0, 1, 0], a)), e2 = cross(a, e1), dc = dot(sub(kept, clip.c), a);
+  const angles = [...new Set(clip.seams.map(q => { const x = Math.atan2(dot(q, e2), dot(q, e1)); return Math.round(((x % TAU) + TAU) % TAU * 1e12) / 1e12; }))].sort((p, q) => p - q);
+  if (!angles.length) angles.push(0);
+  const outer = angles.map(t => ({ kind: 'arc' as const, start: [clip.r * Math.cos(t), clip.r * Math.sin(t)] as XY, center: [0, 0] as XY, direction: 'ccw' as const }));
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer, heightMM: size, fromMM: 0, tag: `${id}_cyl` }), { id: `${id}_cyl` });
+  const cyl = transformBrep(prism, { matrix: [e1[0], e2[0], a[0], e1[1], e2[1], a[1], e1[2], e2[2], a[2]], offset: add(clip.c, scale(a, dc - size / 2)) as Point });
+  // (Only near this end: beyond a plane `back` in from it along the edge, the cylinder's far side — a whole-tool cut would
+  // trim the tool's other end too, where it may lie across a seam of the body's faces.)
+  if (!end) return booleanAnalytic(tool, cyl, inside ? 'intersection' : 'difference', { id: opId });
+  const beyond = halfSpace(add(end.x, scale(end.out, end.back)), scale(end.out, -1), size, `${id}_near`);
+  const remove = booleanAnalytic(beyond, cyl, inside ? 'difference' : 'intersection', { id: `${id}_rm` });
+  return booleanAnalytic(tool, remove, 'difference', { id: opId });
+}
 function halfSpace(o: Point, n: Point, size: number, id: string): Brep {
   const m = unit(n), e1 = unit(Math.abs(m[0]) < 0.9 ? cross([1, 0, 0], m) : cross([0, 1, 0], m)), e2 = cross(m, e1), h = size / 2;
   const prism = brepFromPrismatic(prismaticFromProfile({ outer: [{ kind: 'line', start: [-h, -h] }, { kind: 'line', start: [h, -h] }, { kind: 'line', start: [h, h] }, { kind: 'line', start: [-h, h] }], heightMM: size, fromMM: 0, tag: id }), { id });

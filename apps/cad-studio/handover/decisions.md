@@ -4516,3 +4516,27 @@ R10.3b: corners where three finished edges meet.
   - A pole now counts in the quadrature only where the face's domain reaches it, a no-op for these patches.
   - Next: exact integration of a ball patch, or the march along tangent circles.
 - **Not done:** the ball touching three curved faces; corners of four or more finished edges; R10.3c (R10.2b's refused ends); R10.4–R10.5.
+
+## D94 — R10.3c: closed-form fillets cut at a cylinder at their ends; the general ends R10.2b refused stay refused (2026-10-19)
+
+R10.3c took R10.2b's refused ends: square on a plane, at a curved face, at several faces. One part builds; the rest stays refused, with the reasons measured.
+- **R10.1's closed-form tools at a cylinder across the edge** (a rod's feet on a round plate, ending at its rim). As D90 did for an oblique plane, the tool runs past (1 / max(|w|, 0.25)) and is cut by that cylinder (`clipTool`, `EndClip`).
+  - Before, they stopped square at the vertex. The fillet's section then stuck out past the curving rim: 1.7 % over at r 1, 3.9 % at r 2, 6.5 % at r 3 on the rod across a disc.
+  - The cut is made near that end only: `tool − ((the half-space beyond a plane 4r in from the end) ∩ or − the cylinder)`. A whole-tool cut by the cylinder trimmed the tool's other end too.
+  - The cut cylinder's faces split where the body's faces on that cylinder meet (their seams, `seamsOf`).
+- **Fallbacks, so nothing builds worse than before:**
+  - Where the tool's end would lie across a seam of the body's faces on that cylinder, it stops square as before. Laid across a seam, the analytic Boolean lost a face there. The span is the section's reach into each face and the material behind it about the axis.
+  - Where the whole finish still fails with a cylinder cut, it is made again with those ends square (`squareAtCylinders`).
+  - A rod across a disc at 30° with r 3 fails in HEAD too (an older defect, not this step's).
+- **Evidence** (`packages/barocss-cad/test/r10-3c.test.mjs`, 2 tests):
+  - **Rod across a round plate** (R 20) at 0°, 45°, 60°, 90° and 25°, r 1–2: against the two feet's ∫ of the section across the disc's chord 2 √(R² − y²), to 1e-6 (this kernel 1.5e-8–6.7e-7: the rim's cuts are fitted curves).
+  - At 10°, where one foot's ends lie across the rim's seams: valid, those ends square (within 2 % over).
+  - **Refusal:** a tilted rod's foot (a general chain) ending at the rim.
+  - **Conformance:** `r10/translational-rod-across-disc` (45°, quadrature of the section, 1e-7) and `r10/refuse-general-end-at-cylinder`.
+  - **Studio:** a flow step opens a rod-on-disc file and fillets both feet in the UI (+12.04 mm³; it was +12.24 square).
+  - **Flow harness:** the R10.2–R10.3 steps pick their edges by name, polled until the opened file's bodies are shown (just after it opens, the last part's still are). They read the body's volume through `bodyVolume()` (a click on its row can take it out of the selection). Run in a different order, two of them had failed on that timing.
+- **Tried and refused, as before (the analytic Boolean is the blocker in each):**
+  - **A general (rolling-ball) fillet ending square on a plane.** With the refusal lifted, the rod lying straight across a plate (forced) built only for one foot at r ≤ 1; the other foot and r ≥ 1.5 failed ("not a manifold solid" along the end section). The section lies in the end face's plane, partly on the end face and partly along the side face's continuation.
+  - **A general fillet ending at a cylinder:** the lofted tool cut by a cylinder fails ("an arc on a cylinder is not a cross-section circle", "not a manifold solid") on the tilted rod on a disc, even near the end only.
+  - **Ends at more than one face.**
+  - Next for all three: the Boolean's handling of a tool face coinciding with, or lying along, a body face (coplanar sections, coincident cylinders across a seam). That is a Boolean robustness step, not a fillet step.

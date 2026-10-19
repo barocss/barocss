@@ -1,0 +1,140 @@
+{
+  "id": "r10-translational-rod-across-disc",
+  "step": "R10",
+  "decisions": [
+    "D94"
+  ],
+  "about": "R10.3c: a rod (radius 4, its axis at the top) lying across a round plate (radius 20) at 45°, both feet filleted 1 mm — R10.1's translational tools ending at the plate's rim (a cylinder across the edge): run past and cut by it near each end (they stopped square before, 1.7 % over).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 20
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -30
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "z",
+          "angleDegrees": 45,
+          "pivot": [
+            0,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "g",
+          "kind": "union",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "c0.side0#2|pe.top#2",
+            "c0.side0#2|pe.top#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 14594.080159345349,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            -1.4526849051545565e-11,
+            -5.7611945227074675e-12,
+            5.811322111959967
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c0.bottom",
+          "c0.side0",
+          "c0.top",
+          "f.face",
+          "f_cyl.side0",
+          "f_cyl.side1",
+          "pe.bottom",
+          "pe.side0",
+          "pe.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "The body by this kernel (planes and cylinders, exact); the fillets by quadrature: each foot's section (between the top, the rod and the fillet's arc) at y times the disc's chord 2 √(R² − y²) there, integrated in y (16-point Gauss–Legendre on 400 panels, y = 4 − t² across the rod's infinite slope). relTol 1e-7 of the part is about 1e-4 of the fillets; this kernel is within 4e-7 of the fillets (the rim's cuts are fitted curves)."
+}
