@@ -12,6 +12,7 @@ import { readUrdf } from '../robot/urdfCheck';
 import { exportMjcf, type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '../robot/sweep';
+import { gravityTorques, linkMasses, STANDARD_GRAVITY } from '../robot/dynamics';
 import { convexHull } from '../robot/hull';
 import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
@@ -19,7 +20,7 @@ import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -54,6 +55,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['to'], additionalProperties: false },
   },
   {
+    name: 'gravity_torques',
+    description: 'What each joint must hold for the robot to stand still at joint values (by key; absent: 0; radians or mm): the static gravity torque (N·m, a turning joint) or force (N, a slide), G = ∂V/∂q, from each link\'s mass and centre of mass (link_inertia\'s) at that pose; gravity 9.80665 m/s² on −Z unless "g" is given. "generalized" folds a gear follower\'s share into its leader (×multiplier). Changes nothing.',
+    input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } }, g: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
+  },
+  {
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
@@ -71,6 +77,16 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (name === 'get_joints') {
     const t = await treeOfDoc(doc, bodies, evaluate);
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
+  }
+  if (name === 'gravity_torques') {
+    const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
+    if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) return { error: '"values" is {joint key: number}.' };
+    const bad = Object.keys(given).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
+    const g = args.g === undefined ? [0, 0, -STANDARD_GRAVITY] : args.g;
+    if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"g" is [x, y, z] in m/s².' };
+    const masses = linkMasses(r.tree, r.partOf), t = gravityTorques(r.tree, masses, given as Record<string, number>, g as [number, number, number]), sig = (v: number) => Number(v.toPrecision(12)) + 0;
+    const units = Object.fromEntries(r.tree.joints.map(j => [j.key, j.type === 'prismatic' ? 'N' : 'N·m']));
+    return { doc, content: { torques: Object.fromEntries(Object.entries(t.torques).map(([k, v]) => [k, sig(v)])), generalized: Object.fromEntries(Object.entries(t.generalized).map(([k, v]) => [k, sig(v)])), units, gravity_m_s2: Math.hypot(...(g as number[])) }, changed: false, summary: `${Object.keys(t.torques).length} joints` };
   }
   if (name === 'sweep_path') {
     const t = await treeOfDoc(doc, bodies, evaluate), keys = new Set(t.joints.map(j => j.key));

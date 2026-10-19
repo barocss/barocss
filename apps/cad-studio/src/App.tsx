@@ -45,6 +45,7 @@ import { jointTreeOf } from './robot/joints';
 import { forwardKinematics, gearPairAt, sliderRange } from './robot/fk';
 import { posedInstances } from './robot/preview';
 import { treeInertia } from './robot/inertia';
+import { gravityTorques, linkMasses } from './robot/dynamics';
 import { exportUrdf } from './robot/urdf';
 import { exportMjcf } from './robot/mjcf';
 import { sweepLinks, sweepPath } from './robot/sweep';
@@ -532,6 +533,12 @@ export function App() {
     const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
     return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
   }), [jointTree, doc, bodies, instanceBodies, robotReady]);
+  // What each joint holds against gravity at the pose shown (RD1): the masses as placed (world), identity placements.
+  const jointMasses = useMemo(() => !jointTree || !robotReady ? null : linkMasses(jointTree, p => {
+    if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
+    const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
+    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
+  }), [jointTree, robotReady, doc, bodies, instanceBodies]);
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [jointPlaying, setJointPlaying] = useState<string | null>(null);
@@ -1907,7 +1914,7 @@ export function App() {
           void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
         }}
-        path={pathCheck} ready={robotReady}
+        path={pathCheck} ready={robotReady} holding={jointMasses && jointTree ? gravityTorques(jointTree, jointMasses, jointFk?.values ?? jointValues).torques : undefined}
         onCheckPath={() => {
           // (RM6: the move from the solved pose to the sliders', the links as placed; the whole path certified.)
           const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions), r = sweepPath(jointTree, links, {}, jointValues);

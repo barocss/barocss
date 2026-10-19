@@ -1,0 +1,546 @@
+{
+ "case": "gravity-3r",
+ "step": "RD1",
+ "note": "A planar 3R arm of three 20 × 20 × 80 aluminium blocks on Y-axis joints beside an upright one, joints 40 mm apart, each centre 20 mm above its lower joint; g = 9.80665 on −Z. τ_j = −g Σ_{i≥j} m_i (x_ci − x_Jj), m = 2.70e-6 (20·20·80 − 2π·16·8 − 2π·16·20) kg, absolute angles θ = (0.4, −0.5, 0.8): the closed form.",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      20,
+      20
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 80,
+     "id": "n1",
+     "made": {
+      "command": "box",
+      "values": {
+       "w": 20,
+       "d": 20,
+       "h": 80,
+       "x": 0,
+       "y": 0,
+       "z": 0
+      }
+     }
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      10
+     ],
+     "depth": 8,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      10
+     ],
+     "side": "min",
+     "depth": 8,
+     "id": "n3"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 3,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      20
+     ],
+     "axis": "y",
+     "id": "n4"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 4,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      60
+     ],
+     "axis": "y",
+     "id": "n5"
+    }
+   ],
+   "outputs": {
+    "b5": {
+     "node": 5,
+     "side": "solid"
+    }
+   },
+   "nextId": 6,
+   "instances": [
+    {
+     "id": "l1",
+     "name": "l1",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 80,
+        "id": "n1",
+        "made": {
+         "command": "box",
+         "values": {
+          "w": 20,
+          "d": 20,
+          "h": 80,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "depth": 8,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "side": "min",
+        "depth": 8,
+        "id": "n3"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 3,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         20
+        ],
+        "axis": "y",
+        "id": "n4"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 4,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         60
+        ],
+        "axis": "y",
+        "id": "n5"
+       }
+      ],
+      "outputs": {
+       "b5": {
+        "node": 5,
+        "side": "solid"
+       }
+      },
+      "nextId": 6
+     },
+     "position": [
+      0,
+      20,
+      40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "l2",
+     "name": "l2",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 80,
+        "id": "n1",
+        "made": {
+         "command": "box",
+         "values": {
+          "w": 20,
+          "d": 20,
+          "h": 80,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "depth": 8,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "side": "min",
+        "depth": 8,
+        "id": "n3"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 3,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         20
+        ],
+        "axis": "y",
+        "id": "n4"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 4,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         60
+        ],
+        "axis": "y",
+        "id": "n5"
+       }
+      ],
+      "outputs": {
+       "b5": {
+        "node": 5,
+        "side": "solid"
+       }
+      },
+      "nextId": 6
+     },
+     "position": [
+      0,
+      40,
+      80
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "l3",
+     "name": "l3",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 80,
+        "id": "n1",
+        "made": {
+         "command": "box",
+         "values": {
+          "w": 20,
+          "d": 20,
+          "h": 80,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "depth": 8,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "side": "min",
+        "depth": 8,
+        "id": "n3"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 3,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         20
+        ],
+        "axis": "y",
+        "id": "n4"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 4,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         60
+        ],
+        "axis": "y",
+        "id": "n5"
+       }
+      ],
+      "outputs": {
+       "b5": {
+        "node": 5,
+        "side": "solid"
+       }
+      },
+      "nextId": 6
+     },
+     "position": [
+      0,
+      60,
+      120
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "mates": [
+    {
+     "id": "c1",
+     "kind": "concentric",
+     "a": {
+      "part": "base",
+      "face": "n5.side0"
+     },
+     "b": {
+      "part": "l1",
+      "face": "n4.side0"
+     }
+    },
+    {
+     "id": "f1",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.side2"
+     },
+     "b": {
+      "part": "l1",
+      "face": "n1.side0"
+     }
+    },
+    {
+     "id": "c2",
+     "kind": "concentric",
+     "a": {
+      "part": "l1",
+      "face": "n5.side0"
+     },
+     "b": {
+      "part": "l2",
+      "face": "n4.side0"
+     }
+    },
+    {
+     "id": "f2",
+     "kind": "coincident",
+     "a": {
+      "part": "l1",
+      "face": "n1.side2"
+     },
+     "b": {
+      "part": "l2",
+      "face": "n1.side0"
+     }
+    },
+    {
+     "id": "c3",
+     "kind": "concentric",
+     "a": {
+      "part": "l2",
+      "face": "n5.side0"
+     },
+     "b": {
+      "part": "l3",
+      "face": "n4.side0"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "coincident",
+     "a": {
+      "part": "l2",
+      "face": "n1.side2"
+     },
+     "b": {
+      "part": "l3",
+      "face": "n1.side0"
+     }
+    }
+   ]
+  },
+  "values": {
+   "base~l1": 0.4,
+   "l1~l2": -0.9,
+   "l2~l3": 1.3
+  }
+ },
+ "expect": {
+  "torques_N_m": {
+   "base~l1": -0.018950785610919018,
+   "l1~l2": 0.011142008929182079,
+   "l2~l3": -0.011086919700572042
+  },
+  "tol_rel": 1e-9
+ }
+}

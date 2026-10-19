@@ -1201,6 +1201,57 @@
    }
   },
   {
+   "name": "gravity_torques",
+   "annotations": {
+    "title": "Gravity torques",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "g": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "values": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "generalized": {
+      "type": "object"
+     },
+     "gravity_m_s2": {
+      "type": "number"
+     },
+     "torques": {
+      "type": "object"
+     },
+     "units": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "torques",
+     "generalized",
+     "units",
+     "gravity_m_s2"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "inflate_image_layer",
    "annotations": {
     "title": "Inflate image layer",

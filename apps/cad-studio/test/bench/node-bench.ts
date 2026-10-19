@@ -28,6 +28,7 @@ import { jointTreeOf } from '../../src/robot/joints';
 import { forwardKinematics } from '../../src/robot/fk';
 import { posedInstances } from '../../src/robot/preview';
 import { treeInertia } from '../../src/robot/inertia';
+import { gravityTorques } from '../../src/robot/dynamics';
 import { exportUrdf } from '../../src/robot/urdf';
 import { readUrdf } from '../../src/robot/urdfCheck';
 import { exportMjcf } from '../../src/robot/mjcf';
@@ -260,6 +261,11 @@ const scenarios: Scenario[] = [
     const world = new Map(solved.doc.instances!.map(i => { const r = evaluateDoc(i.doc, 1); if (!r.ok) throw new Error('eval'); return [i.id, r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position))]; }));
     const links = sweepLinks(tree, p => p === 'base' ? rb.bodies : world.get(p), pts => convexHull(pts).positions);
     return () => { const r = sweepPath(tree, links, {}, { 'l1~l2': 1.2, 'l2~l3': 2.6, 'l4~l5': -2.4 }); if (!r.contact) throw new Error('no contact'); return r; };
+  } },
+  // (RD1, O20: per slider move — the 12-link arm's static gravity torques, its masses taken once outside.)
+  { name: 'robot: gravity torques, 12-link arm', budgetMS: BUDGET_FK, runs: 5, setup() {
+    const { tree } = twelveLinkArm(), masses = new Map(tree.links.map((l, i) => [l.id, { massKg: 0.01 + 0.001 * i, com: [10 + 40 * i, 10, 5 + 10 * i] as [number, number, number] }])); let k = 0;
+    return () => { k++; return gravityTorques(tree, masses, Object.fromEntries(tree.joints.map((j, i) => [j.key, 0.01 * k + 0.1 * i]))); };
   } },
   // (PERF3 A1: the requirement checks run after every edit, on the main thread.)
   { name: 'check_spec: 8 requirements after an edit', budgetMS: 50, runs: 3, setup() {

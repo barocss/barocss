@@ -3955,6 +3955,23 @@ try {
     await page.click('[aria-label="Joints home"]');
   });
 
+  // ---- RD1 (O20): static gravity torques --------------------------------------------------------------------------
+  await check('RD1: the planar 3R posed by its sliders — each joint holds the closed form\'s torque against gravity (4 figures)', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/gravity-3r/case.json'), 'utf8')), file = join(out, 'gravity-3r.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint l2~l3 holding"]', { timeout: 30000 });
+    for (const [k, v] of Object.entries(c.input.values)) await page.evaluate(([key, x]) => { const el = document.querySelector(`[aria-label="Joint ${key} value"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [k, v]);
+    for (const [k, t] of Object.entries(c.expect.torques_N_m)) {
+      await page.waitForFunction(([key, want]) => document.querySelector(`[aria-label="Joint ${key} holding"]`)?.textContent === `holds ${want} N·m against gravity`, [k, String(Number(t.toPrecision(4)))], { timeout: 10000 })
+        .catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${await page.locator(`[aria-label="Joint ${k} holding"]`).innerText()} vs ${t}`); });
+    }
+    await snap('rd1-holding');
+    await page.click('[aria-label="Joints home"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
