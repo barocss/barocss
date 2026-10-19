@@ -150,7 +150,7 @@ Done:
 - **Merging:** the coordinator merges the outer lane's steps into this branch, in order, only while the kernel lane is idle after a checkpoint with a clean tree. It then runs the checks.
 
 **Next, in this order:**
-1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112) → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → RD1–RD3 actuator sizing → IM1–IM6 injection moulding + CNC1–CNC6. Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics. A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
+1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112) → R12 sheet metal → FR1–FR4 frames → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root) → R12c machine elements → IM1–IM6 injection moulding + CNC1–CNC6. Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics → RD1–RD3 dynamics and actuator sizing (moved from the kernel lane, coordinator 2026-10-20: they sit on the outer lane's `src/robot` model). A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
    - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5 taken as R10's order by its S0, D87; R11.1–R11.3 taken as R11's order by its S0, D105, with its changes).
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
    - A7 (multi-agent v1, the Integrator's op patches against a base revision): design input the same note.
@@ -244,6 +244,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
     bound `Σ|Δq_i|·r_i`, the clearance by GJK on the hulls (our own) and exactly on the meshes where those meet; the
     whole path certified. A 2R arm meets a post within 1e-4 rad of a plane oracle; the 6R arm against a dense sweep.
     Check path in the Joints card; tool sweep_path. Conformance `conformance/rm/sweep-post`.
+- **RD** dynamics and actuators (moved from the kernel lane):
+  - **RD1** (O20): done. Static gravity torques G = ∂V/∂q (`src/robot/dynamics.ts`) from RM3's masses at RM2's pose;
+    planar 2R and 3R closed forms to 1e-9, finite differences of the potential energy on random 3D trees; tool
+    gravity_torques; the holding torque per joint in the Joints card. Conformance `conformance/rm/gravity-3r`.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

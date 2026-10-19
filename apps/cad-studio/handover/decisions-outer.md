@@ -744,3 +744,29 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - **Found by the flow and fixed (it touches RM3–RM5 too)**: the Joints card appears once the faces are read, before the placed parts' bodies are. Export or Check path pressed in that window found no bodies and refused "massless". The masses, both exports and Check path now wait until every placed part is evaluated as it stands (its bodies for that very instance; the buttons disabled until then). A part not yet evaluated is not massless. The RM5 step had passed by timing before.
 - **Follow-up (not needed for RM6's acceptance)**: the mesh distance where hulls meet is brute force, O(n·m) triangle pairs. Fine for these parts (hundreds of triangles); a part of 100k triangles wants the BVH (R3.2) under it.
 - **The RM track**: RM1–RM4 and RM6 are done; RM5 is at its writer checkpoint. **Pending the owner's go-ahead (MuJoCo)**: RM4's external comparison and RM5's gravity hang (O17, O18, commands there).
+
+## O20 — RD1: static gravity torques (2026-10-20)
+
+- **Lanes**: RD1–RD3 move from the kernel lane's sequence to the outer lane's (README §0, the coordinator 2026-10-20: they sit on `src/robot`).
+- **What** (`src/robot/dynamics.ts`): G(q), what each joint must hold for the robot to stand still at q.
+  - It is `G_j = ∂V/∂q_j` with `V = −Σ m_L g·c_L(q)`:
+    - a turning joint: `Σ m_L (−g)·(a_j × (c_L − p_j))` (N·m);
+    - a slide: `Σ m_L (−g)·a_j` (N);
+    - over the links beyond the joint, its axis and point and each centre at q (RM2's FK; RM3's masses and centres, through each part's placement: `linkMasses`).
+  - A gear follower moves with its leader, so its share goes to the leader by virtual work (`generalized`, ×multiplier); the follower's own axis value is kept too.
+  - **Gravity**: standard 9.80665 m/s² (the CGPM's defined value) on −Z unless `g` is given. MJCF keeps MuJoCo's own default, 9.81, as the simulator's convention, and says so.
+- **Where**: tool `gravity_torques {values?, g?}` (read, output schema; v2 `assembly.gravity`), a compatible addition; the Joints card shows "holds … N·m against gravity" for each joint at the pose shown.
+- **The tool list's 15k guard** (A5.1: what annotations and output schemas add to tools/list): the robot tools had taken it to 15 053. The listing carried each tool's title twice (top level and in its annotations), so the annotations' copy is dropped from the listing. MCP lists the title at the top; the frozen contract keeps it. It is now 13 554: a de-duplication, not a looser guard.
+- **Sizes**: v1 66 tools, tools/list 86 165 characters; v2 11 437; prompts unchanged.
+- **Evidence**: `test/robot-dynamics.test.ts` (4 tests).
+  - **The planar 2R and 3R closed forms to 1e-9** (300 random poses each):
+    - arms of real 20 × 20 × 80 blocks on Y-axis joints beside an upright one;
+    - each block's mass from its analytic volume (the box less its four holes, aluminium; the kernel's equal to 1e-12), its centre 20 mm above its lower joint, joints 40 mm apart;
+    - `τ_j = −g Σ_{i≥j} m_i (x_ci − x_Jj)` in planar angles, independent of the 3D code;
+    - upright, nothing to hold (to 1e-15).
+  - **G = ∂V/∂q** on 40 random 3D trees of 6 turns and slides: central differences of the potential energy, to 1e-6.
+  - A gear follower: `generalized` equals dV/dq along the coupling (1e-7), the follower not an independent joint.
+  - The tool on the planar 3R, its torques equal to the closed form's, and the conformance case `conformance/rm/gravity-3r` (document, values, and torques written from the closed form, not the code).
+  - Studio 519/519, 519/519 replayed through v2. Bench: gravity torques of the 12-link arm take 0.05 ms (budget 0.1); 53 rows within budget.
+  - Browser flow 162/162, with a step "RD1" just before the last: the planar 3R from its conformance file posed by its sliders, each joint's "holds … N·m" equal to the closed form's to the 4 figures shown. Screenshot `notes/acceptance/rd1-holding.png`.
+- **Next**: RD2, the RNEA, trapezoid and S-curve profiles, RMS and peak torque; RNEA = M(q)q̈ + C + G over 100 random states.
