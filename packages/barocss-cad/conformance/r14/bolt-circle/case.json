@@ -115,7 +115,13 @@
     "view": "top",
     "kind": "linear",
     "orient": "vertical",
-    "text": "2× 17.32"
+    "text": "40"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "orient": "vertical",
+    "text": "57.32"
    },
    {
     "view": "top",
@@ -127,8 +133,8 @@
   "added": {
    "overall": 3,
    "levels": 0,
-   "holePositions": 5,
-   "pitches": 1,
+   "holePositions": 7,
+   "pitches": 0,
    "callouts": 1
   },
   "skipped": [

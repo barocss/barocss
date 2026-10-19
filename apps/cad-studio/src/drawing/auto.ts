@@ -6,7 +6,7 @@
 // - Levels: the distinct positions of the visible straight edges inside a view (steps, notches), baseline from the
 //   view's left or bottom extreme: across and along in the top view, heights in the front view.
 // - Holes: each hole in the first view it shows round in (top, front, right), located from that view's extremes;
-//   three or more in a row at one pitch dimensioned as the first and one pitch for all (`3× 20`).
+//   three or more in a row (on one line) at one pitch dimensioned as the first and one pitch for all (`3× 20`).
 // - Callouts: one diameter per kind of hole, its text the feature's (THRU, DEEP, thread, counterbore, countersink)
 //   and the number of such holes (`4× Ø6.6 THRU`); a counterbore's or countersink's outer circle is in it already.
 // Each kind stacks in rows beside its view, on the side with more free room; inner rows the shorter; callouts on the
@@ -174,16 +174,26 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       marks.sort((a, b) => a.x - b.x || Number(b.hole) - Number(a.hole));
       const at: Mark[] = [];
       for (const m of marks) if (!at.length || Math.abs(m.x - at[at.length - 1].x) > SAME) at.push(m); else if (m.hole && !at[at.length - 1].hole) at[at.length - 1] = m;
-      const holeXs = at.filter(m => m.hole).map(m => r6(m.x));
-      const inRun = new Set<number>();
-      for (const [i, j] of pitchRuns(holeXs)) {
-        const first = at.find(m => m.hole && r6(m.x) === holeXs[i])!, second = at.find(m => m.hole && r6(m.x) === holeXs[i + 1])!;
-        list.push({ dim: { ...linear(id, first.ref, second.ref, k), count: j - i }, row: 0, kind: 'pitches', along: k === 0 ? 'u' : 'v', span: [pointOf(first.x, k, pr), pointOf(second.x, k, pr)] });
-        for (let t = i + 1; t <= j; t++) inRun.add(holeXs[t]);
+      // Rows: holes on one line across this axis (the same position along the other). Three or more at one pitch in a
+      // row: its first located, then one pitch for all; the same run in several rows (a grid) once.
+      const rows = new Map<number, Hole[]>();
+      for (const h of mine) if (h.at[k] > pr.min[k] + SAME && h.at[k] < pr.max[k] - SAME) { const key = r6(h.at[1 - k]), row = rows.get(key); if (row) row.push(h); else rows.set(key, [h]); }
+      const inRun = new Set<number>(), firstOf = new Map<number, DimPoint>(), runs = new Set<string>();
+      for (const row of [...rows.entries()].sort((a, b) => a[0] - b[0]).map(e => e[1])) {
+        const line = row.sort((a, b) => a.at[k] - b.at[k]).filter((h, i, all) => !i || h.at[k] - all[i - 1].at[k] > SAME), xs = line.map(h => r6(h.at[k]));
+        for (const [i, j] of pitchRuns(xs)) {
+          const key = xs.slice(i, j + 1).join(',');
+          if (runs.has(key)) continue; runs.add(key);
+          list.push({ dim: { ...linear(id, line[i].ref, line[i + 1].ref, k), count: j - i }, row: 0, kind: 'pitches', along: k === 0 ? 'u' : 'v', span: [pointOf(line[i].at[k], k, pr), pointOf(line[i + 1].at[k], k, pr)] });
+          for (let t = i + 1; t <= j; t++) inRun.add(xs[t]);
+          if (!firstOf.has(xs[i])) firstOf.set(xs[i], line[i].ref);
+        }
       }
       for (const m of at) {
-        if (m.hole && inRun.has(r6(m.x))) continue;
-        list.push({ dim: linear(id, atMin!.ref, m.ref, k), row: 1 + Math.abs(m.x - pr.min[k]), kind: m.hole ? 'holePositions' : 'levels', along: k === 0 ? 'u' : 'v', span: [atMin!.at, pointOf(m.x, k, pr)] });
+        const x = r6(m.x);
+        if (m.hole && inRun.has(x)) continue;
+        // (A run's first hole is measured to itself, where another feature shares its position.)
+        list.push({ dim: linear(id, atMin!.ref, firstOf.get(x) ?? m.ref, k), row: 1 + Math.abs(m.x - pr.min[k]), kind: m.hole ? 'holePositions' : 'levels', along: k === 0 ? 'u' : 'v', span: [atMin!.at, pointOf(m.x, k, pr)] });
       }
     }
     // Callouts: one a kind of hole (concentric outer circles of a counterbore or countersink are in the callout).

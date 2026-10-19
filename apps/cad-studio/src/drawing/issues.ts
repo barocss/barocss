@@ -8,6 +8,10 @@
 //   TEXT_OVER_LINES    a dimension's text lies over a view's lines or another dimension   fix: move it out
 //   OFF_SHEET          an annotation reaches past the frame or into the title block       fix: move it in
 //   VIEWS_DONT_FIT     the views do not fit the sheet at its scale                        fix: an automatic scale (or A3)
+//   DATUM_LOST         a datum's edge is gone (R14.4)                                     fix: remove it
+//   DATUM_TWICE        two datums with one letter                                         fix: remove the later
+//   FRAME_LOST         a feature control frame's dimension is gone or lost               fix: remove it
+//   DATUM_UNDEFINED    a frame refers to a datum the drawing does not have                (none: define it or edit the frame)
 // Worth a check (warnings):
 //   DUPLICATE          the same size given twice (in one view or two that share the axis) fix: remove the auto one or the later
 //   REMATCHED          a reference was matched again after an edit: check it              fix: accept it as it is
@@ -18,15 +22,15 @@
 //   VIEW_NEEDED        a hole shows round only in a view not shown (R14.3)                 fix: show the view
 import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels } from './auto';
-import { buildSheet, dimensionMarks, type Mark, type MarkGroup, type Sheet } from './sheet';
-import { textWidth } from './text';
+import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, type Mark, type MarkGroup, type Sheet } from './sheet';
+import { textCorners } from './text';
 import { SCALES, layoutSheet, type SheetLayout } from './views';
 import type { Resolved } from './dimensions';
 import { VIEW_IDS, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING';
+export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -34,7 +38,9 @@ export type DrawingFix =
   | { kind: 'accept'; dim: string }
   | { kind: 'scale'; scale?: number; sheet?: 'A3' }
   | { kind: 'auto-dimension' }
-  | { kind: 'show-view'; view: ViewId };
+  | { kind: 'show-view'; view: ViewId }
+  | { kind: 'remove-datum'; datum: string }
+  | { kind: 'remove-frame'; frame: string };
 export interface DrawingIssue {
   code: DrawingIssueCode;
   severity: 'error' | 'warning';
@@ -56,13 +62,7 @@ const ORTHO: readonly ViewId[] = ['top', 'front', 'right'];
 
 /** A text's box on the sheet (y down): its corners in order, from its baseline point, anchor, size and angle. */
 export type Quad = [XY, XY, XY, XY];
-export function textBox(m: Extract<Mark, { kind: 'text' }>): Quad {
-  const w = textWidth(m.text, m.size, !!m.bold), x0 = m.anchor === 'start' ? 0 : m.anchor === 'middle' ? -w / 2 : -w;
-  // From a little under the baseline to the capital height.
-  const top = -0.8 * m.size, bottom = 0.22 * m.size, a = -(m.angle ?? 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
-  const at = (x: number, y: number): XY => [m.at[0] + c * x - s * y, m.at[1] + s * x + c * y];
-  return [at(x0, top), at(x0 + w, top), at(x0 + w, bottom), at(x0, bottom)];
-}
+export function textBox(m: Extract<Mark, { kind: 'text' }>): Quad { return textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold); }
 
 function axesOf(q: Quad): XY[] { return [[q[1][0] - q[0][0], q[1][1] - q[0][1]], [q[3][0] - q[0][0], q[3][1] - q[0][1]]]; }
 function project(q: Quad, ax: XY): [number, number] {
@@ -110,6 +110,15 @@ export class SegmentGrid {
       for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) { const k = cellKey(x, y), c = this.cells.get(k); if (c) c.push(i); else this.cells.set(k, [i]); }
     }
   }
+  /** Whether any segment crosses the segment p–q. */
+  crosses(p: XY, q: XY): boolean {
+    const seen = new Set<number>();
+    for (let x = Math.floor(Math.min(p[0], q[0]) / this.size); x <= Math.floor(Math.max(p[0], q[0]) / this.size); x++) for (let y = Math.floor(Math.min(p[1], q[1]) / this.size); y <= Math.floor(Math.max(p[1], q[1]) / this.size); y++) {
+      const c = this.cells.get(cellKey(x, y)); if (!c) continue;
+      for (const i of c) { if (seen.has(i)) continue; seen.add(i); const [a, b] = this.segs[i]; if (segmentsCross(p, q, a, b)) return true; }
+    }
+    return false;
+  }
   /** Whether any segment passes through the box. */
   hits(box: Quad): boolean {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -121,6 +130,12 @@ export class SegmentGrid {
     }
     return false;
   }
+}
+/** Whether two segments cross (touching ends do not count). */
+function segmentsCross(a: XY, b: XY, c: XY, d: XY): boolean {
+  const o = (p: XY, q: XY, r: XY) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  const d1 = o(c, d, a), d2 = o(c, d, b), d3 = o(a, b, c), d4 = o(a, b, d), eps = 1e-12;
+  return ((d1 > eps && d2 < -eps) || (d1 < -eps && d2 > eps)) && ((d3 > eps && d4 < -eps) || (d3 < -eps && d4 > eps));
 }
 /** A cell's key: x and y in 16 bits each (offset, so negatives fit). */
 const cellKey = (x: number, y: number) => ((x + 32768) & 0xffff) * 65536 + ((y + 32768) & 0xffff);
@@ -139,11 +154,11 @@ function segments(m: Mark, out: [XY, XY][]): void {
   }
 }
 
-interface Owner { kind: 'dimension' | 'note' | 'label'; id?: string; view?: ViewId }
+interface Owner { kind: 'dimension' | 'note' | 'label' | 'datum'; id?: string; view?: ViewId }
 interface Placed { owner: Owner; boxes: Quad[]; lines: [XY, XY][]; points: XY[] }
 
 function placedOf(g: MarkGroup): Placed {
-  const owner: Owner = g.role === 'dimension' ? { kind: 'dimension', id: g.id, view: g.view } : g.role === 'note' ? { kind: 'note', id: g.id } : { kind: 'label', view: g.view };
+  const owner: Owner = g.role === 'dimension' ? { kind: 'dimension', id: g.id, view: g.view } : g.role === 'note' ? { kind: 'note', id: g.id } : g.role === 'datum' ? { kind: 'datum', id: g.id, view: g.view } : { kind: 'label', view: g.view };
   const boxes: Quad[] = [], lines: [XY, XY][] = [], points: XY[] = [];
   for (const m of g.marks) {
     if (m.kind === 'text') { const b = textBox(m); boxes.push(b); points.push(...b); }
@@ -154,7 +169,8 @@ function placedOf(g: MarkGroup): Placed {
 }
 
 const same = (a: Owner, b: Owner) => a.kind === b.kind && a.id === b.id && a.view === b.view;
-const name = (o: Owner, sheet: Sheet) => o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : `the ${o.view ?? 'section'} view’s name`;
+const name = (o: Owner, sheet: Sheet) => o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : o.kind === 'datum' ? `datum ${datumLetter(sheet, o.id!)}` : `the ${o.view ?? 'section'} view’s name`;
+function datumLetter(sheet: Sheet, id: string): string { const t = sheet.groups.find(g => g.role === 'datum' && g.id === id)?.marks.find(m => m.kind === 'text'); return t && t.kind === 'text' ? t.text : id; }
 function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.find(d => d.dim.id === id); return r?.ok ? r.text : id; }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -168,12 +184,26 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const next = settings.scale !== undefined ? { kind: 'scale' as const } : settings.sheet === 'A4' ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
     out.push({ code: 'VIEWS_DONT_FIT', severity: 'error', message: `The views do not fit the ${settings.sheet} sheet at the scale${settings.scale !== undefined ? ' set' : ''}.`, ...(next ? { fix: next } : {}) });
   }
+  // Datums and frames (R14.4, O5).
+  const letters = new Map<string, string>();
+  for (const d of settings.datums ?? []) {
+    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d)) out.push({ code: 'DATUM_LOST', severity: 'error', message: `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    if (letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    else letters.set(d.letter, d.id);
+  }
+  for (const f of settings.frames ?? []) {
+    const r = sheet.dimensions.find(x => x.dim.id === f.dim);
+    if (!r?.ok) { out.push({ code: 'FRAME_LOST', severity: 'error', message: `A position frame (Ø${f.value}) belongs to a dimension that is ${r ? 'lost' : 'gone'}.`, ...(r ? { dims: [f.dim] } : {}), fix: { kind: 'remove-frame', frame: f.id } }); continue; }
+    const missing = f.datums.filter(l => !letters.has(l));
+    if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `The position frame on ${r.text} refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, dims: [f.dim], view: r.dim.view });
+  }
   for (const r of sheet.dimensions) {
     if (!r.ok) { out.push({ code: 'DIMENSION_LOST', severity: 'error', message: `A ${r.dim.kind} dimension in the ${r.dim.view} view is lost: ${r.reason}`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: r.dim.id } }); continue; }
     if (rematched(r.dim)) out.push({ code: 'REMATCHED', severity: 'warning', message: `Dimension ${r.text}: an edge it measures was matched again after an edit. Check it measures what you meant.`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'accept', dim: r.dim.id } });
   }
   // What lies on the sheet: annotations and the lines they must keep clear of.
-  const placed = sheet.groups.filter(g => g.role === 'dimension' || g.role === 'note' || g.role === 'label').map(placedOf);
+  // (A feature control frame is part of its dimension: they overlap, are kept clear and move together.)
+  const placed = sheet.groups.filter(g => g.role === 'dimension' || g.role === 'note' || g.role === 'label' || g.role === 'datum').map(g => g.role === 'dimension' ? placedOf({ ...g, marks: [...g.marks, ...sheet.groups.filter(c => c.role === 'control' && settings.frames?.some(f => f.id === c.id && f.dim === g.id)).flatMap(c => c.marks)] }) : placedOf(g));
   const viewLines: [XY, XY][] = [];
   for (const g of sheet.groups) if (g.role === 'view' || g.role === 'section') for (const m of g.marks) segments(m, viewLines);
   const viewGrid = new SegmentGrid(viewLines);
@@ -228,7 +258,7 @@ function rematched(d: DrawingDimension): boolean {
   return d.kind === 'linear' ? d.a.was !== undefined || d.b.was !== undefined : d.kind === 'angle' ? d.a.was !== undefined || d.b.was !== undefined : d.was !== undefined;
 }
 function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
-  const rank = (p: Placed) => p.owner.kind === 'dimension' ? (settings.dimensions.find(d => d.id === p.owner.id)?.auto ? 0 : 1) : p.owner.kind === 'note' ? 2 : 3;
+  const rank = (p: Placed) => p.owner.kind === 'dimension' ? (settings.dimensions.find(d => d.id === p.owner.id)?.auto ? 0 : 1) : p.owner.kind === 'note' ? 2 : p.owner.kind === 'datum' ? 3 : 4;
   const ra = rank(a), rb = rank(b);
   return ra < rb ? a : rb < ra ? b : b;
 }
@@ -238,7 +268,7 @@ function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
  * row by row outward (or inward) square to its line, a callout or note along its leader's way; none if nothing clears.
  */
 function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGrid: SegmentGrid): { fix?: DrawingFix } {
-  if (p.owner.kind === 'label') return {};
+  if (p.owner.kind === 'label' || p.owner.kind === 'datum') return {};
   const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = others.filter(q => q.owner.kind === 'dimension').flatMap(q => q.lines);
   const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
   const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !viewGrid.hits(b) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, b, p.owner.view))
@@ -257,9 +287,33 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   for (const place of candidates(r, v.scale, ctx.views[r.dim.view])) {
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
-    if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks: dimensionMarks(v, moved) }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
+    // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
+    const marks = dimensionMarks(v, moved); if (r.dim.basic) marks.push(...basicBox(marks));
+    const frame = ctx.settings.frames?.find(f => f.dim === r.dim.id), main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+    if (frame && main) marks.push(...frameMarks(main, frame));
+    if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
   }
   return {};
+}
+
+/** Whether new marks (a group about to be added) are clear of every text, line, other view and the title block, inside the frame. */
+const sheetClear = new WeakMap<Sheet, { grid: SegmentGrid; boxes: Quad[] }>();
+export function marksClear(ctx: IssueContext, marks: Mark[], view: ViewId): boolean {
+  // (What the sheet holds, once a sheet: placing tries many spots.)
+  let held = sheetClear.get(ctx.sheet);
+  if (!held) {
+    const placed = ctx.sheet.groups.filter(g => g.role === 'dimension' || g.role === 'note' || g.role === 'label' || g.role === 'datum' || g.role === 'control').map(placedOf);
+    const lines: [XY, XY][] = [];
+    for (const g of ctx.sheet.groups) if (g.role === 'view' || g.role === 'section' || g.role === 'dimension' || g.role === 'control' || g.role === 'datum') for (const m of g.marks) segments(m, lines);
+    held = { grid: new SegmentGrid(lines), boxes: placed.flatMap(q => q.boxes) }; sheetClear.set(ctx.sheet, held);
+  }
+  const { grid, boxes } = held, me = placedOf({ role: 'datum', view, marks });
+  const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
+  // Its text and box clear of all; its leader and box lines clear of other texts.
+  const shapes: Quad[] = [...me.boxes, ...marks.filter((m): m is Extract<Mark, { kind: 'polyline' }> => m.kind === 'polyline').map(m => [m.points[0], m.points[1], m.points[2], m.points[3]] as Quad)];
+  return shapes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !grid.hits(b) && !onOtherView(ctx.layout, b, view))
+    && me.lines.every(([p, q]) => !boxes.some(b => segmentHitsQuad(p, q, b)) && !grid.crosses(p, q))
+    && me.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
 }
 
 /** Places to try for a dimension (view coordinates): rows each way square to a linear one, round the circle for a leader. */
@@ -390,7 +444,9 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
 export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
   const s = ctx.settings;
   switch (fix.kind) {
-    case 'remove': return { ...s, dimensions: s.dimensions.filter(d => d.id !== fix.dim) };
+    case 'remove': return { ...s, dimensions: s.dimensions.filter(d => d.id !== fix.dim), ...(s.frames?.some(f => f.dim === fix.dim) ? { frames: s.frames.filter(f => f.dim !== fix.dim) } : {}) };
+    case 'remove-datum': return { ...s, datums: (s.datums ?? []).filter(d => d.id !== fix.datum) };
+    case 'remove-frame': return { ...s, frames: (s.frames ?? []).filter(f => f.id !== fix.frame) };
     case 'move': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? { ...d, place: fix.place } : d) };
     case 'move-note': return { ...s, notes: (s.notes ?? []).map(n => n.id === fix.note ? { ...n, at: fix.at } : n) };
     case 'accept': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? accepted(d) : d) };

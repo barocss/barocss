@@ -15,6 +15,7 @@ import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout } from '../drawing/layout';
 import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '../drawing/issues';
+import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '../drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
@@ -100,6 +101,15 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads }, cut), [views, layout, settings, title, cut, callout, threads]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
+  const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  const acceptEvery = () => {
+    if (!views) return;
+    const r = acceptAll({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    onChange(r.settings);
+    const est = r.accepted.filter(x => x.estimate).length;
+    onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
+  };
   const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
@@ -297,9 +307,10 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
       hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
       section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null,
-      issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}) })) };
+      issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}) })),
+      suggestions: suggestions.map(x => ({ id: x.id, kind: x.kind, estimate: x.estimate })) };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
-  }, [layout, sheet, views, section, issues]);
+  }, [layout, sheet, views, section, issues, suggestions]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {
@@ -454,6 +465,18 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
             {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : 'Auto scale') : 'Move'}</button>}
           </div>)}
           {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
+        </div>
+
+        <div className="card-title" style={{ marginTop: 8 }}>TOLERANCING <span className="muted" aria-label="Suggestion count">{suggestions.length}</span>
+          {suggestions.length > 0 && <button className="ghost small" onClick={acceptEvery} aria-label="Accept all suggestions" data-tip="Accept all" data-tip-desc="Every suggestion, datums before the frames that name them; then what overlaps is moved clear">Accept all</button>}</div>
+        <label className="field"><span>Mode</span><select aria-label="Tolerancing" value={settings.tolerancing ?? 'plus-minus'} onChange={e => { const next = { ...settings }; delete next.tolerancing; onChange(e.target.value === 'geometric' ? { ...next, tolerancing: 'geometric' } : next); }}>
+          <option value="plus-minus">± dimensions</option><option value="geometric">Geometric (datums, position)</option></select></label>
+        <div className="dw-issues" aria-label="Tolerance suggestions">
+          {suggestions.map(x => <div key={x.id} className="dw-issue" title={x.basis}>
+            <Icon name={x.estimate ? 'help' : 'lightbulb'} small /><span>{x.message}<br /><span className="muted">{x.estimate ? 'Estimate — ' : ''}{x.basis}</span></span>
+            <button className="ghost tiny" aria-label={`Accept: ${x.message}`} onClick={() => onChange(applySuggestion(settings, x))}>Accept</button>
+          </div>)}
+          {!suggestions.length && views && <div className="empty">Nothing to suggest: {settings.tolerancing === 'geometric' ? 'datums, positions and the general note are there' : 'the general note and hole positions are toleranced'}.</div>}
         </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>

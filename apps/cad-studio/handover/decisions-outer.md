@@ -121,3 +121,36 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
     - Each candidate place a move tried scanned all ~15k segments of the views' lines. A grid of 10 mm cells (`SegmentGrid`) now gives each box only the segments near it.
     - The loop ran the moves while sides were still crowded, and kept scanning ever smaller scales after a clean layout that did not read well. Now moves run only once nothing is crowded, and the search goes in two passes: scales at which holes read first (A4, then A3), then the largest clean scale below that. The 120-hole plate's Ø4 holes read at no scale that fits either sheet (1:1 does not fit); it gets A4 at 1:5, reported as not reading well, in one try.
 - **Deferred (R14.3b)**: choosing which side of the part is the front ("the front view by most information"). It changes every view's direction and the dimensions placed in them, so it needs a versioned view-orientation setting and a decision on what happens to existing dimensions. Also not done: dropping the isometric view to make room, and laying out the section with its own dimensions.
+
+## O5 — R14.4: tolerance and GD&T suggestions, from the fastener data or flagged as estimates (2026-10-19)
+
+- **What** (`apps/cad-studio/src/drawing/tolerance.ts`, `cad-studio-tolerance-suggestions-v1`; the drawing's TOLERANCING card): suggestions of how exact the part must be. Each shows its basis — the data and the relation, or "Estimate" — and is applied only when accepted, one at a time or Accept all (datums before the frames that name them; then the issue list's moves for what overlaps). A mode switch, `settings.tolerancing` (± dimensions by default, or geometric), only changes what is offered.
+  - **Either mode**: a general note "UNLESS OTHERWISE STATED: LINEAR ±0.2 · ANGULAR ±0.5°". **An estimate**: a common machining default, not from a standard, so check the shop's own (`GENERAL_TOLERANCE`). No tolerance class is named and no standard's table is used. It is not suggested again where a note already opens that way.
+  - **± mode**: per kind of hole, a ± tolerance on its location dimensions — the per-axis square inside its position zone, T/(2√2). A dimension shared by holes that line up gets the tightest value its holes need: a looser ± already there is tightened, never loosened, and none goes on a basic dimension.
+  - **Geometric mode**:
+    - Datums A, B, C: the part's three largest flat sides square to each other, by area (bottom, front side, left side for a prismatic part), each on the view edge that shows it edge-on, the symbol placed where it is clear of everything on the sheet. If no spot on the edge is clear, the symbol goes on the edge's extension line past the view, with the extension line drawn.
+    - Per kind of hole, a position frame under its callout: ⌖ Ø T | A | B | C. It names only datums the drawing has or is offered. Its location dimensions become basic (boxed, their own tolerance removed).
+- **The value T** (`holePosition`), from the studio's fastener data (`app/fasteners.ts`, ISO 273 clearance holes with their source records) by the usual tolerancing relations:
+  - a clearance hole H for a screw F (via `sizeForHole`): **floating fastener**, T = H − F. Ø6.6 for M6: Ø0.6, so ±0.21 per axis;
+  - a tapped hole M<d>: **fixed fastener**, T = (H − F)/2, H the screw's medium clearance hole **assumed** in the mating part (said so). M6: (6.6 − 6)/2 = Ø0.3, so ±0.1;
+  - no fastener in the data fits: **an estimate**, Ø0.2 (`POSITION_ESTIMATE_MM`), said so;
+  - values rounded down to 0.01 mm (tighter, never looser).
+- **Not offered** (no sourced data): fit codes (H7 …) from interfaces — the library's fits are spatial checks and the repo has no limits-and-fits deviation table (none may be taken from ISO). Also flatness on datum A, profile and orientation tolerances, projected zones for tapped holes, and datums on round parts (no flat extreme side: none offered).
+- **The sheet** (versioned settings read back validated; old files unchanged):
+  - `datums` (letter A–Z without I, O, Q; view; edge reference; place): a boxed letter, a leader, a filled triangle on the edge (or on its extension line).
+  - `frames` (dimension, position, value, datums): drawn under the dimension's text, moving with it. The position symbol is drawn as a circle and a cross, so every font, PDF and DXF shows it.
+  - `basic` on dimensions: the text boxed.
+  - The DXF writes them as lines, solids and text; Ø as %%c.
+- **The issue list** gains `DATUM_LOST` (edge gone; fix: remove), `DATUM_TWICE` (fix: remove the later), `FRAME_LOST` (its dimension gone or lost; fix: remove) and `DATUM_UNDEFINED` (a frame names a datum not there; no fix). A frame is part of its dimension for overlaps and moves; datums take part in overlaps (no move). A datum's leader must not cross other lines.
+- **Fixes on the way**:
+  - Auto-dimension's pitch rows are now found per line of holes. Two holes sharing an x could start "3× 20" at the wrong one: on the hole-row plate it ran from the tapped hole to the clearance row (the right value, the wrong feature). A run's first hole is now the baseline's target.
+  - On the bolt-circle plate, "2× 17.32" was not a row (the holes are not on one line). It is now three positions, 22.68, 40, 57.32 (40 ± 20·sin 60°); the R14.1/R14.3 bolt fixtures were updated, no other case changed.
+- **Evidence**:
+  - Conformance `conformance/r14/tol-*` (run by `apps/cad-studio/test/tolerance.test.ts`; `UPDATE_R14_FIXTURES=1`): the suggestions offered and, after accepting all, no issue and what is on the sheet; worked by hand.
+    - `tol-row-plus-minus`: ±0.1 on the tapped M6's 2 location dimensions (the shared 20 included), ±0.21 on the row's; four tolerances 0.1, 0.1, 0.21, 0.21.
+    - `tol-row-geometric`: A, B, C; Ø0.6 and Ø0.3 frames; 4 basic.
+    - `tol-plate-geometric`: Ø8 fits no fastener, so Ø0.2 is an estimate.
+    - `tol-cross-hole-geometric`: the frame in the right view.
+  - Tests: the relations for M3–M10 clearance and tapped holes; modes change only the offer; a user's own general note respected; save and read back; drawn in the SVG, PDF (no missing characters) and DXF; the four new issues; bad datums and frames dropped on reading.
+  - A browser-flow step: a plate with a Ø6.6 hole. ± mode offers ±0.21; geometric mode offers three datums, a Ø0.6 position frame and the note; Accept all leaves no suggestion and no issue, with A, B, C, the frame and two basic dimensions on the sheet.
+  - Benches: `drawing: tolerance suggestions, 120-hole plate` 1.9 ms (budget 5); the issue list now 1.9 ms with R14.3's segment grid (13.7 ms before; budget 4).

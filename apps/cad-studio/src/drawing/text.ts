@@ -29,3 +29,14 @@ export function fitText(text: string, size: number, bold: boolean, width: number
   while (chars.length > 1 && textWidth(chars.join('').trimEnd() + '…', floor, bold) > room) chars.pop();
   return { text: chars.join('').trimEnd() + '…', size: floor };
 }
+
+/**
+ * A line of text's box on the sheet (y down): its four corners in order, from its baseline point, anchor, size and
+ * angle (degrees counter-clockwise as read) — from a little under the baseline to the capital height.
+ */
+export function textCorners(at: readonly [number, number], text: string, size: number, anchor: 'start' | 'middle' | 'end', angle = 0, bold = false): [[number, number], [number, number], [number, number], [number, number]] {
+  const w = textWidth(text, size, bold), x0 = anchor === 'start' ? 0 : anchor === 'middle' ? -w / 2 : -w;
+  const top = -0.8 * size, bottom = 0.22 * size, a = -angle * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const p = (x: number, y: number): [number, number] => [at[0] + c * x - s * y, at[1] + s * x + c * y];
+  return [p(x0, top), p(x0 + w, top), p(x0 + w, bottom), p(x0, bottom)];
+}

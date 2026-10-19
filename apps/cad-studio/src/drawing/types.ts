@@ -20,8 +20,9 @@ export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviatio
  * `place`: where the dimension line (or a leader's text) goes, in the view's model coordinates (mm); `tol`: its tolerance.
  * `count` (R14.1, O2): it stands for that many — a diameter for as many equal holes (`4× Ø6.6 THRU`), a linear dimension
  * for as many equal spaces of a row (`3× 20`). `auto`: placed by Auto-dimension (which replaces only its own).
+ * `basic` (R14.4, O5): a theoretically exact dimension, its text boxed (a position tolerance's frame holds the tolerance).
  */
-export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true }) & (
+export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; basic?: true }) & (
   | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
   | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
@@ -30,6 +31,16 @@ export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true }
  * A note: lines of text with their top left at `at` (sheet mm), and optionally a leader to a point
  * of a view (`leader.at` in the view's model coordinates, so it follows the view).
  */
+/**
+ * A datum feature (R14.4, O5): its letter in a box at `place` (the view's model coordinates), a leader to a filled triangle
+ * on a straight edge of the view (the face seen edge-on).
+ */
+export interface DrawingDatum { id: string; letter: string; view: ViewId; edge: EdgeRef; place: XY }
+/**
+ * A feature control frame (R14.4, O5) under a dimension's text: a position tolerance of `value` mm in a cylindrical zone
+ * (Ø) to the datums in order. Only position for now.
+ */
+export interface DrawingFrame { id: string; dim: string; characteristic: 'position'; value: number; datums: string[] }
 export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
 export interface EdgeRef { edge: string; near: Vec3; sig?: Sig; was?: string }
@@ -72,6 +83,10 @@ export interface DrawingSettings {
   views?: ViewId[];
   /** Extra sheet room (mm) beside a view's sides for its dimensions (R14.3, O4): the layout spaces the views by it. */
   room?: ViewRoom;
+  /** How the drawing is toleranced (R14.4, O5): by ± values (default) or geometrically (datums and position). */
+  tolerancing?: 'plus-minus' | 'geometric';
+  datums?: DrawingDatum[];
+  frames?: DrawingFrame[];
 }
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
 export type ViewRoom = Partial<Record<ViewId, Partial<Record<RoomSide, number>>>>;
@@ -94,11 +109,14 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
     dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view)).map(x => {
-      const { tol, count, auto, ...rest } = x; const t = readTolerance(tol);
-      return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}) } as DrawingDimension;
+      const { tol, count, auto, basic, ...rest } = x; const t = readTolerance(tol);
+      return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}), ...(basic === true ? { basic: true } : {}) } as DrawingDimension;
     }) : [],
     ...(Array.isArray(r.views) && r.views.includes('front') && r.views.includes('top') ? { views: VIEW_IDS.filter(v => r.views!.includes(v)) } : {}),
     ...(readRoom(r.room) ? { room: readRoom(r.room)! } : {}),
+    ...(r.tolerancing === 'geometric' ? { tolerancing: 'geometric' as const } : {}),
+    ...(Array.isArray(r.datums) && r.datums.some(isDatum) ? { datums: r.datums.filter(isDatum).map(d => ({ id: d.id, letter: d.letter, view: d.view, edge: { ...d.edge }, place: [d.place[0], d.place[1]] as XY })) } : {}),
+    ...(Array.isArray(r.frames) && r.frames.some(isFrame) ? { frames: r.frames.filter(isFrame).map(f => ({ id: f.id, dim: f.dim, characteristic: 'position' as const, value: f.value, datums: [...f.datums] })) } : {}),
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
   };
 }
@@ -114,6 +132,8 @@ function readRoom(raw: unknown): ViewRoom | null {
   }
   return Object.keys(out).length ? out : null;
 }
+const isDatum = (d: unknown): d is DrawingDatum => { const x = d as DrawingDatum; return !!x && typeof x.id === 'string' && typeof x.letter === 'string' && /^[A-HJ-NPR-Z]$/.test(x.letter) && VIEW_IDS.includes(x.view) && !!x.edge && typeof x.edge.edge === 'string' && Array.isArray(x.edge.near) && x.edge.near.length === 3 && isXY(x.place); };
+const isFrame = (f: unknown): f is DrawingFrame => { const x = f as DrawingFrame; return !!x && typeof x.id === 'string' && typeof x.dim === 'string' && x.characteristic === 'position' && typeof x.value === 'number' && x.value > 0 && x.value < 100 && Array.isArray(x.datums) && x.datums.length <= 3 && x.datums.every(l => typeof l === 'string' && /^[A-HJ-NPR-Z]$/.test(l)); };
 const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
 const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);
 function readTolerance(t: unknown): Tolerance | null {

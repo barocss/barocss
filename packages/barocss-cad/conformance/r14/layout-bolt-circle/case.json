@@ -109,17 +109,22 @@
    {
     "view": "top",
     "kind": "linear",
-    "text": "2× 17.32"
-   },
-   {
-    "view": "top",
-    "kind": "linear",
     "text": "30"
    },
    {
     "view": "top",
     "kind": "linear",
+    "text": "40"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
     "text": "50"
+   },
+   {
+    "view": "top",
+    "kind": "linear",
+    "text": "57.32"
    },
    {
     "view": "top",
