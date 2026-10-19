@@ -601,3 +601,60 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   - Studio 497/497, 497/497 replayed through v2. Bench: link inertia of the 12-link arm takes 0.1 ms (budget 0.5); 49 rows within budget.
   - Browser flow 157/157, with a step "RM3" just before the last: the 2R arm's links in the Joints card (base 103.8 g; each arm 14.1 g, CoM (20.0, 0.0, 2.5) mm, material assumed). The step found a "−0.0" shown for a rounding of zero and a cramped row; both fixed. Screenshot `notes/acceptance/rm3-mass.png`.
 - **Next**: RM4, URDF export. Child frame at the joint, meshes in the link frame, convex-hull collision, mm→m. Acceptance by `check_urdf`, and by MuJoCo or PyBullet as external oracles for mass, CoM, principal inertia and FK.
+
+## O17 — RM4: URDF export, our reader and the URDF spec's structure; the MuJoCo comparison pending (2026-10-20)
+
+- **Export** (`src/robot/urdf.ts`, `barocss-urdf-v1`):
+  - One `<link>` a link, the base link the root. A joint chain's dummy links carry a tiny mass (1e-9 kg) and inertia (1e-15 kg·m²) rather than none: PyBullet takes a massless moving link as static, and MuJoCo refuses one. Documented here.
+  - Each `<joint>`'s origin is the child link's frame in the parent link's (xyz in m; rpy as URDF's Rz·Ry·Rx) at the solved pose, where every value is 0.
+    - Link frames are RM3's (at the joint, Z on its axis), taken into the world through each part's placement; a dummy link's is on its joint.
+    - The axis is written in the child frame (computed: Z for a moving joint).
+  - `<limit>`:
+    - revolute: lower, upper, effort, velocity;
+    - prismatic: the same, its limits and velocity in metres;
+    - continuous: effort and velocity when both are set, else none, as URDF allows.
+    - A gear follower is written as `<mimic joint multiplier offset>`.
+  - `<inertial>`: RM3's mass, centre (m) and inertia about it (kg·m²) in the link frame.
+  - `<visual>` and `<collision>`: the part's tessellation and its **convex hull** (`src/robot/hull.ts`, our own quickhull), binary STL in metres in the link frame, as `meshes/<link>.stl` and `meshes/<link>_collision.stl`.
+  - Names: URDF-safe (`base~arm` → `base_to_arm`, a chain's `#1` → `_1`), unique.
+- **Refused, typed** (`URDF_REFUSED`): MOTION_UNSUPPORTED, LIMITS_BAD, LIMITS_MISSING (a revolute or prismatic joint needs all four), INERTIA (a real link failing RM3's checks or massless), NO_HULL.
+  - **Written with a note**: loops (URDF is a tree; the closure's mates are named), unconnected parts left out, materials assumed.
+- **Read back and checked** (`src/robot/urdfCheck.ts`):
+  - our own small XML reader (elements, attributes, comments, the declaration, the five entities, numeric references; typed errors with their place);
+  - the robot model;
+  - **the URDF spec's structural rules**: `<robot name>`; unique link and joint names; a joint's parent and child links exist; one parent a link; exactly one root; no cycle; a known joint type; revolute and prismatic `<limit>` complete; lower ≤ upper; a unit axis; mimic of an existing joint; inertials with mass > 0, positive definite and a triangle; every mesh file present.
+  - **FK in URDF's own composition** (each joint's origin, then its motion about its axis in the child frame), against RM2's space-frame product of exponentials.
+- **Where**:
+  - tool `export_urdf` (read: the URDF text, the files with sizes, notes, our check; v2 `assembly.urdf`), a compatible addition to both contracts;
+  - **Export URDF** in the Joints card (a zip: `robot.urdf` and `meshes/`);
+  - `cad-cli urdf part.bcad -o folder [--name]`, which checks its output and exits 1 on any issue.
+- **Pending: the external oracles** (the owner's go-ahead to install MuJoCo; the coordinator, 2026-10-20). `packages/barocss-cad/scripts/urdf-oracle.py` is written and not run. It loads the URDF in MuJoCo (no fusing, meshes by path) and compares each link's mass, centre and principal inertia, and link frames at sampled values (`xpos`, `xmat`), against `conformance/rm/urdf-*/expect.json`, tolerance 1e-6. The exact commands:
+
+  ```
+  uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0
+  node apps/cad-studio/scripts/cad-cli.mjs urdf packages/barocss-cad/conformance/rm/urdf-2r/robot.bcad -o /tmp/urdf-2r
+  ~/.cache/barocss-mujoco/bin/python -I packages/barocss-cad/scripts/urdf-oracle.py /tmp/urdf-2r/robot.urdf packages/barocss-cad/conformance/rm/urdf-2r/expect.json
+  ```
+
+  The same applies to `urdf-gears`. `check_urdf` (ROS urdfdom, not on PyPI) runs where a ROS install is at hand. Until then the acceptance rests on our own checks below.
+- **Evidence**: `test/robot-urdf.test.ts` (8 tests).
+  - The hull:
+    - a cube with points inside: 12 triangles, volume 1 to 1e-12, closed and oriented;
+    - 2 000 random points: closed, Euler 2, every point inside to 1e-6;
+    - flat and too few points refused, typed.
+  - The XML reader and its six typed errors.
+  - **The export read back**:
+    - no structural issue;
+    - the revolute-limited joint `base_to_arm` revolute, axis (0, 0, 1), its limits, origin (0.02, 0.02, 0.01) m;
+    - the arm's inertial mass to 1e-15, its centre (0.02, 0, 0.0025);
+    - the four mesh files present, their STL sizes consistent;
+    - the checker catching a missing file, a cycle, a non-unit axis and a missing `<limit>`.
+  - **FK read back from the URDF equals RM2's to 1e-12**: the 2R arm (50 random poses), the gear pair with its `<mimic>` multiplier −2/3 (20), and a slide-and-turn chain through a dummy link with limits in metres (30). Positions in the root frame and the full rotation.
+  - Every visual vertex is inside its link's collision hull (1e-7 m); the arm's mesh lies in its link frame in metres (x −0.01…0.05 from its turning hole).
+  - Refusals: a revolute without ratings, a slide without limits; a loop written with its note; a continuous joint without `<limit>`.
+  - rpy read back through the reader's own Rz·Ry·Rx matrix, gimbal lock included.
+  - The tool, the CLI (its folder's URDF equal to the frozen one), and the conformance cases `conformance/rm/urdf-2r` and `urdf-gears` (document, frozen `robot.urdf`, and `expect.json` for the pending oracle).
+  - By hand: Python's standard `xml.etree` parses the frozen URDFs (an independent XML reader; no install).
+  - Studio 505/505, 505/505 replayed through v2. Bench: URDF export and check of the 12-link arm takes 2.7 ms (budget 10); 50 rows within budget.
+  - Browser flow 158/158, with a step "RM4" just before the last: Export URDF downloads a zip, read by Python's `zipfile`. Its `robot.urdf` is the CLI's frozen one to 12 significant figures. The studio works from world-placed bodies and the CLI from part coordinates, so only the last digits differ; the robot is named after the file.
+- **Next**: RM5, MJCF export with the same checks; a 6R arm hangs under gravity stably. That step needs a simulator, so it depends on the same go-ahead.
