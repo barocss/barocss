@@ -6156,5 +6156,7 @@ The second FR stage frozen in D122: many members along a skeleton's segments, ea
 | Conformance | 161/161 |
 | Studio | 623/623 (+3 of FR2, +11 from the merged RD9/RD10/O49–O50; names compared, none missing) |
 | Full flow | 180/180, run on its own; the new step included |
+| RB | 303 cases (+4: the fr frame cases), 0 new, the 8 known TODOs |
+| Properties | 11/11, no failures |
 
 RB rows are in the next commit.
