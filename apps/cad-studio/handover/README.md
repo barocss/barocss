@@ -992,7 +992,8 @@ gear crank.
 - RM6: sampled collision sweep with a conservative-advancement bound (|Δp| ≤ Σ|Δqᵢ|·rᵢ), using the exact interference
   with a prefilter.
 - Later:
-  - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag.
+  - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag. **Done (O44)**:
+    999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
   - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality).
   - RM9 SDF/USD, CCD, workspace map.
 

@@ -2132,3 +2132,32 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
 - **URDF**: still a tree format. The loop is left out and noted, as before.
 
 **Order**: RM7 → RM8, with a checkpoint after each.
+
+## O44 — RM7: DLS/LM inverse kinematics — 999 of 1000 reached; the singularity flag's threshold corrected (2026-10-20)
+
+- **`src/robot/ik.ts`**: `solveIk(tree, {link, motion, tool?, mode?}, start?)` and `jacobianConditioning(tree, link, q, tool?, mode?)`.
+  - **The model** is O43's: the space Jacobian from each joint's screw at the current pose. A gear follower's column goes to its leader, times the multiplier.
+  - **The step** is `Δq = Jᵀ (J Jᵀ + λ² I)⁻¹ e`, with LM's λ (halved on a kept step, × 4 on an undone one). Limits clamp. Up to 15 seeds come from a deterministic mulberry32 seeded by the target.
+  - **Per iteration**: typed scratch arrays reused, a small Cholesky and a cyclic-Jacobi eigen-solve of our own, no closures. The seed generator is module state.
+  - **`mode: 'position'`** solves for the tool point alone (3 rows), its turn left free. It was added for the 2R case: a planar chain's stretched singularity exists only in position. With the orientation rows, its two columns stay independent.
+- **The arm-6r fixture** (RM5's frozen `robot.bcad`). The tool point is 80 mm up l6's axis from its joint. There are 1000 targets from RM2's FK at random q ∈ [−π, π]⁶, each solved from 0 and **judged by RM2's FK on the answer**:
+  - **999 of 1000 reached** (the acceptance is 990). The worst reached errors are 9.6e-8 m and 7.8e-7 rad.
+  - The one miss, target 405, ends at 2.1e-3 m and 3.2e-4 rad after all 15 seeds. It is reported as not reached, never claimed.
+  - It takes 79 iterations a target on average. 4 of the 1000 solved targets are flagged singular.
+  - The solver's own `reached` agrees with the oracle's reading on every target.
+- **Two corrections to O43's frozen numbers, found by the singular cases.** The acceptance tolerances are unchanged.
+  - **A solve that stops at 1e-7 sits about √1e-7 rad off a singular pose.** Along the singular direction, the error grows only as δ².
+    - So the straight-up arm's solve ended 1e-3 rad off with σmin/σmax 7e-6, and was not flagged.
+    - Each descent now refines down to 1e-12, or until a step stops helping. A seed within 1e-7 is not restarted, which keeps restarts and iterations down (230 → 79 a target).
+  - **The flag's threshold is 1e-4, not 1e-6.**
+    - Even refined to machine precision, a 2R solve on its stretched pose ends 7e-6 rad off, with ratio 1.4e-6. The 1e-6 threshold sits at double precision's own limit, so it would miss a solve that is on a singularity.
+    - 1e-4 is a condition number of 1e4. Random poses of this arm have ratios from 6.8e-6 up, with a median of 7.5e-3. It flags 10 of 1000 random poses, and 4 of 1000 solved targets.
+    - Flagging more is the conservative side.
+- **Tests** (`test/robot-ik.test.ts`):
+  - the 1000 targets, with the counts printed;
+  - **singular cases:**
+    - the straight-up arm reached and flagged;
+    - the same arm bent, not flagged;
+    - a 2R chain (100 and 60 mm) stretched, flagged in position, and a position solve to its stretched point reached and flagged;
+    - bent, not flagged;
+  - a target 40 mm past the 2R's reach: `reached: false`, its error above 0.03 m.
