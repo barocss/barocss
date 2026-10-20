@@ -7,6 +7,7 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { bodyKeyFor } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
+import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
 import { materialOf } from '../app/materials';
 
@@ -199,12 +200,14 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
     ...(below !== undefined ? { faces_below: [...perFace].filter(([, d]) => d < below).map(([f, d]) => ({ face: name(f), thickness_mm: r3(d) })) } : {}) };
 }
 
-/** Draft of a body's faces against a pull direction: each flat face's draft angle (degrees; negative: an undercut); those under `min`. */
-export function draftAnalysis(b: BodyResult, pull: Vec3, min = 1): Record<string, unknown> {
-  const l = Math.hypot(...pull), p = pull.map(x => x / l);
-  const faces = b.mesh.faces.filter(f => f.kind === 'plane').map(f => ({ face: f.name.split('+')[0], angle: 90 - Math.acos(Math.max(-1, Math.min(1, f.normal[0] * p[0] + f.normal[1] * p[1] + f.normal[2] * p[2]))) * 180 / Math.PI }));
-  // (Faces facing the pull or against it, within 45°, are tops and bottoms: no draft to speak of.)
-  const walls = faces.filter(f => Math.abs(f.angle) < 45);
-  return { body: b.key, pull: v3(p), walls: walls.map(f => ({ face: f.face, draft_deg: r3(f.angle) })), under_min: walls.filter(f => f.angle < min).map(f => f.face),
-    ...(b.mesh.faces.some(f => f.kind === 'curved') ? { note: 'curved faces are not judged here (their draft varies across them)' } : {}) };
+/**
+ * Draft of a body's faces against a pull direction (IM2, O78): each face's exact draft (degrees, signed by n·d: 0 a wall
+ * along the pull) — planes, cylinders and curved faces alike — its class against `min`, and the walls (faces within
+ * 45° of the pull) with their least draft; those under `min`.
+ */
+export function draftAnalysis(doc: StudioDoc, b: BodyResult, pull: Vec3, min = 1): Record<string, unknown> {
+  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.minDeg), Math.abs(x.maxDeg)) < 45 || x.cls === 'straddle');
+  return { body: b.key, pull: v3(f.pull),
+    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.maxDeg) * x.steepestDeg), min_deg: r3(x.minDeg), max_deg: r3(x.maxDeg), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
+    under_min: walls.filter(x => x.cls !== 'drafted').map(x => x.face), note: 'exact normals (planes, cylinders, curved faces from the B-rep); straddle: n·d takes both signs, a parting line crosses it' };
 }

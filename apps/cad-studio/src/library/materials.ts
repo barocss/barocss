@@ -23,8 +23,8 @@ export interface MaterialData {
   /** The page each W-WEB value is from (IM1, O77): by its field's key, as in `sources`. */
   readonly pages?: Readonly<Record<string, WebSource>>;
 }
-/** A value read from a public page (IM1, O77): its URL, the date read and the page's own label for it. */
-export interface WebSource { readonly url: string; readonly read: string; readonly label: string }
+/** A value read from a public page (IM1, O77): its URL, the date read and the page's own label for it; `note` ours (how it is applied: a family row for a grade, O78). */
+export interface WebSource { readonly url: string; readonly read: string; readonly label: string; readonly note?: string }
 export interface ProcessThreshold { readonly value: number; readonly unit: string; readonly source: string; readonly description: string; readonly page?: WebSource }
 /** A moulded surface finish (IM1, O77): the least draft it takes, and the recommended. */
 export interface MouldFinish { readonly id: string; readonly label: string; readonly draftMinDeg: number; readonly draftRecDeg?: number; readonly source: string; readonly page?: WebSource }

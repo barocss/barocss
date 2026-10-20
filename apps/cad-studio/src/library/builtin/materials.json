@@ -273,7 +273,8 @@
     "wallMM.injection": {
      "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
      "read": "2026-10-21",
-     "label": "Wall Thickness by Material — Nylon: RECOMMENDED WALL THICKNESS"
+     "label": "Wall Thickness by Material — Nylon: RECOMMENDED WALL THICKNESS",
+     "note": "the page's nylon family row, not PA12-specific"
     }
    }
   },

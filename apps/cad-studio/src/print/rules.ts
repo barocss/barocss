@@ -10,6 +10,7 @@ import { interference, wallThickness } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
 import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
 import { overhangOf, type Vec3 } from './overhang';
+import { draftField, type DraftFace } from '../mould/draft';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -23,7 +24,9 @@ export interface PrintRule {
  */
 export interface PrintabilityReport {
   readonly process: string | null; readonly printer?: string; readonly direction: Vec3 | null; readonly rules: readonly PrintRule[];
-  readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; shrink: number | null }[] };
+  readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
+    /** IM2: each face's exact draft and class (with a pull and a finish). */
+    readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[] };
 }
 type Evaluate = (doc: StudioDoc) => Promise<{ ok: boolean } | null>;
 
@@ -134,7 +137,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     : { id: 'finish', level: 'recommended', status: 'unknown', message: 'the surface finish (its least draft)', why: finishId ? `"${finishId}" is not a finish here: ${(profile.finishes ?? []).map(f => f.id).join(', ')}` : 'no surface finish is set' });
   // Walls: the thinnest against the process, and each body's thinnest and thick sections against its material's range.
   const per = bodies.map(x => { const w = wallThickness(x) as { thinnest_mm: number | null; thick95_mm?: number }, id = materialIdOf(doc, x) ?? null, m = id ? materialData(id) : undefined;
-    return { key: x.key, thin: w.thinnest_mm, thick: w.thick95_mm ?? null, material: id, range: (m?.wallMM?.injection ?? null) as readonly [number, number] | null, rangeSource: m ? m.sources['wallMM.injection'] ?? m.sources.wallMM : undefined, shrink: m?.mouldShrink ?? null }; });
+    return { key: x.key, thin: w.thinnest_mm, thick: w.thick95_mm ?? null, material: id, range: (m?.wallMM?.injection ?? null) as readonly [number, number] | null, rangeSource: m ? m.sources['wallMM.injection'] ?? m.sources.wallMM : undefined, note: m?.pages?.['wallMM.injection']?.note, shrink: m?.mouldShrink ?? null }; });
   const thin = per.filter(x => x.thin !== null).sort((a, c) => a.thin! - c.thin!)[0];
   rules.push(thin ? rule('wall', 'feasible', thin.thin! >= t('minWall').value, 'the thinnest wall, against the thinnest that fills', thin.thin!, t('minWall').value, 'mm', t('minWall').source, [thin.key])
     : { id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
@@ -143,7 +146,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   else {
     const out = ranged.filter(x => x.thin! < x.range![0] - 1e-9 || (x.thick !== null && x.thick > x.range![1] + 1e-9)), worst = out[0] ?? ranged[0];
     rules.push({ id: 'wall-material', level: 'recommended', status: out.length ? 'warn' : unranged.length ? 'unknown' : 'pass',
-      message: `the walls (the thinnest, and the thick sections: the depth 95 % of the surface is within) against the material's moulding range: ${worst.key} ${worst.thin} … ${worst.thick ?? '?'} mm in ${worst.range![0]} … ${worst.range![1]} mm`,
+      message: `the walls (the thinnest, and the thick sections: the depth 95 % of the surface is within) against the material's moulding range: ${worst.key} ${worst.thin} … ${worst.thick ?? '?'} mm in ${worst.range![0]} … ${worst.range![1]} mm${worst.note ? ` (${worst.note})` : ''}`,
       value: worst.thick ?? worst.thin!, limit: worst.range![1], unit: 'mm', source: worst.rangeSource, entities: (out.length ? out : ranged).map(x => x.key), ...(unranged.length && !out.length ? { why: `${unranged.map(x => x.key).join(', ')}: no moulding range` } : {}) });
   }
   // Size: the part's extents — its depth along the pull, the two across it either way round — within the largest part.
@@ -160,11 +163,22 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     const a1 = Math.max(ext[0], ext[1]), a2 = Math.min(ext[0], ext[1]), fits = a1 <= L.value + 1e-9 && a2 <= W.value + 1e-9 && ext[2] <= D.value + 1e-9;
     rules.push({ id: 'size', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${+a1.toFixed(2)} × ${+a2.toFixed(2)} across, ${+ext[2].toFixed(2)} mm deep along the pull) within the largest moulded part, ${L.value} × ${W.value} × ${D.value} mm`, value: Math.max(a1 / L.value, a2 / W.value, ext[2] / D.value), limit: 1, unit: 'ratio', source: L.source });
   }
-  rules.push({ id: 'draft', level: 'recommended', status: 'unknown', message: 'draft on every face along the pull', why: 'the draft field on every face (IM2) is not built yet' });
+  // IM2 (O78): every face's exact draft against the finish's least; straddling faces wait for the parting line (IM5).
+  let field: DraftFace[] | null = null;
+  if (!pull || !finish) rules.push({ id: 'draft', level: 'recommended', status: 'unknown', message: 'draft on every face along the pull', why: !pull ? 'no pull direction: the draft is measured along it' : 'no finish: it sets the least draft' });
+  else {
+    field = draftField(doc, bodies, pull, finish.draftMinDeg).faces;
+    const steep = field.filter(f => f.cls === 'steep'), straddle = field.filter(f => f.cls === 'straddle');
+    rules.push({ id: 'draft', level: 'recommended', status: steep.length || straddle.length ? 'warn' : 'pass',
+      message: `every face's draft (its exact normal) against ${finish.label}'s least, ${finish.draftMinDeg}°${steep.length ? `: ${steep.length} too steep` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (n·d takes both signs: a parting line crosses them, IM5)` : ''}`,
+      value: steep.length ? Math.min(...steep.map(f => f.steepestDeg)) : Math.min(...field.map(f => f.steepestDeg)), limit: finish.draftMinDeg, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
+  }
   rules.push({ id: 'undercut', level: 'feasible', status: 'unknown', message: 'undercuts against the pull', why: 'undercuts by visibility along the pull (IM3) are not built yet' });
-  return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, shrink: x.shrink })) } };
+  return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
+    ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.maxDeg), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area_mm2: r6(f.areaMM2), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 
+const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 function rule(id: string, level: 'feasible' | 'recommended', met: boolean, message: string, value: number, limit: number, unitName: string, source: string, entities?: string[]): PrintRule {
   return { id, level, status: met ? 'pass' : level === 'feasible' ? 'fail' : 'warn', message, value, limit, unit: unitName, source, ...(entities ? { entities } : {}) };
 }

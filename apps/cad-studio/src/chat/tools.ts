@@ -928,7 +928,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         return { state, content: json({ ...out, note: 'on the display mesh: good to its chord error on curved walls' }), isError: false, changed: false, summary: `wall of ${b.key}` };
       }
       const pull = Array.isArray(args.pull) && args.pull.length === 3 ? args.pull.map(Number) as [number, number, number] : [0, 0, 1] as [number, number, number];
-      const out = draftAnalysis(b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
+      const out = draftAnalysis(state.doc, b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
       return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
     }
     case 'set_requirements': {
@@ -1244,7 +1244,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'draft',
-    description: 'Draft of a body\'s flat walls against a pull direction (default +Z): each wall\'s angle in degrees (negative: an undercut) and those under min_deg (default 1).',
+    description: 'Draft of a body\'s walls against a pull direction (default +Z), from exact normals — flat and curved faces: each wall\'s least angle in degrees (negative: facing against the pull), its range and class (drafted, steep, straddle: n·d takes both signs, a parting line crosses it), and those under min_deg (default 1).',
     input_schema: { type: 'object', properties: { body: { type: 'string' }, pull: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, min_deg: { type: 'number' } }, additionalProperties: false },
   },
   {

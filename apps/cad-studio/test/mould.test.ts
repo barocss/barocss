@@ -15,7 +15,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; };
 const rules = async (doc: StudioDoc, o: { direction?: [number, number, number]; finish?: string } = {}) => { const r = await printability(doc, bodiesOf(doc), evaluate, o); return { r, by: Object.fromEntries(r.rules.map(x => [x.id, x])) }; };
 const shelled = (w: number, d: number, h: number, t: number): StudioDoc => withNode(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [w, d] }), { kind: 'extrude', sketch: 0, height: h }), { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: t, open: ['n1.top'] });
-const moulded = (doc: StudioDoc, material: string | null = 'abs', mould: StudioDoc['mould'] = { version: 1, pull: [0, 0, 1], finish: 'pm-t1' }): StudioDoc => {
+const moulded = (doc: StudioDoc, material: string | null = 'abs', mould: StudioDoc['mould'] | null = { version: 1, pull: [0, 0, 1], finish: 'pm-t1' }): StudioDoc => {
   const d: StudioDoc = { ...doc, process: 'injection', ...(mould ? { mould } : {}) };
   return material ? withLook(d, bodiesOf(d)[0], { material }) : d;
 };
@@ -28,22 +28,27 @@ test('IM1 data: every web value names its page (https URL, the date read, the pa
   for (const f of inj.finishes!) assert.ok(f.page && f.page.url.startsWith('https://www.protolabs.com/') && f.page.read === '2026-10-21', f.id);
   assert.deepEqual(['abs', 'pom', 'pc', 'pp', 'pa12'].map(id => materialData(id)!.wallMM!.injection), [[1.143, 3.556], [0.762, 3.048], [1.016, 3.81], [0.635, 3.81], [0.762, 2.921]]);
   assert.match(materialData('pom')!.pages!['wallMM.injection'].label, /Acetal/);
+  // (O78: PA12 reads the page's nylon family row, and says so.)
+  assert.equal(materialData('pa12')!.pages!['wallMM.injection'].note, 'the page\'s nylon family row, not PA12-specific');
   assert.deepEqual(['abs', 'pc', 'pp'].map(id => materialData(id)!.mouldShrink ?? null), [0.002, 0.002, null]);
   // (The checker catches a web value without its page.)
-  const broken = JSON.parse(JSON.stringify(MATERIALS_DATA)) as MaterialsData & { profiles: { thresholds: Record<string, { page?: unknown }> }[] };
-  delete broken.profiles.find(p => (p as unknown as { id: string }).id === 'injection')!.thresholds.tolMM.page;
-  assert.deepEqual(checkMaterials(broken), ['injection.tolMM: a web value needs its page (url, read, label)']);
+  const broken = JSON.parse(JSON.stringify(MATERIALS_DATA)) as { profiles: { id: string; thresholds: Record<string, { page?: unknown }> }[] };
+  delete broken.profiles.find(p => p.id === 'injection')!.thresholds.tolMM.page;
+  assert.deepEqual(checkMaterials(broken as unknown as MaterialsData), ['injection.tolMM: a web value needs its page (url, read, label)']);
 });
 
-test('IM1 a shelled ABS box 60 × 40 × 25, walls 1.8, pulled along +Z with a PM-T1 finish: judged as moulding; every IM1 rule passes; at least 3° of draft; ABS\'s shrink; draft and undercuts said to come with IM2 and IM3', async () => {
+test('IM1 a shelled ABS box 60 × 40 × 25, walls 1.8, pulled along +Z with a PM-T1 finish: judged as moulding; every IM1 rule passes; at least 3° of draft; ABS\'s shrink; its undrafted walls warned (IM2), undercuts said to come with IM3', async () => {
   const { r, by } = await rules(moulded(shelled(60, 40, 25, 1.8)));
   assert.equal(r.process, 'injection'); assert.deepEqual(r.direction, [0, 0, 1]);
   for (const id of ['pull', 'finish', 'wall', 'wall-material', 'size']) assert.equal(by[id].status, 'pass', `${id}: ${JSON.stringify(by[id])}`);
   assert.equal(by.finish.value, 3); assert.equal(by.finish.source, 'W-WEB');
   assert.equal(by['wall-material'].limit, 3.556); assert.ok(Math.abs(by['wall-material'].value! - 1.8) <= 1e-3, String(by['wall-material'].value));
   assert.equal(by.size.value, Math.max(60 / 751, 40 / 480, 25 / 203));
-  assert.deepEqual(r.mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wallMM: [1.143, 3.556], shrink: 0.002 }] });
-  assert.match(by.draft.why!, /IM2/); assert.match(by.undercut.why!, /IM3/);
+  const { draft, ...mould } = r.mould!;
+  assert.deepEqual(mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wallMM: [1.143, 3.556], shrink: 0.002 }] });
+  assert.ok(draft!.some(f => f.cls === 'steep'), 'its walls undrafted');
+  // (O78: the draft field now — a shelled box's walls have none: warned against PM-T1's 3°; undercuts still IM3's.)
+  assert.equal(by.draft.status, 'warn'); assert.equal(by.draft.limit, 3); assert.match(by.undercut.why!, /IM3/);
 });
 
 test('IM1 walls: 0.9 mm in ABS is under its range (warned); a solid 20 mm block\'s section over it (warned); 0.5 mm under what fills (fails); acetal\'s 0.762 lets 0.9 pass', async () => {

@@ -3595,3 +3595,34 @@ The coordinator accepted O76 and approved the proposal, with additions: v1 keeps
   - `toolset.test.ts`: aliases are declared, and the canonical action is `query.manufacturability`;
   - a flow step: the Library panel's pull and finish kept on the document and cleared.
 - **BVH**: the kernel request is withdrawn (README §0). The outer lane builds RM6's mesh distance on a dual-tree traversal over the studio's own triangle BVH, after IM.
+
+## O78 — IM2: the draft field from exact normals; PA12's nylon-family wall range said so (2026-10-21)
+
+The coordinator accepted IM1 and flagged one point: PA12 uses the page's generic nylon row, a family approximation that should be said as such in the data and the report. That fix is folded in here.
+
+- **PA12's range**: a web value's page may now carry a `note`, which is ours and not the page's: "the page's nylon family row, not PA12-specific". The wall-material rule's message and `mould.bodies[].wallNote` repeat it.
+- **The draft field** (`src/mould/draft.ts`). Each face's draft against the pull comes from its exact normal, never the display mesh's (IM S0: off by 0.014° on a 3° cone). The normal is taken by face kind:
+  - **Planes**: the exact plane recorded on the display face.
+  - **Cylinders**: the radial from the exact axis, made outward by the display normals' side.
+  - **Any other face**, including a drafted extrusion's walls, which the display mesh records as NURBS with no exact plane: each sample is projected onto the B-rep's NURBS pieces of that name. The projection starts from a 25 × 25 parameter grid, precomputed per piece, then runs Gauss–Newton on first derivatives, stepping just off an exact C0 knot.
+  - **Facet faces**: their triangles' own normals.
+
+  Samples are the display mesh's vertices and its triangle centres. The draft at a sample is asin(n·d): 0 for a wall along the pull, ±90° for a face across it. Each face is classed as:
+  - **drafted**: every sample's |draft| reaches the minimum, all on one side;
+  - **steep**: some sample's does not;
+  - **straddle**: n·d takes both signs.
+
+  A straddling face carries its **isocline** points. Each is a mesh edge whose vertices' n·d differ in sign, bisected (60 steps) on the exact normal; a vertex exactly on n·d = 0 (a circle's quadrant point) counts as one. IM5 builds the parting line from these points.
+
+  Each face also reports its side (+, − or ±), its least and greatest draft, its steepest |draft|, its area, and the area under the minimum by triangle centres. That last figure is coarse, one strip per triangle row, and the record says so.
+- **In the report**: the moulding rule `draft` now judges every face against the finish's least draft, warning on steep and straddling faces and naming them. It is unknown without a pull or a finish. `mould.draft` lists every face. The `draft` tool (v2 `query.draft`) and the `draft_min` requirement now read the exact field, curved faces included. Before, they judged flat faces only; the tool's description now says so. The contract overhead is unchanged at 14 544 of 15 000.
+- **Tests** (`test/mould-draft.test.ts`, 6; oracles closed form):
+  - a cone drafted 3°: its side is 3° at every sample to 1e-9. It is drafted against 0.5° and 3°, and steep against PM-T2's 5°, with all of its area under. Its top is +90° and its bottom −90°;
+  - a box drafted 2°: its four walls are 2° to 1e-9. Undrafted, they are 0° and steep. Pulled along +X, its X faces are ±90°;
+  - a cylinder along the pull is 0° and steep. Across the pull it straddles, its draft running −90° … +90°, and every isocline point has z = 0 to 1e-9, at radius 10 (to the mesh's 1e-3);
+  - a fillet (r 4) runs 0 … 90° across it, steep at its foot;
+  - the report: a 3° cup passes PM-T1 and is warned under PM-T2, with its four walls named. Mutants (0° smooth, 2° on PM-T1, 0.4° smooth) are warned; 0.5° on smooth passes; no finish is unknown;
+  - through the tools: `draft` gives the cone's side 3°, drafted, and `draft_min` as a requirement passes.
+
+  `test/mould.test.ts`'s box is now warned for its undrafted walls, with PA12's note asserted. The type errors in that test from IM1 (`delete` on a read-only value; `null` for the mould argument) are fixed: `tsc` covers the tests, and IM1's run had only bundled them.
+- **Flow**: an IM2 step through the real chat and tool servers. A drafted cone loaded with its mould settings: `draft` says `n1.side0` is 3°, drafted, and the report judges the part as injection moulding.

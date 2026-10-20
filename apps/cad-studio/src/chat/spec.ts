@@ -160,10 +160,11 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return thin ? { x: thin.thinnest_mm!, ...(thin.face ? { entities: [thin.face] } : {}), hint: 'the thinnest wall (display mesh)' } : { unknown: 'no wall measured' };
     }
     case 'draft_min': {
-      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(b, q.pull ?? [0, 0, 1]).walls as { face: string; draft_deg: number }[]);
-      if (!walls.length) return { unknown: 'no flat walls to judge (curved faces are not judged)' };
+      // (IM2, O78: every wall's exact draft — flat and curved; a straddling face's least is 0.)
+      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(doc, b, q.pull ?? [0, 0, 1]).walls as { face: string; draft_deg: number }[]);
+      if (!walls.length) return { unknown: 'no walls along the pull to judge' };
       const worst = [...walls].sort((x, y) => x.draft_deg - y.draft_deg)[0];
-      return { x: worst.draft_deg, entities: [worst.face], hint: 'the least drafted flat wall' };
+      return { x: worst.draft_deg, entities: [worst.face], hint: 'the least drafted wall (exact normals)' };
     }
     case 'keepout': {
       const res = await checkKeepouts(doc, bodiesOf(bodies, q.body), evaluate, { keepout: q.keepout });
