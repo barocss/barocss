@@ -6,7 +6,9 @@ import { parseXml, type XmlNode } from './urdfCheck';
 
 type V3 = [number, number, number];
 export interface MjcfBody { name: string; parent: string | null; pos: V3; quat: [number, number, number, number]; joint?: { name: string; type: string; axis: V3; pos: V3; range?: [number, number] }; inertial?: { pos: V3; mass: number; I: number[] }; meshes: string[] }
-export interface MjcfModel { name: string; bodies: MjcfBody[]; meshes: Map<string, string>; equality: { joint1: string; joint2: string; polycoef: number[] }[]; angle: string }
+export interface MjcfModel { name: string; bodies: MjcfBody[]; meshes: Map<string, string>; equality: { joint1: string; joint2: string; polycoef: number[] }[];
+  /** Loop closures (RM8): body1's anchor (its frame, m) held on body2's point as it stands at qpos 0. */
+  connects: { name: string; body1: string; body2: string; anchor: number[] }[]; angle: string }
 const JOINTS = new Set(['hinge', 'slide', 'ball', 'free']);
 
 /** An MJCF model and every way it breaks the structure MuJoCo compiles (empty: none). */
@@ -73,7 +75,9 @@ export function readMjcf(text: string, files?: ReadonlySet<string>): { model: Mj
   for (const b of bodies) { if (bodyNames.has(b.name)) issues.push(`body ${b.name} twice`); bodyNames.add(b.name); if (b.joint) { if (jointNames.has(b.joint.name)) issues.push(`joint ${b.joint.name} twice`); jointNames.add(b.joint.name); } }
   const equality = (child(root, 'equality')?.children.filter(c => c.name === 'joint') ?? []).map(e => ({ joint1: e.attrs.joint1 ?? '', joint2: e.attrs.joint2 ?? '', polycoef: vec(e.attrs.polycoef, 5, 'polycoef', [0, 1, 0, 0, 0]) }));
   for (const e of equality) for (const j of [e.joint1, e.joint2]) if (!jointNames.has(j)) issues.push(`equality: no joint ${j}`);
-  return { model: { name: root.attrs.model ?? '', bodies, meshes, equality, angle }, issues };
+  const connects = (child(root, 'equality')?.children.filter(c => c.name === 'connect') ?? []).map(e => ({ name: e.attrs.name ?? '', body1: e.attrs.body1 ?? '', body2: e.attrs.body2 ?? '', anchor: vec(e.attrs.anchor, 3, 'connect anchor', [0, 0, 0]) }));
+  for (const c of connects) { for (const b of [c.body1, c.body2]) if (!bodyNames.has(b)) issues.push(`connect ${c.name}: no body ${b}`); if (c.body1 === c.body2) issues.push(`connect ${c.name}: a body to itself`); }
+  return { model: { name: root.attrs.model ?? '', bodies, meshes, equality, connects, angle }, issues };
 }
 /** A symmetric 3 × 3's eigenvalues, ascending (closed form). */
 function eigenSym(a: number[]): V3 {
@@ -109,4 +113,10 @@ export function mjcfFk(model: MjcfModel, q: Readonly<Record<string, number>>): M
     out.set(b.name, b.joint ? compose(at, motion(b.joint, value(b.joint.name))) : at);
   }
   return out;
+}
+/** Each loop closure's violation at joint values q (m): body1's anchor and body2's point, apart — body2's point as MuJoCo takes it, from qpos 0. */
+export function connectViolations(model: MjcfModel, q: Readonly<Record<string, number>>): { name: string; m: number }[] {
+  const zero = mjcfFk(model, {}), now = mjcfFk(model, q), at = (P: Pose, v: readonly number[]): V3 => [0, 1, 2].map(i => P.R[i * 3] * v[0] + P.R[i * 3 + 1] * v[1] + P.R[i * 3 + 2] * v[2] + P.t[i]) as V3;
+  const local = (P: Pose, w: readonly number[]): V3 => { const d = [w[0] - P.t[0], w[1] - P.t[1], w[2] - P.t[2]]; return [0, 1, 2].map(i => P.R[i] * d[0] + P.R[3 + i] * d[1] + P.R[6 + i] * d[2]) as V3; };
+  return model.connects.map(c => { const p2 = local(zero.get(c.body2)!, at(zero.get(c.body1)!, c.anchor)), x1 = at(now.get(c.body1)!, c.anchor), x2 = at(now.get(c.body2)!, p2); return { name: c.name, m: Math.hypot(x1[0] - x2[0], x1[1] - x2[1], x1[2] - x2[2]) }; });
 }

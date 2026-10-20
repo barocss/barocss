@@ -5,7 +5,8 @@
 // world without a joint (fixed). Each link has a visual geom (no contacts, group 1) and a collision geom on its hull
 // (group 3); its explicit <inertial> wins over the geoms'. A gear follower is an equality: joint1 = multiplier ×
 // joint2 (polycoef "0 m 0 0 0"). Gravity −9.81 m/s² on Z; no damping, friction or actuators are invented — a passive
-// model as the parts and their mates make it. Loops are not written (RM8: an equality closure).
+// model as the parts and their mates make it. A loop closed (RM8, O45: its pin found and planar) is an equality
+// <connect body1 body2 anchor> at the pin, the anchor in body1's frame; a loop not closed is left out, noted.
 import type { JointTree } from './joints';
 import type { Mat3, V3 } from './inertia';
 import { encodeBinaryStl } from '@barocss/cad';
@@ -32,7 +33,9 @@ export function quatOf(R: Mat3): [number, number, number, number] {
 }
 
 /** The robot as an MJCF model and its mesh files, or what refuses it (the same refusals as URDF). */
-export function exportMjcf(tree: JointTree, partOf: (part: string) => UrdfPart | null, modelName: string): MjcfResult {
+/** A loop's closure as MJCF writes it: its two links and the pin they share (world, mm, at the solved pose). */
+export interface MjcfClosure { a: string; b: string; point: readonly number[] }
+export function exportMjcf(tree: JointTree, partOf: (part: string) => UrdfPart | null, modelName: string, closures: readonly MjcfClosure[] = []): MjcfResult {
   const parts = robotParts(tree, partOf);
   if ('refusals' in parts) return { ok: false, refusals: parts.refusals };
   const { world, inertias, meshes, notes } = parts;
@@ -69,6 +72,8 @@ export function exportMjcf(tree: JointTree, partOf: (part: string) => UrdfPart |
   const root = world.get(tree.base)!;
   write(tree.base, 2, root.o.map(v => v / 1000) as V3, root.R);
   const equality = tree.joints.filter(j => j.mimic).map(j => `    <joint joint1="${names.joints[j.key]}" joint2="${names.joints[j.mimic!.joint]}" polycoef="${num(j.mimic!.offset)} ${num(j.mimic!.multiplier)} 0 0 0"/>`);
+  // (The pin in body1's link frame, m: MuJoCo takes body2's point from where it stands at qpos 0, the solved pose.)
+  for (const c of closures) { const F = world.get(c.a)!, anchor = ap(tr(F.R), [c.point[0] - F.o[0], c.point[1] - F.o[1], c.point[2] - F.o[2]]).map(v => v / 1000); equality.push(`    <connect name="loop_${names.links[c.a]}_${names.links[c.b]}" body1="${names.links[c.a]}" body2="${names.links[c.b]}" anchor="${nums(anchor)}"/>`); }
   const xml = ['<?xml version="1.0"?>', `<!-- ${MJCF_EXPORT_VERSION}: barocss CAD Studio. SI units; each body at its link frame (at its joint, Z on the axis); joint values 0 at the pose the mates solve to; a passive model (no damping, friction or actuators). -->`,
     `<mujoco model="${esc(modelName.replace(/[^A-Za-z0-9_-]/g, '_') || 'robot')}">`, '  <compiler angle="radian" meshdir="meshes" autolimits="true"/>', '  <option gravity="0 0 -9.81"/>',
     ...(assets.length ? ['  <asset>', ...assets, '  </asset>'] : []), '  <worldbody>', ...body, '  </worldbody>', ...(equality.length ? ['  <equality>', ...equality, '  </equality>'] : []), '</mujoco>', ''].join('\n');
