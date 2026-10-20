@@ -80,10 +80,15 @@ const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
 
 /** The one selected body when it is a spur gear as made (not built on further): its node and index. */
 function gearPicked(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' }>; index: number } | null {
+  const p = pickedGearNode(ctx);
+  return p && p.node.kind === 'gear' ? { node: p.node, index: p.index } : null;
+}
+/** The one gear or internal gear (as made) the selection picks (R12b.2a: a pinion meshes inside a ring). */
+function pickedGearNode(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' | 'internal-gear' }>; index: number } | null {
   const picked = new Set<number>(ctx.selection.bodies); ctx.selection.faces.forEach(f => picked.add(f.body)); ctx.selection.edges.forEach(e => picked.add(e.body));
   if (picked.size !== 1) return null;
   const body = ctx.bodies[[...picked][0]], ref = body?.ref, node = ref ? ctx.doc.nodes[ref.node] : undefined;
-  return node?.kind === 'gear' && ref!.side === 'solid' ? { node, index: ref!.node } : null;
+  return (node?.kind === 'gear' || node?.kind === 'internal-gear') && ref!.side === 'solid' ? { node, index: ref!.node } : null;
 }
 
 /** Placed with its centre (axis) at the pointer. */
@@ -141,12 +146,32 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio',
-    available: ctx => gearPicked(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur gear to mesh with.' },
-    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
-    defaults: ctx => { const g = gearPicked(ctx); return { teeth: g ? Math.min(200, 2 * g.node.teeth) : 40, dir: 0, shift: 0, bore: 8 }; },
+    id: 'internal-gear', label: 'Internal gear', icon: 'cad-gear', hint: 'An involute internal (ring) gear by module, teeth, face width and rim diameter (20°; helical: normal module, helix angle and hand). Shifted x2 0.5 by default, so a rack-cut pinion inside clears its tips. Its root is schematic; not validated for manufacturing. Select it and add a Meshing gear to put a pinion inside', group: 'create', keywords: 'internal gear ring annulus planetary epicyclic inner teeth',
+    available: () => ok,
+    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 8, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'rim', label: 'Rim Ø', kind: 'mm', min: 1 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 0.75, step: 0.05 },
+      { key: 'helix', label: 'Helix angle β', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], when: v => Number(v.helix) > 0 }, ...at],
+    // (x2 0.5 by default: unshifted, the ring's tip corners run into a rack-cut pinion's root fillet at no backlash — D132.)
+    defaults: ctx => ({ m: 2, teeth: 60, b: 10, rim: 140, shift: 0.5, helix: 0, hand: 'right', ...beside(ctx, 75) }),
+    place: centred,
+    handles: (_, v) => { const [m, z, b, x, y, zz] = n(v, 'm', 'teeth', 'b', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz + b], Z)]; },
     build: (ctx, v) => {
-      const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear to mesh with.');
+      const [m, z, b, rim, x, y, zz, shift, helix] = n(v, 'm', 'teeth', 'b', 'rim', 'x', 'y', 'z', 'shift', 'helix');
+      return withNode(ctx.doc, { kind: 'internal-gear', module: m, teeth: Math.round(z), faceWidth: b, rim, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'internal-gear@0' });
+    },
+  },
+  {
+    id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn — or, with an internal gear selected, a pinion inside it', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio planet internal ring',
+    available: ctx => pickedGearNode(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur gear or internal gear to mesh with.' },
+    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
+    // (Inside a ring: 2/5 of its teeth by default — 24 in 60, clear of the interference conditions.)
+    defaults: ctx => { const p = pickedGearNode(ctx); return { teeth: p ? p.node.kind === 'internal-gear' ? Math.max(6, Math.round(0.4 * p.node.teeth)) : Math.min(200, 2 * p.node.teeth) : 40, dir: 0, shift: 0, bore: 8 }; },
+    build: (ctx, v) => {
+      const ring = pickedGearNode(ctx);
+      if (ring && ring.node.kind === 'internal-gear') {
+        const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
+        return withNode(ctx.doc, { kind: 'gear', module: ring.node.module, teeth: Math.round(z), faceWidth: ring.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(ring.node.thicknessReduction !== undefined ? { thicknessReduction: ring.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: ring.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
+      }
+      const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear or internal gear to mesh with.');
       const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
       return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
     },

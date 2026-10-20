@@ -20,7 +20,7 @@
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 
-export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT';
+export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT' | 'INVOLUTE_INTERFERENCE' | 'TROCHOID_INTERFERENCE' | 'TRIMMING_INTERFERENCE' | 'RIM_INTERSECTION';
 export interface GearDiagnostic { readonly code: GearDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
 export class GearError extends Error {
   constructor(readonly code: GearDiagnosticCode, detail: string) { super(`gear: ${detail}`); this.name = 'GearError'; }
@@ -337,7 +337,7 @@ function flankDeviation(rb: number, t0: number, t1: number, N: number): number {
 const bezierKnots = (N: number) => { const k = [0, 0, 0, 0]; for (let i = 1; i < N; i++) k.push(i, i, i); k.push(N, N, N, N); return k; };
 export const lineCurve = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
 /** A circular arc about the origin, radius r, from angle a0 counter-clockwise by sweep (> 0; spans of at most 90°), or clockwise when sweep < 0. */
-function arcCurve(id: string, r: number, a0: number, sweep: number): Curve {
+export function arcCurve(id: string, r: number, a0: number, sweep: number): Curve {
   const spans = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2) - 1e-12)), dt = sweep / spans, w = Math.cos(Math.abs(dt) / 2);
   const cp: Point[] = [], wt: number[] = [], knots = [0, 0, 0];
   for (let k = 0; k < spans; k++) {
@@ -350,7 +350,7 @@ function arcCurve(id: string, r: number, a0: number, sweep: number): Curve {
   knots.push(1, 1, 1);
   return { kind: 'curve', id, degree: 2, knots, controlPoints: cp, weights: wt };
 }
-const reversed = (c: Curve): Curve => ({ ...c, controlPoints: [...c.controlPoints].reverse(), weights: [...c.weights].reverse(), knots: c.knots.map(k => c.knots[0] + c.knots[c.knots.length - 1] - k).reverse() });
+export const reversed = (c: Curve): Curve => ({ ...c, controlPoints: [...c.controlPoints].reverse(), weights: [...c.weights].reverse(), knots: c.knots.map(k => c.knots[0] + c.knots[c.knots.length - 1] - k).reverse() });
 
 /** The gear's profile: its curves counter-clockwise round the gear (the bore's clockwise), and its report. */
 export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Piece[]; report: SpurGearReport } {
@@ -434,22 +434,24 @@ export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } =
   const { pieces, bore, report: flat } = spurGearProfile(spec);
   // (A fillet's later faces: `filletL2#k`, `filletL3#k` — the tooth last, so a helical gear's axial segments, `#k.2`, stay apart, D131.)
   const nameOf = (p: Piece) => p.role === 'bore' ? `${id}.bore#${p.tooth}` : `${id}.${p.role}${p.part ? p.part + 1 : ''}#${p.tooth}`;
-  const g = spurGearDimensions(spec);
-  let report = flat, twist: ProfileTwist | undefined;
-  if (g.beta !== 0) {
-    // Helical: the transverse profile turned by z tan β / r as it rises (the lead 2πr / tan β). As few cubic pieces of
-    // the twist as keep it within the tolerance at the tip circle, at most four to an axial segment (the faces split
-    // along the axis, exactly at the seams); past 64 segments refused, never a looser fit.
-    const angle = spec.faceWidthMM * Math.tan(g.beta) / g.r, tol = flat.profileToleranceMM;
-    let K = 1; while (twistDeviation(Math.abs(angle) / K) * g.ra > tol && K <= 4 * MAX_SEGMENTS) K++;
-    const S = Math.ceil(K / 4), N = Math.ceil(K / S), dev = twistDeviation(Math.abs(angle) / (S * N)) * g.ra;
-    if (S > MAX_SEGMENTS || dev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `the twist of ${(angle * 180 / Math.PI).toFixed(2)}° over the face needs more than ${MAX_SEGMENTS} axial segments to stay within ${tol} mm`);
-    twist = { angle, segments: S, pieces: N };
-    report = { ...flat, helix: { normalModuleMM: g.mn, transverseModuleMM: g.mt, transversePressureAngleDeg: g.alpha * 180 / Math.PI, helixAngleDeg: spec.helixAngleDeg!, hand: g.beta > 0 ? 'right' : 'left',
-      leadMM: 2 * Math.PI * g.r / Math.tan(Math.abs(g.beta)), twistDegrees: angle * 180 / Math.PI, twistDeviationMM: dev, axialSegments: S, piecesPerSegment: N } };
-  }
+  const g = spurGearDimensions(spec), h = helixTwist(spec, g, flat.profileToleranceMM), twist = h?.twist, report = h ? { ...flat, helix: h.helix } : flat;
   const brep = extrudedProfile(id, 'gear', pieces.map(p => ({ name: nameOf(p), curve: p.curve })), bore.map(p => ({ name: nameOf(p), curve: p.curve })), spec.faceWidthMM, report.dimensions.tipDiameterMM / 2 + 1, twist);
   return { brep, report };
+}
+/**
+ * A helical gear's twist (R6a.5c, D59): the transverse profile turned by z tan β / r as it rises (the lead 2πr / tan β).
+ * As few cubic pieces of the twist as keep it within the tolerance at the outermost circle `g.ra`, at most four to an
+ * axial segment (the faces split along the axis, exactly at the seams); past 64 segments refused, never a looser fit.
+ * Null for a spur gear. (An internal gear's hole twists by its space gear's, R12b.2a.)
+ */
+export function helixTwist(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimensions>, tol: number): { twist: ProfileTwist; helix: NonNullable<SpurGearReport['helix']> } | null {
+  if (g.beta === 0) return null;
+  const angle = spec.faceWidthMM * Math.tan(g.beta) / g.r;
+  let K = 1; while (twistDeviation(Math.abs(angle) / K) * g.ra > tol && K <= 4 * MAX_SEGMENTS) K++;
+  const S = Math.ceil(K / 4), N = Math.ceil(K / S), dev = twistDeviation(Math.abs(angle) / (S * N)) * g.ra;
+  if (S > MAX_SEGMENTS || dev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `the twist of ${(angle * 180 / Math.PI).toFixed(2)}° over the face needs more than ${MAX_SEGMENTS} axial segments to stay within ${tol} mm`);
+  return { twist: { angle, segments: S, pieces: N }, helix: { normalModuleMM: g.mn, transverseModuleMM: g.mt, transversePressureAngleDeg: g.alpha * 180 / Math.PI, helixAngleDeg: spec.helixAngleDeg!, hand: g.beta > 0 ? 'right' : 'left',
+    leadMM: 2 * Math.PI * g.r / Math.tan(Math.abs(g.beta)), twistDegrees: angle * 180 / Math.PI, twistDeviationMM: dev, axialSegments: S, piecesPerSegment: N } };
 }
 /** A feature id made safe for B-rep entity ids. */
 export const safeId = (id: string) => id.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
@@ -463,12 +465,14 @@ export interface ProfileTwist { readonly angle: number; readonly segments: numbe
  * With a `twist` (helical gears, R6a.5c) the outer profile turns as it rises: each side face the curve turned by A(v),
  * a cubic Hermite fit of the rotation e^{iθ(v)} (exact at the piece ends, so the faces of neighbouring axial segments
  * meet on the exactly turned curve), its deviation measured by `twistDeviation`; segment j's faces are named `#k.j`
- * after the first. The holes do not turn. With a `shear` (helical racks) the profile slides along +X by shear × z as it
+ * after the first. The holes do not turn — unless `twistHole`, when only the hole does (an internal gear's teeth). With a `shear` (helical racks) the profile slides along +X by shear × z as it
  * rises: planar faces still, exactly.
  */
-export function extrudedProfile(id: string, family: string, outerPieces: readonly { name: string; curve: Curve }[], innerPieces: readonly { name: string; curve: Curve }[], depth: number, R: number, twist?: ProfileTwist, shear = 0): Brep {
+export function extrudedProfile(id: string, family: string, outerPieces: readonly { name: string; curve: Curve }[], innerPieces: readonly { name: string; curve: Curve }[], depth: number, R: number, twist?: ProfileTwist, shear = 0, twistHole = false): Brep {
   const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
-  const outer = ring(id, 'o', outerPieces, depth, twist && twist.angle ? twist : undefined, shear, vertices, edges, faces), hole = innerPieces.length ? ring(id, 'h', innerPieces, depth, undefined, shear, vertices, edges, faces) : null;
+  // (`twistHole`: the hole turns and the outer loop does not — an internal gear's teeth inside a plain rim, R12b.2a.)
+  const turn = twist && twist.angle ? twist : undefined;
+  const outer = ring(id, 'o', outerPieces, depth, twistHole ? undefined : turn, shear, vertices, edges, faces), hole = innerPieces.length ? ring(id, 'h', innerPieces, depth, twistHole ? turn : undefined, shear, vertices, edges, faces) : null;
   const z0 = 0, z1 = depth;
   const plane = (z: number, up: boolean, sid: string): Surface => ({ kind: 'surface', id: sid, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
     controlPoints: up ? [[[-R, -R, z], [-R, R, z]], [[R, -R, z], [R, R, z]]] : [[[-R, -R, z], [R, -R, z]], [[-R, R, z], [R, R, z]]], weights: [[1, 1], [1, 1]] });

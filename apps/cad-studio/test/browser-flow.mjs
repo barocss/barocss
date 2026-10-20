@@ -2503,6 +2503,30 @@ try {
     await snap('helical-generated-rack-fillet');
   });
 
+  await check('Internal gear (R12b.2a, D132): a ring from the palette (x2 0.5); a pinion inside it by Meshing gear with the ring selected — at the internal distance, the same way, clear, radial assembly clear', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('internal gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'internal-gear' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.match(await page.textContent('.history'), /Internal gear m2 z60/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /^Profile shift x 0\.5: Internal: reference Ø120, tip Ø118 \(inside\), root Ø127/.test(t)) && notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
+    await press(' '); await page.locator('.palette input').fill('meshing gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'gear' && window.__studioDoc.nodes[1].mesh?.gear === 0 && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Spur gear m2 z24/);
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes inside n0/.test(n.textContent ?? '')), null, { timeout: 30000 });
+    const pin = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(pin.some(t => /^Meshes inside n0: centre distance 36\.9185 mm, ratio \+24:60 \(the same way\)/.test(t)) && pin.some(t => /^Clear over a full tooth period/.test(t)) && pin.some(t => /^Radial assembly clear/.test(t)), pin.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('internal-gear-pinion');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');

@@ -188,6 +188,45 @@ test('Profile shift (R6a.5a, D57): a 12-tooth pinion at x 0.6 from the command, 
   assert.ok(notes.some(n => /centre distance 56\.4999 mm, ratio −12:24, backlash 0 mm/.test(n.text)) && notes.some(n => /^Clear over a full tooth period/.test(n.text)), JSON.stringify(notes));
 });
 
+test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default) — its volume, its notes; a pinion inside it by Meshing gear with the ring selected — at the internal pair\'s distance, ratio +24:60, clear, radial assembly clear; its Centre distance field; the ring cannot go from under it', async () => {
+  const { editFields } = await import('../src/app/editFields');
+  const { deleteFeature } = await import('../src/chat/features');
+  const cmd = commands.find(c => c.id === 'internal-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
+  const node = one.nodes[0] as Extract<ModelNode, { kind: 'internal-gear' }>;
+  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.rim, node.profileShift, node.generator], ['internal-gear', 2, 60, 10, 140, 0.5, 'internal-gear@0']);
+  const g = r1.ok ? r1.bodies[0] : null!;
+  // (The m 2 z 60 ring at x2 0.5 in Ø140 × 10: πR² less its 60 spaces by the analytic involute, 3684.5980 mm² — the
+  // kernel test's own outline, test/gear-internal.test.mjs — within what the flank fits allow, 120 flanks × 1e-4 × 4.5 × 10.)
+  assert.ok(Math.abs(g.volumeMM3! - 36845.980) < 0.6, String(g.volumeMM3));
+  assert.ok(g.notes?.some(n => /^Profile shift x 0\.5: Internal: reference Ø120, tip Ø118 \(inside\), root Ø127, base Ø112\.7631, rim Ø140 mm/.test(n.text)) && g.notes?.some(n => n.warning && /Schematic root: not the cutting tool's \(a pinion-type cutter\)/.test(n.text)), JSON.stringify(g.notes));
+  assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 60);
+  // A pinion inside it.
+  assert.equal(mesh.available(ctx).ok, false);
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  assert.ok(mesh.available(picked).ok); assert.equal(mesh.defaults!(picked).teeth, 24);
+  const two = mesh.build!(picked, mesh.defaults!(picked)), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const p = two.nodes[1] as Extract<ModelNode, { kind: 'gear' }>;
+  assert.deepEqual([p.teeth, p.mesh?.gear, p.generator], [24, 0, 'spur-gear@1']);
+  const k = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
+  // (The working distance by K1's form: inv α_w = 2 tan α · 0.5 / 36 + inv α — 36.9185 mm.)
+  assert.ok(k.notes!.some(n => /^Meshes inside n0: centre distance 36\.9185 mm, ratio \+24:60 \(the same way\), backlash 0 mm/.test(n.text)) && k.notes!.some(n => /^Clear over a full tooth period/.test(n.text)) && k.notes!.some(n => /^Radial assembly clear/.test(n.text)), JSON.stringify(k.notes));
+  assert.equal(r2.ok && r2.bodies.length, 2);
+  const a = editFields(two.nodes, 1).find(f => f.key === 'a')!;
+  assert.ok(a.kind === 'number' && Math.abs(Number(a.get(two.nodes)) - 36.91848518) < 1e-6);
+  // A ring of 40 with a 36-tooth pinion: its tip circle does not fit inside — radial assembly impossible, said; the teeth cross.
+  const tight = { ...two, nodes: [{ ...node, teeth: 40, rim: 100, profileShift: 0 }, { ...p, teeth: 36 }] }, r3 = evaluateDoc(tight, 3);
+  assert.ok(r3.ok && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => n.warning && /Radial assembly impossible/.test(n.text)));
+  // The ring is used by the pinion: it cannot be deleted from under it.
+  assert.match((deleteFeature(two, 0) as { error: string }).error, /used by feature 1/);
+  // A helical ring: its pinion takes the same hand.
+  const hr = { ...two, nodes: [{ ...node, helixAngle: 15, hand: 'right' as const }, p] }, r4 = evaluateDoc(hr, 4);
+  assert.ok(r4.ok, r4.ok ? '' : r4.error.hint);
+  assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Helical β 15° right hand/.test(n.text)) && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), JSON.stringify(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes));
+});
+
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
   const { editFields } = await import('../src/app/editFields');
   const { runCheck } = await import('../src/chat/spec');

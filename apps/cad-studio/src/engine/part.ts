@@ -74,6 +74,12 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       // (Meshing: the module, helix angle and hand from the gear — the opposite hand; the kernel derives them.)
       return { ...at, kind: 'spur-rack', ...(node.mesh ? {} : { module: node.module }), teeth: node.teeth, faceWidth: node.faceWidth, height: node.height, generator: node.generator, ...own, ...(node.rootFillet !== undefined ? { rootFillet: node.rootFillet } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
+    case 'internal-gear': {
+      // (R12b.2a, D132: an internal gear; a helical one's `module` the normal module.)
+      const own = { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
+      const modules = node.helixAngle ? { normalModule: node.module, helixAngle: node.helixAngle, hand: node.hand ?? 'right' } : { module: node.module };
+      return { ...at, kind: 'internal-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, rim: node.rim, generator: node.generator, ...own, ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    }
     case 'gear': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
@@ -108,7 +114,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -170,10 +176,11 @@ function repaired(r: { result: { fill: string }; report: { closed: boolean } }):
   return { ...(fill instanceof Int32Array ? { groups: fill } : {}), ...(r.report.closed ? {} : { open: true as const }) };
 }
 
-/** A gear node's helix: its own, or — meshing — the other gear's angle with the opposite hand (none: spur). */
+/** A gear node's helix: its own, or — meshing — the other gear's angle with the opposite hand; inside a ring, the ring's own (one hand, R12b.2a). None: spur. */
 export function helixOf(node: Extract<ModelNode, { kind: 'gear' }>, nodes: readonly ModelNode[]): { angle: number; hand: 'right' | 'left' } | null {
   if (node.mesh) {
     const other = nodes[node.mesh.gear];
+    if (other?.kind === 'internal-gear') return other.helixAngle ? { angle: other.helixAngle, hand: other.hand ?? 'right' } : null;
     const h = other?.kind === 'gear' && other !== node ? helixOf(other, nodes) : null;
     return h ? { angle: h.angle, hand: h.hand === 'right' ? 'left' : 'right' } : null;
   }

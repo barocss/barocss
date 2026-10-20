@@ -1,0 +1,32 @@
+{
+  "id": "r12b-internal-tip-refused",
+  "step": "R12b",
+  "decisions": [
+    "D132"
+  ],
+  "about": "An unshifted 30-tooth ring: its tip circle r − m falls inside its base circle (K1: z2 > 34 at 20°): refused, naming the shift that lifts it, x = 1 − z(1 − cos α)/2 = 0.095.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 30,
+          "faceWidth": 8,
+          "rim": 90
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "x = 0.095"
+    }
+  }
+}
