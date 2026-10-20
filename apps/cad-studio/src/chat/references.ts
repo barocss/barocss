@@ -10,8 +10,8 @@
 // within that tolerance of the limit is **undecided**, never a pass.
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
-import { placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
+import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
 import { rotationMatrix } from '../assembly/mates';
 import { symmetricEigen, type Mat3 } from '../robot/inertia';
 import { meshDistance } from '../robot/sweep';
@@ -215,13 +215,25 @@ export function envelopeOf(ref: Reference, local: readonly BodyResult[], offset:
  * cylinder's diagonal, whose axial run adds nothing. A triangle's worst point is the maximum over it of the quadratic patch
  * through its edges' sags, 4(λ₁λ₂s₁₂ + λ₂λ₃s₂₃ + λ₃λ₁s₃₁). Only that two-way bound holds on a doubly curved face: a sphere's
  * triangle sits about twice an edge's sagitta below it at its middle, which A6.3's first bound (an edge's sag at the face's
- * radius) missed. A curved face without normals is unbounded.
+ * radius) missed. A curved face without normals is unbounded. The model holds at constant curvature along circles (cylinder,
+ * sphere, cone, torus); a freeform face also takes its sampled depth against the exact surface, a face of no known kind is
+ * unbounded (O59).
  */
 export function chordOf(mesh: DisplayMesh): number {
   const have = chords.get(mesh); if (have !== undefined) return have;
   let s = 0;
+  // (O59: the model is exact only at constant curvature along circles. A freeform face — a NURBS or SubD patch, whose
+  // curvature varies inside a triangle — also takes its depth measured against the exact surface (bodyMesh); a curved face
+  // of no known kind is unbounded.)
   const curved = new Uint8Array(mesh.faces.length);
-  for (const f of mesh.faces) if (f.kind === 'curved' && !f.facet) curved[f.index] = 1;
+  for (const f of mesh.faces) {
+    if (f.kind !== 'curved' || f.facet) continue;
+    if (f.analytic) curved[f.index] = 1;
+    else if (f.freeform && f.chordMM !== undefined) { curved[f.index] = 1; s = Math.max(s, f.chordMM); }
+    else s = Infinity;
+  }
+  // (A freeform face not yet measured: unbounded, and not kept, so measureChords can still decide it.)
+  if (unmeasured(mesh)) return Infinity;
   for (let t = 0; t < mesh.indices.length && s < Infinity; t += 3) {
     const a = mesh.indices[t], b = mesh.indices[t + 1], c = mesh.indices[t + 2];
     if (!curved[mesh.faceOfVertex[a]]) continue;
@@ -259,10 +271,15 @@ export interface KeepoutResult { keepout: string; body: string; verdict: Verdict
 /** The verdict for one keep-out against one body: overlap (exact) violates; else the mesh distance d against the required c within the chord δ. */
 export function verdictOf(overlap: number, d: number, required: number, chord: number): { verdict: Verdict; why: string } {
   if (overlap > 1e-6) return { verdict: 'violated', why: `it enters the keep-out: ${overlap.toPrecision(4)} mm³ overlap (exact, the kernel's intersection)` };
-  const tol = chord === Infinity ? 'an unbounded chord tolerance (a curved face without normals)' : `the meshes' chord tolerance ${chord.toPrecision(3)} mm`;
+  const tol = chord === Infinity ? 'an unbounded chord tolerance (a curved face without normals, or of no known surface kind)' : `the meshes' chord tolerance ${chord.toPrecision(3)} mm`;
   if (d - chord >= required) return { verdict: 'clear', why: `${d.toPrecision(6)} mm from it, at least ${required} mm with ${tol}` };
   if (d + chord < required) return { verdict: 'violated', why: `${d.toPrecision(6)} mm from it, less than the ${required} mm it asks for, beyond ${tol}` };
   return { verdict: 'undecided', why: `${d.toPrecision(6)} mm from it, within ${tol} of the ${required} mm it asks for: not decided by the meshes` };
+}
+/** A body's freeform faces measured against its B-rep (O59, measureChords), when the part's B-rep for it is at hand. */
+export function measureBody(doc: StudioDoc, b: { key: string; mesh: DisplayMesh }): void {
+  if (!unmeasured(b.mesh)) return;
+  const brep = partBreps(doc).find(x => x.key === b.key)?.brep; if (brep) measureChords(b.mesh, brep);
 }
 /** Each keep-out against each of the part's bodies (or the named ones). */
 export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, only?: { keepout?: string; body?: string }): Promise<KeepoutResult[]> {
@@ -281,6 +298,7 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
         const p2 = withNode(probe.doc, { kind: 'intersect', left: refOf(b), right: { node: probe.node, side: 'solid' } });
         const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
       }
+      measureBody(doc, b);
       const d = overlap > 1e-6 ? 0 : meshDistance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx), chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
       out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlapMM3: overlap, clearanceMM: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
     }

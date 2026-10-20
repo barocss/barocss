@@ -1048,6 +1048,8 @@ gear crank.
     one solid, no overlap by the kernel's intersection. STEP still carries it (body filter: the coordinator's call).
   - **A6.3 chord tolerance fixed (O55)**: bounded in both directions from the mesh's normals (sphere 0.144, was 0.072; torus
     finite, was unbounded).
+  - **A6.3 freeform guard (O59)**: NURBS/SubD faces are unbounded until measured against the exact surface (sampled both ways,
+    × 1.25) on request — keep-outs and the assembly gate measure; the plain model undershot a SubD face 1.102 vs 1.143.
   - **AM6 done (O51 S0, O52)**: `split-bed` — the fewest even pieces that fit the bed, dowels or plugs at the fit; volumes,
     bed fit, exact radii and the kernel's no-overlap check; typed refusals.
 

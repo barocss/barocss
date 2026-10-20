@@ -2793,3 +2793,31 @@ The `lattice` command ("Fill with a lattice", `src/print/lattice.ts`) is built a
 - the flow step "AM7b" before the last: the AM7a block filled from the palette, the shell first and no fuller.
 
 **STEP, still open for the coordinator:** STEP carries the lattice as a faceted body. Leaving it out needs a body filter in `engine/evaluate.ts` `stepFor`. That is outside this lane until the coordinator says.
+
+## O59 — A6.3 chord tolerance on freeform faces: measured against the exact surface, unbounded until then (2026-10-20)
+
+The coordinator's guard on O55. The edge-sag and quadratic-patch δ is exact at constant curvature along circles: plane, cylinder, sphere, cone, and torus along its circles. On a freeform face (a NURBS or SubD patch) the curvature varies inside a triangle, and the model can undershoot. That is the failure O55 fixed, in a new place.
+
+- **Faces are classified in `bodyMesh`**, which is cheap.
+  - `analytic`: a cylinder, or a surface of revolution of a line or an arc (cone, sphere, torus).
+  - Any other curved face is `freeform`, with its B-rep faces listed.
+- **`chordOf`** keeps the quadratic model for analytic faces. A freeform face counts as unbounded (undecided) until it is measured. A measured one takes the larger of its measured depth and the model's.
+- **`measureChords(mesh, brep)`** measures on request, because it costs about 20× the tessellation (a measuring pass in `bodyMesh` made a SubD evaluation 0.5–1.1 s instead of 30 ms). On request it takes 40–360 ms.
+  - It re-tessellates the B-rep at the mesh's own quality (`DisplayMesh.quality`, the same triangles).
+  - It puts each vertex on the exact surface by Gauss–Newton (warm start, a 24 × 24 grid fallback). It refuses at 10⁻⁷ of the size, which gives Infinity.
+  - At 42 points of each triangle (an order-8 barycentric grid) it measures the depth both ways:
+    - the surface's point at the interpolated (u, v) to the nearest triangle of the triangle's one-ring;
+    - at the 12 order-4 points, also the triangle's point to its nearest on the surface, by Gauss–Newton.
+  - The max, times **CHORD_SAFETY = 1.25**. Sampling can miss a peak between points; the worst shortfall measured was 2 % (a SubD cap at one segment a quarter, 0.928 vs 0.946).
+  - A placed copy keeps the measurement, because depth is invariant under a rigid move.
+- **Callers:**
+  - `checkKeepouts` measures each body through `partBreps(doc)` (`measureBody`);
+  - the assembly gate does the same for the base part and each instance.
+- **Refinements while building:**
+  - Measuring against the surface at the interpolated (u, v) alone overstated the depth about 3× (0.43 vs 0.133). An uneven parametrization slides the point sideways. Hence the nearest point, both ways.
+  - Measuring against the triangle alone still overstated it on SubD caps near extraordinary vertices (0.39 vs 0.14), because the point lands over a neighbour. Hence the one-ring.
+
+**Measured** on a SubD cube with a corner pulled out 0–80 mm, at 1, 2, 4 and 8 segments a quarter. The truth is the distance to a 64-segment mesh, both ways.
+- The plain model undershoots at one segment a quarter: 1.102 vs 1.143 (pull 40), 0.906 vs 0.946 (pull 80).
+- The measured δ is never under the truth, and at most 1.53× it.
+- **Test** (`chord.test.ts`, pull 40, one segment a quarter): unmeasured, δ is unbounded; the plain 1.10221 is under the truth 1.14317 ± 0.004; measured, δ is 1.42875. A keep-out 10 mm above the body, clearance 1, is measured through the check and decided clear.
