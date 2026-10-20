@@ -68,6 +68,8 @@ import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf,
 import { applyBrief, briefMaterial, confirmField, readBrief, type BriefKey } from './chat/brief';
 import { BriefPanel } from './ui/BriefPanel';
 import { SpecifyPanel } from './ui/SpecifyPanel';
+import { ReferencesPanel } from './ui/ReferencesPanel';
+import { checkKeepouts, placeReference, readReferences, referenceLocal, runReferenceTool, withKeepout, type KeepoutResult, type Placement } from './chat/references';
 import { acceptAssumptions, answerBatch } from './chat/questions';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
@@ -229,6 +231,10 @@ export function App() {
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
   const [chat, setChat] = useState(false);
+  // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
+  const [refLocal, setRefLocal] = useState<ReadonlyMap<string, BodyResult[]>>(new Map());
+  const [keepoutBodies, setKeepoutBodies] = useState<BodyResult[]>([]);
+  const [keepoutVerdicts, setKeepoutVerdicts] = useState<KeepoutResult[] | null>(null);
   // (A message the studio sends to the chat as the user's: the Specify panel's answers, A6.2.)
   const [chatOutbox, setChatOutbox] = useState<{ id: number; text: string } | null>(null);
   /** What a chat turn asked to show selected once its part is evaluated. */
@@ -1247,6 +1253,27 @@ export function App() {
       void verifyOpened(parsed);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
+  // The references read (each on its own, in its own coordinates) and the keep-outs' solids made, when they change.
+  useEffect(() => {
+    const set = readReferences(doc.references); let live = true;
+    const read = (d: StudioDoc) => engine.part(d, revision.current++, 'read');
+    void (async () => {
+      const local = new Map<string, BodyResult[]>();
+      for (const r of set.references) { try { local.set(r.id, await referenceLocal(r, read)); } catch { local.set(r.id, []); } }
+      const solids: BodyResult[] = [];
+      for (const k of set.keepouts) { const p = withKeepout(emptyDoc(), k), e = await read(p.doc); if (e?.ok) solids.push(...e.bodies.map(b => ({ ...b, key: k.id }))); }
+      if (live) { setRefLocal(local); setKeepoutBodies(solids); }
+    })();
+    return () => { live = false; };
+  }, [doc.references, engine]);
+  // The keep-outs checked against the part as it stands.
+  useEffect(() => {
+    const set = readReferences(doc.references);
+    if (!set.keepouts.length || !fresh || busy) { if (!set.keepouts.length) setKeepoutVerdicts(null); return; }
+    let live = true;
+    const t = setTimeout(() => { void checkKeepouts({ ...evaluated, references: doc.references }, bodies, d => engine.part(d, revision.current++, 'check')).then(v => { if (live) setKeepoutVerdicts(v); }).catch(() => { if (live) setKeepoutVerdicts(null); }); }, 350);
+    return () => { live = false; clearTimeout(t); };
+  }, [doc.references, bodies, evaluated, fresh, busy, engine]);
   // The requirements checked against the part as it stands (chat/spec.ts), whenever either changes.
   // (After evaluation settles: debounced, a stale run dropped, none while a command previews or a sketch is open.
   // A person's edit is never refused for breaking a requirement — a hard one that passed and now fails is said.)
@@ -1260,7 +1287,7 @@ export function App() {
     const t = setTimeout(() => {
       setSpecRunning(true);
       // (The evaluated model follows model edits only: the requirements are the document's own.)
-      void checkSpec({ ...evaluated, requirements: doc.requirements }, bodies, d => engine.part(d, revision.current++, 'check')).then(r => {
+      void checkSpec({ ...evaluated, requirements: doc.requirements, ...(doc.references ? { references: doc.references } : {}) }, bodies, d => engine.part(d, revision.current++, 'check')).then(r => {
         if (!live) return;
         const broke = (doc.requirements ?? []).filter(q => q.hard && specPassed.current.has(q.id) && r.outcomes.get(q.id)?.status === 'fail').map(q => q.id);
         specPassed.current = new Set([...r.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id));
@@ -1269,7 +1296,7 @@ export function App() {
       }).finally(() => { if (live) setSpecRunning(false); });
     }, 350);
     return () => { live = false; clearTimeout(t); };
-  }, [doc.requirements, bodies, evaluated, fresh, busy, active, sketch, previewBodies]);
+  }, [doc.requirements, doc.references, bodies, evaluated, fresh, busy, active, sketch, previewBodies]);
   // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
   // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
   // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
@@ -1338,6 +1365,25 @@ export function App() {
   const acceptAll = () => {
     const r = acceptAssumptions(doc, new Date().toISOString()); if (!r.count) return;
     commit(applyBrief(r.doc, readBrief(r.doc.brief)), false); setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
+  };
+  /** The References card's actions (A6.3): through the same tool code the agent uses; a reference itself is the user's. */
+  const refTool = async (name: string, args: Record<string, unknown>) => {
+    const out = await runReferenceTool(doc, bodies, name, args, d => engine.part(d, revision.current++, 'read'));
+    if ('error' in out) { setToast({ title: 'Reference not changed', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
+    if (out.changed) commit(out.doc, false);
+  };
+  const addReferenceFile = async (file: File) => {
+    const name = file.name.replace(/\.[^.]+$/, '');
+    if (/\.(step|stp)$/i.test(file.name)) return refTool('add_reference', { name, step: await file.text() });
+    const m = meshInMM(readMeshFile(file.name, new Uint8Array(await file.arrayBuffer())), 'mm');
+    return refTool('add_reference', { name, mesh: { positions: m.positions, indices: m.indices } });
+  };
+  const placeRef = (id: string, at: Placement) => { const set = readReferences(doc.references); commit({ ...doc, references: { ...set, references: set.references.map(r => (r.id === id ? { ...r, at } : r)) } }, false); };
+  const removeRef = (id: string) => {
+    if (!/^ref\d+$/.test(id)) { void refTool('delete_reference_item', { id }); return; }
+    // (The user's: the reference, with the datums taken from it and the keep-outs around it.)
+    const set = readReferences(doc.references);
+    commit({ ...doc, references: { ...set, references: set.references.filter(r => r.id !== id), datums: set.datums.filter(d => d.of?.reference !== id), keepouts: set.keepouts.filter(k => k.around?.reference !== id) } }, false);
   };
   /** A brief field confirmed by the user as it is (A6.1): stated from now on; a stated process becomes the part's. */
   const confirmBrief = (key: BriefKey) => { const b = readBrief(doc.brief); if (!b) return; const next = confirmField(b, key, new Date().toISOString()); if ('error' in next) return; commit(applyBrief(doc, next), false); };
@@ -1504,7 +1550,10 @@ export function App() {
     : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
-  const sketchGhost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
+  // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
+  const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
+  const viewBodies = useMemo(() => (refShown.length ? [...shownBodies, ...refShown] : shownBodies), [shownBodies, refShown]);
+  const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...refShown.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, refShown]);
   // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
   // of the evaluated body); let go, the kernel preview of the values runs.
   const dragFrom = useRef<Values | null>(null);
@@ -1683,7 +1732,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : shownBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -1824,6 +1873,8 @@ export function App() {
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
         <SpecifyPanel doc={doc} onAnswer={answerQuestions} onAcceptAll={acceptAll} />
+        <ReferencesPanel set={readReferences(doc.references)} local={refLocal} verdicts={keepoutVerdicts} onAddFile={f => void addReferenceFile(f)} onPlace={placeRef}
+          onDatum={(reference, face, kind) => void refTool('add_datum', { reference, face, kind })} onEnvelope={(reference, offset, clearance) => void refTool('add_keepout', { around: reference, offset, shape: 'box', clearance })} onRemove={removeRef} />
         {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}
         {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
           <button className={'tool tiny' + (failingOnly ? ' on' : '')} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></button></div>

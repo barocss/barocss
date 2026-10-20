@@ -343,7 +343,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     confirms; ask_user holds the policy (≤ 5 a batch, ≤ 2 batches, one open, each naming a gap get_brief reports or an
     assumed hard requirement, else NOT_BLOCKING); the Specify panel (answers, skip, accept all) writes answers as the
     user's and sends them to the chat. Conformance `conformance/a6/questions` (8 hand-written cases).
-  - A6.3 locked reference body (next) → A6.4 → A6.5.
+  - **A6.3** (O26): done. Locked reference bodies kept outside the part's tree (`doc.references`, src/chat/references.ts):
+    evaluated on their own, placed, ghosted; no feature may use them (REFERENCE_LOCKED); in no mass, export or print
+    check. Datums from their faces' exact surfaces (1e-9), verified on open; sketch planes, measure and
+    datum_distance. Keep-outs (box, cylinder, envelope + offset): overlap exact, clearance exact on the meshes, the
+    chord tolerance stated, undecided within it. The Reference bodies card. Conformance `conformance/a6/references`.
+  - A6.4 drafts from images and drawings (next) → A6.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
@@ -358,6 +363,8 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
   - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
     chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
+  - A6.3: datums as mate targets (through the mates' face tables), not done. The tool contract's overhead is at
+    14 804 of A5.1's 15 000 guard: the next tools need room (shorter descriptions, or a schema trim).
   - RD3 does not check the reducer's momentary peak torque (emergency stops, collisions): a check against the pages'
     "Limit for Momentary Peak Torque" for a stated stop event.
 

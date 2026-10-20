@@ -48,8 +48,8 @@ export const GROUPS: Record<string, Group> = {
   },
   requirements: {
     title: 'Requirements',
-    about: 'The brief (the part\'s intent) and the checks the kernel runs.',
-    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'], brief: ['set_brief', 'fields: {purpose | process | material | …: {value, basis, source?, why?} | null} — the intent, before the checks'], gaps: ['get_brief', '— the brief, its gaps and what it applies'], ask: ['ask_user', 'questions: [{id, text, kind, options?, unit?, blocks: {field} | {requirement}}] — only what blocks, ≤ 5, ≤ 2 batches'] },
+    about: 'The brief (the part\'s intent), the locked reference bodies it must fit (datums, keep-outs), and the checks the kernel runs.',
+    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'], brief: ['set_brief', 'fields: {purpose | process | material | …: {value, basis, source?, why?} | null} — the intent, before the checks'], gaps: ['get_brief', '— the brief, its gaps and what it applies'], references: ['get_references', '— the locked reference bodies, their faces, datums and keep-outs'], reference: ['add_reference', 'name, step | mesh, at? — a locked reference body'], datum: ['add_datum', 'reference + face + kind | reference + vertex | kind + origin + normal | direction'], keepout: ['add_keepout', 'box | cylinder | around + offset, clearance?'], unref: ['delete_reference_item', 'id — a datum or keep-out'], keepouts: ['check_keepouts', 'keepout?, body? — clear, violated or undecided, the chord tolerance stated'], ask: ['ask_user', 'questions: [{id, text, kind, options?, unit?, blocks: {field} | {requirement}}] — only what blocks, ≤ 5, ≤ 2 batches'] },
   },
   proposals: {
     title: 'Proposals',

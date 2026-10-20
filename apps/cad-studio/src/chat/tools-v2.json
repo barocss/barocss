@@ -346,6 +346,12 @@
        "check",
        "brief",
        "gaps",
+       "references",
+       "reference",
+       "datum",
+       "keepout",
+       "unref",
+       "keepouts",
        "ask"
       ],
       "type": "string"

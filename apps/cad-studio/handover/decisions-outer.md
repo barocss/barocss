@@ -1124,3 +1124,69 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - (1) the Specify and Brief headers carried the requirements' `req-head` class, so a step reading the first `.req-head` read theirs; they have their own class now;
   - (2) a step's title became a screenshot file name past the 255-character limit, so it is shorter.
 - **Next**: A6.3, the locked reference body. A keep-out decided on mesh clearance states its chord tolerance; within it of the limit, it is undecided.
+
+## O26 — A6.3: a STEP or mesh file as a locked reference body, with datums and keep-outs (2026-10-20)
+
+- **No kernel-core change was needed.**
+  - The kernel's STEP reader, mesh path, intersection Boolean and `faceGeometry` are used as they are.
+  - No STEP assembly structure is read: a file's solids are one reference.
+  - No exact B-rep clearance is computed: the clearance is the exact distance between the meshes, within their stated chord tolerance.
+- **References live outside the part's tree** (`doc.references`, version 1, `src/chat/references.ts`): `{references, datums, keepouts}`.
+  - Each reference is evaluated **on its own**, as a document of one `import` node (scaled to mm when the file says another unit; a file of several solids read solid by solid) or one facet `mesh` node. Its node id is the reference's (`ref1`), so its faces are `ref1.…`.
+  - It is placed by `at` {position mm, rotation degrees, as the instances}.
+  - Being no node, it is **locked by construction**: never a parent, and in no mass, facts, export (STEP, STL, 3MF), print check or drawing.
+  - The tool layer also refuses, typed **`REFERENCE_LOCKED`**, any part or assembly change whose arguments name a reference's face, edge or body (inside `apply_ops` and `run_script` too, call by call). The agent cannot delete or move a reference: those are the user's, in the studio.
+  - The studio draws references **ghosted** (after the part's bodies, never picked), with the keep-outs' solids.
+- **Datums** are planes, axes and points.
+  - **From a reference face**, they are fitted to the face's **exact surface** where the kernel knows it. The display face now keeps it: a planar face's plane from its own control points (cheap, no recognition), a cylinder's axis, point and radius from `faceGeometry` (already called for radii); `placeBody` moves it. The residual is 0 there.
+  - Otherwise they are fitted to the face's vertices, with the residual kept: least squares, plane by the least eigenvector, cylinder axis from the normals' null direction, the circle by an algebraic fit refined by Gauss–Newton.
+  - **The Float32 display mesh alone gives only ~1e-6**. The first test run showed it (an axis 7.7e-8 off, residual 6e-7), so the exact surface is used.
+  - A face that is not the shape asked for is refused (`DATUM_FIT`, beyond 0.001 mm). A point comes from a vertex within 1 mm. A datum may also be given explicitly.
+  - Datums are stored in the reference's coordinates and move with it. They are **verified on open**: each is re-fitted from its face and compared (1e-9 relative), and a mismatch is listed in `get_references.problems`.
+- **Datums as subjects**:
+  - a sketch's `plane: {"datum": id}` in add_features becomes that plane;
+  - `measure {a: datum, b: face}` gives the distance and angle: parallel planes, an axis against a cylinder's axis (concentricity), a point;
+  - the requirement query `datum_distance {datum, face}`.
+  - **Not done: datums as mate targets.** Mates join parts, and a datum lives on the base part's reference. This is a follow-up through the mates' face tables, and needs no kernel change.
+- **Keep-outs**:
+  - The shapes: a box {frame, size} or a cylinder {frame, radius, height}, on a frame {origin, normal, xAxis}, or a reference's envelope grown by an offset (a box on its frame, or a cylinder about its Z). Each has the clearance it asks for.
+  - Each is built as a sketch on its frame plus an extrusion, appended to a probe of the part.
+  - **The verdict** for each body:
+    - it **violates** when it enters: the overlap's volume by the kernel's intersection, which is exact;
+    - otherwise d is the **exact distance between the meshes' triangles** (RM6's vertex–triangle and edge–edge distance), and δ is the two meshes' **chord tolerance**. δ is a curved face's sag at the studio's 8 segments a quarter, r(1 − cos π/32); 0 for planes and mesh regions (`DisplayFace.facet`); unbounded for a curved face of no known radius;
+    - **clear** when d − δ ≥ c, **violated** when d + δ < c, **undecided** otherwise. That is the coordinator's rule, and δ is stated in every verdict.
+  - Tools `check_keepouts` and the requirement query `keepout`. A check good to a chord now comes back unknown ("undecided: … within the meshes' chord tolerance") when the limit lies within it.
+- **Tools** (v1; v2 `requirements.references`, `reference`, `datum`, `keepout`, `unref` and `keepouts`):
+  - `get_references` and `check_keepouts` (read, with output schemas);
+  - `add_reference`, `add_datum`, `add_keepout`;
+  - `delete_reference_item` (datums and keep-outs only).
+  - A prompt line: build on datums, keep out of keep-outs, never on a reference's faces.
+  - The contract's overhead is now 14 804 of A5.1's 15 000 guard. The next additions will need room.
+- **Studio**: the **Reference bodies** card in the Browser (its label is distinct from A1's References card), shown when there are references; its "Add reference" button is always there, accepting STEP, STL or OBJ (mm).
+  - Each reference has its placement (an explicit, recorded edit), a datum from a face chosen by name (plane, axis or point), an envelope keep-out by offset, and Remove (the user's: with the datums from it and the keep-outs around it).
+  - Datums show their fit ("exact", or the residual). Keep-outs show their verdict, clearance and ± chord, checked as the part changes (debounced, after evaluation).
+- **Evidence**: `test/reference-bodies.test.ts` (5 tests).
+  - **Datums from a STEP block** (the studio's 40 × 30 × 10 with a Ø8 hole), placed at (100, 0, 0) and turned 90° about Z. Against the closed forms to 1e-9:
+    - the top plane (z 10, +Z);
+    - the hole's axis at (85, 12) along ±Z, radius 4, residual 0;
+    - a corner at (70, 40, 10).
+    - Refused, typed: an axis from a flat face; a plane from the bore; a face not there; a vertex too far. Kept through a save and verified on open; a datum moved by 0.001 mm is listed.
+  - **Locked**: fillet, hole, add_features, apply_ops and deleting the reference are each refused `REFERENCE_LOCKED`, the state the very same object. The nodes, mass and STEP export are unchanged by adding it, and `get_references` lists its faces.
+  - **A mesh reference** (a 20 × 20 × 5 slab placed at z 20): chord 0; the top plane at z 25 exact; an axis from it refused; a malformed mesh refused.
+  - **Keep-out closed forms**:
+    - a box overlapping the 10 mm cube by 125 mm³ (exact) is violated;
+    - a box 2 mm away is clear at exactly 2, chord 0;
+    - a cylinder r 5 is 5 mm away within its chord 0.0241 mm, so 5 required is **undecided**. **The tolerance is checked to be an upper bound** on the cylinder's own triangles: every side triangle's centre lies within it of the true radius;
+    - the verdict rule on its cases; refused frames, sizes and two shapes at once.
+  - **The requirement query** `keepout`, `datum_distance` (20, exact), a sketch on the datum (z 30, normal −Z), a missing datum refused, and `measure` from a datum. The conformance case `conformance/a6/references/block-keepout` (case.json and block.step) is written from the closed forms.
+  - **Found and fixed before commit**: the new test file first took the name of A1's `test/references.test.ts` and replaced it, and the suite lost its 6 tests silently (541 → 540 with 5 added). A run at the last commit in a temporary worktree, with the test names compared, found it. A1's file was restored from git, and the new one is `test/reference-bodies.test.ts`; all 546 pass with nothing missing.
+  - Browser flow 169/169, with a step "A6.3" before the last:
+    - the case's 10 mm cube opened; the case's block.step added through "Add reference" and placed at z 30;
+    - it is not a node or body of the part ("1 body");
+    - a datum from its downward face, which reads "fit exact";
+    - the envelope +2 keep-out reads "clear, 18 mm" as the case says;
+    - the part saved 35 tall and opened again reads "violated".
+  - Studio 546/546.
+  - Bench: every row within budget. The planar-mesh mass row read ~70 ms against 51 ms earlier; an A/B with the new branch disabled gave the same, so it is the machine's load from the other sessions.
+- **Also found by the flow**: the card's label first collided with A1's References card (`aria-label`), which broke step 96. Its inputs overflowed the Browser's width, and its layout now wraps.
+- **Next**: A6.4, drafts from images and drawings.

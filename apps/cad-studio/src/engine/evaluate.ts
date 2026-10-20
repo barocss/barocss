@@ -212,7 +212,7 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
   moveAll(positions, m, t); moveAll(normals, m, null); moveAll(edgeLines, m, t);
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < positions.length; i += 3) for (let k = 0; k < 3; k++) { const v = positions[i + k]; if (v < min[k]) min[k] = v; if (v > max[k]) max[k] = v; }
-  const faces = src.faces.map(f => ({ ...f, normal: turn(m, f.normal), centroid: move(m, t, f.centroid) }));
+  const faces = src.faces.map(f => ({ ...f, normal: turn(m, f.normal), centroid: move(m, t, f.centroid), ...(f.exact ? { exact: f.exact.kind === 'plane' ? { kind: 'plane' as const, o: move(m, t, f.exact.o), n: turn(m, f.exact.n) } : { kind: 'cylinder' as const, c: move(m, t, f.exact.c), a: turn(m, f.exact.a), r: f.exact.r } } : {}) }));
   const edges = src.edges.map(e => {
     const a = move(m, t, e.a), z = move(m, t, e.b), d = [z[0] - a[0], z[1] - a[1], z[2] - a[2]], l = Math.hypot(d[0], d[1], d[2]) || 1;
     // (The axis an edge runs along, as the mesh reads it: a unit direction within 1e-9 of one.)

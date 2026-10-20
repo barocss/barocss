@@ -60,7 +60,7 @@ test('every read tool’s result matches its output schema and changes nothing',
   let doc: StudioDoc = { ...starterDoc(), requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } as StudioDoc;
   const r = await evaluate(doc); assert.ok(r.ok);
   let s: ChatState = { doc, bodies: r.bodies };
-  const calls: [string, object][] = [['get_part_summary', {}], ['measure', { a: 'n1.top' }], ['measure', { a: 'n1.top', b: 'n1.bottom' }], ['mass_properties', {}], ['interference', {}], ['section', { axis: 'z', at: 4 }], ['wall_thickness', {}], ['draft', {}], ['check_spec', {}], ['diff', {}], ['list_proposals', {}], ['inspect', { faces: ['n1.top'] }], ['select', { faces: ['n1.top'] }], ['checkpoint', { name: 'a' }], ['drawing_issues', {}], ['tolerance_suggestions', {}], ['get_assembly', {}], ['list_library', {}], ['check_printability', {}], ['render_views', {}], ['get_joints', {}], ['forward_kinematics', {}], ['link_inertia', {}], ['export_urdf', {}], ['export_mjcf', {}], ['sweep_path', { to: {} }], ['gravity_torques', {}], ['motion_torques', { to: {}, profile: 'trapezoid' }], ['size_actuators', { to: {}, profile: 'trapezoid' }], ['get_brief', {}]];
+  const calls: [string, object][] = [['get_part_summary', {}], ['measure', { a: 'n1.top' }], ['measure', { a: 'n1.top', b: 'n1.bottom' }], ['mass_properties', {}], ['interference', {}], ['section', { axis: 'z', at: 4 }], ['wall_thickness', {}], ['draft', {}], ['check_spec', {}], ['diff', {}], ['list_proposals', {}], ['inspect', { faces: ['n1.top'] }], ['select', { faces: ['n1.top'] }], ['checkpoint', { name: 'a' }], ['drawing_issues', {}], ['tolerance_suggestions', {}], ['get_assembly', {}], ['list_library', {}], ['check_printability', {}], ['render_views', {}], ['get_joints', {}], ['forward_kinematics', {}], ['link_inertia', {}], ['export_urdf', {}], ['export_mjcf', {}], ['sweep_path', { to: {} }], ['gravity_torques', {}], ['motion_torques', { to: {}, profile: 'trapezoid' }], ['size_actuators', { to: {}, profile: 'trapezoid' }], ['get_brief', {}], ['get_references', {}]];
   const seen = new Set<string>();
   for (const [name, args] of calls) {
     const out = await dispatchTool(s, name, args, evaluate);
@@ -77,6 +77,11 @@ test('every read tool’s result matches its output schema and changes nothing',
     assert.ok(!out.isError, out.content); assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
   }
   // Every read tool with an output schema was run here.
+  // (A keep-out to check, A6.3.)
+  const withK = await dispatchTool(s, 'add_keepout', { box: { frame: { origin: [100, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [5, 5, 5] } }, evaluate);
+  assert.ok(!withK.isError, withK.content);
+  const kc = await dispatchTool(withK.state, 'check_keepouts', {}, evaluate);
+  assert.ok(!kc.isError && !kc.changed, kc.content); assert.deepEqual(validate(outputSchemaOf('check_keepouts')!, JSON.parse(kc.content)), [], 'check_keepouts'); seen.add('check_keepouts');
   assert.deepEqual(TOOLS.filter(t => outputSchemaOf(t.name) && !seen.has(t.name)).map(t => t.name), []);
 });
 

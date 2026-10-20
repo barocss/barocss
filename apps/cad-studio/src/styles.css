@@ -431,3 +431,12 @@ button.chip.snap:hover { background: #3a3c41; }
 .specify-q input, .specify-q select { width: 100%; }
 .specify-sub { margin-top: 4px; }
 .specify .row { display: flex; gap: 6px; }
+/* The References card (A6.3): locked reference bodies, their datums and the keep-outs. */
+.references { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+.references .req-edit { flex-wrap: wrap; min-width: 0; }
+.references .ref-at { flex-wrap: nowrap; }
+.references .ref-at input { width: 0; flex: 1 1 0; min-width: 0; }
+.references .ref-at-label { flex: 0 0 42px; }
+.references select, .references .req-edit input { min-width: 0; flex: 1 1 40%; max-width: 100%; }
+.references .req-edit button { flex: 0 0 auto; }
+.references .req-row { overflow-wrap: anywhere; }

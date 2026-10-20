@@ -65,6 +65,63 @@
    }
   },
   {
+   "name": "add_datum",
+   "annotations": {
+    "title": "Add datum",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "direction": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "face": {
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "plane",
+       "axis",
+       "point"
+      ],
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "normal": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "origin": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     },
+     "reference": {
+      "type": "string"
+     },
+     "vertex": {
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   }
+  },
+  {
    "name": "add_features",
    "annotations": {
     "title": "Add features",
@@ -100,6 +157,109 @@
     "required": [
      "features"
     ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "add_keepout",
+   "annotations": {
+    "title": "Add keepout",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "around": {
+      "type": "string"
+     },
+     "box": {
+      "properties": {
+       "frame": {
+        "properties": {
+         "normal": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         },
+         "origin": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         },
+         "xAxis": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         }
+        },
+        "type": "object"
+       },
+       "size": {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     },
+     "clearance": {
+      "type": "number"
+     },
+     "cylinder": {
+      "properties": {
+       "frame": {
+        "properties": {
+         "normal": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         },
+         "origin": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         },
+         "xAxis": {
+          "items": {
+           "type": "number"
+          },
+          "type": "array"
+         }
+        },
+        "type": "object"
+       },
+       "height": {
+        "type": "number"
+       },
+       "radius": {
+        "type": "number"
+       }
+      },
+      "type": "object"
+     },
+     "name": {
+      "type": "string"
+     },
+     "offset": {
+      "type": "number"
+     },
+     "shape": {
+      "enum": [
+       "box",
+       "cylinder"
+      ],
+      "type": "string"
+     }
+    },
     "type": "object"
    }
   },
@@ -305,6 +465,65 @@
    }
   },
   {
+   "name": "add_reference",
+   "annotations": {
+    "title": "Add reference",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "at": {
+      "properties": {
+       "position": {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       "rotation": {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     },
+     "mesh": {
+      "properties": {
+       "indices": {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       "positions": {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     },
+     "name": {
+      "type": "string"
+     },
+     "step": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "apply_ops",
    "annotations": {
     "title": "Apply ops",
@@ -445,6 +664,51 @@
       "type": "string"
      }
     },
+    "type": "object"
+   }
+  },
+  {
+   "name": "check_keepouts",
+   "annotations": {
+    "title": "Check keepouts",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "body": {
+      "type": "string"
+     },
+     "keepout": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "clear": {
+      "type": "number"
+     },
+     "results": {
+      "type": "array"
+     },
+     "undecided": {
+      "type": "number"
+     },
+     "violated": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "results",
+     "clear",
+     "violated",
+     "undecided"
+    ],
     "type": "object"
    }
   },
@@ -659,6 +923,28 @@
     },
     "required": [
      "part"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "delete_reference_item",
+   "annotations": {
+    "title": "Delete reference item",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id"
     ],
     "type": "object"
    }
@@ -1322,6 +1608,43 @@
      "parameters",
      "features",
      "bodies"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "get_references",
+   "annotations": {
+    "title": "Get references",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "datums": {
+      "type": "array"
+     },
+     "keepouts": {
+      "type": "array"
+     },
+     "problems": {
+      "type": "array"
+     },
+     "references": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "references",
+     "datums",
+     "keepouts"
     ],
     "type": "object"
    }

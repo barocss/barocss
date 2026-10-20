@@ -18,6 +18,7 @@ import { overhangOf } from '../print/overhang';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { faceTableOf } from '../assembly/faces';
+import { checkKeepouts, datumToFace, datumWorld, readReferences } from './references';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -42,7 +43,11 @@ export type Query =
   | { fn: 'overhang_area'; body?: string; direction?: [number, number, number] }
   /** AM3: one printability rule's value (wall, hole, gap, cavity, bed-fit, overhang, warp, tip …); unknown or n/a, said. */
   | { fn: 'print_rule'; rule: string; direction?: [number, number, number] }
-  | { fn: 'subd_deviation'; body?: string; at?: 'all' | 'crease' };
+  | { fn: 'subd_deviation'; body?: string; at?: 'all' | 'crease' }
+  /** A6.3: the part's least clearance from a keep-out (mm; minus the overlap's volume when it enters), its chord tolerance said: within it of the limit, unknown (undecided). */
+  | { fn: 'keepout'; keepout: string; body?: string }
+  /** A6.3: a datum against a face of the part: the distance (mm) as measure reports it. */
+  | { fn: 'datum_distance'; datum: string; face: unknown };
 /** `==`: value ± tol; `<=` / `>=`: against value (tol allowed); `between`: min … max. */
 export interface Predicate { op: '==' | '<=' | '>=' | 'between'; query: Query; value?: number; tol?: number; min?: number; max?: number; unit?: string }
 export interface Requirement {
@@ -127,7 +132,7 @@ function printabilityOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate:
   return r;
 }
 /** A query's measurement, with the faces or bodies it is about; or unknown with why. */
-async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, q: Query): Promise<{ x: number; entities?: string[]; hint?: string } | { unknown: string }> {
+async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, q: Query): Promise<{ x: number; entities?: string[]; hint?: string; chord?: number } | { unknown: string }> {
   if ('body' in q && q.body !== undefined && !bodies.some(b => b.key === q.body)) return { unknown: `no body ${q.body} (bodies: ${bodies.map(b => b.key).join(', ') || 'none'})` };
   const facts = factsOf(doc, bodiesOf(bodies, 'body' in q ? q.body : undefined));
   switch (q.fn) {
@@ -158,6 +163,24 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       if (!walls.length) return { unknown: 'no flat walls to judge (curved faces are not judged)' };
       const worst = [...walls].sort((x, y) => x.draft_deg - y.draft_deg)[0];
       return { x: worst.draft_deg, entities: [worst.face], hint: 'the least drafted flat wall' };
+    }
+    case 'keepout': {
+      const res = await checkKeepouts(doc, bodiesOf(bodies, q.body), evaluate, { keepout: q.keepout });
+      if (!res.length) return { unknown: `no keep-out ${q.keepout} (or no body)` };
+      const enters = res.filter(r => r.overlapMM3 > 1e-6);
+      if (enters.length) { const v = Math.max(...enters.map(r => r.overlapMM3)); return { x: -v, entities: enters.map(r => r.body), hint: `${enters.map(r => r.body).join(', ')} enter${enters.length === 1 ? 's' : ''} ${q.keepout} by ${r4(v)} mm³ (measured as minus that; exact)` }; }
+      const near = res.reduce((a, b) => ((b.clearanceMM ?? Infinity) < (a.clearanceMM ?? Infinity) ? b : a));
+      return { x: near.clearanceMM!, chord: near.chordMM, entities: [near.body], hint: `${near.body} is ${r4(near.clearanceMM!)} mm from ${q.keepout} (meshes exact; chord tolerance ${r4(near.chordMM)} mm)` };
+    }
+    case 'datum_distance': {
+      const set = readReferences(doc.references), d = set.datums.find(x => x.id === q.datum);
+      if (!d) return { unknown: `no datum ${q.datum}` };
+      const names = resolveFace(doc.nodes, bodies, q.face);
+      if (typeof names === 'string' || names.length !== 1) return { unknown: typeof names === 'string' ? names : `${JSON.stringify(q.face)} is ${names.length} faces` };
+      const f = resolveNames(bodies as BodyResult[], { faces: [names[0]] }).selection.faces[0];
+      if (!f) return { unknown: `no face ${names[0]}` };
+      const m = datumToFace(datumWorld(set, d), bodies[f.body].mesh, f.face);
+      return { x: m.distanceMM, entities: [names[0]], hint: `${m.what}${m.angleDeg !== null ? `; at ${r4(m.angleDeg)}°` : ''}` };
     }
     case 'clearance': {
       const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap_mm3?: number; clearance_mm?: number }[];
@@ -239,6 +262,11 @@ export async function runCheck(doc: StudioDoc, bodies: readonly BodyResult[], ev
   if (!bodies.length && p.query.fn !== 'count_solids') return { status: 'fail', measured: 'no body', hint: 'the part has no body yet' };
   const m = await measure(doc, bodies, evaluate, p.query);
   if ('unknown' in m) return { status: 'unknown', why: m.unknown };
+  // (A value good to a chord tolerance, A6.3: decided only when it holds, or fails, anywhere within it; else undecided.)
+  if (m.chord !== undefined && m.chord > 0) {
+    const lo = meets(m.x - m.chord, p).ok, hi = meets(m.x + m.chord, p).ok;
+    if (lo !== hi || !Number.isFinite(m.chord)) return { status: 'unknown', why: `undecided: ${r4(m.x)} is within the meshes' chord tolerance (${Number.isFinite(m.chord) ? `${r4(m.chord)} mm` : 'unbounded'}) of the limit${m.hint ? ` — ${m.hint}` : ''}` };
+  }
   const r = meets(m.x, p);
   return { status: r.ok ? 'pass' : 'fail', measured: r4(m.x), delta: r4(r.delta), ...(m.entities ? { entities: m.entities } : {}), ...(m.hint ? { hint: m.hint } : {}) };
 }
@@ -259,7 +287,7 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 
-const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area', 'print_rule', 'subd_deviation'];
+const FNS = ['bbox', 'volume', 'mass', 'count_solids', 'count_faces_of_kind', 'distance_between', 'radius', 'hole_diameter', 'min_wall', 'draft_min', 'clearance', 'gear_center_distance', 'gear_backlash', 'gear_contact_ratio', 'gear_clearance', 'library_check', 'hole_alignment', 'overhang_area', 'print_rule', 'subd_deviation', 'keepout', 'datum_distance'];
 /** Why a requirement cannot be kept (malformed), or null. */
 export function checkRequirement(r: unknown): string | null {
   if (typeof r !== 'object' || r === null) return 'a requirement is an object';
