@@ -2,6 +2,7 @@
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
 import type { RobotSettings } from '../robot/joints';
+import type { BendTable } from '@barocss/cad';
 import type { Brief } from '../chat/brief';
 import type { QuestionLog } from '../chat/questions';
 import type { ReferenceSet } from '../chat/references';
@@ -17,6 +18,8 @@ export interface BodyRef { node: number; side: Side }
 
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
+/** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
+export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
 export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
 /**
  * The closed outline a polygon / loop profile was drawn from, with its constraints and driving dimensions
@@ -119,8 +122,8 @@ type ModelNodeBase = SketchNode
    * (`reverse`: below its plane); or an open `path` in a plane (one skin of the sheet, the material to its `side`) bent
    * at each corner and extruded `width` along the plane's normal.
    */
-  | { kind: 'sheet-base'; sketch: number; thickness: Dim; bendRadius: Dim; kFactor: number; reverse?: boolean }
-  | { kind: 'sheet-contour'; path: [Dim, Dim][]; plane?: DocPlane; side: 'left' | 'right'; width: Dim; thickness: Dim; bendRadius: Dim; kFactor: number }
+  | ({ kind: 'sheet-base'; sketch: number; thickness: Dim; bendRadius: Dim; reverse?: boolean } & SheetK)
+  | ({ kind: 'sheet-contour'; path: [Dim, Dim][]; plane?: DocPlane; side: 'left' | 'right'; width: Dim; thickness: Dim; bendRadius: Dim } & SheetK)
   /**
    * An edge flange (R12.3, D118; the kernel's `sheet-flange`) on a sheet's straight edge, kept by its persistent name in
    * `edges` (one: the fillet's references, signatures and re-matching serve it as they do a fillet's edges).

@@ -201,7 +201,8 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       if (node.kind === 'sheet-base') out.push(...sketchFields(nodes, node.sketch, ''));
       number('t', 'Thickness', 'mm', n => num((n as S).thickness), (n, v) => ({ ...(n as S), thickness: v }));
       number('r', 'Bend radius', 'mm', n => num((n as S).bendRadius), (n, v) => ({ ...(n as S), bendRadius: v }));
-      number('k', 'K-factor', undefined, n => (n as S).kFactor, (n, v) => ({ ...(n as S), kFactor: v }));
+      // (A bend table instead of one K: no K field; R12.4.)
+      if (node.kFactor !== undefined) number('k', 'K-factor', undefined, n => (n as S).kFactor!, (n, v) => ({ ...(n as S), kFactor: v }) as S);
       if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
       break;
     }

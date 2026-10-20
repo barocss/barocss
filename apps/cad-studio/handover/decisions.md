@@ -5780,3 +5780,81 @@ R12.3's second half. First the coordinator's check on D118: the flange's relief 
 | Full flow | 175/175, run on its own; the new step included, every outer-lane step passing |
 
 RB rows are in the next commit.
+
+## D120 — R12.4: bend tables in the part (2026-10-20)
+
+R12.4 as D115 froze it: a sheet's K from a table of the shop's rows, each row cited, with typed refusals; plus the sourcing pass D115 deferred here.
+
+**Kernel** (`sheet-metal.ts`, `part-model.ts`, `sheet-flat.ts`):
+- **A sheet's K.** Every sheet feature (`sheet-base`, `sheet-contour`) takes **either** `kFactor` **or** `bendTable`: one of them, no default. Neither, or both, is PARAMETER.
+- **A bend table:** `{ id, sources?: [{ id, label, url?, read?, note? }], rows }`.
+  - A row is: `thicknessMM`, `radiusMM` (inner), `angleDegrees?`, and exactly one of `kFactor`, `allowanceMM` or `deductionMM`. An allowance or a deduction needs its angle; a K row without an angle holds at any angle.
+  - Each row cites a `source` id from the table, or says `estimate: true`; never neither.
+  - `bendTableProblem` checks all this, plus no (T, R, angle) given twice and each row's K inside the sheet (0–1). Its failure is `[BEND_TABLE]` (PARAMETER).
+- **A row's K** (`rowKFactor`): given; from BA, K = (BA/θ − R)/T; from BD, BA = 2·OSSB − BD first.
+- **Lookup** (`lookupBend`, a bend's T, inner R and angle):
+  - the exact row (one with its angle before one for any angle);
+  - else bilinear in R and the angle inside a grid of four rows of its T (two where one value matches);
+  - else linear in R between rows for any angle;
+  - else `[BEND_TABLE_MISS]` (PARAMETER), saying what is missing. A missing T is said as such.
+  - It returns the rows used, `exact` or `interpolated`, and whether any is an estimate.
+- **The report:**
+  - Each bend now carries its `kFactor` and, from a table, `table` (the rows).
+  - Its BA, OSSB and BD use that K.
+  - The sheet's report holds `kFactor` or `bendTable`; its `kFactor` is now optional (R12.1's type changed in place, unreleased).
+  - A flange looks up its own radius and angle; a bend the table lacks is refused there.
+- **The flat:** `flatPattern(brep, { thicknessMM, kFactor | bendTable })`.
+  - With a table, it develops twice. First it finds each bend's angle (its pieces' widest turn) and inner radius, which do not depend on K. Then it looks each bend's K up, and develops with them.
+  - Each flat bend names its rows. A miss is `BEND_TABLE_MISS`.
+  - An output's `flatPattern()` uses the sheet's table, or a `kFactor` given to it.
+
+**Oracles** (each row's value is what the flat must honour):
+- An L whose 90° bend takes a row's BD 4.2: flat 50 + 35 − 4.2 to 1e-12, the report's BD 4.2.
+- Its 120° bend on a row's BA 7.5: 85 − (2·OSSB − 7.5).
+- A K row for any angle at 60° and 150°: outside less BD(K).
+- K from BA and from BD by hand to 1e-15.
+- **Bilinear at the grid's middle:** the four rows' mean K. **On an exact R:** along the angle only, (¾, ¼). **Linear in R:** 0.33 + ¾·0.09.
+- **A flat on the grid** by that K's BD to 1e-12.
+- **A plate on a table with two flanges** (R 1.5 at K 0.4; its own R 4 at K 0.46): flat 80 + 20 − BD₁ + 20 − BD₂ to 1e-12. Through STEP with the table given: the same to 1e-9.
+
+**Studio:**
+- Sheet nodes take `kFactor` or `bendTable`.
+- **"Bend table…"** in a sheet body's panel loads a JSON file, checks it with the kernel's `bendTableProblem`, and sets it on the sheet feature the body starts from (its K removed).
+- **The body's notes:**
+  - "K from bend table shop-2mm (n rows)";
+  - each bend's rows: "K 0.3462 from row 0", or "from rows 0, 1 (interpolated)";
+  - "an estimate among them" as a warning.
+- No K field in the feature editor then.
+- The agent: `bendTable` in its raw sheet nodes (documented).
+
+**Sourcing** (the coordinator's terms: public HTML only, read only, no sign-in, nothing downloaded; URL, date and label per value; values only; no PDF):
+- A pass found two sources with per-thickness values; `handover/notes/research-r12-bend-data-2026-10-20.md` has their values, labels and URLs:
+  - SendCutSend's bending-calculator page: air bending, 90° rows of K and BD for 5052, mild steel and 304;
+  - vedge.org's K table, a copy of Machinery's Handbook.
+- Radius guidance came from Fictiv and Protolabs, as ranges only.
+- **Neither source's reuse is cleared:** © on SendCutSend, no licence found; vedge copies a copyrighted handbook. The standing rules exclude unclear-licence datasets, so **no table is built in**. The note gives the values for the owner to decide.
+- The check of SendCutSend's own rows: BD from its K and R agrees with its BD to about 0.002 in, except 5052 at 0.063 in (0.0995 against 0.096). A table should take one of the two.
+
+**Pending decision (reversible default taken):** whether SendCutSend's 90° rows may be bundled as a built-in, cited table. Taken: not bundled; the user loads the shop's table. To change: the owner clears the source's terms, and the rows go in as data with their citations.
+
+**Tests:**
+- Kernel `test/r12-4.test.mjs` (4) and studio `sheet.test.ts` (+1). Both fail on HEAD f4a7851f6, where there is no `bendTable`.
+- Conformance `r12/table-l-bracket-deduction` (the flat 50 + 35 − 4.2) and `refuse-bend-table-miss`.
+- A flow step: an L opened from a file, the shop's table loaded from its panel. The notes name the table and row; the flat is 80.8 × 20.
+
+**Not done:**
+- A table editor in the studio (the file is edited outside).
+- Tables per material from a library.
+- A drawing's bend table (the outer lane's R14, from this data).
+
+**Checks** on f4a7851f6 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1226/1259 (4 skipped). The 29 failures are the env-only Split test and the 28 known `a7/` and `a8/` conformance files from the outer lane's merge. Those sit at the runner's top level and are being moved by the outer lane; every one of the 28 is in `a7/` or `a8/`. |
+| Conformance | 147 pass, 28 known a7/a8 failures; the 2 new r12 cases pass |
+| Studio | 576/576 |
+| Full flow | 176/176, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.

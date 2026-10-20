@@ -3119,6 +3119,24 @@ try {
     await snap('r12-3b-corner-relief');
   });
 
+  await check('R12.4 a sheet L (a file) given the shop\'s bend table from its panel: the notes name the table and the row, the flat 50 + 35 − the row\'s deduction 4.2 (new in D120)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'sheet-l.bcad'), tableFile = join(out, 'shop-2mm.json');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 1, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.4 }] }));
+    fs.writeFileSync(tableFile, JSON.stringify({ id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }] }));
+    await openModel(file, 1, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await bodyVolume();
+    await page.setInputFiles('input[aria-label="Bend table file"]', tableFile);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.bendTable?.id === 'shop-2mm' && window.__studioDoc.nodes[0].kFactor === undefined, null, { timeout: 15000 }); await idle();
+    await bodyVolume();
+    await page.waitForFunction(() => /K from bend table shop-2mm \(1 rows\)/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props');
+    assert.match(props, /deduction 4\.2 mm; K [\d.]+ from row 0/);
+    assert.match(props, /Flat pattern 80\.8 × 20 mm, 1 bend/);
+    await snap('r12-4-bend-table');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

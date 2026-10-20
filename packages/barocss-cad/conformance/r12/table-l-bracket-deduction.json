@@ -1,0 +1,124 @@
+{
+  "id": "r12-table-l-bracket-deduction",
+  "step": "R12",
+  "decisions": [
+    "D120"
+  ],
+  "about": "R12.4: an L whose sheet carries a bend table; its 90° bend takes the row's deduction 4.2: the flat is 50 + 35 − 4.2, the report names the row.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              50,
+              0
+            ],
+            [
+              50,
+              35
+            ]
+          ],
+          "side": "left",
+          "width": 20,
+          "thickness": 2,
+          "bendRadius": 3,
+          "bendTable": {
+            "id": "shop-2mm",
+            "sources": [
+              {
+                "id": "shop",
+                "label": "a shop's own test bends (illustrative values for the case)"
+              }
+            ],
+            "rows": [
+              {
+                "thicknessMM": 2,
+                "radiusMM": 3,
+                "angleDegrees": 90,
+                "deductionMM": 4.2,
+                "source": "shop"
+              },
+              {
+                "thicknessMM": 2,
+                "radiusMM": 3,
+                "angleDegrees": 120,
+                "kFactor": 0.42,
+                "source": "shop"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3251.327412287182,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            34.22081284886268,
+            8.120776649045284,
+            10
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.back",
+          "c.bend1.inner",
+          "c.bend1.outer",
+          "c.end",
+          "c.front",
+          "c.leg0.a",
+          "c.leg0.b",
+          "c.leg1.a",
+          "c.leg1.b",
+          "c.start"
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 1616,
+            "relTol": 1e-12
+          },
+          "box": {
+            "value": [
+              80.8,
+              20
+            ],
+            "absTol": 1e-9
+          },
+          "loops": 1,
+          "bends": [
+            {
+              "name": "c.bend1",
+              "direction": "down",
+              "angleDegrees": 90
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "oracle": "Flat: the row's BD by its definition (outside to the sharps less BD). Volume (the sheet's section, independent of K: 20·T·(85 − 2(R + T) + θ(R + T/2))) and centroid by this kernel."
+}

@@ -1,0 +1,72 @@
+{
+  "id": "r12-refuse-bend-table-miss",
+  "step": "R12",
+  "decisions": [
+    "D120"
+  ],
+  "about": "R12.4: an L at 60° on a table with rows at 90° and 120° only: no row and no rows either side, refused by name (no fallback K).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              50,
+              0
+            ],
+            [
+              67.5,
+              30.31088913245535
+            ]
+          ],
+          "side": "left",
+          "width": 20,
+          "thickness": 2,
+          "bendRadius": 3,
+          "bendTable": {
+            "id": "shop-2mm",
+            "sources": [
+              {
+                "id": "shop",
+                "label": "a shop's own test bends (illustrative values for the case)"
+              }
+            ],
+            "rows": [
+              {
+                "thicknessMM": 2,
+                "radiusMM": 3,
+                "angleDegrees": 90,
+                "deductionMM": 4.2,
+                "source": "shop"
+              },
+              {
+                "thicknessMM": 2,
+                "radiusMM": 3,
+                "angleDegrees": 120,
+                "kFactor": 0.42,
+                "source": "shop"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BEND_TABLE_MISS] bend1: table shop-2mm has no rows round 2 mm, R 3 mm, 60°"
+    }
+  },
+  "oracle": "By construction."
+}

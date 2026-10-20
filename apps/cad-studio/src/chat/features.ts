@@ -33,10 +33,10 @@ const SPECS: Record<string, Spec> = {
   fillet: { parent: 'ref', edges: 'names1', radius: 'dim', 'radii?': 'radii', 'section?': 'section' },
   hole: { parent: 'ref', center: 'dim2', radius: 'dim', 'axis?': 'enum:x|y|z', 'side?': 'enum:min|max', 'depth?': 'dim' },
   // (R12.1, D116: sheet metal, its rules on each feature.)
-  'sheet-base': { sketch: 'sketch', thickness: 'dim', bendRadius: 'dim', kFactor: 'num', 'reverse?': 'bool' },
+  'sheet-base': { sketch: 'sketch', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any', 'reverse?': 'bool' },
   'sheet-corner-relief': { parent: 'ref', edges: 'names1', shape: 'enum:square|round', size: 'dim' },
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
-  'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', kFactor: 'num' },
+  'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
 const PROFILE: Record<string, Spec> = {
   rectangle: { min: 'dim2', max: 'dim2' },
