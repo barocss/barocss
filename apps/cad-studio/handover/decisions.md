@@ -6247,5 +6247,7 @@ The third FR stage frozen in D122: first the defect S0 found, then the corners w
 | Conformance | 165/165 |
 | Studio | 628/628 (+2 of FR3a; names compared, none missing) |
 | Full flow | 182/182, run on its own; the new step included |
+| RB | 307 cases (+4: the fr corner cases), 0 new, the 8 known TODOs (totals as before: 4 refused, 3 invalid, 5 wrong) |
+| Properties | 11/11, no failures |
 
 RB rows are in the next commit.
