@@ -412,6 +412,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
     requirement, drafts, drawing; faces by A1 signature); current, stale (input named) or unresolved (gone, ambiguous,
     renamed — never re-targeted; A1's re-match carried in); stale never shown as current nor approved on; late results
     kept under their own run; failed, unsupported, non-converged never 0 or a pass.
+  - **A8.6** (O42): done. The export bundle (`cad-cli bundle write | verify`): the document, the approved baseline chain,
+    sourced materials, results with freshness, ECRs and a manifest of SHA-256s; read back in a fresh process from its
+    files alone, every pin checked; missing, changed and stale listed; never complete when anything is.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

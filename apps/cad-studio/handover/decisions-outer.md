@@ -2023,3 +2023,48 @@ The owner's decision on #2177 (O39, verbatim there): approval baselines, result 
     - a box moved off with another put in its place is renamed to `n3.*`, not moved;
     - a sphere leaves the faces gone;
     - A1's `refs-ambiguous` is carried in with A1's candidates exactly.
+
+## O42 — A8.6: the export bundle — a manifest of digests, verified from its files alone in a fresh process (2026-10-20)
+
+- **`src/team/bundle.ts`** is pure: no filesystem. `writeBundle(doc, evaluate, {baseline?, results?})` gives files by path:
+  - `document.bcad`: the document as the studio saves it (`encodeStudioFile`);
+  - `baseline.json`: the approved baseline with its ancestors;
+  - `materials.json`: each part's bodies with material id, label, density, basis and **every library source with its text**;
+  - `results.json`: each result with its fingerprint and its freshness when written;
+  - `ecrs.json`: the ECR history with its pins;
+  - `manifest.json`.
+- **Results**: without `results`, the standard set is written: the BOM, each part's mass, and each part's requirements.
+- **The manifest**: `{format: 'barocss-bundle', version: 1, document: {file, revision}, baseline: {id, digest}, files: [{path, sha256, bytes}], missing, stale, complete}`.
+  - `revision` is the SHA-256 of the document's revision fields.
+  - `complete` holds only when nothing is missing or stale.
+  - **Missing:**
+    - no approved baseline, or the one named not approved;
+    - a baseline that does not verify;
+    - a body with no material source: none set (the default, assumed), or a name outside the library;
+    - a result not ok;
+    - an ECR pin that does not verify.
+  - **Stale:** a baseline not current; a stale or unresolved result.
+- **`verifyBundle(read, evaluate)`** reads only through `read(path)` and gives `{complete, intact, missing, changed, stale, manifestSaidComplete}`.
+  - **Integrity, from the files alone:**
+    - each file's size and SHA-256 against the manifest. A file that does not match is not read further: its content is not the one pinned;
+    - the document's revision against the manifest's;
+    - the baseline's digest against the manifest's (the anchor O40 left to the bundle), then its chain and pins against the document;
+    - each approved ECR's pin.
+  - **State, against the document:** each result's freshness; each body's material source, read again from the document.
+  - **The manifest's own `complete` is reported, never trusted.** `complete` requires nothing missing, changed or stale.
+- **`cad-cli bundle write part.bcad -o folder [--baseline BL1]`** prints `{complete, missing, stale, wrote}` and exits 1 when the bundle is not complete.
+- **`cad-cli bundle verify folder`** prints the check and exits 0 only when the bundle is complete and intact.
+- **Tests** (`test/team-bundle.test.ts`):
+  - **Complete.** The clean A8 assembly, each body's material set to al6061 and BL1 approved:
+    - the manifest is complete, with each file's digest;
+    - materials have basis `body` and the S-DENS source text;
+    - the BOM and both masses are current;
+    - verified in-process, by a **spawned `cad-cli bundle verify`** (exit 0), and by a spawned `bundle write` from a saved `.bcad`, then verify.
+  - **Incomplete, each gap named:**
+    - `results.json` deleted: missing, while the manifest said complete;
+    - a density edited in `materials.json`: changed, its digest;
+    - the document swapped and its file digest rewritten: its revision is not the manifest's;
+    - the baseline rewritten consistently (content, pins, digest) and its file digest too: the manifest's anchor catches it;
+    - p1's mass taken before its material was set: stale (material changed), at writing and on read-back;
+    - no approved baseline and no materials: three missing;
+    - spawned: `ecrs.json` deleted gives exit 1, missing.
