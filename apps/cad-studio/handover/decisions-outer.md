@@ -3144,3 +3144,52 @@ O61's cheaper DWG item, assigned by the coordinator after O67. A DXF drawing's S
   - `import_drawing`'s result adds `underlay: { by type: count }` and `left_out`, a compatible addition, with the contract regenerated;
   - the Drafts toast says what came in as underlay;
   - a flow step just before the last: a DXF with a block and a spline imported, its underlay drawn, its regions as before.
+
+## O69 — the DXF underlay: splines, ellipses, blocks and text to trace over, against ezdxf and closed forms (2026-10-20)
+
+Built as O68 froze it and the coordinator accepted (`src/sketch/dxfUnderlay.ts`; the profile reader `dxfRead.ts` sends these kinds there). Fixtures are in `conformance/a6/underlay/<case>/`, beside A6's `drawings/`, as the coordinator asked: not "a64".
+
+- **The profile is unchanged.** Regions and holes come from the top level's LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE, as before. SPLINE, ELLIPSE, INSERT, TEXT and MTEXT are skipped there and read by the underlay. TEXT and MTEXT are no longer "left out", since they are shown. DIMENSION, HATCH and the rest stay left out.
+- **The underlay reader**:
+  - SPLINE by our de Boor (rational with its weights), each knot span flattened on its own;
+  - ELLIPSE by its parameters (the minor axis is the major turned a quarter, times the ratio);
+  - both are flattened so that the points at ¼, ½ and ¾ of a chord are within half of 0.01 mm. The first run, at the full tolerance, let a spline's chord reach 0.01024 mm under the dense check; now chords are within 5.0e-3;
+  - INSERT through `T(insertion)·R(rotation)·[MINSERT cell offset]·S(sx, sy)·T(−base)`, nested, with a cycle refused, and OCS (0, 0, −1) as a mirror of X. The tolerance is divided by the map's largest stretch;
+  - a circle or arc under a non-similar map is counted ELLIPSE, as ezdxf makes it;
+  - TEXT at its alignment point when aligned; MTEXT's direction (11/21) or rotation, its codes stripped as `plain_text()`;
+  - fit-points-only splines are left out with the reason.
+- **Where it lives** (one change from O68's "on the sketch node"): `doc.underlays`, each with an id, name, plane, its draft and `hidden`.
+  - A file with curves but no closed profile is an underlay alone (no sketch, no dimensions, `draft: null`), and it has no sketch to hang on.
+  - Text alone is still DXF_EMPTY.
+  - Confirming a draft's width scales its underlay with its sketch.
+  - The field is in `STUDIO_DOC_FIELDS`. The evaluation key leaves it out, so hiding an underlay never re-evaluates.
+- **Exposure**:
+  - `import_drawing` returns `underlay` counts and `left_out` (including fit-only splines), or `draft: null` with a note;
+  - its description is updated. The frozen tool contract is unchanged, and its tests pass;
+  - the Drafts panel lists each underlay with Hide/Show;
+  - the viewport draws the underlays grey in its overlay (one path each, texts turned and sized by projection, every MTEXT line), not picked;
+  - the toast says what came in as underlay.
+- **Changed expectations** (A6.4's `drafts.test.ts`, on purpose):
+  - the inches drawing's TEXT moves from `left_out` to the underlay;
+  - `refuse-spline.dxf` (a LINE and a fit-only SPLINE) is now DXF_OPEN rather than DXF_UNSUPPORTED, and its message says the spline is shown as underlay only, because a profile takes lines, arcs and circles.
+- **Evidence** (`test/dxf-underlay.test.ts`, 6 tests). ezdxf 1.4.5 wrote the fixtures from known numbers and read them back (`scripts/dxf-underlay-oracle.py`, readings committed as `oracle.ezdxf-1.4.5.json`).
+  - **Splines** (cubic, rational quadratic, quintic, one fit-only):
+    - degree, knots, control points and weights are as ezdxf reads them;
+    - points at 64 parameters match `BSpline.point` to **2.9e-14 mm**;
+    - the rational arc's vertices lie on its circle to 1e-9;
+    - chords are within 5.0e-3 mm by dense evaluation;
+    - the fit-only spline is listed.
+  - **Ellipses**: points match `ConstructionEllipse.vertices` to **1.4e-14**; ends at the parameter ends; chords within 5.0e-3.
+  - **Blocks**:
+    - counts equal ezdxf's expansion: CIRCLE 7, ELLIPSE 1, LINE 8;
+    - every circle vertex and line end is on its closed-form composed transform to **6.9e-14**, covering three deep, (2, −1) scale, rotations, the OCS mirror and the 3 × 2 MINSERT;
+    - ezdxf's own expansion matches the same closed form.
+  - **Texts**: positions to 1e-12, heights, rotations to 1e-9, and MTEXT's plain string equal to ezdxf's.
+  - **Plate**: regions and holes deep-equal those of the same file with its SPLINE, TEXT and INSERT deleted; the underlay's counts match.
+  - **The tool**:
+    - the plate's underlay comes with draft F1 and is doubled with a 200 mm width;
+    - a splines-only file is an underlay alone with no node;
+    - a text-only file is DXF_EMPTY.
+- **Flow**: a step "O68" just before the last. The plate DXF is added from Drafts: one node with its hole, the underlay drawn (with the note's text), hidden and shown.
+  - Its first run found the viewport's group and the Drafts list item both labelled "Underlay U1". The drawing is now "Underlay drawing U1"; the rerun passes, and the flow is 192/192.
+- **Test names**: two A6.4 tests in `drafts.test.ts` are renamed with their changed expectations (the inches drawing's text; refuse-spline), so the name comparison shows them as replaced.

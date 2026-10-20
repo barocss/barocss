@@ -34,6 +34,8 @@ button { font: inherit; color: inherit; }
 .sk-shape.open { fill: none; }
 .vp-overlay .sk-trim { fill: none; stroke: #ef6f6c; stroke-width: 4; stroke-linecap: round; opacity: 0.9; pointer-events: none; }
 .vp-overlay .vertex-mark { fill: rgba(232, 194, 90, 0.25); stroke: #e8c25a; stroke-width: 2; pointer-events: none; }
+.vp-overlay .underlay-line { stroke: #8a93a3; stroke-width: 0.75; stroke-opacity: 0.7; pointer-events: none; }
+.vp-overlay .underlay-text { fill: #8a93a3; fill-opacity: 0.8; pointer-events: none; font-family: inherit; }
 .vp-overlay .pole-mark { fill: #1b2230; stroke: #7fb2ff; stroke-width: 1.5; pointer-events: none; }
 .vp-overlay .pole-mark.picked { fill: #7fb2ff; stroke: #fff; stroke-width: 2; }
 .vp-overlay .bbox-line { stroke: #7fb2f0; stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.85; }

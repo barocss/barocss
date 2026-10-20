@@ -1258,6 +1258,8 @@ recorded).
 - **Late (after A5–A8, before RB5–RB9), DWG/SAT import.** DWG R2000–R2018+ 2D entities as a drawing or underlay; ACIS
   SAT/SAB solids into our B-rep through the STEP import's tolerance and validation gate; optionally DWG writing of
   drawings. Only after an S0 that weighs demand against effort, recorded either way.
+  - **DXF underlay done (O68 S0, O69)**: splines, ellipses, blocks and text from an imported DXF shown grey to trace over (never
+    regions); points against ezdxf to 3e-14, blocks against the closed form to 7e-14. **A4 table fix (O67)**: verified A3/scale fix.
   - **S0 done (O61)**: DWG read deferred, SAT import deferred, DWG write no-go — DXF and STEP already reach the need; both
     specs are PDF-only; AutoCAD's 3DSOLID SAT is an undocumented variant. Revisit conditions in the note.
 

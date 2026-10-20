@@ -2,8 +2,10 @@
 // with its basis; the user confirms one as it is, or at another value (Enter or Confirm), which re-drives the features.
 // "Add drawing" reads a DXF file as a sketch draft.
 import type { Draft } from '../chat/drafts';
+import type { DocUnderlay } from '../engine/doc';
 
-export function DraftsPanel({ drafts, onAddDrawing, onConfirm }: { drafts: readonly Draft[]; onAddDrawing(file: File): void; onConfirm(key: string, value: number | undefined): void }) {
+export function DraftsPanel({ drafts, onAddDrawing, onConfirm, underlays = [], onUnderlay }: { drafts: readonly Draft[]; onAddDrawing(file: File): void; onConfirm(key: string, value: number | undefined): void;
+  /** The drawings' underlays (O68), each shown or hidden. */ underlays?: readonly DocUnderlay[]; onUnderlay?(id: string, hidden: boolean): void }) {
   const open = drafts.reduce((n, d) => n + d.dims.filter(x => !x.confirmed).length, 0);
   return <div className="references" role="region" aria-label="Drafts">
     <div className="ol-head specify-head">Drafts <span className="muted" aria-label="Drafts summary">{drafts.length ? `${open} to confirm` : 'none'}</span>
@@ -16,6 +18,10 @@ export function DraftsPanel({ drafts, onAddDrawing, onConfirm }: { drafts: reado
         <input aria-label={`${key} value`} type="number" step="any" defaultValue={x.value} key={`${key}:${x.value}`} onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') onConfirm(key, Number(e.currentTarget.value)); }} />
         {x.confirmed ? <span className="muted">✓ confirmed</span> : <button className="ghost small" aria-label={`Confirm ${key}`} onClick={e => onConfirm(key, Number((e.currentTarget.previousSibling as HTMLInputElement).value))}>Confirm</button>}
       </span>; })}
+    </div>)}
+    {underlays.map(u => <div key={u.id} className="req" role="listitem" aria-label={`Underlay ${u.id}`}>
+      <span className="req-row"><span className="req-mark">▱</span><b>{u.id}</b> {u.name} <span className="muted">· underlay{u.draft ? ` of ${u.draft}` : ''} · {Object.entries(u.counts).map(([t, n]) => `${n} ${t}`).join(', ')}</span>
+        {onUnderlay && <button className="ghost small" aria-label={`${u.hidden ? 'Show' : 'Hide'} underlay ${u.id}`} onClick={() => onUnderlay(u.id, !u.hidden)}>{u.hidden ? 'Show' : 'Hide'}</button>}</span>
     </div>)}
   </div>;
 }

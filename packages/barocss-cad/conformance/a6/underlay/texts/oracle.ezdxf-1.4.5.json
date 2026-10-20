@@ -1,0 +1,53 @@
+{
+ "blockEntities": [],
+ "entities": [
+  {
+   "align": [
+    10.0,
+    10.0
+   ],
+   "halign": 0,
+   "height": 2.5,
+   "insert": [
+    10.0,
+    10.0
+   ],
+   "rotation": 30.0,
+   "text": "ROTATED",
+   "type": "TEXT",
+   "valign": 0
+  },
+  {
+   "align": [
+    50.0,
+    20.0
+   ],
+   "halign": 1,
+   "height": 3.5,
+   "insert": [
+    50.0,
+    20.0
+   ],
+   "rotation": 0,
+   "text": "CENTRED",
+   "type": "TEXT",
+   "valign": 2
+  },
+  {
+   "height": 3.5,
+   "insert": [
+    10.0,
+    40.0
+   ],
+   "rotation": 20.0,
+   "text": "Hello\nWorld big under",
+   "type": "MTEXT"
+  }
+ ],
+ "ezdxf": "1.4.5",
+ "inBlocks": {},
+ "top": {
+  "MTEXT": 1,
+  "TEXT": 2
+ }
+}

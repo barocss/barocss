@@ -30,6 +30,7 @@ function full(): StudioDoc {
     drawing: defaultDrawing(), bodies: { b2: { color: '#ff0000', faceSigs: {}, facesWas: {} } },
     mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top', sig: { k: 'plane', p: [0, 0, 8], d: [0, 0, 1], s: 0 } }, b: { part: 'i1', face: 'n1.bottom' } }],
     robot: { version: 1, base: 'i1', joints: { 'base~i1': { lower: -1, upper: 1 } } },
+    underlays: [{ id: 'u1', name: 'plate', draft: 'D1', polylines: [[[0, 0], [10, 0]]], texts: [{ at: [0, 0], text: 'A', height: 2.5, angle: 0 }], counts: { LINE: 1, TEXT: 1 } }],
     brief: { version: 1, process: { value: 'fdm', basis: 'stated', source: 'printed' } },
     ecrs: { version: 1, ecrs: [] },
     baselines: { version: 1, baselines: [] },
