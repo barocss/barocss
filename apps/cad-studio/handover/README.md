@@ -472,6 +472,19 @@ stays out of the kernel's core files (requests for them go through the coordinat
     Verifier that rejects all. Declared contact (a shared pattern or a mate) passes as EXPECTED_CONTACT; undeclared
     touching is held.
   - **A8 done** (O32–O37). Live numbers pending the owner (O30).
+  - **#2177** (O39, the owner's decision): approval baselines, result freshness and the export bundle into A8 (the S0
+    addendum to O32: A8.4b → A8.5b → A8.6); CAE (FEM) a reference only. Material and display looks checked apart (no
+    inference; a test keeps it so).
+  - **A8.4b** (O40): done. Baselines pinned by SHA-256 of canonical JSON (BOM, interfaces, every part's revision),
+    chained to their parents; draft → review → approved | rejected by the user's token only; frozen once decided;
+    tampering named on read-back; an approved ECR pins what it approved.
+  - **A8.5b** (O41): done. Every result stamped with what it read (model, material, process, interfaces, references,
+    requirement, drafts, drawing; faces by A1 signature); current, stale (input named) or unresolved (gone, ambiguous,
+    renamed — never re-targeted; A1's re-match carried in); stale never shown as current nor approved on; late results
+    kept under their own run; failed, unsupported, non-converged never 0 or a pass.
+  - **A8.6** (O42): done. The export bundle (`cad-cli bundle write | verify`): the document, the approved baseline chain,
+    sourced materials, results with freshness, ECRs and a manifest of SHA-256s; read back in a fresh process from its
+    files alone, every pin checked; missing, changed and stale listed; never complete when anything is.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
@@ -1046,7 +1059,8 @@ gear crank.
 - RM6: sampled collision sweep with a conservative-advancement bound (|Δp| ≤ Σ|Δqᵢ|·rᵢ), using the exact interference
   with a prefilter.
 - Later:
-  - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag.
+  - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag. **Done (O44)**:
+    999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
   - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality).
   - RM9 SDF/USD, CCD, workspace map.
 

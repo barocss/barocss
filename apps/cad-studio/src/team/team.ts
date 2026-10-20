@@ -21,7 +21,7 @@ import { readBrief, isStated } from '../chat/brief';
 
 // ——— revisions and patches
 /** The canonical JSON of a value: object keys sorted, so equal documents give equal text. */
-function canonical(v: unknown): string {
+export function canonical(v: unknown): string {
   if (v === null || typeof v !== 'object') return JSON.stringify(v) ?? 'null';
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
   const o = v as Record<string, unknown>;
@@ -30,7 +30,9 @@ function canonical(v: unknown): string {
 /** What a revision covers: the model and the contracts a patch may depend on. */
 const REVISION_FIELDS = ['nodes', 'parameters', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'drafts', 'interfaces', 'instances'] as const;
 /** The canonical JSON of what a revision covers: equal exactly when the states a patch depends on are equal. */
-export const canonicalOf = (doc: StudioDoc) => canonical(Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]])));
+/** The fields a revision reads, as a value. */
+export const revisionContent = (doc: StudioDoc) => Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]]));
+export const canonicalOf = (doc: StudioDoc) => canonical(revisionContent(doc));
 /**
  * The document's revision: a 64-bit FNV-1a (two 32-bit lanes) of its canonical JSON, 16 hex digits — **for staleness,
  * not integrity**: equal hashes are confirmed by comparing the canonical JSON before a patch is applied (`integrate`'s

@@ -4,7 +4,7 @@
 // 3 a hard requirement fails (--check).
 //   cad-cli run part.cad.js -o part.bcad [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
 //   cad-cli check part.bcad
-import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { mjcfOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { readMjcf } from '../src/robot/mjcfCheck';
@@ -17,6 +17,7 @@ import { meshToStl } from '../src/ui/files';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';
+import { verifyBundle, writeBundle } from '../src/team/bundle';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -31,6 +32,12 @@ cad-cli mjcf part.bcad -o folder [--name robot]
 cad-cli team --metrics folder
   Runs every scenario in the folder (A7, A8) and prints each detector's true and false positives and negatives, precision
   and recall against the scenarios' seeded-defect labels (A8.5).
+cad-cli bundle write part.bcad -o folder [--baseline BL1]
+  Writes the export bundle (A8.6): the document, its approved BOM baseline, materials with sources, the analysis results
+  with their freshness, the ECRs, and a manifest of digests; prints what is missing or stale. Exit 1 when not complete.
+cad-cli bundle verify folder
+  Reads a bundle back from its files alone: every digest and pin checked, each result's freshness against the document;
+  prints what is missing, changed or stale. Exit 0 only when complete and intact.
 cad-cli team scenario.json
   Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
   Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
@@ -98,6 +105,27 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const r = await runScenario(sc, evaluate);
     say(io.stdout, runSummary(r));
     return r.accepted > 0 ? 0 : 1;
+  }
+  if (cmd === 'bundle') {
+    // (A8.6, O42: the export bundle written from a saved part, or read back from its folder alone.)
+    const [sub, ...args] = rest;
+    if (sub === 'verify') {
+      if (args.length !== 1) return usage('bundle verify takes one folder');
+      const dir = resolve(args[0]);
+      const c = await verifyBundle(path => { const f = join(dir, path); return existsSync(f) ? new Uint8Array(readFileSync(f)) : null; }, evaluate);
+      say(io.stdout, c);
+      return c.complete ? 0 : 1;
+    }
+    if (sub !== 'write') return usage('bundle takes write or verify');
+    const oi = args.indexOf('-o'), bi = args.indexOf('--baseline'), file = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '-o' && args[i - 1] !== '--baseline');
+    if (!file || oi < 0 || !args[oi + 1]) return usage('bundle write takes a .bcad file and -o folder');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    const b = await writeBundle(opened.doc, evaluate, bi >= 0 && args[bi + 1] ? { baseline: args[bi + 1] } : {}), dir = resolve(args[oi + 1]);
+    mkdirSync(dir, { recursive: true });
+    for (const [path, bytes] of b.files) writeAtomic(join(dir, path), bytes);
+    say(io.stdout, { complete: b.manifest.complete, missing: b.manifest.missing, stale: b.manifest.stale, wrote: [...b.files.keys()].map(p => join(dir, p)) });
+    return b.manifest.complete ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');

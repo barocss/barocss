@@ -1529,6 +1529,129 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
 
 **Order**: A8.1 → A8.2 → A8.3 → A8.4 → A8.5, with a checkpoint after each.
 
+### S0 addendum (2026-10-20, #2177; O39) — pinned approval baselines, result freshness, the export bundle
+The owner's decision on #2177 (O39, verbatim there): approval baselines, result freshness and the export bundle go into A8.4 and A8.5; CAE (FEM) stays out of the roadmap, as a reference only. Frozen here before any code. The limits above still hold: deterministic, no chat tool, `tools/list` unchanged, exposure `src/team/` and `cad-cli`.
+
+**The digest.** Integrity needs a cryptographic digest; A7's 64-bit FNV `revisionOf` stays a staleness key only.
+- `digestOf(value)`: **SHA-256** of the canonical JSON (A7's `canonical`: keys sorted, `undefined` left out) as UTF-8, 64 hex digits.
+- Synchronous, our own TypeScript (`src/team/digest.ts`): the ECR and baseline decisions are synchronous, and WebCrypto's digest is not. Checked against `node:crypto` in the tests, an oracle only.
+- A part's revision digest is `digestOf` of its document's revision fields (the fields `canonicalOf` reads).
+
+#### A8.4b — pinned approval baselines (`src/team/baseline.ts`, `doc.baselines`, version 1)
+- **A baseline** is `{id, kind: 'bom', parent: id | null, state, content: {bom, interfaces}, pins, digest, decided?}`:
+  - `pins`: `{interfaces: digestOf(interfaces), bom: digestOf(bom), parts: {partId: revision digest}}`, every part in the assembly;
+  - `digest`: `digestOf` of the record without `digest` itself, the parent's `digest` included in it, so a parent's records cannot change unseen (a chain).
+- **States**: `draft → review → approved | rejected`.
+  - Every move takes the **minted user token** (A8.3's channel); a value saying `{by: 'user'}` is refused `APPROVAL_IS_THE_USERS`.
+  - A move out of order is refused `BAD_TRANSITION`.
+  - Approving is refused `STALE_BASELINE` when the document no longer matches the pins. The changed items are named.
+  - It is also refused `STALE_RESULT` when an analysis result the baseline cites is not current (A8.5b), naming the result and its changed input.
+- **Immutable once decided.** An approved or rejected record is never written again (`BASELINE_FROZEN`).
+  - A later change makes a new draft with `parent` the old id.
+  - The old record still verifies, as what was approved then.
+- **An approved ECR** records `pin: {interfaces: digestOf(next), parts: {…}}`, the exact interfaces approved and the part revisions it was approved against.
+- **Verification on read-back** (`verifyBaseline(doc, id)`):
+  - **intact** means the content's digests match the pins, the record's digest matches, and the chain holds to the root. Any mismatch is `DIGEST_MISMATCH`, naming the field (`content.bom`, `state`, the parent …);
+  - **current** means the document's interfaces and parts match the pins. Otherwise the parts or interfaces changed since are named.
+  - An ECR is verified the same way (`verifyEcrPin`).
+- **Acceptance**:
+  - a BOM baseline drafted, sent to review and approved by the user; an agent's approval refused; out-of-order moves refused;
+  - tampering detected on read-back: a BOM quantity, the state, the interfaces, a pin, the parent's content, each named;
+  - after approval, a part changed: the baseline is intact but no longer current (the part named); a new baseline with the old as its parent approved; the old one still verifies;
+  - an approved ECR's pin verifies, and a tampered `next` is caught.
+
+#### A8.5b — result freshness (`src/team/freshness.ts`)
+- **Every result is stamped** with the fingerprint of what it reads: a digest per input.
+- **The inputs:**
+  - `model`: the part's nodes, parameters and the bodies' names;
+  - `material`: each body's material id and its basis;
+  - `process`;
+  - `interfaces`;
+  - `references`: A6.3's set;
+  - `requirement`: the one it checks;
+  - `drawing`;
+  - `faces`: the A1 signature of each face or edge the result names.
+- **What each kind reads:**
+
+  | kind | inputs |
+  |---|---|
+  | `requirement` (one check_spec verdict) | model; plus material, process, references or faces as its query reads them |
+  | `check_spec` (the report) | model, material, process, references, requirements |
+  | `keepout` | model, references |
+  | `mass` / `inertia` | model, material |
+  | `dfm` (printability) | model, process, material |
+  | `bom` | every part's model and material; interfaces |
+  | `drawing` | model, drawing |
+
+- **A result is** `{kind, subject, run, status: 'ok' | 'failed' | 'unsupported' | 'non_converged', value, verdict?: 'pass' | 'fail' | 'unknown', fingerprint}`.
+- **Freshness** (`freshnessOf(result, doc, bodies)`):
+  - **current**: every input's digest matches.
+  - **stale**: it names each changed input (`material`, `process` …). A stale result is never displayed as current (`displayOf` labels it stale and names the input) and never used for an approval (`STALE_RESULT`).
+  - **unresolved**: a face or edge it names is gone, or cannot be told. The check uses A1's one matcher (`matchSignature`):
+    - none alike, the face is gone;
+    - several as near, the candidates are listed;
+    - a clear match under another name is unresolved too, "now named X, not re-targeted": the result is never moved to another face.
+    - A result on a mate or another stored reference takes A1's `verifyReferences` problems for it, so A1's ambiguous re-match is the result's state, with A1's candidates.
+- **Late results** (`openRun`, `recordResult`, `currentOf`):
+  - each result belongs to the run that made it;
+  - a run opened later for the same kind and subject supersedes it;
+  - a result arriving for a superseded run is kept, marked late, under its own run only. `currentOf` gives the latest run's result, or pending, never a late one.
+- **Never a 0 or a pass:**
+  - a result not `ok` has value `null` and no verdict;
+  - `numericOf` gives `null`; `passes` gives false;
+  - a summary counts it as unknown, by status.
+  - Each producer maps its own failures: an evaluation that fails, a check `unknown`, the inertia's codes, printability's `unknown` rules, a drawing that cannot be built.
+- **Acceptance**:
+  - each kind stamped; a material change, a process change and a reference move each make the right results stale, naming the input, and leave the others current;
+  - a stale result refused for a baseline's approval;
+  - a late result kept under its run only;
+  - failed, unsupported and non-converged results never read as 0 or as a pass;
+  - a face lost to a topology change makes its result unresolved (gone; ambiguous with candidates; re-matched under another name, not re-targeted);
+  - A1's `refs-ambiguous` carried into a result's state with A1's candidates.
+
+#### A8.6 — the export bundle (`src/team/bundle.ts`, `cad-cli bundle write | verify`)
+- **A directory** with `manifest.json` (version 1) and these files:
+  - `document.json`: the source document;
+  - `baseline.json`: the approved BOM baseline and its ancestors;
+  - `materials.json`: each part's bodies, their material and its sources (the library's per-value sources) and basis (`body`, `brief` or `default`);
+  - `results.json`: each analysis result with its fingerprint and its freshness at writing;
+  - `ecrs.json`: the ECR history with the pins.
+- **The manifest** lists:
+  - the document's revision digest;
+  - the baseline's id and digest;
+  - every other file with its SHA-256 and size;
+  - `missing`, `stale` and `complete`.
+- **`complete` is true only when nothing is missing or stale.** These count as missing or stale:
+  - no approved baseline;
+  - a baseline not current;
+  - a body whose material has no source (the default, assumed, or a name outside the library);
+  - a stale or unresolved result;
+  - a result not `ok`.
+- **Verification in a fresh process** (`cad-cli bundle verify <dir>`, spawned in the test). Every pin is checked:
+  - each file's digest;
+  - the document's revision digest;
+  - the baseline's chain and pins against the document;
+  - each ECR's pin;
+  - each result's freshness against the document.
+  - It lists what is missing (files, the baseline), changed (digests) and stale. It exits 0 only when complete and intact, and never says complete when something is missing.
+- **Acceptance**:
+  - a complete bundle written from the clean A8 run, verified in a spawned `cad-cli`;
+  - with a file deleted, a file edited, a result made stale and no approved baseline, each listed, with `complete` false.
+
+#### The material check (#2177): engineering material apart from display looks
+- **Checked against the code (O39):** nothing infers a material from a look.
+  - A body's material is only `bodies[key].material` (a library id), or the brief's stated library material. Its density and sources are in the material library.
+  - Colour (`bodies[key].color`, face colours) and PBR appearances (`render.appearances`, the `APPEARANCES` presets) are never read for a material.
+  - A look's or body's name is not read for one either.
+- **Kept that way by a test** (`test/material-look.test.ts`). A body named "Steel bracket", coloured as the Steel appearance, with the Steel PBR preset, and with a brief finish saying steel, still has no material, and each consumer says so:
+  - mass and inertia: assumed;
+  - the BOM: none;
+  - printability: unknown;
+  - the bundle: no source.
+  - Setting a material leaves the looks unchanged.
+
+**Order**: A8.4b → A8.5b → A8.6, with a checkpoint after each.
+
 ## O33 — A8.1: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision (2026-10-20)
 
 - **Reviewers** (`ReviewerRole {name: dfm | analysis, model, review(view)}`) review what a patch makes **in parallel** with the Verifier, once the gates have passed.
@@ -1760,3 +1883,281 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - **RM5 is accepted.**
 - **Tests**: the committed readings are held to their criteria: `test/robot-urdf.test.ts` and `test/robot-mjcf.test.ts`, a test each. The frozen exports are the files the oracle loaded, and a change to them shows there until MuJoCo is run again.
 - **Not closed by this run**: contact behaviour (self-collision as the arm folds is RM6's sweep). A collision-on hang would test the contact model, not the export.
+- **A contacts-on run** is a separate question for RM7/RM8 or later. It is neither a pass nor a fail of RM5 (coordinator, on accepting O38).
+
+## O39 — #2177: the owner's decision recorded; engineering material apart from display looks (2026-10-20)
+
+- **The owner's decision**, relayed by the coordinator, on [#2177](https://github.com/barocss/barocss/issues/2177) ("research(toolchain): CAD–CAE–PLM 연결과 부품 리비전·해석 추적·변경 승인 계약", read with `gh issue view 2177`), verbatim: "#2177에서 세 가지(승인 기준선 고정, 결과 최신성 표시, 내보내기 묶음)는 A8.4·A8.5에 넣고, CAE(FEM)는 로드맵에 넣지 말고 참고만 해."
+  - It means: pinned approval baselines, result freshness and the export bundle go into A8.4 and A8.5. CAE (FEM) is a reference only, not a roadmap item.
+  - Frozen as the S0 addendum to O32: A8.4b, A8.5b and A8.6. The bundle is its own step, after A8.5b, as the coordinator allowed ("A8.5 or A8.6").
+- **The material check** (#2177: engineering material must stay apart from display looks). Read against the code before any coding:
+  - **Where a material comes from.** `materialIdOf` (`src/app/bodies.ts`) reads only:
+    - the body's `material` field (a library id);
+    - else the brief's material, when it is stated and in the library (`briefMaterial`).
+  - **Who reads it.** Mass (`chat/analysis.ts`, `chat/observe.ts`), inertia (`robot/inertia.ts`), the BOM (`team/assembly.ts`), printability (`print/rules.ts`) and library checks (`library/libraries.ts`).
+    - Each reads it through the material library (`library/builtin/materials.json`: densities, each value with its source).
+  - **What no consumer reads for a material:**
+    - a body's colour, or its face colours;
+    - its PBR appearance: `render.appearances`, or the `APPEARANCES` presets (`engine/render.ts`), which only set colour, metallic, roughness and opacity;
+    - a body's or look's name.
+  - The 3MF export writes the material's label beside the display colour. Nothing reads that back.
+  - **Nothing infers one, so nothing is refused. The test keeps it that way.**
+  - **Noted, not changed:**
+    - The appearance presets `steel` and `brass` share their ids with library materials. They are separate namespaces, and the test covers them.
+      - **Follow-up** (coordinator, on accepting O39): give the appearance ids a namespace prefix, or add a test that the two id sets never cross. The code is left as it is now.
+    - The fastener command sets `steel` as its bodies' own material (`app/fasteners.ts`). It is a command's choice, not inferred from a look, and the bundle reports it as the body's material with the library's sources (basis `body`).
+
+## O40 — A8.4b: approval baselines pinned by content digest (2026-10-20)
+
+- **The digest** (`src/team/digest.ts`).
+  - `digestOf(value)` is the SHA-256 of the canonical JSON: A7's `canonical`, now exported, with keys sorted and `undefined` left out. It is our own synchronous TypeScript, written without a function created in its loop.
+  - It is checked against `node:crypto` (an oracle only) on these inputs:
+    - the padding boundaries (55, 56, 63, 64 and 119 bytes);
+    - UTF-8 (Korean, an emoji);
+    - 1 MiB of bytes.
+  - A part's revision digest (`partDigest`) covers its document's revision fields, its placement and whether it is hidden. The base part's own features count as `base` when it has any.
+- **Baselines** (`src/team/baseline.ts`, `doc.baselines`, version 1, in `STUDIO_DOC_FIELDS`).
+  - **`draftBaseline(doc, bom, view, {parent?})`.** The BOM is checked against a built view first; a mismatch is refused `BOM_INVALID` with its problems. The record pins:
+    - the BOM;
+    - the interfaces (a copy of each is kept in the record);
+    - every part's revision digest.
+  - Its own digest covers the record and its parent's digest.
+  - A `parent` must be decided. A draft cannot follow a draft (`BAD_TRANSITION`).
+  - **`moveBaseline(doc, id, to, token)`.** The states run draft → review → approved | rejected, and only a minted user token moves one.
+    - **Refused, typed:**
+      - `APPROVAL_IS_THE_USERS`: a role, `{by: 'user'}`, a JSON copy of a token, or a frozen look-alike;
+      - `BAD_TRANSITION`: out of order;
+      - `BASELINE_FROZEN`: any move of an approved or rejected baseline;
+      - `STALE_BASELINE`: approving a baseline the document has moved past, the changes named.
+    - **Each move** is recorded with its time, and the record is re-sealed.
+  - **`verifyBaseline(doc, id)`** gives `{intact, mismatches, current, changed}`.
+    - **intact** walks the chain to the root. It checks each record's content against its pins (`content.bom`, `content.interfaces`), its own digest (`record`) and its parent's digest (`parent BLn`, or `parent BLn missing`).
+    - **current** compares the interfaces and every part against the pins. Changes are named: `part p2`, `part p1 (gone)`, `part p3 (added)`, `interfaces`.
+- **An approved ECR** records `pin: {interfaces: digestOf(next), parts, record}`:
+  - `parts` are the part revisions it was approved against;
+  - `record` is the ECR's own digest.
+  - `verifyEcrPin` names `next` or `record`. A rejected ECR pins nothing.
+- **Tests** (`test/team-baseline.test.ts`):
+  - the digest against `node:crypto`;
+  - draft, review, approve; an agent and forged tokens refused; out-of-order moves refused; frozen once approved or rejected; an invalid BOM refused.
+  - **Tampering on read-back, each named:**
+    - a BOM quantity: `content.bom` and `record`;
+    - the state: `record`;
+    - the interfaces: `content.interfaces` and `record`;
+    - a pin: `record`;
+    - the parent's content with its pins and digest rewritten to match: the child's `parent BL1`;
+    - the parent removed: `parent BL1 missing`.
+  - **A change after approval** (the board moved 4 mm):
+    - BL1 stays intact but is no longer current, with `part p2` named;
+    - a draft from before the change is refused `STALE_BASELINE`;
+    - BL2 with parent BL1 is approved; BL1 still verifies, and its record is byte for byte what was approved.
+  - An approved ECR's pin verifies; a tampered `next` or impact is caught.
+- **Limits:**
+  - **The newest record's integrity** is anchored by whoever holds its digest. That is a child baseline's `parentDigest`, and A8.6's bundle manifest. A record rewritten alone with its pins and digest made consistent looks intact by itself, and the manifest is what catches it.
+  - **`STALE_RESULT`** (a cited analysis result not current) comes with A8.5b's results.
+- **The material check** (#2177, O39): `test/material-look.test.ts`.
+  - A body named "Steel bracket", in the Steel appearance's colour, with the Steel PBR preset and a brief finish of "brushed steel look", has no material:
+    - mass: Aluminium 6061, assumed;
+    - inertia: assumed, `MATERIAL_ASSUMED`;
+    - printability's warp rule: unknown, "material is not set";
+    - its BOM line: no material.
+  - A material set on the body is the only thing that makes it steel. Changing it leaves the colour, the face colours and the appearance as they were.
+
+## O41 — A8.5b: result freshness — fingerprints, stale and unresolved, late results, no 0 and no pass for a failure (2026-10-20)
+
+- **`src/team/freshness.ts`.**
+  - `stamp` gives every result `{id, kind, subject, run, part?, status, value, number, verdict?, why?, fingerprint}`. The fingerprint is a digest per input it reads, plus the A1 signature of each face it names by name.
+  - **The producers:**
+    - `requirementResults`: each requirement's verdict, plus the `check_spec` report;
+    - `keepoutResult`: the least clearance ≥ 0, A6.3's measure;
+    - `massResult`, `inertiaResult`;
+    - `dfmResult`: printability;
+    - `bomResult`: derived, then checked against the assembly;
+    - `drawingResult`: `drawing_issues`.
+  - The inputs a requirement reads beyond its model and itself follow its query: `mass` the material; `library_check` the material and process; `print_rule` the process and material; `overhang_area` the process; `keepout` and `datum_distance` the references.
+- **Two refinements of the addendum, made before code. The tests hold both:**
+  - **`model`** is the features, the parameters and each part's name, placement and model. **Looks are not in it**: neither a body's colour nor its name. A display change must never make a mass stale. That was the point of #2177's material check, and the "bodies' names" the addendum listed would have broken it.
+  - **`check_spec`** reads the drafts too: its report lists a draft's unconfirmed dimensions as unknowns.
+- **`freshnessOf(result, doc, evaluate)`** gives `current`, `stale` (`changed`: each input named) or `unresolved` (each face with why and candidates). The faces are matched with A1's one matcher (`matchSignature`):
+  - `gone`: none alike;
+  - `ambiguous`: several as near, with the candidates;
+  - `renamed`: clearly another name. The message says "the result is not moved to it", and it is never re-targeted.
+  - **A result on a stored reference** (`refs: ['mate m1']`) takes A1's own `verifyReferences`. A problem gives `ambiguous` or `gone` with A1's candidates; a re-match, new or earlier and unconfirmed, gives `renamed`.
+- **Display and approval:**
+  - `displayOf` shows a value only when the result is current. Otherwise it reads `STALE — material changed since; it was …` or `UNRESOLVED — n1.top could be n1.top or n3.top; it was …`.
+  - `passes` needs ok, a pass and current. `numericOf` is null unless the result is ok.
+  - `summaryOf` counts pass, fail and unknown only for current, ok results; the rest go by state and status.
+  - **A baseline's cited results** (`draftBaseline(…, {cites})`, kept in the record and in its digest). Approving reads each again:
+    - a stale or unresolved one is refused `STALE_RESULT`, naming the input or the face;
+    - one not ok is refused `RESULT_NOT_OK`, a code added beside the addendum's;
+    - with no `evaluate`, it is refused `STALE_RESULT` ("cannot be read").
+    - `moveBaseline` is async now for this.
+- **Runs** (`openRun`, `recordResult`, `currentOf`):
+  - a later run for the same kind, subject and part supersedes the earlier;
+  - a result arriving for a superseded run is kept under its own run, marked `late`;
+  - `currentOf` is the latest run's result or `pending`, never an earlier run's;
+  - a result for a run of another subject is refused `NO_RUN`.
+- **Never a 0 or a pass:**
+  - a result not ok keeps no value, number or verdict, even when the producer passed some;
+  - the producers map their own failures:
+    - no body or no evaluation: `failed`;
+    - a requirement not measurable, e.g. a mass with no material: `unsupported`. An undecided keep-out within its chord band is ok with verdict `unknown`, its value null;
+    - printability with no process: `unsupported`;
+    - a drawing of nothing: `failed`;
+    - a BOM of a part that does not evaluate: `failed`, with no total.
+  - **`non_converged`**: no producer reports it today. The eigen-solve and the solvers do not say. The status holds the same rule, tested on a stamped result.
+- **Tests** (`test/team-freshness.test.ts`, 5):
+  - **The reads of every kind, and each change against them:**
+    - steel for aluminium makes the material results stale and leaves the height, face-distance, keep-out and drawing results current;
+    - SLA for FDM makes only `dfm` and `check_spec` stale;
+    - a keep-out added makes only `keepout` and `check_spec` stale;
+    - a colour and a name make nothing stale;
+    - a height change makes everything stale on `model`.
+  - **Stale display and approval:**
+    - a baseline citing p1's mass is approved while current;
+    - after p1's material changes, it is refused `STALE_BASELINE` (part p1);
+    - a new draft citing the old result is refused `STALE_RESULT` ("stale: material changed since");
+    - a failed citation is refused `RESULT_NOT_OK`.
+  - **Late results:** a late result is kept under its own run, the latest run stays pending, and then its own result is current.
+  - **Failures:** failed, unsupported (twice) and non-converged results never read 0 or pass, and the summary counts them by status.
+  - **Topology:**
+    - a 30 mm box's top split into two alike tops is ambiguous (`n1.top`, `n3.top`);
+    - a box moved off with another put in its place is renamed to `n3.*`, not moved;
+    - a sphere leaves the faces gone;
+    - A1's `refs-ambiguous` is carried in with A1's candidates exactly.
+
+## O42 — A8.6: the export bundle — a manifest of digests, verified from its files alone in a fresh process (2026-10-20)
+
+- **`src/team/bundle.ts`** is pure: no filesystem. `writeBundle(doc, evaluate, {baseline?, results?})` gives files by path:
+  - `document.bcad`: the document as the studio saves it (`encodeStudioFile`);
+  - `baseline.json`: the approved baseline with its ancestors;
+  - `materials.json`: each part's bodies with material id, label, density, basis and **every library source with its text**;
+  - `results.json`: each result with its fingerprint and its freshness when written;
+  - `ecrs.json`: the ECR history with its pins;
+  - `manifest.json`.
+- **Results**: without `results`, the standard set is written: the BOM, each part's mass, and each part's requirements.
+- **The manifest**: `{format: 'barocss-bundle', version: 1, document: {file, revision}, baseline: {id, digest}, files: [{path, sha256, bytes}], missing, stale, complete}`.
+  - `revision` is the SHA-256 of the document's revision fields.
+  - `complete` holds only when nothing is missing or stale.
+  - **Missing:**
+    - no approved baseline, or the one named not approved;
+    - a baseline that does not verify;
+    - a body with no material source: none set (the default, assumed), or a name outside the library;
+    - a result not ok;
+    - an ECR pin that does not verify.
+  - **Stale:** a baseline not current; a stale or unresolved result.
+- **`verifyBundle(read, evaluate)`** reads only through `read(path)` and gives `{complete, intact, missing, changed, stale, manifestSaidComplete}`.
+  - **Integrity, from the files alone:**
+    - each file's size and SHA-256 against the manifest. A file that does not match is not read further: its content is not the one pinned;
+    - the document's revision against the manifest's;
+    - the baseline's digest against the manifest's (the anchor O40 left to the bundle), then its chain and pins against the document;
+    - each approved ECR's pin.
+  - **State, against the document:** each result's freshness; each body's material source, read again from the document.
+  - **The manifest's own `complete` is reported, never trusted.** `complete` requires nothing missing, changed or stale.
+- **`cad-cli bundle write part.bcad -o folder [--baseline BL1]`** prints `{complete, missing, stale, wrote}` and exits 1 when the bundle is not complete.
+- **`cad-cli bundle verify folder`** prints the check and exits 0 only when the bundle is complete and intact.
+- **Tests** (`test/team-bundle.test.ts`):
+  - **Complete.** The clean A8 assembly, each body's material set to al6061 and BL1 approved:
+    - the manifest is complete, with each file's digest;
+    - materials have basis `body` and the S-DENS source text;
+    - the BOM and both masses are current;
+    - verified in-process, by a **spawned `cad-cli bundle verify`** (exit 0), and by a spawned `bundle write` from a saved `.bcad`, then verify.
+  - **Incomplete, each gap named:**
+    - `results.json` deleted: missing, while the manifest said complete;
+    - a density edited in `materials.json`: changed, its digest;
+    - the document swapped and its file digest rewritten: its revision is not the manifest's;
+    - the baseline rewritten consistently (content, pins, digest) and its file digest too: the manifest's anchor catches it;
+    - p1's mass taken before its material was set: stale (material changed), at writing and on read-back;
+    - no approved baseline and no materials: three missing;
+    - spawned: `ecrs.json` deleted gives exit 1, missing.
+
+## O43 — RM7 and RM8 S0: inverse kinematics; a four-bar loop closed — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet mesher) are on hold: they are FEA, and the owner's #2177 decision keeps CAE/FEM off the roadmap. The coordinator is asking whether that covers these rows.
+
+**Limits on both:**
+- Our own TypeScript, no new dependency. MuJoCo 3.3.0 (O38's venv) is a test oracle only.
+- No chat tool: `tools/list` is unchanged. The exposure is `src/robot/` and the MJCF export.
+- A change to the kernel core stops and goes to the coordinator.
+- The test names are compared at each checkpoint. The flow runs with `PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright` (1.62.1), the flow's own install, never another project's tree.
+
+### RM7 — damped least squares / Levenberg–Marquardt inverse kinematics (`src/robot/ik.ts`)
+- **The target**: an end link's pose, its motion from the solved pose (RM2's `Motion`), at a tool point given in the solved pose's world coordinates (default: the joint's child origin).
+- **The error**:
+  - position: the tool point's distance in **m** (the tree's mm / 1000);
+  - orientation: the angle of `R* Rᵀ` in **rad**, its axis-angle vector.
+  - Both are taken as one 6-vector, unweighted.
+- **The Jacobian**: the space Jacobian from each joint's screw at the current pose. A revolute column is `[ω × (x − p); ω]`, a prismatic one `[a; 0]`. A gear follower adds its multiplier times its column to its leader's; fixed and follower joints are not unknowns.
+- **The step**:
+  - `Δq = Jᵀ (J Jᵀ + λ² I)⁻¹ e`, with λ adapted as in LM: a step that lowers the error is kept and λ halves; one that does not is undone and λ grows by 4.
+  - Limits clamp a joint that has them.
+  - It stops at |Δp| ≤ 1e-7 m and |Δθ| ≤ 1e-7 rad (well inside the acceptance), or after 200 iterations.
+  - It restarts from up to 15 seeds (the given start, then a deterministic random sequence seeded by the target). The best result is kept.
+- **The result**: `{q, reached, iterations, restarts, errorM, errorRad, singular, sigmaMin, sigmaMax}`.
+  - `reached` holds only when both errors are within 1e-4 m and 1e-3 rad. It is never claimed otherwise.
+  - **The singularity flag**: at the result, `σmin / σmax` of J (its 6 rows, or as many as it has joints when fewer) below **1e-6**, computed by an eigen-solve of `J Jᵀ` (`JᵀJ` when narrower).
+- **Acceptance (tests on the arm-6r fixture, RM5's)**:
+  - **1000 targets, reachable by construction**: the FK of random joint values in [−π, π] (seeded). Each solve starts from 0.
+    - **The oracle is RM2's `forwardKinematics`** on the returned q, not the solver's own error.
+    - At least **990** reach the target within **1e-4 m and 1e-3 rad**. Successes, the worst errors and iteration counts are reported.
+  - **Singular**:
+    - the arm straight up (all q = 0), as a target, is reached and flagged singular, since no joint moves the tip along the arm;
+    - a 2R chain stretched is flagged too;
+    - random reachable targets are mostly not flagged, the count reported.
+  - **Unreachable** (a target past the arm's reach): `reached: false` with its best error, never a success.
+
+### RM8 — a four-bar loop, closed (`src/robot/loop.ts`, `conformance/rm/four-bar/`)
+- **The fixture**: a crank–rocker four-bar built from mates, as a user would. A base plate carries two pivots `d` apart; on them a crank `a` and a rocker `c`, joined by a coupler `b`. All are planar links on pins (a concentric and a coincident mate each).
+  - Grashof: a = 20, b = 70, c = 50, d = 60 mm, so s + l = 90 ≤ p + q = 110, and the crank turns fully.
+  - **RM1's tree** takes three revolute joints. The fourth pin is its **Loop**, already reported with its mates.
+- **The closure** (`closeLoop(tree, loop, driver, q)`):
+  - given the crank's value, it solves the two dependent joints so the loop's pin coincides on both of its parts (Newton on the pin's planar residual);
+  - **the branch is the assembled pose's**, followed by continuation from the previous solution. A step that would cross to the other branch (the sign of the coupler × rocker cross product flips) is refused `BRANCH_FLIP`, never taken;
+  - a crank angle with no closure (past a dead point, for a non-Grashof linkage) is `NO_CLOSURE`, typed.
+- **The oracle**: **Freudenstein's equation**, `K1 cos θ4 − K2 cos θ2 + K3 = cos(θ2 − θ4)`, with K1 = d/a, K2 = d/c, K3 = (a² − b² + c² + d²) / (2ac). Both of its roots are closed form; the branch is chosen by the assembled pose.
+- **Acceptance**:
+  - over a full crank turn in 360 steps, the rocker's angle equals Freudenstein's branch to **1e-9 rad**, the branch is never left, and the loop's pin coincides by FK to **1e-9 mm**;
+  - the other branch is refused when asked for (`BRANCH_FLIP`);
+  - a non-Grashof variant reports `NO_CLOSURE` at its dead points.
+- **MJCF**:
+  - the loop is written as an equality closure, `<equality><connect body1 body2 anchor/>` at the loop's pin. The tree is unchanged, and RM5's files are byte-identical for a tree without loops;
+  - our reader checks the closure.
+  - **MuJoCo** (`scripts/mjcf-oracle.py`, a closure mode, `python -I`), on the frozen export:
+    - **statically**, at 12 crank angles with our qpos, the closure's violation (the connect's anchors apart) is ≤ **1e-9 m**;
+    - **dynamically**, a 2 s passive run under gravity at 0.5 ms:
+      - the violation stays ≤ **1e-4 m** (a soft constraint);
+      - MuJoCo's rocker angle equals Freudenstein's at MuJoCo's crank angle within **1e-3 rad** throughout;
+      - the branch is never left.
+  - The readings are committed beside the case (`oracle.mujoco-3.3.0.json`), as O38's are.
+- **URDF**: still a tree format. The loop is left out and noted, as before.
+
+**Order**: RM7 → RM8, with a checkpoint after each.
+
+## O44 — RM7: DLS/LM inverse kinematics — 999 of 1000 reached; the singularity flag's threshold corrected (2026-10-20)
+
+- **`src/robot/ik.ts`**: `solveIk(tree, {link, motion, tool?, mode?}, start?)` and `jacobianConditioning(tree, link, q, tool?, mode?)`.
+  - **The model** is O43's: the space Jacobian from each joint's screw at the current pose. A gear follower's column goes to its leader, times the multiplier.
+  - **The step** is `Δq = Jᵀ (J Jᵀ + λ² I)⁻¹ e`, with LM's λ (halved on a kept step, × 4 on an undone one). Limits clamp. Up to 15 seeds come from a deterministic mulberry32 seeded by the target.
+  - **Per iteration**: typed scratch arrays reused, a small Cholesky and a cyclic-Jacobi eigen-solve of our own, no closures. The seed generator is module state.
+  - **`mode: 'position'`** solves for the tool point alone (3 rows), its turn left free. It was added for the 2R case: a planar chain's stretched singularity exists only in position. With the orientation rows, its two columns stay independent.
+- **The arm-6r fixture** (RM5's frozen `robot.bcad`). The tool point is 80 mm up l6's axis from its joint. There are 1000 targets from RM2's FK at random q ∈ [−π, π]⁶, each solved from 0 and **judged by RM2's FK on the answer**:
+  - **999 of 1000 reached** (the acceptance is 990). The worst reached errors are 9.6e-8 m and 7.8e-7 rad.
+  - The one miss, target 405, ends at 2.1e-3 m and 3.2e-4 rad after all 15 seeds. It is reported as not reached, never claimed.
+  - It takes 79 iterations a target on average. 4 of the 1000 solved targets are flagged singular.
+  - The solver's own `reached` agrees with the oracle's reading on every target.
+- **Two corrections to O43's frozen numbers, found by the singular cases.** The acceptance tolerances are unchanged.
+  - **A solve that stops at 1e-7 sits about √1e-7 rad off a singular pose.** Along the singular direction, the error grows only as δ².
+    - So the straight-up arm's solve ended 1e-3 rad off with σmin/σmax 7e-6, and was not flagged.
+    - Each descent now refines down to 1e-12, or until a step stops helping. A seed within 1e-7 is not restarted, which keeps restarts and iterations down (230 → 79 a target).
+  - **The flag's threshold is 1e-4, not 1e-6.**
+    - Even refined to machine precision, a 2R solve on its stretched pose ends 7e-6 rad off, with ratio 1.4e-6. The 1e-6 threshold sits at double precision's own limit, so it would miss a solve that is on a singularity.
+    - 1e-4 is a condition number of 1e4. Random poses of this arm have ratios from 6.8e-6 up, with a median of 7.5e-3. It flags 10 of 1000 random poses, and 4 of 1000 solved targets.
+    - Flagging more is the conservative side.
+- **Tests** (`test/robot-ik.test.ts`):
+  - the 1000 targets, with the counts printed;
+  - **singular cases:**
+    - the straight-up arm reached and flagged;
+    - the same arm bent, not flagged;
+    - a 2R chain (100 and 60 mm) stretched, flagged in position, and a position solve to its stretched point reached and flagged;
+    - bent, not flagged;
+  - a target 40 mm past the 2R's reach: `reached: false`, its error above 0.03 m.

@@ -32,6 +32,7 @@ function full(): StudioDoc {
     robot: { version: 1, base: 'i1', joints: { 'base~i1': { lower: -1, upper: 1 } } },
     brief: { version: 1, process: { value: 'fdm', basis: 'stated', source: 'printed' } },
     ecrs: { version: 1, ecrs: [] },
+    baselines: { version: 1, baselines: [] },
     interfaces: { version: 1, datums: [], keepouts: [], holePatterns: [], envelopes: [], budgets: { massG: 100 } },
     drafts: { version: 1, drafts: [{ id: 'F1', from: { image: 'a' }, nodes: ['n1'], dims: [{ name: 'width', label: 'w', value: 10, basis: 'scaled', drive: { kind: 'scale', nodes: ['n0'], about: [0, 0] } }] }] },
     references: { version: 1, references: [{ id: 'ref1', name: 'board', source: { mesh: { positions: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], indices: [0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3] } }, at: { position: [0, 0, 0], rotation: [0, 0, 0] } }], datums: [], keepouts: [] },
