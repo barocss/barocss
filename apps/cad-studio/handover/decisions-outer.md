@@ -3725,3 +3725,44 @@ The coordinator accepted IM4 and ordered IM5. Two instructions came with it. If 
   The IM1, IM3 and AM3 tests are updated for the rule.
 - **Flow**: an IM5 step through the real chat and tool servers. On a cross cylinder the report ends "parting warn"; with `sides` putting it whole in +, "parting pass".
 - The contract overhead is unchanged at 14 544 (tools/list 115 716, 101 172 plain); `tools-v1.json` is updated as a compatible change.
+
+## O82 — IM6: the quote package; the IM track closed (2026-10-21)
+
+The coordinator accepted IM5 and ordered IM6. IM6 closes the IM track; its summary follows, then CNC starts with an S0.
+
+- **The package** (`src/mould/quote.ts`, `quotePackage`). One zip, written with fixed timestamps so the same part gives the same bytes:
+  - `part.step` — the part;
+  - `dfm.json` — the manufacturability report, IM1–IM5;
+  - `dfm.md` — the same as a page to read, with the request and each rule's status and why;
+  - `quote.json` — the request: material (its basis: the body's or the brief's), finish and its least draft, pull, quantity (given, else the brief's stated one), the part's size, volume and mass, the tolerance and shrink with their sources, the press limits, and the document's revision digest;
+  - `manifest.json` — every file's SHA-256 and size, what is **open**, and `complete`.
+- **There is no price**: prices are the moulder's, and the package says so.
+- **Open** covers an unstated material (or bodies of different materials), quantity, pull or finish, a missing STEP, a failing rule, and an unknown rule. A warning is not open: the report carries it. The package is **complete** only when nothing is open.
+- It is refused unless the process is injection moulding, and refused for a quantity that is not a whole number above 0.
+- **Where to get it**:
+  - `cad-cli mould-quote part.bcad -o package.zip [--quantity n]`, exit 1 while anything is open;
+  - the Library panel's **Quote package** button, shown when the process is moulding. The button is a prop, `onQuote`, handled in `App.tsx`. The panel imports nothing new from domain code: the PKG rule.
+
+  There is no new agent tool: the contract has 456 characters of headroom, and every report value is already in `check_printability`.
+- **Tests** (`test/mould-quote.test.ts`, 3):
+  - **Complete**: an ABS block drafted 3°, 1000 stated, PM-T1, pulled along +Z. Nothing is open. The zip holds the five files by its local headers, and each file's SHA-256 matches node:crypto's.
+    - The volume matches the drafted block's closed form, 25 (2400 − 100 d + 4d²/3) with d = 25 tan 3°, to 1e-6. The mass is that volume × ABS's density.
+    - Tolerance ±0.08 + 0.002 mm/mm comes from the services page; shrink is 0.002; the press is 751 × 480 × 203.
+    - The STEP is ISO-10303-21, and the page says "No price".
+  - **Nothing assumed**: with no material and no quantity, both are open and the mass is null. A finish asking more draft than the part has is warned, not open. No process and quantity 2.5 are refused.
+  - **The CLI**: exit 0 when complete, 1 without a quantity, 0 with `--quantity 250`.
+- **Flow**: an IM6 step. A drafted ABS block with its mould settings and a stated quantity: the Library panel's Quote package downloads `…-quote.zip`, and the toast says it is complete.
+
+### The IM track, IM1–IM6 (O76–O82): summary
+
+- **What it is**: injection moulding's manufacturability, judged on the exact part. All of it lives in the one report, `check_printability`, which names the process it judged by (v2 `query.manufacturability`); with no process, nothing is assumed. The quote package carries it out.
+- **Exact, not the display mesh**: drafts come from exact normals — planes, cylinders, and NURBS faces by projection (Gauss–Newton on D1, stepping off C0 knots). The display mesh's normals are off by 0.014° on a 3° cone. The isocline n·d = 0 is bisected on the exact normal.
+- **Sampled, and said so**: undercut visibility uses ±d rays on a sub-triangle grid, and its coarsest spacing is stated in the message. Wall thickness uses the inscribed sphere at each inward ray's middle, with the ray itself for the thinnest. The area below a draft minimum is by triangle centres, and is coarse.
+- **Sourced**: every Protolabs and Hubs value is recorded with its page, the date read and the page's label (W-WEB), and `checkMaterials` refuses a web value without its page. PA12's range is the page's nylon family row, and says so. Where no page gives a value (the boss range, the minimum wall), it stays the flagged P-INJ rule of thumb.
+- **The rules**: pull, finish, wall, wall-material, wall-uniform, rib, boss, inside-radius, sink, size, draft, undercut, parting. Each has a closed-form or constructed oracle and a mutant.
+- **For the kernel lane** (queued by the coordinator):
+  - a face split by a curve, to mould a straddling face in two halves (IM5);
+  - the hole-after-union refusal, kept as a `todo` test with its fixture;
+  - the triangle-BVH consolidation (track K).
+- **Not built**: rib height (Hubs' 3 t is recorded); casting (IM8); shut-offs, the parting surface, core and cavity, and side cores (IM7); a price.
+- **Counts across the track**: 31 studio tests added (S0 4, IM1 5, IM2 6, IM3 4, IM4 5, IM5 4, IM6 3), 1 todo (the kernel repro), 6 flow steps (IM1–IM6). The contract overhead is unchanged at 14 544 through the track.

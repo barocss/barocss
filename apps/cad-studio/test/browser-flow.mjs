@@ -4929,6 +4929,25 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- IM6 (O82): the quote package from the Library panel ---------------------------------------------------------
+  await check('IM6: an ABS block drafted 3°, 1000 stated, moulded along +Z with PM-T1 — Quote package in the Library panel writes the zip, complete', async () => {
+    const fs = await import('node:fs'), file = join(out, 'im6-block.bcad');
+    const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 25, draft: 3, id: 'n1' }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
+      process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'pm-t1' }, bodies: { b1: { material: 'abs' } }, brief: { version: 1, quantity: { value: 1000, basis: 'stated', source: '1000 of them' } } };
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.mould?.finish === 'pm-t1' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await page.click('[aria-label="Library"]');
+    await page.waitForSelector('[aria-label="Quote package"]', { timeout: 5000 });
+    const download = page.waitForEvent('download');
+    await page.click('[aria-label="Quote package"]');
+    assert.match((await download).suggestedFilename(), /-quote\.zip$/);
+    await page.waitForFunction(() => /Quote package written/.test(document.body.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/open/.test(await page.locator('text=Quote package written').first().innerText()), 'complete: nothing open');
+    await snap('im6-quote');
+    await page.click('[aria-label="Close library"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

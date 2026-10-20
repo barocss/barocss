@@ -5,7 +5,7 @@
 //   cad-cli run part.cad.js -o part.bcad [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
 //   cad-cli check part.bcad
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { mjcfOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { readMjcf } from '../src/robot/mjcfCheck';
 import { readUrdf } from '../src/robot/urdfCheck';
@@ -18,6 +18,7 @@ import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';
 import { verifyBundle, writeBundle } from '../src/team/bundle';
+import { quotePackage } from '../src/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '../src/chat/robot';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
@@ -30,6 +31,8 @@ cad-cli urdf part.bcad -o folder [--name robot]
   Writes the assembly as URDF (folder/robot.urdf and folder/meshes/*.stl), checked against the URDF spec; exit 1 when refused.
 cad-cli mjcf part.bcad -o folder [--name robot]
   Writes it as a MuJoCo MJCF model (folder/robot.xml and folder/meshes/*.stl), checked; exit 1 when refused.
+cad-cli mould-quote part.bcad -o package.zip [--quantity n]
+  Writes the injection-moulding quote package (IM6): part.step, dfm.json, dfm.md, quote.json and manifest.json; exit 1 while anything is open.
 cad-cli team --metrics folder
   Runs every scenario in the folder (A7, A8) and prints each detector's true and false positives and negatives, precision
   and recall against the scenarios' seeded-defect labels (A8.5).
@@ -135,6 +138,19 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     for (const [path, bytes] of b.files) writeAtomic(join(dir, path), bytes);
     say(io.stdout, { complete: b.manifest.complete, missing: b.manifest.missing, stale: b.manifest.stale, wrote: [...b.files.keys()].map(p => join(dir, p)) });
     return b.manifest.complete ? 0 : 1;
+  }
+  if (cmd === 'mould-quote') {
+    // (IM6, O82: the injection-moulding quote package of a saved part, as one zip; exit 1 while anything is open.)
+    const oi = rest.indexOf('-o'), qi = rest.indexOf('--quantity'), file = rest.find((a, i) => !a.startsWith('-') && rest[i - 1] !== '-o' && rest[i - 1] !== '--quantity');
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('mould-quote takes a .bcad file and -o package.zip');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    const e = await evaluate(opened.doc); if (!e?.ok) return failed('the part does not evaluate');
+    const q = await quotePackage(opened.doc, e.bodies, evaluate, { name: basename(file).replace(/\.[^.]+$/, ''), ...(qi >= 0 ? { quantity: Number(rest[qi + 1]) } : {}) });
+    if ('error' in q) return failed(q.error);
+    writeAtomic(resolve(rest[oi + 1]), q.zip);
+    say(io.stdout, { complete: q.manifest.complete, open: q.manifest.open, files: q.manifest.files.map(f => f.path), wrote: resolve(rest[oi + 1]) });
+    return q.manifest.complete ? 0 : 1;
   }
   if (cmd === 'robot-check') {
     // (RD9, O47: the harness on a saved robot and a duty file.)
