@@ -1479,6 +1479,10 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
     Parameters are sampled per run; 5 trials per scenario on fresh documents; pass@k and pass^k;
     a Requirement Score; checks validated against mutants; no VLM in the score; the checker is hidden
     from the agent.
+    - **S0 (O70)**: 14 rungs (+ the owner's 2-axis arm) frozen — samplers, hidden predicates, mutants (100 % kill), metrics; ready on
+      today's tools: 1–3, 5, 8–10, 12–14; rungs 6 (closed-form beam at the root section) and 11 (translation captivity) need one
+      small outer-lane predicate each; held: rung 7's bolt (R12c) and rung 4's machining rules (CNC1–CNC6), both kernel lane.
+      Live trials pending the owner.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
