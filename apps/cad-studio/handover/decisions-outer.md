@@ -2581,3 +2581,90 @@ Assigned by the coordinator after the drawing table. It uses what exists:
   - tilted print directions;
   - several bodies;
   - choosing cut positions by feature (the cuts are even).
+
+## O53 — AM7 S0: SDF voxel hollowing with drains (AM7a), then lattices (AM7b) — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after AM6. **No kernel-core change is needed**, and a probe shows why: a B-rep minus a facet `mesh` body is the kernel's existing `difference`. A 40 mm box less a 20 mm facet cube gives 56 000 mm³ exactly, with one inner shell. So AM7 keeps the part's outside exact and subtracts a voxel-meshed cavity.
+
+### AM7a — hollowing with drains (`src/print/hollow.ts`, the command `hollow`, "Hollow for printing")
+- **The field**: the part's body (one body) is sampled on a grid of spacing `h` over its box, padded by 2h, the origin offset by an irrational fraction of h so no node lies on a mesh vertex or face plane.
+  - The depth at each node is its distance to the body's surface (point–triangle, triangles binned on a coarse grid of the search radius), signed by ray parity along +X per grid row.
+  - The cavity's field is φ = depth − t inside the body.
+- **The cavity**: φ > 0, meshed by **marching tetrahedra** (six tetrahedra a cell, no ambiguous cases, a closed manifold mesh). Its components are found by flood fill on the grid.
+  - It becomes a `mesh` node (`representation: 'facets'`) whose arrays are blobs, put synchronously by our own SHA-256 (`team/digest.ts`). Its body is subtracted from the part's (`difference`).
+- **The drains**, one per cavity component at least (`drains` per component, default 1): at the component's lowest grid point along the print direction, a `hole` of Ø `drain` from the part's bottom side (`side: min` of the up axis), deep enough to reach the cavity (the lowest point's height above the part's bottom + 2h).
+  - **Typed refusals:**
+    - `ONE_BODY`;
+    - `DIRECTION_NOT_AXIS` (AM6's rule);
+    - `NOTHING_TO_HOLLOW`: no node deeper than t, the part thinner than 2t everywhere;
+    - `GRID_TOO_FINE`: over 4·10⁶ nodes, with the h that fits;
+    - `BAD_VALUES`: t, h or drain ≤ 0; h > t/2;
+    - `DRAIN_NO_ROOM`: a drain's circle not inside the bottom face.
+- **The values**: `t` (the wall, default 2 mm), `h` (the voxel, default t/4), `drain` (Ø, default 4 mm).
+
+**Acceptance (AM7a), with bounds derived, not tuned:**
+- **Wall thickness against the target:**
+  - **on planar walls**, φ is linear across a cell, so the inner surface is at depth t to 1e-6. Measured from points on the outer faces along their normals to the cavity mesh;
+  - **everywhere**, the wall is at least t − h. For a convex part the depth is concave, linear interpolation under-reaches it, and the wall is at least t − 1e-6.
+- **A drain reaches every enclosed cavity**:
+  - before the drains, the kernel's result has one inner shell per cavity component, and a flood fill of the result's empty voxels from outside finds them enclosed;
+  - after, the inner shells are 0 and the flood fill reaches every empty voxel inside the box. The check grid is h_c = drain/4, so a drain is at least 4 voxels across;
+  - a part with two separate thick lumps gets two drains.
+- **Mass against the closed form:**
+  - **a box** a × b × c: V = abc − (a−2t)(b−2t)(c−2t) − Σ π r² t + δ, with 0 ≤ δ ≤ L·h² + 8h³. Here L is the cavity box's total edge length, where the cells straddling an edge cut a sliver of cross-section under h² from the cavity, and 8h³ allows for its corners;
+  - **a sphere** of radius R (the kernel's exact sphere): the cavity is within 3·A·h²/(8(R − t)) of 4/3·π(R − t)³, where A is the cavity's area. A tetrahedron's longest edge is √3·h, and a chord's sagitta on a radius ρ is ℓ²/(8ρ);
+    - **plus A·δ**, where δ is the body's display-mesh chord tolerance (`chordOf`). The depth is measured to the display mesh, which is the B-rep to within δ. This was added to the S0 before coding;
+  - the drains' volume is subtracted as the holes' cylinder within the wall.
+- **Exposure**: the command, available on a one-body part, undone as one change; `run_command` (the contract regenerated); a flow step before the last.
+
+- **Two refinements, found in implementation before acceptance and frozen before the tests ran:**
+  - **The kernel's mesh Boolean takes up to 16 000 triangles until F3.** The box's cavity had 46 488, refused "Booleans of two large meshes arrive with F3". This is a limit of the kernel lane's, not a change asked of it.
+    - The cavity is simplified first by R9's own `decimate` feature, within e = h/50.
+    - At a zero bound, 46 488 → 242 triangles, but the polyhedral Boolean refused the result ("touch along an edge"). At 0.01 mm it is 80 triangles and accepted.
+    - So e = h/50, raised to h/20 and then h/10 only if the Boolean refuses. Otherwise `BOOLEAN_REFUSED`, typed, says a coarser h.
+    - **The bounds take e:**
+      - the wall is at least t − h − e;
+      - on planar walls, collapses stay in the plane, so the inner surface stays at t;
+      - the box's δ widens to [−A·e, L·h² + 8h³ + A·e];
+      - the sphere's bound adds A·e;
+      - A is the cavity's area.
+  - **A drain goes to the middle of its cavity's floor**: of the lowest nodes, the one nearest their centroid. The first run's "lowest node" was the floor's corner.
+
+### AM7b — lattices (a gyroid infill of the cavity)
+- **The field**: inside the cavity, a gyroid sheet of cell `L` and thickness `w`: |sin x cos y + sin y cos z + sin z cos x| ≤ k, with k set from w, intersected with the cavity, unioned with the wall.
+- **Scope**: frozen in an S0 of its own after AM7a, with its acceptance written then:
+  - the lattice connected to the wall (one solid component by flood fill);
+  - the cavity still drained;
+  - the solid fraction against the gyroid's own numerical fraction for k.
+
+## O54 — AM7a: SDF voxel hollowing with drains, for planar-faced parts; curved bodies wait for the kernel's mesh Booleans (2026-10-20)
+
+- **`src/print/hollow.ts`.**
+  - **The field and mesher:** `cavityField` (the depth by point–triangle distance on binned triangles; the sign by ray parity along +X per grid row); `marchingTetrahedra` (six tetrahedra a cell, vertices shared by grid edge, oriented outward); `cavityComponents` (flood fill).
+  - **Pieces and checks:** `meshPieces` (connected pieces, union-find); `enclosedVoids` (a flood fill of a body's empty voxels from outside); `planHollow`.
+  - **The hot loops** use typed arrays and module-level helpers. The marching state is an object, not a closure.
+- **`planHollow` per O53**, for each cavity piece in turn: a facet `mesh` node (its arrays as blobs, hashed synchronously), R9's `decimate` within e, and `difference` from the part. Then a `hole` from the bottom into each cavity's floor.
+- **The command `hollow`** ("Hollow for printing"): t 2, h 0.5, drain Ø4 by default. It is in the palette and reaches the agent through `run_command`; `COMMAND_DOCS` has it and `tools-v1.json` is regenerated (one line).
+- **Found in implementation, all before the acceptance tests passed; the S0 refinements are written into O53:**
+  - **The kernel's mesh Boolean takes ≤ 16 000 triangles until F3.** The cavity is decimated within e = h/50, raised to h/20 and h/10 only if refused, and the bounds take e.
+  - **A cavity in two pieces** is refused by the kernel ("open each piece as its own body"), so there is one mesh node a piece.
+  - **One irrational offset on every axis** put each row with j = k on the plane y = z, the diagonal of a square face's two triangles. The ray hit their shared edge twice, the parity broke along that row, and the dumbbell's two cavities came out as 22. Each axis now has its own irrational fraction (1/π, 1/e, √2 − 1).
+  - **A drain goes to the middle of its cavity's floor**, not its corner.
+  - **Curved bodies are refused at once (`CURVED_BODY`).** A curved B-rep less a facet mesh goes through the kernel's analytic Boolean: the sphere ran 457 s and failed ("the result is not a manifold"). Taking a mesh cavity from a curved body needs the kernel lane's F3, so this stopped at the coordinator's line: no kernel change, the question sent to the coordinator.
+  - **`chordOf` (A6.3) understates the display mesh's depth on a doubly curved face.** It is an edge's sagitta, and a triangle's middle sits lower. On the R 15 sphere it gives 0.072 mm, and the mesh is 0.144 mm below the sphere. AM7's sphere check measures the mesh's own depth instead.
+    - **A follow-up:** A6.3's keep-out band uses `chordOf`, so on spheres and tori its undecided band is too narrow.
+- **Tests** (`test/hollow.test.ts`, 3):
+  - **A 40 × 30 × 20 box, t 3, h 0.75:**
+    - eight probes from the outer faces' middles reach the cavity at 3 to 1e-6;
+    - every marching-tetrahedra vertex is at least 3 from the outside;
+    - the decimated cavity's walls are at least t − h − e;
+    - the drain is at the floor's middle;
+    - before the drain, one inner shell and an enclosed void; after, none of either;
+    - **mass:** δ = 19.0 mm³, within [−A·e, L·h² + 8h³ + A·e] = [−48.8, 214.2].
+  - **The cavity mesher on a sphere** (R 15, t 2.5, h 0.5): 8004.2 against 8181.2 mm³. |Δ| = 177 is within 3·A·h²/(8(R − t)) + A·δ = 297, where δ = 0.144 is the mesh's measured depth. `planHollow` refuses the sphere `CURVED_BODY` in under a second.
+  - **A dumbbell** (two 20 mm blocks in plan, joined by a 4 mm bar, extruded 20): two cavities, two drains, no inner shell, no enclosed void.
+  - **Refusals:** `NOTHING_TO_HOLLOW` (a 4 mm cube), `ONE_BODY`, `DIRECTION_NOT_AXIS`, `BAD_VALUES` (t 0, h > t/2, drain 0) and `GRID_TOO_FINE` (h 0.01).
+- **Flow step** (before the last): a 40 × 30 × 20 block file, "hollow for printing" from the palette with wall 2. It gives mesh, decimate, difference and hole; volume 9009 mm³ against the closed form 9000.9.
+- **Waiting:**
+  - **curved bodies**, for the kernel's mesh Booleans (F3), or for a decision to mesh the whole part in their case, its outside then approximated;
+  - **AM7b (lattices)**, an S0 of its own after this.

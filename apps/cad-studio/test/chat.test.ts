@@ -70,9 +70,11 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const sheetEdge = sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side1|n1.top'));
   // (Split to fit the bed takes a part of one body, on a printer: a 300 mm bar on the 256 mm FDM printer, AM6.)
   const bar = await stateOf({ ...rectanglePart(300, 40, 20), printer: 'fdm-256', process: 'fdm' });
+  // (Hollowing takes one planar-faced body thick enough to hollow: a 40 × 30 × 20 box, AM7a.)
+  const hollowable = await stateOf(rectanglePart(40, 30, 20));
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
-    const ctx: Ctx = id === 'split-bed' ? { doc: bar.doc, bodies: bar.bodies, selection: sel({}) } : id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
+    const ctx: Ctx = id === 'hollow' ? { doc: hollowable.doc, bodies: hollowable.bodies, selection: sel({}) } : id === 'split-bed' ? { doc: bar.doc, bodies: bar.bodies, selection: sel({}) } : id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
       : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) }
       : id === 'sheet-corner-relief' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side0|n1.side1')) }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;

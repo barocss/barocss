@@ -2591,6 +2591,7 @@
        "linear-pattern",
        "circular-pattern",
        "split",
+       "hollow",
        "split-bed",
        "union",
        "difference",
