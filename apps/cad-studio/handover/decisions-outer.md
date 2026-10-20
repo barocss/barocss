@@ -3766,3 +3766,46 @@ The coordinator accepted IM5 and ordered IM6. IM6 closes the IM track; its summa
   - the triangle-BVH consolidation (track K).
 - **Not built**: rib height (Hubs' 3 t is recorded); casting (IM8); shut-offs, the parting surface, core and cavity, and side cores (IM7); a price.
 - **Counts across the track**: 31 studio tests added (S0 4, IM1 5, IM2 6, IM3 4, IM4 5, IM5 4, IM6 3), 1 todo (the kernel repro), 6 flow steps (IM1–IM6). The contract overhead is unchanged at 14 544 through the track.
+
+## O83 — CNC S0: what machining can measure exactly today, its sources, and the plan for CNC1–CNC6 (2026-10-21)
+
+The coordinator closed IM with O82 and ordered CNC to start with an S0. Evidence is in `test/cnc-s0.test.ts` (4 probes).
+
+- **What exists**:
+  - the brief's processes `cnc-milling` and `cnc-turning`, with no profile in the material library yet;
+  - the standards data: metric coarse threads, tap drills (d − P), clearance holes, each flagged as sourced or derived (`standards/provenance.ts`, `standards_lookup`);
+  - the drawing's callouts, datums, tolerances and threads (R14, `src/drawing/`), with no surface-roughness note;
+  - IM's exact queries: exact normals by projection (`mould/draft.ts`), visibility rays through the studio BVH (`mould/undercut.ts`), the walls' fillets, sharp corners and local thickness (`mould/walls.ts`);
+  - the kernel's STEP writer: AP214/AP242 B-rep and AP242 tessellated, with **no semantic PMI**.
+- **The probes**:
+  - **P1, a pocket**: in a 120 × 80 × 12 plate, its four vertical corner radii are found exact (r 5) and its floor by exact planes (depth 8). That compares against Hubs' "larger than ⅓ x pocket depth" (5 ≥ 2.667). Found and fixed on the way: `wallsOf` grouped a feature's fillet pieces by name alone. A pocket's four corners are one feature, so they were read as a full turn and not as fillets; pieces are now grouped by name and axis (`sameAxis`). IM4's tests are unchanged and pass.
+  - **P2, access from six directions**: on a block with a side hole, every triangle is seen from one of ±X, ±Y, ±Z, its bore along ±Y; a greedy setup count gives two. Rays along a face count it seen, which is side milling's reach; CNC4 adds the tool's side, n·t ≥ 0. An internal groove is seen from none of the six.
+  - **P3, a hole**: Ø5 and 30 deep, from its exact cylinder and its extent, has depth over diameter of 6. That is Hubs' "Maximum depth: 6 x nominal diameter".
+  - **P4, turning's axisymmetry**: on a drafted cylinder (a cone, end planes) about Z, every exact normal meets the axis, n · (a × (p − c)) = 0 to 1e-9. On a box the side faces miss it by more than 0.5.
+- **Sources** (public HTML, read-only, 2026-10-21; values recorded per value in CNC1):
+  - **Hubs' CNC machining guide** (`hubs.com/guides/cnc-machining/`):
+    - inside edges larger than ⅓ × pocket depth;
+    - pockets 4 × width recommended, 10 × tool diameter feasible;
+    - walls 0.8 / 0.5 mm in metal and 1.5 / 1.0 in plastic;
+    - holes 4 × d recommended, 6 × d maximum;
+    - threads 3 × d long, M6 recommended, M2 feasible;
+    - small features 2.5 / 0.5 mm;
+    - tall features h/w < 4;
+    - tolerance ±0.125 standard, ±0.025 feasible;
+    - milling 400 × 250 × 150; turning Ø500 × 1000;
+    - undercuts 3–40 mm wide and at most 2 × wide deep.
+  - **Protolabs' CNC service page** (`protolabs.com/services/cnc-machining/`):
+    - milling size 559 × 356 × 95.3 and 650 × 650 × 300;
+    - tolerance ±0.127 mm without a drawing, with the classes **ISO 2768-1 f** (metals) and **m** (plastics). The class is named; its values are not copied;
+    - text 0.457 / 0.838 mm wide and 0.3 deep;
+    - turning Ø100.33 × 228.6 and Ø431 × 990, walls 0.51.
+  - Its milling and turning guideline pages are linked HTML, to read in CNC1. No PDFs.
+- **The plan**, each stage with oracles, mutants where it is a check, and a flow step, all inside the one manufacturability report (`check_printability`, `query.manufacturability`), as IM's are:
+  - **CNC1**: `cnc-milling` and `cnc-turning` profiles sourced page by page, metal or plastic by the material's family; the tolerance class named, with its values sourced; warn and error levels by recommended and feasible.
+  - **CNC2**: holes and threads — each bore's depth over its diameter, standard drill sizes, tap drills and thread depth from the standards data, counterbores (stepped coaxial bores), cosmetic threads and callouts.
+  - **CNC3**: tool radius, depth and walls — inside vertical corners against ⅓ × depth (fillets, and sharp corners as radius 0), pocket depth against width, the thinnest wall (IM4's walls) against metal and plastic, small features, text stroke.
+  - **CNC4**: access and setups — the six directions with the tool's side, undercut flags (seen from none), a greedy setup count, the envelope against the machine's.
+  - **CNC5**: drawing and PMI minimum — views, hole callouts, datums, a tolerance note, material, Ra, all checked on the drawing (R14). **AP242 semantic PMI in the STEP writer is a kernel-core change**, so CNC5 stops there and asks; the drawing check does not need it.
+  - **CNC6**: turning — axisymmetry by P4, grooves, thread relief, L/D, against the turning profile.
+  - **RB9 rung 4**'s held "machinable" rule becomes real when CNC1–CNC4 land.
+- **Kernel-core**: none is needed for CNC1–CNC4 or CNC6. CNC5's semantic PMI is the kernel's.
