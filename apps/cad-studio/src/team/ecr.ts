@@ -7,10 +7,14 @@
 // CONTRACT_MOVED until the Architect renews it; rejected, nothing changes.
 import type { StudioDoc } from '../engine/doc';
 import { interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from './parts';
+import { digestOf, partDigests } from './digest';
 
 export interface EcrChange { item: string; kind: 'added' | 'removed' | 'changed'; parts: string[] }
 export interface EcrImpact { parts: string[]; requirements: string[]; openPatches: string[]; leases: string[] }
-export interface Ecr { id: string; by: string; base: string; next: Interfaces; changes: EcrChange[]; impact: EcrImpact; status: 'open' | 'approved' | 'rejected'; decided?: { by: 'user'; at: string }; reason?: string }
+/** An approved ECR's pin (A8.4b): the exact interfaces approved and the part revisions they were approved against, by
+ * content digest, and the record's own digest (the ECR without `pin.record`). */
+export interface EcrPin { interfaces: string; parts: Record<string, string>; record: string }
+export interface Ecr { id: string; by: string; base: string; next: Interfaces; changes: EcrChange[]; impact: EcrImpact; status: 'open' | 'approved' | 'rejected'; decided?: { by: 'user'; at: string }; reason?: string; pin?: EcrPin }
 export interface EcrLog { version: 1; ecrs: Ecr[] }
 export type EcrCode = 'NO_CHANGE' | 'STALE_ECR' | 'NO_ECR' | 'DECIDED' | 'APPROVAL_IS_THE_USERS';
 export class EcrError extends Error { constructor(public code: EcrCode, message: string) { super(`[${code}] ${message}`); this.name = 'EcrError'; } }
@@ -74,7 +78,8 @@ export function decideEcr(doc: StudioDoc, id: string, approve: boolean, who: Use
   if (!ecr) throw new EcrError('NO_ECR', `no ECR ${id}; ECRs: ${log.ecrs.map(e => `${e.id} (${e.status})`).join(', ') || 'none'}`);
   if (ecr.status !== 'open') throw new EcrError('DECIDED', `${id} is already ${ecr.status}`);
   if (approve && ecr.base !== interfacesRevision(doc)) throw new EcrError('STALE_ECR', `${id} was opened on the interfaces at ${ecr.base}; they are at ${interfacesRevision(doc)}: open it again on them`);
-  const decided: Ecr = { ...ecr, status: approve ? 'approved' : 'rejected', decided: { by: 'user', at: who.at } };
+  const was: Ecr = { ...ecr, status: approve ? 'approved' : 'rejected', decided: { by: 'user', at: who.at } };
+  const decided: Ecr = approve ? pinned(was, partDigests(doc)) : was;
   const ecrs = { version: 1 as const, ecrs: log.ecrs.map(e => (e.id === id ? decided : e)) };
   if (!approve) return { doc: { ...doc, ecrs }, leases: new Map(leases), ecr: decided };
   // (Approved: the interfaces as proposed. A touched lease keeps the old contract — its holder's next patch is refused
@@ -85,3 +90,14 @@ export function decideEcr(doc: StudioDoc, id: string, approve: boolean, who: Use
 }
 /** The Architect renews leases on the interfaces as they stand. */
 export const renewLeases = (doc: StudioDoc, leases: ReadonlyMap<string, Lease>, until: number, parts?: readonly string[]) => new Map([...leases].map(([k, l]) => { if (parts && !parts.includes(l.part)) return [k, l]; const { expiredBy: _e, ...rest } = l; void _e; return [k, { ...rest, contract: interfacesRevision(doc), until }]; }));
+const ecrRecord = (e: Ecr) => digestOf({ ...e, pin: e.pin ? { interfaces: e.pin.interfaces, parts: e.pin.parts } : undefined });
+function pinned(e: Ecr, parts: Record<string, string>): Ecr { const p: Ecr = { ...e, pin: { interfaces: digestOf(readInterfaces(e.next)), parts, record: '' } }; p.pin!.record = ecrRecord(p); return p; }
+/** An approved ECR read back: its interfaces are the ones pinned and its record its own (each mismatch named). */
+export function verifyEcrPin(e: Ecr): string[] {
+  if (e.status !== 'approved') return [];
+  if (!e.pin) return [`${e.id}: approved with no pin`];
+  const out: string[] = [];
+  if (digestOf(readInterfaces(e.next)) !== e.pin.interfaces) out.push(`${e.id}: next`);
+  if (ecrRecord(e) !== e.pin.record) out.push(`${e.id}: record`);
+  return out;
+}

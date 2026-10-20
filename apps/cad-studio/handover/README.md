@@ -400,6 +400,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     Verifier that rejects all. Declared contact (a shared pattern or a mate) passes as EXPECTED_CONTACT; undeclared
     touching is held.
   - **A8 done** (O32–O37). Live numbers pending the owner (O30).
+  - **#2177** (O39, the owner's decision): approval baselines, result freshness and the export bundle into A8 (the S0
+    addendum to O32: A8.4b → A8.5b → A8.6); CAE (FEM) a reference only. Material and display looks checked apart (no
+    inference; a test keeps it so).
+  - **A8.4b** (O40): done. Baselines pinned by SHA-256 of canonical JSON (BOM, interfaces, every part's revision),
+    chained to their parents; draft → review → approved | rejected by the user's token only; frozen once decided;
+    tampering named on read-back; an approved ECR pins what it approved.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

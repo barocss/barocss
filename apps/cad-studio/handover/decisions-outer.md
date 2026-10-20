@@ -1529,6 +1529,129 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
 
 **Order**: A8.1 → A8.2 → A8.3 → A8.4 → A8.5, with a checkpoint after each.
 
+### S0 addendum (2026-10-20, #2177; O39) — pinned approval baselines, result freshness, the export bundle
+The owner's decision on #2177 (O39, verbatim there): approval baselines, result freshness and the export bundle go into A8.4 and A8.5; CAE (FEM) stays out of the roadmap, as a reference only. Frozen here before any code. The limits above still hold: deterministic, no chat tool, `tools/list` unchanged, exposure `src/team/` and `cad-cli`.
+
+**The digest.** Integrity needs a cryptographic digest; A7's 64-bit FNV `revisionOf` stays a staleness key only.
+- `digestOf(value)`: **SHA-256** of the canonical JSON (A7's `canonical`: keys sorted, `undefined` left out) as UTF-8, 64 hex digits.
+- Synchronous, our own TypeScript (`src/team/digest.ts`): the ECR and baseline decisions are synchronous, and WebCrypto's digest is not. Checked against `node:crypto` in the tests, an oracle only.
+- A part's revision digest is `digestOf` of its document's revision fields (the fields `canonicalOf` reads).
+
+#### A8.4b — pinned approval baselines (`src/team/baseline.ts`, `doc.baselines`, version 1)
+- **A baseline** is `{id, kind: 'bom', parent: id | null, state, content: {bom, interfaces}, pins, digest, decided?}`:
+  - `pins`: `{interfaces: digestOf(interfaces), bom: digestOf(bom), parts: {partId: revision digest}}`, every part in the assembly;
+  - `digest`: `digestOf` of the record without `digest` itself, the parent's `digest` included in it, so a parent's records cannot change unseen (a chain).
+- **States**: `draft → review → approved | rejected`.
+  - Every move takes the **minted user token** (A8.3's channel); a value saying `{by: 'user'}` is refused `APPROVAL_IS_THE_USERS`.
+  - A move out of order is refused `BAD_TRANSITION`.
+  - Approving is refused `STALE_BASELINE` when the document no longer matches the pins. The changed items are named.
+  - It is also refused `STALE_RESULT` when an analysis result the baseline cites is not current (A8.5b), naming the result and its changed input.
+- **Immutable once decided.** An approved or rejected record is never written again (`BASELINE_FROZEN`).
+  - A later change makes a new draft with `parent` the old id.
+  - The old record still verifies, as what was approved then.
+- **An approved ECR** records `pin: {interfaces: digestOf(next), parts: {…}}`, the exact interfaces approved and the part revisions it was approved against.
+- **Verification on read-back** (`verifyBaseline(doc, id)`):
+  - **intact** means the content's digests match the pins, the record's digest matches, and the chain holds to the root. Any mismatch is `DIGEST_MISMATCH`, naming the field (`content.bom`, `state`, the parent …);
+  - **current** means the document's interfaces and parts match the pins. Otherwise the parts or interfaces changed since are named.
+  - An ECR is verified the same way (`verifyEcrPin`).
+- **Acceptance**:
+  - a BOM baseline drafted, sent to review and approved by the user; an agent's approval refused; out-of-order moves refused;
+  - tampering detected on read-back: a BOM quantity, the state, the interfaces, a pin, the parent's content, each named;
+  - after approval, a part changed: the baseline is intact but no longer current (the part named); a new baseline with the old as its parent approved; the old one still verifies;
+  - an approved ECR's pin verifies, and a tampered `next` is caught.
+
+#### A8.5b — result freshness (`src/team/freshness.ts`)
+- **Every result is stamped** with the fingerprint of what it reads: a digest per input.
+- **The inputs:**
+  - `model`: the part's nodes, parameters and the bodies' names;
+  - `material`: each body's material id and its basis;
+  - `process`;
+  - `interfaces`;
+  - `references`: A6.3's set;
+  - `requirement`: the one it checks;
+  - `drawing`;
+  - `faces`: the A1 signature of each face or edge the result names.
+- **What each kind reads:**
+
+  | kind | inputs |
+  |---|---|
+  | `requirement` (one check_spec verdict) | model; plus material, process, references or faces as its query reads them |
+  | `check_spec` (the report) | model, material, process, references, requirements |
+  | `keepout` | model, references |
+  | `mass` / `inertia` | model, material |
+  | `dfm` (printability) | model, process, material |
+  | `bom` | every part's model and material; interfaces |
+  | `drawing` | model, drawing |
+
+- **A result is** `{kind, subject, run, status: 'ok' | 'failed' | 'unsupported' | 'non_converged', value, verdict?: 'pass' | 'fail' | 'unknown', fingerprint}`.
+- **Freshness** (`freshnessOf(result, doc, bodies)`):
+  - **current**: every input's digest matches.
+  - **stale**: it names each changed input (`material`, `process` …). A stale result is never displayed as current (`displayOf` labels it stale and names the input) and never used for an approval (`STALE_RESULT`).
+  - **unresolved**: a face or edge it names is gone, or cannot be told. The check uses A1's one matcher (`matchSignature`):
+    - none alike, the face is gone;
+    - several as near, the candidates are listed;
+    - a clear match under another name is unresolved too, "now named X, not re-targeted": the result is never moved to another face.
+    - A result on a mate or another stored reference takes A1's `verifyReferences` problems for it, so A1's ambiguous re-match is the result's state, with A1's candidates.
+- **Late results** (`openRun`, `recordResult`, `currentOf`):
+  - each result belongs to the run that made it;
+  - a run opened later for the same kind and subject supersedes it;
+  - a result arriving for a superseded run is kept, marked late, under its own run only. `currentOf` gives the latest run's result, or pending, never a late one.
+- **Never a 0 or a pass:**
+  - a result not `ok` has value `null` and no verdict;
+  - `numericOf` gives `null`; `passes` gives false;
+  - a summary counts it as unknown, by status.
+  - Each producer maps its own failures: an evaluation that fails, a check `unknown`, the inertia's codes, printability's `unknown` rules, a drawing that cannot be built.
+- **Acceptance**:
+  - each kind stamped; a material change, a process change and a reference move each make the right results stale, naming the input, and leave the others current;
+  - a stale result refused for a baseline's approval;
+  - a late result kept under its run only;
+  - failed, unsupported and non-converged results never read as 0 or as a pass;
+  - a face lost to a topology change makes its result unresolved (gone; ambiguous with candidates; re-matched under another name, not re-targeted);
+  - A1's `refs-ambiguous` carried into a result's state with A1's candidates.
+
+#### A8.6 — the export bundle (`src/team/bundle.ts`, `cad-cli bundle write | verify`)
+- **A directory** with `manifest.json` (version 1) and these files:
+  - `document.json`: the source document;
+  - `baseline.json`: the approved BOM baseline and its ancestors;
+  - `materials.json`: each part's bodies, their material and its sources (the library's per-value sources) and basis (`body`, `brief` or `default`);
+  - `results.json`: each analysis result with its fingerprint and its freshness at writing;
+  - `ecrs.json`: the ECR history with the pins.
+- **The manifest** lists:
+  - the document's revision digest;
+  - the baseline's id and digest;
+  - every other file with its SHA-256 and size;
+  - `missing`, `stale` and `complete`.
+- **`complete` is true only when nothing is missing or stale.** These count as missing or stale:
+  - no approved baseline;
+  - a baseline not current;
+  - a body whose material has no source (the default, assumed, or a name outside the library);
+  - a stale or unresolved result;
+  - a result not `ok`.
+- **Verification in a fresh process** (`cad-cli bundle verify <dir>`, spawned in the test). Every pin is checked:
+  - each file's digest;
+  - the document's revision digest;
+  - the baseline's chain and pins against the document;
+  - each ECR's pin;
+  - each result's freshness against the document.
+  - It lists what is missing (files, the baseline), changed (digests) and stale. It exits 0 only when complete and intact, and never says complete when something is missing.
+- **Acceptance**:
+  - a complete bundle written from the clean A8 run, verified in a spawned `cad-cli`;
+  - with a file deleted, a file edited, a result made stale and no approved baseline, each listed, with `complete` false.
+
+#### The material check (#2177): engineering material apart from display looks
+- **Checked against the code (O39):** nothing infers a material from a look.
+  - A body's material is only `bodies[key].material` (a library id), or the brief's stated library material. Its density and sources are in the material library.
+  - Colour (`bodies[key].color`, face colours) and PBR appearances (`render.appearances`, the `APPEARANCES` presets) are never read for a material.
+  - A look's or body's name is not read for one either.
+- **Kept that way by a test** (`test/material-look.test.ts`). A body named "Steel bracket", coloured as the Steel appearance, with the Steel PBR preset, and with a brief finish saying steel, still has no material, and each consumer says so:
+  - mass and inertia: assumed;
+  - the BOM: none;
+  - printability: unknown;
+  - the bundle: no source.
+  - Setting a material leaves the looks unchanged.
+
+**Order**: A8.4b → A8.5b → A8.6, with a checkpoint after each.
+
 ## O33 — A8.1: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision (2026-10-20)
 
 - **Reviewers** (`ReviewerRole {name: dfm | analysis, model, review(view)}`) review what a patch makes **in parallel** with the Verifier, once the gates have passed.
@@ -1760,3 +1883,80 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - **RM5 is accepted.**
 - **Tests**: the committed readings are held to their criteria: `test/robot-urdf.test.ts` and `test/robot-mjcf.test.ts`, a test each. The frozen exports are the files the oracle loaded, and a change to them shows there until MuJoCo is run again.
 - **Not closed by this run**: contact behaviour (self-collision as the arm folds is RM6's sweep). A collision-on hang would test the contact model, not the export.
+
+## O39 — #2177: the owner's decision recorded; engineering material apart from display looks (2026-10-20)
+
+- **The owner's decision**, relayed by the coordinator, on [#2177](https://github.com/barocss/barocss/issues/2177) ("research(toolchain): CAD–CAE–PLM 연결과 부품 리비전·해석 추적·변경 승인 계약", read with `gh issue view 2177`), verbatim: "#2177에서 세 가지(승인 기준선 고정, 결과 최신성 표시, 내보내기 묶음)는 A8.4·A8.5에 넣고, CAE(FEM)는 로드맵에 넣지 말고 참고만 해."
+  - It means: pinned approval baselines, result freshness and the export bundle go into A8.4 and A8.5. CAE (FEM) is a reference only, not a roadmap item.
+  - Frozen as the S0 addendum to O32: A8.4b, A8.5b and A8.6. The bundle is its own step, after A8.5b, as the coordinator allowed ("A8.5 or A8.6").
+- **The material check** (#2177: engineering material must stay apart from display looks). Read against the code before any coding:
+  - **Where a material comes from.** `materialIdOf` (`src/app/bodies.ts`) reads only:
+    - the body's `material` field (a library id);
+    - else the brief's material, when it is stated and in the library (`briefMaterial`).
+  - **Who reads it.** Mass (`chat/analysis.ts`, `chat/observe.ts`), inertia (`robot/inertia.ts`), the BOM (`team/assembly.ts`), printability (`print/rules.ts`) and library checks (`library/libraries.ts`).
+    - Each reads it through the material library (`library/builtin/materials.json`: densities, each value with its source).
+  - **What no consumer reads for a material:**
+    - a body's colour, or its face colours;
+    - its PBR appearance: `render.appearances`, or the `APPEARANCES` presets (`engine/render.ts`), which only set colour, metallic, roughness and opacity;
+    - a body's or look's name.
+  - The 3MF export writes the material's label beside the display colour. Nothing reads that back.
+  - **Nothing infers one, so nothing is refused. The test keeps it that way.**
+  - **Noted, not changed:**
+    - The appearance presets `steel` and `brass` share their ids with library materials. They are separate namespaces, and the test covers them.
+    - The fastener command sets `steel` as its bodies' own material (`app/fasteners.ts`). It is a command's choice, not inferred from a look, and the bundle reports it as the body's material with the library's sources (basis `body`).
+
+## O40 — A8.4b: approval baselines pinned by content digest (2026-10-20)
+
+- **The digest** (`src/team/digest.ts`).
+  - `digestOf(value)` is the SHA-256 of the canonical JSON: A7's `canonical`, now exported, with keys sorted and `undefined` left out. It is our own synchronous TypeScript, written without a function created in its loop.
+  - It is checked against `node:crypto` (an oracle only) on these inputs:
+    - the padding boundaries (55, 56, 63, 64 and 119 bytes);
+    - UTF-8 (Korean, an emoji);
+    - 1 MiB of bytes.
+  - A part's revision digest (`partDigest`) covers its document's revision fields, its placement and whether it is hidden. The base part's own features count as `base` when it has any.
+- **Baselines** (`src/team/baseline.ts`, `doc.baselines`, version 1, in `STUDIO_DOC_FIELDS`).
+  - **`draftBaseline(doc, bom, view, {parent?})`.** The BOM is checked against a built view first; a mismatch is refused `BOM_INVALID` with its problems. The record pins:
+    - the BOM;
+    - the interfaces (a copy of each is kept in the record);
+    - every part's revision digest.
+  - Its own digest covers the record and its parent's digest.
+  - A `parent` must be decided. A draft cannot follow a draft (`BAD_TRANSITION`).
+  - **`moveBaseline(doc, id, to, token)`.** The states run draft → review → approved | rejected, and only a minted user token moves one.
+    - **Refused, typed:**
+      - `APPROVAL_IS_THE_USERS`: a role, `{by: 'user'}`, a JSON copy of a token, or a frozen look-alike;
+      - `BAD_TRANSITION`: out of order;
+      - `BASELINE_FROZEN`: any move of an approved or rejected baseline;
+      - `STALE_BASELINE`: approving a baseline the document has moved past, the changes named.
+    - **Each move** is recorded with its time, and the record is re-sealed.
+  - **`verifyBaseline(doc, id)`** gives `{intact, mismatches, current, changed}`.
+    - **intact** walks the chain to the root. It checks each record's content against its pins (`content.bom`, `content.interfaces`), its own digest (`record`) and its parent's digest (`parent BLn`, or `parent BLn missing`).
+    - **current** compares the interfaces and every part against the pins. Changes are named: `part p2`, `part p1 (gone)`, `part p3 (added)`, `interfaces`.
+- **An approved ECR** records `pin: {interfaces: digestOf(next), parts, record}`:
+  - `parts` are the part revisions it was approved against;
+  - `record` is the ECR's own digest.
+  - `verifyEcrPin` names `next` or `record`. A rejected ECR pins nothing.
+- **Tests** (`test/team-baseline.test.ts`):
+  - the digest against `node:crypto`;
+  - draft, review, approve; an agent and forged tokens refused; out-of-order moves refused; frozen once approved or rejected; an invalid BOM refused.
+  - **Tampering on read-back, each named:**
+    - a BOM quantity: `content.bom` and `record`;
+    - the state: `record`;
+    - the interfaces: `content.interfaces` and `record`;
+    - a pin: `record`;
+    - the parent's content with its pins and digest rewritten to match: the child's `parent BL1`;
+    - the parent removed: `parent BL1 missing`.
+  - **A change after approval** (the board moved 4 mm):
+    - BL1 stays intact but is no longer current, with `part p2` named;
+    - a draft from before the change is refused `STALE_BASELINE`;
+    - BL2 with parent BL1 is approved; BL1 still verifies, and its record is byte for byte what was approved.
+  - An approved ECR's pin verifies; a tampered `next` or impact is caught.
+- **Limits:**
+  - **The newest record's integrity** is anchored by whoever holds its digest. That is a child baseline's `parentDigest`, and A8.6's bundle manifest. A record rewritten alone with its pins and digest made consistent looks intact by itself, and the manifest is what catches it.
+  - **`STALE_RESULT`** (a cited analysis result not current) comes with A8.5b's results.
+- **The material check** (#2177, O39): `test/material-look.test.ts`.
+  - A body named "Steel bracket", in the Steel appearance's colour, with the Steel PBR preset and a brief finish of "brushed steel look", has no material:
+    - mass: Aluminium 6061, assumed;
+    - inertia: assumed, `MATERIAL_ASSUMED`;
+    - printability's warp rule: unknown, "material is not set";
+    - its BOM line: no material.
+  - A material set on the body is the only thing that makes it steel. Changing it leaves the colour, the face colours and the appearance as they were.
