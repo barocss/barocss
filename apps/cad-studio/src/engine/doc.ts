@@ -235,6 +235,12 @@ type ModelNodeBase = SketchNode
    * starts, length, bore, axial thickness reduction; its axial module, diameter and hand are the wheel's (m_x = m_n /
    * cos β, d1 = z1 m_x / tan β), so it stays in step as the wheel is edited.
    */
+  /**
+   * A throated (single-enveloping) worm wheel (R12b.6, D137): cut by a hob of its ZA worm's thread — the worm's axial
+   * module, starts, reference diameter and hand — its teeth, face width (centred on its mid-plane), bore, the spaces
+   * widened by `thicknessReduction`; its axis +Z through `center` from `from`, turned `rotation`.
+   */
+  | { kind: 'worm-wheel'; module: Dim; starts: number; diameter: Dim; hand: 'right' | 'left'; teeth: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; generator: 'worm-wheel@0' }
   | { kind: 'worm'; starts: number; form: 'ZI' | 'ZA'; length: Dim; bore?: Dim; thicknessReduction?: Dim; mesh: BevelMesh; generator: 'worm@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
@@ -490,7 +496,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'rack': case 'sheet-contour': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'rack': case 'sheet-contour': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : []);
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -507,7 +513,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -646,6 +652,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
+    case 'worm-wheel': return `Throated worm wheel m_x${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'worm': { const w = wormOf(node, nodes); return `Worm ${node.form} m_x${w ? fmt(+w.mx.toFixed(4)) : '?'} ×${node.starts}${w ? ` Ø${fmt(+w.d1.toFixed(3))}` : ''}`; }
     case 'bevel-gear': { const t = bevelTeeth(node, nodes), spiral = bevelSpiral(node, nodes); return `${spiral ? 'Spiral bevel gear' : 'Bevel gear'} m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}${spiral ? ' (ideal model)' : ''}`; }
     case 'internal-gear': return `${node.helixAngle ? 'Helical internal gear mn' : 'Internal gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
@@ -687,6 +694,8 @@ export function bevelTeeth(node: Extract<ModelNode, { kind: 'bevel-gear' }>, nod
 /** A worm's axial module, diameter and hand from its wheel (R12b.5): m_x = m_n / cos β, d1 = z1 m_x / tan β; null when the wheel is not a helical gear. */
 export function wormOf(node: Extract<ModelNode, { kind: 'worm' }>, nodes?: readonly ModelNode[]): { mx: number; d1: number; hand: 'right' | 'left' } | null {
   const g = nodes?.[node.mesh.gear];
+  // (A throated wheel's worm is its hob's, R12b.6.)
+  if (g?.kind === 'worm-wheel') return typeof g.module === 'number' && typeof g.diameter === 'number' ? { mx: g.module, d1: g.diameter, hand: g.hand } : null;
   if (g?.kind !== 'gear' || !g.helixAngle || typeof g.module !== 'number') return null;
   const b = g.helixAngle * Math.PI / 180, mx = g.module / Math.cos(b);
   return { mx, d1: node.starts * mx / Math.tan(b), hand: g.hand ?? 'right' };

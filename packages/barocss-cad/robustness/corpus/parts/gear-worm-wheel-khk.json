@@ -1,0 +1,21 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "g",
+      "kind": "worm-wheel",
+      "worm": {
+        "axialModule": 3,
+        "starts": 2,
+        "diameter": 44,
+        "hand": "right"
+      },
+      "teeth": 30,
+      "faceWidth": 20,
+      "bore": 20
+    }
+  ]
+}

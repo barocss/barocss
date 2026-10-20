@@ -2593,6 +2593,26 @@ try {
     await snap('worm-pair');
   });
 
+  await check('Throated worm wheel (R12b.6, D137): K1\'s pair from the palette with the throated wheel — cut by a hob of its ZA worm; the worm meshing with it in contact along lines', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('worm gear pair'); await press('Enter'); await hudReady();
+    await field('Wheel').selectOption('throated'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 60000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'worm-wheel' && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 90000 }); await idle();
+    assert.match(await page.textContent('.history'), /Throated worm wheel m_x3 z30.*Worm ZA m_x3 ×2 Ø44/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const wheel = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(wheel.some(t => /^Throated worm wheel, cut by a hob of its ZA worm's thread: reference Ø90, throat Ø96/.test(t)), wheel.join(' | '));
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /enveloping it/.test(n.textContent ?? '')), null, { timeout: 60000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /^In contact along lines across the face/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('throated-worm-pair');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');

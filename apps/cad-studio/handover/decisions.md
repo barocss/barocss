@@ -7437,3 +7437,99 @@ Next: R12b.5 — ZI and ZA worms and their cylindrical wheel.
 - strength and efficiency.
 
 Next: R12b.6 — the throated wheel of a ZA worm, attempted (refused with the reason if the fit cannot hold).
+
+## D137 — R12b.6: the throated (single-enveloping) wheel of a ZA worm — attempted and built (worm-wheel@0) (2026-10-21)
+
+**The owner's word (D129):** attempt the throated wheel; if the fit cannot hold, refuse it with the reason and keep the cylindrical wheel. It held. The refusal path is built too, and is tested.
+
+**Decision** (`gear-worm-wheel.ts`: `throatedWormWheel`, `throatedWheelGeom`, `checkThroatedWormPair`, `throatedWormPlacement`, `checkPlacedThroatedPair`; the part model's `worm-wheel` and a worm meshing with it; the studio's Worm gear pair with Wheel: Throated):
+- **The hob:** the wheel is what a hob of its ZA worm's own thread cuts as the two turn together. Its sides are the worm's, its crest raised by the 0.25 m_x clearance (K1's root d2 − 2.5 m_x) and sharp-cornered. The wheel's backlash widens the hob's thread along its axis.
+- **The section in each plane square to the wheel's axis** (z = c from the mid-plane):
+  - **The hob's section is a fixed curve that slides as the worm turns:** D136's carrying of the worm's outline along its helices, x = (asin(c/ρ) ± ψ(ρ)) p/h, y = √(ρ² − c²) − a. It is a rack moving with the wheel's pitch circle (displacement d ⇔ wheel turn d/r2).
+  - **The wheel's section is that rack's envelope, in closed form point by point.** A rack point is in contact where its normal passes the pitch point (0, −r2): d = (y + r2) N_x/N_y − x, and the point carried is Rot(−d/r2)(x + d, y). The hob's flanks give the wheel's flanks, its crest corners their root trochoids, its crest the root circle.
+  - **The wheel's tip** is its throat torus about the wheel's axis: minor radius R_t = a − r2 − m_x about the worm's axis circle, so the tip radius is a − √(R_t² − c²). Its root is the hob crest's torus (R_h = r1 + 1.25 m_x). Both are rational and exact.
+  - **The flank's run in each plane** goes from the crest corner's point up to where it reaches the throat (bisection on ρ).
+- **The faces:**
+  - Flanks and fillets are bicubic Hermite patches over (the section's parameter, z), from the closed form's derivatives by central differences. z is exact along them (linear in v), so the end faces are planes.
+  - Up to 15 pieces across (three faces of five) and 20 along (four segments of five). The flank, fillet, tip and root share one set of levels along the axis and one count along it, so shared edges are one curve to the last bit.
+  - Tips and roots are torus patches a pitch wide, trimmed by the fitted neighbours' edges. Those edges are tolerant by twice the fits; the vertices are exact on the tori.
+  - Names: `filletL#k`, `flankL#k` (`flankL2#k` …), `tip#k`, `flankR#k`, `filletR#k`, `root#k`, `face0`, `face1`, `bore#1/2`, segments `.2` ….
+  - Tooth 1 is centred on +X in the mid-plane; the frame's axis is +Z from z 0, the mid-plane at b/2.
+- **The measure and the refusal:**
+  - Each fitted face is measured as built, in its own planes, against the exact section (a 400-point polyline), at 4 × 8 samples per piece. The flank and fillet must each come within the tolerance (1e-4 m_n), or the wheel is refused. Twice: the fit at the budget, then the faces as built.
+  - The refusal is `UNSUPPORTED_GEAR_KIND`: "throated wheel: its generated flank fits within … mm at the budget (… × … bicubic pieces; at most 15 across and 20 along), not … mm — the cylindrical wheel stays". It is tested at a tolerance of 1e-7.
+  - Also refused: a ZI worm (only ZA: its mid-plane is an involute only then), a flank that turns back (undercut), teeth below 18, a face of 1.6 R_t or more (the throat arc's reach), a bore past the rim.
+- **The pair** (`checkThroatedWormPair`):
+  - The worm must be the one the wheel was cut for (else `MATE_INCOMPATIBLE`).
+  - Sections at the mid-plane, ±b/4 and ±b/2.2, each swept over an axial pitch: the worm's section as D136's, the wheel's exact sections (the closed form) near the mesh.
+  - The two touch along lines, so sections nearer than the touch bound — twice the tolerance plus the chords — are contact, not crossing.
+- **Placed:** `throatedWormPlacement` puts the worm square at a in the mid-plane, as D136, turned so a thread meets a space as the hob did. Δ = rotation + (π/2 + π/z2) − (φ + π/2) is the wheel's turn from its cutting pose in the pair's frame, and Δ = −h θ z1/z2. `checkPlacedThroatedPair` reads the phase back.
+- **Part model:** `worm-wheel` (worm {axialModule, starts, diameter, hand}, teeth, faceWidth, bore, thicknessReduction, center, from, rotation; generator `worm-wheel@0`). A `worm` meshing with it takes the wheel's worm (m_x, d1, hand; it must be ZA).
+- **Studio:**
+  - **Worm gear pair** gains "Wheel: Cylindrical (helical gear) | Throated (enveloping; ZA worm)". Throated adds a `worm-wheel` node ("Throated worm wheel m_x3 z30") and the ZA worm meshing with it.
+  - **The wheel's fields:** its worm's module, starts, Ø and hand, its teeth, width, bore, widening, rotation (the worm follows).
+  - **Notes:** the wheel's throat, root and fits; the worm's "Meshes with n0, enveloping it: …" and "In contact along lines across the face — touching or clear in the mid-plane and 4 sections either side".
+  - **The agent:** the `worm-pair` docs gain `wheel` (no tool-contract change).
+  - **Declared one-line touches:** `src/assembly/flatten.ts` (the node switch).
+
+**Found:**
+- **It holds, with room:** K1's wheel (m_x 3, double thread, z2 30, b 20) builds in 0.8 s with 724 faces. Its flanks come within 1.28e-4 mm (6 × 12 pieces) and its fillets within 5.2e-5 mm (2 × 12), against 2.97e-4. The survey's other two wheels (single-start m_x 2 z 40; three-start m_x 2.5 z 45) come within 6.6e-5 to 8.5e-5.
+- **K1's Table 4.23 wheel values come out of the construction:** throat Ø96, throat surface radius 19, root Ø82.5, a 67, d2 90.
+- **The mid-plane is the involute of r2 cos α_x** to 1.9e-6 mm, the oracle D129 named.
+- **It envelops its worm:** 468 points of tooth 1's flanks, both sides and every segment, with the worm turning through tooth 1's whole engagement (eight pitches of the worm).
+  - The worm's thread never enters them by more than 1.14e-4 mm (the bound 1e-4 m = 3e-4, measured along the axis: an upper bound on the depth).
+  - Every point is touched by the thread, within 5.6e-6 mm.
+  - Points the hob's 0.25 m_x of extra crest cut, below where the worm's own crest reaches, are left out.
+- **The pair, against the cylindrical wheel:**
+  - With the worm 0.1 mm thinner, every section is clear by about j cos α_x / 2: 0.046934 in the mid-plane, 0.04652 at ±b/4, 0.04650 at ±b/2.2.
+  - At no backlash every section touches.
+  - D136's cylindrical wheel stood 0.266 mm off at ±b/3: the throated wheel is in contact across its face, where the cylindrical one touches only in its mid-plane.
+- **STEP export of the 724-face wheel takes about 15 s** (its tessellated copy: `brep-tessellate`'s flips and links). The round trip is in the survey; logged for the kernel lane.
+- **Timings:**
+  - the K1 wheel 0.8 s, its mass 1.9 s;
+  - a pair's report about 3 s (five sections), its verdict less;
+  - `gear-worm-wheel.test.mjs` 16 s by default, 41 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 275 s (D136's 218 s: this file, three conformance wheels and their masses).
+
+**Evidence:**
+- **Kernel** `test/gear-worm-wheel.test.mjs`, 5/5, its oracles written there apart from `gear-worm-wheel.ts`: the hob's section carried along the helices, the rack's envelope by the normal through the pitch point, the trochoid and the throat, each this file's own. The first test fails on d9131f34e (no throated wheel).
+  - **Wheels** (K1's with a bore; the survey's single-start left-hand m_x 2 z 40 b 16 and three-start m_x 2.5 z 45 with a bore):
+    - valid; K1's numbers as above;
+    - tips on the throat torus and roots on the root torus to 1e-9 (their own surfaces);
+    - the mid-plane against the involute (r2 cos α_x, half-thickness π m_x/(4 r2) + inv α_x) within the flank fit;
+    - the fits within the tolerance.
+  - **Enveloping,** as above.
+  - **Refusals,** each with its code, the budget refusal's message, and a worm not the wheel's.
+  - **The pair,** as above: a 67, ratio 15, a phase off crossing.
+  - **The part model:**
+    - m_x, d1 and hand from the wheel; square at 67 mm in the mid-plane; valid; the placed check phase 0 and clear;
+    - the volume against the sections' areas (½∮ r² dφ round this file's own envelope) by Simpson along the face, less the bore: 4.2e-6 relative at 10 planes (the conformance value at 40 planes, 7.7e-7);
+    - a ZI worm refused;
+    - STEP (survey).
+- **Conformance** `r12b/`, 24 (198 overall):
+  - `worm-wheel-khk` (123789.333 by the sections' areas, 40 planes and 3000 points a side, relTol 2e-6);
+  - `worm-wheel-pair` (the wheel and its ZA worm 84364.8631);
+  - `worm-wheel-zi-refused`.
+- **RB seeds,** every stage OK: `gear-worm-wheel-khk`, `gear-worm-wheel-pair`, `gear-worm-wheel-single-start`.
+- **Studio** `primitives.test.ts` "Throated worm wheel":
+  - the nodes and labels;
+  - the wheel's volume against 123789.333 (within 0.3);
+  - its notes; the worm's "enveloping it" and "In contact along lines across the face".
+- **Browser flow:** a new step "Throated worm wheel (R12b.6, D137)": the pair from the palette with Wheel: Throated, the history, the wheel's notes and the worm's contact.
+
+**Checks:**
+- Kernel 1360/1365 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D136's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 198/198. Kernel lint clean, type-check clean.
+- Studio 739/740 with the known todo, 0 fail (+1). Studio lint 0 errors (119 warnings), type-check clean. Tool contract unchanged.
+- The full flow 210/210 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the hob's sharp crest corner and its 0.25 m_x clearance (a shop's hob has a tip round and an oversize); the tip on the throat torus to the faces (K1's blank is turned to an outside diameter, Ø99 for its example: not modelled; the report gives the tip at the faces, Ø101.69 at b 20).
+
+**Not in this stage:**
+- throated wheels of ZI, ZN, ZK and ZC worms;
+- a turned outside diameter;
+- hob oversize and resharpening;
+- double-enveloping (globoid) worms.
+
+Next: R12b.7 — acceptance (a planetary set, a right-angle bevel pair, a worm reducer) and the R12b → R12c hand-over.

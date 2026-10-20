@@ -80,6 +80,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const modules = node.helixAngle ? { normalModule: node.module, helixAngle: node.helixAngle, hand: node.hand ?? 'right' } : { module: node.module };
       return { ...at, kind: 'internal-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, rim: node.rim, generator: node.generator, ...(node.cutter ? { cutter: node.cutter } : {}), ...own, ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
+    case 'worm-wheel': {
+      // (R12b.6, D137: the throated wheel; its worm by the worm's mesh.)
+      return { ...at, kind: 'worm-wheel', worm: { axialModule: node.module, starts: node.starts, diameter: node.diameter, hand: node.hand }, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}),
+        ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    }
     case 'worm': {
       // (R12b.5, D136: its axial module, diameter and hand the kernel takes from the wheel it meshes with.)
       return { ...at, kind: 'worm', starts: node.starts, length: node.length, form: node.form, generator: node.generator, mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) },
@@ -128,7 +133,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);

@@ -187,17 +187,20 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'worm-pair', label: 'Worm gear pair', icon: 'cad-gear', hint: 'A cylindrical worm (ZI involute helicoid or ZA straight axial sides) and its wheel, a helical gear at the worm\'s lead angle and hand, crossed at 90° by the axial module, starts, the worm\'s reference diameter and the wheel\'s teeth (α_n 20°). The worm meshes with the wheel and follows it as the wheel is edited. Not validated for manufacturing', group: 'create', keywords: 'worm wheel gear pair reducer screw crossed right angle ratio ZI ZA',
+    id: 'worm-pair', label: 'Worm gear pair', icon: 'cad-gear', hint: 'A cylindrical worm (ZI involute helicoid or ZA straight axial sides) and its wheel — a helical gear at the worm\'s lead angle and hand, or a throated wheel enveloping a ZA worm (cut by a hob of its thread) — crossed at 90° by the axial module, starts, the worm\'s reference diameter and the wheel\'s teeth (α_n 20°). The worm meshes with the wheel and follows it as the wheel is edited. Not validated for manufacturing', group: 'create', keywords: 'worm wheel gear pair reducer screw crossed right angle ratio ZI ZA',
     available: () => ok,
     fields: () => [{ key: 'm', label: 'Axial module', kind: 'mm', min: 0.2 }, { key: 'starts', label: 'Starts', kind: 'count', min: 1, max: 4 }, { key: 'd1', label: 'Worm reference Ø', kind: 'mm', min: 1 },
-      { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] }, { key: 'form', label: 'Worm form', kind: 'choice', options: [{ value: 'ZI', label: 'ZI (involute helicoid)' }, { value: 'ZA', label: 'ZA (straight axial sides)' }] },
+      { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] },
+      // (R12b.6, D137: the wheel cylindrical — a helical gear — or throated, enveloping its worm, which is then ZA.)
+      { key: 'wheel', label: 'Wheel', kind: 'choice', options: [{ value: 'cylindrical', label: 'Cylindrical (helical gear)' }, { value: 'throated', label: 'Throated (enveloping; ZA worm)' }] },
+      { key: 'form', label: 'Worm form', kind: 'choice', options: [{ value: 'ZI', label: 'ZI (involute helicoid)' }, { value: 'ZA', label: 'ZA (straight axial sides)' }], when: v => v.wheel !== 'throated' },
       { key: 'z2', label: 'Wheel teeth', kind: 'count', min: 10, max: 200 }, { key: 'b', label: 'Wheel face width', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Wheel bore', kind: 'mm', min: 0 }, { key: 'wbore', label: 'Worm bore', kind: 'mm', min: 0 }, ...at],
-    defaults: ctx => ({ m: 3, starts: 2, d1: 44, hand: 'right', form: 'ZI', z2: 30, b: 20, bore: 20, wbore: 12, ...beside(ctx, 60) }),
+    defaults: ctx => ({ m: 3, starts: 2, d1: 44, hand: 'right', wheel: 'cylindrical', form: 'ZI', z2: 30, b: 20, bore: 20, wbore: 12, ...beside(ctx, 60) }),
     // (Not placed at the pointer: placed commands fill the top bar's shapes strip, which is full at 1440 px — one more
     // pushes the page sideways. It sits in the side toolbar, which scrolls; its position by its fields.)
     handles: (_, v) => { const [m, z2, x, y, zz] = n(v, 'm', 'z2', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z2 / 2, y, zz], X)]; },
     build: (ctx, v) => {
-      const [m, z1, d1, z2, b, bore, wbore, x, y, zz] = n(v, 'm', 'starts', 'd1', 'z2', 'b', 'bore', 'wbore', 'x', 'y', 'z'), hand = v.hand === 'left' ? 'left' as const : 'right' as const, form = v.form === 'ZA' ? 'ZA' as const : 'ZI' as const;
+      const [m, z1, d1, z2, b, bore, wbore, x, y, zz] = n(v, 'm', 'starts', 'd1', 'z2', 'b', 'bore', 'wbore', 'x', 'y', 'z'), hand = v.hand === 'left' ? 'left' as const : 'right' as const, throated = v.wheel === 'throated', form = throated || v.form === 'ZA' ? 'ZA' as const : 'ZI' as const;
       // (The wheel: a helical gear at β = γ of the worm's hand, its normal module m_x cos γ. The worm long enough for the
       // mesh zone — where the wheel's tips reach its thread — and an axial pitch on either side.)
       const worm = { axialModuleMM: m, starts: Math.round(z1), diameterMM: d1, hand, lengthMM: 1, form }, g = wormDimensions(worm), wh = wormWheelSpec(worm, { teeth: Math.round(z2), faceWidthMM: b });
@@ -205,7 +208,8 @@ export const primitives: Command[] = [
       // (The wheel's root schematic, spur-gear@0: a worm wheel is hobbed by a hob of the worm's own form, not cut by the
       // basic rack — whose generated root, at m_n, puts its fillet where an axial-module worm's crest reaches: a ZA worm
       // cuts it at no backlash, D136.)
-      const wheel = withNode(ctx.doc, { kind: 'gear', module: g.mn, helixAngle: g.gamma * 180 / Math.PI, hand, teeth: Math.round(z2), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
+      const wheel = throated ? withNode(ctx.doc, { kind: 'worm-wheel', module: m, starts: Math.round(z1), diameter: d1, hand, teeth: Math.round(z2), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'worm-wheel@0' })
+        : withNode(ctx.doc, { kind: 'gear', module: g.mn, helixAngle: g.gamma * 180 / Math.PI, hand, teeth: Math.round(z2), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
       return withNode(wheel, { kind: 'worm', starts: Math.round(z1), form, length: L, ...(wbore > 0 ? { bore: wbore } : {}), mesh: { gear: wheel.nodes.length - 1 }, generator: 'worm@0' });
     },
   },
