@@ -1184,6 +1184,8 @@ recorded).
 - **Late (after A5–A8, before RB5–RB9), DWG/SAT import.** DWG R2000–R2018+ 2D entities as a drawing or underlay; ACIS
   SAT/SAB solids into our B-rep through the STEP import's tolerance and validation gate; optionally DWG writing of
   drawings. Only after an S0 that weighs demand against effort, recorded either way.
+  - **S0 done (O61)**: DWG read deferred, SAT import deferred, DWG write no-go — DXF and STEP already reach the need; both
+    specs are PDF-only; AutoCAD's 3DSOLID SAT is an undocumented variant. Revisit conditions in the note.
 
 **AI scenario ladder.** A new rung, the "2-axis robot arm": joints, reducer, reach check, and a URDF that loads in
 MuJoCo with matching inertia.

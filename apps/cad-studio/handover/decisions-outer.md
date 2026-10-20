@@ -2841,3 +2841,20 @@ The coordinator's answer to O57's open point. STEP is the exact part. The lattic
   - with the role taken off, the same document's STEP carries 1 + pieces solids and no note;
   - renamed, the lattice is still left out;
   - 3MF has an object for the shell and each piece; the mass lists every body.
+
+## O61 — DWG/SAT import S0: DWG read deferred, SAT import deferred, DWG write no-go (2026-10-20)
+
+This is research and a decision only, with no product code. The full write-up, with sources, is [`notes/research-dwg-sat-2026-10-20.md`](notes/research-dwg-sat-2026-10-20.md). I read public HTML only. The two specifications exist only as PDFs, named and not read: `OpenDesign_Specification_for_.dwg_files.pdf` (ODA, v5.4.1, R13–2018, "informational use", no implementation grant found) and `sat.pdf` (Spatial's SAT Save File Format).
+
+- **DWG 2D read (drawing or underlay): defer.**
+  - Every DWG producer saves DXF, and the free ODA File Converter batch-converts. Our DXF reader and writer exist. No recorded scenario fails for DWG alone.
+  - Effort is several weeks: R2000 bit streams, R2004+ compressed sections, R2007's separate encoding, the R2010+ object map, and the entity set. The spec terms need clearing first.
+  - Cheaper and nearer the need, each needing its own S0 if wanted:
+    - the DXF reader showing SPLINE, ELLIPSE, INSERT/BLOCK and TEXT as an underlay instead of refusing them;
+    - a typed `.dwg` refusal that names the routes (save as DXF, or the ODA converter).
+- **SAT/SAB solids into the B-rep: defer, no-go for now.**
+  - SolidWorks, Inventor and the older ACIS tools all write STEP, which we import.
+  - The SAT inside DWG/DXF 3DSOLIDs is AutoCAD's ShapeManager variant (save versions ≥ 20800, Spatial-incompatible, undocumented). It is not the ≤ 700 text the spec covers.
+  - The ≤ 700 text is about 1.5–3 weeks in the kernel lane (records, topology, analytic surfaces, procedural splines at their fit tolerance, the STEP gate). If it ever goes ahead, it goes to the kernel lane.
+- **DWG writing: no-go.** The R11b DXF writer already reaches every consumer. DWG adds the reader's complexity, plus checksums and AutoCAD's checks on files it did not write, for nothing DXF doesn't deliver.
+- **Revisit when**, per item: a recorded scenario where only DWG or SAT exists and conversion is not acceptable; a consumer that takes DWG only; or the owner clearing the ODS terms. Evidence level is L0–L1, with no user data behind the demand side.
