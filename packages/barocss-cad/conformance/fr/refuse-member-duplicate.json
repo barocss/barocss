@@ -1,0 +1,68 @@
+{
+  "id": "fr-refuse-member-duplicate",
+  "step": "FR",
+  "decisions": [
+    "D124"
+  ],
+  "about": "FR2: two segments on the same two points (either way round) are refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              100,
+              0,
+              0
+            ],
+            [
+              300,
+              0,
+              0
+            ],
+            [
+              0,
+              100,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[MEMBER_DUPLICATE] segments 0 and 1 join the same two points"
+    }
+  },
+  "oracle": "By construction."
+}

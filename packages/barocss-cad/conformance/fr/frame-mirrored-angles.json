@@ -1,0 +1,159 @@
+{
+  "id": "fr-frame-mirrored-angles",
+  "step": "FR",
+  "decisions": [
+    "D124"
+  ],
+  "about": "FR2: two 50 × 30 × 5 angle stiles along +Y anchored at their heels, the second mirrored by an override (turned over across its own y axis): the same A·L, centroids by moments, x̄ negated in the mirrored frame.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1000,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              400,
+              1000,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "angle",
+            "legX": 50,
+            "legY": 30,
+            "thickness": 5,
+            "rootRadius": 6,
+            "toeRadius": 3
+          },
+          "anchor": "origin",
+          "overrides": [
+            {
+              "member": 1,
+              "mirror": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 378862.83305884595,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -17.177306268894608,
+            500,
+            7.3812235034070754
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "member": {
+          "areaMM2": 378.8628330588459,
+          "lengthMM": 1000,
+          "centroid": [
+            17.177306268894608,
+            7.3812235034070754
+          ],
+          "xAxis": [
+            -1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": null,
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 378862.83305884595,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            417.1773062688946,
+            500,
+            7.3812235034070754
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "member": {
+          "areaMM2": 378.8628330588459,
+          "lengthMM": 1000,
+          "centroid": [
+            -17.177306268894608,
+            7.3812235034070754
+          ],
+          "xAxis": [
+            -1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": null,
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = t(a + b − t) + (1 − π/4)(r1² − 2r2²); the centroid by moments (legs, the root's spandrel added, the toes' taken off); mirrored, x ↦ −x."
+}

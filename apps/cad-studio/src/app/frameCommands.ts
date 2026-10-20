@@ -2,7 +2,7 @@
 // The kernel takes no section size and no radius by default (D122: a catalogue of sizes is the user's own data); the
 // palette's prefills are estimates for a first try, said so in their labels, and every one is a field to change.
 import { withNode, type FrameAnchor, type MemberSection, type ModelNode } from '../engine/doc';
-import type { Command, Field, Values } from './commands';
+import type { Command, Ctx, Field, Values } from './commands';
 
 const ok = { ok: true as const };
 const KINDS = [{ value: 'rect-tube', label: 'Rectangular tube' }, { value: 'round-tube', label: 'Round tube' }, { value: 'angle', label: 'Angle' }, { value: 'channel', label: 'Channel' }, { value: 'tslot', label: 'T-slot (20 class)' }];
@@ -80,4 +80,67 @@ export const memberCommand: Command = {
   },
 };
 
-export const frameCommands: Command[] = [memberCommand];
+type P3 = [number, number, number];
+/** A preset skeleton W (X) × D (Y) × H (Z) from (x, y, z): its points and segments (legs first, then the top's rails, then the bottom's). */
+export function presetSkeleton(kind: string, W: number, Dp: number, H: number, at: P3): { points: P3[]; segments: [number, number][] } {
+  const [x, y, z] = at, corners = (h: number): P3[] => [[x, y, h], [x + W, y, h], [x + W, y + Dp, h], [x, y + Dp, h]];
+  const ring = (o: number): [number, number][] => [[o, o + 1], [o + 1, o + 2], [o + 2, o + 3], [o + 3, o]];
+  if (kind === 'rectangle') return { points: corners(z), segments: ring(0) };
+  const points = [...corners(z), ...corners(z + H)], legs: [number, number][] = [[0, 4], [1, 5], [2, 6], [3, 7]];
+  return { points, segments: kind === 'box' ? [...legs, ...ring(4), ...ring(0)] : [...legs, ...ring(4)] };
+}
+/** The picked straight edges as a skeleton: their ends as points (those within 1e-6 mm one point), each edge a segment. */
+export function edgesSkeleton(ctx: Ctx): { points: P3[]; segments: [number, number][] } | null {
+  const edges = ctx.selection.edges.map(e => ctx.bodies[e.body]?.mesh.edges[e.edge]).filter((e): e is NonNullable<typeof e> => !!e && e.straight);
+  if (!edges.length || edges.length !== ctx.selection.edges.length) return null;
+  const points: P3[] = [], segments: [number, number][] = [];
+  for (const e of edges) segments.push([pointIndex(points, e.a), pointIndex(points, e.b)]);
+  return { points, segments };
+}
+const round6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
+function pointIndex(points: P3[], p: readonly number[]): number {
+  const q = p.map(round6) as P3, k = points.findIndex(r => Math.hypot(r[0] - q[0], r[1] - q[1], r[2] - q[2]) <= 1e-6);
+  if (k >= 0) return k;
+  points.push(q); return points.length - 1;
+}
+const SKELETONS = [{ value: 'table', label: 'Table (top and legs)' }, { value: 'box', label: 'Box (12 edges)' }, { value: 'rectangle', label: 'Rectangle' }, { value: 'edges', label: 'Picked edges' }];
+const preset = (v: Values) => v.skeleton !== 'edges';
+
+/**
+ * A frame (FR2, D124): one member along each segment of a skeleton — a preset (a table, a box, a rectangle) sized by
+ * its width, depth and height, or the straight edges picked on bodies (a layout box or sketch, its corners shared) — each
+ * member its own body, the section and its placement shared.
+ */
+export const frameCommand: Command = {
+  id: 'frame', label: 'Frame', icon: 'cad-frame', group: 'create', keywords: 'frame weldment skeleton structure table stand rack members tubes',
+  hint: 'A frame: a member along each segment of a skeleton — a table, box or rectangle, or the straight edges you picked — each its own body (the prefilled sizes and radii are estimates)',
+  available: () => ok,
+  fields: () => [
+    { key: 'skeleton', label: 'Skeleton', kind: 'choice', options: SKELETONS },
+    { key: 'W', label: 'Width (X)', kind: 'mm', min: 1, when: preset }, { key: 'D', label: 'Depth (Y)', kind: 'mm', min: 1, when: preset },
+    { key: 'H', label: 'Height (Z)', kind: 'mm', min: 1, when: v => preset(v) && v.skeleton !== 'rectangle' },
+    { key: 'x', label: 'At X', kind: 'mm', when: preset }, { key: 'y', label: 'At Y', kind: 'mm', when: preset }, { key: 'z', label: 'At Z', kind: 'mm', when: preset },
+    ...sectionFields,
+    { key: 'anchor', label: 'Lines through', kind: 'choice', options: ANCHORS.map(a => ({ value: a, label: a })) },
+    { key: 'roll', label: 'Roll', kind: 'deg', min: -360, max: 360, step: 15 },
+  ],
+  defaults: ctx => {
+    const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity), x = Number.isFinite(right) ? Math.round(right + 60) : 0;
+    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0 };
+  },
+  steps: (ctx, v) => {
+    if (v.skeleton !== 'edges') return [];
+    const s = edgesSkeleton(ctx);
+    return [{ label: 'Edges', text: s ? `${s.segments.length} edge${s.segments.length === 1 ? '' : 's'}, ${s.points.length} points` : 'pick straight edges', done: !!s }];
+  },
+  build: (ctx, v) => {
+    const sk = v.skeleton === 'edges' ? edgesSkeleton(ctx) : presetSkeleton(String(v.skeleton), Number(v.W), Number(v.D), Number(v.H), [Number(v.x), Number(v.y), Number(v.z)]);
+    if (!sk) throw new Error('Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset.');
+    if (preset(v) && !(Number(v.W) > 0 && Number(v.D) > 0 && (v.skeleton === 'rectangle' || Number(v.H) > 0))) throw new Error('Give the skeleton a width, a depth and a height above 0.');
+    const roll = Number(v.roll) || 0, anchor = String(v.anchor) as FrameAnchor, estimates = estimatesOf(v);
+    const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), ...(estimates.length ? { estimates } : {}) };
+    return withNode(ctx.doc, node);
+  },
+};
+
+export const frameCommands: Command[] = [memberCommand, frameCommand];

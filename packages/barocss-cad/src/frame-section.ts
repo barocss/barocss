@@ -248,6 +248,10 @@ export interface FrameMemberReport {
   readonly derived?: Readonly<Record<string, string>>;
   /** The section's point on the member's line (`anchor`), and how far the section is moved from it (`offset`, in its XY). */
   readonly anchor: FrameAnchor; readonly offset: XY; readonly rollDegrees: number;
+  /** The section turned over across its own y axis (FR2, D124). */
+  readonly mirrored?: true;
+  /** A frame's member (FR2, D124): its index and the skeleton points it runs from and to. */
+  readonly frame?: { readonly member: number; readonly from: number; readonly to: number };
   /** The member's line, its length, its direction (the extrusion's) and the section's x and y in the part. */
   readonly start: readonly [number, number, number]; readonly end: readonly [number, number, number]; readonly lengthMM: number;
   readonly axis: readonly [number, number, number]; readonly xAxis: readonly [number, number, number]; readonly yAxis: readonly [number, number, number];

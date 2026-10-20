@@ -50,7 +50,8 @@ export function bodyName(doc: StudioDoc, body: BodyResult): string {
   const made = node && (node.kind === 'extrude' || node.kind === 'revolve') ? node.made : undefined;
   // (A shape by its name alone — its sizes are in its feature's label.)
   const base = made ? commands.find(c => c.id === made.command)?.label ?? made.command : node ? featureLabel(node, root, doc.nodes) : body.key;
-  return side ? `${base} · ${side.startsWith('part') ? `solid ${Number(side.slice(4)) + 1}` : side}` : base;
+  // (A frame's bodies are its members, FR2.)
+  return side ? `${base} · ${side.startsWith('part') ? `${node?.kind === 'frame' ? 'member' : 'solid'} ${Number(side.slice(4)) + 1}` : side}` : base;
 }
 /** The newest feature on a body, when it is not the one it was first made by (shown beside its name). */
 export function lastFeature(doc: StudioDoc, body: BodyResult): string | null {

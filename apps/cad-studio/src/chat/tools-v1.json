@@ -2562,6 +2562,7 @@
        "sheet-flange",
        "sheet-corner-relief",
        "frame-member",
+       "frame",
        "box",
        "cylinder",
        "sphere",

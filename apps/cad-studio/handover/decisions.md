@@ -6077,3 +6077,84 @@ The first FR stage frozen in D122: section kinds in the kernel, and one straight
 | Properties | 11/11, no failures |
 
 RB rows are in the commit after the fix.
+
+## D124 — FR2: frames on a skeleton, alignment and roll (2026-10-20)
+
+The second FR stage frozen in D122: many members along a skeleton's segments, each its own body, sharing a section and its placement unless set apart.
+
+**Kernel** (the `frame` feature in `part-model.ts`):
+- **The skeleton is data on the feature**: `points` (2–1024 [x, y, z], parameters allowed) and `segments` (1–256 pairs of point indices, from → to). A member runs along each segment, each as FR1's `frame-member` (D123), and is its own body (`<id>/<k>` for segment k, a plain `<id>` for one), never united.
+- **Shared placement**: the frame's `section`, `anchor`, `offset`, `roll` and `mirror` hold for every member; `up` for all.
+- **`overrides`** sets one member apart (its own section, anchor, offset, roll or mirror; what it leaves out stays the frame's). A member named twice, or past the segments, is INPUT.
+- **`mirror`** turns the section over across its own y axis (x ↦ −x: lines' starts, arcs' centres and their direction). The face names keep their roles, the area stays, and the centroid and the box turn with it. The report says `mirrored` and the label `…, mirrored`.
+- **Faces**: `<id>.m<k>.<role>` and `<id>.m<k>.start` / `.end`. Each member's faces are its own, so FR3's trims can name another member's face.
+- **The member report** gains `frame: { member, from, to }`. The frame's report is its members' reports.
+- **Refused by name**:
+  - `[SEGMENT_ZERO_LENGTH]`: a point used twice, or two points together within 1e-6 mm;
+  - `[MEMBER_DUPLICATE]`: two segments on the same two points, either way round (by position, not index);
+  - `[SKELETON_OVERLAP]`: two segments on one line sharing more than 1e-6 mm, where a member would run through another;
+  - the sections' `[SECTION_DIMENSIONS]`.
+  - Two collinear segments that only touch end to end are allowed (a straight run of two members).
+- The section and placement code of FR1 is shared, not copied: `memberShape`, `memberLook`, `memberUp` and `buildMember` serve both features, and the skeleton's pair test is hoisted (no closures in its loop).
+
+**Oracles** (`test/fr-2.test.mjs`, 5 tests, closed forms written there):
+- **A 600 × 400 × 700 box frame of 12 round-cornered tubes**:
+  - one body each, `f/0 … f/11`;
+  - A·L each to 1e-12, and the frame's total;
+  - each centroidal line on its segment's points to 1e-12 (anchored at the centroid);
+  - the frames orthonormal, right-handed and square to their lines to 1e-15;
+  - the legs' y from the fallback (+X), the rails' along +Z;
+  - 12 members in well under 3 s.
+- **Overrides**: legs as a sharp 50 × 50 × 4 tube rolled 45° (their A·L, x turned 45° exactly), and a rail anchored on its top face (its centroid 20 below the line); the rest keep the frame's.
+- **Mirror**: two angle stiles, the second mirrored. The same A·L, the centroid's x̄ negated in its frame (1e-15), the B-rep's box on the other side, the role names kept.
+- **An oblique tetrahedron of round tubes**: A·L each, y square to each line; a point by parameter moves with `withParameters`.
+- **Refusals**: 10 cases.
+- **Conformance** `conformance/fr/` (+4; generator `scripts/fr2-conformance.mjs`, closed forms only):
+  - the 12-member box (each member's volume, centroid at its edge's midpoint, axes by the up rule, the derived bore radius);
+  - the two mirrored angle stiles (centroids by moments, x̄ negated);
+  - `refuse-skeleton-overlap` and `refuse-member-duplicate`.
+
+**Studio**:
+- **The node** `frame`: points, segments, section, placement, overrides, `estimates` as a member's.
+  - Its bodies are its members: side `part<k>` (one segment: `solid`), named `Frame RHS 40×40×3 · 8 members · member 3`.
+  - Saved and read back. (A sketch section's index is shifted when a part is flattened into an assembly, as `frame-member`'s; not exercised by a test yet.)
+- **"Frame" in the palette**: a preset skeleton sized by width, depth and height from a corner, or the straight edges picked on bodies.
+  - The presets: a table (top and legs, 8 members), a box (12), a rectangle (4).
+  - The picked edges: a layout box or sketch's edges, their ends shared within 1e-6 mm, so a layout box's 12 edges give 8 points.
+  - This is the stage's skeleton editor: typed points (the presets, the editor's point fields) and points snapped to vertices (the picked edges). A free 3D point-and-segment drawing tool in the viewport is not in FR2 (below).
+- **The body's panel**: "Frame member 6 of 8: point 6 → point 7" above the member's section and frame notes. A member with its own section (an override) shows no prefill estimates.
+- **The feature editor**: the frame's section dimensions (an edited one drops its estimate flag), the roll, and every point's X, Y and Z (moving the top's points lengthens the legs).
+- **The agent**:
+  - `add_features` checks the points (2–1024), the segments (1–256 index pairs) and each override's fields;
+  - the kernel's refusals come back by name;
+  - `run_command frame` documents every HUD key.
+  - The tool contract records the command (`UPDATE_TOOL_CONTRACT=1`).
+- An icon.
+- **Studio tests** `test/frame.test.ts` (+3): the table preset (8 bodies, A·L, names, notes, the editor's points), a frame on a box's 12 picked edges (8 shared points, 12 members, saved), and the agent's frame with a mirrored override and its refusals.
+- **A flow step** (`fr2-table-frame`): the palette's table frame, 8 bodies, the leg's volume, its notes and its name. The corners overlap there: FR3 trims them.
+
+**Judgement calls**:
+- **The skeleton lives on the frame** (kernel and studio), not in a separate skeleton feature. One frame has one skeleton, and overrides give its members different sections. FR3's corners are the frame's own points.
+  - A skeleton shared by several frames would need a skeleton node that is not a body. The studio treats every non-sketch node as a body, so that change reaches further than FR2 needs.
+- **The skeleton editor** is the presets, the picked edges (snapped to vertices) and typed point coordinates.
+  - Drawing new points and segments in the viewport, as a 3D sketch with snapping, is not in FR2. The agent and the file can write any skeleton.
+  - Listed below for the owner.
+- **Duplicate and overlap are tested by position**, so two points at one place are the same point for these refusals.
+
+**Not in FR2** (the owner may place them):
+- a 3D-sketch tool in the viewport (draw points and segments with snapping; constraints);
+- skeletons shared by several frames;
+- members along arcs.
+- Corners and trims are FR3; the cut list is FR4.
+
+**Checks** on b19ad3445 + 2f066cb5e + 8688b7111 (the innerRadius commit) plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1258/1263 (4 skipped; +10: the derived-bore test, 5 fr-2 tests, 4 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 161/161 |
+| Studio | 623/623 (+3 of FR2, +11 from the merged RD9/RD10/O49–O50; names compared, none missing) |
+| Full flow | 180/180, run on its own; the new step included |
+
+RB rows are in the next commit.

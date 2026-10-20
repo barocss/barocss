@@ -250,6 +250,16 @@ export type CadPartFeature = Base & (
    * a sketch's by its sides) and the ends `<id>.start` / `<id>.end`. The output's `member` reports the section, its area
    * and centroid, the line and the section's frame. Refused by name: `SECTION_DIMENSIONS`, `SEGMENT_ZERO_LENGTH`.
    */
+  /**
+   * A frame (FR2, D124): one member (as `frame-member`) along each of `segments` (pairs of indices into `points`, from →
+   * to), each its own body, `<id>/<k>` for segment k — never united. The frame's `section`, `anchor`, `offset`, `roll`
+   * and `mirror` (the section turned over across its own y axis) hold for every member unless `overrides` says otherwise
+   * for one; `up` for all. Faces `<id>.m<k>.<role>` and the ends `<id>.m<k>.start` / `.end`. Each output's `member`
+   * report carries its `frame` place (member, from, to). Refused by name: `SEGMENT_ZERO_LENGTH`, `MEMBER_DUPLICATE` (two
+   * segments on the same two points), `SKELETON_OVERLAP` (two on one line sharing a length), and the sections'
+   * `SECTION_DIMENSIONS`.
+   */
+  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[] }
   | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
@@ -302,6 +312,8 @@ export interface CadPartDocument {
 }
 export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
+/** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
+export interface CadPartFrameOverride { readonly member: number; readonly section?: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean }
 /** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
 export type CadPartSection =
   | { readonly kind: 'rect-tube'; readonly width: CadPartDim; readonly height: CadPartDim; readonly wall: CadPartDim; readonly outerRadius: CadPartDim; readonly innerRadius?: CadPartDim }
@@ -1069,29 +1081,49 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'frame-member': {
       const start = xyz(f.start as CadPartPoint3, 'start'), end = xyz(f.end as CadPartPoint3, 'end'), L = len(sub(end, start));
       if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] a member runs from its start to its end: they are ${L} mm apart`);
-      const anchor = (f.anchor === undefined ? 'centroid' : f.anchor) as FrameAnchor;
-      if (!(FRAME_ANCHORS as readonly unknown[]).includes(anchor)) fail('INPUT', `anchor must be one of ${FRAME_ANCHORS.join(', ')}`);
-      const roll = f.roll === undefined ? 0 : f.roll;
-      if (typeof roll !== 'number' || !Number.isFinite(roll)) fail('INPUT', 'roll must be a number of degrees');
-      let offset: XY = [0, 0];
-      if (f.offset !== undefined) { if (!Array.isArray(f.offset) || f.offset.length !== 2) fail('INPUT', 'offset must be [x, y] in the section\'s plane'); offset = [dim((f.offset as readonly CadPartDim[])[0], 'offset x'), dim((f.offset as readonly CadPartDim[])[1], 'offset y')]; }
-      const up = f.up === undefined ? [0, 0, 1] as Point : xyz(f.up as CadPartPoint3, 'up');
-      if (!(len(up) > 1e-12)) fail('INPUT', 'up must not be zero');
-      const sec = f.section as unknown;
-      if (!isRecord(sec)) fail('INPUT', 'section must be { kind, … }: rect-tube, round-tube, angle, channel, tslot or sketch');
-      const section = sec as Record<string, unknown>;
-      let shape: MemberShape;
-      if (section.kind === 'sketch') {
-        const sketch = ref(section.sketch, 'section.sketch').result;
-        if (sketch.kind !== 'sketch') fail('REFERENCE', `section.sketch: ${String(section.sketch)} is not a sketch`);
-        const { outer, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
-        if (regions?.length) fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
-        shape = { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
-      } else {
-        try { const b = frameSection(sectionSpec(section, dim, integer, fail)); shape = { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames.map(n => `${at}.${n}`), holeNames: b.holeNames.map(h => h.map(n => `${at}.${n}`)), areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) }; }
-        catch (cause) { if (cause instanceof FrameSectionError) fail('PARAMETER', cause.message); throw cause; }
+      const look = memberLook(f, '', dim, fail), up = memberUp(f.up, xyz, fail), shape = memberShape(f.section, 'section', { ref, dim, integer, fail });
+      return () => buildMember(shape, { start, end, L, ...look, up, at });
+    }
+    case 'frame': {
+      // FR2 (D124): one member per segment of a skeleton, each its own body (`<id>/<k>`), never united.
+      const pts = f.points as unknown, segs = f.segments as unknown;
+      if (!Array.isArray(pts) || pts.length < 2 || pts.length > CadPartLimits.points) fail('INPUT', `points must list 2 to ${CadPartLimits.points} [x, y, z] points`);
+      if (!Array.isArray(segs) || !segs.length || segs.length > FRAME_MAX_MEMBERS) fail('INPUT', `segments must list 1 to ${FRAME_MAX_MEMBERS} [from, to] point indices`);
+      const points = (pts as CadPartPoint3[]).map((p, i) => xyz(p, `points[${i}]`));
+      const pairs = (segs as unknown[]).map((g, k): [number, number] => {
+        if (!Array.isArray(g) || g.length !== 2) fail('INPUT', `segments[${k}] must be [from, to]`);
+        return [integer((g as unknown[])[0], `segments[${k}][0]`, 0, points.length - 1), integer((g as unknown[])[1], `segments[${k}][1]`, 0, points.length - 1)];
+      });
+      const lengths = pairs.map(([i, j], k) => {
+        const L = len(sub(points[j], points[i]));
+        if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] segment ${k} runs from point ${i} to point ${j}: they are ${L} mm apart`);
+        return L;
+      });
+      const clash = skeletonClash(points, pairs);
+      if (clash) fail('PARAMETER', clash);
+      const base = { look: memberLook(f, '', dim, fail), shape: memberShape(f.section, 'section', { ref, dim, integer, fail }) }, up = memberUp(f.up, xyz, fail);
+      const per = pairs.map(() => base);
+      const list = f.overrides as unknown;
+      if (list !== undefined) {
+        if (!Array.isArray(list) || list.length > pairs.length) fail('INPUT', 'overrides must list up to one { member, … } per member');
+        const seen = new Set<number>();
+        (list as unknown[]).forEach((o, n) => {
+          if (!isRecord(o)) fail('INPUT', `overrides[${n}] must be { member, section?, anchor?, offset?, roll?, mirror? }`);
+          const r = o as Record<string, unknown>, k = integer(r.member, `overrides[${n}].member`, 0, pairs.length - 1);
+          if (seen.has(k)) fail('INPUT', `overrides[${n}]: member ${k} is overridden twice`);
+          seen.add(k);
+          const look = memberLook(r, `overrides[${n}].`, dim, fail, base.look);
+          per[k] = { look, shape: r.section === undefined ? base.shape : memberShape(r.section, `overrides[${n}].section`, { ref, dim, integer, fail }) };
+        });
       }
-      return () => buildMember(shape!, { start, end, L, anchor, offset, roll: roll as number, up, at });
+      return () => {
+        const parts: Part[] = [];
+        for (let k = 0; k < pairs.length; k++) {
+          const [i, j] = pairs[k], r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j } }) as Extract<Result, { kind: 'solid' }>;
+          parts.push(...r.parts);
+        }
+        return { kind: 'solid', parts };
+      };
     }
     case 'sheet-base': case 'sheet-contour': {
       const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor, table = f.bendTable as BendTable | undefined;
@@ -1701,6 +1733,71 @@ const MEMBER_MIN_MM = 1e-6;
 /** A member's section ready to extrude: its loops and roles, and (a kind's) its closed-form area, centroid and box. */
 type MemberShape = { readonly kind: string; readonly label: string; readonly outer: readonly ProfileSegmentInput[]; readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags;
   readonly outerNames?: readonly string[]; readonly holeNames?: readonly (readonly string[])[]; readonly areaMM2?: number; readonly centroid?: XY; readonly box?: { readonly min: XY; readonly max: XY }; readonly derived?: Readonly<Record<string, string>> };
+/** A frame's members at most (FR2, D124). */
+const FRAME_MAX_MEMBERS = 256;
+/** How a member's section sits on its line: its anchor, the offset it moves by, its roll, mirrored or not. */
+type MemberLook = { readonly anchor: FrameAnchor; readonly offset: XY; readonly roll: number; readonly mirror: boolean };
+/** A member's (or an override's: `base` for what it leaves out) anchor, offset, roll and mirror, checked. */
+function memberLook(r: Record<string, unknown>, at: string, dim: Tools['dim'], fail: Tools['fail'], base?: MemberLook): MemberLook {
+  const anchor = (r.anchor === undefined ? base?.anchor ?? 'centroid' : r.anchor) as FrameAnchor;
+  if (!(FRAME_ANCHORS as readonly unknown[]).includes(anchor)) fail('INPUT', `${at}anchor must be one of ${FRAME_ANCHORS.join(', ')}`);
+  const roll = r.roll === undefined ? base?.roll ?? 0 : r.roll;
+  if (typeof roll !== 'number' || !Number.isFinite(roll)) fail('INPUT', `${at}roll must be a number of degrees`);
+  let offset: XY = base?.offset ?? [0, 0];
+  if (r.offset !== undefined) {
+    if (!Array.isArray(r.offset) || r.offset.length !== 2) fail('INPUT', `${at}offset must be [x, y] in the section's plane`);
+    offset = [dim((r.offset as readonly CadPartDim[])[0], `${at}offset x`), dim((r.offset as readonly CadPartDim[])[1], `${at}offset y`)];
+  }
+  const mirror = r.mirror === undefined ? base?.mirror ?? false : r.mirror;
+  if (typeof mirror !== 'boolean') fail('INPUT', `${at}mirror must be true or false`);
+  return { anchor, offset, roll: roll as number, mirror: mirror as boolean };
+}
+/** The up reference (default +Z), not zero. */
+function memberUp(v: unknown, xyz: Tools['xyz'], fail: Tools['fail']): Point {
+  const up = v === undefined ? [0, 0, 1] as Point : xyz(v as CadPartPoint3, 'up');
+  if (!(len(up) > 1e-12)) fail('INPUT', 'up must not be zero');
+  return up;
+}
+/** A member's section ready to extrude (its names not yet under the member's id): a kind's, or a closed sketch's. */
+function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 'integer' | 'fail'>): MemberShape {
+  if (!isRecord(sec)) t.fail('INPUT', `${what} must be { kind, … }: rect-tube, round-tube, angle, channel, tslot or sketch`);
+  const section = sec as Record<string, unknown>;
+  if (section.kind === 'sketch') {
+    const sketch = t.ref(section.sketch, `${what}.sketch`).result;
+    if (sketch.kind !== 'sketch') t.fail('REFERENCE', `${what}.sketch: ${String(section.sketch)} is not a sketch`);
+    const { outer, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+    if (regions?.length) t.fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
+    return { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
+  }
+  try {
+    const b = frameSection(sectionSpec(section, t.dim, t.integer, t.fail));
+    return { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
+  } catch (cause) { if (cause instanceof FrameSectionError) return t.fail('PARAMETER', cause.message); throw cause; }
+}
+/** A section mirrored across its own y axis (x ↦ −x): its loops turned about, arcs the other way, its centroid and box with it. */
+function mirroredShape(s: MemberShape): MemberShape {
+  return { ...s, outer: s.outer.map(mirrorSegment), holes: s.holes.map(h => h.map(mirrorSegment)), ...(s.centroid ? { centroid: [-s.centroid[0], s.centroid[1]] as XY } : {}),
+    ...(s.box ? { box: { min: [-s.box.max[0], s.box.min[1]] as XY, max: [-s.box.min[0], s.box.max[1]] as XY } } : {}), label: `${s.label}, mirrored` };
+}
+function mirrorSegment(g: ProfileSegmentInput): ProfileSegmentInput {
+  return g.kind === 'line' ? { kind: 'line', start: [-g.start[0], g.start[1]] } : { kind: 'arc', start: [-g.start[0], g.start[1]], center: [-g.center[0], g.center[1]], direction: g.direction === 'ccw' ? 'cw' : 'ccw' };
+}
+const samePoint = (x: Point, y: Point): boolean => len(sub(x, y)) <= MEMBER_MIN_MM;
+/**
+ * Why a skeleton's segments cannot each be a member, or null: two on the same two points (`MEMBER_DUPLICATE`), or two
+ * on one line sharing a length (`SKELETON_OVERLAP`) — a member would run through another.
+ */
+function skeletonClash(points: readonly Point[], pairs: readonly (readonly [number, number])[]): string | null {
+  for (let a = 0; a < pairs.length; a++) for (let b = a + 1; b < pairs.length; b++) {
+    const p = points[pairs[a][0]], q = points[pairs[a][1]], r = points[pairs[b][0]], t = points[pairs[b][1]];
+    if ((samePoint(p, r) && samePoint(q, t)) || (samePoint(p, t) && samePoint(q, r))) return `[MEMBER_DUPLICATE] segments ${a} and ${b} join the same two points`;
+    const L = len(sub(q, p)), u = scale(sub(q, p), 1 / L);
+    if (len(cross(sub(r, p), u)) > MEMBER_MIN_MM || len(cross(sub(t, p), u)) > MEMBER_MIN_MM) continue;
+    const t0 = dot(sub(r, p), u), t1 = dot(sub(t, p), u), lo = Math.max(0, Math.min(t0, t1)), hi = Math.min(L, Math.max(t0, t1));
+    if (hi - lo > MEMBER_MIN_MM) return `[SKELETON_OVERLAP] segments ${a} and ${b} lie on one line and share ${+(hi - lo).toFixed(6)} mm of it`;
+  }
+  return null;
+}
 /** A section kind's dimensions resolved (parameters allowed); the kind's own checks follow in `frameSection`. */
 function sectionSpec(s: Record<string, unknown>, dim: Tools['dim'], integer: Tools['integer'], fail: Tools['fail']): FrameSectionSpec {
   const n = (key: string) => dim(s[key] as CadPartDim, `section.${key}`);
@@ -1735,9 +1832,10 @@ function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: P
 /** The point (sx, sy) of a section in its frame, from `base`. */
 const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
 /** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
-function buildMember(shape: MemberShape, o: { start: Point; end: Point; L: number; anchor: FrameAnchor; offset: XY; roll: number; up: Point; at: string }): Result {
+function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number } }): Result {
+  const shape = o.mirror ? mirroredShape(given) : given, pre = (n: string) => `${o.at}.${n}`;
   const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L, fromMM: 0, tag: o.at,
-    names: { ...(shape.outerNames ? { outer: shape.outerNames } : {}), ...(shape.holeNames ? { holes: shape.holeNames } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
+    names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
   let area = shape.areaMM2, centroid = shape.centroid;
   // (A sketch section: its area and centroid by the prism's exact mass.)
   if (area === undefined || centroid === undefined) { const m = prismaticMassProperties(solid, 1); area = m.volumeMM3 / o.L; centroid = [m.centroidMM[0], m.centroidMM[1]]; }
@@ -1745,7 +1843,7 @@ function buildMember(shape: MemberShape, o: { start: Point; end: Point; L: numbe
   // (The section point on the line: the anchor's, less the offset the section is moved by.)
   const p = anchorPoint(o.anchor, centroid, box), q: XY = [p[0] - o.offset[0], p[1] - o.offset[1]];
   const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
-  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll,
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), ...(o.frame ? { frame: o.frame } : {}),
     start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) } };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;

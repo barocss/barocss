@@ -212,6 +212,24 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
       break;
     }
+    case 'frame': {
+      // (FR2, D124: the frame's section — editing one drops its estimate flag — its roll, and each skeleton point.)
+      type F = Extract<ModelNode, { kind: 'frame' }>;
+      if (node.section.kind !== 'sketch') for (const key of Object.keys(node.section).filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
+        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, 'mm', n => num(((n as F).section as unknown as Record<string, Dim>)[key]), (n, v) => {
+          const f = n as F, estimates = f.estimates?.filter(e => e !== key);
+          const next: F = { ...f, section: { ...f.section, [key]: v } as F['section'] };
+          if (estimates?.length) next.estimates = estimates; else delete next.estimates;
+          return next;
+        });
+      }
+      number('roll', 'Roll', '°', n => (n as F).roll ?? 0, (n, v) => { const f = { ...(n as F) }; if (v) f.roll = v; else delete f.roll; return f; });
+      node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as F).points[p][c]), (n, v) => {
+        const f = n as F, points = f.points.map((q, j) => j === p ? q.map((x, k) => k === c ? v : x) as F['points'][number] : q);
+        return { ...f, points };
+      })));
+      break;
+    }
     case 'frame-member': {
       // (FR1, D123: the section's dimensions — editing one drops its estimate flag — the member's length along its line, its roll.)
       type M = Extract<ModelNode, { kind: 'frame-member' }>;
