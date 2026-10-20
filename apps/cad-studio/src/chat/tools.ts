@@ -17,6 +17,7 @@ import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
 import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
 import { DRAFT_TOOL_NAMES, DRAFT_TOOLS, runDraftTool, withImageDraft } from './drafts';
+import { runStandardsTool, STANDARDS_TOOL_NAMES, STANDARDS_TOOLS } from '../standards/provenance';
 import { datumPlane, datumToFace, datumWorld, readReferences, REFERENCE_TOOL_NAMES, REFERENCE_TOOLS, referenceNameIn, ReferenceError, runReferenceTool } from './references';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
@@ -323,6 +324,8 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
     const ref = referenceNameIn(args);
     if (ref) return fail(state, `[REFERENCE_LOCKED] ${ref} belongs to a locked reference: no feature may use it. Take a datum from it (add_datum) and build on that, or keep the part clear of it (add_keepout).`);
   }
+  // (Standards-derived values with their sources, A6.5.)
+  if (STANDARDS_TOOL_NAMES.has(name)) { const r = runStandardsTool(args); return 'error' in r ? fail(state, r.error) : { state, content: json(r.content), isError: false, changed: false, summary: r.summary }; }
   if (DRAFT_TOOL_NAMES.has(name)) {
     // (A drawing on a datum plane or a given plane, A6.4.)
     let plane: DocPlane | undefined;
@@ -1291,6 +1294,7 @@ export const TOOLS: ToolDefinition[] = [
   ...QUESTION_TOOLS,
   ...REFERENCE_TOOLS,
   ...DRAFT_TOOLS,
+  ...STANDARDS_TOOLS,
 ];
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.

@@ -357,12 +357,19 @@ stays out of the kernel's core files (requests for them go through the coordinat
     (ask_user blocks {dimension}); another value re-drives the features. Unconfirmed: check_spec unknowns, export
     warnings. Our own DXF reader (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; $INSUNITS; typed refusals). PDF drawings
     are not read (no renderer). Conformance `conformance/a6/drawings`.
-  - A6.5 standards data with provenance (next).
+  - **A6.5** (O29): done. One provenance format for standards-derived tables (a source per value: page, standard,
+    derived, estimate or own, with its licence; GPL, share-alike, non-commercial and unknown refused). The fasteners
+    are migrated to per-field and per-row sources with their values unchanged (a snapshot), and the tolerances and
+    material densities are registered. standards_lookup. A test holds prompts and tool descriptions to standard
+    numbers from an allowlist, with no quotes. Conformance `conformance/a6/standards`.
+  - **A6 done** (O23–O29). Next per the coordinator: A7 (its single-versus-multi comparison needs live runs: the
+    owner's OK).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
 - Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- Waiting for the owner: the legal review of the standards-derived data and the material library before release (A6.5, O29).
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):

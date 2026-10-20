@@ -1274,3 +1274,36 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - It is listed while any of the drawing's dimensions is unconfirmed: confirming them is the user's acceptance of the sizes.
   - A declared unit is no assumption.
   - Test: the inches fixture with its `$INSUNITS` removed reads as 4 (not 101.6), the assumption listed in both places, then gone once all three are confirmed. Drafts tests 6/6.
+
+## O29 — A6.5: standards data with provenance (2026-10-20)
+
+- **One provenance format** for the studio's standards-derived tables (`src/standards/provenance.ts`):
+  - **sources**: `{id, kind: page | standard | derived | estimate | own, where, read?, licence, unverified?}`;
+  - **tables**: `{id, title, unit, standards (by number only), rows, fieldSources, rowSources}`. Each value's source is its field's, or its row's where that differs.
+  - **Licences a table may carry**:
+    - `facts`: the standards' or a page's numbers as read; no table layout, prose or notes copied;
+    - `own`: written for BaroCSS;
+    - `CC0-1.0`, `CC-BY-4.0`, `public-domain` and `MIT`.
+    - Anything else is refused, typed `LICENCE`: GPL and LGPL, share-alike, non-commercial, unknown. A value without a source is refused `NO_SOURCE`.
+- **The tables registered**:
+  - **The metric coarse fasteners**, M3–M12, migrated from the one `CATALOGUE` list to a source per field, with no value changed. A snapshot fixture holds the values (`conformance/a6/standards/fasteners-values.json`), and `src/app/fasteners.ts` is unchanged. The sources:
+    - the nominal sizes (pitches, heads, nuts, washers; `FAST-NOM`): facts, the cross-check recorded without an address, so **unverified**;
+    - the ISO 4762 and ISO 4017 lengths: pages with their addresses, read 2026-10-17;
+    - **row by row, the ISO 4017 lengths not cross-checked**: the 2d … 10d rule, unverified;
+    - ISO 10642: the nominal relations, not cross-checked, unverified;
+    - ISO 273 clearances: as suppliers give them, no single source, unverified;
+    - tap drills: derived, d − P.
+  - **The drawing's general tolerances**: estimates, as they were.
+  - **The material densities**: the material library's own sources, licensed CC0-1.0 by the file.
+- **The lookup**: tool `standards_lookup {table?, row?, field?}` (read, with an output schema; v2 `library.standards`) gives a value or a row with each value's source. Without a table it lists the tables. `NO_TABLE` and `NO_ROW` are typed.
+- **Prompts and tool descriptions name standards only by number.** A test lists every standard number in the system prompts (v1, v2), the tool descriptions (v1, v2) and the groups' texts. Each must be in `NAMED_STANDARDS`, the tables' standards and ISO 68-1. The test also refuses a quoted passage of six words or more within 80 characters of a standard's number. There is no RAG.
+- **The legal review before release is the owner's step**, recorded in README §0 and not done here. The material library's own licence line also says so.
+- **The tool contract**: 14 169 of 15 000 (`standards_lookup` with its output schema); 831 left.
+- **Evidence**: `test/standards.test.ts` (5 tests). Its name was checked free first.
+  - Every value of every table, 149 of them, has a source. Every source carries an allowed licence, and every page source has an address. The ISO 4017 lengths not cross-checked are said so, row by row.
+  - A table under GPL-3.0, LGPL-2.1, CC-BY-SA-4.0, CC-BY-NC-4.0 or unknown is refused `LICENCE`, and an unsourced value `NO_SOURCE`.
+  - The fastener values equal the snapshot, and the table holds them as they are.
+  - The lookup: M6's tap drill 5 with its source (derived), M8's row with its page and its unverified relations, the tables listed, refusals typed.
+  - The allowlist: the standards named are ISO 4017, 4762, 10642, 4032, 7089 and 68-1, and there is no quote near one.
+  - Browser flow 173/173, with a step "A6.5" before the last: `standards_lookup` through the real chat and tool servers. Studio 561/561. The test names were compared with the last run, and none is missing. Lint and type-check clean.
+- **A6 is done**: A6.1–A6.5 (O24–O29).

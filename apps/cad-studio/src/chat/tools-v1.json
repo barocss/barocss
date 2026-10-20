@@ -3363,6 +3363,57 @@
    }
   },
   {
+   "name": "standards_lookup",
+   "annotations": {
+    "title": "Standards lookup",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "field": {
+      "type": "string"
+     },
+     "row": {
+      "type": "string"
+     },
+     "table": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "row": {
+      "type": "string"
+     },
+     "sources": {
+      "type": "object"
+     },
+     "standards": {
+      "type": "array"
+     },
+     "table": {
+      "type": "string"
+     },
+     "tables": {
+      "type": "array"
+     },
+     "unit": {
+      "type": "string"
+     },
+     "values": {
+      "type": "object"
+     }
+    },
+    "type": "object"
+   }
+  },
+  {
    "name": "subd_bridge",
    "annotations": {
     "title": "Subd bridge",

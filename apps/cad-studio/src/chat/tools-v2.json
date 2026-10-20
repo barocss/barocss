@@ -194,6 +194,7 @@
     "properties": {
      "action": {
       "enum": [
+       "standards",
        "list",
        "add",
        "add_part"

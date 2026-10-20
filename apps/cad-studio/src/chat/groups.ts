@@ -69,7 +69,7 @@ export const GROUPS: Record<string, Group> = {
   library: {
     title: 'Library',
     about: 'Standard and team parts.',
-    actions: { list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
+    actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
   print: { title: '3D print', about: 'Printability on an FDM printer.', actions: { check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {
