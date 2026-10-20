@@ -1043,7 +1043,10 @@ gear crank.
 - Later: AM6 split with dowel or plug connectors; AM7 SDF voxel hollowing with drains, then lattices.
   - **AM7a done (O53 S0, O54, O56)**: `hollow` — the kernel's exact closed shell first (box, sphere, torus exact), else an SDF
     voxel cavity for planar parts; drains into each cavity; the wall measured; route and why reported. A curved body the shell
-    refuses: `CURVED_BODY`, waiting on the kernel's F3. AM7b (lattices) next.
+    refuses: `CURVED_BODY`, waiting on the kernel's F3.
+  - **AM7b done (O57 S0, O58)**: `lattice` — a gyroid infill as a separate mesh body in the exact hollow; wall vertices on
+    the exact wall, loose pieces dropped, one drain a round until every empty region drains; fraction within the derived bound,
+    one solid, no overlap by the kernel's intersection. STEP still carries it (body filter: the coordinator's call).
   - **A6.3 chord tolerance fixed (O55)**: bounded in both directions from the mesh's normals (sphere 0.144, was 0.072; torus
     finite, was unbounded).
   - **AM6 done (O51 S0, O52)**: `split-bed` — the fewest even pieces that fit the bed, dowels or plugs at the fit; volumes,

@@ -2593,6 +2593,7 @@
        "circular-pattern",
        "split",
        "hollow",
+       "lattice",
        "split-bed",
        "union",
        "difference",

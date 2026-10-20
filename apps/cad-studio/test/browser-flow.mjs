@@ -4542,6 +4542,22 @@ try {
     await snap('am7a-hollow');
   });
 
+  // ---- AM7b (O57): a gyroid lattice infill ------------------------------------------------------------------------
+  await check('AM7b: that hollowed block filled with a gyroid lattice from the palette: a separate mesh body beside the exact shell, the shell no fuller than before', async () => {
+    await press('Escape');
+    await press(' '); await page.locator('.palette input').fill('fill with a lattice'); await press('Enter'); await hudReady();
+    assert.equal(await field('Cell').inputValue(), '8');
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'mesh' && window.__studioDoc.nodes.at(-1)?.name === 'lattice', null, { timeout: 120000 });
+    await page.waitForFunction(() => window.__studioFresh === true && /\d+ bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
+    // (The shell's B-rep first, its volume no more than the hollowed block's 9000.87 mm³: any new drain cuts it.)
+    const kinds = (await doc()).nodes.map(n => n.kind), shellAt = kinds.lastIndexOf('shell');
+    assert.ok(shellAt >= 0 && kinds.slice(shellAt + 1, -1).every(k => k === 'hole'), kinds.join(' '));
+    const vol = await bodyVolume();
+    assert.ok(vol <= 24000 - 36 * 26 * 16 - 8 * Math.PI + 1, String(vol));
+    await snap('am7b-lattice');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -13,6 +13,7 @@ import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
 import { planBedSplit } from '../print/splitBed';
 import { planHollow } from '../print/hollow';
+import { isHollowed, planLattice } from '../print/lattice';
 import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
 
@@ -674,6 +675,14 @@ const allCommands: Command[] = [
     fields: () => [{ key: 't', label: 'Wall', kind: 'mm' }, { key: 'h', label: 'Voxel', kind: 'mm' }, { key: 'drain', label: 'Drain Ø', kind: 'mm' }],
     defaults: () => ({ t: 2, h: 0.5, drain: 4 }),
     build: (ctx, v) => planHollow(ctx.doc, ctx.bodies, { t: Number(v.t), h: Number(v.h), drain: Number(v.drain) }).doc,
+  },
+  {
+    // AM7b (O57): a gyroid lattice inside a part hollowed for printing — a separate mesh body, the shell's B-rep exact, drains for each empty region.
+    id: 'lattice', label: 'Fill with a lattice', icon: 'cad-shell', hint: 'Fill a hollowed part with a gyroid lattice: a separate mesh body inside the exact wall, with a drain into each empty region', group: 'modify', keywords: 'print lattice infill gyroid tpms hollow cavity strength light weight',
+    available: ctx => ctx.bodies.length !== 1 ? no(ctx.bodies.length ? 'The part has several bodies: the lattice fills one hollowed body.' : 'There is no body to fill.') : isHollowed(ctx.doc) ? ok : no('Hollow the part for printing first: the lattice fills its closed shell.'),
+    fields: () => [{ key: 'cell', label: 'Cell', kind: 'mm' }, { key: 'thickness', label: 'Band k', kind: 'number' }, { key: 'h', label: 'Voxel', kind: 'mm' }],
+    defaults: () => ({ cell: 8, thickness: 0.6, h: 0.5 }),
+    build: (ctx, v) => planLattice(ctx.doc, ctx.bodies, { cell: Number(v.cell), k: Number(v.thickness), h: Number(v.h) }).doc,
   },
   {
     // AM6 (O51): a part too big for the printer's bed, cut into the fewest even pieces that fit, with dowels or plugs.
