@@ -491,6 +491,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
+- **Drawing table** (O49 S0, O50): done. A generic table on drawings (header, units, anchor; auto-placed clear; R14's issue
+  check and a move fix; SVG, PDF and DXF through the existing writers, ezdxf audit clean); R12's bend table on it (BA, BD
+  by the kernel's formulas; a shop row's 4.2). Its API is for the kernel lane's FR4b cut list (`TABLE_SOURCES['cut-list']`).
 - **RD4–RD8 held** (O46, the owner, 2026-10-20: "RD4~RD8(FEA·메셔)도 CAE로 보고 로드맵에서 빼서 보류해. RD9·RD10은 FEA 없이 가능한 범위만."). Outer lane order: RM7 (done, O44) → RM8 (done, O45) → RD9 → RD10, deterministic parts only, each with an S0.
 - MuJoCo 3.3.0 run (O38, the owner's go-ahead): RM4's URDF oracle passed (worst 2.2e-16), RM5's MJCF oracle passed after the equilibrium start and the contacts were found (gravity torques against RD1's to 4.4e-14; passive energy 1.0e-6; the damped hang settled, 8.8e-13 rad/s). RM4's external check and RM5's acceptance are closed.
 - Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).

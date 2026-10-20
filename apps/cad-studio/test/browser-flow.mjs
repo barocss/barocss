@@ -4371,6 +4371,37 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- O49: a drawing table — R12's bend table ---------------------------------------------------------------------
+  await check('O49: a sheet L-bracket\'s drawing with its bend table (the checkbox): the table on the sheet, clean, and in the SVG, PDF and DXF exports', async () => {
+    const fs = await import('node:fs'), file = join(out, 'bend-table.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 1, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.4 }] }));
+    await openModel(file, 1, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.waitForSelector('[aria-label="Bend table"]', { timeout: 20000 });
+      await page.check('[aria-label="Bend table"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.tables?.[0]?.from === 'bends', null, { timeout: 10000 });
+      // (θ(R + K·T) at 90°, R 3, K 0.4, T 2 is 5.969; BD 2(R + T) − BA is 4.031.)
+      await page.waitForFunction(() => window.__studioDrawing?.()?.tables?.length === 1 && !window.__studioDrawing().tables[0].error, null, { timeout: 20000 });
+      await snap('o49-bend-table');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of ['BEND TABLE', 'BA [mm]', 'BD [mm]', '5.969', '4.031']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+      assert.match(svg, /<g class="table"/);
+      const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
+      const pdf = fs.readFileSync(await pdfFile.path()).toString('latin1');
+      for (const t of ['BEND TABLE', '5.969', '4.031']) assert.ok(pdf.includes(`(${t}) Tj`), `PDF: ${t}`);
+      const [dxfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export DXF"]')]);
+      const dxf = fs.readFileSync(await dxfFile.path()).toString('latin1');
+      for (const t of ['BEND TABLE', 'BA [mm]', '5.969', '4.031']) assert.ok(dxf.includes(`\n${t}\r\n`) || dxf.includes(`\n${t}\n`), `DXF: ${t}`);
+      // (The issue list says nothing of the table.)
+      const issues = await page.evaluate(() => window.__studioDrawing?.()?.issues ?? []);
+      assert.ok(!issues.some(i => (i.tables ?? []).length), JSON.stringify(issues));
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -7,7 +7,8 @@ import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
-import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingViews, Tolerance, ViewId, XY } from './types';
+import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingTable, DrawingViews, Tolerance, ViewId, XY } from './types';
+import { tableLayout, type TableContent } from './table';
 import { VIEW_IDS } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
@@ -26,15 +27,18 @@ export type Mark =
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
 /** `datum`, `control` (R14.4, O5): a datum feature symbol, a feature control frame. */
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control'; id?: string; view?: ViewId; marks: Mark[] }
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[] }
+/** `table` (O49): a drawing table, its id the table's. */
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table'; id?: string; view?: ViewId; marks: Mark[] }
+/** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string }[] }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 
 /** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null; threads?: ReadonlyMap<string, FaceThread> }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+/** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string } }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -83,7 +87,58 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const [x0, , x1, y1] = placed.box;
     groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, y1 + 7], text: 'SECTION A–A', size: 2.5, anchor: 'middle' }] });
   }
-  return { size: [W, H], groups, dimensions };
+  // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
+  const tables = tableGroups(layout, settings, groups, meta.tableContent);
+  groups.push(...tables.groups);
+  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}) };
+}
+
+type Rect = [number, number, number, number];
+const meets = (a: Rect, b: Rect, gap = 1) => a[0] < b[2] + gap && b[0] < a[2] + gap && a[1] < b[3] + gap && b[1] < a[3] + gap;
+/** What an auto-placed table must keep clear of: the views' and the section's areas, every text on the sheet so far, the title block. */
+function takenOf(layout: SheetLayout, groups: readonly MarkGroup[]): Rect[] {
+  const out: Rect[] = [layout.title];
+  for (const id of VIEW_IDS) if (!layout.views[id].hidden) out.push(layout.views[id].box);
+  if (layout.section) out.push(layout.section.box);
+  for (const g of groups) if (g.role !== 'frame' && g.role !== 'title' && g.role !== 'view') for (const m of g.marks) if (m.kind === 'text') { const q = textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold); out.push([Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))]); }
+  return out;
+}
+/**
+ * Each table laid out (O49): at its anchor, or — without one — the first place clear of the views, the texts and the
+ * tables already placed, searched from just above the title block at its right edge, upward then leftward in 5 mm steps
+ * inside the frame; none clear, it stays at the first place (the issue list then says what it meets).
+ */
+function tableGroups(layout: SheetLayout, settings: DrawingSettings, before: readonly MarkGroup[], contentOf?: (t: DrawingTable) => TableContent | { error: string }): { groups: MarkGroup[]; placed: NonNullable<Sheet['tables']> } {
+  const groups: MarkGroup[] = [], placed: NonNullable<Sheet['tables']> = [], taken = takenOf(layout, before);
+  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left').box); }
+  for (const t of settings.tables ?? []) {
+    const { content, error } = tableContentOf(t, contentOf);
+    let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left') : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right');
+    if (!t.at) { const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]); if (at) l = tableLayout(content, at, 'top-left'); taken.push(l.box); }
+    groups.push({ role: 'table', id: t.id, marks: l.marks });
+    placed.push({ id: t.id, box: l.box, ...(error ? { error } : {}) });
+  }
+  return { groups, placed };
+}
+/** The first top-left corner for a w × h box clear of `taken`: from just above the title block's right end, upward then leftward in 5 mm steps, inside the frame; null when none is. */
+function roomIn(layout: SheetLayout, taken: readonly Rect[], w: number, h: number): XY | null {
+  const [fx0, fy0, fx1] = layout.frame, right = layout.title[2], bottom = layout.title[1] - 3;
+  for (let dx = 0; right - dx - w >= fx0; dx += 5) for (let dy = 0; bottom - dy - h >= fy0; dy += 5) {
+    const box: Rect = [right - dx - w, bottom - dy - h, right - dx, bottom - dy];
+    if (box[2] <= fx1 && !taken.some(r => meets(box, r))) return [box[0], box[1]];
+  }
+  return null;
+}
+/** Room for a table of `box`'s size on a built sheet, clear of everything but itself (O49: the issue list's fix for a table). */
+export function tableRoom(layout: SheetLayout, sheet: Sheet, id: string): XY | null {
+  const self = sheet.tables?.find(x => x.id === id); if (!self) return null;
+  const taken = [...takenOf(layout, sheet.groups.filter(g => !(g.role === 'table' && g.id === id))), ...(sheet.tables ?? []).filter(x => x.id !== id).map(x => x.box)];
+  return roomIn(layout, taken, self.box[2] - self.box[0], self.box[3] - self.box[1]);
+}
+/** A table's content, or — its source giving nothing — its title and the reason (never an empty table that reads as "no rows"). */
+function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableContent | { error: string }): { content: TableContent; error?: string } {
+  const c = t.from ? contentOf?.(t) ?? { error: 'its source was not run for this sheet' } : { ...(t.title ? { title: t.title } : {}), columns: t.columns ?? [], rows: t.rows ?? [] };
+  return 'error' in c ? { content: { title: t.title ?? (t.from ?? t.id).toUpperCase(), columns: [{ key: 'why', label: 'NOT AVAILABLE' }], rows: [[c.error]] }, error: c.error } : { content: c };
 }
 
 /**

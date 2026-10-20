@@ -50,6 +50,17 @@ export interface DrawingDatum { id: string; letter: string; view: ViewId; edge: 
  */
 export interface DrawingFrame { id: string; dim: string; characteristic: 'position'; value: number; datums: string[] }
 export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
+/** A table's column (O49): its header `label [unit]`, numbers shown to `digits` places (absent: up to 2) and aligned right by default. */
+export interface TableColumn { key: string; label: string; unit?: string; align?: 'start' | 'middle' | 'end'; digits?: number }
+/** A cell: text, a number (formatted by its column), or null (shown as '—'). */
+export type TableCell = string | number | null;
+export type TableCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+/**
+ * A table on the sheet (O49): its content given (`columns`, `rows`) or filled from the part at each build by a named
+ * source (`from`: 'bends', R12's bend table; the kernel lane's cut list). `at`: a sheet point (mm, y down) that its
+ * `corner` (default top-left) is on; absent, it is laid out above the title block, right-aligned, stacked upward.
+ */
+export interface DrawingTable { id: string; title?: string; columns?: TableColumn[]; rows?: TableCell[][]; from?: string; at?: XY; corner?: TableCorner }
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
 export interface EdgeRef { edge: string; near: Vec3; sig?: Sig; was?: string }
 
@@ -87,6 +98,8 @@ export interface DrawingSettings {
   revisedModel?: string;
   dimensions: DrawingDimension[];
   notes?: DrawingNote[];
+  /** Tables (O49): given content or a named source's (the bend table, a cut list). */
+  tables?: DrawingTable[];
   /** The views shown (R14.3, O4): the front and top views always; none: all four. */
   views?: ViewId[];
   /** Extra sheet room (mm) beside a view's sides for its dimensions (R14.3, O4): the layout spaces the views by it. */
@@ -132,6 +145,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(Array.isArray(r.datums) && r.datums.some(isDatum) ? { datums: r.datums.filter(isDatum).map(d => ({ id: d.id, letter: d.letter, view: d.view, edge: { ...d.edge }, place: [d.place[0], d.place[1]] as XY })) } : {}),
     ...(Array.isArray(r.frames) && r.frames.some(isFrame) ? { frames: r.frames.filter(isFrame).map(f => ({ id: f.id, dim: f.dim, characteristic: 'position' as const, value: f.value, datums: [...f.datums] })) } : {}),
     ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
+    ...(readTables(r.tables).length ? { tables: readTables(r.tables) } : {}),
   };
 }
 
@@ -151,6 +165,22 @@ const isFrame = (f: unknown): f is DrawingFrame => { const x = f as DrawingFrame
 /** A pitch circle's members: three or more holes, each by an edge name and a point. */
 const ringOk = (ring: unknown): boolean => Array.isArray(ring) && ring.length >= 3 && ring.length <= 360 && ring.every(m => m && typeof m.edge === 'string' && Array.isArray(m.near) && m.near.length === 3);
 const isXY = (p: unknown): p is XY => Array.isArray(p) && p.length === 2 && p.every(x => typeof x === 'number' && Number.isFinite(x));
+const CORNERS: readonly TableCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+const cellOk = (c: unknown) => c === null || (typeof c === 'number' && Number.isFinite(c)) || (typeof c === 'string' && c.length <= 120);
+const columnOk = (c: unknown) => { const x = c as TableColumn; return !!x && typeof x.key === 'string' && typeof x.label === 'string' && x.label.length <= 120 && (x.unit === undefined || (typeof x.unit === 'string' && x.unit.length <= 20)) && (x.align === undefined || ['start', 'middle', 'end'].includes(x.align)) && (x.digits === undefined || (Number.isInteger(x.digits) && x.digits >= 0 && x.digits <= 6)); };
+/** A table kept when whole: 1–20 columns and at most 200 rows each as long (given content), or a source's name. */
+const isTable = (v: unknown): v is DrawingTable => {
+  const x = v as DrawingTable;
+  if (!x || typeof x.id !== 'string' || !x.id || (x.title !== undefined && (typeof x.title !== 'string' || x.title.length > 120)) || (x.at !== undefined && !isXY(x.at)) || (x.corner !== undefined && !CORNERS.includes(x.corner))) return false;
+  if (x.from !== undefined) return typeof x.from === 'string' && /^[a-z][a-z0-9-]{0,31}$/.test(x.from) && x.columns === undefined && x.rows === undefined;
+  return Array.isArray(x.columns) && x.columns.length >= 1 && x.columns.length <= 20 && x.columns.every(columnOk) && Array.isArray(x.rows) && x.rows.length <= 200 && x.rows.every(r => Array.isArray(r) && r.length === x.columns!.length && r.every(cellOk));
+};
+function readTables(raw: unknown): DrawingTable[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>(), out: DrawingTable[] = [];
+  for (const v of raw) if (isTable(v) && !seen.has(v.id)) { seen.add(v.id); out.push(JSON.parse(JSON.stringify({ id: v.id, ...(v.title ? { title: v.title } : {}), ...(v.from ? { from: v.from } : { columns: v.columns, rows: v.rows }), ...(v.at ? { at: v.at } : {}), ...(v.corner ? { corner: v.corner } : {}) })) as DrawingTable); }
+  return out;
+}
 const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);
 function readTolerance(t: unknown): Tolerance | null {
   const x = t as Tolerance | undefined, num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
