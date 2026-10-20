@@ -207,6 +207,25 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'bevel-gear': {
+      // (R12b.3, D134. A meshing gear's module, teeth, mate and shaft angle are its driver's: only its own here.)
+      const g = (n: ModelNode) => n as typeof node;
+      if (!node.mesh) {
+        number('m', 'Module (heel)', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+        number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
+        number('zm', 'Mate\'s teeth', undefined, n => g(n).mateTeeth, (n, v) => ({ ...g(n), mateTeeth: Math.round(v) }));
+        number('sigma', 'Shaft angle Σ', '°', n => g(n).shaftAngle ?? 90, (n, v) => { const next = { ...g(n) }; if (v === 90) delete next.shaftAngle; else next.shaftAngle = v; return next; });
+      }
+      number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
+      number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
+      number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      if (!node.mesh) number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      else {
+        number('dir', 'Direction', '°', n => g(n).mesh!.direction ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, direction: v } }));
+        number('ph', 'Phase', '°', n => g(n).mesh!.phase ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, phase: v } }));
+      }
+      break;
+    }
     case 'gear': {
       const g = (n: ModelNode) => n as typeof node, helix = helixOf(node, nodes);
       number('m', helix ? 'Normal module' : 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));

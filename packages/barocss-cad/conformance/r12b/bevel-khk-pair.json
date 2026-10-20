@@ -1,0 +1,91 @@
+{
+  "id": "r12b-bevel-khk-pair",
+  "step": "R12b",
+  "decisions": [
+    "D134"
+  ],
+  "about": "K1's straight-bevel example's system-independent numbers (m 3, z 20/40, Σ 90°: δ 26.56505°/63.43495°, R 67.08204), 20 wide, bores Ø10 and Ø20: the gear meshing with the pinion by mesh — the same apex, its axis along +X (the direction 0°), a space facing the pinion's tooth on the pitch line; each volume by its section's area on the sphere less the bore, each centroid on its own axis.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 20,
+          "bore": 10
+        },
+        {
+          "id": "w",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 40,
+          "mateTeeth": 20,
+          "faceWidth": 20,
+          "bore": 20,
+          "mesh": {
+            "gear": "p"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 41132.2793,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            55.061736
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^p\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|heel|toe|bore)$"
+      },
+      {
+        "volumeMM3": {
+          "value": 221158.136,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            41.738771,
+            0,
+            0
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^w\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|heel|toe|bore)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "K1 (KHK, Calculation of Gear Dimensions, §4.4, retrieved 2026-10-20) for δ and R; the volumes and centroids as r12b-bevel-m2-z20-z40, less the bore's (2π/3)[(R³ − (R² − ρ²)^{3/2})] between the spheres and its moment πρ²(Re² − Ri²)/2"
+}

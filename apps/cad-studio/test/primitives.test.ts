@@ -238,6 +238,47 @@ test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default)
   assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Helical β 15° right hand/.test(n.text)) && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), JSON.stringify(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes));
 });
 
+test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, z 20 for 40, Σ 90°, its toe on At Z) — its volume, its notes; its mate by Meshing gear with it selected — the same apex, ratio 20:40, clear; the mate follows the pinion\'s teeth; a phase off crosses; the pinion cannot go from under it', async () => {
+  const { editFields } = await import('../src/app/editFields');
+  const { deleteFeature } = await import('../src/chat/features');
+  const cmd = commands.find(c => c.id === 'bevel-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
+  const node = one.nodes[0] as Extract<ModelNode, { kind: 'bevel-gear' }>;
+  assert.deepEqual([node.kind, node.module, node.teeth, node.mateTeeth, node.shaftAngle, node.faceWidth, node.bore, node.generator], ['bevel-gear', 2, 20, 40, undefined, 10, 8, 'bevel-gear@0']);
+  // (Its apex below At Z by the toe's lowest point: (R − b) cos(δ + θa), R = 20/sin δ, tan δ = 1/2, θa = atan(2/R).)
+  const R = 20 / Math.sin(Math.atan(0.5)), low = (R - 10) * Math.cos(Math.atan(0.5) + Math.atan(2 / R));
+  assert.ok(Math.abs(node.from! + low) < 1e-9, String(node.from));
+  const g = r1.ok ? r1.bodies[0] : null!;
+  assert.ok(Math.abs(g.mesh.bounds.min[2]) < 1e-6, String(g.mesh.bounds.min[2]));
+  // (The volume by the kernel test's own construction, test/gear-bevel.test.mjs: (R³ − (R − b)³)/3 × the section's area on
+  // the unit sphere, less the Ø8 bore between the spheres — 9785.1487 mm³; the flanks' fit allows about 0.02.)
+  assert.ok(Math.abs(g.volumeMM3! - 9785.1487) < 0.02, String(g.volumeMM3));
+  assert.ok(g.notes?.some(n => /^Straight bevel, spherical involute: reference Ø40 at the heel, pitch cone 26\.5651° \(shaft angle 90°\), cone distance 44\.7214 mm \(toe 34\.7214\)/.test(n.text))
+    && g.notes?.some(n => /^Tredgold's virtual spur gear: 22\.36 teeth \(an estimate/.test(n.text)) && g.notes?.some(n => n.warning && /Schematic root/.test(n.text)), JSON.stringify(g.notes));
+  assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 20);
+  assert.ok(g.mesh.faces.some(f => f.name === 'n0.heel') && g.mesh.faces.some(f => f.name === 'n0.toe'));
+  // Its mate.
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  assert.ok(mesh.available(picked).ok); assert.deepEqual(mesh.fields!(picked).map(f => f.key), ['dir', 'bore']);
+  const two = mesh.build!(picked, mesh.defaults!(picked)), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  const w = two.nodes[1] as Extract<ModelNode, { kind: 'bevel-gear' }>;
+  assert.deepEqual([w.teeth, w.mateTeeth, w.mesh?.gear], [40, 20, 0]);
+  const k = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
+  assert.ok(k.notes!.some(n => /^Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash 0 mm at the heel, contact ratio 1\.714 \(spherical; Tredgold's estimate 1\.712\)/.test(n.text)) && k.notes!.some(n => /^Clear over a full tooth period on the heel sphere/.test(n.text)), JSON.stringify(k.notes));
+  // (54305.1392 mm³ by the same construction for the z 40 gear with its Ø8 bore.)
+  assert.ok(Math.abs(k.volumeMM3! - 54305.1392) < 0.05, String(k.volumeMM3));
+  assert.deepEqual(editFields(two.nodes, 1).map(f => f.key), ['b', 'bore', 'ds', 'dir', 'ph']);
+  // The pinion's teeth edited: the mate follows (40 for 18), clear still.
+  const zf = editFields(two.nodes, 0).find(f => f.key === 'z')!, z18 = zf.kind === 'number' ? zf.set(two.nodes, 18) : two.nodes, r3 = evaluateDoc({ ...two, nodes: z18 }, 3);
+  assert.ok(r3.ok && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /ratio 18:40/.test(n.text)) && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), r3.ok ? JSON.stringify(r3.bodies.find(b => b.ref?.node === 1)!.notes) : r3.error.hint);
+  // A phase off: the teeth cross, said.
+  const off = { ...two, nodes: [two.nodes[0], { ...w, mesh: { ...w.mesh!, phase: 3 } }] }, r4 = evaluateDoc(off, 4);
+  assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => n.warning && /The teeth cross/.test(n.text)));
+  assert.match((deleteFeature(two, 0) as { error: string }).error, /used by feature 1/);
+});
+
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
   const { editFields } = await import('../src/app/editFields');
   const { runCheck } = await import('../src/chat/spec');

@@ -7115,3 +7115,114 @@ Next: R12b.2b — the shaper-cut internal root.
 - a pinion cut by a shaper (pinions stay rack-cut).
 
 Next: R12b.3 — the straight bevel gear (spherical involute).
+
+## D134 — R12b.3: straight bevel gears — the spherical involute, standard proportions, spherical ends (bevel-gear@0) (2026-10-21)
+
+**Decision** (`gear-bevel.ts`: `bevelGear`, `bevelGearDimensions`, `checkBevelGearPair`, `checkPlacedBevelGears`, `bevelMatePlacement`, `bevelGearMatrix`; the part model's `bevel-gear` and its `mesh`; the studio's Bevel gear command and node, Meshing gear for a bevel):
+- **The gear, as D129 froze it:** the exact spherical involute of the base cone sin δb = sin δ cos α; standard proportions converging at the apex (addendum m, dedendum 1.25 m at the heel: θa = atan(m/R), θf = atan(1.25 m/R), the tip and root cones through the apex); the heel and toe spheres about the apex.
+  - **Inputs:** module at the heel, teeth, the mate's teeth, shaft angle Σ (90° by default), face width along the cone, bore, thickness reduction (at the heel's pitch circle; scaled along the cone with it). tan δ = sin Σ/(z_mate/z + cos Σ); R = m z/(2 sin δ).
+  - **Its frame:** apex at the origin, axis +Z, the teeth above the apex, tooth 1 on +X.
+  - **Faces:** flanks (`flankL#k`, `flankR#k`; more than three pieces on `flankL2#k` …, root outward), `tip#k` and `root#k` (cones), `rootL#k`/`rootR#k` (meridian planes, when the root cone lies under the base cone: the schematic join), `heel`, `toe` (spheres), `bore#1/#2` (cylinder halves).
+- **The flanks lie exactly on their spheres — by conics, not D129's cubics.**
+  - **Why the change:** D129's cubic in the stereographic plane lifts to a rational curve of degree 6; the kernel's curves and surfaces stop at degree 5 (`math.ts`, everywhere downstream). A conic (rational quadratic) lifts to degree 4.
+  - **The fit:** conic arcs on the involute's stereographic image, uniform in roll: each through its ends with the curve's tangents (P1 where they meet: G1 at the joins), its shoulder on the curve (where the curve crosses the chord's middle–P1 line, by bisection). Lifted by (2UW, 2VW, W² − U² − V²)/(W² + U² + V²) in Bernstein products: exactly on the unit sphere.
+  - **The face:** the cone through the apex over the lifted curve, degree 1 along the cone distance. Its heel and toe edges lie on their spheres exactly, its tip and root edges are lines through the apex.
+  - **Tolerance and budget:** as many pieces as 1e-4·m at the heel asks (measured along the circle of latitude to the involute, as the spur gear's), at most six, at most three to a face (4·3 + 1 = 13 poles, within the 16 a side face holds); past that `PROFILE_BUDGET_EXCEEDED`, never a looser tolerance.
+  - **Observed:** 1–4 pieces (a grid of 427 buildable pairs, z 5–200, Σ 30°–150°: at most 5, at z 8/5 Σ 120°).
+- **The ends are one face each, with no pole and no seam:** the sphere as the inverse stereographic map of a square, rational biquadratic in two Bézier spans a direction (u²'s coefficients a², 0, 0, 0, a², so the weights 1 + u² + v² never drop below 1). The heel's outline (and the bore) trim it. A gear with no bore needs no pole either.
+- **The undercut, by the exact spherical condition** (derived here; no public text found, D129):
+  - The generating crown gear (δ 90°, base cone 90° − α, working depth m) reaches from the pitch point along the great circle of action by asin(sin θa / sin α). The gear's base-cone tangent point is acos(cos δ / cos δb) away.
+  - Undercut when the reach passes it: `UNSUPPORTED_PROFILE_SHIFT`, naming both lengths at the heel and Tredgold's virtual teeth z/cos δ as the estimate. A shift (the Gleason system) is not built, so the remedy named is more teeth on this gear or fewer on its mate.
+- **The pair** (`checkBevelGearPair`):
+  - **Compatibility:** one module, one shaft angle, and each gear the other's mate (else `MATE_INCOMPATIBLE`: their pitch cones belong to another pair).
+  - **Values:** ratio z2/z1; backlash at the heel (the two reductions); the heel's tip clearances R(θf2 − θa1), R(θf1 − θa2).
+  - **Contact ratio,** exact spherical: the arc of the great circle of action between the two tip cones, over the base pitch 2π sin δb / z; the usable one from where each flank starts; Tredgold's virtual spur pair's beside it, named an estimate.
+  - **The sweep:** one tooth period of gear 1 on the heel sphere (the pair is the same on every sphere about the apex). Gear 1 turns θ about its axis, gear 2 turns −θ z1/z2 about its own; 64, then 128 samples, then a golden-section refinement, as D55.
+    - The gnomonic plane at the pitch point is used only to prune and to find crossings (great circles map to lines, so chords map to segments exactly).
+    - The least clearance is measured on the sphere. Pruning is sound: a pair e apart in the plane is at least e·k² apart on the sphere, k the least cosine of the segments' ends from the pitch point.
+    - The outlines are chords, 150 a flank, inside each convex tooth. So the least can only come out larger than the true one, by at most the reported `chordSagMM`.
+- **Placed** (`checkPlacedBevelGears`, `bevelMatePlacement`):
+  - The apexes must coincide, and the axes must stand at Σ (else `MATE_INCOMPATIBLE`).
+  - The relative phase comes from each gear's turn against the pitch line, gear 1's carried through the ratio.
+  - A mate by `mesh: { gear, direction, phase }` gets the same apex. Its axis stands at Σ in the plane of the driver's axis and the direction (degrees about the driver's axis from its X), its X toward the pitch line, and it is turned π/z2 − (ρ1 − φ) z1/z2 + phase.
+- **Refusals** (typed):
+  - a pitch angle of 90° or more (a crown gear, an internal bevel): `UNSUPPORTED_GEAR_KIND`;
+  - a pressure angle other than 20°, a profile shift, `system: 'gleason'`: `UNSUPPORTED_GEAR_KIND` (the Gleason uniform-clearance system is R12b.3b, on the owner's word);
+  - b ≥ R, Σ outside (0°, 180°), teeth outside 5–200, a reduction leaving no tooth: `INVALID_INPUT`;
+  - b > R/3: a warning (the usual proportion);
+  - the root cone past the axis, a pointed tooth, teeth meeting at the root: `SELF_INTERSECTION`;
+  - a bore leaving less than the rim (m by default) under the root cone at the toe: `BORE_INTERSECTION`, naming the largest.
+- **Part model:** `bevel-gear` (module, teeth, mateTeeth, shaftAngle, faceWidth, bore, thicknessReduction, center, from, rotation, mesh; generator `bevel-gear@0`). Standing alone, its apex is at (`center`, `from`) with its axis +Z. Its output carries `bevelGear` and `bevelGearPlacement`.
+- **Studio:**
+  - **The Bevel gear command:** module (heel), teeth, mate's teeth, shaft angle, face width, bore, position; its toe stands on At Z (the apex below by (R − b) cos(δ + θa)). Its label is "Bevel gear m2 z20/40".
+  - **Meshing gear with a bevel gear selected:** its mate (direction and bore only).
+  - **A meshing gear's module, teeth, mate and shaft angle are its driver's,** kept in step: editing the pinion's teeth changes the mate's label, notes and solid.
+  - **Edit fields:** the gear's values, and a mate's direction and phase.
+  - **Notes:** the dimensions, the flanks' fit "exactly on the spheres about the apex", Tredgold's virtual teeth as an estimate, the schematic root; a mate's "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash … at the heel, contact ratio … (spherical; Tredgold's estimate …)" and the verdict.
+  - **The agent:** `bevel-gear`'s command docs and `gear-mesh`'s new selection; `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1` (v2 unchanged).
+  - **Declared outside the kernel's own files** (a new node kind needs them): `src/assembly/flatten.ts` (its node switch: one case) and `src/chat/features.ts` (`renumber`'s mesh reference: one condition).
+
+**Found:**
+- **Tredgold's estimate misjudges the undercut near its limit:** 16 teeth for a 40-tooth mate at Σ 90° gives z_v 17.23 (clear by 2/sin²α = 17.1), but the crown gear reaches 5.8594 mm along the line of action against the base cone's 5.8575: undercut. The construction in space (the test's) agrees with the condition on every pair tried (12 by default, 20 in the survey).
+- **The spherical contact ratio against Tredgold's:** 20/40 Σ 90° 1.71372 against 1.71218; 13/13 1.53866 against 1.53526; 18/30 Σ 120° 1.76050 against 1.75621. Tredgold's is low by 0.05–0.25%.
+- **The analytic Boolean fails on one phase-off pair:** the intersection of a 16/20 pair turned 6° off is refused as "not a manifold solid … the inputs touch along an edge or at a vertex". 3°, 4°, 5° and 9° work (24.4–88.1 mm³). This is a Boolean robustness gap, not the gears' (each is valid alone, and the meshed pair's intersection is empty). It is logged for the Boolean, not fixed here.
+- **Timings** (m 2):
+  - a gear 1–5 ms; its mass by quadrature about 0.5 s;
+  - a pair's report 1–2 s, its verdict less;
+  - the pair's exact Boolean about 20 s;
+  - `gear-bevel.test.mjs` 29 s by default (the meshed Boolean 20 s of it), 59 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 259 s (D133's 223 s).
+
+**Evidence:**
+- **Kernel** `test/gear-bevel.test.mjs`, 5/5, its oracles written there apart from `gear-bevel.ts`. The first test fails on 452aec902 (no `bevelGear`).
+  - **Gears** (m 2 z 20/40; K1's m 3 z 20/40 with a bore; z 40/20 with a bore; z 16/24 Σ 60°; the survey adds 18/30 Σ 120°, 13/13, 30/30 Σ 45° and 25/60 thinned):
+    - valid, one body; the dimensions by the test's own formulas to 1e-12; K1's δ 26.56505°/63.43495° and R 67.08204 to 5e-6;
+    - every face sampled: the ends on their spheres and tips and roots on their cones to 1e-12; the meridian joins in their planes; the flanks on the toe and heel spheres to 1e-9·R and ruled through the apex to 1e-12;
+    - the flanks against the involute written there within the reported fit (sampled 6.33e-5 to 2.00e-4 mm against fits 6.35e-5 to 2.08e-4);
+    - the face count and names;
+    - the volume against (R³ − Ri³)/3 × the section's area on the unit sphere (∮(1 − cos θ) dφ over a dense outline) less the bore's closed form: observed 1.3e-7 to 2.2e-7 relative.
+  - **The undercut:** the great circle of action built in space, its tangent point found on the base cone (to 1e-9), the crown gear's tip cone along it by bisection; refused exactly where the crown reaches past it; the message names z_v.
+  - **Refusals and warnings,** each with its code; `MATE_INCOMPATIBLE` for another module, shaft angle or mate.
+  - **The pair:**
+    - The test's own sweep (outlines of 600 points a flank, the gnomonic plane, a grid) clears by j cos α/2 at every phase: spread ≤ 2e-6 + 2e-3·j (the plane's stretch).
+    - The product's least lies between j cos α/2 and that plus its reported sag.
+    - A phase a third of a pitch off crosses, in both.
+    - The contact ratio equals the great circle of action cut by both tip cones (bisection in space) to 1e-9.
+    - Tredgold's ratio, the tip clearance, the backlash and the ratio by their formulas.
+  - **The part model:**
+    - mates by mesh at directions 0°, 30° and 200° from a turned pinion: the same apex, the axes at Σ, the axis toward the direction, the mate's turn by the test's formula;
+    - phase 0 and clear by `checkPlacedBevelGears`; both valid, the heel about the shared apex;
+    - the exact Boolean intersection empty when meshed; 4° off it overlaps (survey);
+    - refusals in the part model; a STEP round trip (volume 1e-6, names, valid).
+- **Conformance** `r12b/`, 15 (189 overall):
+  - `bevel-m2-z20-z40` (V 10289.1052, relTol 1e-6; centroid z 37.997965 by the section's first moment);
+  - `bevel-khk-pair` (K1's pair with bores: 41132.2793 and 221158.136, centroids on their own axes);
+  - `bevel-undercut-refused` (16/40, "virtual spur gear has 17.23 teeth").
+- **RB seeds,** every stage OK: `gear-bevel-m2-z20-z40`, `gear-bevel-pair-sigma60`, `gear-bevel-m3-z40-z20-bored`.
+- **Studio** `primitives.test.ts` "Bevel gear":
+  - the command's node, its toe on At Z (apex at −(R − b) cos(δ + θa) to 1e-9);
+  - the volume against 9785.1487 mm³ by the kernel test's construction (within 0.02);
+  - its notes, 20 tips, heel and toe;
+  - Meshing gear's fields (direction, bore); the mate z 40/20: "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash 0 mm at the heel, contact ratio 1.714 (spherical; Tredgold's estimate 1.712)", clear; its volume 54305.1392 (within 0.05); its fields;
+  - the pinion edited to 18 teeth: the mate follows (ratio 18:40), clear;
+  - a phase 3° off crosses; the pinion guarded from deletion.
+- **Browser flow:** a new step "Bevel gear (R12b.3, D134)": a pinion from the palette (its notes), its mate by Meshing gear — "Bevel gear m2 z40/20", "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40", clear on the heel sphere.
+
+**Checks:**
+- Kernel 1338/1343 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D133's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 189/189. Kernel lint clean, type-check clean.
+- Studio 690/690 (+1; the merged IM1/IM2's included). Studio lint 0 errors (119 warnings, as before), type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 198/198 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** conics instead of D129's cubics (forced by degree 5; cubics would come back if the kernel's degree limit rose); the studio placing the toe on At Z (the apex below).
+
+**Not in this stage:**
+- the Gleason uniform-clearance system, profile shifts and back-cone ends (R12b.3b, on the owner's word);
+- the octoid;
+- crown and internal bevel gears;
+- a separate involute-interference condition for the pair (the sweep is the check);
+- the generated root (the root is schematic, flagged);
+- spiral bevels (R12b.4).
+
+Next: R12b.4 — spiral bevel gears (the ideal conjugate, flagged as an ideal model in notes, report and agent output).
