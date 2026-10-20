@@ -359,3 +359,25 @@ test('O72: two library parts in one turn through the agent\'s tools — the seco
   assert.equal(s.doc.nodes.filter(n => n.kind === 'library').length, 4);
   assert.equal(s.bodies.length, 1); assert.equal(s.bodies[0].ref!.node, s.doc.nodes.length - 1, 'the state\'s body is the last union\'s');
 });
+
+test('O73: set_material — a body of the base part or of a placed part made of a library material: its mass, the BOM and a library part\'s context read it; an unknown id refused with the list', async () => {
+  const { dispatchTool } = await import('../src/chat/tools'), { emptyDoc } = await import('../src/engine/doc'), { bomView } = await import('../src/team/assembly');
+  const ev = async (d: StudioDoc) => evaluateDoc(d, 1);
+  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as Parameters<typeof dispatchTool>[0];
+  const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, ev); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state; return JSON.parse(r.content); };
+  await call('run_command', { command: 'box', values: { w: 40, d: 20, h: 3, x: 0, y: 0, z: 0 } });
+  await call('set_material', { material: 'abs' });
+  const m = await call('mass_properties', {});
+  assert.equal(m.bodies[0].mass_g, +(2400 * 1.04 / 1000).toFixed(3)); assert.equal(m.note, undefined, 'set, not assumed');
+  // (A library part on it takes ABS's strain: no brief, no context.)
+  const hook = await call('add_library_part', { library: 'enclosure', part: 'snap-hook', face: 'n1.top', point: [20, 10, 3] });
+  assert.equal(hook.context.epsAllow, 0.025);
+  // (A placed part: its own body, its BOM row.)
+  await call('add_part', { name: 'Pin' }); await call('run_command', { part: 'p1', command: 'cylinder', values: { r: 2, h: 10, x: 0, y: 0, z: 0 } });
+  assert.deepEqual(await call('set_material', { material: 'steel', part: 'p1' }), { part: 'p1', ok: true, bodies: ['b1'], material: 'steel' });
+  assert.equal((await bomView(s.doc, ev)).parts[0].material, 'steel');
+  const bad = await dispatchTool(s, 'set_material', { material: 'unobtainium' }, ev);
+  assert.ok(bad.isError); assert.match(JSON.parse(bad.content).error, /^\[MATERIAL_UNKNOWN\] "unobtainium" .*materials: al6061, /);
+  assert.ok((await dispatchTool(s, 'set_material', { material: 'abs', part: 'p9' }, ev)).isError);
+  assert.ok((await dispatchTool(s, 'set_material', { material: 'abs', bodies: ['b9'] }, ev)).isError);
+});

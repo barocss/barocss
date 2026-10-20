@@ -3409,3 +3409,47 @@ Ordered by the coordinator after O71. There are three parts: the library's mater
   - `pnpm rb9` (seed 2026, 5 trials): **50/50 trials pass on all ten rungs; pass@1 = pass^5 = 1 and RS 1 each; 130/130 mutants killed; every hard predicate killed by a mutant.**
   - The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
   - `test/rb9.test.ts` now runs all ten rungs.
+
+## O73 — set_material, steel in rungs 12 and 14; RB9.2: rungs 6 (beam) and 11 (print-in-place) (2026-10-20)
+
+Ordered by the coordinator after O72, which put a body's material on the body's look and not on placement.
+
+- **No existing tool edits a body's look**, so a new tool, `set_material`, was added. It takes `{material, bodies?}`, plus `part`, as every part tool does, for a placed part's own bodies.
+  - It writes the look's material: the first thing a body's mass, the BOM and a library part's context read, before the brief's material.
+  - An id outside the material library is refused with `[MATERIAL_UNKNOWN]` and the id list.
+  - It is batchable, so it can go in `apply_ops` and in the ops of `propose`; a placed part's change is proposed, as every assembly change is. It is classified as an idempotent alteration.
+  - v2 lists it as `features.material`.
+  - The system prompt names it as the path: "The brief's material is the base part's; a body or a placed part of another material gets it with set_material." The tool descriptions are the only docs that list tools.
+  - The contract overhead went from 14 440 to **14 544** of the 15 000 guard (+104), leaving **456**. tools/list is 113 595 characters, 99 051 plain; 82 tools.
+  - `tools-v1.json` and `tools-v2.json` were updated as a compatible change.
+  - Test: a base body set to ABS weighs ABS's density with no "assumed" note. A snap hook on it takes ABS's strain with no brief. A placed pin set to steel shows steel in its BOM row. An unknown id, an unknown part and an unknown body are refused.
+- **Rungs 12 and 14 now state steel.**
+  - Rung 12: the shaft is steel, the rest 6061. The mass closed form takes each part's density. New mutant: the shaft left aluminium.
+  - Rung 14: the payload is a steel block, sized by steel's density. New predicate: the payload link's mass from RM3, equal to m to 1e-9 relative. New mutant: the payload left aluminium.
+- **Rung 6, load bracket** (7 predicates, 7 mutants). Closed-form beam theory only (#2177).
+  - **`src/rb9/beam.ts`** cuts the body across x with the kernel's split. It takes the cut face's boundary from its B-rep edges, which have exact double endpoints, and chains them into loops; holes are signed by containment. Area, centroid and second moments then follow by **Green's theorem** on those loops. Only straight boundaries are accepted; a curved one is refused.
+  - Predicates:
+    - one body;
+    - the stated material;
+    - **prismatic**: root (past the farthest fillet axis), middle and tip sections, with I and area equal to 1e-9. On trial 1 they equal b·h³/12 = 12 282.5 exactly;
+    - slender, L/h ≥ 5;
+    - root fillets, top and bottom, r ≥ 0.25 h, from exact cylinders;
+    - σ = F·L·c/I ≤ σy/2 and δ = F·L³/(3EI) ≤ δmax, with I and c from the root section, E and σy from the material library.
+  - What it does not judge is stated in the file's head: stress concentration beyond the factor, contact at the wall, flange buckling.
+  - The sampler keeps the brief feasible: F is capped so the stress depth stays under 0.16 L, and δmax is sampled above the deflection depth's floor.
+  - The scripted agent sizes h in closed form on a 0.5 mm grid.
+  - Mutants: thin (0.6 of the stress depth), long (L × 2), stepped (not prismatic), stubby (L/h = 3), no fillet, the wrong metal stated, the arm not joined.
+  - The plate is 100 mm, so no mutant's fillet is refused.
+- **Rung 11, print-in-place toy** (4 predicates, 5 mutants): a ring captive on a flanged axle, FDM.
+  - **`src/rb9/captive.ts`**: each of ±X, ±Y and ±Z is a straight slide. The ring is on a prismatic dummy joint and the axle fixed, both children of one still link, so RM6 checks the pair (it skips a parent and its child). RM6's conservative advancement sweeps the slide, certified, until contact, or past the two parts' box plus 1 mm. A clear sweep means the ring escapes.
+  - Predicates:
+    - two solids, not meeting;
+    - every facing gap within [fitGap, 2·fitGap] (0.3 to 0.6), from exact faces: the bore round the axle (cylinders), the flange below and the flange above (planes);
+    - `check_printability`, no rule failing;
+    - captive in all six directions. The scripted toy meets contact after exactly its gap in each.
+  - Mutants: gap 0, gap 1.5, the top flange left off (escapes along +Z), an extra block, a 0.3 mm ring wall (print fails).
+- **Evidence**:
+  - `pnpm rb9` (seed 2026, 5 trials): **60/60 trials on twelve rungs; pass@1 = pass^5 = 1 and RS 1 each; 158/158 mutants killed; every hard predicate killed by a mutant.** The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
+  - The set_material test in `test/enclosure.test.ts`.
+  - The contract tests with the new numbers.
+- **Still held**: rung 4 (CNC1–CNC6) and rung 7's bolt (R12c), both in the kernel lane. Live trials wait for the owner.

@@ -28,7 +28,7 @@ function boxes12(p: Params): { name: string; min: number[]; max: number[] }[] {
   return [{ name: 'base', min: [0, 0, 0], max: [P, Q, tb] }, { name: 'bracket A', min: [xa, y0, tb], max: [xa + bw, y0 + bd, tb + bh] }, { name: 'bracket B', min: [xb, y0, tb], max: [xb + bw, y0 + bd, tb + bh] },
     { name: 'cap', min: [xb + bw, Q / 2 - c / 2, z - c / 2], max: [xb + bw + ct, Q / 2 + c / 2, z + c / 2] }, { name: 'shaft', min: [xa, Q / 2 - ds / 2, z - ds / 2], max: [xb + bw - 1, Q / 2 + ds / 2, z + ds / 2] }];
 }
-const asm5 = (p: Params, o: { axial?: boolean; shaft?: number; cap?: boolean; bw?: number; xb?: number } = {}): Call[] => {
+const asm5 = (p: Params, o: { axial?: boolean; shaft?: number; cap?: boolean; bw?: number; xb?: number; steel?: boolean } = {}): Call[] => {
   const Q = num(p, 'Q'), bd = num(p, 'bd'), bw = o.bw ?? num(p, 'bw'), ds = num(p, 'ds'), c = num(p, 'c'), zc = num(p, 'zc'), xa = num(p, 'xa'), xb = o.xb ?? num(p, 'xb'), ct = num(p, 'ct');
   // (A bracket on the base: flush on its top, its origin planes the brief's distances from the base's.)
   const onBase = (part: string, x: number): Call[] => [mate('coincident', ['p1', 'n1.top'], [part, 'n1.bottom']), mate('distance', ['p1', 'origin:yz'], [part, 'origin:yz'], { distance: x }), mate('distance', ['p1', 'origin:xz'], [part, 'origin:xz'], { distance: (Q - bd) / 2 })];
@@ -40,6 +40,7 @@ const asm5 = (p: Params, o: { axial?: boolean; shaft?: number; cap?: boolean; bw
   // (The shaft: in bracket A's bore, its end flush with A's outer face, 1 mm short of the cap — it turns, nothing else.)
   const sh = o.cap === false ? 'p4' : 'p5';
   c12.push({ tool: 'add_part', args: { name: 'Shaft' } }, cmd(sh, 'cylinder', { r: (o.shaft ?? ds) / 2, h: xb + bw - 1 - xa, x: 0, y: 0, z: 0 }), mate('concentric', ['p2', 'n2.side0'], [sh, 'n1.side0']));
+  if (o.steel !== false) c12.push({ tool: 'set_material', args: { part: sh, material: 'steel' } });
   if (o.axial !== false) c12.push(mate('coincident', ['p2', 'n1.side3'], [sh, 'n1.top'], { flip: true }));
   return c12;
 };
@@ -49,7 +50,7 @@ export const RUNG12: Rung = {
     { key: 'bd', lo: 20, hi: p => Math.min(40, num(p, 'Q') - 10), step: 1 }, { key: 'bh', lo: 30, hi: 60, step: 1 }, { key: 'ds', lo: 6, hi: 12, step: 1 },
     { key: 'c', lo: p => num(p, 'ds') + 6, hi: p => num(p, 'bd'), step: 1 }, { key: 'zc', lo: p => num(p, 'c') / 2 + 1, hi: p => num(p, 'bh') - num(p, 'c') / 2, step: 0.5 }, { key: 'ct', lo: 3, hi: 6, step: 1 },
     { key: 'xa', lo: 5, hi: p => num(p, 'P') / 2 - num(p, 'bw') - 10, step: 1 }, { key: 'xb', lo: p => num(p, 'P') / 2 + 10, hi: p => num(p, 'P') - num(p, 'bw') - num(p, 'ct') - 5, step: 1 }],
-  prompt: p => `An assembly of five aluminium 6061 parts, each its own part placed by mates. A base plate ${p.P} × ${p.Q} × ${p.tb} mm, fixed, its corner at the origin. Two brackets, blocks ${p.bw} × ${p.bd} × ${p.bh} mm (x × y × z), standing on the base centred across it, ${p.xa} and ${p.xb} mm from its x = 0 end; each has a bore along x, Ø${num(p, 'ds') + 2 * FC} mm, ${p.zc} mm above its bottom, centred across. A Ø${p.ds} mm shaft runs in the bores from bracket A's outer face (flush) to 1 mm short of bracket B's outer face, free to turn and nothing else. A cap ${p.ct} × ${p.c} × ${p.c} mm on bracket B's outer face, centred on the bore. Every other part fixed.`,
+  prompt: p => `An assembly of five parts, each its own part placed by mates: the shaft steel, the others aluminium 6061. A base plate ${p.P} × ${p.Q} × ${p.tb} mm, fixed, its corner at the origin. Two brackets, blocks ${p.bw} × ${p.bd} × ${p.bh} mm (x × y × z), standing on the base centred across it, ${p.xa} and ${p.xb} mm from its x = 0 end; each has a bore along x, Ø${num(p, 'ds') + 2 * FC} mm, ${p.zc} mm above its bottom, centred across. A Ø${p.ds} mm shaft runs in the bores from bracket A's outer face (flush) to 1 mm short of bracket B's outer face, free to turn and nothing else. A cap ${p.ct} × ${p.c} × ${p.c} mm on bracket B's outer face, centred on the bore. Every other part fixed.`,
   scripted: p => asm5(p),
   async check({ doc }, p, evaluate) {
     const want = boxes12(p), insts = doc.instances ?? [], placed = await assemblyBodies(doc, evaluate), Q = num(p, 'Q'), z = num(p, 'tb') + num(p, 'zc');
@@ -59,8 +60,8 @@ export const RUNG12: Rung = {
     const moving = tree.joints.filter(j => j.type !== 'fixed'), sj = moving[0];
     const onAxis = !!sj && Math.abs(Math.abs(sj.axis[0]) - 1) <= 1e-9 && Math.abs(sj.origin[1] - Q / 2) <= 1e-6 && Math.abs(sj.origin[2] - z) <= 1e-6;
     const gate = await checkAssembly(doc, evaluate), bom = await bomView(doc, evaluate);
-    const rho = materialData('al6061')!.densityGPerCm3 / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
-    const mass = rho * (num(p, 'P') * Q * num(p, 'tb') + 2 * (bw * bd * bh - bore * bw) + ct * c * c + Math.PI * (num(p, 'ds') / 2) ** 2 * (num(p, 'xb') + bw - 1 - num(p, 'xa')));
+    const rho = materialData('al6061')!.densityGPerCm3 / 1000, steel = materialData('steel')!.densityGPerCm3 / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
+    const mass = rho * (num(p, 'P') * Q * num(p, 'tb') + 2 * (bw * bd * bh - bore * bw) + ct * c * c) + steel * Math.PI * (num(p, 'ds') / 2) ** 2 * (num(p, 'xb') + bw - 1 - num(p, 'xa'));
     const out: Outcome[] = [
       holds('parts', insts.length === 5 && bom.parts.length === 5 && bom.parts.every(x => x.massG > 0), [insts.length, bom.parts.length], 'five parts, five BOM rows with their masses'),
       holds('placed', match.every(Boolean) && new Set(match).size === 5, Object.fromEntries(want.map((w, k) => [w.name, match[k]])), 'every part where the brief puts it (its box to 1e-4)'),
@@ -75,18 +76,19 @@ export const RUNG12: Rung = {
     { id: 'unmated', target: 'freedoms', why: 'the shaft with no axial mate: it slides too', calls: p => asm5(p, { axial: false }) },
     { id: 'meet', target: 'contacts', why: 'the shaft 1 mm over the bore', calls: p => asm5(p, { shaft: num(p, 'ds') + 2 * FC + 1 }) },
     { id: 'missing', target: 'parts', why: 'no cap', calls: p => asm5(p, { cap: false }) },
+    { id: 'aluminium-shaft', target: 'mass', why: 'the shaft left aluminium', calls: p => asm5(p, { steel: false }) },
     { id: 'thick', target: 'mass', why: 'the brackets 2 mm thicker', calls: p => asm5(p, { bw: num(p, 'bw') + 2 }) },
     { id: 'moved', target: 'placed', why: 'bracket B 5 mm further along', calls: p => asm5(p, { xb: num(p, 'xb') + 5 }) },
   ],
 };
 
 // ——— 14. the 2-axis arm (the owner's rung): two turns about vertical axes, a payload at the tip, sized for a duty
-// (Bars on a base plate, as RM's chain-2r: each turns on a bore over the one below; the payload an aluminium block 40 × 40
-// on the forearm's tip bore, as tall as its mass needs — no per-part material tool yet, so the studio's default, 6061.)
-const LP = (m: number) => m * 1e6 / (materialData('al6061')!.densityGPerCm3 * 1600);
+// (Bars on a base plate, as RM's chain-2r: each turns on a bore over the one below; the payload a steel block 40 × 40 on
+// the forearm's tip bore, as tall as its mass needs — its material set with set_material, O73.)
+const LP = (m: number) => m * 1e6 / (materialData('steel')!.densityGPerCm3 * 1600);
 const J1 = 'base~p1', J2 = 'p1~p2';
 const dutyOf = (p: Params): Duty => ({ moves: [{ from: {}, to: { [J1]: num(p, 'q1'), [J2]: num(p, 'q2') }, profile: 'trapezoid', limits: { velocity: num(p, 'v'), acceleration: num(p, 'acc') }, dwell_s: 0.5 }], life_h: 20000 });
-const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean; payload?: boolean; rated?: boolean } = {}): Call[] => {
+const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean; payload?: boolean; rated?: boolean; steel?: boolean } = {}): Call[] => {
   const l1 = num(p, 'l1'), l2 = o.l2 ?? num(p, 'l2'), e = o.effort ?? 20, top = (part: string | null, x: number) => cmd(part as string, 'hole', { d: 10, x, y: 0 }, { faces: ['n1.top'] });
   const bar = (part: string, name: string, l: number): Call[] => [{ tool: 'add_part', args: { name } }, cmd(part, 'box', { w: l + 20, d: 20, h: 5, x: -10, y: -10, z: 0 }), top(part, 0), top(part, l)];
   const c: Call[] = [{ tool: 'run_command', args: { command: 'box', values: { w: 60, d: 60, h: 10, x: -30, y: -30, z: 0 } } }, { tool: 'run_command', args: { command: 'hole', values: { d: 10, x: 0, y: 0 }, faces: ['n1.top'] } },
@@ -94,6 +96,7 @@ const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean
     mate('concentric', ['base', 'n2.side0'], ['p1', 'n2.side0']), mate('coincident', ['base', 'n1.top'], ['p1', 'n1.bottom']),
     mate('concentric', ['p1', 'n3.side0'], ['p2', 'n2.side0']), mate('coincident', ['p1', 'n1.top'], ['p2', 'n1.bottom']),
     { tool: 'add_part', args: { name: 'Payload' } }, cmd('p3', 'box', { w: 40, d: 40, h: LP(num(p, 'm')), x: -20, y: -20, z: 0 })];
+  if (o.steel !== false) c.push({ tool: 'set_material', args: { part: 'p3', material: 'steel' } });
   if (o.payload !== false) c.push(mate('coincident', ['p2', 'n1.top'], ['p3', 'n1.bottom']), mate('distance', ['p2', 'origin:yz'], ['p3', 'origin:yz'], { distance: l2 }), mate('distance', ['p2', 'origin:xz'], ['p3', 'origin:xz'], { distance: 0 }));
   const rating = o.rated === false ? { lower: -2.5, upper: 2.5 } : { lower: -2.5, upper: 2.5, effort: e, velocity: 5 };
   c.push({ tool: 'set_joints', args: { joints: { [J1]: rating, [J2]: rating } } });
@@ -134,7 +137,7 @@ export const RUNG14: Rung = {
   space: [{ key: 'l1', lo: 80, hi: 250, step: 5 }, { key: 'l2', lo: 80, hi: 250, step: 5 }, { key: 'm', lo: 0.1, hi: 1, step: 0.05 },
     { key: 'R', lo: p => Math.max(num(p, 'l1'), num(p, 'l2')) + 30, hi: p => num(p, 'l1') + num(p, 'l2') - 10, step: 1 },
     { key: 'q1', lo: 0.5, hi: 1.5, step: 0.1 }, { key: 'q2', lo: -2, hi: -0.5, step: 0.1 }, { key: 'v', lo: 1, hi: 3, step: 0.5 }, { key: 'acc', lo: 5, hi: 20, step: 1 }],
-  prompt: p => `A 2-axis arm, every part aluminium 6061 and its own part placed by mates. A base plate 60 × 60 × 10 mm, its centre at the origin, with a Ø10 mm bore through its middle. An upper arm and a forearm, bars 20 mm wide and 5 mm thick with a Ø10 mm bore at each end, ${p.l1} and ${p.l2} mm between their bores; each turns about a vertical axis on its first bore over the bore below it (the upper arm on the base's, the forearm on the upper arm's far one), flat on the part below. A ${p.m} kg payload, an aluminium block 40 × 40 mm standing on the forearm centred on its far bore. The far bore must reach ${p.R} mm from the base axis. Both joints turn ±2.5 rad, with effort and velocity ratings for this duty: from 0 to ${p.q1} and ${p.q2} rad, a trapezoid at ${p.v} rad/s and ${p.acc} rad/s², 0.5 s dwells at each end, 20 000 h. Export it as URDF.`,
+  prompt: p => `A 2-axis arm, each its own part placed by mates, aluminium 6061 but the payload. A base plate 60 × 60 × 10 mm, its centre at the origin, with a Ø10 mm bore through its middle. An upper arm and a forearm, bars 20 mm wide and 5 mm thick with a Ø10 mm bore at each end, ${p.l1} and ${p.l2} mm between their bores; each turns about a vertical axis on its first bore over the bore below it (the upper arm on the base's, the forearm on the upper arm's far one), flat on the part below. A ${p.m} kg payload, a steel block 40 × 40 mm standing on the forearm centred on its far bore. The far bore must reach ${p.R} mm from the base axis. Both joints turn ±2.5 rad, with effort and velocity ratings for this duty: from 0 to ${p.q1} and ${p.q2} rad, a trapezoid at ${p.v} rad/s and ${p.acc} rad/s², 0.5 s dwells at each end, 20 000 h. Export it as URDF.`,
   scripted: p => arm2(p),
   async check({ doc }, p, evaluate) {
     const bodies = await bodiesOfDoc(doc, evaluate), tree = await treeOfDoc(doc, bodies, evaluate), turns = tree.joints.filter(j => j.type !== 'fixed');
@@ -147,20 +150,25 @@ export const RUNG14: Rung = {
       const far = bores.sort((a, b) => Math.hypot(b.c[0] - el.origin[0], b.c[1] - el.origin[1]) - Math.hypot(a.c[0] - el.origin[0], a.c[1] - el.origin[1]))[0];
       if (far) reach = workspaceMap(tree, { link: el.child, tool: [far.c[0], far.c[1], sh.origin[2]], samples: 2000, h: 5 }).reach;
     }
+    // (The payload's mass as RM3 reads it: the link fixed to the end link, its material the part's own.)
+    const rm3 = treeInertia(tree, (await robotOfDoc(doc, bodies, evaluate)).partOf), fixedOn = tree.joints.find(j => j.type === 'fixed' && el && j.parent === el.child);
+    const payload = fixedOn ? rm3.find(l => l.link === fixedOn.child)?.massKg ?? null : null;
     const harness = await robotCheckOfDoc(doc, bodies, evaluate, dutyOf(p));
     const u = await urdfOfDoc(doc, bodies, evaluate, 'arm');
     let fk = Infinity, inertia = Infinity, issues: string[] = ['not exported'];
-    if (u.ok) { const rd = readUrdf(u.urdf, new Set(u.files.map(f => f.path))); issues = rd.issues; fk = urdfFkGap(tree, u, 20, 14); inertia = urdfInertiaGap(rd.model, u, treeInertia(tree, (await robotOfDoc(doc, bodies, evaluate)).partOf)); }
+    if (u.ok) { const rd = readUrdf(u.urdf, new Set(u.files.map(f => f.path))); issues = rd.issues; fk = urdfFkGap(tree, u, 20, 14); inertia = urdfInertiaGap(rd.model, u, rm3); }
     return [
       holds('joints', !tree.problems.length && turns.length === 2 && turns.every(j => j.type === 'revolute') && vertical && Math.hypot(el.origin[0] - sh.origin[0], el.origin[1] - sh.origin[1]) - num(p, 'l1') <= 1e-6 && Math.hypot(el.origin[0] - sh.origin[0], el.origin[1] - sh.origin[1]) - num(p, 'l1') >= -1e-6,
         { joints: tree.joints.map(j => [j.key, j.type]), problems: tree.problems.map(x => x.code) }, `two revolute joints about vertical axes, ${p.l1} mm apart`),
       holds('reach', reach !== null && reach >= num(p, 'R'), reach, `the far bore reaches ≥ ${p.R} mm (RM9b's map, 2000 poses)`),
+      near('payload', payload, num(p, 'm'), 1e-9, true),
       holds('margins', harness.ok && Object.keys(harness.actuators).length === 2, { least: harness.least, unknowns: harness.unknowns.map(x => x.code) }, 'every RD9 margin above 0 at the duty, an RD3 pair on each joint'),
       holds('urdf', u.ok && !issues.length && fk <= 1e-9 && inertia <= 1e-12, { ok: u.ok, issues, fk, inertia }, 'the URDF exports clean; its FK equals RM2\'s to 1e-9 at 20 poses, its inertials RM3\'s to 1e-12'),
     ] as Outcome[];
   },
   mutants: [
     { id: 'short', target: 'reach', why: 'the forearm too short for the reach', calls: p => arm2(p, { l2: num(p, 'R') - num(p, 'l1') - 10 }) },
+    { id: 'aluminium-payload', target: 'payload', why: 'the payload block left aluminium', calls: p => arm2(p, { steel: false }) },
     { id: 'weak', target: 'margins', why: 'the joints rated 0.001 N·m: the motors too small for the move', calls: p => arm2(p, { effort: 0.001 }) },
     { id: 'elbow-fixed', target: 'joints', why: 'the elbow held by an angle mate', calls: p => arm2(p, { elbowFixed: true }) },
     { id: 'loose-payload', target: 'joints', why: 'the payload unmated: a part not connected', calls: p => arm2(p, { payload: false }) },

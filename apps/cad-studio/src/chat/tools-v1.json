@@ -3194,6 +3194,37 @@
    }
   },
   {
+   "name": "set_material",
+   "annotations": {
+    "title": "Set material",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "bodies": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "material": {
+      "type": "string"
+     },
+     "part": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "material"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "set_requirements",
    "annotations": {
     "title": "Set requirements",

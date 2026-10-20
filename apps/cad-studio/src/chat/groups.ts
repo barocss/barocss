@@ -22,6 +22,7 @@ export const GROUPS: Record<string, Group> = {
       add: ['add_features', 'features: [node] — raw feature nodes (sketches, extrudes, revolves, sweeps, lofts, …)'],
       edit: ['edit_feature', 'index, values? | feature?'],
       delete: ['delete_feature', 'index'],
+      material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
       batch: ['apply_ops', 'ops: [{tool, args, opId?}], dryRun? — several calls all or nothing'],
     },
   },
