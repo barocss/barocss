@@ -68,7 +68,7 @@ test('the bend table on R12\'s L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ
   // (A part with no sheet body: the source says so.)
   const box = await run([{ tool: 'run_command', args: { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } } }]);
   assert.deepEqual(bendTable({ doc: box }), { error: 'no sheet-metal body with a flat pattern' });
-  assert.match((tableContent({ id: 'x', from: 'nope' }, { doc: box }) as { error: string }).error, /^no table source "nope" \(sources: bends\)/);
+  assert.match((tableContent({ id: 'x', from: 'nope' }, { doc: box }) as { error: string }).error, /^no table source "nope" \(sources: bends, cut-list\)/);
 });
 
 test('on the sheet: auto-placed above the title block and clean; over a view, a note, the title block: each issue and its fix; a source\'s refusal TABLE_SOURCE, drawn with its reason', async () => {
@@ -94,11 +94,11 @@ test('on the sheet: auto-placed above the title block and clean; over a view, a 
   const off = drawingIssues(inTitle).find(x => x.tables?.includes('bends') && x.code === 'OFF_SHEET')!;
   assert.ok(off, JSON.stringify(drawingIssues(inTitle).map(x => [x.code, x.tables]))); assert.equal(off.fix?.kind, 'move-table');
   assert.ok(!codes(ctxOf(doc, applyFix(inTitle, off.fix!)), 'bends').includes('OFF_SHEET'));
-  // (An unknown source: an error, the table drawn with its title and the reason.)
+  // (A source's refusal — the cut list's, FR4b, on a part with no frame member: an error, the table drawn with its title and the reason.)
   const bad = ctxOf(doc, withTables([{ id: 'cut', from: 'cut-list' }]));
   assert.deepEqual(codes(bad, 'cut'), ['TABLE_SOURCE']);
   const texts = bad.sheet.groups.find(g => g.role === 'table')!.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text);
-  assert.deepEqual(texts, ['CUT-LIST', 'NOT AVAILABLE', 'no table source "cut-list" (sources: bends)']);
+  assert.deepEqual(texts, ['CUT-LIST', 'NOT AVAILABLE', 'no frame members (make a frame or a structural member)']);
 });
 
 test('written: the table in the SVG, the PDF and the DXF (TEXT and LINE entities, through the R11b writer); the DXF frozen and read by ezdxf (audit clean)', async () => {

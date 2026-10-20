@@ -6437,3 +6437,73 @@ The fifth FR stage frozen in D122: a frame's cut list in the kernel, the studio'
 | Properties | 11/11, no failures |
 
 RB rows are in the next commit.
+
+## D128 — FR4b: the cut list as a drawing table; acceptance by the agent, a welded table frame and a 2020 T-slot frame (2026-10-20)
+
+The last FR stage frozen in D122. The cut list goes onto a drawing sheet as a table (the outer lane's O49), and two frames are built by the agent's tools in one chat turn each and accepted by closed forms that are not read from the build. **FR is done** with this step; the FR → R12b hand-over block is at the top of README §0.
+
+**The drawing table** (`app/cutList.ts`):
+- **`cutListTable(list)`**: a `PartCutList` as `TableContent`, titled CUT LIST. A row a group:
+  - item, quantity, section (with "(mirrored)"), material, length [mm] and long point [mm] to 0.1, start and end, mass each [kg] to 0.001;
+  - each end as SQUARE, `MITRE 45`, `MITRE 30 / BEVEL 10`, or what finishes it where it is no plane (COPE, TRIM);
+  - notes: the totals; the items measured by volume, where any; that the masses use the materials library's densities, which are estimates.
+- **`cutListSource(ctx)`**: the tables' `cut-list` source. It uses the bodies given (the drawing's), else evaluates the part. A part with no frame members is refused with "no frame members (make a frame or a structural member)", which the sheet shows as TABLE_SOURCE, as for any source.
+- **Registered** in `drawing/tables.ts` (`TABLE_SOURCES['cut-list']`, one line and its import, as the coordinator agreed).
+- **The drawing panel**: a "Cut list" checkbox where the part has a frame member, beside "Bend table" and built the same way (`DrawingWorkspace.tsx`).
+
+**Acceptance** (`test/frame-acceptance.test.ts`, 2 tests). Each frame comes from one `add_features` call of a `frame` node, then `cut_list`, sent through `dispatchTool` as the chat does. The flow sends the first through the real chat.
+- **A welded table frame** (`test/fixtures/frame-welded-table.calls.json`), sharp 40 × 40 × 3 tubes, corners mitred, tees butted:
+  - a 1000 × 600 top, on its centre line at z 750;
+  - four legs, 0 to 730, under the top's corners;
+  - four lower rails at z 150, between the legs.
+  - **Oracles**, A = 1600 − 34² = 444 mm²:
+    - every member A·L to 1e-12: the top rails 1000 and 600; the legs 730; the lower rails L − 40 (960 and 560), butted on the legs' faces;
+    - the twelve united into one body of their sum, to 1e-12 (welded, with no overlap);
+    - the cut list: rows 2 × 1000 and 2 × 600 mitre/mitre (long point L + 40), 4 × 730 square, 2 × 960 and 2 × 560 butt/butt; the total 9160 mm; mass in steel (7850, a test value) ρ·A·L to 1e-12;
+    - the agent's result and its CSV;
+    - the drawing on A3: the table on the sheet, R14's issue list empty on it, and every text of it in the SVG, the PDF and the DXF.
+- **A 2020-class T-slot frame** (`test/fixtures/frame-tslot.calls.json`), 400 × 300 × 500: four uprights and eight rails between their faces at z 10 and 490, all square. The slot sizes are the tslot-20 library's estimates (D123), given in the call.
+  - **Oracles**, A = 400 − 4(6.2·6.1 + (11 − 6.2)²/4) − π·2.1²:
+    - every member A·L to 1e-12 (uprights 500, rails 380 and 280);
+    - the twelve united to their sum, to 1e-9, so no two overlap;
+    - the cut list: 3 rows of 4, all square;
+    - the member note's area against A to its three decimals;
+    - no warnings.
+- **Conformance** `conformance/fr/` (+2): `accept-welded-table` and `accept-tslot-frame`, written by the test (`WRITE_ACCEPTANCE=1`). The test also checks that they hold the part the agent built. Expected:
+  - every output's volume by the closed form (relTol 1e-9), its centroid by this kernel, one body of genus 1;
+  - the cut list's rows and totals by the closed forms (steel; aluminium 2700 as a test value for the T-slot);
+  - a STEP round trip.
+- **A flow step** (`fr4b-cut-list-drawing`):
+  - the welded table by the scripted agent through the real chat; the first member's volume 444 000 mm³;
+  - the cut-list dialog: 5 rows, 12 pieces, 9160 mm;
+  - in Drawing: A3, the "Cut list" checkbox, the table on the sheet with no issue on it;
+  - its texts in the downloaded SVG, PDF and DXF.
+
+**Found, the outer lane's (a follow-up, not fixed here):** on A4, the 166 mm wide cut list is auto-placed over the right view's name. The issue list reports TEXT_OVERLAP with no fix, so "Fix all" cannot clear it. The test holds this as the known A4 result, so a fix in the table's placement will show there. A3 is clean.
+
+**Outer-lane files touched** (each needed for the cut list's table; the coordinator agreed the registration):
+- `src/drawing/tables.ts`: the registration and its import.
+- `src/ui/DrawingWorkspace.tsx`: the checkbox and `hasFrame`.
+- `test/drawing-table.test.ts`, two expectations:
+  - the unknown-source message now lists `bends, cut-list`;
+  - the refusal case used `cut-list` as its unknown source. It is now a known source that refuses (no frame members), so it checks that refusal: the same TABLE_SOURCE, drawn with the new reason.
+
+**Judgement calls**:
+- **The welded frame is in sharp tubes**, so every member has a closed form. Round-cornered members were accepted in FR1–FR3, and their ordered table takes 7.5 s (D126).
+- **The welded table's legs are cut square and stand under the top**, their tops on the top rails' undersides (z 730). D122's acceptance named the legs "butted or ordered-trimmed". A leg's end is no skeleton joint with a rail, so the kernel reports it square, which is the cut a welder makes there. The lower rails are the butted members.
+- **The T-slot frame is butted and cut square.** Such frames are joined by brackets or end fasteners, not welded, so no corner treatment is asked for. Its slot sizes are flagged as the library's estimates in the case's text.
+- **Acceptance on A3.** The A4 overlap belongs to the outer lane's placement and is recorded above. It is not hidden by moving the table by hand.
+- **The agent is the scripted one (L2).** A live model building the frames needs the owner's OK.
+
+**Checks** (names compared with FR4a's runs: none missing):
+
+| Check | Result |
+|---|---|
+| Kernel lint, type-check | clean (no kernel source changed) |
+| Kernel | 1290/1295 (4 skipped; +2: the accept cases); only the env-only "actual native Split source…" fails |
+| Conformance | 174/174 (+2) |
+| Studio lint, type-check | 0 errors (119 warnings, none new), type-check clean |
+| Studio | 643/643 (+2 of FR4b, +2 from the merged O59/O60) |
+| Full flow | 188/188, run on its own (+1, `fr4b-cut-list-drawing`) |
+| RB | 316 cases (+2: the accept cases), 0 new, the 8 known TODOs (totals as before but OK, +100 by the two cases' outputs) |
+| Properties | 11/11, no failures |
