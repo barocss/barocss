@@ -2293,3 +2293,197 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
   - the rounds and the margins are compared with the scripted sizer's.
 
 **Order**: RD9 → RD10, with a checkpoint after each.
+
+**Scope additions, made during the steps and accepted by the coordinator:**
+- **RD9 (O47):** the arm-3r fixture carries a 60 mm steel payload (1.7 kg) on a lock mate, beyond "three blocks". Without it nothing loads the smallest pair (RMS 5 % of its limit), and RD10 would have nothing to size.
+- **RD10 (O48):** when a joint's actuator changes, its ratings are held to the new pair's capability. Without that rule, a design rated past its reducer (36 N·m on a 23 N·m reducer) would have passed the harness, which checks ratings against the duty, not against the actuator.
+
+## O47 — RD9: the design-check harness v1, without FEA (2026-10-20)
+
+- **`src/robot/harness.ts`**: `checkDesign(tree, bodies, sweepLinks | null, duty)` gives `{ok, margins, unknowns, consistency, least, actuators, notes}`.
+  - **The document level** (`src/chat/robot.ts`):
+    - `robotCheckOfDoc(doc, bodies, evaluate, duty)`;
+    - `readDuty(tree, raw)`: each move checked as `motion_torques` takes one;
+    - `robotOfDoc`, now exported;
+    - `sweepLinksOfDoc`, shared with the `sweep_path` tool, whose behaviour is unchanged.
+  - **`checkPair`** (`src/robot/actuators.ts`, new) gives one given pair's nine RD3 checks over sizeActuators' own cycle, refined, failing checks included. `sizeActuators` is unchanged.
+  - **Every margin per move, in a fixed order:**
+    - joint range at both ends, velocity rating against the profile's peak, effort rating against RD2's peak or RD1's hold;
+    - RD3's checks for the given pair, or the lightest feasible pair's (life only when `life_h` is given);
+    - the sweep;
+    - then consistency at both ends: RNEA's holds against RD1's to 1e-9 relative; the mass matrix symmetric to 1e-12 and positive definite (Cholesky).
+  - **Unknown, typed, never a pass:**
+    - `LIMITS_MISSING` (no range, velocity or effort rating);
+    - `NO_ACTUATOR` (a given id not in the catalogue, or a joint without one when actuators are given);
+    - `NOT_SIZED` (no catalogue pair meets every check).
+  - A continuous joint has no range check, and a slide's actuator is not checked; both are noted.
+- **`cad-cli robot-check part.bcad duty.json`** prints the report. It exits 0 when ok, 1 otherwise, and 2 for a malformed duty.
+- **The fixture** (`conformance/rd/arm-3r/`: `robot.bcad`, `duty.json`, `case.json`, in a subfolder so the kernel runner leaves it alone):
+  - the arm is three of arm-6r's 20 × 20 × 80 aluminium blocks on axes Z, Y, Y from their mates, with limits and ratings;
+  - **a 60 mm steel cube (1.7 kg), added beyond O46's text,** is locked on l3 (a `lock` mate, a fixed link). Without a payload, the blocks barely load the smallest pair (RMS 5 % of its limit), so sizing would decide nothing for RD10. With it, the shoulder holds 2.2 N·m and RD3 picks 100:1 for the shoulder and elbow.
+  - **The duty**: two moves (0 → P1 → P2), trapezoid 1 rad/s and 3 rad/s², 0.5 s dwells, 20 000 h life.
+- **Tests** (`test/robot-harness.test.ts`, 4):
+  - **The clean duty: every margin above 0.**
+    - 80 margins: 12 range, 6 velocity, 6 effort, 54 RD3 and 2 sweeps;
+    - 8 consistency checks hold;
+    - nothing is unknown. The least margin is joint range l1~l2 at 0.25;
+    - a rerun is byte-identical.
+  - **Seeded defects, each failing at its own check and only there:**
+    - base~l1 to 2.7 (upper 2.5): `joint range base~l1`;
+    - a velocity rating of 0.5: `joint velocity l1~l2`;
+    - an effort rating of 1 N·m: `joint effort l1~l2`;
+    - the payload swung into the base: `sweep`, with `contact base–payload`;
+    - **an undersized actuator**: at 6 rad/s cruise and 60 rad/s² (ratings raised to allow it), the shoulder given the 100:1 reducer fails its own RD3 checks only, as its motor runs past its torque–speed line. On 50:1 it is clean.
+    - a missing effort rating: two `LIMITS_MISSING`, no failing margin, the report not ok;
+    - an unknown reducer id and a joint without one: `NO_ACTUATOR`.
+  - **Closed form**: at shoulder-horizontal (l1~l2 = π/2), the holding torques equal `g Σ m dz`, taken from each part's own volume × density and centroid, to 1e-9 relative. This is an independent route: a π/2 turn about Y carries a centre dz above the axis to dz out along X. The 1e-9 needs masses unrounded, since `mass_properties` rounds grams to 3 decimals.
+  - **The harness's numbers are RD2's and RD3's own**: effort equals `motion_torques`' peak or `gravity_torques`' hold, and every RD3 check value equals `sizeActuators`' for the same pair.
+  - **The CLI** (spawned): the frozen arm and duty exit 0; a past-limit duty exits 1 with `least` joint range; a duty without limits exits 2 with the reason.
+- **Note:** RD3's ranking, by mass and then the largest least margin, picks 100:1 over 50:1 at equal mass. The seeded defect therefore came from a fast duty, not from "the smallest reducer".
+
+## O48 — RD10, the deterministic part: the scripted sizer takes arm-3r to every margin above zero (2026-10-20)
+
+- **`src/robot/sizer.ts`**: `sizeDesign(tree, bodies, sweep, duty, {maxRounds})` gives `{ok, rounds, trace, tree, duty, report, stopped?}`.
+  - **The document level**: `robotSizeOfDoc` writes the sized ratings back into `robot.joints`. The actuators and the profile stay in the duty.
+  - **One change a round**, for the worst failing margin, or else the first unknown:
+    - **an RD3 check fails, or a joint has no actuator**: the joint takes the lightest catalogue pair that passes every RD3 check in every move (by mass, then id). When none does, every move slows (velocity, acceleration and jerk × 0.8);
+    - **a velocity or effort rating fails, or is missing**: it becomes the joint's actuator's capability (`capability`): velocity min(motor max speed, reducer max input speed) / N; effort the reducer's repeated peak torque;
+    - **a range or a sweep fails**: `BRIEF_INFEASIBLE`, since no sizing rule changes geometry or the duty's poses;
+    - **only consistency fails**: `BRIEF_INFEASIBLE` ("the model is inconsistent");
+    - **past `maxRounds`** (10): `NOT_CONVERGED`.
+  - **Added beyond O46, found by the first run:** when a joint's actuator changes, its ratings are held to the new pair's capability, said in the trace.
+    - The run had rated the shoulder 36 N·m from its 100:1 reducer, then moved it to 50:1, whose repeated peak is 23 N·m. The harness checks ratings against the duty, not against the actuator, so the design would have "passed" rated past what it can give.
+    - The test now asserts every final rating is within its pair's capability.
+- **`cad-cli robot-size part.bcad duty.json -o sized.bcad`** writes `sized.bcad` (the ratings) and `sized.duty.json` (the actuators and the profile), and prints the trace. It exits 0 when sized, 1 when stopped, 2 for a malformed duty.
+- **The run** (`test/robot-sizer.test.ts`). The brief is arm-3r between two poses at 6 rad/s and 60 rad/s², 0.5 s dwells, 20 000 h. The start is undersized: ratings 1 rad/s and 1 N·m, every joint on 100:1.
+  - **16 failing margins** at the start.
+  - **8 rounds:** 3 velocity ratings, then 2 effort ratings, then the shoulder to 50:1 (its effort held to 23), the base's effort, and the base to 50:1 (effort held to 23).
+  - Every margin is then above 0, and the least is joint range l1~l2 at 0.25.
+  - Each round's check was failing when it was taken.
+  - **Saved and opened again**, a fresh harness run on the sized document and duty is ok and byte-identical to the sizer's last report. A rerun gives the same trace.
+  - **Stops:**
+    - a pose past a limit gives `BRIEF_INFEASIBLE` ("joint range base~l1 fails in move 0"), after the actuators and ratings are fixed first, since it is not the worst margin at the start;
+    - the payload swung into the base gives `BRIEF_INFEASIBLE` (sweep, contact base–payload);
+    - `maxRounds: 1` gives `NOT_CONVERGED`.
+  - **Spawned:** `robot-size` exits 0, then `robot-check` on its outputs exits 0.
+- **The L3 evidence is pending the owner**: a live model sizing the same arm, with the protocol in O46's S0. The scripted sizer's trace above is the baseline it is compared with: rounds, changes, final margins.
+
+## O49 — S0: a generic drawing table (and R12's bend table on it) — scope, API and acceptance frozen (2026-10-20)
+
+Asked by the coordinator for the kernel lane: FR4b's frame cut list needs a table on a drawing, and drawings are the outer lane's. It also closes R12's leftover item, "a drawing's bend table".
+
+**The entity** (`src/drawing/types.ts`, in `DrawingSettings.tables`, read leniently by `readDrawing`):
+```ts
+interface TableColumn { key: string; label: string; unit?: string; align?: 'start' | 'middle' | 'end'; digits?: number }
+type TableCell = string | number | null;          // null: shown as '—'
+interface DrawingTable {
+  id: string; title?: string;
+  columns?: TableColumn[]; rows?: TableCell[][];  // its content given …
+  from?: string;                                  // … or filled from the part at each build by a named source
+  at?: XY;                                        // a sheet point (mm, y down) …
+  corner?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';  // … that this corner of the table is on (default top-left)
+}
+```
+- **Read leniently.** `readDrawing` keeps a valid table and drops a malformed one: 1–20 columns, at most 200 rows, every row as long as the columns, cells of at most 120 characters, ids unique.
+- **No `at`: it lays itself out.** The table goes above the title block, right-aligned to it. Tables without `at` stack upward, in their order.
+- **The sources** (`src/drawing/tables.ts`, `TABLE_SOURCES`): `(ctx: {doc, bodies}) => TableContent | {error}`, with `TableContent = {title?, columns, rows, notes?}`.
+  - `bends` is R12's bend table, below.
+  - **FR4b's cut list is one more entry**, `'cut-list'`: a pure function from the kernel lane's frame data to `TableContent`. The kernel lane may also write a table's `columns` and `rows` directly into a drawing.
+- **The layout** (`tableLayout(content, at, corner)`, pure, in sheet mm) gives `{box, widths, rowHeight, marks}`.
+  - Text is 2.5 mm, and each row is 5 mm.
+  - Each column is as wide as its widest text (its header, with the unit as `label [unit]`) plus 1.5 mm each side.
+  - A bold title row spans the columns, and the header row follows.
+  - Numbers are shown to `digits` places (absent: up to 2, trailing zeros dropped) and aligned right by default; text is aligned left.
+  - The outer border is drawn with the visible pen and the inner rules with the thin pen, as lines; the cells are text marks.
+  - A source's `notes` go under the table, in the table's group.
+- **On the sheet**: the table is a `table` mark group (`id` the table's), so every writer draws it as it draws any marks:
+  - **SVG**: `<g class="table">`;
+  - **PDF**;
+  - **DXF, through the R11b writer**: lines on THIN/VISIBLE, TEXT entities on TEXT. No new writer code.
+- **The issue check (R14)** treats a table as an annotation:
+  - **`TEXT_OVERLAP`**: a table's box against any other text, or another table;
+  - **`TEXT_OVER_LINES`**: against a view's lines or area;
+  - **`OFF_SHEET`**: past the frame or into the title block;
+  - each fixed by a new `move-table` fix, row by row as a note's;
+  - **`TABLE_SOURCE`** (new, an error): a source that is unknown or that refuses. The table is drawn with its title and the reason, never as an empty table that would read as "no rows".
+- **R12's bend table** (source `bends`):
+  - one row per bend of every sheet body with a flat pattern;
+  - **columns**: bend (its name), direction (UP / DOWN in the flat), angle [°], R [mm], K, BA [mm], BD [mm], and the bend-table rows used (`rows 2–3, interpolated`) or '—';
+  - BA and BD use the kernel's own `bendAllowance` and `bendDeduction` (exported) on each bend's angle, R, K and the sheet's T;
+  - a note gives T and the K's origin: the sheet's, a bend table's, or estimates flagged;
+  - a part with no sheet body gives `TABLE_SOURCE`, "no sheet-metal body with a flat pattern".
+- **In the studio**: a "Bend table" checkbox in the drawing workspace, shown for a part with sheet bodies. It adds or removes `{id: 'bends', from: 'bends'}`.
+  - **No chat tool change**: `tools/list` stays unchanged and `set_drawing`'s schema is the same. The kernel lane's tables come through documents and sources.
+
+**Acceptance**:
+- **Layout**: column widths from the text widths, the box and the four corner anchors; a closed form for a 3 × 2 table (box size from the widths and row heights); numbers to their digits.
+- **Writers**: the same table in the SVG (its texts and lines), the PDF (its texts) and the DXF (TEXT and LINE entities, read back by our DXF reader, with ezdxf's audit clean as R11b's oracle).
+- **Issues**:
+  - a table over a view: `TEXT_OVER_LINES`;
+  - over a note: `TEXT_OVERLAP`;
+  - over the title block: `OFF_SHEET`;
+  - the `move-table` fix clears each;
+  - an auto-placed table is clean on an A4 drawing of the R12 L-bracket;
+  - an unknown source: `TABLE_SOURCE`.
+- **The bend table**, on R12's conformance parts:
+  - each bend's BA = θ(R + K·T) and BD = 2(R + T)tan(θ/2) − BA, closed form, to the shown digits;
+  - with D120's shop table, the row's deduction (4.2) is the BD shown, and its rows named.
+- **Exposure**: the studio checkbox, and a flow step (before the last) that ticks it on a sheet part and exports the drawing's SVG, PDF and DXF, each containing the table.
+
+**The API for the kernel lane**:
+- the types above;
+- `TABLE_SOURCES[name] = (ctx) => TableContent | {error}`;
+- `tableLayout`, if a table's size is needed before placing it.
+
+The kernel lane writes FR4b's function returning `TableContent`. Registering it as `'cut-list'` is one line, done by the outer lane on request.
+
+**Order**: the table and the bend table in one step, then AM6 and AM7, each with its own S0.
+
+## O50 — the drawing table, and R12's bend table on it (2026-10-20)
+
+- **`src/drawing/table.ts`** (pure): `tableSize`, `tableLayout(content, at, corner)` → `{box, widths, rowHeight, marks}`, plus `cellText` and `headerText`.
+  - Text is 2.5 mm, rows 5 mm, the pad 1.5 mm.
+  - A title wider than the columns widens the last column.
+  - Source notes go under the table, and the box takes them in.
+  - The border and the rule under the header use the visible pen; the other rules are thin.
+  - Numbers align right, text left; `null` shows as '—'.
+- **`src/drawing/tables.ts`**: `TABLE_SOURCES` (`bends`) and `tableContent(table, {doc, bodies?})`. An unknown source is an error that lists the known ones.
+  - **`bendTable`**: per bend of every sheet body with a flat pattern — name, UP/DOWN, angle (1 place), R (2), K (3), BA (3) and BD (3) by the kernel's `bendAllowance` and `bendDeduction`, and the shop table's rows when K came from one.
+  - Its note gives T and the K's origin, with K 0.5 flagged as an estimate.
+  - Several bodies are told apart by key.
+- **The sheet** (`buildSheet`, `meta.tableContent`):
+  - tables go last, as `table` groups; `Sheet.tables` holds each one's box, and its error when its source gave nothing;
+  - **without `at`, a table is placed by search**: the first spot clear of the views' areas, every text on the sheet and the tables already placed. The search starts just above the title block's right end and steps 5 mm, upward then leftward, inside the frame. **This goes beyond O49's "above the title block, stacked"**: the first run's fixed spot overlapped the right view's name on the L-bracket drawing;
+  - a refusing source is drawn as the table's title, a "NOT AVAILABLE" header and the reason.
+- **The issue check** (R14):
+  - a table is one box owner (`table`) in `TEXT_OVERLAP` and `OFF_SHEET`;
+  - `TEXT_OVER_LINES` fires when it lies over a view's lines or area;
+  - **its fix (`move-table`) is the same search** (`tableRoom`). A row-by-row move like a note's cannot get a table out of a view, so this also goes beyond O49;
+  - `TABLE_SOURCE` is an error;
+  - an issue names its tables (`tables: [id]`).
+- **The writers are unchanged.**
+  - SVG: `<g class="table">`;
+  - PDF: its texts as `Tj`;
+  - DXF through the R11b writer: TEXT and LINE entities, `—` as Windows-1252, ° as `%%d`.
+- **In the studio**: a "Bend table" checkbox in the drawing workspace, shown for a part with a sheet body. The workspace gets the evaluated bodies, so the source runs no evaluation of its own there, and `__studioDrawing` lists the tables.
+  - The chat's `drawing_issues` and the other drawing tools fill sources through `drawingInputs`.
+  - No tool schema changed.
+- **Tests** (`test/drawing-table.test.ts`, 4):
+  - **Layout**: the widths from the text widths; the box from the rows, at all four corners; numbers to their digits (`120.0`, `7.3`, `—`, `0.3`, `0.00`); alignment; the visible rules; the lenient reader (a short row dropped, a duplicate id dropped).
+  - **The bend table:**
+    - on R12.5's L-bracket: BA = θ(R + K·T) and BD = 2(R + T)tan(θ/2) − BA to 1e-12 (3.393 and 2.607);
+    - with D120's shop table, BD is the row's 4.2, shown as `4.200`, its row named;
+    - a box part gives the source's refusal; an unknown source names the known ones.
+  - **On the sheet:**
+    - auto-placed, clean;
+    - **over the front view**: `TEXT_OVER_LINES`, and `move-table` clears it;
+    - **anchored under a note**: `TEXT_OVERLAP` (auto-placed, it moves clear of the note);
+    - **in the title block**: `OFF_SHEET`, and its fix clears it;
+    - **`cut-list`, not registered yet**: `TABLE_SOURCE`, drawn with its reason.
+  - **Written**: each text in the SVG's table group, the PDF's `Tj`s and the DXF's TEXT entities.
+    - **The DXF is frozen** as bytes (`conformance/r14/tables/bends/expected.AC1015.dxf`; its date fixed).
+    - **ezdxf 1.4.5** (`scripts/dxf-oracle.py`, `python -I`) audits it clean and reads every text back (`oracle.AC1015.json`).
+    - **Found by the oracle:** the first freeze wrote the writer's text as UTF-8, so ezdxf read `—` as `â€”`. The file is the writer's Windows-1252 bytes, and the test compares bytes.
+- **Found by the full suite:** the case first sat at `r14/table-bends/case.json`, and the studio's own R14 test (`test/drawing-issues.test.ts`) reads every `r14/<case>/case.json` as a drawing case. It moved one level down, to `r14/tables/bends/`.
+- **Flow step** (before the last): a sheet L (K 0.4) in the Drawing workspace with the checkbox ticked. The table is placed with no table issue, and the SVG, PDF and DXF exports each contain `BEND TABLE`, `5.969` and `4.031` (BA and BD at R 3, T 2, K 0.4).
+- **For FR4b**: the `'cut-list'` source is the one line to add once the kernel lane's function exists. The test above shows what an unregistered source does.

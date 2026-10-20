@@ -259,6 +259,21 @@ export function sizeActuators(tree: JointTree, bodies: ReadonlyMap<string, LinkB
   return { kind, moveS, cycleS, joints, skipped, pending: PENDING_WORKED_EXAMPLES.slice(), sampling: `the move out and back, each segment at its ends and ${SAMPLES} samples (Simpson's rule for RMS, cube mean and mean speed); the dwells exact; the chosen pair's peaks and least envelope margin refined by golden section and checked again; the load inertia at the segment ends` };
 }
 
+/**
+ * One given pair's checks for one joint over the cycle sizeActuators runs (the move out and back, dwells held), refined
+ * as its chosen pair is — every check, failing ones too (RD9's harness, O46: a design's margins, negative ones named).
+ */
+export function checkPair(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>, kind: ProfileKind, limits: (key: string) => MoveLimits, key: string, motor: Motor, reducer: Reducer, opts: SizeOptions = {}): Check[] {
+  const g = opts.g ?? [0, 0, -STANDARD_GRAVITY], dwell = opts.dwell ?? 0;
+  const out = moveMotion(tree, q0, q1, kind, limits), back = moveMotion(tree, q1, q0, kind, limits), tracks = [track(tree, bodies, out, g), track(tree, bodies, back, g)];
+  const cycleS = 2 * (out.profile?.duration ?? 0) + 2 * dwell, zero = Object.fromEntries(out.keys.map(k => [k, 0])), hold = [rnea(tree, bodies, q1, zero, zero, g), rnea(tree, bodies, q0, zero, zero, g)];
+  const poses: Record<string, number>[] = [{ ...zero, ...q0 }, { ...zero, ...q1 }];
+  for (const tr of tracks) for (const s of tr.segs) poses.push(moveState(tr.motion, s.seg, s.seg.t1).q);
+  const jLoad = Math.max(...poses.map(q => { const { keys, M } = massMatrix(tree, bodies, q), i = keys.indexOf(key); return M[i][i]; }));
+  const d = drive(motor, reducer), T = refine({ tree, bodies, g, d, key }, tracks, totals(d, key, tracks, hold.map(h => h[key]), dwell));
+  return checks(d, motor, reducer, T, cycleS || 1, jLoad, opts);
+}
+
 /** Reads catalogue entries given by a caller: every field a value with a unit known here and a source. */
 export function readCatalogue(raw: unknown, fields: readonly string[], what: string): { entries: Record<string, unknown>[] } | { error: string } {
   if (!Array.isArray(raw)) return { error: `"${what}" is a list of entries.` };

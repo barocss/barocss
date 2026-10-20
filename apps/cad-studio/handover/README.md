@@ -492,6 +492,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
+- **Drawing table** (O49 S0, O50): done. A generic table on drawings (header, units, anchor; auto-placed clear; R14's issue
+  check and a move fix; SVG, PDF and DXF through the existing writers, ezdxf audit clean); R12's bend table on it (BA, BD
+  by the kernel's formulas; a shop row's 4.2). Its API is for the kernel lane's FR4b cut list (`TABLE_SOURCES['cut-list']`).
 - **RD4–RD8 held** (O46, the owner, 2026-10-20: "RD4~RD8(FEA·메셔)도 CAE로 보고 로드맵에서 빼서 보류해. RD9·RD10은 FEA 없이 가능한 범위만."). Outer lane order: RM7 (done, O44) → RM8 (done, O45) → RD9 → RD10, deterministic parts only, each with an S0.
 - MuJoCo 3.3.0 run (O38, the owner's go-ahead): RM4's URDF oracle passed (worst 2.2e-16), RM5's MJCF oracle passed after the equilibrium start and the contacts were found (gravity torques against RD1's to 4.4e-14; passive energy 1.0e-6; the damped hang settled, 8.8e-13 rad/s). RM4's external check and RM5's acceptance are closed.
 - Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).
@@ -1088,9 +1091,11 @@ gear crank.
     - RD6 tet4 with Jacobi-PCG on workers. **Held.**
     - RD7 tet10 (NAFEMS LE10 within 3% of 5.38 MPa, LE1 within 2% of 92.7 MPa). **Held.**
     - RD8 solid modal. **Held.**
-  - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks.
+  - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks. **Done (O47)**:
+    `cad-cli robot-check`; the arm-3r fixture's 80 margins above 0; seven seeded defects each at its own check; closed form to 1e-9.
   - RD10 an agent sizes a 3-DoF arm with every margin above zero — **without FEA** (O46). The deterministic part is
-    done first; the L3 evidence needs a live model run, pending the owner, with its protocol.
+    done first; the L3 evidence needs a live model run, pending the owner, with its protocol. **Deterministic part done (O48)**:
+    `cad-cli robot-size`; from 16 failing margins to all above 0 in 8 rounds; BRIEF_INFEASIBLE and NOT_CONVERGED typed.
 
 **IM — injection moulding and casting** (Protolabs, Fictiv, Stratasys, LyondellBasell, Dynacast, Engineers Edge):
 - IM1: process rule (material wall range and shrink, pull direction, finish to minimum draft).

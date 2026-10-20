@@ -1,0 +1,5 @@
+{
+ "case": "table-bends",
+ "step": "O49",
+ "note": "R12.5's sheet L-bracket (test/fixtures/sheet-l-bracket.calls.json) on an A4 drawing with its bend table auto-placed; the date fixed at 2026-10-20. expected.AC1015.dxf is the sheet as DXF (frozen); oracle.AC1015.json is ezdxf 1.4.5's reading (packages/barocss-cad/scripts/dxf-oracle.py)."
+}

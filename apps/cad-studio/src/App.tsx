@@ -2142,7 +2142,7 @@ export function App() {
       </aside>}
       </div>
 
-      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
+      {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
 
       {active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />}
 

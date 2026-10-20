@@ -4,6 +4,8 @@
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { BodyResult } from '../engine/evaluate';
+import { tableContent } from '../drawing/tables';
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '../engine/doc';
@@ -22,7 +24,7 @@ import { holeCallout } from '../drawing/callout';
 import { threadsOf } from '../app/threads';
 import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '../drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
-import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
+import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
 import type { SectionResult } from '../drawing/section';
@@ -49,8 +51,8 @@ interface Hover { q: XY; view: ViewId; at: XY; snap: SnapPoint | null; edge: Pro
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, onToast }: {
-  engine: EngineClient; doc: StudioDoc; settings: DrawingSettings; fileName: string;
+export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onChange, onToast }: {
+  engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
   // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
@@ -104,14 +106,18 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
   const callout = useCallback((edge: string) => holeCallout(doc.nodes, edge), [doc.nodes]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads }, cut), [views, layout, settings, title, cut, callout, threads]);
+  // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
+  const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}) })])), [settings.tables, doc, bodies]);
+  const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
+  const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    const r = acceptAll({ views, settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
@@ -119,7 +125,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, meta: { title, date: today(), threads }, ...(cut ? { section: cut } : {}) });
+    const r = fixAll({ views, settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -313,7 +319,8 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
       hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
       section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null,
-      issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}) })),
+      issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
+      tables: (sheet.tables ?? []).map(x => ({ id: x.id, box: x.box, ...(x.error ? { error: x.error } : {}) })),
       suggestions: suggestions.map(x => ({ id: x.id, kind: x.kind, estimate: x.estimate })) };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
   }, [layout, sheet, views, section, issues, suggestions]);
@@ -340,7 +347,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, meta: { title, date: today(), threads }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
@@ -414,9 +421,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads }, cut), selected);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf }, cut), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads }, cut), selected);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf }, cut), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
@@ -471,6 +478,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         }} /></label>)}
         <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
         <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
+        {hasSheet && <label className="field"><span>Bend table</span><input type="checkbox" className="check" aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>

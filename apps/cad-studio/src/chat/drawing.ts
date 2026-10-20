@@ -4,6 +4,7 @@
 import { brepsFor } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
 import { projectViews } from '../drawing/project';
+import { tableContent } from '../drawing/tables';
 import { holeCallout } from '../drawing/callout';
 import { sectionOf } from '../drawing/section';
 import { threadsOf } from '../app/threads';
@@ -59,7 +60,7 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined;
-  return { views: r.views, settings, callout: e => holeCallout(doc.nodes, e), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes) }, ...(section?.ok ? { section } : {}) };
+  return { views: r.views, settings, callout: e => holeCallout(doc.nodes, e), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }) }, ...(section?.ok ? { section } : {}) };
 }
 
 type Outcome = { doc: StudioDoc; content: Record<string, unknown>; changed: boolean; summary: string } | { error: string };
