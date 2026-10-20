@@ -1,0 +1,136 @@
+{
+ "case": "reviewer-undecided",
+ "step": "A8.1",
+ "note": "A soft mass target with no material stated: the mass is unknown, the Analysis reviewer cannot decide — undecided, the patch held.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm block",
+       "basis": "stated",
+       "source": "a 40 mm block"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      },
+      {
+       "id": "M",
+       "source": "light",
+       "hard": false,
+       "basis": "assumed",
+       "check": {
+        "op": "<=",
+        "query": {
+         "fn": "mass"
+        },
+        "value": 50
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "reviewers": [
+  {
+   "name": "dfm",
+   "rules": [
+    {
+     "kind": "print_rule",
+     "rule": "wall-rec",
+     "status": "warn"
+    }
+   ]
+  },
+  {
+   "name": "analysis",
+   "rules": [
+    {
+     "kind": "soft_failing"
+    },
+    {
+     "kind": "soft_unknown"
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "held"
+  ],
+  "stops": [
+   null,
+   null
+  ],
+  "reviews": [
+   null,
+   [
+    [
+     "analysis",
+     "undecided",
+     [
+      "UNDECIDED"
+     ]
+    ],
+    [
+     "dfm",
+     "accept",
+     []
+    ]
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done"
+ }
+}

@@ -1379,3 +1379,269 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 - **Needs**: the owner's OK for live runs and their cost, and the A5.5 A/B question that is open with them. The cost is estimated from A5.5's per-turn figures.
 
 **Not in A7**: A8 (parallel reviewers, the Architect, leases, ECRs), and any UI for the team.
+
+## O31 — A7.1–A7.4: the multi-agent core, deterministic (2026-10-20)
+
+- **Revisions and patches** (`src/team/team.ts`):
+  - `revisionOf(doc)` is a 64-bit FNV-1a, two 32-bit lanes mixed, 16 hex digits. It is taken over the canonical JSON (keys sorted) of nodes, parameters, bodies' looks, requirements, brief, references, process, printer and drafts. Key order, history and views do not change it; a contract does.
+  - A patch is `{id, by, base, ops, rationale?, rebasedFrom?}`.
+  - **A stale base is refused** with decision `stale` and finding `STALE_BASE`, naming the current revision; the state is the very same object.
+  - **`rebase(patch, revision)` is explicit**, keeps the first base in `rebasedFrom`, and is never automatic.
+- **The Integrator** (`integrate`) takes one patch against the state it is given. It runs A4's `apply_ops` on a copy of the state, so nothing is committed unless applied, then the gates in order:
+  1. **validity**: `OP_REFUSED`, `NOT_EVALUATED`, `NO_SOLID`, `REFERENCE_BROKEN`;
+  2. **interference**: `OVERLAP` for a pair of bodies that did not overlap before (the kernel's intersection); `KEEPOUT_VIOLATED`, and `KEEPOUT_UNDECIDED` within the chord tolerance (A6.3);
+  3. **interfaces**: `CONTRACT_CHANGED` when the patch changes references, the brief, the requirements, the process, the printer, the drafts or the questions; `INTERFACE_FAILED` for a hard `keepout`, `datum_distance`, `clearance` or `hole_alignment` requirement failing;
+  4. **dfm**: `DFM_FAILED` for the brief's stated process's (else the part's) feasibility rules. Skipped with `NO_PROCESS`, or with `NOT_CHECKED` for CNC and sheet metal;
+  5. **analysis**: `HARD_FAILED`, and `HARD_UNKNOWN` (undecided).
+  - Each gate is `{gate, verdict: pass | fail | undecided | skipped, findings}`. After a fail, the rest are skipped `NOT_REACHED`.
+  - **The decision**:
+    - `rejected` on a fail;
+    - `held` on an undecided gate, left to the user;
+    - otherwise the Verifier reviews, and `applied` or `rejected` with its findings.
+  - **The trace**: seq (a logical clock), the patch, its base and rebased-from, the dry run's diff, the gates, the Verifier (its model, verdict and findings), the decision, the revision after (only when applied), and the tokens per role.
+- **Roles are interfaces**, each with its `model`, and no chat tools:
+  - `RequirementsRole.brief`: its ops are applied and traced without the design gates, since the contracts are its own;
+  - `DesignerRole.propose(DesignerView)`: the view is the revision, facts, brief, requirements, and the last decision with its findings;
+  - `VerifierRole.review(VerifierView)`.
+  - **The Verifier's view is built, not prompted**: `verifierView` gives exactly `revision, brief, requirements, facts, mass, boxes, keepouts, printability, checks`. It is deep-frozen and JSON-copied, and holds nothing of the patch.
+- **The run** (`runTeam`) applies the brief, then takes the Designer's patches through the Integrator and the Verifier until done or the patch budget. It reports accepted and tried, the tokens per role, and the cost per accepted design (null when none).
+- **Scripted roles** (`src/team/scripted.ts`) are fixtures:
+  - the Designer's steps: a patch, `done`, `rebase` (the last patch on the current revision, explicitly), or a patch on a stale base;
+  - the Verifier's rules: total mass, size along an axis, body count, read only from its view.
+- **`cad-cli team scenario.json`** prints the run's traces (exit 0 when a patch is applied, 1 when none is, 2 on usage). There are no new chat tools and `tools/list` is unchanged.
+- **Fixed on the way**:
+  - `add_keepout` and `add_datum` are batchable, so the Requirements role's ops can set the contracts in one `apply_ops`.
+  - The REFERENCE_LOCKED guard (O26) exempts the reference tools. Making `add_datum` batchable had put it under the guard, and its own reference arguments were refused. The A6.3 tests failed, and the test-name comparison showed which.
+- **Evidence**: `test/team.test.ts` (4 tests). Its name was checked free first.
+  - **The ten scenarios** in `conformance/a7/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
+
+    | scenario | what happens |
+    |---|---|
+    | clean-run | every gate passes, DFM on FDM, the Verifier accepts, done |
+    | op-refused | validity `OP_REFUSED` |
+    | overlap | interference `OVERLAP` |
+    | keepout | interference `KEEPOUT_VIOLATED` |
+    | contract | interfaces `CONTRACT_CHANGED` |
+    | dfm-thin | a 0.3 mm shell for FDM: dfm `DFM_FAILED` |
+    | analysis | `HARD_FAILED`, then the right block applied |
+    | stale-rebase | `STALE_BASE`, then rebased and applied, its trace naming the old base |
+    | verifier-only | no gate sees it; the Verifier's mass rule rejects 14.9 g, not applied; a lighter block accepted |
+    | held | a round keep-out 5 mm away asking 5: `KEEPOUT_UNDECIDED`, held |
+
+    Every trace is complete, a revision after only when applied, and every gate after a fail not reached.
+  - **Patches**: stale refused with the state unchanged; the rebase keeps the first base; the revision changes with a contract but not with history or key order.
+  - **The Verifier's isolation**: its view's keys exactly the fixed set; no op, `run_command`, rationale (a marker string searched for) or patch in it; frozen; the same part gives the same view.
+  - **`cad-cli team`**: the clean run's output identical twice, its five gates in order; exit 1 on the contract scenario, 2 for a missing file.
+  - Studio 565/565, with no test name missing against the last run. Lint and type-check clean. Browser flow 173/173: no UI changed, and it is run for the shared tool code.
+- **Pending until the owner** (O30's protocol): the live comparison of one agent against the team at the same token budget, and the Verifier's precision and recall with a live model.
+- **Added on acceptance (coordinator, 2026-10-20), each a test** (`test/team.test.ts`, 6 tests now):
+  1. **A contract change is held, not rejected.** `CONTRACT_CHANGED` makes the interfaces gate undecided, and the decision **held** for the user.
+     - The changed contract fields are listed in the finding (its entities) and in the trace (`contractChanges`, `contract_changes` in the CLI's output). A8's ECR comes later.
+     - The `contract` scenario now expects held with `["requirements"]`.
+  2. **The hash is for staleness, not integrity.** `revisionOf` names the base, and `integrate`'s `bases` (each state a role was given, by revision, as its canonical JSON; `runTeam` keeps it) confirms it before applying.
+     - A matching hash over a different state, as a 64-bit collision would give, is refused `STALE_BASE` ("a hash collision"), and so is a base the run never gave a role.
+     - The test forces the collision.
+  3. **The REFERENCE_LOCKED exemption is narrow.** Datums and keep-outs may be added and deleted, in a batch too.
+     - Refused for every role: deleting a reference, its face in a part op (hole), in an assembly op (mate) and in a batch (fillet); and a Designer's patch on its face, rejected at validity with the reference untouched.
+     - No tool moves a reference.
+
+## O32 — A8 S0: multi-agent v2 and v3 — scope and acceptance frozen per step (2026-10-20)
+
+Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revisions, patches, the Integrator's gates, built views, scripted roles, `cad-cli team`).
+
+**Limits on every step:**
+- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
+- No chat tools: A8 adds none, and `tools/list` is unchanged. Exposure is `src/team/` and `cad-cli team` (scenario kinds v2 and v3).
+- A step needing a kernel-core change stops and goes to the coordinator.
+- The test names are compared at every checkpoint.
+
+### A8.1 — v2: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision
+- **Reviewers** (`DfmReviewer`, `AnalysisReviewer`) review a patch's result **in parallel** with the Verifier.
+  - Each is given a **built, frozen view** of a fixed key set, as the Verifier's (A7.3). The DFM view holds the printability report, the process, the facts and the boxes; the Analysis view holds the check report, the requirements, the mass and the keep-out results.
+  - They are **structurally read-only**: a view holds no state, no evaluate and no dispatcher, so a reviewer cannot apply anything.
+  - Each returns `{accept, findings: [{code, message, entities?}]}`, typed.
+  - The Integrator joins them: any rejection rejects the patch, with every reviewer's findings in the trace, ordered by role name so the trace is deterministic even though the reviews run in parallel.
+- **The Drafting agent** works on a **frozen revision**. Its patch holds only drawing ops (`auto_dimension`, `fix_drawing`, `set_drawing`, `accept_tolerances`; R14). Anything else is refused, typed `NOT_A_DRAWING_OP`.
+  - It is made against the model's revision. If the model moved since, the patch is refused `STALE_BASE`, as in A7.1, with the same canonical confirmation.
+  - Applied, its drawing is checked by `drawing_issues`: errors reject it (`DRAWING_ISSUES`); warnings are listed.
+- **Acceptance (fixtures)**:
+  - a DFM defect the gates allow (a feasible but not recommended overhang under the process) that only the DFM reviewer flags;
+  - an analysis concern no hard requirement covers (a soft requirement failing) that only the Analysis reviewer flags;
+  - both reviewers flagging one patch, their findings in role order;
+  - a reviewer's view keys checked, frozen, with nothing of the patch in it;
+  - the drafting patch applied on the frozen revision, its drawing issue-free;
+  - a drafting patch refused after the model moved; a non-drawing op refused.
+
+### A8.2 — v3: the Architect's `interfaces` section; Part agents against frozen contracts, with leases
+- **Interfaces** (`doc.interfaces`, version 1, the Architect's) is the assembly's contract. It holds:
+  - datums (A6.3's, by id);
+  - hole patterns `{id, positions (mm, the assembly's frame), diameter, parts: [ids]}`;
+  - envelopes `{id, part, box}`;
+  - keep-outs (A6.3's, by id);
+  - budgets `{mass_g?, parts?}`.
+  - It has its own revision (`interfacesRevision`).
+- **Leases**: the Architect leases each part to one Part agent, `{part, holder, contract: interfacesRevision, until: seq}`.
+  - A Part agent's patch is ops on its part (`part: id`), made against the contract revision of its lease.
+  - Refused, typed:
+    - `NO_LEASE`: no lease, or it is another agent's;
+    - `LEASE_EXPIRED`: the run's logical clock past `until`;
+    - `CONTRACT_MOVED`: the interfaces' revision is not the lease's (the agent re-reads and its lease is renewed by the Architect);
+    - `OUT_OF_PART`: ops on another part or the assembly.
+- **The part's gates** are A7's, run on the part, plus its contract:
+  - its body within its envelope;
+  - its holes on its pattern (A3's `hole_alignment`-style check against the pattern's positions);
+  - its share of the mass budget.
+- **Acceptance**:
+  - a two-part assembly (a bracket and a board) with a hole pattern, envelopes and a mass budget;
+  - one fixture each for: no lease, another agent's lease, an expired lease, a contract moved, a hole off its pattern, a body out of its envelope, over its mass budget;
+  - a clean run: both parts accepted under their leases.
+
+### A8.3 — v3: ECRs (engineering change requests), impact analysis, human approval
+- **A change to the interfaces** (from the Architect or a Part agent) is an **ECR**, `{id, by, changes (the interfaces' diff), impact, status: open | approved | rejected}`, never an op.
+- **The impact** is computed: the parts whose leases name the changed items, the requirements whose subjects they are, and the open patches made against the old revision.
+- **Only the user approves.** `approveEcr(doc, id, {by: 'user', at})` applies it, bumps the interfaces' revision and expires the leases it affects. An agent cannot approve one (`APPROVAL_IS_THE_USERS`).
+- A7's `CONTRACT_CHANGED` hold becomes an ECR when the change is to the interfaces.
+- **Acceptance**:
+  - an ECR moving a hole pattern: its impact lists both parts and the board's open patch;
+  - approved by the user, the leases expire and the open patch is refused `CONTRACT_MOVED`;
+  - rejected, nothing changes;
+  - an agent's approval refused.
+
+### A8.4 — v3: the Assembly integrator and a BOM agent
+- **The Assembly integrator** takes accepted part revisions into the assembly serially, one part at a time against the assembly's revision. Its gates:
+  - interference between parts (the kernel's intersection on the placed bodies);
+  - the interfaces (the hole patterns aligned across the parts that share them; envelopes);
+  - the mass budget over the whole.
+  - It uses typed verdicts and a trace, as A7.2.
+- **The BOM agent** is read-only. Its output is derived from the assembly: parts, quantities, materials (the brief's or the bodies'), library parts (fasteners, A6.5 sources), and mass, as a BOM artifact checked against the assembly (every instance counted once). Its view is built, as the reviewers' are.
+- **Acceptance**:
+  - two parts integrated, a third that interferes refused;
+  - a pattern misaligned across parts refused;
+  - the BOM's lines and totals against the assembly's closed form;
+  - its sources for library parts.
+
+### A8.5 — per-role metrics on seeded defects
+- Each fixture labels its seeded defects by category (validity, interference, interfaces, DFM, analysis, drawing, verifier-only).
+- **Precision and recall per role** — Verifier, DFM reviewer, Analysis reviewer, each gate — are computed over the fixture set from the scripted roles. They are reported by `cad-cli team --metrics`, and a test asserts them: 1.0 and 1.0 for the scripted roles on their own categories, with the confusion counts listed.
+- The same report with live roles is pending with O30's protocol.
+
+**Order**: A8.1 → A8.2 → A8.3 → A8.4 → A8.5, with a checkpoint after each.
+
+## O33 — A8.1: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision (2026-10-20)
+
+- **Reviewers** (`ReviewerRole {name: dfm | analysis, model, review(view)}`) review what a patch makes **in parallel** with the Verifier, once the gates have passed.
+  - Each is given **its own built view**: the DFM view is `revision, process, printability, facts, boxes`; the Analysis view is `revision, requirements, checks, mass, keepouts`. The views are deep-frozen JSON copies holding nothing of the patch and nothing callable, so the reviewers are **structurally read-only**: no state, evaluate or dispatcher is in reach.
+  - Each returns `{accept, findings: [{code, message, entities?}]}`.
+  - **Any rejection rejects the patch.** The reviews are joined **by role name**, so the trace is the same whichever ends first. Their tokens are counted per role, and their findings reach the Designer's next view.
+- **The Drafting agent** (`DrafterRole`, `integrateDrawing`) runs after the design ends, on the revision it ended at.
+  - Its patch may hold drawing ops only (`auto_dimension`, `fix_drawing`, `set_drawing`, `accept_tolerances`). Anything else is refused `NOT_A_DRAWING_OP`, and the part is unchanged.
+  - **Refused `STALE_BASE` if the model moved**: the hash, confirmed by the canonical JSON, as in A7.1.
+  - Applied, its drawing's issue list is read: errors reject it (`DRAWING_ISSUES`), and warnings are listed (`DRAWING_WARNING`). The model's revision does not move, since the drawing is not in it.
+  - Drafting patches count neither as tried nor as accepted designs.
+- **Scripted**:
+  - the DFM reviewer flags a printability rule at a status — a recommended rule the DFM gate lets pass;
+  - the Analysis reviewer flags failing soft requirements, which the analysis gate does not hold;
+  - the drafting agent replays drawing patches, with a stale base when the fixture says so.
+- **Evidence**: `test/team-v2.test.ts` (2 tests). Its name was checked free first.
+  - **Six scenarios** in `conformance/a8/` (`step: A8.1`), byte-identical on a rerun:
+
+    | scenario | what happens |
+    |---|---|
+    | dfm-reviewer-only | a 1.0 mm FDM shell is feasible (the gate's 0.8 mm) but under the recommended 1.2 mm: only the DFM reviewer flags it (`DFM_RECOMMENDED`); 1.5 mm is accepted |
+    | analysis-reviewer-only | a soft "8 tall" that no gate checks: only the Analysis reviewer flags 10 mm (`SOFT_FAILING`); 8 mm is accepted |
+    | both-reviewers | both flag one patch; findings in the order analysis, dfm |
+    | drafting | Auto-dimension applied, the drawing made, the revision unmoved |
+    | drafting-stale | `STALE_BASE` |
+    | drafting-not-drawing | `NOT_A_DRAWING_OP` |
+
+  - **Read-only, parallel**: each view's keys exactly its set, frozen, with no patch, rationale or function. With the DFM reviewer made slower, the Analysis one ends first, yet the trace is in role order.
+  - `cad-cli team` runs the v2 scenarios unchanged (exit 1 on both-reviewers, where none is accepted).
+  - Studio 570/570, with no test name missing against the last run. Lint and type-check clean. No UI changed.
+- **Next**: A8.2, the Architect's interfaces and Part agents with leases.
+- **Added on acceptance (coordinator, 2026-10-20), each a scenario:**
+  - **A reviewer that cannot decide holds the patch, never passes it.** A review's verdict is `accept | reject | undecided | skipped`, as the gates'.
+    - A rejection rejects. An undecided or a skipped review **holds** the patch for the user.
+    - The scripted DFM reviewer skips, with `NO_PROCESS` or `NOT_CHECKED`, when there is no printability report to review (no process, or one with no checks yet).
+    - The Analysis reviewer is undecided (`UNDECIDED`) on a soft requirement the checks could not measure.
+    - Scenarios: `reviewer-skipped` (CNC milling) and `reviewer-undecided` (a soft mass target with no material stated), both held.
+  - **"Keep, because…" against soft findings.** A Designer's patch may carry `keep: reason`. When the only rejecting findings are soft (`SOFT_CODES`: `DFM_RECOMMENDED`, `SOFT_FAILING`), the patch is **held** for the user with that reason (`keptBecause` / `kept_because`), not rejected again, so a soft target that cannot be met does not loop. Hard findings still reject.
+    - Scenario `soft-keep`: the 1.0 mm shell is rejected; kept but 50 wide, it is rejected by the hard W; kept at 40, it is held with the reason.
+  - `test/team-v2.test.ts` 2/2 over nine A8.1 scenarios. Studio 570/570, with no test name missing.
+
+## O34 — A8.2: the Architect's interfaces; Part agents against frozen contracts, with leases (2026-10-20)
+
+- **The interfaces** (`doc.interfaces`, version 1, `src/team/parts.ts`) are the assembly's contract, the Architect's:
+  - datums and keep-outs (A6.3's, by id);
+  - **hole patterns** `{id, positions (the assembly's frame), diameter, axis, parts}`;
+  - **envelopes** `{id, part, min, max}`;
+  - **budgets** `{massG?, parts: {part: grams}}`.
+  - They have **their own revision** (`interfacesRevision`, A7.1's hash over them alone). The doc's revision covers them, and so do the instances.
+  - `interfaces` is a contract field: a Designer's change to it is held (A7).
+- **The Architect** (`ArchitectRole.plan`) sets the assembly up through ops (`add_part`, placed), then the interfaces and the leases.
+- **Leases** are `{part, holder, contract: the interfaces' revision, until: the run's logical clock}`.
+- **A Part agent's patch** is `{id, by, part, contract, ops}`: ops on its part only (the Integrator gives each op `part`). `integratePart` checks, in order, with typed findings, and after a fail the rest is "not reached":
+  1. **lease**:
+     - `NO_LEASE`: none, or another agent's;
+     - `LEASE_EXPIRED`: past `until`, decision stale; the Architect renews it;
+     - `CONTRACT_MOVED`: the lease's or the patch's contract is not the interfaces' revision, decision stale;
+     - `OUT_OF_PART`: an op on another part, or an assembly op (add, place or delete a part, mates, joints).
+  2. **validity**: `OP_REFUSED`, or `NOT_EVALUATED` (no solid).
+  3. **contract**: the part's bodies where the assembly places them:
+     - `OUT_OF_ENVELOPE`;
+     - `HOLE_OFF_PATTERN`: no exact cylinder of the pattern's diameter (±0.05 mm) on its axis through each position (±0.05 mm). It uses the display faces' exact surfaces (A6.3) moved by `placeBody`, and names the positions missed;
+     - `OVER_BUDGET`: the part's mass, its own materials or aluminium assumed, against its share.
+  - Applied, the part's ops are committed. Otherwise the assembly is unchanged.
+- **The run** (`runParts`): the Architect's plan, then the Part agents take turns, one patch a turn, until all are done or the rounds run out.
+- **Scripted**: the Architect replays its setup, interfaces and leases. Part agents replay patches, on a stale contract or another part when the fixture says so.
+- **Evidence**: `test/team-v3.test.ts` (2 tests). Its name was checked free first.
+  - **Eight scenarios** in `conformance/a8/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
+
+    | scenario | what happens |
+    |---|---|
+    | parts-clean | a bracket and a board on one Ø4 pattern at (10, 10) and (50, 10), each in its envelope and budget: both applied |
+    | parts-no-lease | `NO_LEASE` |
+    | parts-expired | `LEASE_EXPIRED` |
+    | parts-contract-moved | `CONTRACT_MOVED` |
+    | parts-out-of-part | the board edited, a part added: `OUT_OF_PART` twice |
+    | parts-hole-off | a hole 2 mm off: `HOLE_OFF_PATTERN` |
+    | parts-envelope | 70 wide: `OUT_OF_ENVELOPE` |
+    | parts-budget | 64.8 g over 30 g: `OVER_BUDGET` |
+
+  - **The clean run**:
+    - both parts' holes on H1 (the exact cylinders, placed); the pattern moved 2 mm is missed at both positions;
+    - the board's placed box at z 20–22;
+    - every lease naming the interfaces' revision.
+  - Studio 572/572, with no test name missing against the last run. Lint and type-check clean.
+- **Next**: A8.3, ECRs with impact analysis and the user's approval.
+
+## O35 — A8.3: ECRs — impact analysis, the user's approval (2026-10-20)
+
+- **A change to the interfaces is an ECR, never an op** (`src/team/ecr.ts`). An ECR is `{id, by, base (the interfaces' revision), next (the interfaces proposed), changes, impact, status: open | approved | rejected, decided?, reason?}`, kept in the document (`ecrs`, version 1).
+- **The changes** are computed item by item: patterns and envelopes by id (added, removed or changed), budgets per part and in total, datums and keep-outs by id. Each change names the parts it touches; the total budget touches every part.
+- **The impact** is computed, not declared:
+  - the parts touched;
+  - the requirements whose subject is a changed datum or keep-out (`keepout` and `datum_distance` queries);
+  - the open patches on those parts made on the old contract;
+  - the leases on them.
+- **Only the user decides** (`decideEcr`): anyone else is refused `APPROVAL_IS_THE_USERS`. An agent may open an ECR.
+  - **Approved**: the interfaces become its proposal, so their revision moves.
+    - **A touched lease keeps the old contract** (`expiredBy` the ECR), so its holder's next patch is refused **`CONTRACT_MOVED`** until the Architect renews it (`renewLeases`).
+    - An untouched lease moves to the new revision, its part unaffected.
+  - **Rejected**: nothing changes.
+  - Refused: deciding twice (`DECIDED`); approving an ECR opened on interfaces that have moved since (`STALE_ECR`: open it again); opening one that changes nothing (`NO_CHANGE`).
+- A7's `CONTRACT_CHANGED` hold covers the interfaces too, since no op edits them. The ECR is the only way they change, and it comes from the Architect or a Part agent through the team API, decided by the user.
+- **Evidence**: `test/team-ecr.test.ts` (2 tests). Its name was checked free first.
+  - **The fixture** `conformance/a8/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
+    - Its change and impact exactly as the fixture says: both parts, the board's open patch made on the old contract, both leases, no requirements.
+    - Opening it changes nothing yet; an agent's approval is refused.
+    - The user's approval moves the interfaces and leaves both leases on the old contract.
+    - The open patch is then refused `CONTRACT_MOVED`.
+    - Renewed on the new contract, the board's patch is rejected `HOLE_OFF_PATTERN`: the part must follow the moved pattern.
+    - Deciding twice is refused.
+  - **Rejected**: the interfaces and leases are unchanged.
+  - **Two ECRs on one base**: the second is `STALE_ECR` once the first is approved. A total-budget ECR touches both parts.
+  - **One part's envelope changed**: that lease is left behind, the other moved to the new revision.
+  - **A keep-out removed**: the requirement that checks it is in the impact.
+  - Studio 574/574, with no test name missing against the last run. Lint and type-check clean.
+- **For A8.4** (coordinator): the mass budget shared by parts is checked per patch (each part's share, A8.2) **and on the whole assembly**, so parts under their shares cannot sum past the total unnoticed.
+- **Next**: A8.4, the Assembly integrator and the BOM agent.

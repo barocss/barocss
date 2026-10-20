@@ -1,0 +1,231 @@
+{
+ "case": "soft-keep",
+ "step": "A8.1",
+ "note": "A soft finding answered \"keep, because…\": the 1.0 mm shell is rejected once (DFM_RECOMMENDED); kept with a reason but 50 wide, the hard W still rejects it; kept at 40, it is held for the user with the reason — not rejected again, not looped.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm open tray",
+       "basis": "stated",
+       "source": "a 40 mm open tray"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.0
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "patch": {
+    "id": "p2",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 50,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.0
+       }
+      }
+     }
+    ],
+    "keep": "the tray must stay light: 1.0 mm walls, printed slowly"
+   }
+  },
+  {
+   "patch": {
+    "id": "p3",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.0
+       }
+      }
+     }
+    ],
+    "keep": "the tray must stay light: 1.0 mm walls, printed slowly"
+   }
+  },
+  "done"
+ ],
+ "reviewers": [
+  {
+   "name": "dfm",
+   "rules": [
+    {
+     "kind": "print_rule",
+     "rule": "wall-rec",
+     "status": "warn"
+    }
+   ]
+  },
+  {
+   "name": "analysis",
+   "rules": [
+    {
+     "kind": "soft_failing"
+    },
+    {
+     "kind": "soft_unknown"
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "rejected",
+   "rejected",
+   "held"
+  ],
+  "stops": [
+   null,
+   null,
+   [
+    "analysis",
+    "HARD_FAILED"
+   ],
+   null
+  ],
+  "reviews": [
+   null,
+   [
+    [
+     "analysis",
+     "accept",
+     []
+    ],
+    [
+     "dfm",
+     "reject",
+     [
+      "DFM_RECOMMENDED"
+     ]
+    ]
+   ],
+   null,
+   [
+    [
+     "analysis",
+     "accept",
+     []
+    ],
+    [
+     "dfm",
+     "reject",
+     [
+      "DFM_RECOMMENDED"
+     ]
+    ]
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done",
+  "kept_because": "the tray must stay light: 1.0 mm walls, printed slowly"
+ }
+}

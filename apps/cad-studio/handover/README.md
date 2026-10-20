@@ -372,7 +372,27 @@ stays out of the kernel's core files (requests for them go through the coordinat
     Integrator's serial gates (validity → interference/clearance → interfaces → DFM → analysis), typed verdicts, a
     trace per patch; roles as interfaces, the Verifier given artifacts and requirements only; exposed as `src/team/`
     and `cad-cli team`, no new chat tools. The live single-versus-multi comparison pending with its protocol.
-  - A7.1–A7.4 (next).
+  - **A7.1–A7.4** (O31): done. `src/team/`: revisions (64-bit, canonical), patches (STALE_BASE, explicit rebase), the
+    Integrator's serial gates with typed verdicts (applied, rejected, held, stale) and a byte-reproducible trace;
+    roles as interfaces; the Verifier's built, frozen view; scripted roles; `cad-cli team`. Ten seeded-defect
+    scenarios in `conformance/a7`. No new chat tools. The live comparison waits for the owner (O30).
+- **A8** multi-agent v2 and v3 (coordinator, 2026-10-20):
+  - **A8 S0** (O32): done. A8.1 parallel read-only DFM and Analysis reviewers, and a Drafting agent on a frozen
+    revision; A8.2 the Architect's interfaces, Part agents with leases; A8.3 ECRs with impact and the user's approval;
+    A8.4 the Assembly integrator and a BOM agent; A8.5 per-role precision and recall on seeded defects. Scripted, no
+    new chat tools; live numbers pending (O30).
+  - **A8.1** (O33): done. Parallel read-only DFM and Analysis reviewers on their own frozen views, joined by role name;
+    a Drafting agent with drawing ops only on a frozen revision (STALE_BASE, NOT_A_DRAWING_OP, DRAWING_ISSUES).
+    Six scenarios in `conformance/a8`.
+  - **A8.2** (O34): done. The Architect's interfaces (`doc.interfaces`: hole patterns, envelopes, budgets, datums,
+    keep-outs; their own revision); leases; Part agents' patches checked: lease (NO_LEASE, LEASE_EXPIRED,
+    CONTRACT_MOVED, OUT_OF_PART), validity, contract (OUT_OF_ENVELOPE, HOLE_OFF_PATTERN on the exact cylinders,
+    OVER_BUDGET). Eight scenarios in `conformance/a8`.
+  - **A8.3** (O35): done. ECRs (`doc.ecrs`): changes and impact computed (parts, requirements, open patches,
+    leases); only the user decides (APPROVAL_IS_THE_USERS); approved, the interfaces move, the touched leases stay on
+    the old contract (CONTRACT_MOVED until renewed), the untouched ones move; rejected, nothing changes; STALE_ECR,
+    DECIDED, NO_CHANGE. Fixture `conformance/a8/ecr-move-pattern.json`.
+  - A8.4 (next) → A8.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

@@ -1,0 +1,181 @@
+{
+ "case": "parts-contract-moved",
+ "step": "A8.2",
+ "note": "A patch made on an old contract: CONTRACT_MOVED.",
+ "architect": {
+  "ops": [
+   {
+    "tool": "add_part",
+    "args": {
+     "name": "bracket",
+     "position": [
+      0,
+      0,
+      0
+     ]
+    }
+   },
+   {
+    "tool": "add_part",
+    "args": {
+     "name": "board",
+     "position": [
+      0,
+      0,
+      20
+     ]
+    }
+   }
+  ],
+  "interfaces": {
+   "version": 1,
+   "datums": [],
+   "keepouts": [],
+   "holePatterns": [
+    {
+     "id": "H1",
+     "positions": [
+      [
+       10,
+       10,
+       0
+      ],
+      [
+       50,
+       10,
+       0
+      ]
+     ],
+     "diameter": 4,
+     "axis": [
+      0,
+      0,
+      1
+     ],
+     "parts": [
+      "p1",
+      "p2"
+     ]
+    }
+   ],
+   "envelopes": [
+    {
+     "id": "E1",
+     "part": "p1",
+     "min": [
+      0,
+      0,
+      0
+     ],
+     "max": [
+      60,
+      40,
+      10
+     ]
+    },
+    {
+     "id": "E2",
+     "part": "p2",
+     "min": [
+      0,
+      0,
+      20
+     ],
+     "max": [
+      60,
+      40,
+      22
+     ]
+    }
+   ],
+   "budgets": {
+    "parts": {
+     "p1": 80,
+     "p2": 20
+    }
+   }
+  },
+  "leases": [
+   {
+    "part": "p1",
+    "holder": "bracket-agent",
+    "until": 20
+   },
+   {
+    "part": "p2",
+    "holder": "board-agent",
+    "until": 20
+   }
+  ]
+ },
+ "parts": [
+  {
+   "name": "bracket-agent",
+   "part": "p1",
+   "steps": [
+    {
+     "patch": {
+      "id": "b1",
+      "ops": [
+       {
+        "tool": "run_command",
+        "args": {
+         "command": "box",
+         "values": {
+          "w": 60,
+          "d": 40,
+          "h": 10,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "tool": "run_command",
+        "args": {
+         "command": "hole",
+         "faces": [
+          "n1.top"
+         ],
+         "values": {
+          "d": 4,
+          "x": 10,
+          "y": 10
+         }
+        }
+       },
+       {
+        "tool": "run_command",
+        "args": {
+         "command": "hole",
+         "faces": [
+          "n1.top"
+         ],
+         "values": {
+          "d": 4,
+          "x": 50,
+          "y": 10
+         }
+        }
+       }
+      ],
+      "contract": "stale"
+     }
+    },
+    "done"
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "stale"
+  ],
+  "stops": [
+   [
+    "lease",
+    "CONTRACT_MOVED"
+   ]
+  ]
+ }
+}

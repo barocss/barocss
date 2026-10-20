@@ -1,0 +1,105 @@
+{
+ "case": "drafting",
+ "step": "A8.1",
+ "note": "The design accepted, then drafted on its revision: Auto-dimension applied, the drawing issue-free, the model's revision unmoved.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm open tray",
+       "basis": "stated",
+       "source": "a 40 mm open tray"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "drafter": [
+  {
+   "patch": {
+    "id": "d1",
+    "ops": [
+     {
+      "tool": "auto_dimension",
+      "args": {}
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "applied",
+   "applied"
+  ],
+  "stops": [
+   null,
+   null,
+   null
+  ],
+  "accepted": 1,
+  "ended": "done",
+  "drawing_keeps_revision": true
+ }
+}

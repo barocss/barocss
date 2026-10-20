@@ -6,6 +6,8 @@ import type { Brief } from '../chat/brief';
 import type { QuestionLog } from '../chat/questions';
 import type { ReferenceSet } from '../chat/references';
 import type { DraftSet } from '../chat/drafts';
+import type { Interfaces } from '../team/parts';
+import type { EcrLog } from '../team/ecr';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
@@ -277,6 +279,10 @@ export interface StudioDoc {
   references?: ReferenceSet;
   /** Features made from an image or a drawing and their dimensions to confirm (A6.4, O28; chat/drafts.ts). */
   drafts?: DraftSet;
+  /** The assembly's contract, the Architect's (A8.2, O34; team/parts.ts): datums, keep-outs, hole patterns, envelopes, budgets. */
+  interfaces?: Interfaces;
+  /** Engineering change requests to the interfaces, decided by the user (A8.3, O35; team/ecr.ts). */
+  ecrs?: EcrLog;
   /** The brief as requirements with executable checks (chat/spec.ts). */
   requirements?: Requirement[];
   /** Changes agents proposed without making them, accepted or rejected ones kept (chat/proposals.ts). */
@@ -355,7 +361,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'brief', 'questions', 'references', 'drafts', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

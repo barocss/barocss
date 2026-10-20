@@ -1,0 +1,82 @@
+{
+ "case": "dfm-thin",
+ "step": "A7",
+ "note": "A box shelled to a 0.3 mm wall for FDM: the DFM gate fails (DFM_FAILED: the wall under the process's minimum).",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm spacer block",
+       "basis": "stated",
+       "source": "a 40 mm spacer block"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 0.3
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "rejected"
+  ],
+  "stops": [
+   null,
+   [
+    "dfm",
+    "DFM_FAILED"
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done"
+ }
+}

@@ -1,0 +1,184 @@
+{
+ "case": "dfm-reviewer-only",
+ "step": "A8.1",
+ "note": "A 1.0 mm FDM shell: feasible (the DFM gate passes, 0.8 mm), under the recommended 1.2 mm — only the DFM reviewer flags it; the 1.5 mm shell is accepted.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm open tray",
+       "basis": "stated",
+       "source": "a 40 mm open tray"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.0
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "patch": {
+    "id": "p2",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.5
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "reviewers": [
+  {
+   "name": "dfm",
+   "rules": [
+    {
+     "kind": "print_rule",
+     "rule": "wall-rec",
+     "status": "warn"
+    }
+   ]
+  },
+  {
+   "name": "analysis",
+   "rules": [
+    {
+     "kind": "soft_failing"
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "rejected",
+   "applied"
+  ],
+  "stops": [
+   null,
+   null,
+   null
+  ],
+  "reviews": [
+   null,
+   [
+    [
+     "analysis",
+     "accept",
+     []
+    ],
+    [
+     "dfm",
+     "reject",
+     [
+      "DFM_RECOMMENDED"
+     ]
+    ]
+   ],
+   [
+    [
+     "analysis",
+     "accept",
+     []
+    ],
+    [
+     "dfm",
+     "accept",
+     []
+    ]
+   ]
+  ],
+  "accepted": 1,
+  "ended": "done"
+ }
+}

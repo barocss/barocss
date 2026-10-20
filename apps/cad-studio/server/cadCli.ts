@@ -15,6 +15,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { meshToStl } from '../src/ui/files';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
+import { runScenario, runSummary, type Scenario } from '../src/team/scripted';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -25,7 +26,10 @@ cad-cli check part.bcad
 cad-cli urdf part.bcad -o folder [--name robot]
   Writes the assembly as URDF (folder/robot.urdf and folder/meshes/*.stl), checked against the URDF spec; exit 1 when refused.
 cad-cli mjcf part.bcad -o folder [--name robot]
-  Writes it as a MuJoCo MJCF model (folder/robot.xml and folder/meshes/*.stl), checked; exit 1 when refused.`;
+  Writes it as a MuJoCo MJCF model (folder/robot.xml and folder/meshes/*.stl), checked; exit 1 when refused.
+cad-cli team scenario.json
+  Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
+  Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
 
 export interface CliIo { stdout: NodeJS.WritableStream; stderr: NodeJS.WritableStream; stdin?: () => Promise<string> }
 
@@ -67,6 +71,17 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   const usage = (why: string) => { io.stderr.write(`cad-cli: ${why}\n${CLI_USAGE}\n`); return 2; };
   const failed = (why: string, code = 1) => { io.stderr.write(`cad-cli: ${why}\n`); return code; };
   if (cmd === undefined || cmd === 'help' || cmd === '--help' || cmd === '-h') { io.stdout.write(`${CLI_USAGE}\n`); return cmd === undefined ? 2 : 0; }
+  if (cmd === 'team') {
+    // (A7, O31: a scripted team through the Integrator; the traces printed.)
+    const file = rest[0];
+    if (!file) { io.stderr.write(`team takes a scenario file\n${CLI_USAGE}\n`); return 2; }
+    let sc: Scenario;
+    try { sc = JSON.parse(readFileSync(resolve(file), 'utf8')) as Scenario; } catch (e) { io.stderr.write(`${file}: ${e instanceof Error ? e.message : String(e)}\n`); return 2; }
+    if (!sc || !Array.isArray(sc.designer)) { io.stderr.write(`${file}: a scenario has its designer steps\n`); return 2; }
+    const r = await runScenario(sc, evaluate);
+    say(io.stdout, runSummary(r));
+    return r.accepted > 0 ? 0 : 1;
+  }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');
     const opened = await openModel(resolve(rest[0]));
