@@ -1048,9 +1048,12 @@ gear crank.
     refuses: `CURVED_BODY`, waiting on the kernel's F3.
   - **AM7b done (O57 S0, O58)**: `lattice` — a gyroid infill as a separate mesh body in the exact hollow; wall vertices on
     the exact wall, loose pieces dropped, one drain a round until every empty region drains; fraction within the derived bound,
-    one solid, no overlap by the kernel's intersection. STEP still carries it (body filter: the coordinator's call).
+    one solid, no overlap by the kernel's intersection. STEP leaves it out by its `infill` role and says so; 3MF and mass
+    keep it (O60).
   - **A6.3 chord tolerance fixed (O55)**: bounded in both directions from the mesh's normals (sphere 0.144, was 0.072; torus
     finite, was unbounded).
+  - **A6.3 freeform guard (O59)**: NURBS/SubD faces are unbounded until measured against the exact surface (sampled both ways,
+    × 1.25) on request — keep-outs and the assembly gate measure; the plain model undershot a SubD face 1.102 vs 1.143.
   - **AM6 done (O51 S0, O52)**: `split-bed` — the fewest even pieces that fit the bed, dowels or plugs at the fit; volumes,
     bed fit, exact radii and the kernel's no-overlap check; typed refusals.
 
@@ -1087,7 +1090,9 @@ gear crank.
     999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
   - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality). **Done (O45)**: Freudenstein to 3.0e-14 rad
     over a full turn; BRANCH_FLIP and NO_CLOSURE typed; MJCF <connect> held by MuJoCo (static 4.7e-16 m; passive at 0.1 ms 1.7e-6 m, 3.6e-5 rad).
-  - RM9 SDF/USD, CCD, workspace map.
+  - RM9 SDF/USD, CCD, workspace map. **S0 (O62)**: RM9a timed multi-segment CCD with a TOI to 1e-9 s (MuJoCo on the boxes case),
+    RM9b a Halton workspace map against the 2R annulus and manipulability, RM9c SDF 1.11 / UsdPhysics export (ours now; the
+    usd-core and libsdformat checks wait for the owner's install go-ahead).
 
 **RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
 - RD1: static gravity torques; planar 2R and 3R closed forms to 1e-9.
@@ -1183,6 +1188,8 @@ recorded).
 - **Late (after A5–A8, before RB5–RB9), DWG/SAT import.** DWG R2000–R2018+ 2D entities as a drawing or underlay; ACIS
   SAT/SAB solids into our B-rep through the STEP import's tolerance and validation gate; optionally DWG writing of
   drawings. Only after an S0 that weighs demand against effort, recorded either way.
+  - **S0 done (O61)**: DWG read deferred, SAT import deferred, DWG write no-go — DXF and STEP already reach the need; both
+    specs are PDF-only; AutoCAD's 3DSOLID SAT is an undocumented variant. Revisit conditions in the note.
 
 **AI scenario ladder.** A new rung, the "2-axis robot arm": joints, reducer, reach check, and a URDF that loads in
 MuJoCo with matching inertia.

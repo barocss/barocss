@@ -10,7 +10,7 @@ import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
 import { meshDistance, meshesMeet } from '../robot/sweep';
-import { chordOf } from '../chat/references';
+import { chordOf, measureBody } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
 
@@ -30,6 +30,8 @@ const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massPropertie
 /** The whole assembly's gate: parts meeting, the patterns on every built part, the total mass. */
 export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise<AssemblyCheck> {
   const parts = await assemblyBodies(doc, evaluate), ids = [...parts.keys()], findings: AssemblyFinding[] = [];
+  // (Freeform faces measured against their part's B-rep, O59: the chord a placed body keeps, its depth unmoved.)
+  for (const id of ids) { const d = id === 'base' ? doc : doc.instances?.find(x => x.id === id)?.doc; if (d) for (const b of parts.get(id)!) measureBody(d, b); }
   for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
     for (const a of parts.get(ids[i])!) for (const b of parts.get(ids[j])!) {
       const A = a.mesh.bounds, B = b.mesh.bounds, chord = chordOf(a.mesh) + chordOf(b.mesh);

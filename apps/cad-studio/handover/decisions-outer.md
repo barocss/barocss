@@ -2793,3 +2793,151 @@ The `lattice` command ("Fill with a lattice", `src/print/lattice.ts`) is built a
 - the flow step "AM7b" before the last: the AM7a block filled from the palette, the shell first and no fuller.
 
 **STEP, still open for the coordinator:** STEP carries the lattice as a faceted body. Leaving it out needs a body filter in `engine/evaluate.ts` `stepFor`. That is outside this lane until the coordinator says.
+
+## O59 — A6.3 chord tolerance on freeform faces: measured against the exact surface, unbounded until then (2026-10-20)
+
+The coordinator's guard on O55. The edge-sag and quadratic-patch δ is exact at constant curvature along circles: plane, cylinder, sphere, cone, and torus along its circles. On a freeform face (a NURBS or SubD patch) the curvature varies inside a triangle, and the model can undershoot. That is the failure O55 fixed, in a new place.
+
+- **Faces are classified in `bodyMesh`**, which is cheap.
+  - `analytic`: a cylinder, or a surface of revolution of a line or an arc (cone, sphere, torus).
+  - Any other curved face is `freeform`, with its B-rep faces listed.
+- **`chordOf`** keeps the quadratic model for analytic faces. A freeform face counts as unbounded (undecided) until it is measured. A measured one takes the larger of its measured depth and the model's.
+- **`measureChords(mesh, brep)`** measures on request, because it costs about 20× the tessellation (a measuring pass in `bodyMesh` made a SubD evaluation 0.5–1.1 s instead of 30 ms). On request it takes 40–360 ms.
+  - It re-tessellates the B-rep at the mesh's own quality (`DisplayMesh.quality`, the same triangles).
+  - It puts each vertex on the exact surface by Gauss–Newton (warm start, a 24 × 24 grid fallback). It refuses at 10⁻⁷ of the size, which gives Infinity.
+  - At 42 points of each triangle (an order-8 barycentric grid) it measures the depth both ways:
+    - the surface's point at the interpolated (u, v) to the nearest triangle of the triangle's one-ring;
+    - at the 12 order-4 points, also the triangle's point to its nearest on the surface, by Gauss–Newton.
+  - The max, times **CHORD_SAFETY = 1.25**. Sampling can miss a peak between points; the worst shortfall measured was 2 % (a SubD cap at one segment a quarter, 0.928 vs 0.946).
+  - A placed copy keeps the measurement, because depth is invariant under a rigid move.
+- **Callers:**
+  - `checkKeepouts` measures each body through `partBreps(doc)` (`measureBody`);
+  - the assembly gate does the same for the base part and each instance.
+- **Refinements while building:**
+  - Measuring against the surface at the interpolated (u, v) alone overstated the depth about 3× (0.43 vs 0.133). An uneven parametrization slides the point sideways. Hence the nearest point, both ways.
+  - Measuring against the triangle alone still overstated it on SubD caps near extraordinary vertices (0.39 vs 0.14), because the point lands over a neighbour. Hence the one-ring.
+
+**Measured** on a SubD cube with a corner pulled out 0–80 mm, at 1, 2, 4 and 8 segments a quarter. The truth is the distance to a 64-segment mesh, both ways.
+- The plain model undershoots at one segment a quarter: 1.102 vs 1.143 (pull 40), 0.906 vs 0.946 (pull 80).
+- The measured δ is never under the truth, and at most 1.53× it.
+- **Test** (`chord.test.ts`, pull 40, one segment a quarter): unmeasured, δ is unbounded; the plain 1.10221 is under the truth 1.14317 ± 0.004; measured, δ is 1.42875. A keep-out 10 mm above the body, clearance 1, is measured through the check and decided clear.
+
+## O60 — STEP leaves the lattice infill out, by its role (2026-10-20)
+
+The coordinator's answer to O57's open point. STEP is the exact part. The lattice is a print infill, and it stays in the mass and in 3MF.
+
+- **The role.** A mesh node can carry `role: 'infill'`; `lattice` writes it. The node's body result carries `role: 'infill'`.
+  - The filter goes by role, not by name. A later infill kind follows the same rule, and renaming the body changes nothing.
+  - The role stays studio-side. The kernel's part document never sees it.
+- **`stepFor`** (`engine/evaluate.ts`, studio code) leaves infill bodies out, the part's own and each shown instance's. It returns `omitted: ['lattice infill not included (<keys>); 3MF carries it']`.
+  - If only infill bodies remain, it refuses: "Only infill bodies: STEP carries the exact part, and there is none to export."
+- **Where the note shows:**
+  - the studio's STEP export shows it in its toast. It no longer asks "tessellated or planar?" for an infill body, since none goes out;
+  - `cad run --step` lists it under `notes`.
+- **3MF and the mass keep it**: `threeMfModelOf` and `massProperties` are unchanged.
+- **Test** (`lattice.test.ts`, the coarse case):
+  - every lattice piece is infill and the shell is not;
+  - STEP has one solid (the shell), with no tessellated entity, and the note names the pieces;
+  - with the role taken off, the same document's STEP carries 1 + pieces solids and no note;
+  - renamed, the lattice is still left out;
+  - 3MF has an object for the shell and each piece; the mass lists every body.
+
+## O61 — DWG/SAT import S0: DWG read deferred, SAT import deferred, DWG write no-go (2026-10-20)
+
+This is research and a decision only, with no product code. The full write-up, with sources, is [`notes/research-dwg-sat-2026-10-20.md`](notes/research-dwg-sat-2026-10-20.md). I read public HTML only. The two specifications exist only as PDFs, named and not read: `OpenDesign_Specification_for_.dwg_files.pdf` (ODA, v5.4.1, R13–2018, "informational use", no implementation grant found) and `sat.pdf` (Spatial's SAT Save File Format).
+
+- **DWG 2D read (drawing or underlay): defer.**
+  - Every DWG producer saves DXF, and the free ODA File Converter batch-converts. Our DXF reader and writer exist. No recorded scenario fails for DWG alone.
+  - Effort is several weeks: R2000 bit streams, R2004+ compressed sections, R2007's separate encoding, the R2010+ object map, and the entity set. The spec terms need clearing first.
+  - Cheaper and nearer the need, each needing its own S0 if wanted:
+    - the DXF reader showing SPLINE, ELLIPSE, INSERT/BLOCK and TEXT as an underlay instead of refusing them;
+    - a typed `.dwg` refusal that names the routes (save as DXF, or the ODA converter).
+- **SAT/SAB solids into the B-rep: defer, no-go for now.**
+  - SolidWorks, Inventor and the older ACIS tools all write STEP, which we import.
+  - The SAT inside DWG/DXF 3DSOLIDs is AutoCAD's ShapeManager variant (save versions ≥ 20800, Spatial-incompatible, undocumented). It is not the ≤ 700 text the spec covers.
+  - The ≤ 700 text is about 1.5–3 weeks in the kernel lane (records, topology, analytic surfaces, procedural splines at their fit tolerance, the STEP gate). If it ever goes ahead, it goes to the kernel lane.
+- **DWG writing: no-go.** The R11b DXF writer already reaches every consumer. DWG adds the reader's complexity, plus checksums and AutoCAD's checks on files it did not write, for nothing DXF doesn't deliver.
+- **Revisit when**, per item: a recorded scenario where only DWG or SAT exists and conversion is not acceptable; a consumer that takes DWG only; or the owner clearing the ODS terms. Evidence level is L0–L1, with no user data behind the demand side.
+
+## O62 — RM9 S0: continuous collision along a timed joint path, a workspace map, SDF/USD export — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after O61. There are three items, in this order: the two deterministic ones first, and the exports last, since their external checks need a new install.
+
+**Limits on all three:**
+- Our own TypeScript, with no new runtime dependency.
+- MuJoCo 3.3.0 (O38's venv `~/.cache/barocss-mujoco`) is a test oracle only, run `python -I`, its readings committed as data beside the case.
+- **Nothing new is installed without asking.** RM9c's validators below are asked for, not assumed.
+- No chat tool: `tools/list` is unchanged. The exposure is `src/robot/`, the Joints card and the exports.
+- A change to the kernel core stops and goes to the coordinator.
+- Test names are compared at each checkpoint. The flow runs with `PW_DIR` and `CAD_STUDIO_CHAT_PORT=52391`, its new steps just before the last.
+
+### RM9a — continuous collision along a timed, multi-segment joint path (`src/robot/sweep.ts`, extended)
+RM6 certifies one straight joint-space move by conservative advancement. It stops a step before the first contact, within 1e-4 rad. What it lacks:
+- a path of several segments;
+- time (when along the motion the contact happens);
+- the time of contact itself, rather than a certified step short of it.
+
+- **The path**: waypoints `q⁰ … qⁿ`. Each segment is straight in joint space and timed by RD2's profiles (trapezoid or S-curve, synchronised so all joints start and stop together), giving `q(t)`.
+  - Its motion bound is RM6's, `|Δp| ≤ Σ_i |Δq_i(t₁) − Δq_i(t₀)| · r_i`, with the joint change over a time step taken from the profile. That change is monotone within a segment, so the bound still holds.
+- **Time of impact (TOI)**:
+  - conservative advancement to the last certified-free time `t_free`;
+  - then bisection between `t_free` and the first sample whose meshes meet (RM6's exact contact test), down to **1e-9 s**;
+  - the result: `{ clear, toi?, segment?, links?, values?, minClearance: { mm, t, links }, clearanceProfile: [t, mm][] }`.
+  - **No contact is missed**: everything before `toi` is certified by the bound, and the contact at `toi` is exact.
+- **Acceptance**:
+  - **The 2R arm swung into the post** (RM6's `conformance/rm/sweep-post`, now on a trapezoid profile):
+    - the TOI equals the planar separating-axis oracle's contact angle (RM6's, bisected to 1e-12), mapped through the trapezoid's closed-form `q(t)`, within **1e-9 s**;
+    - nothing is reported before it.
+  - **Two segments**: out clear, then back into the post. The contact is on segment 2 at its oracle time, and segment 1's least clearance equals a dense exact-mesh sampling's within the sampling's own step bound.
+  - **MuJoCo, where its geometry is ours**: its mesh geoms collide as convex hulls, so the boxes-only 2R case is used.
+    - The trajectory is replayed kinematically (`qpos` set, `mj_forward`, contacts read at 1e-5 s, then bisection).
+    - MuJoCo's first contact time equals ours within **1e-6 s**, the readings committed as `oracle.mujoco-3.3.0.json`.
+  - **The 6R arm folding** (RM6's case), on an S-curve: the TOI lies within the step RM6 stopped at, its meshes in contact to the tolerance there, and no earlier contact appears in a 2000-sample exact check.
+  - **Bench**: the 6R case within 2× RM6's 225 ms.
+- **Where**: the Joints card's **Check path** takes the waypoints recorded (the solved pose, then each "Add waypoint") and shows the TOI in seconds and the clearance along the path.
+
+### RM9b — a workspace map (`src/robot/workspace.ts`)
+- **What**: the positions a tool point reaches over the joint ranges (limits where they are set, else [−π, π]; slides over their limits, required).
+  - Joint values come from a Halton sequence (deterministic). FK gives the tool point (RM2).
+  - The points go into voxels of size `h`. Each voxel holds its count, the best manipulability seen, `w = √det(J Jᵀ)` (RM7's Jacobian, its position rows), and whether any pose there is free of self-contact (RM6's exact test, optional).
+- **The result**: occupied voxels with `w`, the bounding box, the farthest reach, and the sample count. In the studio it is shown as a point cloud coloured by `w`.
+- **Acceptance**:
+  - **Planar 2R, closed form** (l₁ 80, l₂ 50, no limits):
+    - every occupied voxel's centre is within `h√3/2` of the annulus 30 ≤ r ≤ 130;
+    - every voxel wholly inside the annulus is occupied after N = 10⁵ samples (the miss chance per voxel is stated and below 1e-9);
+    - the occupied area is within the boundary band's area of π(130² − 30²);
+    - `w` at each sample equals `l₁ l₂ |sin θ₂|` to 1e-9.
+  - **Limits**: the 2R with θ₂ ∈ [0, π/2] gives its closed-form region, by the same occupancy tests.
+  - **6R (arm-6r)**:
+    - the farthest reach equals the chain's straight-arm length within `h`;
+    - no voxel lies past it;
+    - `w` is zero (≤ 1e-9) at the straight pose.
+  - **Self-contact filter**: on the 6R, poses the exact test finds in contact are excluded, with a count. A pose sampled in contact and checked against RM6's mesh test agrees.
+  - Deterministic: the same inputs give the same map, byte for byte.
+- **Where**: "Workspace" in the Joints card (N, h, the tool point), with the cloud shown and a JSON download.
+
+### RM9c — SDF and USD export (`src/robot/sdf.ts`, `src/robot/usd.ts`)
+The same model as URDF and MJCF (RM4, RM5): links with RM3's inertia about the centre of mass, visual and collision meshes, joints with axes, limits and gear couplings.
+- **SDF**: SDFormat 1.11 (sdformat.org/spec, HTML).
+  - `<model>` with `<link>` (`<inertial>` with `<pose>`, `<mass>`, `<inertia>`), `<visual>` and `<collision>` (`<mesh><uri>` to an STL beside it), and `<joint>` (revolute, prismatic, fixed; `<axis><xyz expressed_in>`, `<limit>`).
+  - Poses relative to frames by `relative_to`, the SDF 1.7+ frame semantics (the tutorial "Specifying model kinematics").
+  - A gear follower as a `<joint type="gearbox">`, or noted when the pair does not fit gearbox's form.
+  - RM8's loop as a second joint closing it (SDF allows a graph), checked by our reader.
+- **USD**: `.usda` text with the UsdPhysics schema (OpenUSD's, documented in HTML).
+  - An `Xform` per link with `PhysicsRigidBodyAPI` and `PhysicsMassAPI` (`physics:mass`, `physics:centerOfMass`, `physics:diagonalInertia` with `physics:principalAxes`, from RM3's eigen-decomposition).
+  - Meshes as `Mesh` prims (points, faceVertexIndices) under each link.
+  - `PhysicsRevoluteJoint`, `PhysicsPrismaticJoint` and `PhysicsFixedJoint` with `body0`/`body1`, local frames, axis and limits (degrees, as UsdPhysics takes them).
+  - `PhysicsArticulationRootAPI` on the root.
+  - Units: `metersPerUnit = 0.001`, `kilogramsPerUnit = 1`, `upAxis = "Z"`.
+- **Acceptance, ours** (deterministic, now):
+  - our readers of both take the files back to the same tree: link names, masses to 1e-12, inertia tensors to 1e-12 relative, axes, limits;
+  - FK from each file's frames equals RM2's at 100 random poses to 1e-9 mm;
+  - URDF, MJCF, SDF and USD of arm-6r agree with one another on every one of those numbers;
+  - RM4/RM5's files are byte-identical.
+- **Acceptance, external**: **pending the owner's go-ahead to install**, asked here and not assumed.
+  - **USD**: `usd-core` (Pixar's pip package, Apache-2.0-style licence) in the venv. `Usd.Stage.Open` without errors; `UsdPhysics`' own parser (`LoadUsdPhysicsFromRange`, OpenUSD 24.11+) reads the bodies and joints, and its masses, frames and axes are compared with ours.
+  - **SDF**: libsdformat's validator (`gz sdf -k`, or the `sdformat` Python bindings). The file passes, and its parsed model's poses and inertias are compared.
+  - MuJoCo reads neither, so it is not an oracle here.
+- **Where**: "Export SDF" and "Export USD" beside URDF/MJCF in the Joints card, as files (with their STLs, or as a zip, as the URDF export does).
+
+**Order and checkpoints**: RM9a, then RM9b, then RM9c (ours), then RM9c (external) on the owner's go-ahead. Each one is checkpointed with the kernel conformance count, the studio count with test names compared, and the flow count.

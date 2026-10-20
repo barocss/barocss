@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart, partBreps } from '../src/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf, verdictOf } from '../src/chat/references';
-import type { DisplayMesh } from '../src/engine/mesh';
+import { bodyMesh, measureChords, type DisplayMesh } from '../src/engine/mesh';
+import { depthAt, depthBins } from '../src/print/hollow';
 
 // O55: A6.3's chord tolerance, bounded from the tessellation's own steps in both directions. On a sphere and a torus the
 // new δ is at least the mesh's true worst depth below the exact surface (sampled over every triangle) and not far
@@ -62,4 +63,35 @@ test('the torus (R 20, r 5): unbounded before, now a finite δ at least the true
   const kt = JSON.parse((await dispatchTool(tight.state, 'check_keepouts', {}, evaluate)).content).results[0];
   // (The tube's top at y 5 under the box's face at y 7: 2 mm, the clearance asked, within δ.)
   assert.equal(kt.verdict, 'undecided', JSON.stringify(kt));
+});
+
+// O59: on a freeform face the curvature varies inside a triangle, and the quadratic model can undershoot. A SubD cube with
+// one corner pulled out 40 mm, tessellated at one segment a quarter: the plain model is under the mesh's true depth (its
+// distance to a 64-segment mesh of the same B-rep, both ways); unmeasured, the face is unbounded; measured against the
+// exact surface (sampled, × CHORD_SAFETY) it covers the truth. A keep-out against a SubD body measures it and decides.
+test('a freeform SubD face: the plain quadratic model undershoots the true depth; unmeasured it is unbounded, measured (× the safety factor) it covers the truth; a keep-out decides', async () => {
+  const cube = [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]], p = [0, 0, 0, 20, 0, 0, 20, 20, 0, 0, 20, 0, 0, 0, 20, 20, 0, 20, 60, 20, 20, 0, 20, 20];
+  const doc = withNode(emptyDoc(), { kind: 'subd', name: 's', cage: { positions: p, faces: cube } } as ModelNode), e = evaluatePart(doc, 1); assert.ok(e.ok);
+  const brep = partBreps(doc)[0].brep, m = bodyMesh(brep, 0, 1), fine = bodyMesh(brep, 0, 64);
+  assert.ok(m.faces.every(f => f.kind !== 'curved' || (f.freeform && !f.analytic)), 'the SubD patches are freeform');
+  assert.equal(chordOf(m), Infinity, 'unmeasured: unbounded');
+  // (The truth: the coarse mesh against the fine one both ways — its points' distance to the fine triangles, and the fine
+  // mesh's vertices (on the surface) to the coarse — within the fine mesh's own depth.)
+  const near = depthBins(fine, 4), back = depthBins(m, 4); let toFine = 0, toCoarse = 0;
+  for (let t = 0; t < m.indices.length; t += 3) for (let i = 0; i <= 8; i++) for (let j = 0; i + j <= 8; j++) {
+    const a = i / 8, b = j / 8, c = 1 - a - b, q = [0, 1, 2].map(k => a * m.positions[m.indices[t] * 3 + k] + b * m.positions[m.indices[t + 1] * 3 + k] + c * m.positions[m.indices[t + 2] * 3 + k]);
+    toFine = Math.max(toFine, depthAt(near, q[0], q[1], q[2]));
+  }
+  for (let v = 0; v < fine.positions.length; v += 3) toCoarse = Math.max(toCoarse, depthAt(back, fine.positions[v], fine.positions[v + 1], fine.positions[v + 2]));
+  const truth = Math.max(toFine, toCoarse), asAnalytic = (x: DisplayMesh): DisplayMesh => ({ ...x, faces: x.faces.map(f => ({ ...f, analytic: true as const, freeform: undefined })) });
+  const plain = chordOf(asAnalytic(m)), slack = chordOf(asAnalytic(fine));
+  measureChords(m, brep); const next = chordOf(m);
+  console.log(`O59 SubD: true depth ${truth.toFixed(5)} (± ${slack.toFixed(5)}), plain model ${plain.toFixed(5)}, measured δ ${next.toFixed(5)}`);
+  assert.ok(plain < truth - slack, `the plain model under the truth: ${plain} vs ${truth}`);
+  assert.ok(next >= truth + slack && next <= 1.5 * truth, `${next} vs ${truth}`);
+  // (A keep-out 10 mm above the top's highest point, clearance 1: measured through the check, decided clear.)
+  const top = e.bodies[0].mesh.bounds.max[2], s: ChatState = { doc, bodies: e.bodies };
+  const far = await dispatchTool(s, 'add_keepout', { name: 'above', box: { frame: { origin: [0, 0, top + 10], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [20, 20, 5] }, clearance: 1 }, evaluate);
+  const kf = JSON.parse((await dispatchTool(far.state, 'check_keepouts', {}, evaluate)).content).results[0];
+  assert.equal(kf.verdict, 'clear', JSON.stringify(kf)); assert.ok(Number.isFinite(kf.chord_tolerance_mm) && kf.chord_tolerance_mm > 0, JSON.stringify(kf));
 });

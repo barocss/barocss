@@ -8,6 +8,8 @@ import { placedDoc, type BodyRef, type ModelNode, type Side, type StudioDoc } fr
 import { bodyNodeOf } from './ids';
 
 /** A kernel output's body key and the node and side it is now. */
+/** A body's role, from the node that made it (O60: 'infill' on a print infill's mesh node). */
+const roleOf = (n: ModelNode | undefined): 'infill' | undefined => n && (n as { role?: string }).role === 'infill' ? 'infill' : undefined;
 function keyed(outputId: string, nodes: readonly ModelNode[]): { key: string; ref?: BodyRef } {
   const key = bodyKeyOf(outputId, nodes), at = bodyNodeOf(nodes, key);
   return at ? { key, ref: { node: at.node, side: at.side as Side } } : { key };
@@ -19,6 +21,8 @@ export interface BodyResult {
   ref?: BodyRef;
   /** 'upright' (Z-prismatic: holes, fillets, curved Booleans), 'planar' or 'curved' (general B-rep). */
   family: string; mesh: DisplayMesh;
+  /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
+  role?: 'infill';
   volumeMM3: number | null; massG: number | null;
   /** Centre of mass (mm), with the volume (uniform density). */
   centroid?: [number, number, number];
@@ -78,7 +82,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -318,12 +322,21 @@ export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
 
 /** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */
 /** `meshes`: how mesh bodies are written (STEP export option, R3.5: auto, tessellated or planar). */
-export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string } | { error: string } {
+/**
+ * The part (and its shown instances) as one STEP file. Bodies with the `infill` role (O60: a print lattice) are left out —
+ * STEP stays the exact part — and `omitted` says so; 3MF and the mass keep them.
+ */
+export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string; omitted?: string[] } | { error: string } {
   try {
-    const breps = snapshotOf(doc).outputs.map(o => o.brep);
-    for (const inst of doc.instances ?? []) if (!inst.hidden) breps.push(...evaluateCadPart(toPartDocument(placedDoc(inst))).outputs.map(o => o.brep));
-    if (!breps.length) return { error: 'There is no body to export.' };
-    return { text: exportStep(breps, { name, ...(meshes ? { meshes } : {}) }) };
+    const breps: Brep[] = [], left: string[] = [];
+    const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
+      for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
+    };
+    take(doc, snapshotOf(doc).outputs, '');
+    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst); take(placed, evaluateCadPart(toPartDocument(placed)).outputs, `${inst.id}/`); }
+    if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
+    const text = exportStep(breps, { name, ...(meshes ? { meshes } : {}) });
+    return left.length ? { text, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 
