@@ -2590,6 +2590,7 @@
        "linear-pattern",
        "circular-pattern",
        "split",
+       "split-bed",
        "union",
        "difference",
        "intersect"
