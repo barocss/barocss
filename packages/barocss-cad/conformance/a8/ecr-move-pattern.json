@@ -1,0 +1,48 @@
+{
+ "case": "ecr-move-pattern",
+ "step": "A8.3",
+ "note": "After parts-clean: an ECR moving the shared hole pattern H1 2 mm along X. Its changes and impact computed (both parts, the board's open patch made on the old contract, both leases); an agent's approval refused; the user's approval applies it and expires both leases, and the open patch is then refused CONTRACT_MOVED; rejected instead, nothing changes.",
+ "from": "parts-clean.json",
+ "ecr": {
+  "by": "architect",
+  "move": {
+   "pattern": "H1",
+   "dx": 2
+  }
+ },
+ "open_patch": {
+  "id": "o2",
+  "by": "board-agent",
+  "part": "p2"
+ },
+ "expect": {
+  "changes": [
+   {
+    "item": "pattern H1",
+    "kind": "changed",
+    "parts": [
+     "p1",
+     "p2"
+    ]
+   }
+  ],
+  "impact": {
+   "parts": [
+    "p1",
+    "p2"
+   ],
+   "requirements": [],
+   "openPatches": [
+    "o2"
+   ],
+   "leases": [
+    "p1:bracket-agent",
+    "p2:board-agent"
+   ]
+  },
+  "after_approval": {
+   "open_patch": "stale",
+   "code": "CONTRACT_MOVED"
+  }
+ }
+}

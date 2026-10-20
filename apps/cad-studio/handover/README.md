@@ -387,7 +387,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
     keep-outs; their own revision); leases; Part agents' patches checked: lease (NO_LEASE, LEASE_EXPIRED,
     CONTRACT_MOVED, OUT_OF_PART), validity, contract (OUT_OF_ENVELOPE, HOLE_OFF_PATTERN on the exact cylinders,
     OVER_BUDGET). Eight scenarios in `conformance/a8`.
-  - A8.3 (next) → A8.4 → A8.5.
+  - **A8.3** (O35): done. ECRs (`doc.ecrs`): changes and impact computed (parts, requirements, open patches,
+    leases); only the user decides (APPROVAL_IS_THE_USERS); approved, the interfaces move, the touched leases stay on
+    the old contract (CONTRACT_MOVED until renewed), the untouched ones move; rejected, nothing changes; STALE_ECR,
+    DECIDED, NO_CHANGE. Fixture `conformance/a8/ecr-move-pattern.json`.
+  - A8.4 (next) → A8.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

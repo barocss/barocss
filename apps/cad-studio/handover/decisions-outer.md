@@ -1613,3 +1613,35 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
     - every lease naming the interfaces' revision.
   - Studio 572/572, with no test name missing against the last run. Lint and type-check clean.
 - **Next**: A8.3, ECRs with impact analysis and the user's approval.
+
+## O35 — A8.3: ECRs — impact analysis, the user's approval (2026-10-20)
+
+- **A change to the interfaces is an ECR, never an op** (`src/team/ecr.ts`). An ECR is `{id, by, base (the interfaces' revision), next (the interfaces proposed), changes, impact, status: open | approved | rejected, decided?, reason?}`, kept in the document (`ecrs`, version 1).
+- **The changes** are computed item by item: patterns and envelopes by id (added, removed or changed), budgets per part and in total, datums and keep-outs by id. Each change names the parts it touches; the total budget touches every part.
+- **The impact** is computed, not declared:
+  - the parts touched;
+  - the requirements whose subject is a changed datum or keep-out (`keepout` and `datum_distance` queries);
+  - the open patches on those parts made on the old contract;
+  - the leases on them.
+- **Only the user decides** (`decideEcr`): anyone else is refused `APPROVAL_IS_THE_USERS`. An agent may open an ECR.
+  - **Approved**: the interfaces become its proposal, so their revision moves.
+    - **A touched lease keeps the old contract** (`expiredBy` the ECR), so its holder's next patch is refused **`CONTRACT_MOVED`** until the Architect renews it (`renewLeases`).
+    - An untouched lease moves to the new revision, its part unaffected.
+  - **Rejected**: nothing changes.
+  - Refused: deciding twice (`DECIDED`); approving an ECR opened on interfaces that have moved since (`STALE_ECR`: open it again); opening one that changes nothing (`NO_CHANGE`).
+- A7's `CONTRACT_CHANGED` hold covers the interfaces too, since no op edits them. The ECR is the only way they change, and it comes from the Architect or a Part agent through the team API, decided by the user.
+- **Evidence**: `test/team-ecr.test.ts` (2 tests). Its name was checked free first.
+  - **The fixture** `conformance/a8/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
+    - Its change and impact exactly as the fixture says: both parts, the board's open patch made on the old contract, both leases, no requirements.
+    - Opening it changes nothing yet; an agent's approval is refused.
+    - The user's approval moves the interfaces and leaves both leases on the old contract.
+    - The open patch is then refused `CONTRACT_MOVED`.
+    - Renewed on the new contract, the board's patch is rejected `HOLE_OFF_PATTERN`: the part must follow the moved pattern.
+    - Deciding twice is refused.
+  - **Rejected**: the interfaces and leases are unchanged.
+  - **Two ECRs on one base**: the second is `STALE_ECR` once the first is approved. A total-budget ECR touches both parts.
+  - **One part's envelope changed**: that lease is left behind, the other moved to the new revision.
+  - **A keep-out removed**: the requirement that checks it is in the impact.
+  - Studio 574/574, with no test name missing against the last run. Lint and type-check clean.
+- **For A8.4** (coordinator): the mass budget shared by parts is checked per patch (each part's share, A8.2) **and on the whole assembly**, so parts under their shares cannot sum past the total unnoticed.
+- **Next**: A8.4, the Assembly integrator and the BOM agent.

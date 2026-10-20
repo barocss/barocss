@@ -23,7 +23,7 @@ export const readInterfaces = (raw: unknown): Interfaces => {
 /** The interfaces' own revision (A7.1's hash over them alone: a part's contract). */
 export const interfacesRevision = (doc: StudioDoc) => revisionOf({ nodes: [], parameters: {}, interfaces: readInterfaces(doc.interfaces) } as unknown as StudioDoc);
 
-export interface Lease { part: string; holder: string; contract: string; until: number }
+export interface Lease { part: string; holder: string; contract: string; until: number; /** The ECR whose approval left it on the old contract (A8.3): renewed by the Architect. */ expiredBy?: string }
 export interface PartPatch { id: string; by: string; part: string; contract: string; ops: Op[] }
 export type PartCode = 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
 export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; gates: (Omit<GateResult, 'gate' | 'findings'> & { gate: 'lease' | 'validity' | 'contract'; findings: { code: PartCode | 'NOT_REACHED'; message: string; entities?: string[] }[] })[]; revisionAfter: string | null }
