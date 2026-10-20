@@ -3497,3 +3497,62 @@ The batch the coordinator ordered after O74, from README §0's "Outer-lane follo
   - Test (`test/reference-bodies.test.ts`): a pin concentric with an axis datum and flush (flip) on a plane datum stands at the datums, its world box (26, 21, 20)–(34, 29, 35), with one turn left. A point datum is refused as not a face of the base.
 - **Skipped, as it needs a kernel-core change: the R3.2 BVH under RM6's mesh distance.** `facetBvh` (`packages/barocss-cad/src/facet-bvh.ts`) is built only from a B-rep made of facet faces, and is cached per B-rep. Its builder over raw positions and indices is not exported. Reusing it for display meshes needs a kernel export, such as `bvhOfTriangles(positions, indices)` returning the same `FacetBvh`. `meshDistance` keeps its box pruning in the meantime.
 - **Contract**: the overhead is unchanged at 14 544 of 15 000 (tools/list 113 992 characters, 99 448 plain); `tools-v1.json` is updated as a compatible change (size_actuators' two new properties, the descriptions).
+
+## O76 — IM S0: what injection moulding can measure exactly today, its sources, and the plan for IM1–IM6 (2026-10-21)
+
+On 2026-10-21 the coordinator moved IM1–IM6 and CNC1–CNC6 from the kernel lane to the outer lane, as RD1–RD3 had moved (README §0's lane lines). This is the S0 for the IM track. Evidence: `test/im-s0.test.ts` (4 probes).
+
+- **What exists**:
+  - the material library's `injection` profile: rib 0.6 recommended and 1.0 at most, bosses 0.6–1.0 of the wall, walls 0.6 and 1.0 recommended, draft 1° recommended, fit 0.1. Every value is the BaroCSS rule of thumb `P-INJ`, flagged as such;
+  - `draftAnalysis`: flat faces only, display-mesh normals; curved faces said to be not judged;
+  - `wallThickness`: rays on the display mesh;
+  - the printability report (AM3), rule by rule with pass, warn, fail, unknown and n/a;
+  - the studio's own triangle BVH and ray query (`print/orient.ts`, AM4);
+  - the kernel's exact `faceGeometry` (plane and cylinder; `other` for the rest) and `evaluateSurfaceD1`/`D2` on the B-rep's NURBS faces (`partBreps`).
+- **Exact normals on curved faces need no kernel change.** A display-mesh vertex is projected onto its B-rep face's NURBS by Gauss–Newton on `evaluateSurfaceD1` (start from a 25 × 25 parameter grid; first derivatives only).
+  - `evaluateSurfaceD2` refuses at a circle's C1 interior knot. D1 refuses exactly at a C0 knot (the quadrant joins, G1 in space), so the evaluation steps 1e-11 of the domain inside.
+  - The display mesh joins a face's pieces (`x#1`, `x#2`) into one display face, so each vertex is projected onto every piece and the nearest kept.
+  - The parameterised tessellation (`tessellateBrepWithParameters`, the vertices' (u, v)) is not exported. It would replace the search, but it is not needed.
+- **The probes**:
+  - **P1, a 3° drafted cylinder (a cone)**: the exact normal at each of 68 vertices gives the draft as 3° to **5.8e-15°**. The display mesh's normal is off by **0.0144°**, and the vertices lie 5.3e-7 mm off the surface (single precision). A draft check on curved faces must use the exact normal, not the mesh's.
+  - **P2, a cylinder lying across the pull**: `faceGeometry`'s exact cylinder, and n·d equal to z/r at every vertex to 1e-6 (the vertex's own precision). The face takes both signs: it **straddles** the isocline n·d = 0.
+  - **P3, undercuts by ±d visibility**: each triangle's centre is moved 0.01 mm along its normal into the open side, then a ray is cast along d through the studio BVH. A hole along the pull: 64/64 clear from +z and 64/64 from −z. A side hole across it: **0/64** both ways, so an undercut. A vertex on a face's rim grazes the next face, so vertex samples are ambiguous; triangle centres are not.
+  - **P4, a shelled box (t = 1.8)**: `wallThickness` gives 1.8 to 1e-4.
+- **Sources (public HTML only, read-only)**:
+  - Protolabs' injection moulding guide page (`protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/`, read 2026-10-21) is readable. It gives:
+    - draft "1 to 2 degrees" as a starting point, "at least 3 degrees" for PM-T1 and 5° for PM-T2;
+    - adjacent walls within 40–60 % of each other, ribs "around 60 percent";
+    - shrink from 0.002 in/in (ABS, PC) to 0.025 in/in (TPE);
+    - text over 20 pt, 0.010–0.015 in deep, with a 0.020 in stroke;
+    - the largest part, 480 × 751 × 203 mm.
+  - The services page (`protolabs.com/services/injection-molding/`, read 2026-10-21; the owner pointed to it) is readable. Its numbers are:
+    - "+/- 0.003 in. (0.08mm)" moulded tolerance, plus a resin tolerance "no less than +/- 0.002 in./in.";
+    - the largest part, "18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)".
+    It gives no draft, wall or rib values; for those it links the guide above and design-tip pages. IM1 takes the tolerance and size limits from it, and IM6 quotes against them.
+  - Its per-material wall ranges are not on that page. IM1 reads them from Fictiv's and Hubs' public guides. The linked "Definitive Guide" is a PDF, not read (no PDFs without asking).
+  - Each value goes into the profile with its URL, the date read and the page's own label, or flagged as an estimate. No standard's text is used.
+- **Tools, under the 15 000 contract guard (456 left).** One new tool per process would spend it. The proposal is to make `check_printability` the manufacturability report for the part's process: printing as now, injection moulding when the process is `injection`, machining for CNC. Its name stays for compatibility; its description and the rules change. Its output schema is the same rule list. This costs no overhead and goes to the coordinator first.
+- **The plan**, each stage with closed-form or constructed oracles, mutants where it is a check, and a flow step:
+  - **IM1**: the process rule.
+    - the `injection` profile sourced value by value, with per-material wall ranges and shrink;
+    - the pull direction and the surface finish (texture) on the document, versioned. The finish sets the minimum draft;
+    - the brief's process `injection` selects it.
+  - **IM2**: the draft field. For each face, the exact draft over its vertices and triangle centres, classified as:
+    - drafted (≥ the finish's minimum);
+    - low (0 < draft < minimum);
+    - vertical;
+    - negative (a back draft);
+    - straddle (both signs past the tolerance).
+    Steep faces and the isocline n·d = 0 are reported. Oracles: a cone's taper, a cylinder across the pull (straddle), a revolved sphere (its equator), a fillet (0 → 90°).
+  - **IM3**: undercuts by ±d triangle visibility: each face's area hidden from both directions, and the undercut regions. Oracles: a side hole, a snap hook's latch, an internal groove; mutants.
+  - **IM4**: walls, ribs, bosses, radii and sink.
+    - walls: the nominal wall from the ray-thickness distribution and adjacent-wall ratios;
+    - ribs: thickness at most 0.6 t (thin protrusions, by thickness against the nominal);
+    - bosses: wall against the nominal (exact cylinders, coaxial);
+    - radii: inside radii at least 0.5 t (concave exact cylinders);
+    - sink: thick sections.
+    Oracles: analytic shells, a constructed rib and boss.
+  - **IM5**: the parting line, from silhouette loops — edges between faces of opposite n·d, and isocline curves traced on straddling faces by projection — with a manual override. **Splitting a straddling face along its isocline is a face split by a curve, likely a kernel-core operation.** IM5 stops there and asks; the line itself, its loops and the override do not need it.
+  - **IM6**: the quote package: STEP, the DFM report (JSON and Markdown), the material, finish, pull and quantity, in one zip, like A8.5's bundle.
+  - Later, after IM6: an RB9 rung for a moulded part.
+- **No kernel-core change is needed for IM1–IM4 and IM6.** IM5's straddle-face split may need one, and it will be asked for when reached.
