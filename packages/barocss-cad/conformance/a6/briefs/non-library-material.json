@@ -1,7 +1,7 @@
 {
  "case": "non-library-material",
  "step": "A6.1",
- "note": "A material not in the library is kept as written; its density unknown, so it is not applied and a mass stays assumed.",
+ "note": "A material not in the library is kept as written; its density unknown, so it is not applied and a mass stays assumed. (O84: CNC milling has its rules now, so the stated process is applied.)",
  "input": {
   "patches": [
    {
@@ -26,11 +26,11 @@
  "expect": {
   "gaps": [],
   "complete": true,
-  "doc_process": null,
+  "doc_process": "cnc-milling",
   "process": {
    "value": "cnc-milling",
-   "checked": false,
-   "applied": false
+   "checked": true,
+   "applied": true
   },
   "material": {
    "value": "Delrin 150",

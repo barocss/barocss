@@ -1239,6 +1239,456 @@
     }
    },
    "additive": true
+  },
+  {
+   "id": "cnc-milling",
+   "label": "CNC milling",
+   "thresholds": {
+    "wallMetalRec": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Recommended: 0.8 mm"
+     }
+    },
+    "wallMetalMin": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Feasible: 0.5 mm"
+     }
+    },
+    "wallPlasticRec": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Recommended: 1.5 mm"
+     }
+    },
+    "wallPlasticMin": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Feasible depending on the plastic: 1.0 mm"
+     }
+    },
+    "tolMM": {
+     "value": 0.125,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the standard tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Standard: ± 0.125 mm"
+     }
+    },
+    "tolFeasibleMM": {
+     "value": 0.025,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the tightest feasible tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Feasible: ± 0.025 mm"
+     }
+    },
+    "insideRadiusDepthRatio": {
+     "value": 0.3333333333333333,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "an inside vertical edge's radius over its pocket's depth, recommended above",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Internal edges — Recommended: larger than ⅓ x pocket depth"
+     }
+    },
+    "pocketDepthWidthRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a pocket's depth over its width, recommended at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Pockets — Recommended depth: 4 x pocket width"
+     }
+    },
+    "holeDepthRec": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a hole's depth over its diameter, recommended at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Recommended depth: 4 x nominal diameter"
+     }
+    },
+    "holeDepthMax": {
+     "value": 6,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a hole's depth over its diameter, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Maximum depth: 6 x nominal diameter"
+     }
+    },
+    "threadLengthRatio": {
+     "value": 3,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a thread's length over its diameter, recommended",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Recommended length: 3x nominal diameter"
+     }
+    },
+    "threadRecMM": {
+     "value": 6,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a thread's size, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Recommended size: M6 or larger"
+     }
+    },
+    "threadMinMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a thread's size, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Feasible size: M2"
+     }
+    },
+    "featureRecMM": {
+     "value": 2.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a small feature, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Small features — Recommended: 2.5 mm"
+     }
+    },
+    "featureMinMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a small feature, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Small features — Feasible: 0.50 mm"
+     }
+    },
+    "tallFeatureRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a feature's height over its width, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tall features: height / width is < 4"
+     }
+    },
+    "maxPartLongMM": {
+     "value": 400,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its longest side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxPartWideMM": {
+     "value": 250,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its second side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxPartDepthMM": {
+     "value": 150,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its third side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxMillDepthMM": {
+     "value": 50.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the deepest milled from either side",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Maximum depth that can be milled is 2 in. (50.8mm) from either side of part"
+     }
+    },
+    "textWidthPlasticMM": {
+     "value": 0.457,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's stroke in plastic and soft metals, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — Plastic and soft metals: Minimum width of 0.018 in. (0.457mm)"
+     }
+    },
+    "textWidthMetalMM": {
+     "value": 0.838,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's stroke in hard metals, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — Hard metals: Minimum width of 0.033 in. (0.838mm)"
+     }
+    },
+    "textDepthMM": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's depth",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — depth of 0.0118 in. (0.3mm)"
+     }
+    }
+   },
+   "toleranceClasses": {
+    "metal": "ISO 2768-1 f",
+    "plastic": "ISO 2768-1 m",
+    "page": {
+     "url": "https://www.protolabs.com/services/cnc-machining/",
+     "read": "2026-10-21",
+     "label": "Tolerances for Parts without Technical Drawing: +/- 0.005 in. (+/- 0.127mm) / ISO 2768-1-1989-f (metals), ISO 2768-1-1989-m (plastics)",
+     "note": "the classes named; their tolerance values are not copied"
+    }
+   }
+  },
+  {
+   "id": "cnc-turning",
+   "label": "CNC turning",
+   "thresholds": {
+    "wallMetalRec": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Recommended: 0.8 mm"
+     }
+    },
+    "wallMetalMin": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Feasible: 0.5 mm"
+     }
+    },
+    "wallPlasticRec": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Recommended: 1.5 mm"
+     }
+    },
+    "wallPlasticMin": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Feasible depending on the plastic: 1.0 mm"
+     }
+    },
+    "tolMM": {
+     "value": 0.13,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the machining tolerance (±)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Machining tolerance: +/- 0.005 in. (0.13mm)"
+     }
+    },
+    "tolFeasibleMM": {
+     "value": 0.025,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the tightest feasible tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Feasible: ± 0.025 mm"
+     }
+    },
+    "maxDiameterMM": {
+     "value": 500,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest turned diameter",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC turning: Ø 500 mm x 1000 mm (typically)"
+     }
+    },
+    "maxLengthMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the longest turned part",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC turning: Ø 500 mm x 1000 mm (typically)"
+     }
+    },
+    "minDiameterMM": {
+     "value": 0.76,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the least diameter in any region",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "should not be less than 0.030 in. (0.76mm)"
+     }
+    },
+    "wallMinTurnMM": {
+     "value": 0.51,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a turned wall, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum Dimensions — Wall Thickness: 0.020 in. / 0.51mm"
+     }
+    },
+    "grooveWidthMinMM": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's width, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum OD groove width: 0.047 in. (1.2mm)"
+     }
+    },
+    "grooveDepthMaxMM": {
+     "value": 24.1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's depth, at most (with its width)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Maximum OD groove depth: 0.95 in. (24.1mm)"
+     }
+    },
+    "holeMinAxialMM": {
+     "value": 1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an on-axis hole, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — On-axis and axial: 0.04 in. (1mm)"
+     }
+    },
+    "holeMinRadialMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a radial hole, at least (1 mm in aluminium and brass)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — Radial: 0.08 in. (2mm)"
+     }
+    },
+    "pointAngleMinDeg": {
+     "value": 30,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a conical point's angle, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "angles should be greater than 30 degrees"
+     }
+    }
+   },
+   "toleranceClasses": {
+    "metal": "ISO 2768-1 f",
+    "plastic": "ISO 2768-1 m",
+    "page": {
+     "url": "https://www.protolabs.com/services/cnc-machining/",
+     "read": "2026-10-21",
+     "label": "Tolerances for Parts without Technical Drawing: +/- 0.005 in. (+/- 0.127mm) / ISO 2768-1-1989-f (metals), ISO 2768-1-1989-m (plastics)",
+     "note": "the classes named; their tolerance values are not copied"
+    }
+   }
   }
  ],
  "printers": [

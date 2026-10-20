@@ -3725,3 +3725,123 @@ The coordinator accepted IM4 and ordered IM5. Two instructions came with it. If 
   The IM1, IM3 and AM3 tests are updated for the rule.
 - **Flow**: an IM5 step through the real chat and tool servers. On a cross cylinder the report ends "parting warn"; with `sides` putting it whole in +, "parting pass".
 - The contract overhead is unchanged at 14 544 (tools/list 115 716, 101 172 plain); `tools-v1.json` is updated as a compatible change.
+
+## O82 — IM6: the quote package; the IM track closed (2026-10-21)
+
+The coordinator accepted IM5 and ordered IM6. IM6 closes the IM track; its summary follows, then CNC starts with an S0.
+
+- **The package** (`src/mould/quote.ts`, `quotePackage`). One zip, written with fixed timestamps so the same part gives the same bytes:
+  - `part.step` — the part;
+  - `dfm.json` — the manufacturability report, IM1–IM5;
+  - `dfm.md` — the same as a page to read, with the request and each rule's status and why;
+  - `quote.json` — the request: material (its basis: the body's or the brief's), finish and its least draft, pull, quantity (given, else the brief's stated one), the part's size, volume and mass, the tolerance and shrink with their sources, the press limits, and the document's revision digest;
+  - `manifest.json` — every file's SHA-256 and size, what is **open**, and `complete`.
+- **There is no price**: prices are the moulder's, and the package says so.
+- **Open** covers an unstated material (or bodies of different materials), quantity, pull or finish, a missing STEP, a failing rule, and an unknown rule. A warning is not open: the report carries it. The package is **complete** only when nothing is open.
+- It is refused unless the process is injection moulding, and refused for a quantity that is not a whole number above 0.
+- **Where to get it**:
+  - `cad-cli mould-quote part.bcad -o package.zip [--quantity n]`, exit 1 while anything is open;
+  - the Library panel's **Quote package** button, shown when the process is moulding. The button is a prop, `onQuote`, handled in `App.tsx`. The panel imports nothing new from domain code: the PKG rule.
+
+  There is no new agent tool: the contract has 456 characters of headroom, and every report value is already in `check_printability`.
+- **Tests** (`test/mould-quote.test.ts`, 3):
+  - **Complete**: an ABS block drafted 3°, 1000 stated, PM-T1, pulled along +Z. Nothing is open. The zip holds the five files by its local headers, and each file's SHA-256 matches node:crypto's.
+    - The volume matches the drafted block's closed form, 25 (2400 − 100 d + 4d²/3) with d = 25 tan 3°, to 1e-6. The mass is that volume × ABS's density.
+    - Tolerance ±0.08 + 0.002 mm/mm comes from the services page; shrink is 0.002; the press is 751 × 480 × 203.
+    - The STEP is ISO-10303-21, and the page says "No price".
+  - **Nothing assumed**: with no material and no quantity, both are open and the mass is null. A finish asking more draft than the part has is warned, not open. No process and quantity 2.5 are refused.
+  - **The CLI**: exit 0 when complete, 1 without a quantity, 0 with `--quantity 250`.
+- **Flow**: an IM6 step. A drafted ABS block with its mould settings and a stated quantity: the Library panel's Quote package downloads `…-quote.zip`, and the toast says it is complete.
+
+### The IM track, IM1–IM6 (O76–O82): summary
+
+- **What it is**: injection moulding's manufacturability, judged on the exact part. All of it lives in the one report, `check_printability`, which names the process it judged by (v2 `query.manufacturability`); with no process, nothing is assumed. The quote package carries it out.
+- **Exact, not the display mesh**: drafts come from exact normals — planes, cylinders, and NURBS faces by projection (Gauss–Newton on D1, stepping off C0 knots). The display mesh's normals are off by 0.014° on a 3° cone. The isocline n·d = 0 is bisected on the exact normal.
+- **Sampled, and said so**: undercut visibility uses ±d rays on a sub-triangle grid, and its coarsest spacing is stated in the message. Wall thickness uses the inscribed sphere at each inward ray's middle, with the ray itself for the thinnest. The area below a draft minimum is by triangle centres, and is coarse.
+- **Sourced**: every Protolabs and Hubs value is recorded with its page, the date read and the page's label (W-WEB), and `checkMaterials` refuses a web value without its page. PA12's range is the page's nylon family row, and says so. Where no page gives a value (the boss range, the minimum wall), it stays the flagged P-INJ rule of thumb.
+- **The rules**: pull, finish, wall, wall-material, wall-uniform, rib, boss, inside-radius, sink, size, draft, undercut, parting. Each has a closed-form or constructed oracle and a mutant.
+- **For the kernel lane** (queued by the coordinator):
+  - a face split by a curve, to mould a straddling face in two halves (IM5);
+  - the hole-after-union refusal, kept as a `todo` test with its fixture;
+  - the triangle-BVH consolidation (track K).
+- **Not built**: rib height (Hubs' 3 t is recorded); casting (IM8); shut-offs, the parting surface, core and cavity, and side cores (IM7); a price.
+- **Counts across the track**: 31 studio tests added (S0 4, IM1 5, IM2 6, IM3 4, IM4 5, IM5 4, IM6 3), 1 todo (the kernel repro), 6 flow steps (IM1–IM6). The contract overhead is unchanged at 14 544 through the track.
+
+## O83 — CNC S0: what machining can measure exactly today, its sources, and the plan for CNC1–CNC6 (2026-10-21)
+
+The coordinator closed IM with O82 and ordered CNC to start with an S0. Evidence is in `test/cnc-s0.test.ts` (4 probes).
+
+- **What exists**:
+  - the brief's processes `cnc-milling` and `cnc-turning`, with no profile in the material library yet;
+  - the standards data: metric coarse threads, tap drills (d − P), clearance holes, each flagged as sourced or derived (`standards/provenance.ts`, `standards_lookup`);
+  - the drawing's callouts, datums, tolerances and threads (R14, `src/drawing/`), with no surface-roughness note;
+  - IM's exact queries: exact normals by projection (`mould/draft.ts`), visibility rays through the studio BVH (`mould/undercut.ts`), the walls' fillets, sharp corners and local thickness (`mould/walls.ts`);
+  - the kernel's STEP writer: AP214/AP242 B-rep and AP242 tessellated, with **no semantic PMI**.
+- **The probes**:
+  - **P1, a pocket**: in a 120 × 80 × 12 plate, its four vertical corner radii are found exact (r 5) and its floor by exact planes (depth 8). That compares against Hubs' "larger than ⅓ x pocket depth" (5 ≥ 2.667). Found and fixed on the way: `wallsOf` grouped a feature's fillet pieces by name alone. A pocket's four corners are one feature, so they were read as a full turn and not as fillets; pieces are now grouped by name and axis (`sameAxis`). IM4's tests are unchanged and pass.
+  - **P2, access from six directions**: on a block with a side hole, every triangle is seen from one of ±X, ±Y, ±Z, its bore along ±Y; a greedy setup count gives two. Rays along a face count it seen, which is side milling's reach; CNC4 adds the tool's side, n·t ≥ 0. An internal groove is seen from none of the six.
+  - **P3, a hole**: Ø5 and 30 deep, from its exact cylinder and its extent, has depth over diameter of 6. That is Hubs' "Maximum depth: 6 x nominal diameter".
+  - **P4, turning's axisymmetry**: on a drafted cylinder (a cone, end planes) about Z, every exact normal meets the axis, n · (a × (p − c)) = 0 to 1e-9. On a box the side faces miss it by more than 0.5.
+- **Sources** (public HTML, read-only, 2026-10-21; values recorded per value in CNC1):
+  - **Hubs' CNC machining guide** (`hubs.com/guides/cnc-machining/`):
+    - inside edges larger than ⅓ × pocket depth;
+    - pockets 4 × width recommended, 10 × tool diameter feasible;
+    - walls 0.8 / 0.5 mm in metal and 1.5 / 1.0 in plastic;
+    - holes 4 × d recommended, 6 × d maximum;
+    - threads 3 × d long, M6 recommended, M2 feasible;
+    - small features 2.5 / 0.5 mm;
+    - tall features h/w < 4;
+    - tolerance ±0.125 standard, ±0.025 feasible;
+    - milling 400 × 250 × 150; turning Ø500 × 1000;
+    - undercuts 3–40 mm wide and at most 2 × wide deep.
+  - **Protolabs' CNC service page** (`protolabs.com/services/cnc-machining/`):
+    - milling size 559 × 356 × 95.3 and 650 × 650 × 300;
+    - tolerance ±0.127 mm without a drawing, with the classes **ISO 2768-1 f** (metals) and **m** (plastics). The class is named; its values are not copied;
+    - text 0.457 / 0.838 mm wide and 0.3 deep;
+    - turning Ø100.33 × 228.6 and Ø431 × 990, walls 0.51.
+  - Its milling and turning guideline pages are linked HTML, to read in CNC1. No PDFs.
+- **The plan**, each stage with oracles, mutants where it is a check, and a flow step, all inside the one manufacturability report (`check_printability`, `query.manufacturability`), as IM's are:
+  - **CNC1**: `cnc-milling` and `cnc-turning` profiles sourced page by page, metal or plastic by the material's family; the tolerance class named, with its values sourced; warn and error levels by recommended and feasible.
+  - **CNC2**: holes and threads — each bore's depth over its diameter, standard drill sizes, tap drills and thread depth from the standards data, counterbores (stepped coaxial bores), cosmetic threads and callouts.
+  - **CNC3**: tool radius, depth and walls — inside vertical corners against ⅓ × depth (fillets, and sharp corners as radius 0), pocket depth against width, the thinnest wall (IM4's walls) against metal and plastic, small features, text stroke.
+  - **CNC4**: access and setups — the six directions with the tool's side, undercut flags (seen from none), a greedy setup count, the envelope against the machine's.
+  - **CNC5**: drawing and PMI minimum — views, hole callouts, datums, a tolerance note, material, Ra, all checked on the drawing (R14). **AP242 semantic PMI in the STEP writer is a kernel-core change**, so CNC5 stops there and asks; the drawing check does not need it.
+  - **CNC6**: turning — axisymmetry by P4, grooves, thread relief, L/D, against the turning profile.
+  - **RB9 rung 4**'s held "machinable" rule becomes real when CNC1–CNC4 land.
+- **Kernel-core**: none is needed for CNC1–CNC4 or CNC6. CNC5's semantic PMI is the kernel's.
+
+## O84 — CNC1: machining's process rule, sourced page by page (2026-10-21)
+
+The coordinator accepted the CNC S0 and set a process rule: a product-file change needs the full flow before its checkpoint, even when the suite passes. O83 had skipped it for the `walls.ts` fix. This checkpoint runs the flow. The rule is recorded as feedback.
+
+- **The profiles** (`materials.json`, W-WEB, read 2026-10-21), every value with its page and label:
+  - **`cnc-milling`**:
+    - walls: metal 0.5 feasible and 0.8 recommended, plastic 1.0 and 1.5 (Hubs);
+    - inside edges above ⅓ × pocket depth; pockets 4 × width; holes 4 × d recommended and 6 × d at most; threads 3 × d long, M6 recommended, M2 feasible; small features 2.5 and 0.5; tall features h/w under 4 (Hubs);
+    - tolerance ±0.125 standard, ±0.025 feasible (Hubs);
+    - a typical mill 400 × 250 × 150 (Hubs);
+    - the deepest milled 50.8 from either side; engraved text 0.457 and 0.838 wide, 0.3 deep (Protolabs' milling guidelines).
+  - **`cnc-turning`**:
+    - the same walls and standard tolerance (Hubs), and ±0.13 (Protolabs' turning guidelines);
+    - a lathe Ø500 × 1000 (Hubs);
+    - from Protolabs: Ø0.76 in any region, walls 0.51, outside grooves at least 1.2 wide and at most 24.1 deep, holes 1 on the axis and 2 radial, point angles above 30°.
+  - **Tolerance classes**, a new profile field `toleranceClasses`: ISO 2768-1 f for metals and m for plastics, from Protolabs' CNC page. The class is named; its values are the standard's and are not copied, and the note says so. `checkMaterials` checks its page.
+- **The report** (`src/machining/report.ts`, through `check_printability` / `query.manufacturability`, which names `cnc-milling` or `cnc-turning`):
+  - **material**: one material for the part, its family the library's (metal, or polymer read as plastic); unknown when none is set or the bodies differ, and none is assumed;
+  - **wall**: the thinnest (IM4's ray) against the family's feasible (fail) and recommended (warn) limits; unknown without a family;
+  - **size**: for milling, the sorted sides against the mill's. For turning it is unknown until its axis (CNC6);
+  - **holes**, **corners**, **access**, **drawing**: unknown, naming CNC2–CNC5. Turning adds **turning** (CNC6).
+
+  `machining` adds the family, the material, the tolerance with its source, and the class.
+- **The brief**: CNC milling and turning have rules now, so a stated machining process becomes the part's process. The brief's "recorded as intent" notes for them are removed; sheet metal's stays. Two changes follow from this:
+  - the A6 fixture `conformance/a6/briefs/non-library-material.json` (stated "machined") now expects `cnc-milling` applied, its note saying why;
+  - AM1's profile list now includes the two machining profiles.
+  - the A8.1 scenario `conformance/a8/scenarios/reviewer-skipped.json` needs a process the DFM reviewer can't check, so it moves from CNC milling to sheet metal, its note saying why. Its expected verdicts (held, dfm skipped NOT_CHECKED) are unchanged;
+  - R6b.7's profile list now includes the two machining profiles.
+- **Tests** (`test/cnc-process.test.ts`, 5):
+  - the data: every value's page, and the classes named, not copied;
+  - an aluminium block 100 × 60 × 20: a metal, so material, wall and size pass. Its size ratio is exactly max(100/400, 60/250, 20/150), its tolerance ±0.125 under ISO 2768-1 f, and CNC2–CNC5 are said to come;
+  - walls by family: in aluminium, 0.6 is warned and 0.4 fails; in ABS, 1.2 is warned, 0.9 fails and 2 passes, under ISO 2768-1 m;
+  - nothing assumed: with no material, material and wall are unknown and there is no class; 450 long fails; turned, size and turning are unknown (CNC6); with no process, none is assumed;
+  - through the tools: a stated CNC milling in aluminium becomes the part's process and the report judges by it.
+- **Flow**: a CNC1 step. CNC milling is chosen in the Library panel, which shows no moulding settings. An aluminium block is made and set through the real chat and tool servers: "cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown".

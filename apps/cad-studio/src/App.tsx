@@ -8,7 +8,7 @@ import { checkSpec, expectedOf, modelHash, type Outcome } from './chat/spec';
 import { rejectProposal, stripHistory, type Proposal } from './chat/proposals';
 import type { ProposalPart } from './chat/tools';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from './engine/references';
-import type { BodyResult } from './engine/evaluate';
+import { evaluateDoc, type BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from './app/commands';
@@ -99,6 +99,7 @@ import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSet
 import { downloadBytes, meshToStl } from './ui/files';
 import { write3mf } from './print/threemf';
 import { threeMfModelOf } from './print/export3mf';
+import { quotePackage } from './mould/quote';
 import { sketchDxf } from './sketch/dxf';
 import { DWG_ROUTES, dwgRefusal } from './sketch/dxfRead';
 import { settleShape } from './sketch/settle';
@@ -1493,6 +1494,15 @@ export function App() {
     setToast({ title: `STL written: ${bodies.length} file${bodies.length === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}`, detail: '' });
   };
 
+  /** The quote package (IM6, O82): the part as STEP, its moulding report and the request, one zip; what is open said. */
+  const exportQuote = async () => {
+    if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
+    const q = await quotePackage(doc, bodies, async d => evaluateDoc(d, 0), { name: fileName });
+    if ('error' in q) { setToast({ title: 'No quote package', hint: q.error, detail: '' }); return; }
+    downloadBytes(q.zip, `${fileName}-quote.zip`, 'application/zip');
+    setToast({ title: q.manifest.complete ? 'Quote package written' : `Quote package written: ${q.manifest.open.length} open`, hint: q.manifest.complete ? 'STEP, the moulding report and the request — no price: the moulder quotes it.' : q.manifest.open.join(' · '), detail: '' });
+  };
+
   /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
   const exportThreeMf = async () => {
     if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
@@ -1989,7 +1999,7 @@ export function App() {
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
-      {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
+      {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}

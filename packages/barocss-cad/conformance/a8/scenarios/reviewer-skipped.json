@@ -1,7 +1,7 @@
 {
  "case": "reviewer-skipped",
  "step": "A8.1",
- "note": "A process the DFM reviewer cannot check (CNC milling, recorded as intent): its review is skipped with its reason, and the patch held — never a pass.",
+ "note": "A process the DFM reviewer cannot check (sheet metal, recorded as intent): its review is skipped with its reason, and the patch held — never a pass. (CNC milling until O84, when machining gained its rules.)",
  "requirements": {
   "ops": [
    {
@@ -14,9 +14,9 @@
        "source": "a 40 mm block"
       },
       "process": {
-       "value": "cnc-milling",
+       "value": "sheet-metal",
        "basis": "stated",
-       "source": "machined"
+       "source": "sheet metal"
       },
       "material": {
        "value": "al6061",

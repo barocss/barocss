@@ -20,7 +20,7 @@ function withMould(doc: StudioDoc, patch: { pull?: [number, number, number]; fin
   if (m.pull || m.finish) next.mould = m; else delete next.mould;
   return next;
 }
-export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void }) {
+export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void; /** Writes the injection-moulding quote package (IM6). */ onQuote?(): void }) {
   const [, setTick] = useState(0), refresh = () => setTick(t => t + 1);
   const [variant, setVariant] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -71,6 +71,7 @@ export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioD
         <option value="">Not set</option>{PULLS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}</select></label>
       <label className="kv"><span>Finish</span><select aria-label="Mould finish" value={doc.mould?.finish ?? ''} onChange={ev => onCommit(withMould(doc, { finish: ev.target.value || undefined }))}>
         <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</select></label>
+      {onQuote && <div className="row-actions"><button className="ghost" aria-label="Quote package" title="The part as STEP, the manufacturability report and the request (material, finish, pull, quantity) in one zip: no price, what is open said" onClick={onQuote}>Quote package</button></div>}
     </>}
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);

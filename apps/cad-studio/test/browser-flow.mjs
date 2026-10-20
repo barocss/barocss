@@ -4980,6 +4980,51 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- IM6 (O82): the quote package from the Library panel ---------------------------------------------------------
+  await check('IM6: an ABS block drafted 3°, 1000 stated, moulded along +Z with PM-T1 — Quote package in the Library panel writes the zip, complete', async () => {
+    const fs = await import('node:fs'), file = join(out, 'im6-block.bcad');
+    const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 25, draft: 3, id: 'n1' }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2,
+      process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'pm-t1' }, bodies: { b1: { material: 'abs' } }, brief: { version: 1, quantity: { value: 1000, basis: 'stated', source: '1000 of them' } } };
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.mould?.finish === 'pm-t1' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await page.click('[aria-label="Library"]');
+    await page.waitForSelector('[aria-label="Quote package"]', { timeout: 5000 });
+    const download = page.waitForEvent('download');
+    await page.click('[aria-label="Quote package"]');
+    assert.match((await download).suggestedFilename(), /-quote\.zip$/);
+    await page.waitForFunction(() => /Quote package written/.test(document.body.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(!/open/.test(await page.locator('text=Quote package written').first().innerText()), 'complete: nothing open');
+    await snap('im6-quote');
+    await page.click('[aria-label="Close library"]');
+  });
+
+  // ---- CNC1 (O84): machining's process rule, through the real chat and tool servers ------------------------------
+  await check('CNC1: CNC milling chosen in the Library panel, an aluminium block made and set through the real chat and tool servers — the report judges it as milling (material, wall, size pass; the later stages said to come)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling');
+    await page.waitForFunction(() => window.__studioDoc.process === 'cnc-milling', null, { timeout: 5000 });
+    assert.equal(await page.locator('[aria-label="Mould finish"]').count(), 0, 'no moulding settings for milling');
+    await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'run_command', args: { command: 'box', values: { w: 100, d: 60, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'set_material', args: { material: 'al6061' } },
+        { tool: 'check_printability', args: {} }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
+      assert.match(report, /cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown/, report);
+      await snap('cnc1-milling');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

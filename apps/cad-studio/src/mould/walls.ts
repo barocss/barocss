@@ -53,6 +53,13 @@ function facesInward(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, f: number
   return rayHit(bvh, c, n) !== Infinity;
 }
 
+/** Whether two exact cylinders are one: the same radius and axis line. */
+function sameAxis(x: { c: Vec3; a: Vec3; r: number }, y: { c: Vec3; a: Vec3; r: number }): boolean {
+  const la = Math.hypot(y.a[0], y.a[1], y.a[2]), a = [y.a[0] / la, y.a[1] / la, y.a[2] / la], lb = Math.hypot(x.a[0], x.a[1], x.a[2]);
+  if (Math.abs(x.r - y.r) > 1e-9 || Math.abs(Math.abs(dot(x.a, a)) / lb - 1) > 1e-9) return false;
+  const d = [x.c[0] - y.c[0], x.c[1] - y.c[1], x.c[2] - y.c[2]], s = dot(d, a);
+  return Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9;
+}
 /** The centre of a face's triangle lying on the segment a–b (two of its vertices on it), or null. */
 function besideEdge(m: DisplayMesh, f: number, a: readonly number[], b: readonly number[]): number[] | null {
   const P = m.positions, dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L2 = dx * dx + dy * dy + dz * dz;
@@ -102,12 +109,14 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
       if (facesInward(m, bvh, A.f, A.n) && facesInward(m, bvh, best.B.f, best.B.n)) ribs.push({ body: body.key, faces: [name(m, A.f), name(m, best.B.f)].sort() as [string, string], thicknessMM: best.s });
     }
     // Inside corners: concave fillets (exact cylinders facing their axis, around less than half a turn) and sharp concave edges.
-    const fillets: InsideCorner[] = [], doneNames = new Set<string>();
+    const fillets: InsideCorner[] = [], doneNames = new Set<number>();
     for (const f of m.faces) {
       // (A face the kernel split shows as several display faces of one name: its span is all of them.)
-      const e = f.exact; if (e?.kind !== 'cylinder' || doneNames.has(f.name) || !(f.name in table) || (table[f.name] as { outer?: boolean }).outer !== false) continue;
-      doneNames.add(f.name);
-      const mine = new Set(m.faces.filter(x => x.name === f.name).map(x => x.index));
+      // (One name can hold several cylinders — a pocket's four corner fillets are one feature: grouped by name and axis.)
+      const e = f.exact; if (e?.kind !== 'cylinder' || doneNames.has(f.index) || !(f.name in table) || (table[f.name] as { outer?: boolean }).outer !== false) continue;
+      const same = m.faces.filter(x => x.name === f.name && x.exact?.kind === 'cylinder' && sameAxis(x.exact, e));
+      for (const x of same) doneNames.add(x.index);
+      const mine = new Set(same.map(x => x.index));
       const l = Math.hypot(e.a[0], e.a[1], e.a[2]), a = [e.a[0] / l, e.a[1] / l, e.a[2] / l], u = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], k0 = dot(u, a), U = [u[0] - k0 * a[0], u[1] - k0 * a[1], u[2] - k0 * a[2]], Ul = Math.hypot(U[0], U[1], U[2]), X = U.map(x => x / Ul), Y = [a[1] * X[2] - a[2] * X[1], a[2] * X[0] - a[0] * X[2], a[0] * X[1] - a[1] * X[0]];
       const angles: number[] = [];
       for (let i = 0; i < m.faceOfVertex.length; i++) if (mine.has(m.faceOfVertex[i])) { const p = [m.positions[3 * i] - e.c[0], m.positions[3 * i + 1] - e.c[1], m.positions[3 * i + 2] - e.c[2]]; angles.push(Math.atan2(dot(p, Y), dot(p, X))); }

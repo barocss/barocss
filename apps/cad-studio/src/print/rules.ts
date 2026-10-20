@@ -14,6 +14,7 @@ import { draftField, type DraftFace } from '../mould/draft';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
 import { partingLine, type Half, type PartingReport } from '../mould/parting';
+import { machinability } from '../machining/report';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -27,6 +28,8 @@ export interface PrintRule {
  */
 export interface PrintabilityReport {
   readonly process: string | null; readonly printer?: string; readonly direction: Vec3 | null; readonly rules: readonly PrintRule[];
+  /** CNC1 (O84): the material's family, the general tolerance (sourced) and its class (named, not copied). */
+  readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { mm: number; feasibleMM: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null };
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];
@@ -75,6 +78,7 @@ export async function printability(doc: StudioDoc, bodies: readonly BodyResult[]
   const profile = processProfile(doc.process), printer = printerProfile(doc.printer), dir = options.direction ?? doc.print?.direction;
   const b = dir ? unit(dir) : null, rules: PrintRule[] = [];
   if (profile?.id === 'injection') return mouldability(doc, bodies, profile, options);
+  if (profile?.id === 'cnc-milling' || profile?.id === 'cnc-turning') return machinability(doc, bodies, profile);
   if (!profile?.additive) {
     const why = profile ? `${profile.label} is not printing, and has no rules here yet` : 'no process is chosen: set the brief\'s process (or the studio\'s Process) — none is assumed';
     return { process: profile?.id ?? null, direction: b, rules: ['wall', 'hole', 'horizontal-hole', 'gap', 'cavity', 'bed-fit', 'overhang', 'warp', 'tip'].map(id => ({ id, level: 'recommended' as const, status: 'unknown' as const, message: id, why })) };
