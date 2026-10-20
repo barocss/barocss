@@ -552,6 +552,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
 - **Library data rules:** sourced or estimate-flagged values, no vendor CAD bundled, a licence needed to share, legal review before release.
 - **Gears** follow barocss/barocss#2167.
 - **Bend tables (D120, decided 2026-10-20, D121):** "SendCutSend 굽힘표는 내장하지 말고, 사용자가 자기 공장 표를 불러오게 해." (Don't bundle the SendCutSend bend table; users load their own shop's table.) No table is built in; the SendCutSend values stay in `notes/research-r12-bend-data-2026-10-20.md` as a reference only.
+- **Frame section sizes (D122, decided 2026-10-20):** "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해." (Like the bend tables, don't build in frame section sizes; users load them.) No catalogue is built in; the studio's prefills are estimate-flagged.
 - **Mesh body / SubD:** one B-rep body, a Parasolid-convergent subset F0–F2 plus SubD; Hunyuan3D is never in the pipeline (licence).
 
 ### Pending decisions (reversible defaults taken)

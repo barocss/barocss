@@ -6003,7 +6003,7 @@ Evidence: `packages/barocss-cad/test/fr-s0.test.mjs` (kept, 7 tests), against cl
 
 **Data and defaults:**
 - **No section sizes are built in.** Sections are parametric; their dimensions are the user's. A catalogue of sizes is data the user loads (rows of named sizes, each citing a source or flagged `estimate`), as with bend tables (D121).
-  - **Decided at review (the coordinator, 2026-10-20):** section sizes are user-loaded only, nothing built in, and no supplier-page research for a catalogue. This is the coordinator's application of the owner's bend-table decision (D121: "SendCutSend 굽힘표는 내장하지 말고, 사용자가 자기 공장 표를 불러오게 해."), by analogy; the owner may override it. The tslot-20 slot sizes stay estimate-flagged.
+  - **Decided (the owner, 2026-10-20, relayed by the coordinator):** "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해." (Like the bend tables, don't build in frame section sizes; users load them.) No catalogue is built in, and no supplier-page research for one. The studio's prefills stay estimate-flagged; the tslot-20 slot sizes stay estimates.
 - **No hidden kernel defaults:** corner radii, root and toe radii are given. The studio's prefill (rectangular tube ro = 2t, angle r1 = t, r2 = t/2, channel r = tf) is a reversible default, flagged an estimate wherever shown.
 - **T-slot:** the tslot-20 part's slot sizes are already estimates without a URL record; its section inherits the flags.
 - **Mass:** densities are the materials library's (all estimates, `S-DENS`); a cut list says so unless the material is the user's.
