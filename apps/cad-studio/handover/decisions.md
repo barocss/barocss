@@ -6710,6 +6710,9 @@ Mapped to the part model as now: INPUT, CAPABILITY, GEOMETRY.
 **For the owner:**
 - **Spiral bevels** (R12b.4): keep the ideal conjugate spiral bevel (line contact, no crowning, honestly flagged), or drop the stage. The default taken: keep it.
 - **The throated wheel** (R12b.6): attempt it, with the refusal as the fallback (default), or stop at the cylindrical wheel.
+- **Decided (the owner, 2026-10-20, relayed by the coordinator):** "R12b.4 스파이럴 베벨은 이상적 모델이라고 분명히 표시해서 유지하고, R12b.6 목 있는 웜 휠은 시도하되 안 되면 이유를 밝혀 거부해." (Keep R12b.4, the spiral bevel, clearly marked as an ideal model; attempt R12b.6, the throated worm wheel, and if it cannot be done, refuse it with the reason stated.)
+  - **R12b.4:** the "ideal model" flag is shown wherever a user meets the gear: the body's notes, the kernel's report (`idealModel: true` and its warning) and the agent's tool output.
+  - **R12b.6:** attempted; if the fit cannot hold, a typed refusal (`UNSUPPORTED_GEAR_KIND`) whose message states why (the measured deviation against the tolerance and budget). The cylindrical wheel stays.
 
 **Checks:** S0 changed no product code.
 - r12b-s0: 7/7, 42 s alone; most of it the nine-pair interference sweep and the ring's 14.7 s Boolean.
