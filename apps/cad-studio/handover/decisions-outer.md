@@ -1883,6 +1883,7 @@ The owner's decision on #2177 (O39, verbatim there): approval baselines, result 
   - **RM5 is accepted.**
 - **Tests**: the committed readings are held to their criteria: `test/robot-urdf.test.ts` and `test/robot-mjcf.test.ts`, a test each. The frozen exports are the files the oracle loaded, and a change to them shows there until MuJoCo is run again.
 - **Not closed by this run**: contact behaviour (self-collision as the arm folds is RM6's sweep). A collision-on hang would test the contact model, not the export.
+- **A contacts-on run** is a separate question for RM7/RM8 or later. It is neither a pass nor a fail of RM5 (coordinator, on accepting O38).
 
 ## O39 — #2177: the owner's decision recorded; engineering material apart from display looks (2026-10-20)
 
