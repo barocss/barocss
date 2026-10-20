@@ -1,0 +1,179 @@
+{
+  "id": "r12-accept-l-bracket",
+  "step": "R12",
+  "decisions": [
+    "D121"
+  ],
+  "about": "RB9 rung 5 (R12.5): the sheet-metal L-bracket the agent builds (test/fixtures/sheet-l-bracket.calls.json): legs 40 and 30 outside, 30 wide, 1.5 sheet, R 1.5, K 0.44, a Ø5.5 hole in each leg.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              -1.83697019872103e-15,
+              30
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              30,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          },
+          "side": "left",
+          "width": 30,
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "n1",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            25,
+            15
+          ],
+          "radius": 2.75,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              -1
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2",
+          "kind": "extrude",
+          "sketch": "n1",
+          "height": 4
+        },
+        {
+          "id": "n3",
+          "kind": "difference",
+          "target": "n0",
+          "tool": "n2"
+        },
+        {
+          "id": "n4",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            15,
+            20
+          ],
+          "radius": 2.75,
+          "plane": {
+            "origin": [
+              -1,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n5",
+          "kind": "extrude",
+          "sketch": "n4",
+          "height": 4
+        },
+        {
+          "id": "n6",
+          "kind": "difference",
+          "target": "n3",
+          "tool": "n5"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 2967.768244759665,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            12.14109805412094,
+            14.999999999999991,
+            7.007842511490728
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 2
+          }
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 1974.2710130907637,
+            "relTol": 1e-12
+          },
+          "loops": 3,
+          "bends": [
+            {
+              "name": "n0.bend1",
+              "direction": "down",
+              "angleDegrees": 90
+            }
+          ]
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the middle line 70 − 2(R + T) + (π/2)(R + T/2) × 30 × T less two holes; the flat (70 − BD) × 30 less two holes. Centroid by this kernel."
+}

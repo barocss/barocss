@@ -5,7 +5,7 @@ This note supports D120. A read-only research pass collected these on the owner'
 - values only, each with its URL, the date read and the page's own label;
 - no tables or prose copied.
 
-**The values are not bundled in the studio.** Both sources' reuse terms are unclear, and the standing data rules say no unclear-licence datasets. The owner decides (D120, a pending decision).
+**The values are not bundled in the studio, and won't be.** The owner decided (2026-10-20, D121): "SendCutSend 굽힘표는 내장하지 말고, 사용자가 자기 공장 표를 불러오게 해." (Don't bundle the SendCutSend bend table; users load their own shop's table.) The SendCutSend values below are kept as a reference only.
 
 ## Source A: SendCutSend, "Sheet Metal Bending Calculator"
 - **Page:** https://sendcutsend.com/bending-calculator/ (read 2026-10-20). The bending-specifications table's columns include "K Factor", "Bend Deduction @ 90°" and "Effective Bend Radius @ 90°".
@@ -27,13 +27,8 @@ This note supports D120. A read-only research pass collected these on the owner'
 - It agrees with the page's BD within about 0.002 in for mild steel 0.059, 304 at 0.060 and 5052 at 0.125.
 - For 5052 at 0.063 the formula gives about 0.0995 in against the page's 0.096. The page's K and BD there are not consistent with each other to 3 %: a bend table should take one of them, not both.
 
-## Source B: vedge.org, "K-Factors for Sheet Metal"
-- **Page:** https://vedge.org/kfac.html (read 2026-10-20).
-- **Provenance:** a personal site citing "Machinery's Handbook, 26th Edition", so it is a secondary copy of a copyrighted handbook.
-- **Unknowns:** no licence; no angle; alloy and grade not stated.
-- **Use:** **not used**, beyond noting that it disagrees with A, as expected between handbook and air-bending values. Examples:
-  - aluminium 0.063 in: K 0.404 at R 0.030 in;
-  - cold-rolled steel 0.060 in: K 0.463 at R 0.060 in.
+## Rejected: vedge.org, "K-Factors for Sheet Metal"
+- Found at https://vedge.org/kfac.html and rejected: it is a personal copy of a copyrighted handbook's K tables, so no numbers are taken from it, not even as facts in this note (the coordinator, 2026-10-20).
 
 ## Radii and ranges (no per-thickness K)
 - **Fictiv sheet-metal specifications** (https://blog.fictiv.com/specifications/sheet-metal):

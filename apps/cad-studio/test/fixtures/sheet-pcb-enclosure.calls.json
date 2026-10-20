@@ -1,0 +1,216 @@
+{
+ "about": "RB9 rung 10 (R12.5, D121): a sheet-metal PCB enclosure \u2014 a 100 \u00d7 70 base of 1.5 mm sheet (inner radius 1.5, K 0.44 given), a 3 mm square relief off each corner, four 25 mm flanges full length, four \u00d83.2 holes for the board's standoffs, a 20 \u00d7 8 connector slot in the front flange.",
+ "calls": [
+  {
+   "tool": "add_features",
+   "args": {
+    "features": [
+     {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+       0,
+       0
+      ],
+      "max": [
+       100,
+       70
+      ]
+     },
+     {
+      "kind": "sheet-base",
+      "sketch": 0,
+      "thickness": 1.5,
+      "bendRadius": 1.5,
+      "kFactor": 0.44
+     },
+     {
+      "kind": "sheet-corner-relief",
+      "parent": {
+       "node": 1,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side0|n1.side1"
+      ],
+      "shape": "square",
+      "size": 3
+     },
+     {
+      "kind": "sheet-corner-relief",
+      "parent": {
+       "node": 2,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side1|n1.side2"
+      ],
+      "shape": "square",
+      "size": 3
+     },
+     {
+      "kind": "sheet-corner-relief",
+      "parent": {
+       "node": 3,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side2|n1.side3"
+      ],
+      "shape": "square",
+      "size": 3
+     },
+     {
+      "kind": "sheet-corner-relief",
+      "parent": {
+       "node": 4,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side0|n1.side3"
+      ],
+      "shape": "square",
+      "size": 3
+     },
+     {
+      "kind": "sheet-flange",
+      "parent": {
+       "node": 5,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side0|n1.top"
+      ],
+      "length": 25
+     },
+     {
+      "kind": "sheet-flange",
+      "parent": {
+       "node": 6,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side1|n1.top"
+      ],
+      "length": 25
+     },
+     {
+      "kind": "sheet-flange",
+      "parent": {
+       "node": 7,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side2|n1.top"
+      ],
+      "length": 25
+     },
+     {
+      "kind": "sheet-flange",
+      "parent": {
+       "node": 8,
+       "side": "solid"
+      },
+      "edges": [
+       "n1.side3|n1.top"
+      ],
+      "length": 25
+     },
+     {
+      "kind": "hole",
+      "parent": {
+       "node": 9,
+       "side": "solid"
+      },
+      "center": [
+       12,
+       12
+      ],
+      "radius": 1.6
+     },
+     {
+      "kind": "hole",
+      "parent": {
+       "node": 10,
+       "side": "solid"
+      },
+      "center": [
+       88,
+       12
+      ],
+      "radius": 1.6
+     },
+     {
+      "kind": "hole",
+      "parent": {
+       "node": 11,
+       "side": "solid"
+      },
+      "center": [
+       88,
+       58
+      ],
+      "radius": 1.6
+     },
+     {
+      "kind": "hole",
+      "parent": {
+       "node": 12,
+       "side": "solid"
+      },
+      "center": [
+       12,
+       58
+      ],
+      "radius": 1.6
+     },
+     {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+       40,
+       -16
+      ],
+      "max": [
+       60,
+       -8
+      ],
+      "plane": {
+       "origin": [
+        0,
+        -1,
+        0
+       ],
+       "normal": [
+        0,
+        1,
+        0
+       ],
+       "xAxis": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "kind": "extrude",
+      "sketch": 14,
+      "height": 4
+     },
+     {
+      "kind": "difference",
+      "parent": {
+       "node": 13,
+       "side": "solid"
+      },
+      "tool": {
+       "node": 15,
+       "side": "solid"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

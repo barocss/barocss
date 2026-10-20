@@ -3137,6 +3137,43 @@ try {
     await snap('r12-4-bend-table');
   });
 
+  await check('R12.5 RB9 rungs 5 and 10 by the scripted agent through the real chat: a sheet L-bracket, a PCB enclosure; volumes, flats, DXF (new in D121)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      // (The flats, in the box's order: 30 × 70 − BD and 100 + 2(25 − BD) × 70 + 2(25 − BD), BD = 2(R + T) − (π/2)(R + K·T) at T = R = 1.5, K 0.44.)
+      for (const [name, flat, bends, circles, notes] of [['l-bracket', '30 × 67\\.393 mm, 1 bend', ['down', 1], 2, 1], ['pcb-enclosure', '144\\.786 × 114\\.786 mm, 4 bends', ['up', 4], 4, 4]]) {
+        const { calls } = JSON.parse(fs.readFileSync(join(root, `test/fixtures/sheet-${name}.calls.json`), 'utf8'));
+        const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volumeMM3.value;
+        await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+        await page.click('[aria-label="Chat"]');
+        await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+        await page.click('[aria-label="Close chat"]');
+        await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+        // (The panel rounds to 1 mm³.)
+        const vol = await bodyVolume();
+        assert.ok(Math.abs(vol - want) <= 1, `${name}: ${vol} vs ${want}`);
+        await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props')?.textContent ?? ''), flat, { timeout: 15000 });
+        await page.click('[aria-label="Show the flat pattern"]');
+        await page.waitForSelector('[aria-label="Flat pattern"]');
+        assert.equal(await page.locator(`[aria-label="Flat pattern drawing"] [aria-label="Bend ${bends[0]}"]`).count(), bends[1]);
+        await snap(`r12-5-${name}-flat`);
+        const download = page.waitForEvent('download'); download.catch(() => {});
+        await page.click('[aria-label="Export flat DXF"]');
+        const d = await download, text = fs.readFileSync(await d.path(), 'latin1');
+        for (const layer of ['OUTLINE', 'BEND_UP', 'BEND_DOWN', 'BEND_NOTES']) assert.ok(new RegExp(`\\n${layer}\\r?\\n`).test(text), layer);
+        assert.equal(text.match(/\nCIRCLE\r?\n/g)?.length, circles, `${name} circles`); assert.equal(text.match(/\nTEXT\r?\n/g)?.length, notes, `${name} notes`);
+        await page.click('[aria-label="Close the flat pattern"]');
+        await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+        await snap(`r12-5-${name}`);
+      }
+    } finally { chat.kill(); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

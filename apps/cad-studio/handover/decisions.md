@@ -5835,7 +5835,7 @@ R12.4 as D115 froze it: a sheet's K from a table of the shop's rows, each row ci
 - **Neither source's reuse is cleared:** © on SendCutSend, no licence found; vedge copies a copyrighted handbook. The standing rules exclude unclear-licence datasets, so **no table is built in**. The note gives the values for the owner to decide.
 - The check of SendCutSend's own rows: BD from its K and R agrees with its BD to about 0.002 in, except 5052 at 0.063 in (0.0995 against 0.096). A table should take one of the two.
 
-**Pending decision (reversible default taken):** whether SendCutSend's 90° rows may be bundled as a built-in, cited table. Taken: not bundled; the user loads the shop's table. To change: the owner clears the source's terms, and the rows go in as data with their citations.
+**Pending decision (closed in D121: not bundled, the owner, 2026-10-20):** whether SendCutSend's 90° rows may be bundled as a built-in, cited table. Taken: not bundled; the user loads the shop's table. To change: the owner clears the source's terms, and the rows go in as data with their citations.
 
 **Tests:**
 - Kernel `test/r12-4.test.mjs` (4) and studio `sheet.test.ts` (+1). Both fail on HEAD f4a7851f6, where there is no `bendTable`.
@@ -5856,5 +5856,53 @@ R12.4 as D115 froze it: a sheet's K from a table of the shop's rows, each row ci
 | Conformance | 147 pass, 28 known a7/a8 failures; the 2 new r12 cases pass |
 | Studio | 576/576 |
 | Full flow | 176/176, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+## D121 — R12.5: acceptance, RB9 rungs 5 and 10 by the agent (2026-10-20)
+
+**What:** the RB9 ladder's two sheet-metal rungs, each built by the agent's tools in one chat turn on a new part, accepted by closed forms that are not read from the build.
+- **Rung 5, an L-bracket** (`test/fixtures/sheet-l-bracket.calls.json`): `run_command sheet-profile` (an L, outside legs 40 and 30, 30 wide, T 1.5, R 1.5, K 0.44), then `add_features` with a Ø5.5 hole through each leg (a circle sketch on the leg's plane, an extrude, a difference).
+- **Rung 10, a PCB enclosure** (`test/fixtures/sheet-pcb-enclosure.calls.json`): one `add_features` call:
+  - a 100 × 70 sketch and its `sheet-base` (T 1.5, R 1.5, K 0.44);
+  - four square corner reliefs of 3 (R + T) on the plate's corner edges, named `n1.side0|n1.side1` …;
+  - four 25 mm flanges on the plate's top edges, named `n1.sideK|n1.top`;
+  - four Ø3.2 `hole` nodes for standoffs;
+  - a 20 × 8 connector slot through the front flange.
+- The agent uses only tools that existed before this step; no product code changed in R12.5.
+
+**Oracles** (`apps/cad-studio/test/sheet-acceptance.test.ts`):
+- The L-bracket's volume: the middle line 70 − 2(R + T) + (π/2)(R + T/2), times 30 × T, less two holes. Its flat: (70 − BD) × 30, BD = 2(R + T) − (π/2)(R + K·T), to 1e-12; three loops, the two holes as arcs of 2.75; one bend down; the DXF has 2 circles and 1 note.
+- The enclosure's volume: the plate less the reliefs; each flange its edge less 2 × 3 long, its trim (R + T) off and its section on; less the holes and the slot. Its flat: (100 + 2(25 − BD)) × (70 + 2(25 − BD)) to 1e-12; six loops; four bends up; the flat's area by the K-factor's identity V/T + (K − ½)·T·Σθw on that volume, to 1e-11; the DXF's layer counts.
+- Kernel conformance `r12/accept-l-bracket` and `r12/accept-pcb-enclosure` hold the part documents the agent built, with volume, bodies, topology (genus 2 and 5), the flat (area, loops, bends; the enclosure's box) and a STEP round trip. The studio test checks that the files hold exactly the part the tools build (`WRITE_ACCEPTANCE=1` rewrites them).
+- `r12/flat-dxf/pcb-enclosure/`: the enclosure's flat as DXF 2000 and R12. ezdxf 1.4.5 (outside the product) audits both clean and reads 16 outline lines, 4 circles, 4 lines on BEND_UP and 4 notes; `test/r12-2.test.mjs` compares that reading with the flat.
+- **A flow step** sends both fixtures' calls through the real chat server with the scripted agent, one turn each on a new part. It then checks the volume against the conformance case (the panel rounds to 1 mm³) and the flat note (30 × 67.393 mm, 1 bend; 144.786 × 114.786 mm, 4 bends). It opens the flat view (1 bend down; 4 up) and exports the DXF (layers, circles, notes).
+
+**Judgement calls:**
+- **Evidence level:** the agent here is the scripted one, so this is L2. It shows that the tools build both rungs in one turn, and that what they build is right. It does not show that a live model chooses these calls; that needs a live run, which needs the owner's OK.
+- **K 0.44 is the brief's value, not a sourced one.** Both parts run on a K given in the part (the owner's decision below). The flats are right for that K; whether 0.44 suits a material is the shop's.
+- **The enclosure is built from raw nodes, not the flange command.** The command takes a picked edge; the agent names edges in `add_features`, which is how it reaches all four at once.
+- **Full-length flanges with corner reliefs.** No flange is shortened; each corner relief of R + T clears both bend zones (D119), so the four flanges build without FLANGES_COLLIDE.
+- **The vedge.org correction** (the coordinator, after D120) is in this commit: the research note keeps one line that the page was found and rejected, and no numbers from it.
+
+**The owner's decision on bend tables** (D120's pending item, closed; relayed by the coordinator, 2026-10-20): "SendCutSend 굽힘표는 내장하지 말고, 사용자가 자기 공장 표를 불러오게 해." (Don't bundle the SendCutSend bend table; users load their own shop's table.)
+- No table is built in. The SendCutSend values stay in `notes/research-r12-bend-data-2026-10-20.md` as a reference only.
+- README §0's pending item is closed and the decision is listed under "Owner decisions so far".
+
+**Seen, not fixed (open items):**
+- The body's notes list a flange's bend as "bend:": the report names it `n6.bend`, and the notes keep only the last part of the name (`evaluate.ts` `sheetNotes`, right for a contour's `bend1` …). Four flanges show four "bend:" lines that can't be told apart. A one-line studio fix, left for the next step so that R12.5 changes no product code.
+- The flat dialog's title lists the box's axes in its own order (30 × 67.393 for the L).
+
+**Tests:** studio `test/sheet-acceptance.test.ts` (2), kernel conformance `r12/accept-l-bracket`, `r12/accept-pcb-enclosure` and the `pcb-enclosure` flat-DXF case in `test/r12-2.test.mjs`; a flow step. They are acceptance tests, not defect fixes: no code changed, so none fails on HEAD e18ecb86a beyond the files being absent. Test names compared with a run at e18ecb86a: none missing, the four new ones added.
+
+**Checks** on e18ecb86a plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; the studio's type-check and its changed files. `eslint src test` in the studio also reports two older unused variables, in `test/library-tools.test.ts` and `test/tools/cdp-drag.mjs`, untouched here) |
+| Kernel | 1228/1233 (4 skipped); only the env-only Split test fails |
+| Conformance | 149/149 (the 2 new accept cases included) |
+| Studio | 586/586 |
+| Full flow | 177/177, run on its own; the new step included |
 
 RB rows are in the next commit.

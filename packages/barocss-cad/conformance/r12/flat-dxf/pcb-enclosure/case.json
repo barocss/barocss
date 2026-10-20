@@ -1,0 +1,186 @@
+{
+  "id": "r12-flat-dxf-pcb-enclosure",
+  "step": "R12",
+  "decisions": [
+    "D121"
+  ],
+  "about": "R12.5: the PCB enclosure the agent builds (RB9 rung 10): its flat as DXF — the outline with its corner notches, four Ø3.2 circles and the slot, four dashed centre lines on BEND_UP, their notes.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            100,
+            70
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "sheet-base",
+          "sketch": "n0",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "n2",
+          "kind": "sheet-corner-relief",
+          "target": "n1",
+          "corner": "n1.side0|n1.side1",
+          "shape": "square",
+          "size": 3
+        },
+        {
+          "id": "n3",
+          "kind": "sheet-corner-relief",
+          "target": "n2",
+          "corner": "n1.side1|n1.side2",
+          "shape": "square",
+          "size": 3
+        },
+        {
+          "id": "n4",
+          "kind": "sheet-corner-relief",
+          "target": "n3",
+          "corner": "n1.side2|n1.side3",
+          "shape": "square",
+          "size": 3
+        },
+        {
+          "id": "n5",
+          "kind": "sheet-corner-relief",
+          "target": "n4",
+          "corner": "n1.side0|n1.side3",
+          "shape": "square",
+          "size": 3
+        },
+        {
+          "id": "n6",
+          "kind": "sheet-flange",
+          "target": "n5",
+          "edge": "n1.side0|n1.top",
+          "length": 25
+        },
+        {
+          "id": "n7",
+          "kind": "sheet-flange",
+          "target": "n6",
+          "edge": "n1.side1|n1.top",
+          "length": 25
+        },
+        {
+          "id": "n8",
+          "kind": "sheet-flange",
+          "target": "n7",
+          "edge": "n1.side2|n1.top",
+          "length": 25
+        },
+        {
+          "id": "n9",
+          "kind": "sheet-flange",
+          "target": "n8",
+          "edge": "n1.side3|n1.top",
+          "length": 25
+        },
+        {
+          "id": "n10",
+          "kind": "hole",
+          "target": "n9",
+          "center": [
+            12,
+            12
+          ],
+          "radius": 1.6
+        },
+        {
+          "id": "n11",
+          "kind": "hole",
+          "target": "n10",
+          "center": [
+            88,
+            12
+          ],
+          "radius": 1.6
+        },
+        {
+          "id": "n12",
+          "kind": "hole",
+          "target": "n11",
+          "center": [
+            88,
+            58
+          ],
+          "radius": 1.6
+        },
+        {
+          "id": "n13",
+          "kind": "hole",
+          "target": "n12",
+          "center": [
+            12,
+            58
+          ],
+          "radius": 1.6
+        },
+        {
+          "id": "n14",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            40,
+            -16
+          ],
+          "max": [
+            60,
+            -8
+          ],
+          "plane": {
+            "origin": [
+              0,
+              -1,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n15",
+          "kind": "extrude",
+          "sketch": "n14",
+          "height": 4
+        },
+        {
+          "id": "n16",
+          "kind": "difference",
+          "target": "n13",
+          "tool": "n15"
+        }
+      ]
+    },
+    "versions": [
+      "AC1015",
+      "AC1009"
+    ]
+  },
+  "oracle": "ezdxf 1.4.5 (MIT), run outside the product (scripts/dxf-oracle.py): every file audits clean; its reading is compared with the flat (test/r12-2.test.mjs)."
+}
