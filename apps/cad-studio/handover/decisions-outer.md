@@ -4011,3 +4011,79 @@ The coordinator's rule: stop before any AP242 semantic PMI in the STEP writer. C
 - **Flow**:
   - CNC1's step now reads "… drawing pass";
   - a new CNC5 step, through the real chat and tool servers: a plate with an M6 tapped hole and no drawing reads "drawing fail". After Auto-dimension in the Drawing workspace the M6×1 callout is on the sheet, and it reads "drawing warn": no general note, title or material yet.
+
+## O89 — CNC6: turning; the CNC track closed (2026-10-21)
+
+The coordinator accepted CNC5 and ordered CNC6, which closes the CNC track. Its summary follows.
+
+- **Sources** (public HTML, read-only, 2026-10-21):
+  - Protolabs' turning guidelines (`protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/`). CNC1 already recorded the least diameter in any region (0.76), walls (0.51), outside grooves (at least 1.2 wide, at most 24.1 deep), holes (1 on the axis, 2 radial) and points (over 30°). New profile values:
+    - `holeMinRadialSoftMM` 1 and `grooveWidthMinSoftMM` 0.5, "for aluminum and brass";
+    - the least part, `minPartDiameterMM` 4.07 and `minPartLengthMM` 1.27.
+    - Statements followed: live tools mill "flats, slots, and grooves"; holes "parallel or perpendicular to the axis of revolution", and at odd angles only in aluminium and brass; "ID grooves are not supported"; "Sharp inside corners … will be radiused"; outside corners "typically include a 0.005 in. chamfer".
+  - Hubs' CNC guide: the lathe Ø500 × 1000 (CNC1), and turned parts "with rotational symmetry".
+  - Neither page gives a part's L/D limit or a thread relief. L/D is reported in the turning message; neither is judged.
+- **What a lathe makes** (`src/machining/turning.ts`, `turningOf`):
+  - **The axis**: the line the part's exact cylinders share most by area.
+  - **Turned**: a display triangle whose three corners' exact normals meet the axis (CNC S0's P4, n · (a × (p − c)) = 0 relative to the radius). That covers planes square to the axis, cylinders, and cones by projection. The rest, by face, is milled with live tools.
+  - **Size**: the largest radius × 2 and the extent along the axis.
+  - **Outside profile**: the convex exact cylinders on the axis, joined by radius and extent.
+  - **Grooves**:
+    - outside: a step smaller than its neighbours on both sides along the axis, with its width and its depth below the smaller neighbour;
+    - inside: a bore step on the axis behind a narrower one (CNC2's reach null).
+  - **Holes**: CNC2's holes, by their axes against the turning axis: on-axis, axial (parallel, off the axis), radial (square to it), or angled.
+  - **Points**: a face without an exact kind whose normals, away from the apex, all make one angle with the axis (a cone, |n·a| = sin α) and that reaches the axis. Its included angle is 2α.
+- **The rules** (cnc-turning, in place of CNC1's placeholders). Protolabs' values are one service's, so they warn; the lathe's envelope (Hubs) and no axis fail:
+  - **size**: over Ø500 × 1000 fails; under the least part (Ø4.07 × 1.27) warns. With no axis it is unknown;
+  - **turning**: no axis fails ("a lathe makes parts with rotational symmetry"). Surfaces not turned warn, with their area and faces ("milled by live tools on a mill-turn …"). Otherwise it passes, giving L/D;
+  - **diameter**: the least outside diameter under 0.76 warns;
+  - **groove**: an outside groove narrower than 1.2 mm (0.5 in aluminium or brass), or deeper than 24.1, warns; any inside groove warns;
+  - **holes**: on-axis or axial under 1, radial under 2 (1 in aluminium or brass), or angled in another material, warns. Off-axis holes are noted as live tools;
+  - **point**: an included angle under 30° warns;
+  - **corners**: passes, saying sharp inside corners come out radiused and outside corners chamfered.
+
+  Turning has no access or setups rules: a lathe's access is its turning. The drawing (CNC5) applies as for milling. The report's `machining` adds `turning`.
+- **Tests** (`test/cnc-turning.test.ts`, 4), against closed forms:
+  - a revolved stepped shaft (Ø20 × 52; steps r 10, 6, 8; a cone to a point):
+    - axis Y, every surface turned;
+    - one groove, 10 wide and 2 deep;
+    - the least outside diameter Ø12;
+    - a point of 2·atan(8/12) = 67.38° to 1e-4;
+    - every rule passes, with no access or setups;
+  - mutants on the shaft:
+    - a groove 1 wide is warned in steel (under 1.2) and not in aluminium (0.5);
+    - a point of 2·atan(8/40) = 22.6° is warned;
+  - a cylinder r 10 with a flat at x = 8:
+    - 2·√(100 − 64)·30 = 360 mm² not turned, to 1e-6 (planar), warned;
+    - a radial Ø1.5 hole from the flat is warned in steel (under 2), not in aluminium (1);
+    - Ø0.8 on the axis is warned (under 1);
+  - no lathe part:
+    - a box has no axis, so it fails and its size is unknown;
+    - Ø520 fails;
+    - Ø3 is warned, under Ø4.07;
+    - an inside groove is warned.
+  - CNC1's turned box now expects "no axis of revolution".
+- **Flow**: a CNC6 step through the real chat and tool servers. CNC turning is chosen; an aluminium bar Ø20 × 30 reads "cnc-turning: material pass, wall pass, size pass, turning pass, diameter pass, groove pass, holes pass, point pass, corners pass, drawing pass". After a flat is milled on it, it reads "turning warn".
+
+### The CNC track, S0 and CNC1–CNC6 (O83–O89): summary
+
+- **What it is**: CNC milling's and turning's manufacturability, judged on the exact part, in the one report (`check_printability`, v2 `query.manufacturability`, naming `cnc-milling` or `cnc-turning`). With no process, nothing is assumed. The material's family (metal or plastic, the library's) chooses the wall limits and the general tolerance class. ISO 2768-1 f / m are named; their values are not copied.
+- **Exact, not the display mesh**:
+  - holes and steps come from exact concave cylinders;
+  - inside corners come from exact fillet cylinders, and their tangent planes are found by geometry where the display drops smooth edges;
+  - floors come from exact planes;
+  - turning uses exact normals against the axis.
+- **Sampled, and said so**: access uses IM3's sub-triangle grid, with rays along ±X, ±Y, ±Z on the face's side. The greedy setups are exact for the samples.
+- **Sourced**:
+  - Hubs' CNC guide and technical-drawing page, Protolabs' milling, turning and service pages, and Engineers Edge's drill table, every value with its page, date and label (W-WEB);
+  - values derived from a page (the drill table's steps) are `W-DERIVED` with their rule, and `checkMaterials` refuses one without it;
+  - one supplier's limits warn, never fail. Protolabs' milling depth and M2–M12 are not rules;
+  - L/D and thread relief have no source and are not judged.
+- **The rules**:
+  - milling: material, wall, size, hole-depth, hole-size, thread, corners, pocket, feature, tall, text, access, setups, drawing;
+  - turning: material, wall, size, turning, diameter, groove, holes, point, corners, drawing.
+  - Each has a closed-form or constructed oracle and a mutant where it is a check.
+- **RB9 rung 4**: `machinable` is a hard predicate on the milling report. It is killed by the deep-hole and groove mutants.
+- **For the kernel lane**: AP242 semantic PMI in the STEP writer (CNC5 stopped before it); the hole-after-union refusal (still the one todo); the triangle-BVH consolidation (track K).
+- **Not built**: the title block's material and finish cells (an R14 layout change; notes carry them); 5-axis and undercut cutters (access only warns); a price or a quote package for machining (IM6's pattern, if wanted); L/D and thread relief rules (no source).
+- **Counts across the track**: 34 studio tests added (S0 4, CNC1 5, CNC2 6, CNC3 7, CNC4 4, CNC5 4, CNC6 4), 6 flow steps (CNC1–CNC6), and 2 RB9 mutants. The contract overhead is unchanged: no tool text changed.

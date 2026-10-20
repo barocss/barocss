@@ -1781,6 +1781,50 @@
       "read": "2026-10-21",
       "label": "angles should be greater than 30 degrees"
      }
+    },
+    "holeMinRadialSoftMM": {
+     "value": 1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a radial hole's least diameter in aluminium and brass",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — Radial: 0.04 in (1mm) for aluminum and brass"
+     }
+    },
+    "grooveWidthMinSoftMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's least width in aluminium and brass",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum OD groove width for aluminum and brass: 0.019 in (0.5mm)"
+     }
+    },
+    "minPartDiameterMM": {
+     "value": 4.07,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the part's least diameter",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum dimensions — Diameter: 0.16 in. (4.07mm)"
+     }
+    },
+    "minPartLengthMM": {
+     "value": 1.27,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the part's least length",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum dimensions — Length: 0.05 in. (1.27mm)"
+     }
     }
    },
    "toleranceClasses": {
