@@ -1645,3 +1645,33 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - Studio 574/574, with no test name missing against the last run. Lint and type-check clean.
 - **For A8.4** (coordinator): the mass budget shared by parts is checked per patch (each part's share, A8.2) **and on the whole assembly**, so parts under their shares cannot sum past the total unnoticed.
 - **Next**: A8.4, the Assembly integrator and the BOM agent.
+- **Added on acceptance (coordinator, 2026-10-20): "the user" is the channel, not a claim.**
+  - `decideEcr` takes only a **minted user token** (`userToken(at)`), kept in a module-private `WeakSet`. The studio UI and the CLI scenario runner mint it, from its top-level user decisions, never from a role's output.
+  - A role's output is data. `{by: "user"}`, a frozen look-alike, a JSON copy of a real token, or another role's name: each is refused `APPROVAL_IS_THE_USERS`.
+  - Test: `test/team-ecr.test.ts`, 3/3.
+
+## O36 — A8.4: the Assembly integrator and the BOM agent (2026-10-20)
+
+- **The Assembly integrator's gate** (`checkAssembly`, `src/team/assembly.ts`) is a fourth gate after a part's own three (A8.2). It checks the whole assembly with the part as it would be:
+  - **`PARTS_MEET`**: no two parts' placed bodies interpenetrate (RM6's exact mesh test, after a box reject widened by their chord);
+  - **`PARTS_TOUCH`**: within the meshes' chord tolerance of touching is **undecided**, so the patch is held, never passed. Two parts face to face at distance 0 come back so;
+  - **`PATTERN_MISALIGNED`**: every hole pattern is on every built part that shares it, so a part moved after its acceptance is caught;
+  - **`OVER_TOTAL_BUDGET`**: the whole assembly within the total mass budget (the coordinator's point). Parts each under a share that is not fixed cannot sum past the total unnoticed.
+  - A fail rejects, an undecided holds, and the assembly is unchanged unless applied. An earlier gate's fail leaves this one "not reached".
+- **The BOM agent is read-only.**
+  - `bomView` is a plain JSON view: each instance's id, name, material, mass, library origin and shape fingerprint, nothing callable.
+  - `deriveBom` puts identical parts (the same shape and material) on one line, in first-seen order, and names a library part's source (`tslot-20@0.1.0/profile:2020`).
+  - `checkBom` checks a BOM against the assembly: every instance on one line once, each line's quantity its parts, the total quantity and mass, a library line's source.
+- **Evidence**:
+  - **The v3 scenarios** (`test/team-v3.test.ts`, now ten):
+    - `assembly-interfere`: a clip inside its own envelope, over the bracket's end, passes its contract and is refused `PARTS_MEET` at the assembly gate;
+    - `assembly-total-budget`: shares 80 g and 20 g with a 70 g total. The bracket (64.8 g) is applied; the board (13 g, under its share) takes the whole to 77.8 g and is refused `OVER_TOTAL_BUDGET`.
+  - **`test/team-assembly.test.ts`** (2 tests; its name was checked free first):
+    - the clean assembly passes, its mass against the closed form (two aluminium plates less their holes; grams to 3 decimals);
+    - the board moved 2 mm after acceptance gives `PATTERN_MISALIGNED`;
+    - set face to face on the bracket, it gives `PARTS_TOUCH` (undecided);
+    - the BOM of bracket and two boards: lines [bracket ×1, board ×2], checked clean;
+    - seeded BOM defects, each refused: a part dropped, a quantity wrong, a part twice, a total off;
+    - a library part's line names its source, and a BOM without it is refused.
+  - Studio 577/577, with no test name missing against the last run. Lint and type-check clean.
+- **Next**: A8.5, per-role precision and recall on the seeded defects.

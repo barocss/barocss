@@ -391,7 +391,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
     leases); only the user decides (APPROVAL_IS_THE_USERS); approved, the interfaces move, the touched leases stay on
     the old contract (CONTRACT_MOVED until renewed), the untouched ones move; rejected, nothing changes; STALE_ECR,
     DECIDED, NO_CHANGE. Fixture `conformance/a8/ecr-move-pattern.json`.
-  - A8.4 (next) → A8.5.
+  - **A8.4** (O36): done. The Assembly integrator's gate after each part (PARTS_MEET; PARTS_TOUCH undecided;
+    PATTERN_MISALIGNED on every built part; OVER_TOTAL_BUDGET on the whole); the read-only BOM agent (derived lines,
+    checked against the assembly, library sources). ECR decisions only through a minted user token.
+  - A8.5 (next).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
