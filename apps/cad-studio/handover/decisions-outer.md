@@ -1674,4 +1674,47 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
     - seeded BOM defects, each refused: a part dropped, a quantity wrong, a part twice, a total off;
     - a library part's line names its source, and a BOM without it is refused.
   - Studio 577/577, with no test name missing against the last run. Lint and type-check clean.
+- **Correction (coordinator)**: the merge 2adc9dc52 brought the kernel lane's **R12.3b** (corner reliefs, ea8c877ae), not R12.4 as the A8.4 checkpoint said. R12.4 has not started.
 - **Next**: A8.5, per-role precision and recall on the seeded defects.
+
+## O37 — A8.5: per-role precision and recall on the seeded defects; declared contact passes (2026-10-20)
+
+- **Declared contact (coordinator)**: face-to-face contact is the normal state of an assembly.
+  - Two parts touching, with no interpenetration and within their chord tolerance, **pass as `EXPECTED_CONTACT`**, named in the trace with what declares it, when a declared interface or mate puts them together: a hole pattern both share (its mating faces), or a mate between them.
+  - Only undeclared touching is held, as `PARTS_TOUCH`. Interpenetration (`PARTS_MEET`) fails either way.
+  - Declaration is checked at the level of the pair: the shared pattern or the mate, not the particular faces in contact.
+  - Tests (`test/team-assembly.test.ts`):
+    - the board set on the bracket passes ("as the hole pattern H1 puts them together");
+    - a lid resting on the board with nothing declared is held;
+    - with a coincident mate, it passes ("the mate m1").
+- **Labels**: every scenario with decisions (29: A7's ten, A8's nineteen) labels each patch with the detector its seeded defect is for, or none (`expect.seeded`). A patch may carry two labels (both reviewers). The labels sit in the fixtures beside the expected decisions.
+- **The metric** (`src/team/metrics.ts`):
+  - a detector (each gate, the Verifier, each reviewer, a part's lease, contract and assembly gates) **flags** a patch when it fails or cannot decide it (undecided, or a review skipped);
+  - it is **clear** when it passes;
+  - it **did not run** when an earlier gate stopped the patch or it had nothing to check (a skipped gate). It is then not counted for that patch, except that a labelled defect that went past a detector which never ran is a **miss**.
+  - Over every patch it ran on, it reports true and false positives and negatives, precision and recall, and where it missed and where it raised false alarms. The Requirements role's own patches are left out.
+- **`cad-cli team --metrics <folders>`** runs every labelled scenario and prints the table.
+- **The scripted roles' numbers**: every detector at **precision 1 and recall 1**. TP / FP / FN / TN:
+
+  | detector | TP | FP | FN | TN |
+  |---|---|---|---|---|
+  | analysis | 2 | 0 | 0 | 17 |
+  | assembly | 2 | 0 | 0 | 5 |
+  | contract | 3 | 0 | 0 | 7 |
+  | dfm | 1 | 0 | 0 | 23 |
+  | interfaces | 1 | 0 | 0 | 24 |
+  | interference | 3 | 0 | 0 | 24 |
+  | lease | 5 | 0 | 0 | 10 |
+  | reviewer-analysis | 3 | 0 | 0 | 6 |
+  | reviewer-dfm | 5 | 0 | 0 | 4 |
+  | validity | 4 | 0 | 0 | 38 |
+  | verifier | 1 | 0 | 0 | 2 |
+
+  - These say the scripted roles and gates do what their fixtures were written for. They are **not evidence of a live model's quality**: that report, with live roles, waits for the owner (O30's protocol).
+- **The metric itself is checked** (`test/team-metrics.test.ts`, 3 tests; its name was checked free first):
+  - a clean patch mislabelled as an interference is a miss: recall 0.75, the miss named;
+  - a defect labelled for the analysis gate, which a validity fail never let it reach, is a miss "(not run)", and validity's flag a false alarm;
+  - a Verifier rejecting everything raises false alarms (precision below 1);
+  - the CLI prints the same table.
+- Studio 581/581 (53 s), with no test name missing against the last run. Lint and type-check clean.
+- **A8 is done**: A8.1–A8.5 (O33–O37). Pending the owner: the live comparison and live per-role metrics (O30).

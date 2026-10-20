@@ -166,6 +166,10 @@
     "lease",
     "OUT_OF_PART"
    ]
+  ],
+  "seeded": [
+   "lease",
+   "lease"
   ]
  }
 }

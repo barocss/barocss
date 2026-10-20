@@ -175,6 +175,9 @@
     "contract",
     "OUT_OF_ENVELOPE"
    ]
+  ],
+  "seeded": [
+   "contract"
   ]
  }
 }

@@ -175,6 +175,9 @@
     "contract",
     "OVER_BUDGET"
    ]
+  ],
+  "seeded": [
+   "contract"
   ]
  }
 }

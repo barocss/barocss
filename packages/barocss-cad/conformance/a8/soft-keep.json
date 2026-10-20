@@ -226,6 +226,12 @@
   ],
   "accepted": 0,
   "ended": "done",
-  "kept_because": "the tray must stay light: 1.0 mm walls, printed slowly"
+  "kept_because": "the tray must stay light: 1.0 mm walls, printed slowly",
+  "seeded": [
+   null,
+   "reviewer-dfm",
+   "analysis",
+   "reviewer-dfm"
+  ]
  }
 }

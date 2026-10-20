@@ -395,7 +395,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A8.4** (O36): done. The Assembly integrator's gate after each part (PARTS_MEET; PARTS_TOUCH undecided;
     PATTERN_MISALIGNED on every built part; OVER_TOTAL_BUDGET on the whole); the read-only BOM agent (derived lines,
     checked against the assembly, library sources). ECR decisions only through a minted user token.
-  - A8.5 (next).
+  - **A8.5** (O37): done. Per-role precision and recall on the seeded defects (29 labelled scenarios; `cad-cli team
+    --metrics`): the scripted roles at 1 and 1, with the confusion counts; the metric checked on mislabels and on a
+    Verifier that rejects all. Declared contact (a shared pattern or a mate) passes as EXPECTED_CONTACT; undeclared
+    touching is held.
+  - **A8 done** (O32–O37). Live numbers pending the owner (O30).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

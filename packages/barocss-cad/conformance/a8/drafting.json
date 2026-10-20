@@ -100,6 +100,11 @@
   ],
   "accepted": 1,
   "ended": "done",
-  "drawing_keeps_revision": true
+  "drawing_keeps_revision": true,
+  "seeded": [
+   null,
+   null,
+   null
+  ]
  }
 }

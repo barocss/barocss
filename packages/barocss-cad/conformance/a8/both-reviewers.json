@@ -148,6 +148,13 @@
    ]
   ],
   "accepted": 0,
-  "ended": "done"
+  "ended": "done",
+  "seeded": [
+   null,
+   [
+    "reviewer-analysis",
+    "reviewer-dfm"
+   ]
+  ]
  }
 }

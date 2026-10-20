@@ -175,6 +175,9 @@
     "lease",
     "NO_LEASE"
    ]
+  ],
+  "seeded": [
+   "lease"
   ]
  }
 }

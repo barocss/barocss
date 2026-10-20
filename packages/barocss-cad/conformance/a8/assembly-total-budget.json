@@ -1,7 +1,7 @@
 {
  "case": "assembly-total-budget",
  "step": "A8.2",
- "note": "A8.4: shares of 80 g and 20 g, a total of 70 g: the bracket (64.8 g) is applied; the board (13.0 g, under its share) takes the whole to 77.8 g, over the total \u2014 OVER_TOTAL_BUDGET, rejected.",
+ "note": "A8.4: shares of 80 g and 20 g, a total of 70 g: the bracket (64.8 g) is applied; the board (13.0 g, under its share) takes the whole to 77.8 g, over the total — OVER_TOTAL_BUDGET, rejected.",
  "architect": {
   "ops": [
    {
@@ -234,6 +234,10 @@
     "assembly",
     "OVER_TOTAL_BUDGET"
    ]
+  ],
+  "seeded": [
+   null,
+   "assembly"
   ]
  }
 }

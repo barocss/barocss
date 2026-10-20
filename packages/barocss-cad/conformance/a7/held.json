@@ -93,6 +93,10 @@
    ]
   ],
   "accepted": 0,
-  "ended": "done"
+  "ended": "done",
+  "seeded": [
+   null,
+   "interference"
+  ]
  }
 }

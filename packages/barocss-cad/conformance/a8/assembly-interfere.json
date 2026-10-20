@@ -293,6 +293,11 @@
     "assembly",
     "PARTS_MEET"
    ]
+  ],
+  "seeded": [
+   null,
+   null,
+   "assembly"
   ]
  }
 }

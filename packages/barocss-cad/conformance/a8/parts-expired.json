@@ -175,6 +175,9 @@
     "lease",
     "LEASE_EXPIRED"
    ]
+  ],
+  "seeded": [
+   "lease"
   ]
  }
 }

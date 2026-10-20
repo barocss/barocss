@@ -4,7 +4,7 @@
 // 3 a hard requirement fails (--check).
 //   cad-cli run part.cad.js -o part.bcad [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
 //   cad-cli check part.bcad
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { mjcfOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { readMjcf } from '../src/robot/mjcfCheck';
@@ -15,7 +15,8 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { meshToStl } from '../src/ui/files';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
-import { runScenario, runSummary, type Scenario } from '../src/team/scripted';
+import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
+import { metricsOf, type Labelled } from '../src/team/metrics';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -27,6 +28,9 @@ cad-cli urdf part.bcad -o folder [--name robot]
   Writes the assembly as URDF (folder/robot.urdf and folder/meshes/*.stl), checked against the URDF spec; exit 1 when refused.
 cad-cli mjcf part.bcad -o folder [--name robot]
   Writes it as a MuJoCo MJCF model (folder/robot.xml and folder/meshes/*.stl), checked; exit 1 when refused.
+cad-cli team --metrics folder
+  Runs every scenario in the folder (A7, A8) and prints each detector's true and false positives and negatives, precision
+  and recall against the scenarios' seeded-defect labels (A8.5).
 cad-cli team scenario.json
   Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
   Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
@@ -73,6 +77,19 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   if (cmd === undefined || cmd === 'help' || cmd === '--help' || cmd === '-h') { io.stdout.write(`${CLI_USAGE}\n`); return cmd === undefined ? 2 : 0; }
   if (cmd === 'team') {
     // (A7, O31: a scripted team through the Integrator; the traces printed.)
+    if (rest[0] === '--metrics') {
+      // (A8.5: every scenario in the folders given, its traces against its seeded labels.)
+      const dirs = rest.slice(1); if (!dirs.length) { io.stderr.write(`team --metrics takes scenario folders\n${CLI_USAGE}\n`); return 2; }
+      const runs: Labelled[] = [];
+      for (const dir of dirs) for (const f of readdirSync(resolve(dir)).filter(n => n.endsWith('.json')).sort()) {
+        const sc = JSON.parse(readFileSync(join(resolve(dir), f), 'utf8')) as (Scenario | PartsScenario) & { expect?: { seeded?: (string | string[] | null)[] } };
+        if (!sc.expect?.seeded) continue;
+        const traces = 'architect' in sc ? (await runPartsScenario(sc as PartsScenario, evaluate)).traces : (await runScenario(sc as Scenario, evaluate)).traces;
+        runs.push({ case: sc.case, traces, seeded: sc.expect.seeded });
+      }
+      say(io.stdout, { scenarios: runs.length, detectors: metricsOf(runs) });
+      return 0;
+    }
     const file = rest[0];
     if (!file) { io.stderr.write(`team takes a scenario file\n${CLI_USAGE}\n`); return 2; }
     let sc: Scenario;

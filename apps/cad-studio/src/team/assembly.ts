@@ -14,7 +14,7 @@ import { chordOf } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
 
-export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET';
+export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
 export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; massG: number }
 
@@ -35,7 +35,12 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
       const A = a.mesh.bounds, B = b.mesh.bounds, chord = chordOf(a.mesh) + chordOf(b.mesh);
       if ([0, 1, 2].some(k => A.max[k] < B.min[k] - chord - 1e-6 || B.max[k] < A.min[k] - chord - 1e-6)) continue;
       if (meshesMeet(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices)) findings.push({ code: 'PARTS_MEET', message: `${ids[i]} and ${ids[j]} interpenetrate`, entities: [ids[i], ids[j]] });
-      else if (meshDistance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices) <= chord) findings.push({ code: 'PARTS_TOUCH', message: `${ids[i]} and ${ids[j]} are within their meshes' chord tolerance (${chord.toPrecision(3)} mm): not decided by the meshes`, entities: [ids[i], ids[j]] });
+      else if (meshDistance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices) <= chord) {
+        // (Contact is the normal state of an assembly where it is declared: a hole pattern the two share, or a mate
+        // between them — expected, named, passed. Undeclared touching is not decided by the meshes: held.)
+        const why = declaredContact(doc, ids[i], ids[j]);
+        findings.push(why ? { code: 'EXPECTED_CONTACT', message: `${ids[i]} and ${ids[j]} touch, as ${why} puts them together`, entities: [ids[i], ids[j]] } : { code: 'PARTS_TOUCH', message: `${ids[i]} and ${ids[j]} touch (within their meshes' chord tolerance, ${chord.toPrecision(3)} mm) with no interface or mate that puts them together: not decided by the meshes`, entities: [ids[i], ids[j]] });
+      }
     }
   }
   const ifc = readInterfaces(doc.interfaces);
@@ -43,7 +48,16 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   let massG = 0;
   for (const [id, b] of parts) massG += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
   if (ifc.budgets.massG !== undefined && massG > ifc.budgets.massG + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(massG.toPrecision(6))} g, over its ${ifc.budgets.massG} g` });
-  return { verdict: findings.some(f => f.code !== 'PARTS_TOUCH') ? 'fail' : findings.length ? 'undecided' : 'pass', findings, massG };
+  const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT');
+  return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, massG };
+}
+
+/** What declares two parts' contact: a hole pattern both share (its mating faces), or a mate between them; else null. */
+export function declaredContact(doc: StudioDoc, a: string, b: string): string | null {
+  const p = readInterfaces(doc.interfaces).holePatterns.find(x => x.parts.includes(a) && x.parts.includes(b));
+  if (p) return `the hole pattern ${p.id}`;
+  const m = (doc.mates ?? []).find(x => (x.a.part === a && x.b.part === b) || (x.a.part === b && x.b.part === a));
+  return m ? `the mate ${m.id}` : null;
 }
 
 // ——— the BOM agent: read-only, on a built view

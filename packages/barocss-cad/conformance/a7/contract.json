@@ -111,6 +111,10 @@
   "ended": "done",
   "contract_changes": [
    "requirements"
+  ],
+  "seeded": [
+   null,
+   "interfaces"
   ]
  }
 }

@@ -176,6 +176,9 @@
     "lease",
     "CONTRACT_MOVED"
    ]
+  ],
+  "seeded": [
+   "lease"
   ]
  }
 }

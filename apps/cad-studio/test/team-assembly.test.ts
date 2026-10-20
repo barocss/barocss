@@ -28,11 +28,19 @@ test('the whole-assembly gate: clean passes with its mass; a part moved off the 
   const moved: StudioDoc = { ...doc, instances: doc.instances!.map(i => (i.id === 'p2' ? { ...i, position: [2, 0, 20] as [number, number, number] } : i)) };
   const m = await checkAssembly(moved, evaluate);
   assert.equal(m.verdict, 'fail'); assert.deepEqual(m.findings.map(f => [f.code, f.entities]), [['PATTERN_MISALIGNED', ['p2']]]);
-  // (The board set down on the bracket, face to face at z 10: never a pass — meeting, or undecided within the chord.)
+  // (The board set down on the bracket, face to face at z 10: they share the pattern H1 — expected contact, named, passed.)
   const resting: StudioDoc = { ...doc, instances: doc.instances!.map(i => (i.id === 'p2' ? { ...i, position: [0, 0, 10] as [number, number, number] } : i)) };
   const r = await checkAssembly(resting, evaluate);
-  // (The meshes touch at distance 0 with chord 0: not decided by the meshes — undecided, the patch held.)
-  assert.equal(r.verdict, 'undecided'); assert.deepEqual(r.findings.map(f => f.code), ['PARTS_TOUCH']);
+  assert.equal(r.verdict, 'pass', JSON.stringify(r.findings)); assert.deepEqual(r.findings.map(f => [f.code, f.message]), [['EXPECTED_CONTACT', 'p1 and p2 touch, as the hole pattern H1 puts them together']]);
+  // (A third part resting on the bracket with nothing declared: undecided, held — PARTS_TOUCH.)
+  const lid = (await dispatchTool({ doc: resting, bodies: [] }, 'add_part', { name: 'lid', position: [0, 0, 12] }, evaluate)).state;
+  const built = (await dispatchTool(lid, 'run_command', { command: 'box', values: { w: 10, d: 10, h: 2, x: 0, y: 0, z: 0 }, part: 'p3' }, evaluate)).state.doc;
+  const u = await checkAssembly(built, evaluate);
+  assert.equal(u.verdict, 'undecided'); assert.deepEqual(u.findings.map(f => [f.code, f.entities]), [['EXPECTED_CONTACT', ['p1', 'p2']], ['PARTS_TOUCH', ['p2', 'p3']]]);
+  // (A mate declares it: expected contact too.)
+  const mated: StudioDoc = { ...built, mates: [{ id: 'm1', kind: 'coincident', a: { part: 'p2', face: 'n1.top' }, b: { part: 'p3', face: 'n1.bottom' } } as never] };
+  const v = await checkAssembly(mated, evaluate);
+  assert.equal(v.verdict, 'pass', JSON.stringify(v.findings)); assert.ok(v.findings.some(f => f.code === 'EXPECTED_CONTACT' && /the mate m1/.test(f.message)));
 });
 
 test('the BOM agent on a built view: derived lines (identical parts on one line), checked against the assembly; its seeded defects refused; a library part\'s source named', async () => {
