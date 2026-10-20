@@ -1190,3 +1190,20 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - Bench: every row within budget. The planar-mesh mass row read ~70 ms against 51 ms earlier; an A/B with the new branch disabled gave the same, so it is the machine's load from the other sessions.
 - **Also found by the flow**: the card's label first collided with A1's References card (`aria-label`), which broke step 96. Its inputs overflowed the Browser's width, and its layout now wraps.
 - **Next**: A6.4, drafts from images and drawings.
+
+## O27 — before A6.4: room in the tool contract; PERF3 C16 logged as a known flaky timing check (2026-10-20)
+
+- **The contract's overhead**, A5.1's guard on what `tools/list` adds over the plain tools (annotations, titles, output schemas): **14 804 → 13 470** of 15 000, measured on the same head (f0bedadb1).
+  - Before: 101 985 against 87 181 plain. After: 100 651 against 87 181. The guard is unchanged.
+  - The trim follows MCP's own defaults, as O25 did. A tool that is not read-only lists `readOnlyHint: false` and `openWorldHint: false`, both always said. It lists `destructiveHint` only when false (the default is true) and `idempotentHint` only when true (the default is false). The internal annotations, the frozen contract and its breaking-change check keep every hint.
+  - The MCP-server test's requirement that every listed tool states `readOnlyHint` holds. The first cut, which omitted it at its default, failed that test, so it is said explicitly.
+  - Room left: 1 530. The other options were held back:
+    - merging the A6.3 reference tools into one tool with actions would lose their output schemas;
+    - shortening descriptions does not count against this guard, since descriptions are in the plain size.
+- **PERF3 C16** (`test/cageEdit.test.ts`, the kernel lane's file; threshold unchanged) failed once, in the full studio suite on the merged head f0bedadb1.
+  - It asserts that the slowest warm validation step is below half of the cold one.
+  - It passed alone 3 of 3, the suite rerun was clean, and it did not reproduce in 8 runs alongside the bench.
+  - The failing run's numbers were not captured: the run's output was filtered to test names.
+  - Measured since, with a scratch copy that prints them: warm 0.25–0.28 ms against cold 9.3–12.2 ms, a ratio of 0.022–0.028 against the 0.5 limit, with the bench running alongside or not.
+  - `warm` is the largest single step, a sub-millisecond measurement, so one GC pause or preemption of about 5 ms during the full suite's load fails it. Logged as a known flaky timing check in README §0's outer-lane follow-ups.
+- **The checkpoint routine** keeps the coordinator's habit: the full suite's test names are compared with the last commit's run, so a test that disappears is found even when nothing fails.

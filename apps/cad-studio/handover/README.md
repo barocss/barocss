@@ -365,8 +365,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
   - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
     chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
-  - A6.3: datums as mate targets (through the mates' face tables), not done. The tool contract's overhead is at
-    14 804 of A5.1's 15 000 guard: the next tools need room (shorter descriptions, or a schema trim).
+  - A6.3: datums as mate targets (through the mates' face tables), not done. The tool contract's overhead: 13 470 of
+    A5.1's 15 000 guard after O27's trim (from 14 804); 1 530 left.
+  - Known flaky timing check (O27): PERF3 C16 in `test/cageEdit.test.ts` (the kernel lane's file) failed once in the full
+    suite under load; its slowest warm step against the cold one is typically 0.025 of the 0.5 limit, so a single ~5 ms
+    stall fails it. The threshold is unchanged.
   - RD3 does not check the reducer's momentary peak torque (emergency stops, collisions): a check against the pages'
     "Limit for Momentary Peak Torque" for a stated stop event.
 
