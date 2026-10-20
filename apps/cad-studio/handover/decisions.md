@@ -6330,9 +6330,15 @@ The fourth FR stage frozen in D122, and first the two points from FR3a's review.
   - a new step (`fr3b-ordered-table`): the palette's table of sharp tubes, the leg A·720, the first rail A·560, its order in the notes.
 
 **Cost:**
-- A table of sharp tubes trims in order in well under a second.
+- A table of sharp tubes trims in order in well under a second (0.07–0.11 s).
 - A round-cornered table takes 7.5 s, against 1.9 s before the trimmed envelopes. The envelopes' Booleans on curved tubes (the analytic route) are the cost, and the studio's prefill tube is round-cornered.
 - Candidates: trimmed envelopes shared across a joint, cheaper envelopes (a box where the section's own rounds do not matter), or the analytic Boolean's speed itself.
+- **The studio does not freeze** (the coordinator's check, after review). Measured in the flow (`FR3b a round-cornered table from the palette …`, added with FR4a's commit), the palette's default table of round-cornered tubes:
+  - The preview and the evaluation run in the engine worker, so the page stays live. In one run the preview arrived after 6.7–7.9 s; meanwhile the page answered a round trip within 1–19 ms on 64–73 polls, and the longest gap between 10 ms main-thread ticks was 39–52 ms.
+  - The HUD said "evaluating…" all the while.
+  - On Enter, the bodies arrived 1.4 s later (the preview's result reused).
+  - The flow step holds the gap under 500 ms and the answers under 500 ms.
+- **So the 7.5 s is a performance follow-up, not a bug**: the speed-ups above. The prefill stays round-cornered (not changed to hide it).
 
 **Judgement calls**:
 - **Refuse, not report, the open-side butt**: the coordinator gave the choice. A refusal names the side and the spans and points to the envelope trim, which FR3b adds, so no butt leaves a gap and there is always a way to build it.
@@ -6352,6 +6358,82 @@ The fourth FR stage frozen in D122, and first the two points from FR3a's review.
 | Studio | 635/635 (+1 of FR3b, +6 from the merged AM7a/A6.3; names compared, none missing) |
 | Full flow | 184/184, run on its own; the new step included |
 | RB | 312 cases (+5: the fr cases), 0 new, the 8 known TODOs (totals as before: 4 refused, 3 invalid, 5 wrong) |
+| Properties | 11/11, no failures |
+
+RB rows are in the next commit.
+
+## D127 — FR4a: the cut list (2026-10-20)
+
+The fifth FR stage frozen in D122: a frame's cut list in the kernel, the studio's panel and CSV, and the agent's tool. Before it, the coordinator's responsiveness check of D126's 7.5 s table, recorded in D126: the studio does not freeze, so it is a performance follow-up.
+
+**Kernel** (`frame-cutlist.ts`):
+- **`cutPiece(output, { volumeMM3? })`**: a frame member's output as a piece to cut. Refused `[NOT_A_MEMBER]` for any other body. The second argument is an options object, so `outputs.map(cutPiece)` cannot pass an index as a volume (the first test caught that).
+  - **Axis length**: the centroidal line between its two end planes, in closed form. A square end is at its point, a through end at its run-on, and a mitre, butt or plane trim where the line meets its plane. Where an end is no plane (a cope, an ordered trim to the envelopes, a body trim), it is the volume over the area (`fromVolume`).
+  - **Long point**: the body's extent along its line: vertices, and curved edges at 64 points each.
+  - **Each end's cut**: kind, point, the other member, and for a plane its tilt about the section's y (`mitreDegrees`, a mitre box's angle) and about its x (`bevelDegrees`, the saw's bevel); null where it is no plane.
+  - **`reversible`**: the section symmetric about its own x or y through its centroid (a tube, a channel; not an angle). It is now in the member report too.
+- **`cutList(pieces, { densityKgPerM3, material? })`**: identical pieces on one row. Identical means:
+  - the same section (mirrored apart), material and density;
+  - axis length and long point to 1e-6 mm;
+  - end cuts (kind, a through end counted square; angles to 1e-6°) as an unordered pair for a reversible piece, in order otherwise;
+  - for a piece measured by volume, the volume to 1e-3 mm³.
+  - Rows are in first-seen order. A piece may carry its own material and density.
+  - **Mass**: ρ·A·L (closed form) where both ends are planes, else ρ·V (the body's).
+  - **Totals**: quantity, length and mass.
+  - Refused `[DENSITY]` for a density not above 0.
+- **`cutListCsv`**: a header; a row a group (item, quantity, section, material, axis length "(by volume)" where so, long point, start and end cuts, mass each and the row's, pieces); the total. RFC 4180 quoting.
+
+**Oracles** (`test/fr-4a.test.mjs`, 5 tests; written there):
+- **A mitred 600 × 400 rectangle of sharp tubes**: two rows of two; axis lengths 600 and 400 and long points L + 40 to 1e-12; 45° both ends with no bevel; mass ρ·A·L to 1e-12, and against the bodies' own (planar, exact).
+- **An ordered table**: legs 720 (square, through) × 4, rails 560 and 360 × 2 by volume (exact on planar bodies); its mass.
+- **A 60° butt**: the through piece 400 + 20 sin 60°, the other 300 − 20/sin 60° with a 30° cut and no bevel, its long point L_c + 20 tan 30°.
+- **A compound mitre**: a 3D corner, both members rolled ρ (0, 30, 60°). Each mitred end's mitre is atan(cos ρ·tan θ) and its bevel atan(sin ρ·tan θ), to 1e-9, with θ = acos(u1·m) from the skeleton.
+- **Grouping**:
+  - a Z of flat tubes: the first and last pieces are the same piece reversed, one row of two;
+  - by hand, the same two pieces non-reversible are two rows;
+  - reversibility from the shape (a tube and a channel yes, an angle no);
+  - two angle stiles one row, one of them mirrored two rows;
+  - a coped T-joint by volume, its mass the body's.
+- **The CSV** and its total; a piece in its own material and density apart; NOT_A_MEMBER, DENSITY.
+- **Conformance** `conformance/fr/` (+2; generator `scripts/fr4a-conformance.mjs`): `cutlist-rectangle-mitre` and `cutlist-butt-60`. Their outputs are checked as before, and a new `cutList` expectation in the runner checks rows (quantity, pieces, axis length, long point, by volume or not, each end's kind with mitre and bevel, mass) and totals at a density.
+
+**Studio**:
+- **A member's body carries its `cutPiece`**, worked out where the body's mass already is (its volume passed in).
+- **`partCutList(doc, bodies, material)`** (`app/cutList.ts`): every member's body as a piece in its own material (its look's, else the part's), densities from the materials library — every one an estimate, D67 — flagged `densityEstimate`.
+- **The body's panel**: "Cut list" with the member's axis length. The dialog has:
+  - a row a group: #, quantity, section, material, length "(by volume)", long point, start, end, mass each;
+  - the totals;
+  - a warning that the masses use the library's estimated densities;
+  - "CSV": the kernel's CSV, its pieces named by their bodies.
+- **The agent's `cut_list`** (`query.cutlist` in v2), read only:
+  - rows with the bodies' names, the totals, `densities: "estimates (the materials library's)"`, and the CSV on asking;
+  - a part with no members says so.
+  - Classified READ in `contract.ts` with its output schema. The read-tool contract test runs it on a two-member frame.
+  - The tool contract is recorded (`UPDATE_TOOL_CONTRACT=1`: tools-v1.json, tools-v2.json; a compatible change).
+- **Studio tests** `test/frame.test.ts` (+1): the palette's mitred rectangle's cut list (two rows of two, masses in aluminium to 1e-12, the estimate flag, the cut text), a member in steel its own row by steel's density, and the agent's tool with its CSV and its refusal.
+- **A flow step** (`fr4a-cut-list`): the palette's mitred rectangle; the dialog's two rows (600 and 400, mitre 45° both ends, 0.719 and 0.48 kg in aluminium); the totals and the warning; the CSV downloaded and read.
+- **The responsiveness step** (D126) is in the flow too.
+
+**Shared files touched** (the agent's tool infrastructure, needed for the kernel's new tool): `src/chat/contract.ts` (READ entry), `src/chat/groups.ts` (the v2 action), and `test/chat.test.ts` / `test/tool-contract.test.ts` (the tool listed and run). No drawing files: the drawing table is FR4b.
+
+**Judgement calls**:
+- **Axis length by closed form where both ends are planes, else by volume**, said so per row. A cope's "length" has no single plane, and its long point is the cutter's measure.
+- **Mitre and bevel as the plane's tilts about the section's y and x**, measured from square. For a plane rolled out of the section's axes both are nonzero (a compound cut).
+- **Reversible pieces group end for end; an angle's do not.** A mirrored piece is always its own row.
+- **Mass from each piece's material.** The studio's densities are all estimates, so the dialog, the agent's result and the panel say so.
+
+**Not in FR4a**: the drawing table (FR4b, on the outer lane's O49 API), stock nesting (FR6), weld gaps.
+
+**Checks** on 843ab46c6 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1288/1293 (4 skipped; +7: 5 fr-4a tests, 2 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 172/172 |
+| Studio | 639/639 (+1 of FR4a, +3 from the merged AM7b; names compared, none missing) |
+| Full flow | 187/187, run on its own; the two new steps included (the responsiveness step: preview after 7.4 s, the slowest answer 3 ms, the longest main-thread gap 49 ms) |
+| RB | 314 cases (+2: the cut-list cases), 0 new, the 8 known TODOs (totals as before) |
 | Properties | 11/11, no failures |
 
 RB rows are in the next commit.

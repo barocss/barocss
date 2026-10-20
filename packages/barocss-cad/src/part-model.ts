@@ -2195,6 +2195,18 @@ function keepFarthest(s: Solid, from: Point, toward: Point): Solid {
   const pieces = splitBodies(s.brep);
   return pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, from, toward) } : s;
 }
+/** A section's loop vertices (starts and arc centres) in its own XY. */
+function shapeVertices(shape: MemberShape): Point[] {
+  const out: Point[] = [];
+  for (const loop of [shape.outer, ...shape.holes]) for (const g of loop) { out.push([g.start[0], g.start[1], 0]); if (g.kind === 'arc') out.push([g.center[0], g.center[1], 0]); }
+  return out;
+}
+/** Whether a section is symmetric about its own x or y line through its centroid (its vertices map onto themselves). */
+function reversibleSection(shape: MemberShape, c: XY): boolean {
+  const v = shapeVertices(shape), size = Math.max(1, ...v.map(p => Math.hypot(p[0] - c[0], p[1] - c[1]))), tol = 1e-9 * size;
+  const aboutX = v.map(p => [p[0], 2 * c[1] - p[1], 0] as Point), aboutY = v.map(p => [2 * c[0] - p[0], p[1], 0] as Point);
+  return samePoints(aboutX, v, tol) || samePoints(aboutY, v, tol);
+}
 /** Of a member's pieces, the one whose points reach farthest from `from` along `toward`. */
 function farthestPiece(pieces: readonly Brep[], from: Point, toward: Point): Brep {
   let best = pieces[0], reach = -Infinity;
@@ -2207,7 +2219,7 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L + e0 + e1, fromMM: -e0, tag: o.at,
     names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
   const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
-  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), ...(o.frame ? { frame: o.frame } : {}),
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), reversible: reversibleSection(shape, centroid), ...(o.frame ? { frame: o.frame } : {}),
     start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
     ...(o.ends ? { ends: o.ends.report } : {}) };

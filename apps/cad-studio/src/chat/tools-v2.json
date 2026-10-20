@@ -318,6 +318,7 @@
        "section",
        "wall",
        "draft",
+       "cutlist",
        "render",
        "select"
       ],

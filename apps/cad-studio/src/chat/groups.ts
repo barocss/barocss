@@ -37,6 +37,7 @@ export const GROUPS: Record<string, Group> = {
       section: ['section', 'axis, at'],
       wall: ['wall_thickness', 'body?, below?'],
       draft: ['draft', 'body?, pull?, min_deg?'],
+      cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a)'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],
       select: ['select', 'faces?, edges?, bodies? — shows them selected in the studio'],
     },

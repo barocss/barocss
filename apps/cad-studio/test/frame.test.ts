@@ -7,7 +7,10 @@ import { flattenAssembly } from '../src/assembly/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editFields } from '../src/app/editFields';
-import { bodyName } from '../src/app/bodies';
+import { bodyName, withLook } from '../src/app/bodies';
+import { partCutList } from '../src/app/cutList';
+import { MATERIALS } from '../src/app/materials';
+import { cutText } from '../src/ui/CutListDialog';
 
 // FR1 (D123): a structural member in the studio — the palette's command (its section kinds, the prefilled radii and the
 // T-slot's slot sizes flagged estimates), the body's panel, the feature editor, saving, and the agent's command and raw node.
@@ -220,4 +223,29 @@ test('D126 the palette\'s table frame trims its corners in order (legs through, 
   await refused([{ ...tnode, section: { ...SH, outerRadius: 6 }, trims: undefined }], /BUTT_ON_OPEN_SIDE/);
   await refused([{ ...tnode, trims: [{ member: 0, end: 'start' }] }], /a trim takes a \\"plane\\" or a \\"body\\"/);
   await refused([{ ...tnode, corners: { tee: 'weld' } }], /corners\.tee: butt, cope or none/);
+});
+
+test('D127 the cut list: the palette\'s mitred rectangle of sharp tubes — two rows of two, 600 and 400, 45° both ends, masses by the body\'s material (aluminium, an estimate); a body in steel is its own row; the agent\'s cut_list with its CSV', async () => {
+  const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
+  const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), bodies = bodiesOf(doc);
+  const list = partCutList(doc, bodies, 'al6061')!, al = MATERIALS.find(m => m.id === 'al6061')!.gPerCm3 * 1000;
+  assert.deepEqual(list.rows.map(r => [r.quantity, Math.round(r.axisLengthMM * 1e9) / 1e9, r.ends.map(e => e.kind)]), [[2, 600, ['mitre', 'mitre']], [2, 400, ['mitre', 'mitre']]]);
+  assert.ok(Math.abs(list.rows[0].massKG / (al * A * 600e-9) - 1) < 1e-12);
+  assert.equal(list.densityEstimate, true); assert.equal(list.rows[0].material, MATERIALS.find(m => m.id === 'al6061')!.label);
+  assert.equal(cutText(list.rows[0].ends[0]), 'mitre 45°');
+  // One member's body in steel: apart, by steel's density.
+  const steel = MATERIALS.find(m => m.id === 'steel')!, mixed = withLook(doc, bodies[0], { material: 'steel' }), ml = partCutList(mixed, bodiesOf(mixed), 'al6061')!;
+  // (In first-seen order: member 1 in steel, members 2 and 4 the 400s, member 3 the other 600.)
+  assert.deepEqual(ml.rows.map(r => [r.quantity, r.material, r.pieces.length]), [[1, steel.label, 1], [2, MATERIALS.find(m => m.id === 'al6061')!.label, 2], [1, MATERIALS.find(m => m.id === 'al6061')!.label, 1]]);
+  assert.ok(Math.abs(ml.rows[0].massKG / (steel.gPerCm3 * 1000 * A * 600e-9) - 1) < 1e-12);
+  // The agent: read only, rows and totals, the CSV on asking; a part without members says so.
+  const evaluate = async (x: StudioDoc) => evaluatePart(x, 1), r0 = await evaluate(doc); assert.ok(r0.ok);
+  const r = await dispatchTool({ doc, bodies: r0.bodies }, 'cut_list', { csv: true }, evaluate);
+  assert.ok(!r.isError, r.content);
+  const out = JSON.parse(r.content);
+  assert.equal(out.totals.quantity, 4); assert.equal(out.rows.length, 2); assert.match(out.densities, /estimates/);
+  assert.match(out.csv, /^item,quantity,section,material,axis length \(mm\)/);
+  assert.match(out.rows[0].names[0], /^Frame RHS 40×40×3 · 4 members · member 1$/);
+  const none2 = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'cut_list', {}, evaluate);
+  assert.ok(none2.isError && /no frame members/.test(none2.content), none2.content);
 });

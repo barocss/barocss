@@ -34,6 +34,8 @@ import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf,
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 import { rememberedEvaluate } from '../engine/evalMemo';
+import { cutListCsv } from '@barocss/cad';
+import { partCutList } from '../app/cutList';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -934,6 +936,13 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const doc = { ...state.doc, requirements: [...kept, ...marked] };
       return { state: { ...state, doc }, content: json({ ok: true, requirements: doc.requirements.map(r => ({ id: r.id, hard: r.hard, check: `${r.check.query.fn} ${expectedOf(r.check)}` })) }), isError: false, changed: true, summary: `${list.length} requirement${list.length === 1 ? '' : 's'} set` };
     }
+    case 'cut_list': {
+      // (FR4a, D127: read only; the bodies' own materials, else the part's default.)
+      const list = partCutList(state.doc, state.bodies);
+      if (!list) return fail(state, 'The part has no frame members: make a frame (add_features kind "frame") or a structural member first.');
+      const rows = list.rows.map(r => ({ ...r, names: r.pieces.map(k => list.names[k] ?? k) }));
+      return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows` };
+    }
     case 'check_spec': {
       if (!state.doc.requirements?.length) return fail(state, 'There are no requirements yet: set_requirements first, from the brief.');
       const { outcomes, ...report } = await checkSpec(state.doc, state.bodies, evaluate);
@@ -1220,6 +1229,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_requirements',
     description: 'Keeps the brief as requirements, each with a check that can be run: {id, source (the user\'s words, quoted exactly as they wrote them: checked against the conversation, SOURCE_NOT_SAID; a requirement you derived is assumed), hard (true: must hold), basis (stated | assumed | ambiguous), subject?, assume?, check: {op: "==" | "<=" | ">=" | "between", query: {fn, …}, value | min and max, tol?, unit?}}. query.fn: bbox {axis, body?}, volume {body?}, mass {body?}, count_solids, count_faces_of_kind {kind: plane | curved, body?}, distance_between {a, b}, radius {face}, hole_diameter {face}, min_wall {body?}, draft_min {body?, pull?}, clearance {a, b: body keys}, gear_center_distance | gear_backlash | gear_contact_ratio | gear_clearance {a, b: the feature ids n<k> of two spur gears, or of a gear and a rack (then the centre distance is the gear axis from the rack pitch line); gear_clearance is minus the depth when the teeth cross}, library_check {feature: the id n<k> of a library part, check: the id of one of its rules — the margin it reports, unknown without its context}, hole_alignment {board: base or a part id holding the board (an imported PCB), features?: standoff ids — the largest offset in mm of their screw axes from its holes}, overhang_area {body?, direction?: build direction, default [0, 0, 1] — the area past the printing process limit}, print_rule {rule: wall | wall-rec | hole | horizontal-hole | gap | cavity | bed-fit | overhang | warp | tip, direction?}, subd_deviation {body?, at?: all | crease — the largest distance of a SubD body’s caps from the limit surface, in mm; crease: only those at crease, corner or boundary vertices}. Faces and edges by name or selector. Write them before modelling. Adds to (or with replace: true, replaces) those there; an id given again replaces its requirement.',
     input_schema: { type: 'object', properties: { requirements: { type: 'array', items: { type: 'object' } }, replace: { type: 'boolean' } }, required: ['requirements'], additionalProperties: false },
+  },
+  {
+    name: 'cut_list',
+    description: 'The frame members\' cut list (FR4a): identical members on one row — {rows [{item, quantity, section, material, axisLengthMM (the centroidal axis between the end planes; by volume where an end is coped or trimmed to an envelope or a body: fromVolume), longPointMM, ends [{end, kind (square | mitre | butt | through | cope | trim), mitreDegrees (about the section\'s y), bevelDegrees (about its x)}], massKG each, totalMassKG, pieces: body keys}], totals {quantity, axisLengthMM, massKG}}. Masses use the materials library\'s densities, every one an estimate: say so. csv: true adds the CSV.',
+    input_schema: { type: 'object', properties: { csv: { type: 'boolean' } }, additionalProperties: false },
   },
   {
     name: 'check_spec',

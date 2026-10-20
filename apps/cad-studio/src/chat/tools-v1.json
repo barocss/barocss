@@ -849,6 +849,50 @@
    }
   },
   {
+   "name": "cut_list",
+   "annotations": {
+    "title": "Cut list",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "csv": {
+      "type": "boolean"
+     },
+     "part": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "csv": {
+      "type": "string"
+     },
+     "densities": {
+      "type": "string"
+     },
+     "rows": {
+      "type": "array"
+     },
+     "totals": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "rows",
+     "totals",
+     "densities"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "delete_feature",
    "annotations": {
     "title": "Delete feature",
