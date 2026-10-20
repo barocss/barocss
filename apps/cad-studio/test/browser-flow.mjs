@@ -3189,7 +3189,7 @@ try {
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 300) <= 1, `${vol} vs ${A * 300}`);
     let props = await page.textContent('.props');
-    assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6 · section 420\.823 mm² · length 300 mm/);
+    assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6, ri 3 \(concentric\) · section 420\.823 mm² · length 300 mm/);
     assert.match(props, /Line through its centroid; section x −X, y \+Z/);
     assert.match(props, /Estimates, not your stock's: outerRadius 6 mm/);
     assert.match(await page.textContent('.history'), /Member RHS 40×40×3 · 300 mm/);

@@ -6022,7 +6022,7 @@ The first FR stage frozen in D122: section kinds in the kernel, and one straight
 
 **Kernel** (`frame-section.ts`, the `frame-member` feature in `part-model.ts`):
 - **Section kinds**, every dimension given — no size, radius or slot value is defaulted (D122):
-  - `rect-tube`: width, height, wall, `outerRadius` (0: sharp), `innerRadius` (by default concentric, ro − t; a ro in (0, t) has no concentric bore, so its ri must be given);
+  - `rect-tube`: width, height, wall, `outerRadius` (0: sharp), `innerRadius` (by default concentric, ro − t; a ro in (0, t) has no concentric bore, so its ri must be given). **The ro − t default is a derived geometric rule** — the bore's corners concentric with the outer ones, the wall t all round — not a material or catalogue value, so it belongs in the kernel (the coordinator, at FR1's review). It is never hidden: the report's `derived` says `{ innerRadius: 'concentric: ro − t' }` (`'sharp: 0, as the outer corners'` for ro 0), and the label reads `ro 6, ri 3 (concentric)`. A given ri derives nothing (commit after `2f066cb5e`, a test failing on it, the conformance case's `derived`);
   - `round-tube`: diameter, wall;
   - `angle`: `legX`, `legY`, thickness, `rootRadius`, `toeRadius`; the heel at the origin;
   - `channel` (parallel flanges): height, width, web, flange, `rootRadius`; its back on x 0, its bottom on y 0;

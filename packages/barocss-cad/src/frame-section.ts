@@ -17,8 +17,13 @@ export interface FrameSection {
   readonly outer: readonly ProfileSegmentInput[]; readonly outerNames: readonly string[];
   readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly holeNames: readonly (readonly string[])[];
   readonly areaMM2: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY };
-  /** A short description, `rect-tube 40 × 40 × 3, ro 6`. */
+  /** A short description, `rect-tube 40 × 40 × 3, ro 6, ri 3 (concentric)`. */
   readonly label: string;
+  /**
+   * Dimensions not given but derived by a geometric rule (never a material or catalogue value), and how: a rectangular
+   * tube's bore radius left out is concentric with its outer corners, `{ innerRadius: 'concentric: ro − t' }`.
+   */
+  readonly derived?: Readonly<Record<string, string>>;
 }
 
 /** A section's dimensions refused: the part model's PARAMETER code, the message starting `[SECTION_DIMENSIONS]`. */
@@ -71,7 +76,8 @@ function rectTube(s: Extract<FrameSectionSpec, { kind: 'rect-tube' }>): FrameSec
   const out = roundedRect(b / 2, h / 2, ro, ''), bore = roundedRect(b / 2 - t, h / 2 - t, ri, 'bore.'), k = 4 - Math.PI;
   return { outer: out.segments, outerNames: out.names, holes: [bore.segments], holeNames: [bore.names],
     areaMM2: b * h - k * ro * ro - ((b - 2 * t) * (h - 2 * t) - k * ri * ri), centroid: [0, 0], box: { min: [-b / 2, -h / 2], max: [b / 2, h / 2] },
-    label: `rect-tube ${fmt(b)} × ${fmt(h)} × ${fmt(t)}${ro ? `, ro ${fmt(ro)}` : ''}${s.innerRadius !== undefined ? `, ri ${fmt(ri)}` : ''}` };
+    label: `rect-tube ${fmt(b)} × ${fmt(h)} × ${fmt(t)}${ro ? `, ro ${fmt(ro)}, ri ${fmt(ri)}${s.innerRadius === undefined ? ' (concentric)' : ''}` : s.innerRadius !== undefined ? `, ri ${fmt(ri)}` : ''}`,
+    ...(s.innerRadius === undefined ? { derived: { innerRadius: ro ? 'concentric: ro − t' : 'sharp: 0, as the outer corners' } } : {}) };
 }
 
 /** A round tube Ø`diameter`, wall t, centred on the origin: A = π(R² − r²). Faces `outside`, `bore`. */
@@ -238,6 +244,8 @@ export interface FrameMemberReport {
   readonly sectionKind: string; readonly section: string;
   /** Its area and centroid in the section's own XY (closed forms; a sketch section's by its prism's exact mass). */
   readonly areaMM2: number; readonly centroid: XY;
+  /** The section's dimensions derived by a geometric rule, and how (`FrameSection.derived`). */
+  readonly derived?: Readonly<Record<string, string>>;
   /** The section's point on the member's line (`anchor`), and how far the section is moved from it (`offset`, in its XY). */
   readonly anchor: FrameAnchor; readonly offset: XY; readonly rollDegrees: number;
   /** The member's line, its length, its direction (the extrusion's) and the section's x and y in the part. */

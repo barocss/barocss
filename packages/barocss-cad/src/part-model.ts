@@ -1088,7 +1088,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (regions?.length) fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
         shape = { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
       } else {
-        try { const b = frameSection(sectionSpec(section, dim, integer, fail)); shape = { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames.map(n => `${at}.${n}`), holeNames: b.holeNames.map(h => h.map(n => `${at}.${n}`)), areaMM2: b.areaMM2, centroid: b.centroid, box: b.box }; }
+        try { const b = frameSection(sectionSpec(section, dim, integer, fail)); shape = { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames.map(n => `${at}.${n}`), holeNames: b.holeNames.map(h => h.map(n => `${at}.${n}`)), areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) }; }
         catch (cause) { if (cause instanceof FrameSectionError) fail('PARAMETER', cause.message); throw cause; }
       }
       return () => buildMember(shape!, { start, end, L, anchor, offset, roll: roll as number, up, at });
@@ -1700,7 +1700,7 @@ function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?
 const MEMBER_MIN_MM = 1e-6;
 /** A member's section ready to extrude: its loops and roles, and (a kind's) its closed-form area, centroid and box. */
 type MemberShape = { readonly kind: string; readonly label: string; readonly outer: readonly ProfileSegmentInput[]; readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags;
-  readonly outerNames?: readonly string[]; readonly holeNames?: readonly (readonly string[])[]; readonly areaMM2?: number; readonly centroid?: XY; readonly box?: { readonly min: XY; readonly max: XY } };
+  readonly outerNames?: readonly string[]; readonly holeNames?: readonly (readonly string[])[]; readonly areaMM2?: number; readonly centroid?: XY; readonly box?: { readonly min: XY; readonly max: XY }; readonly derived?: Readonly<Record<string, string>> };
 /** A section kind's dimensions resolved (parameters allowed); the kind's own checks follow in `frameSection`. */
 function sectionSpec(s: Record<string, unknown>, dim: Tools['dim'], integer: Tools['integer'], fail: Tools['fail']): FrameSectionSpec {
   const n = (key: string) => dim(s[key] as CadPartDim, `section.${key}`);
@@ -1745,7 +1745,7 @@ function buildMember(shape: MemberShape, o: { start: Point; end: Point; L: numbe
   // (The section point on the line: the anchor's, less the offset the section is moved by.)
   const p = anchorPoint(o.anchor, centroid, box), q: XY = [p[0] - o.offset[0], p[1] - o.offset[1]];
   const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
-  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, anchor: o.anchor, offset: o.offset, rollDegrees: o.roll,
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll,
     start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) } };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;

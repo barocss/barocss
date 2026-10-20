@@ -148,6 +148,18 @@ test('FR1 placement: the anchor\'s point on the line, the section moved by the o
   o.massProperties(1).centroidMM.forEach((v, k) => near(v, (o.member.centroidLine.start[k] + o.member.centroidLine.end[k]) / 2, 1e-12, 'centre of mass on the centroidal line'));
 });
 
+test('FR1 a rectangular tube\'s bore radius left out is derived, concentric with its corners (ro − t), and said so in the report and the label; given, nothing is derived', () => {
+  const s = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 6 };
+  let m = run([member(s, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  assert.deepEqual(m.derived, { innerRadius: 'concentric: ro − t' }); assert.equal(m.section, 'rect-tube 40 × 40 × 3, ro 6, ri 3 (concentric)');
+  m = run([member({ ...s, innerRadius: 2 }, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  assert.equal(m.derived, undefined); assert.equal(m.section, 'rect-tube 40 × 40 × 3, ro 6, ri 2');
+  m = run([member({ ...s, outerRadius: 0 }, [0, 0, 0], [100, 0, 0])]).output('m').member;
+  assert.deepEqual(m.derived, { innerRadius: 'sharp: 0, as the outer corners' }); assert.equal(m.section, 'rect-tube 40 × 40 × 3');
+  // (No other kind derives a dimension.)
+  assert.equal(run([member({ kind: 'round-tube', diameter: 30, wall: 2 }, [0, 0, 0], [100, 0, 0])]).output('m').member.derived, undefined);
+});
+
 test('FR1 faces by the section\'s roles and the ends; a sketch section (holes allowed) by its sides; dimensions by parameter', () => {
   const names = o => [...new Set(o.brep.faces.map(f => f.name.replace(/#\d+$/, '')))].sort();
   assert.deepEqual(names(run([member({ kind: 'channel', height: 80, width: 40, web: 5, flange: 8, rootRadius: 7 }, [0, 0, 0], [0, 0, 100])]).output('m')),
