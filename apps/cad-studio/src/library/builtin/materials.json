@@ -15,7 +15,8 @@
   "P-MJF": "BaroCSS rule of thumb for multi-jet fusion (MJF), written for this table: verify with your service or printer",
   "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's",
   "P-ORI": "BaroCSS heuristic for scoring print orientations, written for this table (weights of normalised terms): a default to adjust",
-  "W-WEB": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept"
+  "W-WEB": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+  "W-DERIVED": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)"
  },
  "materials": [
   {
@@ -1522,13 +1523,13 @@
     "drillFineStepMM": {
      "value": 0.05,
      "unit": "mm",
-     "source": "W-WEB",
+     "source": "W-DERIVED",
      "description": "the drill sizes' step up to drillFineToMM",
      "page": {
       "url": "https://www.engineersedge.com/drill_sizes.htm",
       "read": "2026-10-21",
       "label": "ISO (Metric Size Drills) — 0.35, 0.4, 0.45 … 2.7, 2.75",
-      "note": "the step read from the listed sizes"
+      "note": "derived: the step between the sizes listed from 0.35 to 2.75, not a value printed on the page"
      }
     },
     "drillFineToMM": {
@@ -1545,25 +1546,25 @@
     "drillStepMM": {
      "value": 0.1,
      "unit": "mm",
-     "source": "W-WEB",
+     "source": "W-DERIVED",
      "description": "the drill sizes' step from drillFineToMM to drillStepToMM",
      "page": {
       "url": "https://www.engineersedge.com/drill_sizes.htm",
       "read": "2026-10-21",
       "label": "ISO (Metric Size Drills) — 2.8, 2.9, 3.0 … 9.9, 10.0",
-      "note": "the step read from the listed sizes"
+      "note": "derived: the step between the sizes listed from 2.8 to 10.0, not a value printed on the page"
      }
     },
     "drillQuarterStepMM": {
      "value": 0.25,
      "unit": "mm",
-     "source": "W-WEB",
+     "source": "W-DERIVED",
      "description": "the quarter sizes also listed in the 0.1 mm range",
      "page": {
       "url": "https://www.engineersedge.com/drill_sizes.htm",
       "read": "2026-10-21",
       "label": "ISO (Metric Size Drills) — 3.25, 3.75 … 9.75",
-      "note": "read as a pattern from the listed quarter sizes; each quarter size not checked one by one"
+      "note": "derived: read as a pattern from the quarter sizes listed (3.25, 3.75 … 9.75), not a value printed on the page; each quarter size not checked one by one"
      }
     },
     "drillStepToMM": {
@@ -1580,13 +1581,13 @@
     "drillCoarseStepMM": {
      "value": 0.5,
      "unit": "mm",
-     "source": "W-WEB",
+     "source": "W-DERIVED",
      "description": "the drill sizes' step above drillStepToMM",
      "page": {
       "url": "https://www.engineersedge.com/drill_sizes.htm",
       "read": "2026-10-21",
       "label": "ISO (Metric Size Drills) — 10.0, 10.5, 11.0 … 24.5, 25.0",
-      "note": "the step read from the listed sizes"
+      "note": "derived: the step between the sizes listed from 10.0 to 25.0, not a value printed on the page"
      }
     },
     "holeDiameterRec": {

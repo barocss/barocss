@@ -3895,3 +3895,46 @@ The coordinator accepted the CNC S0 and set a process rule: a product-file chang
 - **Flow**:
   - the CNC1 step now reads "… size pass, hole-depth pass, hole-size pass, thread pass, corners unknown …";
   - a new CNC2 step, through the real chat and tool servers: a 60 × 40 × 20 aluminium plate with a counterbored Ø6.6 and an M6 tapped through. The report reads "hole-depth pass, hole-size pass, thread warn", with the holes' nodes as built.
+
+## O86 — CNC3: inside corners, cavities, small features, tall walls, text; derived drill steps marked (2026-10-21)
+
+The coordinator accepted CNC2 with one flag. Drill sizes "read as a pattern" are not values as printed, so they are marked derived. That fix lands in this commit.
+
+- **Derived values**:
+  - a new library source `W-DERIVED`: derived from a public page by a stated rule, not a value as printed;
+  - the drill table's four steps (`drillFineStepMM`, `drillStepMM`, `drillQuarterStepMM`, `drillCoarseStepMM`) are now `W-DERIVED`, each note starting "derived:" and stating its rule. The quarter step reads as a pattern from the quarter sizes listed. The others are the step between the listed sizes, which the page prints as sizes, not as a step;
+  - the table's ends as printed (0.35, 2.75, 10, 25) stay `W-WEB`;
+  - `checkMaterials` refuses a derived value without its page and its rule.
+- **What a tool leaves** (`src/machining/cavities.ts`, `cavitiesOf`), from the exact geometry and rays through the studio's BVH:
+  - **Inside corners**: concave cylinders spanning half a turn or less, with pieces on one axis and radius joined.
+    - A fillet is an **edge fillet** when a plane beside it looks out along its normal: a corner-radius or ball tool cuts it from that side. The display drops smooth edges, so the planes it is tangent to are found by geometry: the axis lies r off the plane on its outer side, and a vertex sits on the tangent line.
+    - Otherwise it is a **cavity's corner**: its axis line, which lies in the cavity, leads out of the part (a straight tool's axis). Its depth is its axial extent.
+  - **Sharp concave edges between planes**:
+    - **cut sharp**, when the planes are square and one looks out along its normal beside the edge (the end mill's end on it, its side on the other);
+    - otherwise a **sharp corner**, radius 0, reached along the edge if a ray from just inside it, either way, leaves the part. If no ray does, it is closed;
+    - an edge between planes that are not square is **angled**.
+  - **Floors**: a plane looking out along its normal, with a neighbour rising above it across a concave edge. Straight edges are tested beside the edge; curved ones (a round pocket's, a boss's) are taken as rising. An L's side face meets the floor at a convex edge and does not rise.
+    - Its depth is the highest rising neighbour.
+    - Its width is its narrowest extent, by rotating calipers on its hull, measured only across directions with a rising neighbour wholly at or past each side. A rib's top between two walls is as wide as the walls are apart. A step, open on a side, is not a cavity.
+    - A floor that only a hole's bores rise from is the hole's bottom (CNC2's).
+  - **Tall features**: IM4's ribs. The height runs across the rib face from its longest concave straight root edge; with no root edge, the height is unknown.
+- **The rules** (milling; turning's corners stay unknown, naming CNC6), in place of CNC1's placeholder `corners`. All are recommended-level with sourced limits (Hubs); a fail needs a sourced feasible value:
+  - **corners**: each corner reached along a tool's axis, its radius against ⅓ × its depth (warn under). A sharp corner reads "a rotating tool leaves its radius". Closed and angled corners are unknown, naming CNC4. Edges cut sharp and edge fillets are counted;
+  - **pocket**: the deepest floor for its width, against 4 × (warn over);
+  - **feature**: the narrowest cavity, failing under 0.5 mm and warned under 2.5 mm;
+  - **tall**: the tallest thin wall for its thickness, warned at 4 × or more (Hubs: "height / width is < 4"); one unmeasured is unknown;
+  - **text**: the studio has no text feature, so it passes, saying so. With an imported or mesh body it is unknown: text in it is not read. Protolabs' stroke and depth are named in the reason.
+
+  The report's `machining` adds `cavities`. Shared helpers: `concaveSpan` and `extent` from holes.ts, and `besideEdge` (now exported) from walls.ts. IM4's behaviour is unchanged.
+- **Tests** (`test/cnc-cavities.test.ts`, 7). Each oracle is the construction:
+  - the data: the four steps are derived with their rules, and the table's ends are printed values. A mutant derived value without its note is refused;
+  - `narrowest` against closed forms: a rectangle, a rotated one, and a 360-gon's 20 cos(π/360);
+  - a 50 × 30 pocket 8 deep with r 5 corners: four corners reached (r 5, depth 8), one floor 8 deep and 30 wide, everything passing. The mutant r 2 is warned, "under ⅓ of it (2.667)";
+  - the pocket with sharp corners: four corners of radius 0, depth 8, reached and warned; its four floor edges are cut sharp;
+  - slots 2 wide: 8 deep is exactly 4 × and passes; the feature is warned (2 mm); 10 deep is 5 × and warned. Mutants: the pocket limit moved to 6 passes; the feasible least moved to 2.2 fails;
+  - a shelled box with a rib 1.2 thick and 15 high: tall 12.5 × is warned, a 4 mm rib (3.75 ×) passes. The rib's top is a cavity 8 deep and 36 wide (the walls), not 1.2. The shell's sharp inside corners (23 deep) are warned;
+  - an L bracket: its inside edge is cut sharp and the base is a step, so there is no cavity. Filleted r 5, it is an edge fillet, not a cavity's corner.
+  - CNC1's block test expects the new rules to pass; CNC2's tests are unchanged and pass.
+- **Flow**:
+  - CNC1's and CNC2's steps read the new rules;
+  - a new CNC3 step, through the real chat and tool servers: a 120 × 80 × 12 aluminium plate with a 50 × 30 pocket 8 deep reads "corners warn", sharp. Filleted r 5, it reads "corners pass".

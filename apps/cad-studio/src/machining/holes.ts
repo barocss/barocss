@@ -26,8 +26,8 @@ export interface TappedHole { readonly node: string; readonly thread: string; re
 
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 interface Piece { face: number; c: number[]; a: number[]; r: number }
-/** Whether a cylinder piece faces its axis (a bore, not a boss) and spans more than half a turn (not a fillet). */
-function isBore(m: DisplayMesh, f: number, c: number[], a: number[]): boolean {
+/** A cylinder piece's span round its axis (radians) when it faces its axis (concave: a bore or an inside fillet), else null. */
+export function concaveSpan(m: DisplayMesh, f: number, c: readonly number[], a: readonly number[]): number | null {
   const P = m.positions, I = m.indices, X0 = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], k0 = dot(X0, a), U = [X0[0] - k0 * a[0], X0[1] - k0 * a[1], X0[2] - k0 * a[2]], Ul = Math.hypot(U[0], U[1], U[2]);
   const X = [U[0] / Ul, U[1] / Ul, U[2] / Ul], Y = [a[1] * X[2] - a[2] * X[1], a[2] * X[0] - a[0] * X[2], a[0] * X[1] - a[1] * X[0]];
   let inward = 0, outward = 0; const angles: number[] = [];
@@ -40,12 +40,14 @@ function isBore(m: DisplayMesh, f: number, c: number[], a: number[]): boolean {
     if (nx * (gx - s * a[0]) + ny * (gy - s * a[1]) + nz * (gz - s * a[2]) < 0) inward++; else outward++;
     for (const i of [i0, i1, i2]) { const vx = P[i] - c[0], vy = P[i + 1] - c[1], vz = P[i + 2] - c[2]; angles.push(Math.atan2(vx * Y[0] + vy * Y[1] + vz * Y[2], vx * X[0] + vy * X[1] + vz * X[2])); }
   }
-  if (!(inward > outward) || !angles.length) return false;
+  if (!(inward > outward) || !angles.length) return null;
   angles.sort((x, y) => x - y);
   let gap = angles[0] + 2 * Math.PI - angles[angles.length - 1];
   for (let i = 1; i < angles.length; i++) gap = Math.max(gap, angles[i] - angles[i - 1]);
-  return 2 * Math.PI - gap > Math.PI + 1e-6;
+  return 2 * Math.PI - gap;
 }
+/** A bore: concave, round more than half a turn (half a turn or less is an inside fillet). */
+const isBore = (m: DisplayMesh, f: number, c: number[], a: number[]) => { const span = concaveSpan(m, f, c, a); return span !== null && span > Math.PI + 1e-6; };
 /** Whether two cylinders share an axis line (any radius). */
 function coaxial(x: Piece, y: Piece): boolean {
   if (Math.abs(Math.abs(dot(x.a, y.a)) - 1) > 1e-9) return false;
@@ -53,7 +55,7 @@ function coaxial(x: Piece, y: Piece): boolean {
   return Math.hypot(d[0] - s * y.a[0], d[1] - s * y.a[1], d[2] - s * y.a[2]) <= 1e-9;
 }
 /** A face's extent along an axis from a point on it. */
-function extent(m: DisplayMesh, f: number, c: readonly number[], a: readonly number[]): [number, number] {
+export function extent(m: DisplayMesh, f: number, c: readonly number[], a: readonly number[]): [number, number] {
   let lo = Infinity, hi = -Infinity;
   for (let i = 0; i < m.faceOfVertex.length; i++) if (m.faceOfVertex[i] === f) { const s = (m.positions[3 * i] - c[0]) * a[0] + (m.positions[3 * i + 1] - c[1]) * a[1] + (m.positions[3 * i + 2] - c[2]) * a[2]; if (s < lo) lo = s; if (s > hi) hi = s; }
   return [lo, hi];
