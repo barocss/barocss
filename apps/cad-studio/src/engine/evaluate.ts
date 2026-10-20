@@ -1,6 +1,6 @@
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import type { FaceTable } from '../assembly/mates';
-import { evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, exportStep } from '@barocss/cad';
+import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -38,6 +38,8 @@ export interface BodyResult {
   subd?: SubdSummary;
   /** A sheet-metal body's flat pattern (R12.2, D117), or why it has none (its refusal). */
   flat?: FlatPattern; flatRefused?: string;
+  /** A frame member as a piece to cut (FR4a, D127): its axis length, long point, end cuts, volume. */
+  cutPiece?: CutPiece;
   /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
   sheet?: { thicknessMM: number; bendRadiusMM: number; kFactor?: number; bendTable?: string };
 }
@@ -76,7 +78,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];

@@ -1,0 +1,167 @@
+{
+  "id": "fr-cutlist-butt-60",
+  "step": "FR",
+  "decisions": [
+    "D127"
+  ],
+  "about": "FR4a: the cut list of two sharp tubes butted at 60°: the through piece 400 + 20 sin 60° square, the other 300 − 20/sin 60° with its end cut 30° (long point L_c + 20 tan 30°).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              249.99999999999997,
+              259.8076211353316,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "at": [
+              {
+                "point": 1,
+                "kind": "butt",
+                "through": 0
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 185290.30558560582,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            208.6602540378444,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 122946.25921919224,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            319.71031574263304,
+            140.02352458341485,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "cutList": {
+      "densityKgPerM3": 7850,
+      "absTol": 1e-9,
+      "rows": [
+        {
+          "quantity": 1,
+          "pieces": [
+            "f/0"
+          ],
+          "axisLengthMM": 417.3205080756888,
+          "longPointMM": 417.3205080756888,
+          "fromVolume": false,
+          "ends": [
+            {
+              "kind": "square",
+              "mitreDegrees": 0,
+              "bevelDegrees": 0
+            },
+            {
+              "kind": "through",
+              "mitreDegrees": 0,
+              "bevelDegrees": 0
+            }
+          ],
+          "massKG": 1.4545288988470058
+        },
+        {
+          "quantity": 1,
+          "pieces": [
+            "f/1"
+          ],
+          "axisLengthMM": 276.905989232415,
+          "longPointMM": 288.4529946162075,
+          "fromVolume": false,
+          "ends": [
+            {
+              "kind": "square",
+              "mitreDegrees": 0,
+              "bevelDegrees": 0
+            },
+            {
+              "kind": "butt",
+              "mitreDegrees": 30,
+              "bevelDegrees": 0
+            }
+          ],
+          "massKG": 0.9651281348706593
+        }
+      ],
+      "totals": {
+        "quantity": 2,
+        "axisLengthMM": 694.2264973081037,
+        "massKG": 2.419657033717665
+      }
+    }
+  },
+  "oracle": "Closed forms: the through piece runs on (b/2) sin φ; the butted one ends (b/2)/sin φ short of the corner on its line, its cut 90° − φ about its y; mass ρ·A·L. (Its centroid as fr-frame-butt-60: the cut prism's moments.)"
+}

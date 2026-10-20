@@ -1,0 +1,218 @@
+{
+  "id": "fr-cutlist-rectangle-mitre",
+  "step": "FR",
+  "decisions": [
+    "D127"
+  ],
+  "about": "FR4a: the cut list of a mitred 600 × 400 rectangle of sharp 40 × 40 × 3 tubes (steel 7850 kg/m³, a test value): two rows of two, axis lengths 600 and 400, long points L + 40, 45° both ends, mass ρ·A·L.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              600,
+              400,
+              0
+            ],
+            [
+              0,
+              400,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "default": "mitre"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            -0.7655555555555555,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 177600,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            601.1483333333333,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            400.7655555555556,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 177600,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -1.1483333333333334,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "cutList": {
+      "densityKgPerM3": 7850,
+      "absTol": 1e-9,
+      "rows": [
+        {
+          "quantity": 2,
+          "pieces": [
+            "f/0",
+            "f/2"
+          ],
+          "axisLengthMM": 600,
+          "longPointMM": 640,
+          "fromVolume": false,
+          "ends": [
+            {
+              "kind": "mitre",
+              "mitreDegrees": 45,
+              "bevelDegrees": 0
+            },
+            {
+              "kind": "mitre",
+              "mitreDegrees": 45,
+              "bevelDegrees": 0
+            }
+          ],
+          "massKG": 2.09124
+        },
+        {
+          "quantity": 2,
+          "pieces": [
+            "f/1",
+            "f/3"
+          ],
+          "axisLengthMM": 400,
+          "longPointMM": 440,
+          "fromVolume": false,
+          "ends": [
+            {
+              "kind": "mitre",
+              "mitreDegrees": 45,
+              "bevelDegrees": 0
+            },
+            {
+              "kind": "mitre",
+              "mitreDegrees": 45,
+              "bevelDegrees": 0
+            }
+          ],
+          "massKG": 1.3941599999999998
+        }
+      ],
+      "totals": {
+        "quantity": 4,
+        "axisLengthMM": 2000,
+        "massKG": 6.9708
+      }
+    }
+  },
+  "oracle": "Closed forms: the mitre planes through the corners on the centroidal lines, so the axis length is the segment's; long point L + b; 45° about the section's y; mass ρ·A·L."
+}

@@ -40,6 +40,9 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "flat": { "areaMM2": { "value": 2308.65, "relTol": 1e-9 }, "box": { "value": [94.36, 25], "absTol": 1e-9 }, "loops": 2, "bends": [{ "name": "c.bend1", "direction": "down", "angleDegrees": 90 }] }
     }],
     "error": { "code": "GEOMETRY", "messageIncludes": "not closed" },
+    // Optional: a frame's cut list over its member outputs (FR4a): rows in order (quantity, pieces, axis length, long
+    // point, from volume or not, each end's kind with its mitre and bevel angles, mass each) and totals, at a density.
+    "cutList": { "densityKgPerM3": 7850, "absTol": 1e-9, "rows": [{ "quantity": 2, "pieces": ["f/0", "f/2"], "axisLengthMM": 600, "longPointMM": 640, "fromVolume": false, "ends": [{ "kind": "mitre", "mitreDegrees": 45, "bevelDegrees": 0 }], "massKG": 1.97 }], "totals": { "quantity": 4, "axisLengthMM": 2000, "massKG": 6.97 } },
     // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and
     // keep their total volume and area to relTol.
     "stepRoundTrip": { "relTol": 1e-6 },

@@ -286,6 +286,10 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .toast.recovery .row-actions { display: flex; gap: 6px; margin-top: 8px; }
 /* A sheet's flat pattern (R12.2): its own window in the middle, above toasts, wide enough to read the flat. */
 .toast.flat-pattern { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
+/* The cut list (FR4a): a table of rows over the viewport, centred like the flat pattern. */
+.toast.cut-list { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(900px, calc(100vw - 160px)); max-width: none; z-index: 8; border-color: var(--line, #3a3d44); }
+.cut-list-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+.cut-list-table th, .cut-list-table td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line, #3a3d44); white-space: nowrap; }
 .timeline { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 10px; max-width: min(860px, calc(100% - 140px)); flex-wrap: wrap; font-size: 11px; z-index: 5; }
 .timeline .scrub { width: 220px; accent-color: var(--accent); }
 .timeline .mono { font: 500 11px var(--mono); color: var(--text); }

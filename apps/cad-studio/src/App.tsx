@@ -17,6 +17,8 @@ import { editFields } from './app/editFields';
 import { DRAG_TYPE, Viewport, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
+import { CutListDialog } from './ui/CutListDialog';
+import { partCutList } from './app/cutList';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
@@ -1107,6 +1109,8 @@ export function App() {
   };
   // (A sheet-metal body's flat pattern shown: its body key; R12.2, D117.)
   const [flatView, setFlatView] = useState<string | null>(null);
+  // (FR4a: the part's cut list, open or not.)
+  const [cutListView, setCutListView] = useState(false);
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
   const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
   /**
@@ -2123,6 +2127,7 @@ export function App() {
             {b.notes?.map((n, k) => <div key={k} className={'hint' + (n.warning ? ' warn' : ' muted')} aria-label="Generator note">{n.warning && <Icon name="warning" small />} {n.text}</div>)}
             {b.sheet && <div className="kv"><span>K <b>{b.sheet.bendTable ? `bend table ${b.sheet.bendTable}` : b.sheet.kFactor}</b></span><label className="ghost small" data-tip="Bend table" data-tip-desc="Load your shop's bend table (JSON: rows of thickness, radius and angle to K, allowance or deduction, each citing a source or marked an estimate) for this sheet's bends">Bend table…<input type="file" accept=".json,application/json" aria-label="Bend table file" style={{ display: 'none' }} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void loadBendTable(b, file); }} /></label></div>}
             {b.flat && <div className="kv"><span>Flat pattern <b>{fmt(Math.round(b.flat.box.max[0] * 100) / 100)} × {fmt(Math.round(b.flat.box.max[1] * 100) / 100)}</b></span><button className="ghost small" aria-label="Show the flat pattern" data-tip="Flat pattern" data-tip-desc="The sheet unfolded: its outline, bend lines and notes; export it as DXF" onClick={() => setFlatView(b.key)}>Flat</button></div>}
+            {b.cutPiece && <div className="kv"><span>Cut list <b>{fmt(Math.round(b.cutPiece.axisLengthMM * 100) / 100)} mm</b></span><button className="ghost small" aria-label="Show the cut list" data-tip="Cut list" data-tip-desc="The frame's members to cut: identical ones on a row, their lengths, end cuts and mass; export it as CSV" onClick={() => setCutListView(true)}>Cut list</button></div>}
             <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
@@ -2269,6 +2274,7 @@ export function App() {
           { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
         ]} />}
 
+      {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}
       {meshAsk && meshInUnit && <div className="toast card recovery" role="dialog" aria-label="Mesh units">
         <Icon name="straighten" className="accent" />

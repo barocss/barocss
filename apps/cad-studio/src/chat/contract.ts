@@ -31,6 +31,8 @@ const READ: Record<string, JsonSchema | null> = {
   wall_thickness: o({ body: str, thinnest_mm: num, at: arr, face: str, note: str }, ['body']),
   draft: o({ body: str, pull: arr, walls: arr, under_min: arr, note: str }, ['body', 'walls']),
   check_spec: o({ model_hash: str, summary: obj, failures: arr, unknowns: arr, policy: obj, validation: obj }, ['model_hash', 'summary']),
+  // (FR4a, D127: a frame's cut list.)
+  cut_list: o({ rows: arr, totals: obj, densities: str, csv: str }, ['rows', 'totals', 'densities']),
   diff: o({ from: str, to: str, diff: obj }, ['diff']),
   list_proposals: o({ proposals: arr }, ['proposals']),
   render_views: o({ legend: obj, views: obj, layout: str, notes: arr }, ['views']),
