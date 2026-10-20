@@ -66,7 +66,7 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
 - The analytic Boolean's one union order (D107/D108), the region route's refusals (D113), the offset route's limits (D112), mesh shells' limits (D114): as in the R11 → R12 block below.
 - R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out). B9's known flake keeps its budget.
-- ~~Kernel-lane request (O75): `bvhOfTriangles` from `facet-bvh.ts`~~ — **withdrawn** (coordinator, 2026-10-21): the outer lane builds RM6's mesh distance on a dual-tree traversal over the studio's own triangle BVH (`print/orient.ts`), after IM.
+- ~~Kernel-lane request (O75): `bvhOfTriangles` from `facet-bvh.ts`~~ — withdrawn; then (coordinator, 2026-10-21, later the same day) the studio dual-tree is **not** to be built either: the triangle-BVH consolidation goes to the kernel lane as **track K** (K2 one `triangleBvh(positions, indices)` with ray and nearest queries; K3 an exact `meshClearance`). The outer lane leaves `print/orient.ts`, `chat/analysis.ts`'s grid and `robot/sweep.ts`'s `meshDistance` as they are.
 
 **How to resume**
 1. Read this block, then D122–D128 in `decisions.md` (for the frame model), then §4's R12b item and D53–D60 (R6a gears).
@@ -581,6 +581,8 @@ stays out of the kernel's core files (requests for them go through the coordinat
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):
   - Done in O75: the Joints card's masses collapsed; the look- ids; RD3's stop check and coupled sizing; datums as mate targets.
+  - A `hole` on a cylinder's top face after the cylinder was united into a shell is refused ("misses the target") though the face is there (O80): drill before the union until fixed. Repro: `test/fixtures/hole-after-union.calls.json`, a `todo` test in `test/known-bugs.test.ts` (O81). For the kernel lane.
+  - IM5's straddling faces: a face split by a curve (the isocline n·d = 0) to mould them in two halves (O81). For the kernel lane.
   - RM6's mesh distance where hulls meet is box-pruned, not a BVH: the R3.2 BVH needs a kernel export over raw triangles
     (`bvhOfTriangles`), a kernel-core change (O75: skipped, listed for the coordinator).
   - RD3's refinement is most of its 735 ms (an RNEA per probe for one joint); coupled sizing (O75) runs it once a round.
@@ -1499,7 +1501,10 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
       datums as mate targets; the R3.2 BVH under RM6 skipped (needs a kernel export).
 - **IM — injection moulding (outer lane from 2026-10-21)**: S0 done (O76) — exact draft on curved faces by projection onto the B-rep's NURBS (a 3° cone to 5.8e-15°; the mesh normal off by 0.014°), straddle by n·d's sign, undercuts by ±d triangle visibility (side hole 0/64), walls by rays; Protolabs' guide readable; IM rules proposed inside `check_printability` (no contract overhead). Next IM1.
   - **IM1 done (O77)**: the injection profile sourced page by page (Protolabs: wall by material, finishes PM-T1 3° / PM-T2 5° / smooth 0.5°, largest part 751 × 480 × 203, ±0.08 mm + 0.002 mm/mm, shrink ABS/PC 0.002); `doc.mould` {pull, finish}; `check_printability` = the manufacturability report naming its process (v2 `query.manufacturability`, `print.check` an alias); pull and finish in the Library panel.
-  - **IM2 done (O78)**: the draft field from exact normals (planes, cylinders, NURBS by projection, facets) — drafted / steep / straddle with isocline points on the exact surface; the report's draft rule, `query.draft` and `draft_min` on it; a 3° cone 3° to 1e-9. Next IM3.
+  - **IM2 done (O78)**: the draft field from exact normals (planes, cylinders, NURBS by projection, facets) — drafted / steep / straddle with isocline points on the exact surface; the report's draft rule, `query.draft` and `draft_min` on it; a 3° cone 3° to 1e-9.
+  - **IM3 done (O79)**: undercuts by ±d visibility on a sub-triangle grid (the step stated), regions with their side action across the pull (counted, exact); the report's undercut rule (warn with a side action, fail with none); a side hole, a snap latch, an internal groove.
+  - **IM4 done (O80)**: walls by the inscribed sphere at each inward ray's middle (the nominal their median), ribs (inside plates), bosses (coaxial cylinders), inside corners (concave fillets, sharp concave edges), thick sections; five rules against Protolabs' 0.6 and Hubs' 0.5 t; the undercut message states its sampling limit.
+  - **IM5 done (O81)**: the parting line — halves by exact draft (walls along the pull to the person's side, else −), loops along the edges between the halves and the isoclines across straddling faces (traced on the exact normal), `doc.mould.sides` / `sides` override; the straddling face's split along its isocline **asked of the kernel lane** (a face split by a curve), named in the report. Next IM6.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

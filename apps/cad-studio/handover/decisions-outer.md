@@ -3626,3 +3626,102 @@ The coordinator accepted IM1 and flagged one point: PA12 uses the page's generic
 
   `test/mould.test.ts`'s box is now warned for its undrafted walls, with PA12's note asserted. The type errors in that test from IM1 (`delete` on a read-only value; `null` for the mould argument) are fixed: `tsc` covers the tests, and IM1's run had only bundled them.
 - **Flow**: an IM2 step through the real chat and tool servers. A drafted cone loaded with its mould settings: `draft` says `n1.side0` is 3°, drafted, and the report judges the part as injection moulding.
+
+## O79 — IM3: undercuts by ±d visibility, with side actions (2026-10-21)
+
+The coordinator accepted IM2 and ordered IM3.
+
+- **What is an undercut** (`src/mould/undercut.ts`). The mould opens along the pull d: the half moving along +d frees what it sees along +d, and the other half what it sees along −d. A point that neither sees is an undercut.
+- **Sampling**. Each display triangle is split into n² equal sub-triangles. n is the triangle's longest edge over the sampling step (the part's diagonal / 400, at least 0.05 mm), at most 64. Each sub-triangle's centre is moved 0.01 mm off the triangle along its normal, and a ray is cast along +d and along −d through the studio's triangle BVH (`print/orient.ts`, AM4). A sample hidden both ways is an undercut, and carries its share of the triangle's area.
+  - The first version sampled only each triangle's centre. It missed the plate under a snap hook's latch: a big flat face shadowed by a small overhang has its centre in the open. Hence the sub-grid.
+  - A 0.1 mm latch over a 44 mm triangle is still under the cap's step (0.7 mm). The method states the step it used.
+- **Regions**: triangles with hidden samples, joined at shared positions.
+- **Side actions**: for each region, the two axes across d are tried both ways (±X and ±Y for a pull along Z). The side action is the direction whose rays free every hidden sample, counted rather than summed: a float sum of areas came to 0.9999999999987 on an exact case. If no direction frees them all, the best direction is reported with its share.
+- **In the report**, the moulding rule `undercut` is:
+  - **pass**: no region;
+  - **warn**: every region freed by a side action, each named;
+  - **fail**: some region freed by no straight action across the pull ("a collapsing core, a lifter or a redesign");
+  - **unknown**: no pull.
+
+  `mould.undercuts` lists each region's faces, area, centre, side action and best share.
+- **The chat** now summarises `check_printability` as its process and each rule's status ("injection: pull pass, …, undercut warn"). The whole JSON runs past the chat's 160-character line.
+- **Tests** (`test/mould-undercut.test.ts`, 4, constructed oracles):
+  - **A block with a hole along the pull and one across it**: the side hole's bore is the one region, its area the bore's mesh area to 1e-9, freed along its own axis (±Y). Pulled along Y instead, the vertical hole is the one region, freed along Z.
+  - **A snap hook standing on a plate** (latch 1 mm): one region of three parts — the catch (1 × 6), the beam's face under the latch (12 × 6) and the plate under it (1 × 6). Its area is 84 to within 1 mm² (the step), and it is freed by a side action along +X, the latch's way. A plain post in the hook's place (the mutant) has none.
+  - **An internal groove in a bore along the pull**: hidden both ways, and no side action frees it (best share under 1). Its regions' centres are within the groove's height.
+  - **The report**: the side hole is warned with its side action named; the groove fails; a plain box passes; no pull is unknown. The chat's summary is checked.
+
+  `test/mould.test.ts` now expects the IM1 box to pass on undercuts, with an empty list.
+- **Flow**:
+  - IM2's step now reads the report through the chat's summary: draft pass, undercut pass;
+  - a new IM3 step through the real chat and tool servers: a block with a side hole, with the process set in the Library panel and the report run, ends in "undercut warn".
+
+## O80 — IM4: walls, ribs, bosses, inside corners and sink; the undercut rule states its sampling limit (2026-10-21)
+
+The coordinator accepted IM3 and asked for one addition, folded in here: when the step is capped, the undercut rule's message must itself say so ("may be missed below <step> mm"), not only its `method`.
+
+- **The undercut rule's limit**. `undercuts` now returns `coarsestMM`: the largest sample spacing used, more than the step where a large triangle's n was capped at 64. Every undercut message, a pass included, ends with "(sampled every ≤ C mm: an undercut smaller than that may be missed)". On a 40 × 30 box, C is 0.781: the 50 mm diagonal over 64.
+- **Local thickness** (`chat/analysis.ts wallSamples`). At each display triangle: the inward ray's depth, then twice the distance from the ray's middle to the nearest surface (capped at the depth), which is the inscribed sphere there. A rim's ray runs down its wall's length, but the sphere at its middle touches the wall's two faces, so the rim reads its wall. The nearest-surface query goes through the analysis grid's cells. The **thinnest** stays the ray depth, because the sphere reads low near a concave corner, where its middle is nearer the next wall. That only lowers thick sections, so they still use the sphere.
+- **Sources** (`materials.json`, W-WEB, read 2026-10-21):
+  - `adjacentWallRatio` 0.6, from Protolabs: "adjacent walls should stay within 40% to 60% of each other's thickness". The page's range is read as a thickness ratio of at least 0.6, its stricter end, and the value's note says so;
+  - `insideRadiusRatio` 0.5, from Hubs: "a fillet equal to 0.5x the wall thickness to internal corners";
+  - `ribHeightRatio` 3, from Hubs: "max. height equal to 3x the wall thickness". Recorded for later; rib height is not judged yet;
+  - the boss wall range 0.6–1.0 stays the flagged P-INJ rule of thumb, with no page.
+- **The analysis** (`src/mould/walls.ts`), per body:
+  - **nominal**: the local thickness's area-weighted median, with the thinnest and the 95th percentile beside it;
+  - **ribs**: two exact planes facing opposite ways, the nearest behind each within 3 × nominal, their boxes overlapping across the normal, and a ray out of either side hits the body. The ray test is what separates a box's own walls from a rib: an outer face sees out;
+  - **bosses**: an outer and an inner exact cylinder on one axis (the part's face table); the boss wall is R − r;
+  - **inside corners**: concave fillets are exact cylinders that face their axis and turn less than half a revolution, counting every display piece of the face, since a split hole's half spans under 180°. Sharp concave corners are straight edges between exact planes where the second face, just off the edge, lies on the first's outer side. "Just off the edge" means its triangle on the edge, not its centroid, which an annulus such as an open box's rim has in its hole.
+  - **thick sections**: where the local thickness passes nominal / adjacentWallRatio.
+- **The rules** (all recommended level):
+  - `wall-uniform`: the thinnest over the nominal and the nominal over the 95th percentile, both at least 0.6;
+  - `rib`: thickness at most 0.6 × nominal, warned with "sink on the face opposite"; n/a with no rib;
+  - `boss`: wall within 0.6 … 1.0 × nominal; n/a with none;
+  - `inside-radius`: no sharp corner, and every fillet at least 0.5 × nominal;
+  - `sink`: no thick section, warned with "core them out".
+
+  `wall-material` now uses the same local thickness. `mould.walls` lists each body's nominal, thinnest, thick95, ribs, bosses, fillets, sharp-corner count and thick section.
+- **Tests** (`test/mould-walls.test.ts`, 5, analytic and constructed oracles):
+  - a shelled box (t 2): nominal, thinnest and thick95 all 2 to 1e-6; no rib, boss or thick section; its eight inside corners sharp, with lengths 56, 56, 36, 36 and 23 × 4;
+  - a rib inside it: found at 1.2 to 1e-9, passing as 0.6 t; at 2 (the mutant), warned;
+  - bosses: R 3 with a Ø2.5 bore has a wall of 1.75 to 1e-9 and passes; R 5 is warned; R 5 solid has no boss, and a thick section on its side, between 2/0.6 and its diameter 10;
+  - an L bracket (t 3): a fillet of 2 is found with its exact radius and passes; 1 is warned; with none, one sharp corner 20 long;
+  - a floor made 5 mm thick in a 2 mm box: nominal 2, thick95 5, `wall-uniform` warned at 0.4, `sink` warned.
+
+  The IM1 and AM3 tests are updated for the longer rule list.
+- **Flow**: IM2's chat-summary match includes the new rules. A new IM4 step through the real chat and tool servers builds a shelled box with a 2 mm rib: "rib warn, boss n/a, inside-radius warn, sink pass".
+- **Found, not fixed (follow-up)**: a `hole` on a cylinder's top face after that cylinder was united into a shell is refused with "the hole at (15, 20) along z misses the target", although the face is there. The tests drill the boss before the union.
+
+## O81 — IM5: the parting line — halves, loops, the isocline across straddling faces, the person's override; the face split asked of the kernel lane (2026-10-21)
+
+The coordinator accepted IM4 and ordered IM5. Two instructions came with it. If splitting a straddling face along its isocline needs a kernel face-split-by-curve, stop and say so; the loops and the override can be built first without it. And add a minimal repro of the hole-after-union refusal.
+
+- **The repro**: `test/fixtures/hole-after-union.calls.json` holds five calls: a box, its shell, a cylinder, their union, then a hole on `n4.top`. `test/known-bugs.test.ts` runs it as a node `todo` test: it runs and reports, and does not fail the suite until the bug is fixed. It is listed in README §0's follow-ups for the kernel lane.
+- **The halves** (`src/mould/parting.ts`). Each face goes to a half by its draft field (IM2, exact normals):
+  - **+**: it releases along the pull;
+  - **−**: it releases against it;
+  - **a wall along the pull** (n·d 0 throughout; IM2's draft field now says side `0` rather than `−`): where the person says, else `−`;
+  - **a straddling face**: split, unless the person puts it whole in one half.
+
+  The person's halves live in `doc.mould.sides`, `{face: "+" | "-"}`, a versioned addition. `check_printability` takes `sides` as an argument, and an argument wins over the document.
+- **The line**:
+  - every display-edge segment between the halves, judged at its middle; next to a straddling face, that face's half at the point comes from its exact normal;
+  - across each straddling face, its isocline n·d = 0, traced by marching its triangles. Each mesh edge's crossing is bisected 60 times on the exact normal and shared by position between the two triangles on that edge.
+
+  The pieces are chained into loops, joined within half the longest piece, because a crossing on a face's rim meets its edge's segments mid-segment. Each loop reports whether it is closed, its length, its extent along the pull, and whether it is flat (within the mesh's 1e-4).
+- **The face split is not built.** Moulding a straddling face in two halves needs the face split along its isocline: a face split by a curve, which is a kernel operation. The report names each such face and its isocline length. **Asked of the kernel lane** through the coordinator: `splitFaceAlongCurve(brep, face, curve)`, or a split of a face by the isocline n·d = 0 directly. Until then, the person can put the face whole in one half.
+- **In the report**, the moulding rule `parting`:
+  - **pass**: every loop closed and no face to split;
+  - **warn**: a straddling face to split (named, with its isocline length and the remedy), an open loop, or no loop at all (the whole part in one half);
+  - **unknown**: no pull.
+
+  `mould.parting` lists each face's half and basis, the faces to split, and the loops.
+- **Tests** (`test/mould-parting.test.ts`, 4, closed forms):
+  - **a box pulled along +Z**: its walls go to − by default, giving one loop round the top, 140 long (2 × (40 + 30)) to 1e-9 and flat at 10. Put in +, the loop runs round the bottom at 0;
+  - **a box drafted 2°**: its walls go to + by their draft, giving a loop round the bottom, 140 at 0;
+  - **a cylinder lying across the pull**: it straddles, with an isocline 80 long to 1e-9 (the lines z = 0, y = ±10). The loop is closed round the isocline and the caps' upper halves: 80 plus two 16-chord half circles (2 × 16 × 10 × sin(π/32) each), to 1e-4, stepped 0 … 10, its isocline points on z = 0 to 1e-9. Put whole in +, it has two loops, each the caps' full 32-chord circle;
+  - **the report**: a box passes ("1 parting loop (flat, 140 mm)"); the cross cylinder is warned, the face named; the document's sides or the tool's pass; all in one half gives "0 parting loops" (warned); no pull is unknown; a bad `sides` is refused.
+
+  The IM1, IM3 and AM3 tests are updated for the rule.
+- **Flow**: an IM5 step through the real chat and tool servers. On a cross cylinder the report ends "parting warn"; with `sides` putting it whole in +, "parting pass".
+- The contract overhead is unchanged at 14 544 (tools/list 115 716, 101 172 plain); `tools-v1.json` is updated as a compatible change.

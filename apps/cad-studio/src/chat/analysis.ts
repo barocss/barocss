@@ -163,6 +163,44 @@ function gridRay(m: DisplayMesh, g: Grid, ox: number, oy: number, oz: number, dx
   }
 }
 
+/** The nearest surface to a point within `r` (through the grid's cells in its box), or r when none is nearer. */
+function nearestWithin(m: DisplayMesh, g: Grid, px: number, py: number, pz: number, r: number): number {
+  const a = [0, 0, 0], b = [0, 0, 0], p = [px, py, pz];
+  for (let k = 0; k < 3; k++) { a[k] = Math.max(0, Math.min(g.n - 1, Math.floor((p[k] - r - g.lo[k]) / g.size[k]))); b[k] = Math.max(0, Math.min(g.n - 1, Math.floor((p[k] + r - g.lo[k]) / g.size[k]))); }
+  g.mark++;
+  let best = r * r;
+  for (let i = a[0]; i <= b[0]; i++) for (let j = a[1]; j <= b[1]; j++) for (let k = a[2]; k <= b[2]; k++) {
+    const list = g.cells[(i * g.n + j) * g.n + k];
+    for (let q = 0; q < list.length; q++) { const t = list[q]; if (g.stamp[t] === g.mark) continue; g.stamp[t] = g.mark; triangleAt(m, t); const d2 = pointTriangle2(px, py, pz); if (d2 < best) best = d2; }
+  }
+  return Math.sqrt(best);
+}
+/**
+ * A body's wall samples (IM4, O80), one per display triangle: its centre, area and face, the ray depth inward along its
+ * normal, and the local thickness — twice the distance from the ray's midpoint to the nearest surface, at most the ray
+ * depth: the inscribed sphere there. A ray along a rim runs down its wall's length; the sphere at its middle touches the
+ * wall's two faces, so the rim reads the wall. Kept per mesh.
+ */
+export interface WallSamples { depth: Float64Array; local: Float64Array; area: Float64Array; face: Int32Array; centre: Float64Array }
+const samplesOf = new WeakMap<DisplayMesh, WallSamples>();
+export function wallSamples(b: BodyResult): WallSamples {
+  const have = samplesOf.get(b.mesh); if (have) return have;
+  const m = b.mesh, T = m.indices.length / 3, g = gridOf(m), out: WallSamples = { depth: new Float64Array(T).fill(Infinity), local: new Float64Array(T).fill(Infinity), area: new Float64Array(T), face: new Int32Array(T), centre: new Float64Array(3 * T) };
+  for (let t = 0; t < T; t++) {
+    triangleAt(m, t);
+    const cx = (tri[0] + tri[3] + tri[6]) / 3, cy = (tri[1] + tri[4] + tri[7]) / 3, cz = (tri[2] + tri[5] + tri[8]) / 3;
+    const e1x = tri[3] - tri[0], e1y = tri[4] - tri[1], e1z = tri[5] - tri[2], e2x = tri[6] - tri[0], e2y = tri[7] - tri[1], e2z = tri[8] - tri[2];
+    let nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x; const l = Math.hypot(nx, ny, nz);
+    out.face[t] = m.faceOfVertex[m.indices[t * 3]]; out.centre[3 * t] = cx; out.centre[3 * t + 1] = cy; out.centre[3 * t + 2] = cz;
+    if (!(l > 0)) continue;
+    nx /= -l; ny /= -l; nz /= -l; out.area[t] = l / 2;
+    const d = gridRay(m, g, cx, cy, cz, nx, ny, nz, t); out.depth[t] = d;
+    if (Number.isFinite(d)) out.local[t] = 2 * nearestWithin(m, g, cx + nx * d / 2, cy + ny * d / 2, cz + nz * d / 2, d / 2);
+  }
+  samplesOf.set(b.mesh, out);
+  return out;
+}
+
 /**
  * Wall thickness of a body: from sample points on its faces (each triangle's centre), a ray inward against the
  * face's normal to the next wall (through a uniform grid of the triangles). The thinnest (with where), and the

@@ -90,7 +90,7 @@ test('AM3 printability on an ABS plate printed flat (FDM 256³): every rule pass
   assert.match(r.warp.why!, /no orientation/);
   // (O77: moulding has its own rules now — test/mould.test.ts; here only that it is judged as moulding, not printing.)
   r = await report({ ...rectanglePart(60, 40, 2), process: 'injection' });
-  assert.deepEqual(Object.keys(r), ['pull', 'finish', 'wall', 'wall-material', 'size', 'draft', 'undercut']);
+  assert.deepEqual(Object.keys(r), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'rib', 'boss', 'inside-radius', 'sink', 'size', 'draft', 'undercut', 'parting']);
 });
 
 test('AM3 rules that fail or warn: a hole too small to print open; a horizontal hole over 6 mm sags (warned) — built along its axis it does not; a tall pin tips; an enclosed cavity traps powder (SLS fails) where FDM fills it; SLS does not tip (n/a); bodies 0.1 mm apart may fuse; the gap rule as a requirement', async () => {
