@@ -48,12 +48,12 @@ test('CNC1 walls by family: a metal box 0.6 thick warned (under 0.8), 0.4 failed
   }
 });
 
-test('CNC1 nothing assumed: no material — material and walls unknown, no class; 450 mm long — off a typical mill; turned — its size and own rules said to come (CNC6); no process — none assumed', async () => {
+test('CNC1 nothing assumed: no material — material and walls unknown, no class; 450 mm long — off a typical mill; turned — a box has no axis of revolution (CNC6, O89), its size undecided; no process — none assumed', async () => {
   let { r, by } = await report(machined(block(100, 60, 20), null));
   assert.equal(by.material.status, 'unknown'); assert.equal(by.wall.status, 'unknown'); assert.equal(r.machining!.toleranceClass, null);
   ({ by } = await report(machined(block(450, 60, 20), 'al6061'))); assert.equal(by.size.status, 'fail');
   ({ by } = await report(machined(block(100, 60, 20), 'al6061', 'cnc-turning')));
-  assert.equal(by.size.status, 'unknown'); assert.match(by.turning.why!, /CNC6/);
+  assert.equal(by.size.status, 'unknown'); assert.equal(by.turning.status, 'fail'); assert.match(by.turning.message, /no axis of revolution/);
   ({ r } = await report(block(100, 60, 20))); assert.equal(r.process, null);
 });
 

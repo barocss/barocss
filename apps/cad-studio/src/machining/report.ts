@@ -4,7 +4,9 @@
 // (O85): holes and threads — each step's depth over its diameter from its reach, the drill table, a tapped hole's tap
 // drill, size and length. CNC3 (O86): inside corners against ⅓ of their depth, cavities' depth over width, small
 // features, tall thin walls, text. CNC4 (O87): access from the six directions with the tool's side, and setups. CNC5
-// (O88): the drawing a shop machines from (milling and turning alike). Turning's own rules are said to come (CNC6).
+// (O88): the drawing a shop machines from (milling and turning alike). CNC6 (O89): turning — the axis, what is turned
+// and what is milled by live tools, the lathe's size, the outside profile's grooves and least diameter, holes by their
+// axes, points.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
@@ -13,6 +15,7 @@ import { wallsOf } from '../mould/walls';
 import { accessOf, type Access } from './access';
 import { cavitiesOf, type Cavities } from './cavities';
 import { drawingCheck, type DrawingCheck } from './drawing';
+import { turningOf, type Turning } from './turning';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 
@@ -36,24 +39,21 @@ export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], pro
     rules.push({ id: 'wall', level: w < min.value - 1e-9 ? 'feasible' : 'recommended', status: w < min.value - 1e-9 ? 'fail' : w < rec.value - 1e-9 ? 'warn' : 'pass',
       message: `the thinnest wall, ${r3(w)} mm, against a ${family}'s ${min.value} mm feasible and ${rec.value} mm recommended`, value: r3(w), limit: w < min.value - 1e-9 ? min.value : rec.value, unit: 'mm', source: min.source, entities: [thin.body] });
   }
-  // Size: the part's sides, sorted, against the envelope (milling), or held for turning's axis (CNC6).
+  // Size: the part's sides, sorted, against the envelope (milling); turning's along its axis (CNC6).
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
   const e = [0, 1, 2].map(k => hi[k] - lo[k]).sort((a, b) => b - a);
   if (profile.id === 'cnc-milling') {
     const lim = [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value], fits = e.every((v, k) => v <= lim[k] + 1e-9);
     rules.push({ id: 'size', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${e.map(r3).join(' × ')} mm) within a typical mill's ${lim.join(' × ')} mm`, value: r3(Math.max(...e.map((v, k) => v / lim[k]))), limit: 1, unit: 'ratio', source: t('maxPartLongMM').source });
-  } else rules.push({ id: 'size', level: 'feasible', status: 'unknown', message: 'the part within the lathe\'s diameter and length', why: 'its turning axis comes with turning\'s rules (CNC6)' });
-  let holes: Hole[] = [], tapped: TappedHole[] = [], cavities: Cavities | null = null, access: Access | null = null;
+  }
+  let holes: Hole[] = [], tapped: TappedHole[] = [], cavities: Cavities | null = null, access: Access | null = null, turning: Turning | null = null;
   if (profile.id === 'cnc-milling') { ({ holes, tapped } = holeRules(doc, bodies, profile, rules)); cavities = cavityRules(doc, bodies, profile, rules, holes); access = accessRules(bodies, rules); }
-  else rules.push({ id: 'holes', level: 'recommended', status: 'unknown', message: 'holes on and off the turning axis', why: 'turning\'s holes come with its rules (CNC6)' },
-    { id: 'corners', level: 'recommended', status: 'unknown', message: 'inside corners, grooves and features against the turning tools', why: 'turning\'s tools come with its rules (CNC6)' },
-    { id: 'access', level: 'recommended', status: 'unknown', message: 'access on the lathe (from the tailstock end, radially)', why: 'turning\'s access comes with its rules (CNC6)' });
+  else { holes = holesOf(bodies); turning = turningRules(doc, bodies, profile, rules, holes, id); }
   const drawing = drawingRule(doc, bodies, rules);
-  if (profile.id === 'cnc-turning') rules.push({ id: 'turning', level: 'feasible', status: 'unknown', message: 'axisymmetry, grooves, thread relief, length over diameter', why: 'CNC6 is not built yet' });
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
-    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), drawing } };
+    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing } };
 }
 
 const worst = (xs: readonly PrintRule['status'][]): PrintRule['status'] => xs.includes('fail') ? 'fail' : xs.includes('warn') ? 'warn' : xs.includes('unknown') ? 'unknown' : 'pass';
@@ -168,4 +168,36 @@ function drawingRule(doc: StudioDoc, bodies: readonly BodyResult[], rules: Print
     message: d.present ? `the drawing: ${d.items.filter(x => x.status === 'pass').length} of ${d.items.length} items in order${bad.length ? `; ${bad.map(x => `${x.id}: ${x.message}`).join('; ')}` : ''}` : d.items[0].message,
     source: (bad[0] ?? d.items[0]).source, ...(status === 'unknown' ? { why: bad[0].message } : {}) });
   return d;
+}
+
+/** Aluminium and brass: the metals Protolabs' turning page allows more in (radial holes, grooves, holes at an angle). */
+const SOFT = new Set(['al6061', 'brass']);
+/** CNC6's rules for a turned part: size (Hubs' lathe; Protolabs' least part), turning (axisymmetry), diameter, groove, holes, point, corners. Protolabs' values are one service's: warned, not failed. */
+function turningRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, rules: PrintRule[], holes: readonly Hole[], material: string | null): Turning {
+  const T = profile.thresholds, t = (k: string) => T[k].value, src = (k: string) => T[k].page?.url ?? T[k].source, tu = turningOf(doc, bodies, holes), soft = !!material && SOFT.has(material);
+  if (!tu.axis) {
+    rules.push({ id: 'size', level: 'feasible', status: 'unknown', message: 'the part within the lathe\'s diameter and length', why: 'no turning axis' },
+      { id: 'turning', level: 'feasible', status: 'fail', message: 'no axis of revolution (no exact cylinder): a lathe makes parts with rotational symmetry', source: src('maxDiameterMM') });
+    return tu;
+  }
+  const D = tu.diameterMM, L = tu.lengthMM, over = D > t('maxDiameterMM') + 1e-9 || L > t('maxLengthMM') + 1e-9, small = D < t('minPartDiameterMM') - 1e-9 || L < t('minPartLengthMM') - 1e-9;
+  rules.push({ id: 'size', level: over ? 'feasible' : 'recommended', status: over ? 'fail' : small ? 'warn' : 'pass', message: `Ø${r3(D)} × ${r3(L)} mm along its axis, against a lathe's Ø${t('maxDiameterMM')} × ${t('maxLengthMM')}${small ? ` — under the least part, Ø${t('minPartDiameterMM')} × ${t('minPartLengthMM')}` : ''}`, value: r3(Math.max(D / t('maxDiameterMM'), L / t('maxLengthMM'))), limit: 1, unit: 'ratio', source: src(small && !over ? 'minPartDiameterMM' : 'maxDiameterMM') });
+  const offA = tu.areaMM2 - tu.turnedMM2, offFaces = tu.offAxis.slice(0, 4).map(x => x.face);
+  rules.push(tu.offAxis.length ? { id: 'turning', level: 'recommended', status: 'warn', message: `${r3(offA)} mm² not turned (${offFaces.join(', ')}${tu.offAxis.length > 4 ? ' …' : ''}): milled by live tools on a mill-turn (flats, slots and grooves), or a second setup`, value: r3(offA / tu.areaMM2), unit: 'share', source: src('holeMinRadialMM'), entities: offFaces }
+    : { id: 'turning', level: 'feasible', status: 'pass', message: `every surface turned about the axis (its exact normals meet it), L/D ${r3(L / D)}` });
+  const dmin = tu.minOuterDiameterMM;
+  rules.push(dmin === null ? { id: 'diameter', level: 'recommended', status: 'unknown', message: 'the least outside diameter', why: 'no outside cylinder on the axis' }
+    : { id: 'diameter', level: 'recommended', status: dmin < t('minDiameterMM') - 1e-9 ? 'warn' : 'pass', message: `the least outside diameter Ø${r3(dmin)}, against Ø${t('minDiameterMM')} in any region`, value: r3(dmin), limit: t('minDiameterMM'), unit: 'mm', source: src('minDiameterMM') });
+  const wMin = t(soft ? 'grooveWidthMinSoftMM' : 'grooveWidthMinMM'), narrow = tu.grooves.filter(g => g.widthMM < wMin - 1e-9), deep = tu.grooves.filter(g => g.depthMM > t('grooveDepthMaxMM') + 1e-9);
+  const gBad = [...narrow.map(g => `${r3(g.widthMM)} mm wide (under ${wMin}${soft ? ', aluminium and brass' : ''})`), ...deep.map(g => `${r3(g.depthMM)} deep (over ${t('grooveDepthMaxMM')})`), ...(tu.idGrooves ? [`${tu.idGrooves} inside (ID grooves not supported)`] : [])];
+  rules.push({ id: 'groove', level: 'recommended', status: gBad.length ? 'warn' : 'pass', message: tu.grooves.length || tu.idGrooves ? `${tu.grooves.length} outside groove${tu.grooves.length === 1 ? '' : 's'}${gBad.length ? `; ${gBad.join('; ')}` : ', each within width and depth'}` : 'no grooves',
+    ...(narrow[0] || deep[0] ? { entities: (narrow[0] ?? deep[0]).faces } : {}), source: src(deep.length && !narrow.length ? 'grooveDepthMaxMM' : soft ? 'grooveWidthMinSoftMM' : 'grooveWidthMinMM') });
+  const rMin = t(soft ? 'holeMinRadialSoftMM' : 'holeMinRadialMM'), hBad = tu.holes.flatMap(h => (h.kind === 'on-axis' || h.kind === 'axial') && h.diameterMM < t('holeMinAxialMM') - 1e-9 ? [`an ${h.kind} hole Ø${r3(h.diameterMM)} (under ${t('holeMinAxialMM')})`]
+    : h.kind === 'radial' && h.diameterMM < rMin - 1e-9 ? [`a radial hole Ø${r3(h.diameterMM)} (under ${rMin}${soft ? ', aluminium and brass' : ''})`] : h.kind === 'angled' && !soft ? [`a hole at an angle to the axis (in ${material ?? 'an unset material'}: only aluminium and brass)`] : []);
+  const kinds = ['on-axis', 'axial', 'radial', 'angled'].map(k => [k, tu.holes.filter(h => h.kind === k).length] as const).filter(([, n]) => n);
+  rules.push({ id: 'holes', level: 'recommended', status: hBad.length ? 'warn' : 'pass', message: tu.holes.length ? `${kinds.map(([k, n]) => `${n} ${k}`).join(', ')}${hBad.length ? `; ${hBad.join('; ')}` : ''}${tu.holes.some(h => h.kind !== 'on-axis') ? '; off the axis: live tools' : ''}` : 'no holes', source: src('holeMinRadialMM') });
+  const sharp = tu.points.filter(p => p.includedDeg < t('pointAngleMinDeg') - 1e-9);
+  rules.push({ id: 'point', level: 'recommended', status: sharp.length ? 'warn' : 'pass', message: tu.points.length ? `${tu.points.length} point${tu.points.length === 1 ? '' : 's'}; ${sharp.length ? `${r3(sharp[0].includedDeg)}° included, under ${t('pointAngleMinDeg')}°` : `the sharpest ${r3(Math.min(...tu.points.map(p => p.includedDeg)))}°`}` : 'no points', source: src('pointAngleMinDeg'), ...(sharp.length ? { entities: [sharp[0].face] } : {}) });
+  rules.push({ id: 'corners', level: 'recommended', status: 'pass', message: 'turned: sharp inside corners come out radiused, outside corners typically chamfered', source: src('minDiameterMM') });
+  return tu;
 }

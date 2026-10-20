@@ -5177,6 +5177,30 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- CNC6 (O89): turning, through the real chat and tool servers -------------------------------------------------
+  await check('CNC6: CNC turning chosen; an aluminium bar Ø20 × 30 — every surface turned, passes; a flat milled on it — its 360 mm² not turned, warned (live tools)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-turning');
+    await page.waitForFunction(() => window.__studioDoc.process === 'cnc-turning', null, { timeout: 5000 }); await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'run_command', args: { command: 'cylinder', values: { r: 10, h: 30, x: 0, y: 0, z: 0 } } }, { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} },
+        { tool: 'run_command', args: { command: 'box', values: { w: 10, d: 30, h: 40, x: 8, y: -15, z: -5 } } }, { tool: 'run_command', args: { command: 'difference', values: {}, bodies: ['b1', 'b3'] } }, { tool: 'check_printability', args: {} }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const reports = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-turning:/.test(x)).slice(-2);
+      assert.equal(reports.length, 2, reports.join(' | '));
+      assert.match(reports[0], /cnc-turning: material pass, wall pass, size pass, turning pass, diameter pass, groove pass, holes pass, point pass, corners pass, drawing pass/, reports[0]);
+      assert.match(reports[1], /turning warn/, reports[1]);
+      await snap('cnc6-turning');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
