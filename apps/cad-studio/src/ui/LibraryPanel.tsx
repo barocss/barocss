@@ -11,6 +11,15 @@ import { Icon } from './atoms';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];
 
+const PULLS: readonly { id: string; v: [number, number, number] }[] = [{ id: '+Z', v: [0, 0, 1] }, { id: '−Z', v: [0, 0, -1] }, { id: '+Y', v: [0, 1, 0] }, { id: '−Y', v: [0, -1, 0] }, { id: '+X', v: [1, 0, 0] }, { id: '−X', v: [-1, 0, 0] }];
+/** The document with its mould settings changed (a field undefined: cleared; none left: no mould block). */
+function withMould(doc: StudioDoc, patch: { pull?: [number, number, number]; finish?: string }): StudioDoc {
+  const m = { version: 1 as const, ...doc.mould, ...patch };
+  if (!m.pull) delete m.pull; if (!m.finish) delete m.finish;
+  const next = { ...doc };
+  if (m.pull || m.finish) next.mould = m; else delete next.mould;
+  return next;
+}
 export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void; onClose(): void }) {
   const [, setTick] = useState(0), refresh = () => setTick(t => t + 1);
   const [variant, setVariant] = useState<Record<string, string>>({});
@@ -56,6 +65,13 @@ export function LibraryPanel({ doc, onCommit, onError, onClose }: { doc: StudioD
     {/* The printer (AM1): its build volume; choosing one sets its process. */}
     {processProfile(doc.process)?.additive && <label className="kv"><span>Printer</span><select aria-label="Printer" value={doc.printer ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.printer = ev.target.value; else delete next.printer; onCommit(next); }}>
       <option value="">Not chosen</option>{MATERIALS_DATA.printers.filter(p => p.process === doc.process).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>}
+    {/* (IM1, O77: moulding — the pull, along which the mould opens, and the finish, which sets the least draft.) */}
+    {processProfile(doc.process)?.finishes && <>
+      <label className="kv"><span>Pull</span><select aria-label="Pull direction" value={doc.mould?.pull ? PULLS.find(p => p.v.every((x, k) => x === doc.mould!.pull![k]))?.id ?? '' : ''} onChange={ev => onCommit(withMould(doc, { pull: PULLS.find(p => p.id === ev.target.value)?.v }))}>
+        <option value="">Not set</option>{PULLS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}</select></label>
+      <label className="kv"><span>Finish</span><select aria-label="Mould finish" value={doc.mould?.finish ?? ''} onChange={ev => onCommit(withMould(doc, { finish: ev.target.value || undefined }))}>
+        <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</select></label>
+    </>}
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>

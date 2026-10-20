@@ -41,6 +41,7 @@ export const GROUPS: Record<string, Group> = {
       cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a)'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],
       select: ['select', 'faces?, edges?, bodies? — shows them selected in the studio'],
+      manufacturability: ['check_printability', 'direction?, finish? — the report for the part\'s process: printing, injection moulding (pull, finish), machining'],
     },
   },
   history: {
@@ -73,7 +74,7 @@ export const GROUPS: Record<string, Group> = {
     about: 'Standard and team parts.',
     actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
-  print: { title: '3D print', about: 'Printability on an FDM printer.', actions: { check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
+  print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {
     title: 'Drawing',
     about: 'The part\'s 2D drawing; a drawing change is always the user\'s, so make it as ops of proposals.propose.',
@@ -101,8 +102,10 @@ export const GROUPS: Record<string, Group> = {
 
 /** The v1 tool each group action stands for, keyed `group.action`. */
 export const V1_OF: ReadonlyMap<string, string> = new Map(Object.entries(GROUPS).flatMap(([g, x]) => Object.entries(x.actions).map(([a, [v1]]) => [`${g}.${a}`, v1] as const)));
-/** The `group.action` of each v1 tool. */
-export const V2_OF: ReadonlyMap<string, string> = new Map([...V1_OF].map(([k, v]) => [v, k]));
+/** Actions that name a v1 tool another action already stands for (O77): kept for agents that know them. */
+export const V2_ALIASES: ReadonlySet<string> = new Set(['print.check']);
+/** The `group.action` of each v1 tool: its first, not an alias (query.manufacturability, not print.check). */
+export const V2_OF: ReadonlyMap<string, string> = new Map([...V1_OF].filter(([k]) => !V2_ALIASES.has(k)).map(([k, v]) => [v, k]));
 
 /** A v2 call as the v1 call it stands for, or why it is not one; null for a name that is not a group. */
 export function v1Call(name: string, input: unknown): { name: string; args: Record<string, unknown> } | { error: string } | null {

@@ -219,10 +219,11 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         content: json({ ok: true, added: r.node.name, feature: r.doc.nodes.length - 1, ...(r.node.context ? { context: r.node.context } : {}), warnings: r.node.warnings }) };
     }
     case 'check_printability': {
-      // (AM3: the rules for the part's printing process, printer and orientation — read only.)
+      // (AM3, IM1: the manufacturability rules for the part's process — printing, injection moulding — read only.)
       const dir = vec3(args.direction);
-      const report = await printability(doc, state.bodies, evaluate, dir ? { direction: dir } : {});
-      return { doc, content: json(report), isError: false, changed: false, summary: `printability: ${report.rules.filter(r => r.status === 'fail').length} failing, ${report.rules.filter(r => r.status === 'warn').length} warned` };
+      if (args.finish !== undefined && typeof args.finish !== 'string') return fail(doc, '"finish" is a moulding finish id.');
+      const report = await printability(doc, state.bodies, evaluate, { ...(dir ? { direction: dir } : {}), ...(typeof args.finish === 'string' ? { finish: args.finish } : {}) });
+      return { doc, content: json(report), isError: false, changed: false, summary: `${report.process ?? 'no process'}: ${report.rules.filter(r => r.status === 'fail').length} failing, ${report.rules.filter(r => r.status === 'warn').length} warned` };
     }
     case 'orient_for_print': {
       // (AM4: which way up — the best of a fixed candidate set, deterministic; applied unless apply is false.)
@@ -307,8 +308,8 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'check_printability',
-    description: 'Printability of the part for its printing process and printer (doc settings) as it lies (direction: the build direction, else the chosen one): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping — each pass, warn, fail, unknown (why) or n/a, with values, limits and their sources.',
-    input_schema: { type: 'object', properties: { direction: xyz }, additionalProperties: false },
+    description: 'The manufacturability report for the part\'s process (printing, injection moulding, machining), naming the process it judged by (none chosen: it says so, none assumed); each rule pass, warn, fail, unknown (why) or n/a, with values, limits and their sources. Printing (the process and printer): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping, as it lies (direction: the build direction, else the chosen one). Injection moulding: the pull (direction, else the document\'s), the finish and its least draft (finish: smooth, pm-t1, pm-t2, else the document\'s), walls against the process and the material\'s range, the largest part.',
+    input_schema: { type: 'object', properties: { direction: xyz, finish: { type: 'string' } }, additionalProperties: false },
   },
   {
     name: 'orient_for_print',

@@ -731,6 +731,9 @@
       "maxItems": 3,
       "minItems": 3,
       "type": "array"
+     },
+     "finish": {
+      "type": "string"
      }
     },
     "type": "object"

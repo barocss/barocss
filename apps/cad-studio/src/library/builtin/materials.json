@@ -14,7 +14,8 @@
   "P-SLS": "BaroCSS rule of thumb for powder-bed polymer sintering (SLS), written for this table: verify with your service or printer",
   "P-MJF": "BaroCSS rule of thumb for multi-jet fusion (MJF), written for this table: verify with your service or printer",
   "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's",
-  "P-ORI": "BaroCSS heuristic for scoring print orientations, written for this table (weights of normalised terms): a default to adjust"
+  "P-ORI": "BaroCSS heuristic for scoring print orientations, written for this table (weights of normalised terms): a default to adjust",
+  "W-WEB": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept"
  },
  "materials": [
   {
@@ -159,12 +160,14 @@
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
     "friction": "S-TYP",
-    "warpRisk": "S-TYP"
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB",
+    "mouldShrink": "W-WEB"
    },
    "wallMM": {
     "injection": [
-     1.2,
-     3.5
+     1.143,
+     3.556
     ],
     "fdm": [
      0.8,
@@ -172,7 +175,20 @@
     ]
    },
    "friction": 0.5,
-   "warpRisk": 0.8
+   "warpRisk": 0.8,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — ABS: RECOMMENDED WALL THICKNESS"
+    },
+    "mouldShrink": {
+     "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+     "read": "2026-10-21",
+     "label": "shrink ranges from 0.002 in./in. for stable resins like ABS and polycarbonate"
+    }
+   },
+   "mouldShrink": 0.002
   },
   {
    "id": "pla",
@@ -230,12 +246,13 @@
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
     "friction": "S-TYP",
-    "warpRisk": "S-TYP"
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
    },
    "wallMM": {
     "injection": [
-     0.8,
-     3.0
+     0.762,
+     2.921
     ],
     "sla": [
      0.8,
@@ -251,7 +268,15 @@
     ]
    },
    "friction": 0.35,
-   "warpRisk": 0.6
+   "warpRisk": 0.6,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Nylon: RECOMMENDED WALL THICKNESS",
+     "note": "the page's nylon family row, not PA12-specific"
+    }
+   }
   },
   {
    "id": "pc",
@@ -274,16 +299,31 @@
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
     "friction": "S-TYP",
-    "warpRisk": "S-TYP"
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB",
+    "mouldShrink": "W-WEB"
    },
    "wallMM": {
     "injection": [
-     1.0,
-     3.8
+     1.016,
+     3.81
     ]
    },
    "friction": 0.5,
-   "warpRisk": 0.7
+   "warpRisk": 0.7,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Polycarbonate: RECOMMENDED WALL THICKNESS"
+    },
+    "mouldShrink": {
+     "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+     "read": "2026-10-21",
+     "label": "shrink ranges from 0.002 in./in. for stable resins like ABS and polycarbonate"
+    }
+   },
+   "mouldShrink": 0.002
   },
   {
    "id": "pp",
@@ -309,19 +349,27 @@
     "livingHingeStrain": "S-TYP",
     "livingHingeTMin": "S-TYP",
     "livingHingeTMax": "S-TYP",
-    "warpRisk": "S-TYP"
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
    },
    "wallMM": {
     "injection": [
-     0.8,
-     3.8
+     0.635,
+     3.81
     ]
    },
    "friction": 0.35,
    "livingHingeStrain": 0.5,
    "livingHingeTMin": 0.2,
    "livingHingeTMax": 0.5,
-   "warpRisk": 0.7
+   "warpRisk": 0.7,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Polypropylene: RECOMMENDED WALL THICKNESS"
+    }
+   }
   },
   {
    "id": "petg",
@@ -376,16 +424,24 @@
     "shrink": "S-TYP",
     "wallMM": "S-TYP",
     "friction": "S-TYP",
-    "warpRisk": "S-TYP"
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
    },
    "wallMM": {
     "injection": [
-     0.8,
-     3.0
+     0.762,
+     3.048
     ]
    },
    "friction": 0.25,
-   "warpRisk": 0.6
+   "warpRisk": 0.6,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Acetal: RECOMMENDED WALL THICKNESS"
+    }
+   }
   },
   {
    "id": "resin",
@@ -428,8 +484,13 @@
     "ribRec": {
      "value": 0.6,
      "unit": "ratio",
-     "source": "P-INJ",
-     "description": "a rib's thickness over the wall it stands on, recommended at most"
+     "source": "W-WEB",
+     "description": "a rib's thickness over the wall it stands on, recommended at most",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Use rubs and gussets for strength: around 60 percent"
+     }
     },
     "ribMax": {
      "value": 1.0,
@@ -464,8 +525,13 @@
     "draftRecDeg": {
      "value": 1.0,
      "unit": "deg",
-     "source": "P-INJ",
-     "description": "draft on walls along the pull, recommended at least"
+     "source": "W-WEB",
+     "description": "draft on walls along the pull, recommended at least (smooth finish)",
+     "page": {
+      "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+      "read": "2026-10-21",
+      "label": "We suggest a minimum of 1 degree draft"
+     }
     },
     "isFdm": {
      "value": 0,
@@ -478,8 +544,99 @@
      "unit": "mm",
      "source": "P-INJ",
      "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "maxPartLongMM": {
+     "value": 751,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its longest side",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "maxPartWideMM": {
+     "value": 480,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its second side",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "maxPartDepthMM": {
+     "value": 203,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its depth (taken along the pull)",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "tolMM": {
+     "value": 0.08,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the moulded tolerance, plus the resin tolerance per mm",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What are your tolerances for molded parts? +/- 0.003 in. (0.08mm)"
+     }
+    },
+    "tolResinMMPerMM": {
+     "value": 0.002,
+     "unit": "mm/mm",
+     "source": "W-WEB",
+     "description": "the resin tolerance, at least, per mm of the dimension",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "resin tolerance no less than +/- 0.002 in./in."
+     }
     }
-   }
+   },
+   "finishes": [
+    {
+     "id": "smooth",
+     "label": "Smooth (no texture)",
+     "draftMinDeg": 0.5,
+     "draftRecDeg": 1.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+      "read": "2026-10-21",
+      "label": "it is always best practice to include AT LEAST 0.5 degrees of draft on all vertical faces"
+     }
+    },
+    {
+     "id": "pm-t1",
+     "label": "Light bead blast (PM-T1)",
+     "draftMinDeg": 3.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Bead-blasted texture, PM-T1: at least 3 degrees of draft"
+     }
+    },
+    {
+     "id": "pm-t2",
+     "label": "Medium bead blast (PM-T2)",
+     "draftMinDeg": 5.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Bead-blasted texture, PM-T2: 5 degrees of draft"
+     }
+    }
+   ]
   },
   {
    "id": "fdm",
