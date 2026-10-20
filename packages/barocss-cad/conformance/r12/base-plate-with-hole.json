@@ -1,0 +1,104 @@
+{
+  "id": "r12-base-plate-with-hole",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: a base flange from a rectangle with a hole, T thick: an extrude's faces, the sheet's rules, no bends.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ],
+          "holes": [
+            [
+              {
+                "kind": "arc",
+                "start": [
+                  45,
+                  25
+                ],
+                "center": [
+                  40,
+                  25
+                ],
+                "direction": "ccw"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.2,
+          "bendRadius": 1.2,
+          "kFactor": 0.45
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4705.752220392306,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            40,
+            25,
+            0.6
+          ],
+          "absTol": 1e-9
+        },
+        "areaMM2": {
+          "value": 8192.619479163588,
+          "relTol": 1e-12
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.hole0.side0",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top"
+        ],
+        "sheet": {
+          "thicknessMM": 1.2,
+          "bendRadiusMM": 1.2,
+          "kFactor": 0.45,
+          "absTol": 1e-9,
+          "bends": []
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: (80·50 − π·5²)·T, its centroid the plate's middle (the hole centred), its area both faces plus the walls."
+}

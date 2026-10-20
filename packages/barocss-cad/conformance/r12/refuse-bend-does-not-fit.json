@@ -1,0 +1,48 @@
+{
+  "id": "r12-refuse-bend-does-not-fit",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: a 4 mm leg where the bend's outer setback (R + T)·tan 45° = 5 mm needs more.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              20
+            ]
+          ],
+          "side": "left",
+          "width": 40,
+          "thickness": 2,
+          "bendRadius": 3,
+          "kFactor": 0.4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BEND_DOES_NOT_FIT] leg 0 is 4 mm"
+    }
+  },
+  "oracle": "By construction: the setbacks, the turn and the section's self-contact in closed form."
+}

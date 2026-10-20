@@ -3021,6 +3021,28 @@ try {
     await snap('r11-3-mesh-octahedron-shell');
   });
 
+  await check('R12.1 a hat-section sheet profile from the palette: its bends at the sheet\'s radius, the textbook volume, its rules and bends in the panel, the K prefill flagged an estimate (new in D116)', async () => {
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('sheet profile'); await press('Enter'); await hudReady();
+    await field('Shape').selectOption('hat'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sheet-contour', null, { timeout: 30000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    // The defaults (crown 40 × 30, brims 12, width 30, T 1.5, R 1.5): 30 × 1.5 × the middle line 120.137 (the
+    // virtual-sharp relations) = 5406.17 mm³; the panel rounds to 1 mm³.
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 5406.17) <= 1, `${vol}`);
+    const props = await page.textContent('.props');
+    assert.match(props, /Sheet metal: 1\.5 mm thick, bends of inner radius 1\.5 mm, K-factor 0\.5/);
+    assert.match(props, /K 0\.5 is an estimate/);
+    assert.match(props, /bend4: 90°, allowance 3\.534 mm/);
+    assert.match(await page.textContent('.history'), /Sheet profile T1\.5 · 4 bends/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r12-1-sheet-hat-profile');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

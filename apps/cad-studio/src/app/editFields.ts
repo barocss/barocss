@@ -195,6 +195,16 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'sheet-base': case 'sheet-contour': {
+      // (R12.1, D116: the sheet's rules; a profile's width too.)
+      type S = Extract<ModelNode, { kind: 'sheet-base' | 'sheet-contour' }>;
+      if (node.kind === 'sheet-base') out.push(...sketchFields(nodes, node.sketch, ''));
+      number('t', 'Thickness', 'mm', n => num((n as S).thickness), (n, v) => ({ ...(n as S), thickness: v }));
+      number('r', 'Bend radius', 'mm', n => num((n as S).bendRadius), (n, v) => ({ ...(n as S), bendRadius: v }));
+      number('k', 'K-factor', undefined, n => (n as S).kFactor, (n, v) => ({ ...(n as S), kFactor: v }));
+      if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
+      break;
+    }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;

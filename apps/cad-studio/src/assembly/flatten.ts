@@ -32,8 +32,8 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': case 'library': return node;
-    case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': return { ...node, sketch: node.sketch + k };
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': case 'library': case 'sheet-contour': return node;
+    case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })), ...(node.from ? { from: node.from.map(i => i + k) } : {}) };
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };
     case 'difference': return { ...node, parent: ref(node.parent), tool: ref(node.tool) };

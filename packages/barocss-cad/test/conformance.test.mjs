@@ -38,6 +38,16 @@ for (const file of cases) {
         assert.ok(o.decimate && o.decimate.trianglesAfter <= want.decimate.trianglesAtMost, `output ${k} decimated to ${o.decimate?.trianglesAfter} triangles`);
         assert.ok(o.decimate.distance.hausdorffMM <= want.decimate.hausdorffMMAtMost, `output ${k} ${o.decimate.distance.hausdorffMM} mm from the original`);
       }
+      if (want.sheet) {
+        // A sheet-metal body's rules and bends (R12, D116): each bend's name, angle and allowance by its definition.
+        const r = o.sheet, w = want.sheet;
+        assert.ok(r, `output ${k} has no sheet report`);
+        assert.deepEqual({ t: r.thicknessMM, r: r.bendRadiusMM, k: r.kFactor, n: r.bends.length }, { t: w.thicknessMM, r: w.bendRadiusMM, k: w.kFactor, n: w.bends.length }, `output ${k} sheet rules`);
+        w.bends.forEach((b, i) => {
+          assert.equal(r.bends[i].name, b.name);
+          assert.ok(Math.abs(r.bends[i].angleDegrees - b.angleDegrees) <= w.absTol && Math.abs(r.bends[i].allowanceMM - b.allowanceMM) <= w.absTol, `output ${k} ${b.name}: ${r.bends[i].angleDegrees}°, BA ${r.bends[i].allowanceMM}`);
+        });
+      }
       if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
     if (c.expect.subd) {

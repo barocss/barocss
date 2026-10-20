@@ -5435,3 +5435,97 @@ Evidence: `packages/barocss-cad/test/r12-s0.test.mjs` (kept), against closed for
 - sheet DFM rules (minimum flange, hole-to-bend distance, minimum radius per material), as a process profile with warn and error levels and sourced values, like AM/IM/CNC.
 
 **Checks:** no product code changed. Kernel 1186/1191 (4 skipped; only the env-only "actual native Split source…" fails; r12-s0 4/4, 1.5 s). Lint clean. Studio, flow and RB were not rerun, as at D87/D105 (no source change).
+
+## D116 — R12.1: sheet rules, the base flange and the contour flange (2026-10-20)
+
+R12's first stage as D115 froze it: sheet-metal features that carry their rules, name their faces by role and report their bends, with typed refusals.
+
+**Kernel** (`sheet-metal.ts`, `part-model.ts`):
+- **Two feature kinds.**
+  - `sheet-base`: a plate from a closed sketch, one outer loop with holes allowed, T thick from its plane (`reverse`: against its normal). It is the upright route, so its mass is exact. Its faces are an extrude's: `top`, `bottom`, the sides by the sketch's tags.
+  - `sheet-contour`: an open `path` of 2–64 points in a plane (default XY), extruded `width` along the plane's normal.
+    - The path is one skin of the sheet, the material T thick to its `side` (left or right, looking along it).
+    - At each corner, a bend: the path's skin there has radius R + T where the material lies inside the turn (the path is the outer skin, its corner the outer virtual sharp), else R. The other skin is the concentric offset, so the inner radius is R either way.
+    - The section (lines and arcs) is extruded on the upright route: exact mass, valid B-rep, any plane.
+- **The rules on every sheet feature**, none defaulted: `thickness` T, `bendRadius` R and `kFactor` K. K must lie from 0 to 1 (the neutral layer within the sheet).
+- **Faces by role.** `.leg<i>.a` (the path's skin) and `.leg<i>.b`; `.bend<k>.inner` / `.outer` (k the corner's point); `.start` / `.end` (the thickness at the path's ends); `.front` (in the plane) and `.back`.
+  - `prismaticFromProfile` takes whole names for the walls and caps (`names`) for this. It is a new optional input; every other caller is unchanged.
+- **The output's `sheet` report:** T, R, K and each bend with:
+  - its name and its two faces;
+  - R and θ;
+  - its axis (in the part's frame);
+  - BA = θ(R + K·T), OSSB = (R + T)·tan(θ/2) and BD = 2·OSSB − BA (`bendAllowance`, `outsideSetback`, `bendDeduction`, exported).
+- **Refusals** by name:
+  - `[BEND_ANGLE]` (PARAMETER): a path point in line with its neighbours (no silent merge); a turn of 180° (a hem, not in R12).
+  - `[BEND_DOES_NOT_FIT]` (PARAMETER): a leg shorter than its corners' setbacks along it, the numbers given; coincident points.
+  - `[SHEET_CROSSES_ITSELF]` (GEOMETRY): the section meets or touches itself, with where and which faces.
+    - The test is closed-form (line–line, line–circle, circle–circle, arcs by angle) over every pair of segments that are not neighbours. It is not sampled.
+    - A path coming back to touch its start is refused; a millimetre short, it builds.
+  - The rules: K outside 0–1 and T or R not positive (PARAMETER); side and path (INPUT); a base sketch with regions (CAPABILITY).
+- **The sheet report is on the feature's own output only.** Carrying it through later features (a `difference` cutting holes) is R12.2, with the flat.
+
+**Oracles:** textbook relations written in the tests, not the kernel's construction.
+- **The middle line.** Each leg is measured to a corner of the path. At a corner where the path is the outer skin, the leg loses 2(R + T)·tan(θ/2) and gains θ(R + T/2) (the bend deduction at K = ½). Where the path is the inner skin, it loses 2R·tan(θ/2) and gains the same arc. The volume is T × the middle line × the width.
+- **Results:**
+  - An L at 30°–170°, either side (the path the outer or the inner skin): to 1e-12.
+  - A hat with both kinds of corner, a zed, a channel either way, the channel on the XZ plane: to 1e-12. The channel's STEP round trip holds to 1e-9.
+  - The bend faces are cylinders of radius R and R + T, coaxial with the reported axis, to 1e-12.
+  - BA, OSSB and BD agree with their definitions to 1e-12.
+  - A base plate 80 × 50 with a Ø10 hole: volume, centroid (±T/2 either way) and area exact.
+
+**Studio:**
+- **Nodes** `sheet-base` and `sheet-contour`, mapped one to one. They are new kinds, so no migration; `KINDS` takes them.
+- **Two commands:**
+  - **Sheet plate** (from a finished sketch, up or down).
+  - **Sheet profile**: an L at any bend angle, a U, a Z or a hat, standing on the XZ plane from y to y + width.
+    - Its base, leg and lip are measured to the path's side: the outside of the first bend and of a hat's crown; a Z's second bend and a hat's brims to their inside.
+- **The rules' fields** show "K-factor (0.5: estimate)".
+- **The prefill** (T 1.5, R = T, K 0.5) is D115's reversible default, on the owner's confirm list.
+- **The body's panel:**
+  - the rules;
+  - a warning when K is 0.5: an estimate, the sheet's middle, so the flat runs long; use the shop's value;
+  - one line a bend (θ, BA, OSSB, BD).
+- **The feature editor:** thickness, bend radius, K, width.
+- **The agent:**
+  - both commands (documented) and both raw nodes in `add_features` (`points2`: 2 to 64 points);
+  - the K advice in its docs: ask for the shop's value, or say it is an estimate.
+- **Icons** `cad-sheet-plate` and `cad-sheet-profile` (an L of sheet with its bend in the accent colour), also in the history.
+
+**Tests:**
+- Kernel `test/r12-1.test.mjs` (5) and studio `test/sheet.test.ts` (3). Both fail on HEAD f14204d7c, where the kinds are unknown.
+- Conformance `r12/`:
+  - `contour-l-bracket`: volume and area in closed form;
+  - `contour-hat-channel`, on XZ;
+  - `base-plate-with-hole`;
+  - `refuse-bend-does-not-fit`, `refuse-sheet-crosses-itself`, `refuse-bend-angle`.
+- The conformance runner gains an optional `sheet` expectation (rules, each bend's name, angle and BA).
+- A flow step: the hat from the palette (5406.17 mm³ by the middle line; its notes and the estimate warning; `Sheet profile T1.5 · 4 bends`).
+
+**Judgement calls:**
+1. **The contour's path is inline points**, not a sketch. The kernel's sketches are closed loops, and an open sketch would change the sketch format; the sketcher drawing an open path for it is a later UI step.
+2. **The skins are named `a` (the path's) and `b`**: legs have no inside or outside, bends do.
+3. **The studio's profile measures to the path's side**, so a Z and a hat mix outside and inside dimensions; the docs say which.
+
+**Not done:** a radius per bend; a 180° fold (a hem); the sheet report through later features (R12.2).
+
+**Shared file:** the studio's tool contract `src/chat/tools-v1.json` (A5.1, the outer lane's) takes the two new commands in `run_command`'s enum. This is a compatible change recorded with `UPDATE_TOOL_CONTRACT=1` (its own procedure); no tool's shape changed otherwise.
+
+**Checks** on 60ac5bd00 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio; the studio's ESLint shows warnings only, in files not touched) |
+| Kernel | 1197/1202 (4 skipped; only the env-only Split test fails) |
+| Conformance | 135/135, with the 6 new cases |
+| Studio | 539/539 |
+| Full flow | 168/168, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+**RB at R12.1** (a follow-up commit):
+- **The runner took every JSON file under `conformance/` as a part document.** These were the other steps' fixtures: DXF cases and their oracle readings, drawing, robot, DSL and brief cases, 86 files. They were counted as refused part documents, and the outer lane's A6 brief cases (merged at 60ac5bd00) showed as 3 NEW WRONG.
+  - It now takes only part documents and conformance cases holding one (`scripts/rb/run.mjs`).
+  - The trend's case count drops from 359 to 273 on this basis. Its REFUSED count falls with it, from 87 to 4.
+- **The two r12 contour cases' volume tolerance is now 1e-9**, as the other exact cases have.
+  - RB measures by the B-rep quadrature: 1.4e-12 on the L-bracket, past the 1e-12 first written.
+  - The kernel's prismatic integration, which the unit tests keep at 1e-12, is not the only route an implementation may take.
