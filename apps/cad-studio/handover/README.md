@@ -66,7 +66,7 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
 - The analytic Boolean's one union order (D107/D108), the region route's refusals (D113), the offset route's limits (D112), mesh shells' limits (D114): as in the R11 → R12 block below.
 - R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out). B9's known flake keeps its budget.
-- ~~Kernel-lane request (O75): `bvhOfTriangles` from `facet-bvh.ts`~~ — **withdrawn** (coordinator, 2026-10-21): the outer lane builds RM6's mesh distance on a dual-tree traversal over the studio's own triangle BVH (`print/orient.ts`), after IM.
+- ~~Kernel-lane request (O75): `bvhOfTriangles` from `facet-bvh.ts`~~ — withdrawn; then (coordinator, 2026-10-21, later the same day) the studio dual-tree is **not** to be built either: the triangle-BVH consolidation goes to the kernel lane as **track K** (K2 one `triangleBvh(positions, indices)` with ray and nearest queries; K3 an exact `meshClearance`). The outer lane leaves `print/orient.ts`, `chat/analysis.ts`'s grid and `robot/sweep.ts`'s `meshDistance` as they are.
 
 **How to resume**
 1. Read this block, then D122–D128 in `decisions.md` (for the frame model), then §4's R12b item and D53–D60 (R6a gears).
