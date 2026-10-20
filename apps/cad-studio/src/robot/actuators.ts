@@ -108,10 +108,13 @@ export interface SizeOptions {
   inertiaRatio?: number; /** the load's inertia over the drive's, at most (default 10, a rule of thumb) */
   motors?: readonly Motor[]; reducers?: readonly Reducer[];
   g?: V3;
+  /** rad/s², a stated stop event (an emergency stop): every moving joint decelerating at it from the cycle's fastest
+   * instant; its output torque is checked against the reducer's momentary peak torque (absent: not checked, said so). */
+  estop?: number;
 }
 export const DEFAULT_INERTIA_RATIO = 10;
 /** The model in one line, as the tool states it. */
-export const SIZING_MODEL = 'rigid; τ_m = τ/(N η) + (J_m + J_in) N q̈ + T_f sgn q̇, η dividing in every quadrant (conservative); T_f = no-load current × torque constant (from the page\'s values); the torque–speed line (n_0 − n)/(Δn/ΔM) at the nominal voltage; T_av = (∫ n|τ|³ dt / ∫ n dt)^⅓; L10 = L_n (T_r/T_av)³ (n_r/n_av); the momentary peak torque (emergency stops) not checked; the actuators\' own mass not added to the links';
+export const SIZING_MODEL = 'rigid; τ_m = τ/(N η) + (J_m + J_in) N q̈ + T_f sgn q̇, η dividing in every quadrant (conservative); T_f = no-load current × torque constant (from the page\'s values); the torque–speed line (n_0 − n)/(Δn/ΔM) at the nominal voltage; T_av = (∫ n|τ|³ dt / ∫ n dt)^⅓; L10 = L_n (T_r/T_av)³ (n_r/n_av); the momentary peak torque checked only for a stated stop (estop: every moving joint decelerating at it from the cycle\'s fastest instant); the actuators\' own mass added to the links only when sized coupled (each pair a point mass at its joint, on the joint\'s parent link, until the choices settle)';
 export interface Check { name: string; value: number; limit: number; unit: string; ok: boolean; /** limit − value over the limit */ margin: number; limitSource: 'page' | 'derived' | 'estimate' | 'rule' }
 export interface JointSizing {
   key: string;
@@ -192,8 +195,19 @@ function refine(p: Probe, tracks: readonly Track[], t0: Totals): Totals {
   return out;
 }
 
+/** A stop's output torque at a joint: from the instant its speed is greatest (over the samples), every moving joint
+ * decelerating at `a` (RNEA there); its magnitude. */
+function stopTorque(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, tracks: readonly Track[], key: string, a: number, g: V3): number {
+  let best: { tr: Track; s: Track['segs'][number]; i: number } | null = null, fast = -1;
+  for (const tr of tracks) for (const s of tr.segs) for (let i = 0; i <= SAMPLES; i++) { const v = Math.abs(s.qd[i][key]); if (v > fast) { fast = v; best = { tr, s, i }; } }
+  if (!best) return 0;
+  const x = moveState(best.tr.motion, best.s.seg, best.s.t[best.i]), qdd: Record<string, number> = {};
+  for (const k of Object.keys(x.qd)) qdd[k] = -Math.sign(x.qd[k]) * a;
+  return Math.abs(rnea(tree, bodies, x.q, x.qd, qdd, g)[key]);
+}
+
 const kindOf = (x: Value): Check['limitSource'] => ('page' in x.src ? 'page' : 'derived' in x.src ? 'derived' : 'estimate');
-function checks(d: Drive, m: Motor, r: Reducer, T: Totals, cycle: number, jLoad: number, opts: SizeOptions): Check[] {
+function checks(d: Drive, m: Motor, r: Reducer, T: Totals, cycle: number, jLoad: number, opts: SizeOptions, stop: number | null = null): Check[] {
   const c = (name: string, value: number, limit: number, unit: string, src: Check['limitSource'], atMost = true): Check => ({ name, value, limit, unit, ok: atMost ? value <= limit : value >= limit, margin: limit ? (atMost ? limit - value : value - limit) / limit : 0, limitSource: src });
   const rms = Math.sqrt(T.sq / cycle), Tav = T.speed > 0 ? Math.cbrt(T.cube / T.speed) : 0, nav = T.speed / cycle, life = Tav > 0 && nav > 0 ? d.Ln * (d.Tr / Tav) ** 3 * (d.nr / nav) : Infinity;
   const ratio = opts.inertiaRatio ?? DEFAULT_INERTIA_RATIO, both = (a: Value, b: Value) => (isEstimate(a) || isEstimate(b) ? 'estimate' : 'page') as Check['limitSource'];
@@ -212,6 +226,7 @@ function checks(d: Drive, m: Motor, r: Reducer, T: Totals, cycle: number, jLoad:
   const lifeCheck = c('reducer life L10', life, opts.life ?? 0, 'h', both(r.ratedLife, r.ratedInputSpeed), false);
   if (opts.life === undefined) { lifeCheck.ok = true; lifeCheck.margin = Infinity; }
   out.push(lifeCheck);
+  if (stop !== null) out.push(c('reducer momentary peak torque', stop, si(r.momentaryPeakTorque), 'N·m', kindOf(r.momentaryPeakTorque)));
   return out;
 }
 
@@ -235,17 +250,17 @@ export function sizeActuators(tree: JointTree, bodies: ReadonlyMap<string, LinkB
     const j = tree.joints.find(x => x.key === key)!;
     if (j.type === 'prismatic') { skipped.push({ key, why: 'a slide: no linear actuator data yet' }); continue; }
     if (!out.dq[key] && Math.max(...hold.map(h => Math.abs(h[key]))) === 0) { skipped.push({ key, why: 'neither moves nor holds a load in this cycle' }); continue; }
-    const jLoad = Math.max(...Ms.map(({ keys, M }) => { const i = keys.indexOf(key); return M[i][i]; }));
+    const jLoad = Math.max(...Ms.map(({ keys, M }) => { const i = keys.indexOf(key); return M[i][i]; })), stop = opts.estop === undefined ? null : stopTorque(tree, bodies, tracks, key, opts.estop, g);
     const ranked: { m: Motor; r: Reducer; d: Drive; c: Check[]; mass: number; least: number }[] = [], rejected: Record<string, number> = {};
     for (const m of motors) for (const r of reducers) {
-      const d = drive(m, r), c = checks(d, m, r, totals(d, key, tracks, hold.map(h => h[key]), dwell), cycleS || 1, jLoad, opts), fail = c.find(x => !x.ok);
+      const d = drive(m, r), c = checks(d, m, r, totals(d, key, tracks, hold.map(h => h[key]), dwell), cycleS || 1, jLoad, opts, stop), fail = c.find(x => !x.ok);
       if (fail) { rejected[fail.name] = (rejected[fail.name] ?? 0) + 1; continue; }
       ranked.push({ m, r, d, c, mass: si(m.mass) + si(r.mass), least: Math.min(...c.map(x => x.margin)) });
     }
     ranked.sort((a, b) => a.mass - b.mass || b.least - a.least);
     let pick: (typeof ranked)[number] | null = null;
     for (const cand of ranked) {
-      const T = refine({ tree, bodies, g, d: cand.d, key }, tracks, totals(cand.d, key, tracks, hold.map(h => h[key]), dwell)), c = checks(cand.d, cand.m, cand.r, T, cycleS || 1, jLoad, opts);
+      const T = refine({ tree, bodies, g, d: cand.d, key }, tracks, totals(cand.d, key, tracks, hold.map(h => h[key]), dwell)), c = checks(cand.d, cand.m, cand.r, T, cycleS || 1, jLoad, opts, stop);
       if (c.every(x => x.ok)) { pick = { ...cand, c }; break; }
       const fail = c.find(x => !x.ok)!; rejected[`${fail.name} (refined)`] = (rejected[`${fail.name} (refined)`] ?? 0) + 1;
     }
@@ -271,7 +286,41 @@ export function checkPair(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>
   for (const tr of tracks) for (const s of tr.segs) poses.push(moveState(tr.motion, s.seg, s.seg.t1).q);
   const jLoad = Math.max(...poses.map(q => { const { keys, M } = massMatrix(tree, bodies, q), i = keys.indexOf(key); return M[i][i]; }));
   const d = drive(motor, reducer), T = refine({ tree, bodies, g, d, key }, tracks, totals(d, key, tracks, hold.map(h => h[key]), dwell));
-  return checks(d, motor, reducer, T, cycleS || 1, jLoad, opts);
+  return checks(d, motor, reducer, T, cycleS || 1, jLoad, opts, opts.estop === undefined ? null : stopTorque(tree, bodies, tracks, key, opts.estop, g));
+}
+
+/** One point mass added to a link (its mass, centre and inertia about it — world, kg·m² — by the parallel-axis rule). */
+export function withPointMass(b: LinkBody, massKg: number, at: V3): LinkBody {
+  const M = b.massKg + massKg; if (!(M > 0)) return b;
+  const c: V3 = [0, 1, 2].map(i => (b.massKg * b.com[i] + massKg * at[i]) / M) as V3, I = b.I.slice() as LinkBody['I'];
+  // (Each mass about the new centre: m (|d|² δ − d dᵀ), d in metres.)
+  for (const [m, p] of [[b.massKg, b.com], [massKg, at]] as [number, V3][]) {
+    const d = [0, 1, 2].map(i => (p[i] - c[i]) / 1000), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) I[i * 3 + j] += m * ((i === j ? dd : 0) - d[i] * d[j]);
+  }
+  return { ...b, massKg: M, com: c, I };
+}
+export interface CoupledSizing { sizing: Sizing; rounds: number; settled: boolean; added: { joint: string; link: string; massKg: number }[]; bodies: Map<string, LinkBody> }
+/**
+ * Sizing with the actuators' own mass (O75): each chosen pair a point mass at its joint's axis point on the joint's
+ * parent link (the motor and reducer sit there and drive the child), sized again, until the choices are the same twice
+ * (at most `rounds`); `settled` false when they still change.
+ */
+export function sizeCoupled(tree: JointTree, bodies0: ReadonlyMap<string, LinkBody>, q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>, kind: ProfileKind, limits: (key: string) => MoveLimits, opts: SizeOptions = {}, rounds = 6): CoupledSizing {
+  let bodies = new Map(bodies0), sizing = sizeActuators(tree, bodies, q0, q1, kind, limits, opts), added: CoupledSizing['added'] = [];
+  const sig = (s: Sizing) => s.joints.map(j => `${j.key}:${j.choice ? `${j.choice.motor}+${j.choice.reducer}` : '-'}`).join('|');
+  for (let k = 1; k <= rounds; k++) {
+    bodies = new Map(bodies0); added = [];
+    for (const j of sizing.joints) {
+      const joint = tree.joints.find(x => x.key === j.key); if (!j.choice || !joint) continue;
+      const parent = bodies.get(joint.parent); if (!parent) continue;
+      bodies.set(joint.parent, withPointMass(parent, j.choice.massKg, joint.origin as V3)); added.push({ joint: j.key, link: joint.parent, massKg: j.choice.massKg });
+    }
+    const next = sizeActuators(tree, bodies, q0, q1, kind, limits, opts), same = sig(next) === sig(sizing);
+    sizing = next;
+    if (same) return { sizing, rounds: k, settled: true, added, bodies };
+  }
+  return { sizing, rounds, settled: false, added, bodies };
 }
 
 /** Reads catalogue entries given by a caller: every field a value with a unit known here and a source. */

@@ -183,3 +183,35 @@ test('the size_actuators tool; refusals (a value with no source, an unknown unit
   assert.equal(joint.choice.reducer, c.expect.reducer);
   for (const [name, v] of Object.entries(c.expect.checks as Record<string, number>)) { const got = joint.checks.find((x: { name: string }) => x.name === name).value; assert.ok(near(got, v, 1e-9), `${name}: ${got} vs ${v}`); }
 });
+
+test('O75: a stated stop — the reducer\'s momentary peak torque checked against J·a on the one-joint case (to 1e-9); absent, no such check; a stop past every pair\'s limit leaves none feasible', async () => {
+  const doc = JSON.parse(readFileSync(join(CASES, 'revolute', 'case.json'), 'utf8')).input.document as StudioDoc, { tree, bodies } = await robotOf(doc), key = coordinates(tree)[0];
+  const J = massMatrix(tree, bodies, {}).M[0][0], lim = () => ({ velocity: 1.5, acceleration: 4 }), r = REDUCERS[0];
+  const plain = sizeActuators(tree, bodies, {}, { [key]: 2 }, 'trapezoid', lim, { reducers: [r] });
+  assert.ok(!plain.joints[0].checks.some(c => c.name === 'reducer momentary peak torque'), 'no stop stated: not checked');
+  const s = sizeActuators(tree, bodies, {}, { [key]: 2 }, 'trapezoid', lim, { reducers: [r], estop: 200 }), c = byName(s.joints[0].checks, 'reducer momentary peak torque');
+  // (One joint, no gravity load: its torque at a stop is J·a — no speed term about its fixed axis.)
+  assert.ok(near(c.value, J * 200), `${c.value} vs ${J * 200}`); assert.equal(c.limit, si(r.momentaryPeakTorque)); assert.equal(c.limitSource, 'page');
+  const huge = sizeActuators(tree, bodies, {}, { [key]: 2 }, 'trapezoid', lim, { reducers: [r], estop: 2 * si(r.momentaryPeakTorque) / J });
+  assert.equal(huge.joints[0].choice, null); assert.ok(huge.joints[0].rejected['reducer momentary peak torque'] > 0, JSON.stringify(huge.joints[0].rejected));
+});
+
+test('O75: sizing coupled — each chosen pair a point mass at its joint on the parent link; the shoulder\'s load inertia grows by M·d² of the elbow\'s; the choices settled and a fixed point', async () => {
+  const { sizeCoupled, withPointMass } = await import('../src/robot/actuators');
+  const doc = JSON.parse(readFileSync(join(CASES, 'chain-2r', 'case.json'), 'utf8')).input.document as StudioDoc, { tree, bodies } = await robotOf(doc), keys = coordinates(tree);
+  const lim = () => ({ velocity: 3, acceleration: 20 }), to = { [keys[0]]: 1, [keys[1]]: -1 };
+  const c = sizeCoupled(tree, bodies, {}, to, 'trapezoid', lim);
+  assert.ok(c.settled && c.rounds <= 6, JSON.stringify([c.rounds, c.settled]));
+  const elbow = tree.joints.find(j => j.key === keys[1])!, onElbow = c.added.find(a => a.joint === keys[1])!;
+  assert.equal(onElbow.link, elbow.parent);
+  // (The shoulder's diagonal of M grows by the elbow pair's mass times its axis' squared distance from the shoulder's, m².)
+  const sh = tree.joints.find(j => j.key === keys[0])!, d = Math.hypot(elbow.origin[0] - sh.origin[0], elbow.origin[1] - sh.origin[1]) / 1000;
+  const M0 = massMatrix(tree, bodies, {}).M[0][0], M1 = massMatrix(tree, c.bodies, {}).M[0][0];
+  assert.ok(near(M1 - M0, onElbow.massKg * d * d, 1e-9), `${M1 - M0} vs ${onElbow.massKg * d * d}`);
+  // (A fixed point: sized once more on the coupled bodies, the same choices.)
+  const again = sizeActuators(tree, c.bodies, {}, to, 'trapezoid', lim);
+  assert.deepEqual(again.joints.map(j => j.choice?.reducer), c.sizing.joints.map(j => j.choice?.reducer));
+  // (The point mass by the parallel-axis rule: a mass at the centre adds nothing to I.)
+  const b0 = bodies.get(elbow.parent)!, same = withPointMass(b0, 1, b0.com);
+  assert.ok(same.I.every((v, i) => Math.abs(v - b0.I[i]) <= 1e-15) && near(same.massKg, b0.massKg + 1));
+});

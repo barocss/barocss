@@ -3274,7 +3274,13 @@
    "input": {
     "additionalProperties": false,
     "properties": {
+     "coupled": {
+      "type": "boolean"
+     },
      "dwell_s": {
+      "type": "number"
+     },
+     "estop_rad_s2": {
       "type": "number"
      },
      "from": {

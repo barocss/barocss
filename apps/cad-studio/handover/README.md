@@ -66,6 +66,7 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
 - The analytic Boolean's one union order (D107/D108), the region route's refusals (D113), the offset route's limits (D112), mesh shells' limits (D114): as in the R11 → R12 block below.
 - R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out). B9's known flake keeps its budget.
+- **Kernel-lane request (O75, low priority):** export `bvhOfTriangles(positions, indices)` from `facet-bvh.ts` (the same `FacetBvh` over raw triangles), for RM6's `meshDistance` and A6.3's keep-out clearance. Box pruning covers today's cases; the coordinator queues it at a track boundary.
 
 **How to resume**
 1. Read this block, then D122–D128 in `decisions.md` (for the frame model), then §4's R12b item and D53–D60 (R6a gears).
@@ -576,19 +577,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):
-  - UX: the Joints card's link mass list runs past the viewport on a 6-link arm and the card scrolls; it could
-    collapse into a summary line with the list on demand (seen on the RM5 screenshot, `notes/acceptance/rm5-arm.png`;
-    the coordinator, 2026-10-20: log it, do not fix it now).
-  - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
-  - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
-    chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
-  - A6.3: datums as mate targets (through the mates' face tables), not done. The tool contract's overhead: 13 470 of
+  - Done in O75: the Joints card's masses collapsed; the look- ids; RD3's stop check and coupled sizing; datums as mate targets.
+  - RM6's mesh distance where hulls meet is box-pruned, not a BVH: the R3.2 BVH needs a kernel export over raw triangles
+    (`bvhOfTriangles`), a kernel-core change (O75: skipped, listed for the coordinator).
+  - RD3's refinement is most of its 735 ms (an RNEA per probe for one joint); coupled sizing (O75) runs it once a round.
+  - A6.3's datums mate (O75). The tool contract's overhead: 13 470 of
     A5.1's 15 000 guard after O27's trim (from 14 804); 1 530 left.
   - Known flaky timing check (O27): PERF3 C16 in `test/cageEdit.test.ts` (the kernel lane's file) failed once in the full
     suite under load; its slowest warm step against the cold one is typically 0.025 of the 0.5 limit, so a single ~5 ms
     stall fails it. The threshold is unchanged.
-  - RD3 does not check the reducer's momentary peak torque (emergency stops, collisions): a check against the pages'
-    "Limit for Momentary Peak Torque" for a stated stop event.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
@@ -1495,6 +1492,8 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
       (print-in-place: RM6 translation captivity) — 60/60 trials on twelve rungs, 158/158 mutants. Held: rungs 4 and 7 (kernel lane).
     - **RB9.3 done (O74)**: rungs 4 (machined plate: holes, pocket, corner radii, volume) and 7 (lap joint: mated plates, coaxial
       clearance holes, 1.5 Ø edges) scoped — 70/70 trials on all fourteen rungs, 184/184 mutants; CNC1–CNC6 and R12c's bolt held, named.
+    - **Follow-ups (O75)**: Joints masses collapsed; `look-` appearance ids; RD3 stop check (`estop_rad_s2`) and coupled sizing;
+      datums as mate targets; the R3.2 BVH under RM6 skipped (needs a kernel export).
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
