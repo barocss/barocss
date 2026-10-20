@@ -1,0 +1,111 @@
+{
+  "id": "r12-flange-part-width-obround",
+  "step": "R12",
+  "decisions": [
+    "D118"
+  ],
+  "about": "R12.3a: a flange 15 wide on a 50 mm edge (offsets 10 and 25), an obround relief (T wide, T past the bend) cut at each end inside the edge.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "fl",
+          "kind": "sheet-flange",
+          "target": "b",
+          "edge": "b.side1|b.top",
+          "length": 20,
+          "offsets": [
+            10,
+            25
+          ],
+          "relief": {
+            "kind": "obround"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6374.995845242525,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            42.31156130072226,
+            24.558828129838755,
+            1.404537449202319
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "fl.bend.inner",
+          "fl.bend.outer",
+          "fl.leg.inner",
+          "fl.tip",
+          "fl.trim.side1",
+          "fl.trim.side2",
+          "fl.trim.side3",
+          "fl.trim.side5",
+          "fl.trim.side6",
+          "fl.trim.side7"
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 4247.876655120511,
+            "relTol": 1e-9
+          },
+          "loops": 1,
+          "bends": [
+            {
+              "name": "fl.bend",
+              "direction": "up",
+              "angleDegrees": 90
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "oracle": "Closed form: the reliefs T·(w(t + d − w/2) + πw²/8) each; the flat by the K-factor's area identity on that volume. Centroid by this kernel."
+}

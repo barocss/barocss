@@ -189,6 +189,12 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-wedge': <>{prism([[0, 0], [1, 0], [0, 1]])}</>,
   // Sheet metal (R12.1): a thin plate, its top the sheet; an L of sheet, its bend in the accent colour.
   'cad-sheet-plate': <>{prism([[0, 0.3], [1, 0.3], [1, 0.44], [0, 0.44]], 0, 1, { accent: i => i === 2 })}</>,
+  // A plate with a flange bent up from its edge, the flange in the accent colour.
+  'cad-sheet-flange': <>{(() => {
+    const t = 0.12, r = 0.14, c: XY = [1 - t - r, t + r];
+    const pts: XY[] = [[0, 0], ...arc(c, r + t, 270, 360, 6), [1, 0.95], [1 - t, 0.95], ...arc(c, r, 0, -90, 6), [0, t]];
+    return prism(pts, 0, 1, { accent: i => i >= 1 && i < 10 });
+  })()}</>,
   'cad-sheet-profile': <>{(() => {
     const t = 0.14, r = 0.16, c: XY = [t + r, t + r];
     const pts: XY[] = [[1, 0], [1, t], ...arc(c, r, 270, 180, 6), [t, 1], [0, 1], ...arc(c, r + t, 180, 270, 6)];

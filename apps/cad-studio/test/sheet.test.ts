@@ -110,3 +110,31 @@ test('D117 a sheet\'s flat pattern on its body: a channel with a hole cut by dif
   assert.match(t.flatRefused!, /^\[NON_NORMAL_CUT\]/);
   assert.ok(t.notes!.some(n => n.warning && /^No flat pattern: \[NON_NORMAL_CUT\]/.test(n.text)), JSON.stringify(t.notes));
 });
+
+test('D118 Flange: offered for one straight edge of a sheet; built on a plate\'s edge (the textbook flat in its notes), part width with reliefs, the agent\'s raw node; its label, fields, saving', async () => {
+  const cmd = commands.find(c => c.id === 'sheet-flange')!, T = 1.5, R = 1.5, K = 0.44, BD = 2 * (R + T) - Math.PI / 2 * (R + K * T);
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] });
+  doc = withNode(doc, { kind: 'sheet-base', sketch: 0, thickness: T, bendRadius: R, kFactor: K });
+  const bodies = bodiesOf(doc), edge = bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side1|n1.top'));
+  const ctx = { doc, bodies, selection: { faces: [], edges: [{ body: 0, edge }], bodies: [] } } as never;
+  assert.equal(cmd.available(ctx).ok, true);
+  // (Not on a body that is no sheet.)
+  const box = commands.find(c => c.id === 'box')!, boxDoc = box.build!({ doc: emptyDoc(), bodies: [], selection: none } as never, { ...box.defaults!({ doc: emptyDoc(), bodies: [], selection: none } as never), x: 0, y: 0, z: 0 });
+  assert.equal(cmd.available({ doc: boxDoc, bodies: bodiesOf(boxDoc), selection: { faces: [], edges: [{ body: 0, edge: 0 }], bodies: [] } } as never).ok, false);
+  const next = cmd.build!(ctx, { ...cmd.defaults!(ctx) }), node = next.nodes[2];
+  assert.deepEqual(noId(node), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20 });
+  assert.equal(featureLabel(node, 2, next.nodes), 'Flange 20 · 90°');
+  const [b] = bodiesOf(next), L = 80 + 20 - BD;
+  assert.ok(b.notes!.some(n => n.text === `Flat pattern ${+L.toFixed(3)} × 50 mm, 1 bend`), JSON.stringify(b.notes));
+  assert.deepEqual(editFields(next.nodes, 2).map(f => f.key), ['length', 'angle']);
+  // Part width: offsets and an obround relief.
+  const part = cmd.build!(ctx, { ...cmd.defaults!(ctx), o0: 10, o1: 25, relief: 'obround', angle: 120 });
+  assert.deepEqual(noId(part.nodes[2]), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20, angleDegrees: 120, offsets: [10, 25], relief: { kind: 'obround' } });
+  assert.ok(bodiesOf(part)[0].flat!.bends.length === 1);
+  const read = readStudioDoc(JSON.stringify(part)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-flange');
+  // The agent's raw node: checked, built.
+  const evaluate = async (d: StudioDoc) => evaluatePart(d, 1), r0 = await evaluate(doc); assert.ok(r0.ok);
+  const a = await dispatchTool({ doc, bodies: r0.bodies }, 'add_features', { features: [{ kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side3|n1.top'], length: 15, position: 'bend-outside' }] }, evaluate);
+  assert.ok(!a.isError, a.content);
+  assert.equal(a.state.bodies[0].flat!.bends.length, 1);
+});

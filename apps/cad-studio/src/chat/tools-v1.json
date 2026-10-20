@@ -2493,6 +2493,7 @@
        "pipe",
        "sheet-plate",
        "sheet-profile",
+       "sheet-flange",
        "box",
        "cylinder",
        "sphere",

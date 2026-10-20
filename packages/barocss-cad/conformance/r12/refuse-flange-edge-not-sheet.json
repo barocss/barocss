@@ -1,0 +1,53 @@
+{
+  "id": "r12-refuse-flange-edge-not-sheet",
+  "step": "R12",
+  "decisions": [
+    "D118"
+  ],
+  "about": "R12.3a: a flange on a vertical edge of the plate (two thickness faces): refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "fl",
+          "kind": "sheet-flange",
+          "target": "b",
+          "edge": "b.side0|b.side1",
+          "length": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[EDGE_NOT_SHEET] b.side0|b.side1"
+    }
+  },
+  "oracle": "By construction."
+}

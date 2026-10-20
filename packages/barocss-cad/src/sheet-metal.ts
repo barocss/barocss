@@ -195,3 +195,25 @@ function selfContact(loop: readonly ProfileSegmentInput[]): [number, number, XY]
   }
   return null;
 }
+
+/** An edge flange's section in its edge's frame (x out of the plate across the edge, y up from the picked skin). */
+export interface FlangeSection { readonly segments: readonly ProfileSegmentInput[]; readonly names: readonly string[]; readonly center: XY }
+/**
+ * The section of an edge flange (R12.3, D118): the plate at x ≤ 0 between y = −T and the picked skin at y = 0, trimmed
+ * back to x = −trim; a bend of inner radius R from there, turning θ up (towards +y), then a straight leg `straight` long.
+ * Faces `<id>.root` (where it joins the plate), `.bend.inner` / `.outer`, `.leg.inner` (going on from the picked skin) /
+ * `.outer`, `.tip`.
+ */
+export function flangeSection(id: string, thickness: number, radius: number, angle: number, trim: number, straight: number): FlangeSection {
+  const T = thickness, c: XY = [-trim, radius], s = Math.sin(angle), k = Math.cos(angle), d: XY = [k, s];
+  const pi: XY = [c[0] + radius * s, c[1] - radius * k], po: XY = [c[0] + (radius + T) * s, c[1] - (radius + T) * k];
+  return {
+    segments: [
+      { kind: 'line', start: [-trim, -T] }, { kind: 'arc', start: [-trim, 0], center: c, direction: 'ccw' }, { kind: 'line', start: pi },
+      { kind: 'line', start: [pi[0] + straight * d[0], pi[1] + straight * d[1]] }, { kind: 'line', start: [po[0] + straight * d[0], po[1] + straight * d[1]] },
+      { kind: 'arc', start: po, center: c, direction: 'cw' },
+    ],
+    names: [`${id}.root`, `${id}.bend.inner`, `${id}.leg.inner`, `${id}.tip`, `${id}.leg.outer`, `${id}.bend.outer`],
+    center: c,
+  };
+}

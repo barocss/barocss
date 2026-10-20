@@ -50,7 +50,7 @@ import { generalShell } from './general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
 import { regionShell } from './region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
-import { bendAllowance, bendDeduction, contourFlangeSection, outsideSetback, SheetMetalError, type SheetReport } from './sheet-metal.js';
+import { bendAllowance, bendDeduction, contourFlangeSection, flangeSection, outsideSetback, SheetMetalError, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
@@ -239,6 +239,19 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number; readonly reverse?: boolean }
   | { readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number }
+  /**
+   * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
+   * and a thickness face, bent `angleDegrees` (default 90, in (0, 180)) towards that skin's outside, inner radius
+   * `bendRadius` (default the sheet's). `length` to the outer virtual sharp (`measure` 'outer', the default), the inner
+   * one ('inner'), or from the bend's tangent ('tangent'). `position`: 'material-inside' (the default: the outer virtual
+   * sharp on the edge, the plate trimmed back by (R + T)·tan(θ/2)), 'material-outside' (the inner one on the edge,
+   * trimmed R·tan(θ/2)) or 'bend-outside' (the bend from the edge). `offsets` [from the edge's start, from its end] (mm,
+   * default 0) narrow it; at an end inside the edge a `relief` is cut into the plate — 'rectangular' (the default) or
+   * 'obround', `width` and `depth` past the bend (each default T, an estimate), or 'none'. Faces `<id>.bend.inner/outer`,
+   * `.leg.inner/outer`, `.tip`, `.start`, `.end`, the plate's cut `<id>.trim.*` and `<id>.relief<k>.*`. Refused by name:
+   * `NOT_A_SHEET`, `EDGE_NOT_SHEET`, `BEND_ANGLE`, `BEND_DOES_NOT_FIT`, `FLANGES_COLLIDE`, `SHEET_IN_PIECES`.
+   */
+  | { readonly kind: 'sheet-flange'; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angleDegrees?: number; readonly bendRadius?: CadPartDim; readonly measure?: 'outer' | 'inner' | 'tangent'; readonly position?: 'material-inside' | 'material-outside' | 'bend-outside'; readonly offsets?: readonly [CadPartDim, CadPartDim]; readonly relief?: { readonly kind: 'rectangular' | 'obround' | 'none'; readonly width?: CadPartDim; readonly depth?: CadPartDim } }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -675,6 +688,113 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
 }
 /** A point of a sketch's own XYZ in the part. */
 const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
+/** A solid's volume by its exact surfaces (quadrature where curved): the flange's collision test. */
+const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volumeMM3;
+/**
+ * An edge flange on a sheet (R12.3, D118; see the feature): its edge's frame (x out across the edge, y up from the picked
+ * skin, z along the edge), the plate trimmed and relieved, the flange's section extruded and united; refused where it
+ * meets the sheet anywhere but its root.
+ */
+function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: string; T: number; K: number; R: number; th: number; trim: number; straight: number; off: [number, number]; relief: { kind: 'rectangular' | 'obround'; width: number; depth: number } | null; fail: Tools['fail'] }): Result {
+  const { part, sheet, at, T, K, R, th, trim, straight, off, relief, fail } = o, brep = brepOf(part, 'target');
+  // The edge: by its name, else by its faces' names without their piece numbers (one such edge).
+  let e = brep.edges.find(x => x.name === o.edge);
+  if (!e) {
+    const want = o.edge.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|');
+    const like = brep.edges.filter(x => x.name && x.name.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|') === want);
+    if (like.length > 1) fail('SELECTION', `${o.edge} names ${like.length} edges: ${like.map(x => x.name).join(', ')}`);
+    e = like[0];
+  }
+  if (!e) return fail('SELECTION', `no edge named ${o.edge}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
+  const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], Le = len(sub(B, A));
+  const tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
+  if (!(e.curve.degree === 1 && ends.length === 2 && Le > tol)) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not straight: a flange goes on a straight edge`);
+  const u = scale(sub(B, A), 1 / Le), loopFace = new Map(brep.loops.map(l => [l.id, l.face])), faceIds = brep.coedges.filter(c => c.edge === e!.id).map(c => loopFace.get(c.loop)!);
+  const faces = faceIds.map(id => brep.faces.find(x => x.id === id)!), geos = faces.map(x => faceGeometry(x));
+  // The picked skin S and the thickness face E: both planes, square to each other and the edge; E with an edge along this
+  // one T below S over some of its length (the sheet T thick there; E may run on, merged with a flange's end beside it),
+  // the plate behind E.
+  let frame: { n: Point; m: Point; S: number } | null = null;
+  for (const [s, k] of [[0, 1], [1, 0]] as const) {
+    const gs = geos[s], ge = geos[k];
+    if (faces.length !== 2 || gs.kind !== 'plane' || ge.kind !== 'plane' || Math.abs(dot(gs.n, ge.n)) > 1e-9 || Math.abs(dot(gs.n, u)) > 1e-9 || Math.abs(dot(ge.n, u)) > 1e-9) continue;
+    const behind = faceVertices(brep, faces[s].id).map(q => dot(sub(q, A), ge.n));
+    if (Math.max(...behind) <= tol && hasEdgeBelow(brep, faces[k].id, A, u, Le, gs.n, T)) { frame = { n: gs.n, m: ge.n, S: s }; break; }
+  }
+  if (!frame) return fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not an edge between the sheet's skin and its ${T} mm thickness`);
+  const { n, m } = frame, w = cross(m, n), zB = dot(sub(B, A), w), zlo = Math.min(0, zB), zhi = Math.max(0, zB);
+  // (Offsets from the edge's start (A) and end (B).)
+  const z0 = zlo + (zB > 0 ? off[0] : off[1]), z1 = zhi - (zB > 0 ? off[1] : off[0]);
+  if (!(z1 - z0 > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] offsets ${off[0]} and ${off[1]} leave nothing of the ${+Le.toFixed(6)} mm edge`);
+  // The plate behind the edge must reach past the trim.
+  const depth = -Math.min(...faceVertices(brep, faces[frame.S].id).map(q => dot(sub(q, A), m)));
+  if (trim > 0 && !(depth > trim + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] the sheet is ${+depth.toFixed(6)} mm deep behind ${e.name}; the bend takes ${+trim.toFixed(6)} mm of it`);
+  const F: BrepAffine['matrix'] = [m[0], n[0], w[0], m[1], n[1], w[1], m[2], n[2], w[2]];
+  const local = (outer: ProfileSegmentInput[], from: number, h: number, tag: string, names?: { outer: string[]; bottom: string; top: string }) => affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: h, fromMM: from, tag, ...(names ? { names } : {}) }) }, F, A);
+  // The cut into the plate, one tool (no two cuts with faces on one plane): the trim [−trim, 1] × [z0, z1] and a relief at
+  // each end inside the edge, `depth` past the bend's start, as one loop across the edge (x) and along it (z), taken down
+  // through the plate. (Bend outside: no trim, each relief its own loop.)
+  const xd = -(trim + (relief?.depth ?? 0)), r = (relief?.width ?? 0) / 2, at0 = relief !== null && z0 > zlo + tol, at1 = relief !== null && z1 < zhi - tol;
+  if ((at0 && z0 - 2 * r < zlo - tol) || (at1 && z1 + 2 * r > zhi + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a relief ${relief!.width} mm wide does not fit beside the flange on ${e.name} (offset it at least that far)`);
+  if (relief?.kind === 'obround' && relief.depth < r) fail('PARAMETER', `[BEND_DOES_NOT_FIT] an obround relief needs a depth of at least half its width (${r} mm)`);
+  const loops: ProfileSegmentInput[][] = [];
+  const tail = (y: number, out: ProfileSegmentInput[], up: boolean) => {
+    // A relief from the edge (x = 1) across to its deep end and back, between y and y ± width (up: towards +z).
+    const y1 = up ? y + 2 * r : y - 2 * r;
+    if (relief!.kind === 'rectangular') { out.push({ kind: 'line', start: [xd, up ? y1 : y] }, { kind: 'line', start: [xd, up ? y : y1] }); return; }
+    out.push({ kind: 'arc', start: [xd + r, up ? y1 : y], center: [xd + r, (y + y1) / 2], direction: 'ccw' }, { kind: 'line', start: [xd + r, up ? y : y1] });
+  };
+  if (trim > 0) {
+    const ya = at0 ? z0 - 2 * r : z0, yb = at1 ? z1 + 2 * r : z1, loop: ProfileSegmentInput[] = [{ kind: 'line', start: [1, ya] }, { kind: 'line', start: [1, yb] }];
+    if (at1) tail(z1, loop, true);
+    loop.push({ kind: 'line', start: [-trim, z1] }, { kind: 'line', start: [-trim, z0] });
+    if (at0) tail(z0, loop, false);
+    loops.push(loop);
+  } else {
+    if (at0) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z0 - 2 * r] }, { kind: 'line', start: [1, z0] }]; tail(z0 - 2 * r, l, true); loops.push(l); }
+    if (at1) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z1] }, { kind: 'line', start: [1, z1 + 2 * r] }]; tail(z1, l, true); loops.push(l); }
+  }
+  const G: BrepAffine['matrix'] = [m[0], w[0], -n[0], m[1], w[1], -n[1], m[2], w[2], -n[2]], top = add(A, n);
+  let plate = part.solid;
+  // (Where the cut or the flange reaches another bend of the sheet the Boolean meets it along an edge: said so by name.)
+  const collide = (cause: unknown): never => {
+    if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e!.name} or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (${+Math.max(trim, (R + T) * Math.tan(th / 2)).toFixed(6)} mm) from them`);
+    throw cause;
+  };
+  try { loops.forEach((outer, k) => { plate = boolean(plate, affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: T + 2, fromMM: 0, tag: k ? `${at}.relief${k}` : trim > 0 ? `${at}.trim` : `${at}.relief0` }) }, G, top), 'difference', at); }); }
+  catch (cause) { collide(cause); }
+  const sec = flangeSection(at, T, R, th, trim, straight), piece = local([...sec.segments], z0, z1 - z0, at, { outer: [...sec.names], bottom: `${at}.start`, top: `${at}.end` });
+  // Joined at its root only: anything more is the flange running into the sheet (or another flange).
+  let out: Solid;
+  try { out = boolean(plate, piece, 'union', at); }
+  catch (cause) { collide(cause); }
+  // (Reliefs of neighbouring flanges may meet and cut a corner off: the sheet must stay one piece.)
+  const pieces = out!.kind === 'brep' ? out!.brep.bodies.length : 1;
+  if (pieces > 1) fail('GEOMETRY', `[SHEET_IN_PIECES] the flange on ${e.name} and its reliefs leave the sheet in ${pieces} pieces: move it, or its neighbour, further from the corner`);
+  const vp = exactVolume(plate), vf = exactVolume(piece), vu = exactVolume(out!);
+  if (vp + vf - vu > 1e-8 * (vp + vf)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e.name} runs into the sheet: ${+(vp + vf - vu).toPrecision(6)} mm³ of it overlaps`);
+  const c = add(A, add(scale(m, sec.center[0]), scale(n, sec.center[1])));
+  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radiusMM: R, angleDegrees: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowanceMM: bendAllowance(th, R, T, K), setbackMM: outsideSetback(th, R, T), deductionMM: bendDeduction(th, R, T, K) };
+  return { kind: 'solid', parts: [{ solid: out!, sheet: { ...sheet, bends: [...sheet.bends, bend] } }] };
+}
+/** Whether a face has a straight edge along u at T below the plane through A (normal n), overlapping [A, A + Le·u]. */
+function hasEdgeBelow(brep: Brep, face: string, A: Point, u: Point, Le: number, n: Point, T: number): boolean {
+  const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), tol = 1e-7 * Math.max(1, T);
+  for (const c of brep.coedges) {
+    if (!loops.has(c.loop)) continue;
+    const p = edges.get(c.edge)!.curve.controlPoints, a = p[0], b = p[p.length - 1], d = sub(b, a), l = len(d);
+    if (!(l > 0) || Math.abs(Math.abs(dot(d, u)) / l - 1) > 1e-9 || Math.abs(dot(sub(a, A), n) + T) > tol || Math.abs(dot(sub(b, A), n) + T) > tol) continue;
+    const s0 = Math.min(dot(sub(a, A), u), dot(sub(b, A), u)), s1 = Math.max(dot(sub(a, A), u), dot(sub(b, A), u));
+    if (Math.min(s1, Le) - Math.max(s0, 0) > tol) return true;
+  }
+  return false;
+}
+/** The points of a face's loops' vertices (its edges' ends). */
+function faceVertices(brep: Brep, face: string): Point[] {
+  const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), out: Point[] = [];
+  for (const c of brep.coedges) if (loops.has(c.loop)) { const p = edges.get(c.edge)!.curve.controlPoints; out.push(p[0], p[p.length - 1]); }
+  return out;
+}
 /** Parts made from sheets (holes, cuts) carrying their sheet's report, part for part (R12.2, D117). */
 const carrySheet = (r: Result, from: readonly Part[]): Result => r.kind === 'solid' && from.some(p => p.sheet) ? { kind: 'solid', parts: r.parts.map((q, i) => from[i]?.sheet ? { ...q, sheet: from[i].sheet } : q) } : r;
 /** A sheet feature's result: its one part carrying the sheet's report. */
@@ -893,6 +1013,32 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           allowanceMM: bendAllowance(angle, R, T, K as number), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, K as number) };
       }) };
       return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, heightMM: width, fromMM: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
+    }
+    case 'sheet-flange': {
+      const parts = solids(f.target, 'target');
+      if (parts.length !== 1) fail('SELECTION', 'a flange takes one sheet body');
+      const p = parts[0], sheet = p.sheet;
+      if (!sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
+      const T = sheet.thicknessMM, K = sheet.kFactor, R = f.bendRadius === undefined ? sheet.bendRadiusMM : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
+      const deg = f.angleDegrees === undefined ? 90 : f.angleDegrees;
+      if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angleDegrees must be a number');
+      if (!((deg as number) > 1e-6 && (deg as number) < 180 - 1e-6)) fail('PARAMETER', `[BEND_ANGLE] a flange bends between 0 and 180° (not ${deg}°: 180° is a hem, not supported yet)`);
+      const measure = f.measure ?? 'outer', position = f.position ?? 'material-inside';
+      if (measure !== 'outer' && measure !== 'inner' && measure !== 'tangent') fail('INPUT', 'measure must be outer, inner or tangent');
+      if (position !== 'material-inside' && position !== 'material-outside' && position !== 'bend-outside') fail('INPUT', 'position must be material-inside, material-outside or bend-outside');
+      const offs = f.offsets === undefined ? [0, 0] : f.offsets as unknown;
+      if (!Array.isArray(offs) || offs.length !== 2) fail('INPUT', 'offsets must be [from the start, from the end]');
+      const off = (offs as CadPartDim[]).map((v, i) => { const x = dim(v, `offsets[${i}]`); if (x < 0) fail('PARAMETER', 'offsets must not be negative'); return x; }) as [number, number];
+      const rl = f.relief as Record<string, unknown> | undefined, rkind = rl === undefined ? 'rectangular' : rl.kind;
+      if (rl !== undefined && !isRecord(rl)) fail('INPUT', 'relief must be { kind, width?, depth? }');
+      if (rkind !== 'rectangular' && rkind !== 'obround' && rkind !== 'none') fail('INPUT', 'relief.kind must be rectangular, obround or none');
+      const rw = rl?.width === undefined ? T : dim(rl.width as CadPartDim, 'relief width', true), rd = rl?.depth === undefined ? T : dim(rl.depth as CadPartDim, 'relief depth', true);
+      if (typeof f.edge !== 'string') fail('INPUT', 'edge must name an edge of the sheet');
+      const th = (deg as number) * Math.PI / 180, ossb = outsideSetback(th, R, T), issb = R * Math.tan(th / 2);
+      const straight = measure === 'outer' ? L - ossb : measure === 'inner' ? L - issb : L;
+      if (!(straight > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a flange ${L} mm long (${measure}) is within its bend's setback of ${+(measure === 'inner' ? issb : ossb).toFixed(6)} mm`);
+      const trim = position === 'material-inside' ? ossb : position === 'material-outside' ? issb : 0;
+      return () => sheetFlange({ part: p, sheet, at, edge: f.edge as string, T, K, R, th, trim, straight, off, relief: rkind === 'none' ? null : { kind: rkind as 'rectangular' | 'obround', width: rw, depth: rd }, fail });
     }
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;

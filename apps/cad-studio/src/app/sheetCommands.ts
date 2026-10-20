@@ -4,6 +4,7 @@
 // real air bend's neutral layer lies lower; the body's panel says so.
 import { withNode, type ModelNode } from '../engine/doc';
 import { oneProfile } from './profileCommands';
+import { refOf } from './bodyRef';
 import type { Command, Field, Values } from './commands';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
@@ -49,7 +50,7 @@ export function profilePath(shape: string, a: number, b: number, c: number, angl
 }
 
 export const sheetProfileCommand: Command = {
-  id: 'sheet-profile', label: 'Sheet profile', icon: 'cad-sheet-profile', group: 'create', keywords: 'sheet metal bracket angle channel l u z hat contour flange bend',
+  id: 'sheet-profile', label: 'Sheet profile', icon: 'cad-sheet-profile', group: 'create', keywords: 'sheet metal bracket angle channel l u z hat contour bend',
   hint: 'A bent sheet-metal profile — an L bracket, a U channel, a Z or a hat — its bends at the sheet’s radius, standing on the XZ plane',
   available: () => ok,
   fields: () => [
@@ -76,4 +77,47 @@ export const sheetProfileCommand: Command = {
   },
 };
 
-export const sheetCommands = [sheetPlateCommand, sheetProfileCommand];
+/** The one picked edge, on a sheet body (one made by a sheet feature: it has a flat, or the reason it has none). */
+function sheetEdge(ctx: Parameters<Command['available']>[0]) {
+  const sel = ctx.selection.edges;
+  if (sel.length !== 1) return null;
+  const body = ctx.bodies[sel[0].body], edge = body?.mesh.edges[sel[0].edge];
+  return body && edge && (body.flat || body.flatRefused) ? { body, edge } : null;
+}
+const POSITIONS = [{ value: 'material-inside', label: 'Material inside' }, { value: 'material-outside', label: 'Material outside' }, { value: 'bend-outside', label: 'Bend outside' }];
+const MEASURES = [{ value: 'outer', label: 'Outer sharp' }, { value: 'inner', label: 'Inner sharp' }, { value: 'tangent', label: 'From the bend' }];
+
+/**
+ * An edge flange (R12.3, D118) on a picked straight edge of a sheet's skin: bent up from that skin, its length to the
+ * outer virtual sharp by default, the plate trimmed so that sharp lies on the edge (material inside); a part width by
+ * offsets from the edge's ends, with a relief cut at each end inside the edge (T wide and T past the bend unless given:
+ * estimates).
+ */
+export const sheetFlangeCommand: Command = {
+  id: 'sheet-flange', label: 'Flange', icon: 'cad-sheet-flange', group: 'modify', keywords: 'sheet metal edge flange bend tab lip return',
+  hint: 'Bend a flange up from a straight edge of a sheet: its length, angle and position, part width with reliefs at its ends',
+  available: ctx => sheetEdge(ctx) ? ok : no('Pick one straight edge on the skin of a sheet-metal body.'),
+  fields: () => [
+    { key: 'length', label: 'Length', kind: 'mm', min: 0.1 }, { key: 'angle', label: 'Angle', kind: 'deg', min: 1, max: 179, step: 5 },
+    { key: 'position', label: 'Position', kind: 'choice', options: POSITIONS }, { key: 'measure', label: 'Length to', kind: 'choice', options: MEASURES },
+    { key: 'r', label: 'Bend radius (0: the sheet\u2019s)', kind: 'mm', min: 0 },
+    { key: 'o0', label: 'Offset at start', kind: 'mm', min: 0 }, { key: 'o1', label: 'Offset at end', kind: 'mm', min: 0 },
+    { key: 'relief', label: 'Relief', kind: 'choice', options: [{ value: 'rectangular', label: 'Rectangular' }, { value: 'obround', label: 'Obround' }, { value: 'none', label: 'None' }], when: (v: Values) => Number(v.o0) > 0 || Number(v.o1) > 0 },
+    { key: 'rw', label: 'Relief width (0: T, estimate)', kind: 'mm', min: 0, when: (v: Values) => (Number(v.o0) > 0 || Number(v.o1) > 0) && v.relief !== 'none' },
+    { key: 'rd', label: 'Relief depth (0: T, estimate)', kind: 'mm', min: 0, when: (v: Values) => (Number(v.o0) > 0 || Number(v.o1) > 0) && v.relief !== 'none' },
+  ],
+  defaults: () => ({ length: 20, angle: 90, position: 'material-inside', measure: 'outer', r: 0, o0: 0, o1: 0, relief: 'rectangular', rw: 0, rd: 0 }),
+  steps: ctx => { const p = sheetEdge(ctx); return [{ label: 'Edge', text: p ? p.edge.names[0] : 'pick a straight edge of a sheet', done: !!p }]; },
+  build: (ctx, v) => {
+    const p = sheetEdge(ctx); if (!p) throw new Error('Pick one straight edge of a sheet.');
+    const [length, angle, r, o0, o1, rw, rd] = ['length', 'angle', 'r', 'o0', 'o1', 'rw', 'rd'].map(k => Number(v[k]));
+    if (!(length > 0) || !(angle > 0 && angle < 180)) throw new Error('A flange has a length above 0 and bends between 0 and 180°.');
+    const partWidth = o0 > 0 || o1 > 0, relief = partWidth && (v.relief !== 'rectangular' || rw > 0 || rd > 0) ? { kind: v.relief as 'rectangular' | 'obround' | 'none', ...(rw > 0 && v.relief !== 'none' ? { width: rw } : {}), ...(rd > 0 && v.relief !== 'none' ? { depth: rd } : {}) } : undefined;
+    const node: ModelNode = { kind: 'sheet-flange', parent: refOf(p.body), edges: [p.edge.names[0]], length,
+      ...(angle !== 90 ? { angleDegrees: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
+      ...(v.position !== 'material-inside' ? { position: v.position as 'material-outside' | 'bend-outside' } : {}), ...(partWidth ? { offsets: [o0, o1] as [number, number] } : {}), ...(relief ? { relief } : {}) };
+    return withNode(ctx.doc, node);
+  },
+};
+
+export const sheetCommands = [sheetPlateCommand, sheetProfileCommand, sheetFlangeCommand];

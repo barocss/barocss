@@ -5634,3 +5634,82 @@ R12's second stage as D115 froze it. The probe's unfolder (D115) is now product 
 | Full flow | 170/170, run on its own; the new step included, every outer-lane step passing |
 
 RB rows are in the next commit.
+
+## D118 — R12.3a: edge flanges and their reliefs; FLANGES_COLLIDE; the sheet's report dropped past moves (2026-10-20)
+
+R12.3's first half, as D115 froze it. Corners of neighbouring flanges (corner reliefs) are R12.3b, next.
+
+**Kernel** (`sheet-flange`, `part-model.ts` `sheetFlange`; `flangeSection` in `sheet-metal.ts`):
+- **What it takes.** A sheet (its rules from its report; else `[NOT_A_SHEET]` CAPABILITY) and a straight `edge` between a planar skin face S and a planar thickness face E.
+  - S and E are square to each other and to the edge, and E has an edge along this one T below S over some of its length. E may run on beyond, merged with a flange's end beside it, as after a full-length flange on the next edge.
+  - The plate lies behind E.
+  - Else `[EDGE_NOT_SHEET]`.
+  - The edge is found by its name, else by its faces' names without piece numbers (one such edge; several → SELECTION, listed).
+- **The flange's frame:** x out across the edge (E's normal), y up from S, z along the edge. It bends `angleDegrees` (default 90, in (0, 180); else `[BEND_ANGLE]`, 180° is a hem) towards S's outside, inner radius `bendRadius` (default the sheet's).
+- **Where it sits** (`position`), by its virtual sharps:
+  - `material-inside` (default): the outer sharp on the edge, the plate trimmed (R + T)·tan(θ/2).
+  - `material-outside`: the inner sharp on the edge, trimmed R·tan(θ/2).
+  - `bend-outside`: the bend from the edge, no trim.
+- **Its length** (`measure`): to the outer sharp (default), the inner one, or from the bend's tangent. A length inside its setback is `[BEND_DOES_NOT_FIT]`, and so is a trim deeper than the plate behind the edge.
+- **Part width:** `offsets` [from the edge's start, from its end].
+  - At each end inside the edge, a relief: `rectangular` (default), `obround` (its deep end a half circle; depth ≥ half its width), or `none`.
+  - Its `width` and `depth` past the bend's start default to T each: estimates, flagged so in the studio.
+  - A relief wider than its offset is `[BEND_DOES_NOT_FIT]`.
+- **The cut into the plate is one tool:** the trim and both reliefs as one loop, taken down through the plate.
+  - Two cuts sharing a face's plane (a trim, then an obround relief beside it) failed the analytic Boolean as "not a manifold".
+  - Bend outside, each relief is its own loop.
+- **The flange's section** (`root`, bend, leg, `tip`) is extruded along the edge on the upright route and united on at its root.
+- **Faces:** `<id>.bend.inner/outer`, `.leg.inner/outer`, `.tip`, `.start`, `.end`, the cut's `<id>.trim.*`, `<id>.relief<k>.*`. Coplanar faces merge as Booleans do.
+- **The sheet's report gains the bend** (`<id>.bend`: faces, R, θ, axis along the edge, BA, OSSB, BD), so the flat names it.
+- **`FLANGES_COLLIDE`** (GEOMETRY):
+  - the union's volume short of the trimmed plate's plus the flange's. Volumes by the exact surfaces (quadrature), to 1e-8. This is D115's silent overlap: two neighbouring flanges leaning in at 135°.
+  - also the Boolean meeting another bend along an edge, as when a second flange's trim 2 mm from a corner reaches the first one's bend (its setback 3 mm). The message gives the setback to keep.
+- **`SHEET_IN_PIECES`** (GEOMETRY): reliefs of neighbouring flanges that meet and cut a corner's square off. It was found by the tray at 5 mm from the corners, where the result had been 5 bodies.
+
+**The sheet's report past other features** (the coordinator's check on D117's call 3):
+- Moves, turns, mirrors, patterns and unions drop it; nothing carries it stale.
+- After them, `output.sheet` is undefined, the output's `flatPattern()` is refused (CAPABILITY, "not made as sheet metal"), and a flange on it is refused `[NOT_A_SHEET]`.
+- The kernel's `flatPattern(brep, { T, K })` unfolds a moved or turned body again from its own B-rep, to the same area (1e-11). No old axis is used: the flat reads only the B-rep.
+
+**Oracles:** definitions written in the tests, not the construction.
+- Each position sits its outer sharp on the edge, T·tan(θ/2) past it, or (R + T)·tan(θ/2) past it. The outer length is L, L + T·tan(θ/2) (`inner`) or L + (R + T)·tan(θ/2) (`tangent`).
+- **The flat:** the outside less BD.
+  - Results: 3 positions × 30°, 90°, 120°, 150° × 3 measures, each to 1e-12; an own radius (4) too.
+- **The volume:** the plate less its trim, plus θ·T(R + T/2) + T × the leg, × the width.
+  - Results: the same 36 cases to 1e-11.
+- **Part width** with rectangular, obround (T·(w(t + d − w/2) + πw²/8) each) or no reliefs: the volume to 1e-11, the flat by the area identity to 1e-11.
+- **A tray of four flanges in turn,** 10 mm from the corners: the flat's area identity to 1e-11, four bends up, the volume to 1e-11.
+
+**Studio:**
+- **The Flange command** (modify): one straight edge of a sheet body (one with a flat or a flat's refusal).
+  - Fields: length, angle, position, measure, radius (0: the sheet's), offsets, relief, its width and depth (0: T, estimate).
+- **The node** `sheet-flange` keeps its edge as `edges: [name]`, so the fillet's machinery serves it unchanged: references, signatures, re-matching on edit, renaming in assemblies and on delete.
+- **Edit fields** (length, angle, offsets); a label (`Flange 20 · 90°`); an icon; the history icon.
+- **The agent:** the command (documented) and the raw node.
+- **The tool contract records the command** (`tools-v1.json`, a compatible change, A5.1's procedure).
+- **The Sheet profile command no longer has "flange" among its keywords.** The palette's search for "flange" found it before Flange.
+
+**Also:** the PERF3 C16 cage-edit test (`cageEdit.test.ts`, the coordinator's note from the outer lane). The warm step is now the median of the four warm samples, not their maximum: one sub-millisecond sample caught by a stall failed it about once a full suite. The 0.5 limit stays.
+
+**Tests:**
+- Kernel `test/r12-3.test.mjs` (5) and studio `sheet.test.ts` (+1); both fail on HEAD 1d83930f5. `chat.test.ts`'s docs check gains a sheet edge for the command.
+- Conformance `r12/`: `flange-material-inside-120` (volume, the report's bend, the flat, a STEP round trip), `flange-part-width-obround`, `refuse-flanges-collide`, `refuse-flange-edge-not-sheet`.
+- A flow step: a plate opened from a file, its edge picked by name, Flange from the palette. Volume 7315.07 mm³; flat 97.393 × 50 mm, 1 bend.
+
+**Not done:**
+- Corner reliefs where two flanges meet, and closed corners (R12.3b next; the closed corner stays out of R12, D115).
+- Flanges on curved edges.
+- Several edges in one flange feature.
+- A flange's own reliefs at the edge's ends beside another flange (offsets keep them apart today).
+
+**Checks** on 1d83930f5 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1216/1221 (4 skipped; only the env-only Split test fails) |
+| Conformance | 143/143, with the 4 new cases |
+| Studio | 551/551 |
+| Full flow | 172/172, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
