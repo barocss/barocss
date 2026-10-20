@@ -6507,3 +6507,212 @@ The last FR stage frozen in D122. The cut list goes onto a drawing sheet as a ta
 | Full flow | 188/188, run on its own (+1, `fr4b-cut-list-drawing`) |
 | RB | 316 cases (+2: the accept cases), 0 new, the 8 known TODOs (totals as before but OK, +100 by the two cases' outputs) |
 | Properties | 11/11, no failures |
+
+## D129 — R12b S0: feasibility of internal, bevel and worm gears and the tool-generated root (2026-10-20)
+
+**R12b S0.** The roadmap's feasibility checkpoint before R12b (§4 "R12b — internal, bevel and worm gears", with the trochoid root moved here from R6a.6, D60). There is no research note; this record is the design input. The questions:
+- What do R6a's gears (D53–D60) already give an internal gear, and what are an internal pair's interference conditions, checked how?
+- Does the rack-generated root's parametric envelope agree with an independent cut, and with the textbook form circle?
+- Straight and spiral bevels: Tredgold's back-cone approximation, the octoid, or the exact spherical involute — which, and why? Can a flank on the sphere be held exactly on it?
+- Worms: which thread forms, and what do they need of the helical machinery? The worm wheel: cylindrical or throated?
+
+Evidence: `packages/barocss-cad/test/r12b-s0.test.mjs` (kept, 7 tests), against oracles written in the test, apart from `gear.ts`: closed forms, a brute-force cutting simulation, and sweeps of the analytic outlines (on the plane, and on the sphere by the gnomonic projection). No product code changed.
+
+**Sources** (public HTML, read-only, retrieved 2026-10-20 by a read-only research helper; no standard text copied, numbers as facts, formulas in our words):
+- K1: "Calculation of Gear Dimensions | KHK", https://khkgears.net/new/gear_knowledge/gear_technical_reference/calculation_gear_dimensions.html — internal gears §4.2 (Tables 4.6–4.8), straight bevel §4.4 (Tables 4.15–4.17), spiral bevel (4.18–4.20), cylindrical worms (4.22–4.24). Most equations there are images: only the text and the published numbers were used, and a formula the text does not state is used only where it reproduces the published numbers. (The helper read the page's HTML once with curl; the same public page, no file downloaded.)
+- K2: "Involute Gear Profile | KHK", https://khkgears.net/new/gear_knowledge/gear_technical_reference/involute_gear_profile.html — the basic rack: addendum 1.00 m, dedendum 1.25 m, root fillet radius 0.38 m (facts).
+- Second sources for thresholds: Gear Solutions, B. Dengel, "Internal ring gears – design and considerations" (2019-12-15), https://gearsolutions.com/departments/tooth-tips/internal-ring-gears-design-and-considerations/; Gear Solutions, W. P. Crosher, "The five standardized worm gear tooth forms…" (2007-03-01), https://gearsolutions.com/departments/tooth-tips/tooth-tips-william-crosher-8/ (ZA, ZN, ZI, ZK, ZC defined); Wikipedia "Bevel gear", https://en.wikipedia.org/wiki/Bevel_gear (traditional generators cut an octoid).
+- Not found as public text: the internal pair's interference inequalities (K1's are images), a z2 − z1 table (only "z2 − z1 > 9" for 20° standard pairs, and "z2 > 34" for an internal tip above its base circle), the form-circle formula, any trochoid equations from KHK, KHK's view on octoid vs spherical involute. Those below are derived and marked so; each is checked against an independent construction here.
+- Found faulty in K1 (recorded, not used): the internal example's caption says x2 = 0.5, its table uses 0.516; the external root diameter's "+2h"; the "standard" straight-bevel table (4.17) repeats the Gleason one; the spiral bevel's θa1 entry.
+
+**Today, as it stands:**
+- **An internal gear is already exact, as an annulus less a "space gear"**: a spur gear at x = 0.25 thinned by 2·0.25·m·tan α has tip r + 1.25 m (the ring's root), root r − m (the ring's tip) and a reference thickness πm/2 (the ring's space). Through the part model as it stands (`spur-gear` + circle `extrude` + `difference`): m 2, z 40 in Ø100 × 10 is valid, one body, V 28083.6735 against the closed form (π R² − the space gear's analytic area) × b = 28083.5863 (3.1e-6 relative, inside the measured flank slack), 164 faces — in 14.7 s, the analytic Boolean through 160 B-spline flanks. R12b builds it directly (the space outline as the inner loop of `extrudedProfile`), not by a Boolean.
+  - Below z = 2/(1 − cos α) = 33.2 an unshifted ring's tip r − m falls under its base circle (K1's z2 > 34). The space gear then joins it by radial lines: a tip no internal gear may have.
+- **An internal pair's sweep, apart from `gear.ts`** (the analytic outlines, the ring turning θ z1/z2 the same way, a uniform grid of segments): m 2, z 24 in z 60 clears by 0.04698416 for j 0.1 and 9.3509e-5 for j 2e-4, against j cos α/2 = 0.04698463 and 9.3969e-5 — conjugate, the remainder the chords' sag (0.9 s a sweep of 96 samples).
+- **The interference conditions agree with the sweep on all nine pairs probed** (j 2e-4, 128 samples). They are in the commonly published form (K1's images not read; derived here, so the sweep is the authority):
+  - involute: z1/z2 ≥ 1 − tan α_a2 / tan α_w;
+  - trochoid: θ1 z1/z2 + inv α_w − inv α_a2 ≥ θ2, with θ1 = acos((ra2² − ra1² − a²)/(2a·ra1)) + inv α_a1 − inv α_w and θ2 = acos((a² + ra2² − ra1²)/(2a·ra2)).
+  - Ring z 40 with pinions 24–36: margins +0.0117 … +0.0019 clear (31/40), −0.0006 crosses at 32 of 128 phases (32/40), −0.0078 and −0.0218 cross at all (34, 36). K1's "z2 − z1 > 9": 31/40 is the last clear.
+  - z 20 in z 60 breaches the involute condition by −0.0037: the sweep is short of j cos α/2 by 2.2e-5 (the ring's tip reaches under the pinion's base circle, where today's pinion has its schematic radial root). z 24 in z 60 clears both.
+  - Trimming (radial assembly) is not a rotation: R12b.2 checks it by a radial-insertion sweep, not by the rotation sweep.
+- **The rack-generated root is a closed form, and exact:**
+  - **The tool:** the basic rack, addendum 1.25 m into the gear, flanks at α, the tooth πm/2 on its reference line, the tip rounded by ρ (0.38 m by default; K2's fact), its reference line at r + x m. The round's centre sits hc = 1.25 m − ρ below the line and xc = πm/4 − hc tan α − ρ/cos α off the tooth's centre. At ρ = 0.38 m, xc = 0.0644 m: a short flat between the rounds; the rounds meet when ρ > (πm/4 − 1.25 m tan α)/(1/cos α − tan α) = 0.4719 m.
+  - **The envelope:** at the gear's turn φ, the round's centre is (xc − rφ, yc). It touches the gear at its point on the line to the pitch point, on the far side; that point is turned back by −φ. The flat generates the root circle r − (1.25 − x)m exactly.
+  - **The oracle:** a brute-force cutting simulation, the least first entry of each ray over the tool's travel (scan, bisection, golden section). The envelope agrees to ≤ 5.7e-14 mm at 41 points each, on m2 z20, m3 z12 x 0.6, m2 z30 x −0.3, m1 z40 (about 20 ms each).
+  - **The form circle** (derived; not found as public text): r_F = √(rb² + (r sin α − hF/sin α)²), with hF = (1.25 − x)m − ρ(1 − sin α), the round–flank tangent point's depth below the pitch line. The envelope's end lies on it to 1e-9·m, on the involute at its polar angle to 1e-9, and G1 there (cos of the angle to the radius = rb/r_F, 2e-5 by a finite difference). m2 z20: Ø37.640133 against base Ø37.587705.
+  - **The undercut limit:** ρ = 0.38 m puts hF at 0.99997 m, so the limit z ≥ 2hF/(m sin²α) is the sharp rack's 2/sin²α to 6e-4 teeth.
+  - **Undercut (z 12, x 0):** the simulated cut reaches 0.7339 mm inside the involute at r 11.389 (base 11.276). The round's envelope alone is then not the boundary: the flank's own envelope below the interference point cuts the involute, and the profile is the least of the three envelopes (flat, round, flank) and the involute — computed, never assumed.
+- **Bevel gears: the spherical involute is conjugate; Tredgold's profile is close, but not conjugate.**
+  - **The spherical involute:** the trace on the unit sphere of a great circle rolling on the base cone sin δb = sin δ cos α. At roll t its point lags the tangent point by the arc s = t sin δb, and cos θ = cos δb cos s. A tooth is the involute turned by ±ψ, ψ = π/(2z) + its azimuth at the pitch cone. Tip and root cones are δ ± atan(m/R), atan(1.25m/R); a meridian joins it under the base cone.
+  - **Tredgold's:** the virtual spur gear z_v = z/cos δ drawn on the back cone's development (radius R tan δ), wrapped back (azimuth = developed angle / cos δ), seen from the apex.
+  - **The sweep on the sphere,** gear 2 turning −θ z1/z2, read by the gnomonic projection at the pitch point (great circles to lines), j 2e-4. The spherical involute clears by the same amount at every phase:
+    - z 20/40, Σ 90° (R 44.72): 9.4046e-5…9.4607e-5 (j cos α/2 = 9.397e-5; the spread, 5.6e-7, is the chords and the projection's stretch);
+    - z 16/24, Σ 60°: 6.1e-7.
+  - Tredgold's spreads 7.4e-6 and 1.43e-5 (13× and 23×): not conjugate, though by micrometres at these sizes.
+  - Both are fitted curves at the same cost, so the exact one is chosen.
+- **A flank can lie exactly on its sphere:** a C¹ cubic fitted to the spherical involute's stereographic image lifts, by the inverse projection, to a rational curve exactly on the unit sphere (3e-16 off it). It is within 1e-4·m in 3 pieces: 6.6e-5, 1.6e-4 and 7.5e-5 mm at the heel, for m2 z20 δ 26.6°, m2 z40 δ 63.4° and m3 z12 δ 30°.
+  - The flank is then the cone through the apex over that curve: degree 1 radially, exact through the apex. Its edges on the heel and toe spheres lie exactly on them, its edges on the tip and root cones are straight lines.
+  - The only inexactness is the flank's measured distance from the true spherical involute.
+- **Worms: a ZI worm is a helical gear of z1 teeth at β = 90° − γ.** Today it is refused past 45° (`UNSUPPORTED_GEAR_KIND`, asserted). By the existing rotation fit within 1e-4·m_n (m_x 2–4, q 8–16, z1 1–4, 40–90 long, γ 3.6°–21.8°):
+  - the twist takes 45–314 cubic pieces, 12–79 axial segments. All fit today's 64 but m1 q16 single-start 40 long, 12.7 turns: 79.
+  - The transverse flank's long involute takes 4–11 Hermite pieces: more than the five a gear flank allows (a side face's 16 poles) for single starts.
+  - A cylindrical worm wheel (a helical gear at β = γ, the worm's hand) builds today: m_n = m_x cos γ, z 40, d2 = z2 m_x = 80 to 1e-9, valid.
+
+**The choices, and why:**
+- **Bevels: the exact spherical involute,** with tip and root cones through the apex, heel and toe on spheres.
+  - It is conjugate on every sphere (shown above), and costs what Tredgold's profile costs (both fitted curves).
+  - The stereographic lift keeps its edges exactly on the end spheres. The solid is self-similar about the apex, so its volume has an independent closed form: V = Ω·(Re³ − Ri³)/3, where Ω is the section's area on the unit sphere by quadrature.
+  - Tredgold's z_v stays only as the *reported* virtual numbers (the undercut estimate, the textbook contact ratio), named as approximations beside the exact spherical ones.
+  - The octoid, which Gleason-type generators cut (Wikipedia), is not built: it needs the generating crown gear's simulation and has no closed form; its difference from the spherical involute is the machine's, recorded as `manufacturingValidated: false`.
+- **Spiral bevels: the ideal conjugate one.**
+  - The spherical-involute section is turned along the cone distance by φ(R), with φ2 = −φ1·z1/z2, so every sphere's pair stays a meshing pair.
+  - The tooth trace is a circular arc of cutter radius r_c on the crown plane through the mean point at β_m, in closed form.
+  - The surface is built as the helical gears are: the rotation's Hermite fit along R times the lifted section, the deviation measured.
+  - The report says so: "ideal spiral bevel (line contact), not a face-milled or face-hobbed tooth: no crowning, no machine settings".
+  - Hypoid offset: refused.
+- **Worms: ZI and ZA.**
+  - ZI (involute helicoid) is the helical machinery at large β.
+  - ZA (straight axial profile, the lathe's) has an Archimedean spiral as its transverse section, fitted and measured the same way. Its axial section is a straight-sided rack, so a throated wheel's mid-plane profile is the closed-form involute of z2 (R12b.6's oracle).
+  - ZN, ZK, ZC: refused (`UNSUPPORTED_GEAR_KIND`), named.
+- **The generated root: the envelope, fitted.**
+  - The root arc is exact (the flat's envelope). The fillet is the round's envelope, by C¹ Hermite pieces on φ with the deviation measured, as the flanks are; past the budget, `PROFILE_BUDGET_EXCEEDED`.
+  - Undercut gears become buildable: the involute is trimmed where the envelopes cut it, with an `UNDERCUT` warning and the usable flank's start reported.
+  - The schematic root stays for documents written with it.
+
+**Verdict — R12b in these stages, this order:**
+- **R12b.1a — the generated root on external spur and shifted gears.**
+  - **Inputs:** `rootPolicy: 'generated'` with `toolTipRadiusMM` ρ (default 0.38 m). Generator `spur-gear@1` (CAPABILITY on an unknown one, as now). `@0` documents rebuild unchanged, with the schematic root. The studio's new gears take the generated root.
+  - **Geometry:** the fillet as above. Undercut accepted under this policy: the involute trimmed by the flank's and round's envelopes, warning `UNDERCUT` with the trimmed start radius. The schematic policy keeps today's undercut refusal.
+  - **Report:** the form circle r_F, the tool, ρ. The warning `ROOT_TRANSITION_UNVALIDATED` gives way to "generated by the basic rack, tip radius ρ"; `manufacturingValidated` stays false (no physical evidence).
+  - **Pairs:** the usable flank starts at r_F, or at the trimmed start, not at max(rb, rf). The sweep runs on the generated outline.
+  - **Oracles:**
+    - the simulated cut (the probe's, kept as test code) to ≤ 1e-7·m;
+    - r_F closed form to 1e-9·m;
+    - G1 at r_F;
+    - the root circle exact;
+    - the volume against the area of the simulated boundary (Green's theorem), within the measured deviation;
+    - an undercut gear's trimmed start against the simulated cut.
+  - **Refusals:**
+    - `INVALID_INPUT` when ρ ≤ 0 or ρ > the largest that leaves a flat, (πm/4 − 1.25m tan α)/(1/cos α − tan α), named;
+    - a pointed tooth: `SELF_INTERSECTION`, as now.
+  - A test failing on HEAD: the generated policy is refused today.
+- **R12b.1b — helical gears and the rack's root.**
+  - **Helical:** the transverse section of the normal round is an ellipse, semi-axes ρ along the depth and ρ/cos β along the pitch line. Its envelope comes by the same normal-through-the-pitch-point rule, solved per φ.
+  - **The rack part:** its root fillet is the basic rack's own, ρ, a circular arc tangent to flank and root line: exact.
+  - **Oracles:** the simulated cut with the elliptical tip; the rack's closed-form volume.
+- **R12b.2a — internal gears.**
+  - **Inputs:** an `internal-gear` kind (spur or helical), tip r − (1 − x)m and root tip + 2.25m (K1), the outer rim diameter given.
+  - **Built directly:** the space outline as the inner loop of `extrudedProfile`, not a Boolean.
+  - **Refusals:**
+    - a tip under the base circle: `UNSUPPORTED_PROFILE_SHIFT`, naming the least x that lifts it, x ≥ 1 − z(1 − cos α)/2;
+    - a rim thinner than its minimum: `BORE_INTERSECTION`'s twin, `RIM_INTERSECTION`.
+  - **The root:** schematic, flagged. The ring is cut by a pinion-type cutter, not a rack (R12b.2b).
+  - **Pairs** (`checkInternalGearPair`):
+    - a = m(z2 − z1)/2, or with shifts by inv α_w = 2 tan α (x2 − x1)/(z2 − z1) + inv α (verified against K1 Table 4.6's numbers);
+    - ratio +z1/z2 (the same sense);
+    - backlash; the internal contact ratio [√(ra1² − rb1²) − √(ra2² − rb2²) + a sin α_w]/(π m cos α), and the usable one;
+    - the sweep, inside: the planar sweep generalised to the same sense, the pinion within the ring;
+    - the involute, trochoid and trimming conditions as error diagnostics `INVOLUTE_INTERFERENCE`, `TROCHOID_INTERFERENCE`, `TRIMMING_INTERFERENCE`, the first two cross-checked by the sweep, the third by a radial-insertion sweep (the pinion moved in along the line of centres at each phase).
+  - **Part feature, placement and studio:** `mesh` inside a ring; the studio's command, notes and agent node.
+  - **Oracles:**
+    - the volume by (πR² − the analytic space area) × b;
+    - K1 Table 4.6, m 3, z 16 in z 24, x2 0.516: inv α_w 0.061857, α_w 31.321258°, a 13.2, da2 69.096, df2 82.596;
+    - the conditions against the sweep, on the probe's nine pairs.
+- **R12b.2b — the shaper-cut internal root.**
+  - **Inputs:** the cutter's teeth z0, shift x0 and tip radius ρ0.
+  - **Geometry:** the ring's root fillet is the envelope of the rotating cutter's tip round: an epitrochoid offset, in closed form, fitted.
+  - **Oracles:** the same simulated cut with a rotating cutter. K1 Table 4.8(1)'s least ring tooth count for a cutter z0 (sourced values: K1, retrieved 2026-10-20, "Table 4.8(1)"; z0 15→34, 20→38, 30→48, 40→58, 60→78, 100→118 among others) as a check of the cutter's own involute interference.
+- **R12b.3 — straight bevel gears.**
+  - **Inputs:** shaft angle Σ in (0°, 180°), default 90°; tan δ1 = sin Σ/(z2/z1 + cos Σ); R = m z/(2 sin δ); face width b.
+  - **Tooth proportions:** standard (addendum m, dedendum 1.25 m at the heel; tip and root cones through the apex).
+  - **Faces:**
+    - flanks: the lifted stereographic cubic times the cone distance, rational, degree 1 radially;
+    - heel and toe: sphere faces;
+    - tip and root: cones;
+    - a meridian join under the base cone, schematic and flagged;
+    - a bore by a cylinder.
+  - **Pairs:** the spherical sweep (one sphere suffices: the pair is self-similar); the exact spherical contact ratio (arc of the great circle of action between the tip cones, over the base pitch angle) beside Tredgold's.
+  - **Oracles:**
+    - V = Ω(Re³ − Ri³)/3 by spherical-area quadrature, within the measured deviation;
+    - K1's straight-bevel example's system-independent numbers (m 3, z 20/40, Σ 90°: δ 26.56505°/63.43495°, R 67.08204);
+    - the sweep's constant clearance (≤ 2e-6, as probed);
+    - STEP round trip.
+  - **Refusals:**
+    - b > R/3 is a warning (K1's rule of proportion), b ≥ R `INVALID_INPUT`;
+    - toe teeth vanishing or meeting: `SELF_INTERSECTION`;
+    - the Gleason uniform-clearance system and back-cone ends: `UNSUPPORTED_GEAR_KIND` until R12b.3b (on the owner's word);
+    - different modules or a Σ mismatch: `MATE_INCOMPATIBLE`;
+    - an undercut by the exact spherical condition: `UNSUPPORTED_PROFILE_SHIFT`, with Tredgold's z_v reported as the estimate.
+- **R12b.4 — spiral bevel gears** (the ideal conjugate, above).
+  - **Inputs:** β_m, hand, cutter radius r_c.
+  - **Faces:** the section's rotation along R, fitted (segments as helical gears).
+  - **Pairs:** opposite hands; the thrust in words; spherical sweeps at five cone distances; sections of the B-rep by spheres checked for crossings.
+  - **Oracles:** K1's spiral example's system-independent numbers (m 3, β_m 35°, α_t 23.95680°, z 20/40); the spheres' sweeps; volume by quadrature.
+  - **Refusals:** a hypoid offset, a face-hobbed (epicycloidal) trace: `UNSUPPORTED_GEAR_KIND`.
+  - *The owner may drop this stage* (see below).
+- **R12b.5 — cylindrical worms and their wheel.**
+  - **Worms:** ZI and ZA, z1 1–4, q, γ = atan(z1/q).
+  - **The budget, stated (never a looser fit):**
+    - a worm's flank may be split radially into several faces, each within the 16 poles, rather than refused at five pieces;
+    - the axial segments for worms go to 128 (the probe's finest needs 79).
+  - **The wheel:** a cylindrical helical gear, β = γ, the worm's hand.
+  - **Pairs:**
+    - crossed at 90°, a = (d1 + d2)/2 (+ x m), ratio z2/z1;
+    - the lead and hand checked, `MATE_INCOMPATIBLE` with why;
+    - the mesh checked by sections of both B-reps by planes square to the wheel's axis (as D59), at the mid-plane and on either side.
+  - **Oracles:**
+    - K1's axial example (m_x 3, double thread, z2 30: d1 44, γ 7.76517°, d2 90, a 67.000, d_a1 50, d_f1 36.5);
+    - the twist and lead by formula;
+    - the volume against the transverse area × length within the fits;
+    - STEP round trip.
+  - **Refusals:** ZN, ZK, ZC; double-enveloping; shaft angles other than 90°: `UNSUPPORTED_GEAR_KIND`.
+- **R12b.6 — the throated (single-enveloping) wheel of a ZA worm,** conditional on its own check inside the stage.
+  - **Geometry:** the envelope of the worm's thread in the relative motion, by the meshing equation sampled, then fitted.
+  - **Oracles:**
+    - the mid-plane profile against the closed-form involute of z2 (the ZA's axial section is a straight rack);
+    - off the mid-plane, the swept worm's penetration ≥ −1e-4·m at sampled points.
+  - **If the fit cannot hold 1e-4·m within the budget:** `UNSUPPORTED_GEAR_KIND` ("throated wheel") and the cylindrical wheel stays.
+- **R12b.7 — acceptance and hand-over.** The agent builds, in one turn each:
+  - a planetary set: sun, three planets and a ring, z_r = z_s + 2z_p, assembly (z_s + z_r)/N whole, ratio 1 + z_r/z_s, all meshes clear;
+  - a right-angle straight bevel pair;
+  - a worm reducer.
+  - Each against its closed forms; conformance `r12b/accept-*`; the R12b → R12c hand-over block.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/r12b/` fixtures (studio ones in subfolders), the studio's command, notes and agent node, a flow step, RB rows and properties, a checkpoint, and the passing test names compared with the last run.
+
+**New public codes** (`GearDiagnosticCode`, an API addition, recorded here):
+- `UNDERCUT` (warning);
+- `INVOLUTE_INTERFERENCE`, `TROCHOID_INTERFERENCE`, `TRIMMING_INTERFERENCE` (pair errors);
+- `RIM_INTERSECTION`.
+
+Mapped to the part model as now: INPUT, CAPABILITY, GEOMETRY.
+
+**Data:**
+- No tables are built in. The basic rack's 1/1.25/0.38 m and 20° are facts (K2).
+- KHK's worked examples are test oracles only, each cited by its table label.
+- Table 4.8 is used only as R12b.2b's check, with its source record.
+- Formulas K1 shows only as images are used only where they reproduce K1's numbers ("verified by numbers"), or are derived here and checked by an independent construction (the interference conditions by the sweep, the form circle by the simulated cut).
+
+**Not in R12b** (for the owner to place):
+- the octoid and the Gleason uniform-clearance bevels (unless R12b.3b is asked for);
+- back-cone ends;
+- hypoid gears;
+- face gears;
+- ZN, ZK and ZC worms;
+- double-enveloping worms;
+- crossed helical pairs at angles other than 90°;
+- non-circular gears;
+- pressure angles other than 20°;
+- tip and root relief, crowning and lead modification;
+- strength and rating (no load claims, as before);
+- the shaper-generated root of external gears.
+
+**For the owner:**
+- **Spiral bevels** (R12b.4): keep the ideal conjugate spiral bevel (line contact, no crowning, honestly flagged), or drop the stage. The default taken: keep it.
+- **The throated wheel** (R12b.6): attempt it, with the refusal as the fallback (default), or stop at the cylindrical wheel.
+
+**Checks:** S0 changed no product code.
+- r12b-s0: 7/7, 42 s alone; most of it the nine-pair interference sweep and the ring's 14.7 s Boolean.
+- Lint clean on the new file.
+- Kernel 1297/1302 (4 skipped; +7, the r12b-s0 tests; 1302 = 1295 + 7 and 1297 = 1290 + 7, so none missing). The env-only "actual native Split source…" fails, as always.
+- Conformance, RB, studio and the flow: not rerun, as at D115 and D122 (no source change).
