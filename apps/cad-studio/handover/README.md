@@ -35,8 +35,8 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
   | Conformance | 174/174 |
   | Studio | 643/643 |
   | Full browser flow, run on its own | 188/188 |
-  | RB | in the RB-rows commit after this one |
-  | Properties | in the RB-rows commit after this one |
+  | RB | 316 cases (+2: the accept cases), 0 new, the 8 known TODOs |
+  | Properties | 11/11, no failures |
 
 - The tree is clean, apart from the earlier review session's untracked drafts (see "Where the work is").
 

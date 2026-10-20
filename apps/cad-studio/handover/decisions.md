@@ -6505,5 +6505,5 @@ The last FR stage frozen in D122. The cut list goes onto a drawing sheet as a ta
 | Studio lint, type-check | 0 errors (119 warnings, none new), type-check clean |
 | Studio | 643/643 (+2 of FR4b, +2 from the merged O59/O60) |
 | Full flow | 188/188, run on its own (+1, `fr4b-cut-list-drawing`) |
-
-RB and properties rows are in the next commit.
+| RB | 316 cases (+2: the accept cases), 0 new, the 8 known TODOs (totals as before but OK, +100 by the two cases' outputs) |
+| Properties | 11/11, no failures |
