@@ -3089,6 +3089,36 @@ try {
     await snap('r12-3a-flange');
   });
 
+  await check('R12.3b a corner relief off a sheet plate\'s corner (its edge picked by name) from the palette, then a flange on each of the corner\'s edges: they clear each other (new in D119)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'sheet-plate-corner.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] }, { id: 'n1', kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.44 }] }));
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.ok(await page.waitForFunction(() => window.__studioPickEdge('n1.side0|n1.side1'), null, { timeout: 15000 }));
+    await press(' '); await page.locator('.palette input').fill('corner relief'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sheet-corner-relief', null, { timeout: 30000 }); await idle();
+    // Its default size R + T = 3: the plate less 3 × 3 × 1.5 = 5986.5 mm³ (the panel rounds to 1 mm³).
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 5986.5) <= 1, `${vol}`);
+    assert.match(await page.textContent('.history'), /Corner relief square 3/);
+    // A flange on each edge of that corner, full length: both build, the flat two bends.
+    for (const edge of ['n1.side0|n1.top', 'n1.side1|n1.top']) {
+      const k = await page.evaluate(() => window.__studioDoc.nodes.length);
+      assert.ok(await page.waitForFunction(e => window.__studioPickEdge(e), edge, { timeout: 15000 }));
+      await press(' '); await page.locator('.palette input').fill('flange'); await press('Enter'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(n => window.__studioDoc.nodes.length === n + 1, k, { timeout: 30000 }); await idle();
+    }
+    await bodyVolume();
+    await page.waitForFunction(() => /Flat pattern [\d.]+ × [\d.]+ mm, 2 bends/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r12-3b-corner-relief');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

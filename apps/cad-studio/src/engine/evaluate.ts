@@ -38,6 +38,8 @@ export interface BodyResult {
   subd?: SubdSummary;
   /** A sheet-metal body's flat pattern (R12.2, D117), or why it has none (its refusal). */
   flat?: FlatPattern; flatRefused?: string;
+  /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
+  sheet?: { thicknessMM: number; bendRadiusMM: number; kFactor: number };
 }
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
@@ -78,15 +80,15 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
 }
 
 /** A sheet's notes and its flat pattern (worked out once a B-rep), or the flat's refusal as a warning. */
-function sheetOf(o: CadPartSnapshot['outputs'][number]): Pick<BodyResult, 'notes' | 'flat' | 'flatRefused'> {
+function sheetOf(o: CadPartSnapshot['outputs'][number]): Pick<BodyResult, 'notes' | 'flat' | 'flatRefused' | 'sheet'> {
   let f = flats.get(o.brep);
   if (!f) { try { f = { flat: o.flatPattern() }; } catch (e) { f = { refused: e instanceof Error ? e.message.replace(/^[^:]*: /, '') : String(e) }; } flats.set(o.brep, f); }
-  const notes = sheetNotes(o.sheet!);
+  const notes = sheetNotes(o.sheet!), sheet = { thicknessMM: o.sheet!.thicknessMM, bendRadiusMM: o.sheet!.bendRadiusMM, kFactor: o.sheet!.kFactor };
   if ('flat' in f) {
     const b = f.flat.box.max, n = f.flat.bends.length;
-    return { notes: [...notes, { text: `Flat pattern ${+b[0].toFixed(3)} × ${+b[1].toFixed(3)} mm, ${n} bend${n === 1 ? '' : 's'}` }], flat: f.flat };
+    return { notes: [...notes, { text: `Flat pattern ${+b[0].toFixed(3)} × ${+b[1].toFixed(3)} mm, ${n} bend${n === 1 ? '' : 's'}` }], flat: f.flat, sheet };
   }
-  return { notes: [...notes, { text: `No flat pattern: ${f.refused}`, warning: true }], flatRefused: f.refused };
+  return { notes: [...notes, { text: `No flat pattern: ${f.refused}`, warning: true }], flatRefused: f.refused, sheet };
 }
 
 /**

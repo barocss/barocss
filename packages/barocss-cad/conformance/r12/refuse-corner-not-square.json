@@ -1,0 +1,60 @@
+{
+  "id": "r12-refuse-corner-not-square",
+  "step": "R12",
+  "decisions": [
+    "D119"
+  ],
+  "about": "R12.3b: a corner relief at a triangle plate's 56.3° corner: refused by name (square corners only yet).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              80,
+              0
+            ],
+            [
+              40,
+              60
+            ]
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "c",
+          "kind": "sheet-corner-relief",
+          "target": "b",
+          "corner": "b.side0|b.side1",
+          "shape": "square",
+          "size": 4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[CORNER_NOT_SQUARE] the corner b.side0|b.side1 is 56.309932°"
+    }
+  },
+  "oracle": "By construction: atan(60/40)."
+}

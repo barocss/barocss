@@ -23,7 +23,7 @@ export const SAME_DIRECTION = Math.cos(Math.PI / 180);
 export const CLEARLY_NEARER = 2;
 
 const named = (n: ModelNode): { key: 'edges' | 'open' | 'faces'; edge: boolean } | null =>
-  n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' ? { key: 'edges', edge: true } : n.kind === 'shell' ? { key: 'open', edge: false } : n.kind === 'draft' ? { key: 'faces', edge: false } : null;
+  n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? { key: 'edges', edge: true } : n.kind === 'shell' ? { key: 'open', edge: false } : n.kind === 'draft' ? { key: 'faces', edge: false } : null;
 
 /** Every face's and edge's signature on a body, by name (a merged face under each of its names). */
 export function signaturesOf(body: BodyResult): { faces: Map<string, Signature>; edges: Map<string, Signature> } {

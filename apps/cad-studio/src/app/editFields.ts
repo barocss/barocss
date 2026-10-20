@@ -205,6 +205,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
       break;
     }
+    case 'sheet-corner-relief': number('size', 'Size', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-corner-relief' }>).size), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-corner-relief' }>), size: v })); break;
     case 'sheet-flange': {
       // (R12.3, D118: its length, angle, own radius and offsets.)
       type F = Extract<ModelNode, { kind: 'sheet-flange' }>;

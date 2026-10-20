@@ -5713,3 +5713,70 @@ R12.3's first half, as D115 froze it. Corners of neighbouring flanges (corner re
 | Full flow | 172/172, run on its own; the new step included, every outer-lane step passing |
 
 RB rows are in the next commit.
+
+## D119 — R12.3b: no relief defaults in the kernel (RELIEF_REQUIRED); corner reliefs (2026-10-20)
+
+R12.3's second half. First the coordinator's check on D118: the flange's relief took hidden kernel defaults, against D115 call 3. Then corner reliefs. **R12.3 done.**
+
+**No relief defaults** (the coordinator's check, agreed before this step):
+- **What D118 did:** a part-width flange left without a `relief` got 'rectangular', and a relief without `width` or `depth` got T for each, silently (`part-model.ts`, the case's parse).
+- The `?? 0` the check named could make no zero-size relief: it was reached only with the relief 'none', where nothing is cut. It is now an explicit branch.
+- **Now:**
+  - A relief, when given, is `{ kind: 'rectangular' | 'obround', width, depth }` or `{ kind: 'none' }`. A cut without its width or its depth is `[RELIEF_REQUIRED]` (PARAMETER), naming the field.
+  - A flange with an end inside its edge and no relief is `[RELIEF_REQUIRED]`, saying what to give.
+  - A flange the whole edge long needs none.
+- **The studio's Flange** writes the relief whole: its width and depth where given, else the sheet's T, still labelled an estimate. Bodies carry their sheet's rules for it (`BodyResult.sheet`).
+- **The contract changed in place:** `sheet-flange` is new and unreleased, so it is not versioned. The conformance case `flange-part-width-obround` now spells out its relief (1.5 × 1.5), and the tests theirs.
+- **Tests:** a part-width flange with no relief, a rectangular relief without its width, and an obround one without its depth are each refused.
+
+**Corner reliefs** (`sheet-corner-relief`; `part-model.ts` `sheetCornerRelief`):
+- **What it takes.** A sheet, and its plate's corner named by the corner's edge: the straight edge, T long, between two planar thickness faces.
+  - Else `[EDGE_NOT_SHEET]`.
+  - The corner must be square and convex; else `[CORNER_NOT_SQUARE]` (CAPABILITY), giving its angle, e.g. a triangle's 56.31°.
+- **What it cuts,** through the sheet: a `square` of side `size` along both edges, or a `round` quarter of radius `size` about the corner. The corner's frame is x and y into the plate along its edges, z along the thickness.
+- **It must take exactly the plate's corner** (s²T or πs²T/4, to 1e-8) and leave one piece; else `[CORNER_NOT_CLEAR]`. That covers a hole already there, or a size past the plate.
+  - A flange on one of the corner's edges trims the corner away, so its edge is gone: refused as SELECTION, no such edge.
+- **The sheet's report carries through**, so flanges follow it.
+- **The intended order:** reliefs on the plate's corners, then flanges on both edges, full length. Each stops `size` from the corner.
+  - With `size` at least the setback (R + T for a square bend), the bends meet nowhere: an open-corner box.
+  - A round quarter must cover both bends' corner square, √2 that. At the setback's radius it leaves a sliver of plate held at a point.
+- **The flat now names a sliver** cut off in the skin's plane: `[NOT_A_SHEET] … lies in the skin's plane but is cut off from it (held only at a point)`. It had said only "neither on the sheet's skins nor a cut".
+
+**Oracles** (closed forms, as at D118):
+- The reliefs alone: plate − 4s²T (square, s 3 and 4.5) and plate − 4·(π/4)s²T (round, s 4.5 and 6), each to 1e-12.
+- **The open-corner box:**
+  - flat (80 + 2(20 − BD)) × (50 + 2(20 − BD)) to 1e-12;
+  - volume (each flange on its edge less 2s, less its trim, plus its section) to 1e-11;
+  - the flat's area identity to 1e-11;
+  - four bends up, one outline.
+- **Refused:**
+  - at s 2 (short of the 3 mm setback): `FLANGES_COLLIDE`;
+  - round at 3: the sliver's `NOT_A_SHEET`.
+
+**Studio:**
+- **Corner relief** (modify): one edge of a sheet body; shape and size, defaulting to the sheet's R + T (the setback of a square bend, derived, not material data).
+- **The node** keeps its corner as `edges: [name]`, so the flange's and the fillet's reference machinery serves it.
+- Label `Corner relief square 3`, edit field (size), icon, history icon, the agent's command and raw node.
+- **The tool contract records it** (`tools-v1.json`, compatible).
+
+**Tests:**
+- Kernel `test/r12-3.test.mjs` (+2, and the R12.3a tests with explicit reliefs) and studio `sheet.test.ts` (+1). Both fail on HEAD 8ef9efdf4.
+- Conformance `r12/corner-relief-box-square` (volume, flat box and area, four bends, a STEP round trip) and `refuse-corner-not-square`.
+- A flow step: a plate from a file, its corner picked by name, Corner relief from the palette (5986.5 mm³), then Flange on each of the corner's edges. Both build; the flat has two bends.
+
+**Not done:**
+- Closed corners: the flanges' ends meeting, overlapped or butted (out of R12, D115).
+- Reliefs at corners that are not square.
+- A flange's own corner treatment: the order today is reliefs first.
+
+**Checks** on 8ef9efdf4 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1220/1225 (4 skipped; only the env-only Split test fails) |
+| Conformance | 145/145, with the 2 new cases and the obround one updated |
+| Studio | 563/563 |
+| Full flow | 175/175, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.

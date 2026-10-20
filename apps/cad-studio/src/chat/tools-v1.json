@@ -2560,6 +2560,7 @@
        "sheet-plate",
        "sheet-profile",
        "sheet-flange",
+       "sheet-corner-relief",
        "box",
        "cylinder",
        "sphere",
