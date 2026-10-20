@@ -9,10 +9,10 @@ import type { ChatState, Evaluate } from '../chat/tools';
 import type { Op } from '../chat/proposals';
 import { rebase, runTeam, type DesignerRole, type DrafterRole, type Patch, type RequirementsRole, type ReviewerName, type ReviewerRole, type ReviewView, type TeamRun, type VerifierRole, type VerifierView } from './team';
 
-export type DesignerStep = { patch: { id: string; ops: Op[]; rationale?: string; /** "stale": made on an old revision (a fixed one no part has). */ base?: 'stale' } } | 'done' | 'rebase';
+export type DesignerStep = { patch: { id: string; ops: Op[]; rationale?: string; /** "stale": made on an old revision (a fixed one no part has). */ base?: 'stale'; /** Kept against soft findings, because… */ keep?: string } } | 'done' | 'rebase';
 export type VerifierRule = { kind: 'max_mass_g'; value: number } | { kind: 'max_size'; axis: 'x' | 'y' | 'z'; value: number } | { kind: 'min_bodies'; value: number };
 /** A reviewer's rules (A8.1): DFM — a printability rule at a status (the recommended ones the gate lets pass); Analysis — a failing soft requirement. */
-export type ReviewerRule = { kind: 'print_rule'; rule: string; status: 'warn' | 'fail' } | { kind: 'soft_failing' };
+export type ReviewerRule = { kind: 'print_rule'; rule: string; status: 'warn' | 'fail' } | { kind: 'soft_failing' } | { kind: 'soft_unknown' };
 export interface Scenario {
   case: string; note?: string; prompt?: string; start?: StudioDoc;
   requirements?: { ops: Op[] }; designer: DesignerStep[]; verifier?: { model?: string; rules: VerifierRule[] };
@@ -31,7 +31,7 @@ export function scriptedDesigner(steps: readonly DesignerStep[]): DesignerRole {
       const s = steps[k++];
       if (s === undefined || s === 'done') return 'done';
       if (s === 'rebase') { if (!last) return 'done'; last = rebase(last, view.revision); return { patch: last }; }
-      last = { id: s.patch.id, by: 'designer', base: s.patch.base === 'stale' ? STALE_REVISION : view.revision, ops: s.patch.ops, ...(s.patch.rationale ? { rationale: s.patch.rationale } : {}) };
+      last = { id: s.patch.id, by: 'designer', base: s.patch.base === 'stale' ? STALE_REVISION : view.revision, ops: s.patch.ops, ...(s.patch.rationale ? { rationale: s.patch.rationale } : {}), ...(s.patch.keep ? { keep: s.patch.keep } : {}) };
       return { patch: last };
     },
   };
@@ -58,14 +58,21 @@ export function scriptedReviewer(name: ReviewerName, rules: readonly ReviewerRul
     name, model,
     async review(view: ReviewView) {
       const findings: { code: string; message: string }[] = [];
+      // (A DFM review on a part with no process, or one whose checks are not built: skipped, said why — not a pass.)
+      if (name === 'dfm' && rules.some(r => r.kind === 'print_rule') && view.printability === null) return { verdict: 'skipped' as const, findings: [{ code: view.process ? 'NOT_CHECKED' : 'NO_PROCESS', message: view.process ? `${String(view.process)} has no checks yet` : 'no process to review against' }] };
       for (const r of rules) {
         if (r.kind === 'print_rule') for (const x of (view.printability as { id: string; status: string; message: string }[] | null) ?? []) { if (x.id === r.rule && x.status === r.status) findings.push({ code: 'DFM_RECOMMENDED', message: `${x.id} ${x.status}: ${x.message}` }); }
-        else {
+        else if (r.kind === 'soft_unknown') {
+          // (A soft requirement the checks could not measure: the Analysis reviewer cannot decide it — undecided.)
+          const soft = new Set((view.requirements as { id: string; hard: boolean }[]).filter(q => !q.hard).map(q => q.id));
+          for (const u of ((view.checks as { unknowns: { req_id: string; why: string }[] } | null)?.unknowns ?? [])) if (soft.has(u.req_id)) findings.push({ code: 'UNDECIDED', message: `${u.req_id}: ${u.why}` });
+        } else {
           const soft = new Set((view.requirements as { id: string; hard: boolean }[]).filter(q => !q.hard).map(q => q.id));
           for (const f of ((view.checks as { failures: { req_id: string; measured: unknown; expected: string }[] } | null)?.failures ?? [])) if (soft.has(f.req_id)) findings.push({ code: 'SOFT_FAILING', message: `${f.req_id}: ${String(f.measured)} (want ${f.expected})` });
         }
       }
-      return { accept: !findings.length, findings };
+      // (An undecided rule's findings hold the patch; any other finding rejects it.)
+      return { verdict: findings.some(f => f.code !== 'UNDECIDED') ? 'reject' as const : findings.length ? 'undecided' as const : 'accept' as const, findings };
     },
   };
 }
@@ -85,6 +92,6 @@ export async function runScenario(sc: Scenario, evaluate: Evaluate): Promise<Tea
 export function runSummary(r: TeamRun) {
   return {
     ended: r.ended, revision: r.revision, accepted: r.accepted, tried: r.tried, tokens: r.tokens, cost_per_accepted: r.costPerAccepted,
-    traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, base: t.base, ...(t.rebasedFrom ? { rebased_from: t.rebasedFrom } : {}), decision: t.decision, ...(t.contractChanges ? { contract_changes: t.contractChanges } : {}), revision_after: t.revisionAfter, gates: t.gates.map(g => ({ gate: g.gate, verdict: g.verdict, findings: g.findings })), ...(t.verifier ? { verifier: t.verifier } : {}), ...(t.reviews ? { reviews: t.reviews } : {}) })),
+    traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, base: t.base, ...(t.rebasedFrom ? { rebased_from: t.rebasedFrom } : {}), decision: t.decision, ...(t.contractChanges ? { contract_changes: t.contractChanges } : {}), revision_after: t.revisionAfter, gates: t.gates.map(g => ({ gate: g.gate, verdict: g.verdict, findings: g.findings })), ...(t.verifier ? { verifier: t.verifier } : {}), ...(t.reviews ? { reviews: t.reviews } : {}), ...(t.keptBecause ? { kept_because: t.keptBecause } : {}) })),
   };
 }

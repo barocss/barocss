@@ -144,26 +144,26 @@
    [
     [
      "analysis",
-     false,
+     "reject",
      [
       "SOFT_FAILING"
      ]
     ],
     [
      "dfm",
-     true,
+     "accept",
      []
     ]
    ],
    [
     [
      "analysis",
-     true,
+     "accept",
      []
     ],
     [
      "dfm",
-     true,
+     "accept",
      []
     ]
    ]

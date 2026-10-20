@@ -133,14 +133,14 @@
    [
     [
      "analysis",
-     false,
+     "reject",
      [
       "SOFT_FAILING"
      ]
     ],
     [
      "dfm",
-     false,
+     "reject",
      [
       "DFM_RECOMMENDED"
      ]

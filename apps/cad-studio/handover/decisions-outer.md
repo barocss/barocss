@@ -1558,3 +1558,12 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - `cad-cli team` runs the v2 scenarios unchanged (exit 1 on both-reviewers, where none is accepted).
   - Studio 570/570, with no test name missing against the last run. Lint and type-check clean. No UI changed.
 - **Next**: A8.2, the Architect's interfaces and Part agents with leases.
+- **Added on acceptance (coordinator, 2026-10-20), each a scenario:**
+  - **A reviewer that cannot decide holds the patch, never passes it.** A review's verdict is `accept | reject | undecided | skipped`, as the gates'.
+    - A rejection rejects. An undecided or a skipped review **holds** the patch for the user.
+    - The scripted DFM reviewer skips, with `NO_PROCESS` or `NOT_CHECKED`, when there is no printability report to review (no process, or one with no checks yet).
+    - The Analysis reviewer is undecided (`UNDECIDED`) on a soft requirement the checks could not measure.
+    - Scenarios: `reviewer-skipped` (CNC milling) and `reviewer-undecided` (a soft mass target with no material stated), both held.
+  - **"Keep, because…" against soft findings.** A Designer's patch may carry `keep: reason`. When the only rejecting findings are soft (`SOFT_CODES`: `DFM_RECOMMENDED`, `SOFT_FAILING`), the patch is **held** for the user with that reason (`keptBecause` / `kept_because`), not rejected again, so a soft target that cannot be met does not loop. Hard findings still reject.
+    - Scenario `soft-keep`: the 1.0 mm shell is rejected; kept but 50 wide, it is rejected by the hard W; kept at 40, it is held with the reason.
+  - `test/team-v2.test.ts` 2/2 over nine A8.1 scenarios. Studio 570/570, with no test name missing.

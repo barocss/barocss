@@ -42,7 +42,7 @@ export function revisionOf(doc: StudioDoc): string {
   for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0; h2 ^= c; h2 = Math.imul(h2, 0x01000193) >>> 0; h2 = (h2 ^ (h1 >>> 7)) >>> 0; }
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
 }
-export interface Patch { id: string; by: string; base: string; ops: Op[]; rationale?: string; /** The base it was made on, when rebased. */ rebasedFrom?: string }
+export interface Patch { id: string; by: string; base: string; ops: Op[]; rationale?: string; /** The base it was made on, when rebased. */ rebasedFrom?: string; /** The Designer's answer to soft findings: kept as it is, because… (A8.1: held for the user with this reason, not rejected again). */ keep?: string }
 /** The patch made again on another revision (explicit: never automatic); its trace names the old base. */
 export const rebase = (p: Patch, revision: string): Patch => ({ ...p, base: revision, rebasedFrom: p.rebasedFrom ?? p.base });
 
@@ -158,7 +158,11 @@ export function reviewView(name: ReviewerName, doc: StudioDoc, bodies: readonly 
   return deepFreeze(JSON.parse(JSON.stringify(Object.fromEntries(keys.map(k => [k, all[k] ?? null])))) as ReviewView);
 }
 export interface ReviewFinding { code: string; message: string; entities?: string[] }
-export interface ReviewerRole { name: ReviewerName; model: string; review(view: ReviewView): Promise<{ accept: boolean; findings: ReviewFinding[] } & RoleReport> }
+/** A reviewer's verdict, as the gates': accept, reject, undecided (the patch held for the user) or skipped (it cannot check this — said why). */
+export type ReviewVerdict = 'accept' | 'reject' | 'undecided' | 'skipped';
+/** The findings that are a preference, not a requirement: a Designer may answer them with "keep, because…". */
+export const SOFT_CODES = new Set(['DFM_RECOMMENDED', 'SOFT_FAILING']);
+export interface ReviewerRole { name: ReviewerName; model: string; review(view: ReviewView): Promise<{ verdict: ReviewVerdict; findings: ReviewFinding[] } & RoleReport> }
 
 // ——— roles
 export interface RoleReport { tokens?: number }
@@ -171,8 +175,10 @@ export interface VerifierRole { model: string; review(view: VerifierView): Promi
 export type Decision = 'applied' | 'rejected' | 'held' | 'stale';
 export interface Trace {
   /** The parallel reviewers' verdicts (A8.1), by role name. */
-  reviews?: { role: ReviewerName; model: string; accept: boolean; findings: ReviewFinding[] }[];
+  reviews?: { role: ReviewerName; model: string; verdict: ReviewVerdict; findings: ReviewFinding[] }[];
   seq: number; patch: Patch; base: string; rebasedFrom?: string; revisionAfter: string | null;
+  /** The Designer's reason for keeping a patch against soft findings (held). */
+  keptBecause?: string;
   /** The contracts the patch would change (held for the user; A8's ECR later). */
   contractChanges?: string[];
   diff?: unknown; gates: GateResult[]; verifier?: { model: string; accept: boolean; findings: string[] }; decision: Decision; tokens: Record<string, number>;
@@ -205,14 +211,18 @@ export async function integrate(state: ChatState, patch: Patch, evaluate: Evalua
     const [v, ...rs] = await Promise.all([o.verifier ? o.verifier.review(verifierView(r.state.doc, r.state.bodies, g)) : Promise.resolve(null), ...(o.reviewers ?? []).map(x => x.review(reviewView(x.name, r.state.doc, r.state.bodies, g)))]);
     if (v && o.verifier) { tokens.verifier = v.tokens ?? 0; verifier = { model: o.verifier.model, accept: v.accept, findings: v.findings }; if (!v.accept) decision = 'rejected'; }
     if (o.reviewers?.length) {
-      reviews = o.reviewers.map((x, i) => ({ role: x.name, model: x.model, accept: rs[i]!.accept, findings: rs[i]!.findings })).sort((a, b) => a.role.localeCompare(b.role));
+      reviews = o.reviewers.map((x, i) => ({ role: x.name, model: x.model, verdict: rs[i]!.verdict, findings: rs[i]!.findings })).sort((a, b) => a.role.localeCompare(b.role));
       o.reviewers.forEach((x, i) => { tokens[x.name] = rs[i]!.tokens ?? 0; });
-      if (reviews.some(x => !x.accept)) decision = 'rejected';
+      // (A rejection rejects — but a Designer's "keep, because…" against soft findings only holds it for the user with that
+      // reason; a reviewer that cannot decide — undecided or skipped — holds it too: never a pass.)
+      const rejecting = reviews.filter(x => x.verdict === 'reject'), soft = rejecting.length > 0 && rejecting.every(x => x.findings.every(f => SOFT_CODES.has(f.code)));
+      if (rejecting.length && !(soft && patch.keep)) decision = 'rejected';
+      else if (decision === 'applied' && (rejecting.length || reviews.some(x => x.verdict === 'undecided' || x.verdict === 'skipped'))) decision = 'held';
     }
   }
   const applied = decision === 'applied';
   const changes = r.isError ? [] : contractChanges(state.doc, r.state.doc);
-  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), ...(changes.length ? { contractChanges: changes } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), ...(reviews ? { reviews } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
+  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), ...(changes.length ? { contractChanges: changes } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), ...(reviews ? { reviews } : {}), ...(patch.keep && decision === 'held' ? { keptBecause: patch.keep } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
 }
 
 /** What the Designer is given each round. */

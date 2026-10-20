@@ -13,7 +13,7 @@ import { runScenario, runSummary, scriptedReviewer, type Scenario } from '../src
 
 const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
-type Expect = { decisions: string[]; stops: ([string, string] | null)[]; reviews?: ([string, boolean, string[]][] | null)[]; accepted: number; ended: string; drawing_keeps_revision?: boolean };
+type Expect = { decisions: string[]; stops: ([string, string] | null)[]; reviews?: ([string, string, string[]][] | null)[]; kept_because?: string; accepted: number; ended: string; drawing_keeps_revision?: boolean };
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { step: string; expect: Expect };
 
 test('the v2 scenarios (conformance/a8, A8.1): reviewers\' verdicts in role order, the drafting agent\'s decisions; byte-identical on a rerun', async () => {
@@ -27,9 +27,10 @@ test('the v2 scenarios (conformance/a8, A8.1): reviewers\' verdicts in role orde
       if (!want) assert.ok(!stop, `${sc.case} #${i}: ${JSON.stringify(stop)}`);
       else { assert.equal(stop?.gate, want[0], `${sc.case} #${i}`); assert.ok(stop!.findings.some(x => x.code === want[1]), `${sc.case} #${i}: ${JSON.stringify(stop!.findings)}`); }
       const rv = sc.expect.reviews?.[i];
-      if (rv !== undefined) assert.deepEqual(rv === null ? undefined : t.reviews?.map(r => [r.role, r.accept, r.findings.map(x => x.code)]), rv === null ? undefined : rv, `${sc.case} #${i} reviews: ${JSON.stringify(t.reviews)}`);
+      if (rv !== undefined) assert.deepEqual(rv === null ? undefined : t.reviews?.map(r => [r.role, r.verdict, r.findings.map(x => x.code)]), rv === null ? undefined : rv, `${sc.case} #${i} reviews: ${JSON.stringify(t.reviews)}`);
     });
     assert.equal(run.accepted, sc.expect.accepted, sc.case); assert.equal(run.ended, sc.expect.ended, sc.case);
+    if (sc.expect.kept_because) assert.equal(run.traces.at(-1)!.keptBecause, sc.expect.kept_because, `${sc.case}: the reason kept`);
     if (sc.expect.drawing_keeps_revision) {
       const d = run.traces.at(-1)!, before = run.traces.at(-2)!;
       assert.equal(d.patch.by, 'drafter'); assert.equal(d.revisionAfter, before.revisionAfter, 'the drawing leaves the model\'s revision');

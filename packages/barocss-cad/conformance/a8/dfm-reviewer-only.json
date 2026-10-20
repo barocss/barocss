@@ -154,12 +154,12 @@
    [
     [
      "analysis",
-     true,
+     "accept",
      []
     ],
     [
      "dfm",
-     false,
+     "reject",
      [
       "DFM_RECOMMENDED"
      ]
@@ -168,12 +168,12 @@
    [
     [
      "analysis",
-     true,
+     "accept",
      []
     ],
     [
      "dfm",
-     true,
+     "accept",
      []
     ]
    ]
