@@ -28,6 +28,9 @@ function casesOf(root) {
   return found.flatMap(file => {
     const rel = relative(root, file).split(sep), json = file.endsWith('.json') ? JSON.parse(readFileSync(file, 'utf8')) : null;
     if (json?.supersededBy) return [];
+    // (Only part documents and conformance cases holding one: other steps' fixtures — DXF, drawing, robot, DSL and brief
+    // cases and their oracle readings — are no part documents, and were counted as refused ones before D116.)
+    if (json && !json.input?.partDocument && json.format !== 'barocss-cad-part') return [];
     const inputClass = json ? (json.input?.partDocument ? 'conformance' : 'part') : 'step';
     return [{ file, id: `${root.split(sep).pop()}/${rel.join('/')}`, inputClass, category: rel.length > 1 ? rel.slice(0, -1).join('/') : root.split(sep).pop() }];
   });

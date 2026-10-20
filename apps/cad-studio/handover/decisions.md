@@ -5521,3 +5521,11 @@ R12's first stage as D115 froze it: sheet-metal features that carry their rules,
 | Full flow | 168/168, run on its own; the new step included, every outer-lane step passing |
 
 RB rows are in the next commit.
+
+**RB at R12.1** (a follow-up commit):
+- **The runner took every JSON file under `conformance/` as a part document.** These were the other steps' fixtures: DXF cases and their oracle readings, drawing, robot, DSL and brief cases, 86 files. They were counted as refused part documents, and the outer lane's A6 brief cases (merged at 60ac5bd00) showed as 3 NEW WRONG.
+  - It now takes only part documents and conformance cases holding one (`scripts/rb/run.mjs`).
+  - The trend's case count drops from 359 to 273 on this basis. Its REFUSED count falls with it, from 87 to 4.
+- **The two r12 contour cases' volume tolerance is now 1e-9**, as the other exact cases have.
+  - RB measures by the B-rep quadrature: 1.4e-12 on the L-bracket, past the 1e-12 first written.
+  - The kernel's prismatic integration, which the unit tests keep at 1e-12, is not the only route an implementation may take.
