@@ -3176,6 +3176,40 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('FR1 two structural members from the palette: a round-cornered rectangular tube and a 20×40 T-slot, A·L each, the section and line in the panel, the prefilled radius and slot sizes flagged estimates (new in D123)', async () => {
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('structural member'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame-member', null, { timeout: 30000 });
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    // The prefill: 40 × 40 × 3, corners ro 6 (bore 3), 300 mm along +Y: A = 1600 − (4 − π)36 − (34² − (4 − π)9) = 420.823 mm²,
+    // 126 246.9 mm³ (the panel rounds to 1 mm³).
+    const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
+    assert.ok(Math.abs(vol - A * 300) <= 1, `${vol} vs ${A * 300}`);
+    let props = await page.textContent('.props');
+    assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6 · section 420\.823 mm² · length 300 mm/);
+    assert.match(props, /Line through its centroid; section x −X, y \+Z/);
+    assert.match(props, /Estimates, not your stock's: outerRadius 6 mm/);
+    assert.match(await page.textContent('.history'), /Member RHS 40×40×3 · 300 mm/);
+    // A 20 × 40 T-slot beside it: its slot sizes are the library's estimates.
+    await press(' '); await page.locator('.palette input').fill('structural member'); await press('Enter'); await hudReady();
+    await field('Section').selectOption('tslot'); await hudReady();
+    await field('Size').selectOption('2'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => /Member: tslot/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    props = await page.textContent('.props');
+    const At = 800 - 6 * (6.2 * 6.1 + 4.8 * 4.8 / 4) - 2 * Math.PI * 2.1 * 2.1;
+    assert.ok(props.includes(`section ${+At.toFixed(3)} mm²`), props);
+    assert.match(props, /Estimates, not your stock's: opening 6\.2 mm, lip 1\.8 mm, undercut 11 mm, depth 6\.1 mm, bore 4\.2 mm/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('fr1-members');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

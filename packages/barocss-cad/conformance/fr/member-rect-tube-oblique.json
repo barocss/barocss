@@ -1,0 +1,101 @@
+{
+  "id": "fr-member-rect-tube-oblique",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a 40 × 40 × 3 rectangular tube, corners ro 6 (bore ri 3), along an oblique 3D line, anchored at its centroid: A·L, the centroid the line's midpoint, the surface (Po + Pi)·L + 2A, its role names.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          },
+          "start": [
+            10,
+            -20,
+            5
+          ],
+          "end": [
+            310,
+            140,
+            205
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 165998.5391504209,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            160,
+            60,
+            105
+          ],
+          "absTol": 1e-9
+        },
+        "areaMM2": {
+          "value": 111507.3387702411,
+          "relTol": 1e-12
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "m.bore.bottom",
+          "m.bore.left",
+          "m.bore.right",
+          "m.bore.round.bl",
+          "m.bore.round.br",
+          "m.bore.round.tl",
+          "m.bore.round.tr",
+          "m.bore.top",
+          "m.bottom",
+          "m.end",
+          "m.left",
+          "m.right",
+          "m.round.bl",
+          "m.round.br",
+          "m.round.tl",
+          "m.round.tr",
+          "m.start",
+          "m.top"
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 394.4616584663204,
+          "centroid": [
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²], ri = ro − t; a prism's volume A·L and centroid on its centroidal line's midpoint; perimeters 2(b + h) − 8r + 2πr outside and in the bore."
+}

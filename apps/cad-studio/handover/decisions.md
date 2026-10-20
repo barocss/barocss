@@ -5996,12 +5996,14 @@ Evidence: `packages/barocss-cad/test/fr-s0.test.mjs` (kept, 7 tests), against cl
   - **Studio:** a cut-list panel, CSV export, the agent's `cut_list` tool; a flow step.
 - **FR4b — the drawing table and acceptance.**
   - The cut list on a drawing sheet as a table, and in its DXF through `writeDxf`. It needs a table entity in drawings (the outer lane's area): the coordinator decides who adds it.
+  - **Decided at review (the coordinator):** the outer lane adds a generic drawing table (O49: `doc.drawing.tables`, sources in `src/drawing/tables.ts`), shared with R14's bend table. FR4b writes a pure function from `cutList()`'s data to its `TableContent`, registered as `cut-list` by the outer lane through the coordinator. If the table is not there when FR4b starts, stop and tell the coordinator.
   - **Acceptance:** two frames built by the agent's tools in one chat turn each: a welded table frame (top rectangle mitred, four legs butted or ordered-trimmed, a lower rail), and a 2020-class T-slot frame (members cut square, no welds). Their cut lists against closed forms; conformance `fr/accept-*`; RB rows; the FR → R12b hand-over.
 
 **Every stage:** a D-record, tests failing on the previous HEAD where a defect is fixed, `conformance/fr/` fixtures (subfolders for non-kernel fixtures), a flow step, RB rows, a checkpoint.
 
 **Data and defaults:**
-- **No section sizes are built in.** Sections are parametric; their dimensions are the user's. A catalogue of sizes is data the user loads (rows of named sizes, each citing a source or flagged `estimate`), as with bend tables (D121). Whether to look for a public supplier page to seed one is the owner's call; reading one needs the owner's OK through the coordinator.
+- **No section sizes are built in.** Sections are parametric; their dimensions are the user's. A catalogue of sizes is data the user loads (rows of named sizes, each citing a source or flagged `estimate`), as with bend tables (D121).
+  - **Decided (the owner, 2026-10-20, relayed by the coordinator):** "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해." (Like the bend tables, don't build in frame section sizes; users load them.) No catalogue is built in, and no supplier-page research for one. The studio's prefills stay estimate-flagged; the tslot-20 slot sizes stay estimates.
 - **No hidden kernel defaults:** corner radii, root and toe radii are given. The studio's prefill (rectangular tube ro = 2t, angle r1 = t, r2 = t/2, channel r = tf) is a reversible default, flagged an estimate wherever shown.
 - **T-slot:** the tslot-20 part's slot sizes are already estimates without a URL record; its section inherits the flags.
 - **Mass:** densities are the materials library's (all estimates, `S-DENS`); a cut list says so unless the material is the user's.
@@ -6012,4 +6014,66 @@ Evidence: `packages/barocss-cad/test/fr-s0.test.mjs` (kept, 7 tests), against cl
 - end gaps for welds, notches for tube-to-tube saddles other than a full cope;
 - a 3D sketch with constraints (the skeleton is points and segments, typed or snapped).
 
-**Checks:** S0 changed no product code. The two fixes before it: studio 603/603 (+1, the new test; names compared with the test files at `ef2d68963`: none missing), studio lint 0 errors and type-check clean, the full flow 177/177 run on its own. Kernel 1234/1240 (4 skipped; +7, the fr-s0 tests; 1240 = 1233 + 7, so none missing): the env-only "actual native Split source…" fails, and `B9 performance` (mass-polyhedral's wall-clock budget, a known load-sensitive item in the open TODOs) failed once in the full parallel run at 170 ms and passes 3/3 alone. fr-s0 7/7, 12.5 s alone (most of it the four round-cornered welds through the feature, about 1 s each). Lint clean on the new file. Conformance, RB: not rerun, as at D115 (no kernel source change).
+**Checks:** S0 changed no product code. The two fixes before it: studio 603/603 (+1, the new test; names compared with the test files at `ef2d68963`: none missing), studio lint 0 errors and type-check clean, the full flow 177/177 run on its own. Kernel 1234/1240 (4 skipped; +7, the fr-s0 tests; 1240 = 1233 + 7, so none missing): the env-only "actual native Split source…" fails, and `B9 performance` (mass-polyhedral's wall-clock budget, a known load-sensitive item in the open TODOs) failed once in the full parallel run at 170 ms and passes 3/3 alone — a known flake under parallel load (the coordinator, at review); its budget is left as it is. fr-s0 7/7, 12.5 s alone (most of it the four round-cornered welds through the feature, about 1 s each). Lint clean on the new file. Conformance, RB: not rerun, as at D115 (no kernel source change).
+
+## D123 — FR1: structural sections and a straight member (2026-10-20)
+
+The first FR stage frozen in D122: section kinds in the kernel, and one straight member so the stage is visible and testable in the studio.
+
+**Kernel** (`frame-section.ts`, the `frame-member` feature in `part-model.ts`):
+- **Section kinds**, every dimension given — no size, radius or slot value is defaulted (D122):
+  - `rect-tube`: width, height, wall, `outerRadius` (0: sharp), `innerRadius` (by default concentric, ro − t; a ro in (0, t) has no concentric bore, so its ri must be given);
+  - `round-tube`: diameter, wall;
+  - `angle`: `legX`, `legY`, thickness, `rootRadius`, `toeRadius`; the heel at the origin;
+  - `channel` (parallel flanges): height, width, web, flange, `rootRadius`; its back on x 0, its bottom on y 0;
+  - `tslot`: the tslot-20 library part's shape as one loop — `size`, `cells` 1 or 2, `openSlots` (one cell: 0–4 clockwise from the top, as the library opens them; given, not defaulted), `opening`, `lip`, `undercut` (45° back to the opening), `depth`, a core `bore` per cell;
+  - `sketch`: a closed sketch's loops in its own XY (holes allowed; its area and centroid by the prism's exact mass).
+- **Each kind's closed forms**: area; centroid by moments (legs and webs as rectangles, the root's quarter-disk spandrel added and the toes' taken off, a spandrel's centroid r(10 − 3π)/(3(4 − π)) from its corner; a slot's opening and two 45° wings); box.
+- **Faces by role**: `top`, `round.tr`, `bore.left` (tubes); `outside`, `bore` (round); `back.x`, `face.y`, `root`, `toe.x`, `end.y` (angle); `web`, `inside.top`, `root.bottom`, `tip.top` (channel); `top.0`, `t1.floor`, `r.taper0`, `core0` (T-slot); a sketch's by its sides. The ends are `<id>.start` and `<id>.end`. `prismaticFromProfile` takes whole names for holes now (its `names.outer` optional).
+- **Placement**: the `anchor` (default `centroid`; also `origin` and the box's nine points) lies on the line `start` → `end`; the section then moves by `offset` in its own XY. Its y runs along `up` (default +Z) made square to the line, x = y × u, both turned `roll` degrees (quarter turns exact). A line along `up` takes +X (or +Y), and the report says so (`upFallback`).
+- **The output's `member` report**: kind and description, area, centroid, anchor, offset, roll, the line, its length, the section's x, y and the axis, and the centroidal line (where A·L is measured; FR4's cut list reads it).
+- **Mass is closed form**: the member is a prism moved by an affine map, so even an oblique member's mass is the prism's exact one (`method: 'closed-form'`).
+- **Refused by name**: `[SECTION_DIMENSIONS]` (a wall leaving no bore, a radius leaving no flat side or past the thickness, legs too short for root and toe, a slot reaching the bore or its neighbours, an undercut no wider than the opening, a slot with no straight part), `[SEGMENT_ZERO_LENGTH]`. An unknown kind, a bad anchor, a T-slot of one cell without `openSlots`: INPUT.
+
+**Oracles** (`test/fr-1.test.mjs`, 5 tests; none of them the module's):
+- Each kind on an oblique 3D line: V = A·L to 1e-12 against the textbook area written in the test; the report's area to 1e-12.
+- The centroid by Green's theorem over the section's loop, lines and arcs integrated in closed form in the test (one 1-form per moment for every segment), to 1e-12; anchored at the centroid, the body's centre of mass is the line's midpoint to 1e-12.
+- **The T-slot section against the tslot-20 library part**, built by its own 3D Booleans (a box less slot prisms and bores): the same volume to 1e-12 at 250 mm, for 20 × 20 with 1–4 slots and for 20 × 40. Two independent constructions agree.
+- Placement by the B-rep's box: top-right on the line, bottom-left moved (5, −2), roll 90° (exact), roll 30° (the wide sides' normals ±y to 1e-15), a vertical line's fallback; the angle's centroidal line by Green's centroid.
+- Faces by role; a sketch section with a hole; dimensions by parameter and `withParameters`.
+- Refusals: 15 cases.
+
+**Conformance** `conformance/fr/` (8 cases; expectations by closed form in the generator `scripts/fr1-conformance.mjs`, not by the kernel): a round-cornered rectangular tube on an oblique line (area (Po + Pi)·L + 2A), an angle anchored at its heel, a channel rolled 90°, a vertical round tube (the fallback), a 20 × 40 T-slot (genus 2), a sketch section; two refusals. Each with a STEP round trip at 1e-9. The runner checks a new `member` expectation (area, length, centroid, axes, fallback).
+- Their volumes are held to 1e-9, as the other exact cases (D116). RB's B-rep quadrature (an implementation's other route) measures 1.7e-12 on the angle and 1.2e-12 on the tube. The first RB run flagged both at the generator's first 1e-12 (fixed in the commit after FR1's). The unit tests keep 1e-12 on the prismatic route.
+
+**Studio**:
+- The node `frame-member` (section kinds, or a sketch by its node; `estimates`: the section's fields still at a first-try value). Saved and read back; the agent's `add_features` spec checks each kind's fields (every dimension required, no unknown field).
+- **"Structural member"** in the palette: a section kind and its sizes, start and end points, the anchor, the roll. Its prefills are a first try: the radii (rect-tube ro 6, angle r1 6 and r2 3, channel r 6) and the T-slot's slot sizes (the tslot-20 library's, themselves estimates) are labelled estimates and written to `estimates`. The body's panel flags them ("Estimates, not your stock's: …"), and editing one in the feature editor drops its flag.
+- The body's panel: the section, its area and length, the line's anchor and the section's x and y (and the fallback).
+- The feature editor: the section's dimensions, the length along the line, the roll.
+- Labels `Member RHS 40×40×3 · 300 mm`, `Member T-slot 20×40 · 300 mm`; an icon.
+- The tool contract records the new command (`UPDATE_TOOL_CONTRACT=1`, a compatible change).
+- Studio tests `test/frame.test.ts` (2).
+- A flow step: the palette's tube and a 20 × 40 T-slot, A·L each, the panel's notes and estimates (`fr1-members`).
+
+**Judgement calls**:
+- `offset` moves the section, so with bottom-left and (5, −2) the box's corner is at (5, −2) from the line. The first build had it the other way round; the placement test caught it before commit.
+- The vertical fallback takes +X as the section's y, so x = y × u = −Y. It is stated in the record and the report.
+- `estimates` lives on the node (the studio's, not the kernel's). It is the K 0.5 pattern of D116, made explicit, so an edited value never stays flagged.
+- A member is never united with another. Each is its own output, as FR2's frame will make them.
+
+**Not in FR1** (as D122): the skeleton and many members (FR2), corners and trims (FR3), the cut list (FR4).
+
+**Checks** on 89346cd24 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio type-check; `eslint src test` 0 errors, 119 warnings as before) |
+| Kernel | 1248/1253 (4 skipped; +13: 5 fr-1 tests and 8 conformance cases); only the env-only "actual native Split source…" fails |
+| Conformance | 157/157 |
+| Studio | 609/609 (+2 of FR1, +4 from the merged RM8 step; test names compared, none missing) |
+| Full flow | 178/178, run on its own; the new step included |
+| RB | 299 cases (+8: the fr cases), 0 new, the 8 known TODOs (after the fix commit `ed76a9921`) |
+| Properties | 11/11, no failures |
+
+RB rows are in the commit after the fix.

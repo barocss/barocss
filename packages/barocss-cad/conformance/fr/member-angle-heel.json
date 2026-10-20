@@ -1,0 +1,102 @@
+{
+  "id": "fr-member-angle-heel",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a 50 × 30 × 5 angle (root r1 6, toes r2 3) along +Y anchored at its heel: A·L, its centroid on the centroidal line (section x along −X, y along +Z), its role names.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "angle",
+            "legX": 50,
+            "legY": 30,
+            "thickness": 5,
+            "rootRadius": 6,
+            "toeRadius": 3
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            400,
+            0
+          ],
+          "anchor": "origin"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 151545.13322353837,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -17.177306268894608,
+            200,
+            7.3812235034070754
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "m.back.x",
+          "m.back.y",
+          "m.end",
+          "m.end.x",
+          "m.end.y",
+          "m.face.x",
+          "m.face.y",
+          "m.root",
+          "m.start",
+          "m.toe.x",
+          "m.toe.y"
+        ],
+        "member": {
+          "areaMM2": 378.8628330588459,
+          "lengthMM": 400,
+          "centroid": [
+            17.177306268894608,
+            7.3812235034070754
+          ],
+          "xAxis": [
+            -1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = t(a + b − t) + (1 − π/4)(r1² − 2r2²); the centroid by moments of the two legs, the root's spandrel added and the toes' taken off (a spandrel's centroid r(10 − 3π)/(3(4 − π)) from its corner)."
+}

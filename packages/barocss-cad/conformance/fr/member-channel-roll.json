@@ -1,0 +1,89 @@
+{
+  "id": "fr-member-channel-roll",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: an 80 × 40 channel (web 5, flanges 8, roots 7) along +X, turned 90° about its line: A·L, its frame (x +Z, y −Y) exact, its centroid on the line.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "channel",
+            "height": 80,
+            "width": 40,
+            "web": 5,
+            "flange": 8,
+            "rootRadius": 7
+          },
+          "start": [
+            0,
+            0,
+            100
+          ],
+          "end": [
+            300,
+            0,
+            100
+          ],
+          "roll": 90
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 294309.29399611504,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            150,
+            0,
+            100
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "member": {
+          "areaMM2": 981.03097998705,
+          "lengthMM": 300,
+          "centroid": [
+            14.003674406584606,
+            40
+          ],
+          "xAxis": [
+            0,
+            0,
+            1
+          ],
+          "yAxis": [
+            0,
+            -1,
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = h·tw + 2(b − tw)tf + 2(1 − π/4)r²; the centroid by moments (web, flanges, the roots' spandrels); a quarter turn exact."
+}

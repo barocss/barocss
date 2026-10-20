@@ -1,0 +1,44 @@
+{
+  "id": "fr-refuse-segment-zero-length",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a member whose start and end coincide is refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "round-tube",
+            "diameter": 30,
+            "wall": 2
+          },
+          "start": [
+            1,
+            2,
+            3
+          ],
+          "end": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[SEGMENT_ZERO_LENGTH]"
+    }
+  },
+  "oracle": "By construction."
+}

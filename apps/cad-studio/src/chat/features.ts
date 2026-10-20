@@ -36,8 +36,20 @@ const SPECS: Record<string, Spec> = {
   'sheet-base': { sketch: 'sketch', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any', 'reverse?': 'bool' },
   'sheet-corner-relief': { parent: 'ref', edges: 'names1', shape: 'enum:square|round', size: 'dim' },
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
+  // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
+  'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
+/** A member's section kinds and their fields (FR1, D123). */
+const MEMBER_SECTIONS: Record<string, Spec> = {
+  'rect-tube': { width: 'dim', height: 'dim', wall: 'dim', outerRadius: 'dim', 'innerRadius?': 'dim' },
+  'round-tube': { diameter: 'dim', wall: 'dim' },
+  angle: { legX: 'dim', legY: 'dim', thickness: 'dim', rootRadius: 'dim', toeRadius: 'dim' },
+  channel: { height: 'dim', width: 'dim', web: 'dim', flange: 'dim', rootRadius: 'dim' },
+  tslot: { size: 'dim', cells: 'enum:1|2', 'openSlots?': 'num', opening: 'dim', lip: 'dim', undercut: 'dim', depth: 'dim', bore: 'dim' },
+  sketch: { sketch: 'sketch' },
+};
+const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "tslot" | "sketch", …its dimensions}';
 const PROFILE: Record<string, Spec> = {
   rectangle: { min: 'dim2', max: 'dim2' },
   circle: { center: 'dim2', radius: 'dim' },
@@ -114,6 +126,20 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       if (isObj(v) && v.kind === 'conic' && frac(v.rho) && Object.keys(v).every(k => k === 'kind' || k === 'rho')) return null;
       if (isObj(v) && v.kind === 'g2' && (v.tension === undefined || frac(v.tension)) && Object.keys(v).every(k => k === 'kind' || k === 'tension')) return null;
       return '{"kind": "conic", "rho": 0–1 exclusive} or {"kind": "g2", "tension"?: 0–1 exclusive}';
+    }
+    case 'vec3': return Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n)) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
+    case 'member-section': {
+      // (Each kind's dimensions, every one given: the kernel takes no default size or radius, D122.)
+      if (!isObj(v)) return MEMBER_SECTION_HELP;
+      const fields = MEMBER_SECTIONS[String(v.kind)];
+      if (!fields) return MEMBER_SECTION_HELP;
+      for (const [key, t] of Object.entries(fields)) {
+        const optional = key.endsWith('?'), k = optional ? key.slice(0, -1) : key;
+        if (v[k] === undefined) { if (optional) continue; return `a ${String(v.kind)} section needs "${k}"`; }
+        const why = checkValue(v[k], t, nodes, parameters, leaves); if (why) return `section ${k}: ${why}`;
+      }
+      const extra = Object.keys(v).find(k => k !== 'kind' && !(k in fields) && !(`${k}?` in fields));
+      return extra ? `a ${String(v.kind)} section has no "${extra}"` : null;
     }
     case 'names': return Array.isArray(v) && v.every(n => typeof n === 'string') ? null : 'a list of face or edge names';
     case 'names1': return Array.isArray(v) && v.length > 0 && v.every(n => typeof n === 'string') ? null : 'a non-empty list of edge names';

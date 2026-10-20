@@ -31,6 +31,8 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "decimate": { "trianglesAtMost": 12, "hausdorffMMAtMost": 1e-9 },  // optional: a decimated mesh's report (R9): its triangles, its measured distance both ways
       // optional: a sheet-metal body's rules and its bends in order (R12): names, angles and allowances θ(R + K·T) to absTol
       "sheet": { "thicknessMM": 2, "bendRadiusMM": 3, "kFactor": 0.4, "absTol": 1e-9, "bends": [{ "name": "c.bend1", "angleDegrees": 90, "allowanceMM": 5.969 }] },
+      // optional: a structural member's report (FR1): its section's area and centroid, length, the section's x and y (and the up fallback), to absTol
+      "member": { "areaMM2": 420.82, "lengthMM": 394.46, "centroid": [0, 0], "xAxis": [0, 1, 0], "yAxis": [0, 0, 1], "absTol": 1e-9 },
       // optional: its flat pattern (R12.2): area, box, loops, bends (sorted by name) — or `error` {code, messageIncludes};
       // `options` as flatPattern takes them (with `thicknessMM`: the kernel's flatPattern of a body made without the rules)
       "flat": { "areaMM2": { "value": 2308.65, "relTol": 1e-9 }, "box": { "value": [94.36, 25], "absTol": 1e-9 }, "loops": 2, "bends": [{ "name": "c.bend1", "direction": "down", "angleDegrees": 90 }] }

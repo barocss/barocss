@@ -48,6 +48,13 @@ for (const file of cases) {
           assert.ok(Math.abs(r.bends[i].angleDegrees - b.angleDegrees) <= w.absTol && Math.abs(r.bends[i].allowanceMM - b.allowanceMM) <= w.absTol, `output ${k} ${b.name}: ${r.bends[i].angleDegrees}°, BA ${r.bends[i].allowanceMM}`);
         });
       }
+      if (want.member) {
+        // A structural member's report (FR1, D123): its section's area and centroid, its length, the section's frame.
+        const r = o.member, w = want.member, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} member ${what}: ${x} vs ${y}`);
+        assert.ok(r, `output ${k} has no member report`);
+        close(r.areaMM2, w.areaMM2, 'area'); close(r.lengthMM, w.lengthMM, 'length'); w.centroid.forEach((x, i) => close(r.centroid[i], x, 'centroid'));
+        for (const key of ['xAxis', 'yAxis', 'upFallback']) if (w[key]) w[key].forEach((x, i) => close(r[key][i], x, key));
+      }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
         const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : o.flatPattern(opts);

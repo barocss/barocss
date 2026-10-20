@@ -202,6 +202,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     const pts: XY[] = [[1, 0], [1, t], ...arc(c, r, 270, 180, 6), [t, 1], [0, 1], ...arc(c, r + t, 180, 270, 6)];
     return prism(pts, 0, 1, { accent: i => i >= 2 && i < 8 });
   })()}</>,
+  // A structural member (FR1): an angle's length, its section's cap in the accent colour.
+  'cad-frame-member': <>{prism([[0, 0], [0.62, 0], [0.62, 0.16], [0.16, 0.16], [0.16, 0.62], [0, 0.62]], 0, 1, { capAccent: true })}</>,
   'cad-prism': <>{(() => {
     // A hexagonal prism, axis up: the top hexagon, then the three faces toward the view.
     const h = Array.from({ length: 6 }, (_, k) => { const a = (k * 60 + 30) * Math.PI / 180; return [0.5 + 0.55 * Math.cos(a), 0.5 + 0.55 * Math.sin(a)] as XY; });
