@@ -307,6 +307,7 @@ Done:
    - R14 (automatic drawings): design input `handover/notes/research-draftwright-2026-10-19.md` (a web drawing editor's flow: grouped hole dimensions, feature callouts, a drawing issue list; order unchanged).
    - A6 (inputs): design input `handover/notes/research-draftwright-2026-10-19.md` (its spec-question panel: required vs. worth-a-check, accept-all, nothing blocked).
 2. Later stages: RD4–RD10, RM7–8, AM6–7, IM7–8, CNC7–8, FR5–6, DWG/SAT import.
+   - **RD4–RD8 held** (owner, 2026-10-20, #2177's CAE decision; O46): FEA and the mesher are off the roadmap. RD9 and RD10 only without FEA.
    - PCB/ECAD: see `handover/notes/research-pcb-ecad-2026-10-19.md`, not scheduled; deferred by the owner (2026-10-19).
 3. RB5–RB9.
 
@@ -489,6 +490,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
+- **RD4–RD8 held** (O46, the owner, 2026-10-20: "RD4~RD8(FEA·메셔)도 CAE로 보고 로드맵에서 빼서 보류해. RD9·RD10은 FEA 없이 가능한 범위만."). Outer lane order: RM7 (done, O44) → RM8 (done, O45) → RD9 → RD10, deterministic parts only, each with an S0.
 - MuJoCo 3.3.0 run (O38, the owner's go-ahead): RM4's URDF oracle passed (worst 2.2e-16), RM5's MJCF oracle passed after the equilibrium start and the contacts were found (gravity torques against RD1's to 4.4e-14; passive energy 1.0e-6; the damped hang settled, 8.8e-13 rad/s). RM4's external check and RM5's acceptance are closed.
 - Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).
 - Waiting for the owner: the legal review of the standards-derived data and the material library before release (A6.5, O29).
@@ -941,6 +943,7 @@ R6 (F2) → **R6a** gears → **LIB1–LIB4** library system → **R6b** enclosu
 SD3 → R9 decimation → R10a → R10 fillet → R11 shell → **R11b** DXF writer → R12 sheet metal → **FR1–FR4** → **R12b** gears+ → **R12c** machine elements →
 **RM1–RM6 + RD1–RD3** → **IM1–IM6 + CNC1–CNC6** → R14 drawings (feeds CNC5 PMI) → A5–A8 → **RD4, RM7–RM8,
 AM6–AM7, IM7–IM8, CNC7–CNC8, FR5–FR6, RD5–RD10, DWG/SAT import** → RB5–RB9.
+(RD4–RD8 held by the owner, 2026-10-20, as CAE under #2177 — O46; the outer lane's order is now RM7 → RM8 → RD9 → RD10, RD9 and RD10 without FEA.)
 
 **Common rules.**
 - Every element follows the thread pattern:
@@ -1062,7 +1065,7 @@ gear crank.
   - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag. **Done (O44)**:
     999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
   - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality). **Done (O45)**: Freudenstein to 3.0e-14 rad
-    over a full turn; BRANCH_FLIP and NO_CLOSURE typed; MJCF <connect> held by MuJoCo (static 4.7e-16 m; passive 4.1e-5 m).
+    over a full turn; BRANCH_FLIP and NO_CLOSURE typed; MJCF <connect> held by MuJoCo (static 4.7e-16 m; passive at 0.1 ms 1.7e-6 m, 3.6e-5 rad).
   - RM9 SDF/USD, CCD, workspace map.
 
 **RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
@@ -1076,13 +1079,16 @@ gear crank.
   - inertia ratio ≤ 10.
   - It reproduces a published worked example.
 - Later:
-  - RD4 beam FEA and modal (cantilever δ, σ, f1–f3 within 0.5%).
-  - RD5 our own tet mesher.
-  - RD6 tet4 with Jacobi-PCG on workers.
-  - RD7 tet10 (NAFEMS LE10 within 3% of 5.38 MPa, LE1 within 2% of 92.7 MPa).
-  - RD8 solid modal.
-  - RD9 harness v1.
-  - RD10 an agent sizes a 3-DoF arm with every margin above zero (L3 evidence).
+  - **RD4–RD8: held** by the owner on 2026-10-20 under #2177's CAE decision (O46): FEA and the mesher are off the
+    roadmap. The rows are kept as history:
+    - RD4 beam FEA and modal (cantilever δ, σ, f1–f3 within 0.5%). **Held.**
+    - RD5 our own tet mesher. **Held.**
+    - RD6 tet4 with Jacobi-PCG on workers. **Held.**
+    - RD7 tet10 (NAFEMS LE10 within 3% of 5.38 MPa, LE1 within 2% of 92.7 MPa). **Held.**
+    - RD8 solid modal. **Held.**
+  - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks.
+  - RD10 an agent sizes a 3-DoF arm with every margin above zero — **without FEA** (O46). The deterministic part is
+    done first; the L3 evidence needs a live model run, pending the owner, with its protocol.
 
 **IM — injection moulding and casting** (Protolabs, Fictiv, Stratasys, LyondellBasell, Dynacast, Engineers Edge):
 - IM1: process rule (material wall range and shrink, pull direction, finish to minimum draft).

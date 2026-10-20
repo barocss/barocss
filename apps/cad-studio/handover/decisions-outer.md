@@ -2153,6 +2153,7 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
     - Even refined to machine precision, a 2R solve on its stretched pose ends 7e-6 rad off, with ratio 1.4e-6. The 1e-6 threshold sits at double precision's own limit, so it would miss a solve that is on a singularity.
     - 1e-4 is a condition number of 1e4. Random poses of this arm have ratios from 6.8e-6 up, with a median of 7.5e-3. It flags 10 of 1000 random poses, and 4 of 1000 solved targets.
     - Flagging more is the conservative side.
+    - **It is a flag threshold, not an accuracy tolerance** (coordinator, on accepting O44). It classifies a pose and changes no reached/not-reached verdict. The distribution behind it, over 1000 random poses of this arm: σmin/σmax from 6.8e-6, median 7.5e-3; 10 below 1e-4 (1 %), 78 below 1e-3, 632 below 1e-2.
 - **Tests** (`test/robot-ik.test.ts`):
   - the 1000 targets, with the counts printed;
   - **singular cases:**
@@ -2201,9 +2202,94 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
       - rocker against Freudenstein at most **9.1e-4 rad** (bound 1e-3);
       - the branch kept; no warnings.
       - **The angle margin is thin.** The 4e-5 m give, on a 20 mm crank, turns into nearly the whole 1e-3 rad. A finer step (τ = 2·dt) would tighten it; the frozen run is 0.5 ms.
+- **Re-run at 0.1 ms** (coordinator, on accepting O45: the thin margin), as RM5's passive run steps. Re-frozen:
+  - closure violation at most **1.7e-6 m** (bound 1e-4);
+  - rocker against Freudenstein at most **3.6e-5 rad** (bound 1e-3);
+  - the branch kept, no warnings, the crank through 2π.
+  - The bounds are unchanged and the export sets no solref.
+- **The constraint parameters**, read from the model by the oracle and written into its reading:
+  - solref **[0.0002, 1.0]** (2·dt, critically damped; set in the oracle only);
+  - solimp **[0.9, 0.95, 0.001, 0.5, 2.0]**, MuJoCo's default, unchanged.
+- **What each check measures:**
+  - **The dynamic drift measures MuJoCo's soft-constraint solver, not our export.** That is why its bound is loose and its solref is the oracle's.
+  - **The export's real test is the closure at 1e-9** on the static poses: our reader's at all 361 solver poses, and MuJoCo's own equality rows at 12 (4.7e-16 m).
 - **Tests** (`test/robot-loop.test.ts`, 4):
   - the tree, the loop and the full turn against Freudenstein;
   - the other branch, the triple rocker's dead point and the non-planar refusal;
   - the MJCF connect read back and closed at every solver pose, the fixture frozen (`UPDATE_RM_FIXTURES`);
   - MuJoCo's committed reading held to the criteria.
 - **URDF**: unchanged. A tree format: the loop is left out and noted.
+
+## O46 — RD4–RD8 held as CAE; RD9 and RD10 S0 without FEA (2026-10-20)
+
+- **The owner's decision**, relayed by the coordinator, verbatim: "RD4~RD8(FEA·메셔)도 CAE로 보고 로드맵에서 빼서 보류해. RD9·RD10은 FEA 없이 가능한 범위만."
+  - It means: RD4–RD8 (FEA and the mesher) count as CAE. They come off the roadmap and are held. RD9 and RD10 go ahead only as far as they can without FEA.
+- **Held** (README §0 and the roadmap section mark each; their rows are kept as history):
+  - RD4: beam FEA and modal;
+  - RD5: the tet mesher;
+  - RD6: tet4 with PCG;
+  - RD7: tet10, NAFEMS;
+  - RD8: solid modal.
+- **The outer lane's order**: RM7 (done, O44) → RM8 (done, O45) → RD9 → RD10, deterministic parts only, each with an S0.
+
+**Limits on both:**
+- No FEA. The only checks are RD1–RD3's sizing, RM's joint limits and sweeps, and closed-form checks.
+- Our own TypeScript; no chat tool (`tools/list` unchanged).
+- Exposure: `src/robot/` and `cad-cli`.
+
+### RD9 — the design-check harness v1 (`src/robot/harness.ts`, `cad-cli robot-check`)
+- **Input**: a robot document and a **duty**:
+  - moves `{from, to, profile, limits, joint_limits?, dwell_s}`, run out and back as RD3 runs them;
+  - `life_h?`, `inertia_ratio_max?`, `clearance_mm?` (default 0), `g?`;
+  - optionally `actuators: {joint: {motor, reducer}}`. Without it, RD3's lightest feasible pair is checked.
+- **Output**: one report, `{ok, margins, unknowns, consistency, least}`.
+  - **A margin** is `{check, joint?, move?, value, limit, unit, margin, source, ok}`. It is the signed slack: `(limit − value)/|limit|` for an at-most limit; `(value − required)/max(required, 1 mm)` for clearance.
+  - `ok` holds only when every margin is above 0, nothing is unknown, and every consistency check holds.
+- **The checks** (each named, per joint and move):
+  - **RD3, the actuators.** The given or chosen pair's nine checks, negative margins included: RMS, the torque–speed line, motor speed, inertia ratio, the reducer's repeated peak, input speed, average torque, average input speed and life. A new export, `checkPair`, gives the checks of one pair even when they fail; `sizeActuators` is unchanged.
+  - **RM, the joints:**
+    - `joint range`: each move's endpoints within lower…upper. A straight joint-space move rest to rest has no overshoot, so the endpoints bound it;
+    - `joint velocity`: the profile's peak against the joint's velocity rating;
+    - `joint effort`: RD2's peak torque against its effort rating.
+    - A missing limit or rating is **unknown** (`LIMITS_MISSING`), never a pass. A continuous joint has no range check, and says so.
+  - **RM6, the sweep**: each move's path certified clear, its least clearance against `clearance_mm`. A contact is a failing margin, its place and links named.
+  - **Consistency (closed form).** At each move's ends:
+    - the holding torques by RNEA (q̇ = q̈ = 0) equal RD1's gravity torques to 1e-9 relative;
+    - the mass matrix is symmetric and positive definite.
+    - A failure means the model is wrong, so the report is not ok.
+- **Acceptance** (fixture `conformance/rd/arm-3r/`: a base and three 20 × 20 × 80 aluminium blocks on axes Z, Y, Y from mates, with limits and ratings set):
+  - a clean duty: every margin above 0, each listed;
+  - a rerun gives a byte-identical report;
+  - **seeded defects**, each giving a negative margin at its own check and only there:
+    - an endpoint past a limit;
+    - a profile above a velocity rating;
+    - an effort rating below the peak torque;
+    - a colliding move;
+    - an undersized actuator pair, with its failing RD3 check named;
+    - a missing rating: unknown, the report not ok.
+  - **Closed form:**
+    - the holding torques at the arm's horizontal pose against the hand formula for uniform blocks (Σ m g r), to 1e-9;
+    - the harness's torque and actuator numbers are RD2's and RD3's own (the same functions, equal).
+  - **`cad-cli robot-check part.bcad duty.json`** prints the report and exits 0 only when ok, else 1.
+
+### RD10 — sizing a 3-DoF arm until every margin is above zero (deterministic part)
+- **The brief**: RD9's arm moves between two poses with a dwell, repeated, for a required life. The start is undersized: small actuators, ratings too low, a profile too fast.
+- **The scripted sizer** (`src/robot/sizer.ts`, the deterministic agent):
+  - each round runs the harness and takes the worst failing margin, applying one rule:
+    - **an actuator check fails**: the joint takes RD3's lightest feasible pair. When none is feasible, the profile slows (velocity and acceleration × 0.8, every joint);
+    - **a joint rating fails**: the rating becomes the chosen actuator's capability: velocity = min(motor max speed, reducer max input speed) / N; effort = the reducer's repeated peak torque;
+    - **a joint range or a sweep fails**: no sizing rule fixes geometry. It stops `BRIEF_INFEASIBLE` with the failing check, never "done".
+  - Each round's trace names the check that drove it and the change made.
+- **Acceptance**:
+  - from the undersized start, every margin is above 0 within 10 rounds;
+  - the final design passes a fresh harness run on the saved document;
+  - deterministic: the same trace on a rerun;
+  - an infeasible brief (a pose past a limit) stops typed;
+  - `cad-cli robot-size part.bcad duty.json -o sized.bcad` prints the trace.
+- **The L3 evidence, pending the owner** (a live model run, not approved). The protocol:
+  - a live model is given the same brief, with the harness as a tool (a `robot_check` chat tool, added only for that run, within the contract budget);
+  - at least 3 runs;
+  - success means every margin above 0 by a fresh harness run, never the model's word;
+  - the rounds and the margins are compared with the scripted sizer's.
+
+**Order**: RD9 → RD10, with a checkpoint after each.

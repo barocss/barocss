@@ -142,7 +142,7 @@ test('the loop in MJCF: an equality <connect> at its pin (our reader: closed at 
     writeFileSync(join(dir, 'expect.json'), JSON.stringify({
       dims: { a: 0.02, b: 0.07, c: 0.05, d: 0.06 }, branch: 1, ground: { A: [0.02, 0.02], D: [0.08, 0.02] },
       pins: { crank: { body: 'crank', local: local('crank', B0) }, rocker: { body: 'rocker', local: local('rocker', C0) }, coupler_b: { body: 'coupler', local: local('coupler', B0) } },
-      static: { tol_m: 1e-9, tol_rad: 1e-9, samples }, dynamic: { seconds: 2, timestep: 0.0005, gravity: [0, -9.81, 0], tol_m: 1e-4, tol_rad: 1e-3 },
+      static: { tol_m: 1e-9, tol_rad: 1e-9, samples }, dynamic: { seconds: 2, timestep: 0.0001, gravity: [0, -9.81, 0], tol_m: 1e-4, tol_rad: 1e-3 },
     }, null, 1) + '\n');
   }
   assert.equal(r.xml, readFileSync(join(dir, 'robot.xml'), 'utf8'), 'the MJCF as frozen');

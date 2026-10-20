@@ -4,7 +4,7 @@ It loads the exported four-bar (its loop an <equality><connect>) and checks, aga
   1. statically, at the solver's joint values (12 crank angles): the closure's violation (MuJoCo's equality rows,
      efc_pos) within 1e-9 m, and the rocker's angle — read from MuJoCo's own kinematics of the pins — equal to
      Freudenstein's closed form at the crank's angle, on the assembled branch, within 1e-9 rad;
-  2. dynamically, a passive run from the assembled pose with gravity in the linkage's plane (the export's is along the
+  2. dynamically (0.1 ms, as RM5's passive run), a passive run from the assembled pose with gravity in the linkage's plane (the export's is along the
      pins, where nothing would move; set here, in the oracle only), contacts off, RK4: the closure held within 1e-4 m (a
      soft constraint, its solref set here to 2 dt, MuJoCo's stiffest for the step), the rocker on Freudenstein's branch at MuJoCo's crank angle within 1e-3 rad, the branch never left.
 It exits 1 when any check fails. Run outside the product, by hand; MuJoCo is never a dependency. Commands:
@@ -112,7 +112,7 @@ def main(xml_path, expect_path):
     out = {
         "oracle": f"mujoco {mujoco.__version__}", "ok": ok,
         "static": {"rows": srows, "worst_violation_m": worst_m, "worst_angle_rad": worst_rad},
-        "dynamic": {"seconds": dyn["seconds"], "timestep": dyn["timestep"], "violation_max_m": vmax, "angle_err_max_rad": amax, "branch_kept": kept, "crank_span_rad": span, "warnings": warnings, "ok": dyn_ok},
+        "dynamic": {"seconds": dyn["seconds"], "timestep": dyn["timestep"], "solref": [float(x) for x in model.eq_solref[0]], "solimp": [float(x) for x in model.eq_solimp[0]], "violation_max_m": vmax, "angle_err_max_rad": amax, "branch_kept": kept, "crank_span_rad": span, "warnings": warnings, "ok": dyn_ok},
     }
     print(json.dumps(out, indent=1))
     return 0 if ok else 1
