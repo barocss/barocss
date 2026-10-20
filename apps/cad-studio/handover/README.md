@@ -1086,7 +1086,8 @@ gear crank.
     - RD6 tet4 with Jacobi-PCG on workers. **Held.**
     - RD7 tet10 (NAFEMS LE10 within 3% of 5.38 MPa, LE1 within 2% of 92.7 MPa). **Held.**
     - RD8 solid modal. **Held.**
-  - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks.
+  - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks. **Done (O47)**:
+    `cad-cli robot-check`; the arm-3r fixture's 80 margins above 0; seven seeded defects each at its own check; closed form to 1e-9.
   - RD10 an agent sizes a 3-DoF arm with every margin above zero — **without FEA** (O46). The deterministic part is
     done first; the L3 evidence needs a live model run, pending the owner, with its protocol.
 

@@ -18,6 +18,7 @@ import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';
 import { verifyBundle, writeBundle } from '../src/team/bundle';
+import { readDuty, robotCheckOfDoc, treeOfDoc } from '../src/chat/robot';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -38,6 +39,10 @@ cad-cli bundle write part.bcad -o folder [--baseline BL1]
 cad-cli bundle verify folder
   Reads a bundle back from its files alone: every digest and pin checked, each result's freshness against the document;
   prints what is missing, changed or stale. Exit 0 only when complete and intact.
+cad-cli robot-check part.bcad duty.json
+  RD9's design-check harness: every margin of the robot against the duty (its moves out and back, dwells, life):
+  the actuators (RD3), the joints' ranges and ratings, the sweep (RM6), the model's consistency. Exit 0 only when
+  every margin is above 0 and nothing is unknown, else 1.
 cad-cli team scenario.json
   Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
   Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
@@ -126,6 +131,21 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     for (const [path, bytes] of b.files) writeAtomic(join(dir, path), bytes);
     say(io.stdout, { complete: b.manifest.complete, missing: b.manifest.missing, stale: b.manifest.stale, wrote: [...b.files.keys()].map(p => join(dir, p)) });
     return b.manifest.complete ? 0 : 1;
+  }
+  if (cmd === 'robot-check') {
+    // (RD9, O47: the harness on a saved robot and a duty file.)
+    if (rest.length !== 2) return usage('robot-check takes a .bcad file and a duty .json');
+    const opened = await openModel(resolve(rest[0]));
+    if ('error' in opened) return failed(opened.error);
+    const s = await stateOf(opened.doc);
+    if ('error' in s) return failed(s.error);
+    let raw: unknown;
+    try { raw = JSON.parse(readFileSync(resolve(rest[1]), 'utf8')); } catch (e) { return failed(`${rest[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
+    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
+    if ('error' in duty) return failed(`${rest[1]}: ${duty.error}`, 2);
+    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, duty);
+    say(io.stdout, r);
+    return r.ok ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');

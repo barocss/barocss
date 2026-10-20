@@ -2293,3 +2293,46 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
   - the rounds and the margins are compared with the scripted sizer's.
 
 **Order**: RD9 → RD10, with a checkpoint after each.
+
+## O47 — RD9: the design-check harness v1, without FEA (2026-10-20)
+
+- **`src/robot/harness.ts`**: `checkDesign(tree, bodies, sweepLinks | null, duty)` gives `{ok, margins, unknowns, consistency, least, actuators, notes}`.
+  - **The document level** (`src/chat/robot.ts`):
+    - `robotCheckOfDoc(doc, bodies, evaluate, duty)`;
+    - `readDuty(tree, raw)`: each move checked as `motion_torques` takes one;
+    - `robotOfDoc`, now exported;
+    - `sweepLinksOfDoc`, shared with the `sweep_path` tool, whose behaviour is unchanged.
+  - **`checkPair`** (`src/robot/actuators.ts`, new) gives one given pair's nine RD3 checks over sizeActuators' own cycle, refined, failing checks included. `sizeActuators` is unchanged.
+  - **Every margin per move, in a fixed order:**
+    - joint range at both ends, velocity rating against the profile's peak, effort rating against RD2's peak or RD1's hold;
+    - RD3's checks for the given pair, or the lightest feasible pair's (life only when `life_h` is given);
+    - the sweep;
+    - then consistency at both ends: RNEA's holds against RD1's to 1e-9 relative; the mass matrix symmetric to 1e-12 and positive definite (Cholesky).
+  - **Unknown, typed, never a pass:**
+    - `LIMITS_MISSING` (no range, velocity or effort rating);
+    - `NO_ACTUATOR` (a given id not in the catalogue, or a joint without one when actuators are given);
+    - `NOT_SIZED` (no catalogue pair meets every check).
+  - A continuous joint has no range check, and a slide's actuator is not checked; both are noted.
+- **`cad-cli robot-check part.bcad duty.json`** prints the report. It exits 0 when ok, 1 otherwise, and 2 for a malformed duty.
+- **The fixture** (`conformance/rd/arm-3r/`: `robot.bcad`, `duty.json`, `case.json`, in a subfolder so the kernel runner leaves it alone):
+  - the arm is three of arm-6r's 20 × 20 × 80 aluminium blocks on axes Z, Y, Y from their mates, with limits and ratings;
+  - **a 60 mm steel cube (1.7 kg), added beyond O46's text,** is locked on l3 (a `lock` mate, a fixed link). Without a payload, the blocks barely load the smallest pair (RMS 5 % of its limit), so sizing would decide nothing for RD10. With it, the shoulder holds 2.2 N·m and RD3 picks 100:1 for the shoulder and elbow.
+  - **The duty**: two moves (0 → P1 → P2), trapezoid 1 rad/s and 3 rad/s², 0.5 s dwells, 20 000 h life.
+- **Tests** (`test/robot-harness.test.ts`, 4):
+  - **The clean duty: every margin above 0.**
+    - 80 margins: 12 range, 6 velocity, 6 effort, 54 RD3 and 2 sweeps;
+    - 8 consistency checks hold;
+    - nothing is unknown. The least margin is joint range l1~l2 at 0.25;
+    - a rerun is byte-identical.
+  - **Seeded defects, each failing at its own check and only there:**
+    - base~l1 to 2.7 (upper 2.5): `joint range base~l1`;
+    - a velocity rating of 0.5: `joint velocity l1~l2`;
+    - an effort rating of 1 N·m: `joint effort l1~l2`;
+    - the payload swung into the base: `sweep`, with `contact base–payload`;
+    - **an undersized actuator**: at 6 rad/s cruise and 60 rad/s² (ratings raised to allow it), the shoulder given the 100:1 reducer fails its own RD3 checks only, as its motor runs past its torque–speed line. On 50:1 it is clean.
+    - a missing effort rating: two `LIMITS_MISSING`, no failing margin, the report not ok;
+    - an unknown reducer id and a joint without one: `NO_ACTUATOR`.
+  - **Closed form**: at shoulder-horizontal (l1~l2 = π/2), the holding torques equal `g Σ m dz`, taken from each part's own volume × density and centroid, to 1e-9 relative. This is an independent route: a π/2 turn about Y carries a centre dz above the axis to dz out along X. The 1e-9 needs masses unrounded, since `mass_properties` rounds grams to 3 decimals.
+  - **The harness's numbers are RD2's and RD3's own**: effort equals `motion_torques`' peak or `gravity_torques`' hold, and every RD3 check value equals `sizeActuators`' for the same pair.
+  - **The CLI** (spawned): the frozen arm and duty exit 0; a past-limit duty exits 1 with `least` joint range; a duty without limits exits 2 with the reason.
+- **Note:** RD3's ranking, by mass and then the largest least margin, picks 100:1 over 50:1 at equal mass. The seeded defect therefore came from a fast duty, not from "the smallest reducer".

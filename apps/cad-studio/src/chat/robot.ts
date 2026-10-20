@@ -12,7 +12,9 @@ import { readUrdf } from '../robot/urdfCheck';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from '../robot/mjcf';
 import { closureOfDoc } from '../robot/loop';
 import { readMjcf } from '../robot/mjcfCheck';
-import { sweepLinks, sweepPath } from '../robot/sweep';
+import { sweepLinks, sweepPath, type SweepLink } from '../robot/sweep';
+import { checkDesign, type Duty, type HarnessReport } from '../robot/harness';
+import type { V3 } from '../robot/inertia';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
 import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActuators, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
 import type { ProfileKind } from '../robot/profile';
@@ -124,9 +126,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
       if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
       const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     }
-    const solved = solveDoc(doc).doc, world = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
-    for (const i of solved.instances ?? []) { const r = await evaluate(i.doc); world.set(i.id, r?.ok ? r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position)) : []); }
-    const r = sweepPath(t, sweepLinks(t, p => world.get(p), pts => convexHull(pts).positions), from as Record<string, number>, to as Record<string, number>);
+    const r = sweepPath(t, await sweepLinksOfDoc(doc, bodies, evaluate, t), from as Record<string, number>, to as Record<string, number>);
     const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
     return { doc, content: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped }, changed: false, summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
   }
@@ -244,11 +244,37 @@ function sourcesJson(list: readonly { field: string; src: Source }[]) {
 }
 
 /** The document's robot and its parts: its instances evaluated in their own coordinates, each with its placement. */
-async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate) {
+export async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate) {
   const t = await treeOfDoc(doc, bodies, evaluate), solved = solveDoc(doc).doc, own = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
   for (const inst of solved.instances ?? []) { const r = await evaluate(inst.doc); own.set(inst.id, r?.ok ? r.bodies : []); }
   const partOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: own.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
   return { tree: t, partOf };
+}
+/** The robot's links for RM6's sweep: each part's bodies where the mates put them, with their convex hulls. */
+export async function sweepLinksOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, t: JointTree): Promise<SweepLink[]> {
+  const solved = solveDoc(doc).doc, world = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
+  for (const i of solved.instances ?? []) { const r = await evaluate(i.doc); world.set(i.id, r?.ok ? r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position)) : []); }
+  return sweepLinks(t, p => world.get(p), pts => convexHull(pts).positions);
+}
+/** A duty as given (JSON), each move checked as motion_torques takes one; or why not. */
+export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string } {
+  const d = raw as Record<string, unknown> | null;
+  if (!d || typeof d !== 'object' || !Array.isArray(d.moves) || !d.moves.length) return { error: 'a duty has "moves": [{from, to, profile, limits | joint_limits, dwell_s?}, …]' };
+  const moves: Duty['moves'] = [];
+  for (const [i, m] of (d.moves as Record<string, unknown>[]).entries()) {
+    const a = moveArgs(tree, m); if ('error' in a) return { error: `move ${i}: ${a.error}` };
+    const dwell = m.dwell_s ?? 0; if (typeof dwell !== 'number' || !(dwell >= 0)) return { error: `move ${i}: "dwell_s" is a time of 0 s or more` };
+    moves.push({ from: a.from, to: a.to, profile: a.profile, ...(m.limits ? { limits: m.limits as MoveLimits } : {}), ...(m.joint_limits ? { joint_limits: m.joint_limits as Record<string, MoveLimits> } : {}), dwell_s: dwell });
+  }
+  const num = (k: string) => { const v = d[k]; return v === undefined ? undefined : typeof v === 'number' && v > 0 ? v : NaN; };
+  for (const k of ['life_h', 'inertia_ratio_max']) if (Number.isNaN(num(k))) return { error: `"${k}" is a number above 0` };
+  if (d.clearance_mm !== undefined && !(typeof d.clearance_mm === 'number' && d.clearance_mm >= 0)) return { error: '"clearance_mm" is 0 or more' };
+  return { moves, ...(num('life_h') ? { life_h: num('life_h') } : {}), ...(num('inertia_ratio_max') ? { inertia_ratio_max: num('inertia_ratio_max') } : {}), ...(d.clearance_mm !== undefined ? { clearance_mm: d.clearance_mm as number } : {}), ...(d.actuators ? { actuators: d.actuators as Duty['actuators'] } : {}), ...(Array.isArray(d.g) ? { g: d.g as V3 } : {}) };
+}
+/** RD9's harness on the document's robot: every margin against the duty (src/robot/harness.ts). */
+export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty): Promise<HarnessReport> {
+  const r = await robotOfDoc(doc, bodies, evaluate);
+  return checkDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty);
 }
 /** The document's robot as URDF (RM4). */
 export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportUrdf(r.tree, r.partOf, name); }
