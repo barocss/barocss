@@ -3845,3 +3845,53 @@ The coordinator accepted the CNC S0 and set a process rule: a product-file chang
   - nothing assumed: with no material, material and wall are unknown and there is no class; 450 long fails; turned, size and turning are unknown (CNC6); with no process, none is assumed;
   - through the tools: a stated CNC milling in aluminium becomes the part's process and the report judges by it.
 - **Flow**: a CNC1 step. CNC milling is chosen in the Library panel, which shows no moulding settings. An aluminium block is made and set through the real chat and tool servers: "cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown".
+
+## O85 — CNC2: holes and threads from the exact geometry (2026-10-21)
+
+- **Holes found** (`src/machining/holes.ts`, `holesOf`):
+  - A bore is a concave exact cylinder that goes round more than half a turn. Concavity is read from its triangles' normals against the radial direction, not from the face table. Half a turn or less is a fillet (CNC3's).
+  - A hole is the bores on one axis line, of any radius. Its steps are one radius each: pieces the kernel split are joined, with their extents along the axis.
+  - An end is open when a ray down the axis from just inside it leaves the part (the studio's BVH, as IM3 uses).
+  - A step's **reach** runs from the nearer open end to its far side, counting only an end with no narrower step between. A wider step behind a narrower one is an internal groove, which no straight tool reaches: its reach is null, as is a hole open at neither end. Both go to CNC4's access.
+  - A **counterbore** is a wider step at an open end.
+- **Tapped holes** (`tappedHoles`): the document's `hole.thread` (cosmetic, "M6×1"), matched to its bore by face name (`n4.side0` is node n4's). Patterned copies are judged by their worst.
+- **The rules** (milling; turning's holes stay unknown, naming CNC6), in place of CNC1's placeholder `holes`:
+  - **hole-depth**: the deepest step's reach over its diameter. Over Hubs' 4 × is warned, over 6 × fails. A hole reached from no end is unknown, naming CNC4.
+  - **hole-size**: each hole's narrowest step, which is the drilled one:
+    - under the 0.5 mm least feature fails; under the 2.5 mm that standard tools cut is warned (Hubs);
+    - off the drill table is warned, against Hubs' "standard drill bit sizes", naming the sizes either side;
+    - above the table's 25 mm the hole is milled, and only counted;
+    - wider steps (counterbores) are milled, and only counted.
+  - **thread**:
+    - a bore that is not its tap drill (d − P, the fastener table) fails;
+    - a size under M2 fails, and under M6 is warned (Hubs);
+    - a length over 3 × d is warned (Hubs: "Threads longer than 3 times the nominal diameter are unusable");
+    - a size outside the fastener table (M3–M12) has its tap drill unknown;
+    - a bore cut away is unknown.
+  - With no holes, the rules pass and say so.
+
+  The report's `machining` adds `holes` and `tapped`.
+- **The drill table** (W-WEB, read 2026-10-21): Engineers Edge's "ISO (Metric Size Drills)" table at `engineersedge.com/drill_sizes.htm`.
+  - The steps as read: 0.35–2.75 by 0.05; 2.8–10 by 0.1, with the quarter sizes it lists; 10–25 by 0.5. The quarters were read as a pattern from those listed, not checked one by one, and the note says so.
+  - These go in as new milling thresholds (`drillMinMM` … `drillCoarseStepMM`), each with its page and label, plus `holeDiameterRec` holding Hubs' label.
+  - Protolabs' milling page names "metric threads from M2 to M12" in its own factory. That is one supplier's limit, so it is not a rule.
+- **Tests** (`test/cnc-holes.test.ts`, 6). Each oracle is the construction (the depth and diameter as built), not the geometry read back:
+  - Ø5 blind 20, 30 and 32 deep give 4, 6 and 6.4 × d: pass, warn, fail. Mutants: moving the profile's maximum to 7 warns, and moving the recommended too passes;
+  - a counterbored Ø6.6 through 20 with Ø11 × 6: open at both ends, with reaches 14 (from the bottom) and 6 (from the top), counterbored, passing;
+  - the drill table's step rule against an enumerated list, every 0.01 mm from 0.30 to 26;
+  - hole size:
+    - Ø5 and Ø3.25 standard;
+    - Ø5.03 warned (5 or 5.1);
+    - Ø2 warned;
+    - Ø0.4 failed (set on the node directly: the hole command's least is 0.5);
+    - Ø30 milled;
+  - threads:
+    - M6 blind 12 on Ø5 passes;
+    - M6 through 20 is warned (over 18);
+    - M3 is warned;
+    - a mutant with the bore at Ø5.5 fails, "not its tap drill Ø5 (d − P)";
+  - no straight reach: the internal groove's Ø16 step reach is null, and a sealed void is open at neither end. Both are unknown, naming CNC4; with no holes, all pass.
+  - CNC1's tests now expect the hole rules to pass on a plain block, and the data test allows the drill table's page.
+- **Flow**:
+  - the CNC1 step now reads "… size pass, hole-depth pass, hole-size pass, thread pass, corners unknown …";
+  - a new CNC2 step, through the real chat and tool servers: a 60 × 40 × 20 aluminium plate with a counterbored Ø6.6 and an M6 tapped through. The report reads "hole-depth pass, hole-size pass, thread warn", with the holes' nodes as built.

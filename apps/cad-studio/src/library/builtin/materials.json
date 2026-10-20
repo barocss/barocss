@@ -1496,6 +1496,109 @@
       "read": "2026-10-21",
       "label": "Text — depth of 0.0118 in. (0.3mm)"
      }
+    },
+    "drillMinMM": {
+     "value": 0.35,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill table's smallest metric size",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 0.35 mm, the first size"
+     }
+    },
+    "drillMaxMM": {
+     "value": 25,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill table's largest metric size; above it a hole is milled, not drilled",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 25.0 mm, the last size"
+     }
+    },
+    "drillFineStepMM": {
+     "value": 0.05,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill sizes' step up to drillFineToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 0.35, 0.4, 0.45 … 2.7, 2.75",
+      "note": "the step read from the listed sizes"
+     }
+    },
+    "drillFineToMM": {
+     "value": 2.75,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the last size on the fine step",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — … 2.7, 2.75, 2.8"
+     }
+    },
+    "drillStepMM": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill sizes' step from drillFineToMM to drillStepToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 2.8, 2.9, 3.0 … 9.9, 10.0",
+      "note": "the step read from the listed sizes"
+     }
+    },
+    "drillQuarterStepMM": {
+     "value": 0.25,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the quarter sizes also listed in the 0.1 mm range",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 3.25, 3.75 … 9.75",
+      "note": "read as a pattern from the listed quarter sizes; each quarter size not checked one by one"
+     }
+    },
+    "drillStepToMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the last size on the 0.1 mm step",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — … 9.9, 10.0, 10.5"
+     }
+    },
+    "drillCoarseStepMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill sizes' step above drillStepToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 10.0, 10.5, 11.0 … 24.5, 25.0",
+      "note": "the step read from the listed sizes"
+     }
+    },
+    "holeDiameterRec": {
+     "value": 1,
+     "unit": "flag",
+     "source": "W-WEB",
+     "description": "a hole's diameter, recommended a standard drill size (1: the rule applies)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Recommended diameter: standard drill bit sizes"
+     }
     }
    },
    "toleranceClasses": {

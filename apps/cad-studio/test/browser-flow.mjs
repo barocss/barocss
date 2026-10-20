@@ -4973,7 +4973,7 @@ try {
   });
 
   // ---- CNC1 (O84): machining's process rule, through the real chat and tool servers ------------------------------
-  await check('CNC1: CNC milling chosen in the Library panel, an aluminium block made and set through the real chat and tool servers — the report judges it as milling (material, wall, size pass; the later stages said to come)', async () => {
+  await check('CNC1: CNC milling chosen in the Library panel, an aluminium block made and set through the real chat and tool servers — the report judges it as milling (material, wall, size pass; no holes; the later stages said to come)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling');
@@ -4992,8 +4992,35 @@ try {
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
-      assert.match(report, /cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown/, report);
+      assert.match(report, /cnc-milling: material pass, wall pass, size pass, hole-depth pass, hole-size pass, thread pass, corners unknown, access unknown, drawing unknown/, report);
       await snap('cnc1-milling');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
+  // ---- CNC2 (O85): holes and threads, through the real chat and tool servers --------------------------------------
+  await check('CNC2: a milled aluminium plate with a counterbored Ø6.6 and an M6 tapped through 20 — hole depth and size pass, the thread warned (20 over 3 × d), its holes in the report', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'run_command', args: { command: 'hole', values: { type: 'counterbore', d: 6.6, cd: 11, ch: 6, x: 15, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'run_command', args: { command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'through', x: 45, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'set_material', args: { material: 'al6061' } },
+        { tool: 'check_printability', args: {} }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
+      assert.match(report, /cnc-milling: material pass, wall pass, size pass, hole-depth pass, hole-size pass, thread warn/, report);
+      const holes = await page.evaluate(() => window.__studioDoc.nodes.filter(x => x.kind === 'hole').map(x => [x.radius, x.thread ?? null]));
+      assert.deepEqual(holes, [[3.3, null], [5.5, null], [2.5, 'M6×1']], JSON.stringify(holes));
+      await snap('cnc2-holes');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });
