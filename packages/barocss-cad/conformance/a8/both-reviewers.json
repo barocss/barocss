@@ -1,0 +1,153 @@
+{
+ "case": "both-reviewers",
+ "step": "A8.1",
+ "note": "One patch both reviewers flag: their findings in role order (analysis, dfm), whichever ends first.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm open tray",
+       "basis": "stated",
+       "source": "a 40 mm open tray"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      },
+      {
+       "id": "S",
+       "source": "low, if it can be",
+       "hard": false,
+       "basis": "assumed",
+       "check": {
+        "op": "<=",
+        "query": {
+         "fn": "bbox",
+         "axis": "z"
+        },
+        "value": 8
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "shell",
+       "faces": [
+        "n1.top"
+       ],
+       "values": {
+        "t": 1.0
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "reviewers": [
+  {
+   "name": "dfm",
+   "rules": [
+    {
+     "kind": "print_rule",
+     "rule": "wall-rec",
+     "status": "warn"
+    }
+   ]
+  },
+  {
+   "name": "analysis",
+   "rules": [
+    {
+     "kind": "soft_failing"
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "rejected"
+  ],
+  "stops": [
+   null,
+   null
+  ],
+  "reviews": [
+   null,
+   [
+    [
+     "analysis",
+     false,
+     [
+      "SOFT_FAILING"
+     ]
+    ],
+    [
+     "dfm",
+     false,
+     [
+      "DFM_RECOMMENDED"
+     ]
+    ]
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done"
+ }
+}

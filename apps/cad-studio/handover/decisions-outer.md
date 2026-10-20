@@ -1526,3 +1526,35 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
 - The same report with live roles is pending with O30's protocol.
 
 **Order**: A8.1 → A8.2 → A8.3 → A8.4 → A8.5, with a checkpoint after each.
+
+## O33 — A8.1: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision (2026-10-20)
+
+- **Reviewers** (`ReviewerRole {name: dfm | analysis, model, review(view)}`) review what a patch makes **in parallel** with the Verifier, once the gates have passed.
+  - Each is given **its own built view**: the DFM view is `revision, process, printability, facts, boxes`; the Analysis view is `revision, requirements, checks, mass, keepouts`. The views are deep-frozen JSON copies holding nothing of the patch and nothing callable, so the reviewers are **structurally read-only**: no state, evaluate or dispatcher is in reach.
+  - Each returns `{accept, findings: [{code, message, entities?}]}`.
+  - **Any rejection rejects the patch.** The reviews are joined **by role name**, so the trace is the same whichever ends first. Their tokens are counted per role, and their findings reach the Designer's next view.
+- **The Drafting agent** (`DrafterRole`, `integrateDrawing`) runs after the design ends, on the revision it ended at.
+  - Its patch may hold drawing ops only (`auto_dimension`, `fix_drawing`, `set_drawing`, `accept_tolerances`). Anything else is refused `NOT_A_DRAWING_OP`, and the part is unchanged.
+  - **Refused `STALE_BASE` if the model moved**: the hash, confirmed by the canonical JSON, as in A7.1.
+  - Applied, its drawing's issue list is read: errors reject it (`DRAWING_ISSUES`), and warnings are listed (`DRAWING_WARNING`). The model's revision does not move, since the drawing is not in it.
+  - Drafting patches count neither as tried nor as accepted designs.
+- **Scripted**:
+  - the DFM reviewer flags a printability rule at a status — a recommended rule the DFM gate lets pass;
+  - the Analysis reviewer flags failing soft requirements, which the analysis gate does not hold;
+  - the drafting agent replays drawing patches, with a stale base when the fixture says so.
+- **Evidence**: `test/team-v2.test.ts` (2 tests). Its name was checked free first.
+  - **Six scenarios** in `conformance/a8/` (`step: A8.1`), byte-identical on a rerun:
+
+    | scenario | what happens |
+    |---|---|
+    | dfm-reviewer-only | a 1.0 mm FDM shell is feasible (the gate's 0.8 mm) but under the recommended 1.2 mm: only the DFM reviewer flags it (`DFM_RECOMMENDED`); 1.5 mm is accepted |
+    | analysis-reviewer-only | a soft "8 tall" that no gate checks: only the Analysis reviewer flags 10 mm (`SOFT_FAILING`); 8 mm is accepted |
+    | both-reviewers | both flag one patch; findings in the order analysis, dfm |
+    | drafting | Auto-dimension applied, the drawing made, the revision unmoved |
+    | drafting-stale | `STALE_BASE` |
+    | drafting-not-drawing | `NOT_A_DRAWING_OP` |
+
+  - **Read-only, parallel**: each view's keys exactly its set, frozen, with no patch, rationale or function. With the DFM reviewer made slower, the Analysis one ends first, yet the trace is in role order.
+  - `cad-cli team` runs the v2 scenarios unchanged (exit 1 on both-reviewers, where none is accepted).
+  - Studio 570/570, with no test name missing against the last run. Lint and type-check clean. No UI changed.
+- **Next**: A8.2, the Architect's interfaces and Part agents with leases.

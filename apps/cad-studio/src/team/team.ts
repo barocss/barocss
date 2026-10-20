@@ -50,7 +50,7 @@ export const rebase = (p: Patch, revision: string): Patch => ({ ...p, base: revi
 export type GateName = 'validity' | 'interference' | 'interfaces' | 'dfm' | 'analysis';
 export const GATES: readonly GateName[] = ['validity', 'interference', 'interfaces', 'dfm', 'analysis'];
 export type Verdict = 'pass' | 'fail' | 'undecided' | 'skipped';
-export type FindingCode = 'STALE_BASE' | 'OP_REFUSED' | 'NO_SOLID' | 'NOT_EVALUATED' | 'REFERENCE_BROKEN' | 'OVERLAP' | 'KEEPOUT_VIOLATED' | 'KEEPOUT_UNDECIDED' | 'CONTRACT_CHANGED' | 'INTERFACE_FAILED' | 'DFM_FAILED' | 'NO_PROCESS' | 'NOT_CHECKED' | 'HARD_FAILED' | 'HARD_UNKNOWN' | 'NOT_REACHED' | 'VERIFIER';
+export type FindingCode = 'NOT_A_DRAWING_OP' | 'DRAWING_ISSUES' | 'DRAWING_WARNING' | 'STALE_BASE' | 'OP_REFUSED' | 'NO_SOLID' | 'NOT_EVALUATED' | 'REFERENCE_BROKEN' | 'OVERLAP' | 'KEEPOUT_VIOLATED' | 'KEEPOUT_UNDECIDED' | 'CONTRACT_CHANGED' | 'INTERFACE_FAILED' | 'DFM_FAILED' | 'NO_PROCESS' | 'NOT_CHECKED' | 'HARD_FAILED' | 'HARD_UNKNOWN' | 'NOT_REACHED' | 'VERIFIER';
 export interface Finding { code: FindingCode; message: string; entities?: string[] }
 export interface GateResult { gate: GateName; verdict: Verdict; findings: Finding[] }
 /** The fields a patch may not change: the contracts, the Requirements role's and the user's. */
@@ -145,6 +145,21 @@ export function verifierView(doc: StudioDoc, bodies: readonly BodyResult[], extr
   return deepFreeze(JSON.parse(JSON.stringify(view)) as VerifierView);
 }
 
+// ——— the reviewers' views (A8.1): built, frozen, read-only — a view holds no state, evaluate or dispatcher
+export const DFM_VIEW_KEYS = ['revision', 'process', 'printability', 'facts', 'boxes'] as const;
+export const ANALYSIS_VIEW_KEYS = ['revision', 'requirements', 'checks', 'mass', 'keepouts'] as const;
+export type ReviewerName = 'dfm' | 'analysis';
+export type ReviewView = Readonly<Record<string, unknown>>;
+/** What a reviewer is given: its fixed key set of the part a patch would make. */
+export function reviewView(name: ReviewerName, doc: StudioDoc, bodies: readonly BodyResult[], extra: { keepouts: readonly KeepoutResult[]; print: PrintabilityReport | null; spec: Report | null }): ReviewView {
+  const v = verifierView(doc, bodies, extra) as Record<string, unknown>;
+  const keys: readonly string[] = name === 'dfm' ? DFM_VIEW_KEYS : ANALYSIS_VIEW_KEYS;
+  const all: Record<string, unknown> = { ...v, process: processOf(doc) ?? null };
+  return deepFreeze(JSON.parse(JSON.stringify(Object.fromEntries(keys.map(k => [k, all[k] ?? null])))) as ReviewView);
+}
+export interface ReviewFinding { code: string; message: string; entities?: string[] }
+export interface ReviewerRole { name: ReviewerName; model: string; review(view: ReviewView): Promise<{ accept: boolean; findings: ReviewFinding[] } & RoleReport> }
+
 // ——— roles
 export interface RoleReport { tokens?: number }
 export interface RequirementsRole { model: string; brief(input: { prompt: string; revision: string }): Promise<{ ops: Op[] } & RoleReport> }
@@ -155,6 +170,8 @@ export interface VerifierRole { model: string; review(view: VerifierView): Promi
 
 export type Decision = 'applied' | 'rejected' | 'held' | 'stale';
 export interface Trace {
+  /** The parallel reviewers' verdicts (A8.1), by role name. */
+  reviews?: { role: ReviewerName; model: string; accept: boolean; findings: ReviewFinding[] }[];
   seq: number; patch: Patch; base: string; rebasedFrom?: string; revisionAfter: string | null;
   /** The contracts the patch would change (held for the user; A8's ECR later). */
   contractChanges?: string[];
@@ -165,7 +182,7 @@ export interface Trace {
  * The Integrator: one patch, against the state it is given (its current revision). Stale: refused. Else a dry run,
  * the gates, the Verifier on what passes; the state after only when applied.
  */
-export async function integrate(state: ChatState, patch: Patch, evaluate: Evaluate, o: { seq: number; verifier?: VerifierRole; /** The states patches were made on, by revision (their canonical JSON): a patch's base confirmed against it. */ bases?: ReadonlyMap<string, string> }): Promise<{ state: ChatState; trace: Trace }> {
+export async function integrate(state: ChatState, patch: Patch, evaluate: Evaluate, o: { seq: number; verifier?: VerifierRole; reviewers?: readonly ReviewerRole[]; /** The states patches were made on, by revision (their canonical JSON): a patch's base confirmed against it. */ bases?: ReadonlyMap<string, string> }): Promise<{ state: ChatState; trace: Trace }> {
   const current = revisionOf(state.doc), tokens: Record<string, number> = {};
   const base: Omit<Trace, 'gates' | 'decision' | 'revisionAfter'> = { seq: o.seq, patch, base: patch.base, ...(patch.rebasedFrom ? { rebasedFrom: patch.rebasedFrom } : {}), tokens };
   const stale = (message: string) => ({ state, trace: { ...base, revisionAfter: null, gates: [{ gate: 'validity' as const, verdict: 'fail' as const, findings: [{ code: 'STALE_BASE' as const, message }] }], decision: 'stale' as const } });
@@ -182,15 +199,20 @@ export async function integrate(state: ChatState, patch: Patch, evaluate: Evalua
   else { const body = JSON.parse(r.content); diff = body.diff; broken = (body.broken_references ?? []).length; }
   const g = await runGates({ before: state, after: r.isError ? null : r.state, ...(refused ? { refused } : {}), broken }, evaluate);
   const failed = g.gates.some(x => x.verdict === 'fail'), undecided = g.gates.some(x => x.verdict === 'undecided');
-  let decision: Decision = failed ? 'rejected' : undecided ? 'held' : 'applied', verifier: Trace['verifier'];
-  if (decision === 'applied' && o.verifier) {
-    const v = await o.verifier.review(verifierView(r.state.doc, r.state.bodies, g));
-    tokens.verifier = v.tokens ?? 0; verifier = { model: o.verifier.model, accept: v.accept, findings: v.findings };
-    if (!v.accept) decision = 'rejected';
+  let decision: Decision = failed ? 'rejected' : undecided ? 'held' : 'applied', verifier: Trace['verifier'], reviews: Trace['reviews'];
+  if (decision === 'applied' && (o.verifier || o.reviewers?.length)) {
+    // (The Verifier and the reviewers in parallel, each on its own built view; joined by role name, so the trace is the same whichever ends first.)
+    const [v, ...rs] = await Promise.all([o.verifier ? o.verifier.review(verifierView(r.state.doc, r.state.bodies, g)) : Promise.resolve(null), ...(o.reviewers ?? []).map(x => x.review(reviewView(x.name, r.state.doc, r.state.bodies, g)))]);
+    if (v && o.verifier) { tokens.verifier = v.tokens ?? 0; verifier = { model: o.verifier.model, accept: v.accept, findings: v.findings }; if (!v.accept) decision = 'rejected'; }
+    if (o.reviewers?.length) {
+      reviews = o.reviewers.map((x, i) => ({ role: x.name, model: x.model, accept: rs[i]!.accept, findings: rs[i]!.findings })).sort((a, b) => a.role.localeCompare(b.role));
+      o.reviewers.forEach((x, i) => { tokens[x.name] = rs[i]!.tokens ?? 0; });
+      if (reviews.some(x => !x.accept)) decision = 'rejected';
+    }
   }
   const applied = decision === 'applied';
   const changes = r.isError ? [] : contractChanges(state.doc, r.state.doc);
-  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), ...(changes.length ? { contractChanges: changes } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
+  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), ...(changes.length ? { contractChanges: changes } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), ...(reviews ? { reviews } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
 }
 
 /** What the Designer is given each round. */
@@ -200,11 +222,11 @@ export function designerView(state: ChatState, last: DesignerView['last']): Desi
 
 export interface TeamRun { traces: Trace[]; final: StudioDoc; revision: string; accepted: number; tried: number; tokens: Record<string, number>; costPerAccepted: number | null; ended: 'done' | 'budget' }
 /** A team run: the Requirements role's brief applied (traced), then the Designer's patches through the Integrator and the Verifier until done or the budget. */
-export async function runTeam(start: ChatState, roles: { requirements?: RequirementsRole; designer: DesignerRole; verifier?: VerifierRole }, prompt: string, evaluate: Evaluate, o: { maxPatches?: number } = {}): Promise<TeamRun> {
+export async function runTeam(start: ChatState, roles: { requirements?: RequirementsRole; designer: DesignerRole; verifier?: VerifierRole; reviewers?: readonly ReviewerRole[]; drafter?: DrafterRole }, prompt: string, evaluate: Evaluate, o: { maxPatches?: number } = {}): Promise<TeamRun> {
   let state = start, seq = 0, last: DesignerView['last'] = null, ended: TeamRun['ended'] = 'budget';
   // (Every state a role was given, by revision: a patch's base confirmed by its canonical JSON.)
   const bases = new Map<string, string>(), seen = (s: ChatState) => { bases.set(revisionOf(s.doc), canonicalOf(s.doc)); return s; };
-  const traces: Trace[] = [], tokens: Record<string, number> = { requirements: 0, designer: 0, verifier: 0 };
+  const traces: Trace[] = [], tokens: Record<string, number> = { requirements: 0, designer: 0, verifier: 0, ...Object.fromEntries((roles.reviewers ?? []).map(x => [x.name, 0])), ...(roles.drafter ? { drafter: 0 } : {}) };
   if (roles.requirements) {
     // (The brief and requirements are the Requirements role's: applied without the design gates, traced.)
     const b = await roles.requirements.brief({ prompt, revision: revisionOf(state.doc) }); tokens.requirements += b.tokens ?? 0;
@@ -217,12 +239,42 @@ export async function runTeam(start: ChatState, roles: { requirements?: Requirem
     const p = await roles.designer.propose(designerView(seen(state), last)); tokens.designer += p.tokens ?? 0;
     if (p === 'done' || ('patch' in p) === false) { ended = 'done'; break; }
     const patch: Patch = { ...p.patch, base: p.patch.base ?? revisionOf(state.doc) };
-    const out = await integrate(state, patch, evaluate, { seq: ++seq, bases, ...(roles.verifier ? { verifier: roles.verifier } : {}) });
+    const out = await integrate(state, patch, evaluate, { seq: ++seq, bases, ...(roles.verifier ? { verifier: roles.verifier } : {}), ...(roles.reviewers ? { reviewers: roles.reviewers } : {}) });
     out.trace.tokens.designer = p.tokens ?? 0; tokens.verifier += out.trace.tokens.verifier ?? 0;
+    for (const x of roles.reviewers ?? []) tokens[x.name] += out.trace.tokens[x.name] ?? 0;
     traces.push(out.trace); state = out.state;
-    last = { decision: out.trace.decision, findings: [...out.trace.gates.flatMap(g => g.findings.filter(f => f.code !== 'NOT_REACHED')), ...(out.trace.verifier?.findings ?? []).map(m => ({ code: 'VERIFIER' as const, message: m }))] };
+    last = { decision: out.trace.decision, findings: [...out.trace.gates.flatMap(g => g.findings.filter(f => f.code !== 'NOT_REACHED')), ...(out.trace.verifier?.findings ?? []).map(m => ({ code: 'VERIFIER' as const, message: m })), ...(out.trace.reviews ?? []).flatMap(rv => rv.findings.map(f => ({ code: 'VERIFIER' as const, message: `${rv.role}: ${f.code}: ${f.message}` })))] };
   }
-  const accepted = traces.filter(t => t.patch.by !== 'requirements' && t.decision === 'applied').length, tried = traces.filter(t => t.patch.by !== 'requirements').length;
+  // (The drawing, A8.1: drafted on the revision the design ended at, its drawing ops only.)
+  if (roles.drafter) for (let k = 0; k < 4; k++) {
+    const p = await roles.drafter.draft(designerView(seen(state), last)); tokens.drafter += p.tokens ?? 0;
+    if (p === 'done' || !('patch' in p)) break;
+    const out = await integrateDrawing(state, { ...p.patch, by: 'drafter', base: p.patch.base ?? revisionOf(state.doc) }, evaluate, { seq: ++seq, bases });
+    traces.push(out.trace); state = out.state;
+    last = { decision: out.trace.decision, findings: out.trace.gates.flatMap(g => g.findings) };
+  }
+  const design = (t: Trace) => t.patch.by !== 'requirements' && t.patch.by !== 'drafter';
+  const accepted = traces.filter(t => design(t) && t.decision === 'applied').length, tried = traces.filter(design).length;
   const total = Object.values(tokens).reduce((s, v) => s + v, 0);
   return { traces, final: state.doc, revision: revisionOf(state.doc), accepted, tried, tokens, costPerAccepted: accepted ? total / accepted : null, ended };
+}
+
+// ——— the Drafting agent (A8.1): drawing ops only, on a frozen revision
+export const DRAWING_OPS = new Set(['auto_dimension', 'fix_drawing', 'set_drawing', 'accept_tolerances']);
+export interface DrafterRole { model: string; draft(view: DesignerView): Promise<({ patch: Omit<Patch, 'base'> & { base?: string } } | 'done') & RoleReport> }
+/** A drafting patch: refused unless every op is a drawing op and the model is at its base (the canonical JSON confirming
+ * it); applied, the drawing's issue list read — its errors reject it, its warnings listed. The model's revision unmoved. */
+export async function integrateDrawing(state: ChatState, patch: Patch, evaluate: Evaluate, o: { seq: number; bases?: ReadonlyMap<string, string> }): Promise<{ state: ChatState; trace: Trace }> {
+  const current = revisionOf(state.doc), base = { seq: o.seq, patch, base: patch.base, ...(patch.rebasedFrom ? { rebasedFrom: patch.rebasedFrom } : {}), tokens: {} as Record<string, number> };
+  const refuse = (decision: Decision, code: FindingCode, message: string) => ({ state, trace: { ...base, revisionAfter: null, gates: [{ gate: 'validity' as const, verdict: 'fail' as const, findings: [{ code, message }] }], decision } });
+  const bad = patch.ops.filter(op => !DRAWING_OPS.has(op.tool));
+  if (bad.length) return refuse('rejected', 'NOT_A_DRAWING_OP', `the drafting agent changes the drawing only: ${bad.map(b => b.tool).join(', ')} ${bad.length === 1 ? 'is' : 'are'} not drawing ops (${[...DRAWING_OPS].join(', ')})`);
+  if (patch.base !== current || (o.bases && o.bases.get(patch.base) !== canonicalOf(state.doc))) return refuse('stale', 'STALE_BASE', `the drawing was made on ${patch.base}; the model is at ${current}: draft it again on the current revision`);
+  const r = await dispatchTool(state, 'apply_ops', { ops: patch.ops }, evaluate);
+  if (r.isError) { let m = r.content; try { m = JSON.parse(r.content).error; } catch { /* plain */ } return refuse('rejected', 'OP_REFUSED', m); }
+  const issues = JSON.parse((await dispatchTool(r.state, 'drawing_issues', {}, evaluate)).content) as { issues: { code: string; severity?: string; level?: string; message?: string }[] };
+  const errors = issues.issues.filter(x => (x.severity ?? x.level) === 'error'), warnings = issues.issues.filter(x => (x.severity ?? x.level) !== 'error');
+  const gate: GateResult = { gate: 'validity', verdict: errors.length ? 'fail' : 'pass', findings: [...errors.map(x => ({ code: 'DRAWING_ISSUES' as const, message: `${x.code}: ${x.message ?? ''}` })), ...warnings.map(x => ({ code: 'DRAWING_WARNING' as const, message: `${x.code}: ${x.message ?? ''}` }))] };
+  const applied = !errors.length;
+  return { state: applied ? r.state : state, trace: { ...base, gates: [gate], decision: applied ? 'applied' : 'rejected', revisionAfter: applied ? revisionOf(r.state.doc) : null } };
 }

@@ -380,7 +380,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
     revision; A8.2 the Architect's interfaces, Part agents with leases; A8.3 ECRs with impact and the user's approval;
     A8.4 the Assembly integrator and a BOM agent; A8.5 per-role precision and recall on seeded defects. Scripted, no
     new chat tools; live numbers pending (O30).
-  - A8.1 (next) → A8.2 → A8.3 → A8.4 → A8.5.
+  - **A8.1** (O33): done. Parallel read-only DFM and Analysis reviewers on their own frozen views, joined by role name;
+    a Drafting agent with drawing ops only on a frozen revision (STALE_BASE, NOT_A_DRAWING_OP, DRAWING_ISSUES).
+    Six scenarios in `conformance/a8`.
+  - A8.2 (next) → A8.3 → A8.4 → A8.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
