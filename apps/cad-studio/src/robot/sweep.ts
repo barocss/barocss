@@ -37,7 +37,7 @@ function moved(m: Motion, home: ArrayLike<number>, out: Float64Array): Float64Ar
 }
 
 /** A link's parent part: past the dummy links of its joint chain (they are one pair's joint). */
-function partParent(parentOf: ReadonlyMap<string, string>, link: string): string | undefined { let p = parentOf.get(link); while (p && p.includes('__')) p = parentOf.get(p); return p; }
+export function partParent(parentOf: ReadonlyMap<string, string>, link: string): string | undefined { let p = parentOf.get(link); while (p && p.includes('__')) p = parentOf.get(p); return p; }
 /** The joints on a link's path from the base (keys), in order. */
 export function pathOf(tree: JointTree, link: string): string[] {
   const out: string[] = [];
@@ -59,7 +59,13 @@ export function reaches(tree: JointTree, link: string, hull: ArrayLike<number>):
 }
 
 /** Sweeps the straight path from `from` to `to` (joint values by key; absent: 0). */
-export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, o: { maxSamples?: number } = {}): SweepResult {
+/**
+ * Options: `tolerance` (mm), the clearance counted as contact (RM6: 1e-6; RM9a's time of impact takes 1e-9). Each step keeps
+ * the clearance ≥ it, so the first sample where it is reached is the first time it is, to the step's own 1e-12.
+ * `trace`: each sample's least clearance over the pairs, as [s, mm] (RM9a's clearance profile).
+ */
+export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, o: { maxSamples?: number; tolerance?: number; trace?: [number, number][] } = {}): SweepResult {
+  const tol = o.tolerance ?? TOL;
   const byId = new Map(links.map(l => [l.link, l])), keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key);
   const q0 = Object.fromEntries(keys.map(k => [k, from[k] ?? 0])), q1 = Object.fromEntries(keys.map(k => [k, to[k] ?? 0]));
   // (A follower moves by its multiplier times its leader: its own |Δq| for the bound.)
@@ -84,11 +90,11 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     samples++;
     const values = at(s), fk = forwardKinematics(tree, values);
     for (const l of links) { const m = fk.motions.get(l.link)!, p = posed.get(l.link)!; moved(m, l.hull, p.hull); moved(m, l.positions, p.mesh); }
-    let step = Infinity, limiting: [string, string] | null = null;
+    let step = Infinity, limiting: [string, string] | null = null, least = Infinity;
     for (const [A, B] of pairs) {
       const pa = posed.get(A)!, pb = posed.get(B)!, r = rate.get(`${A}|${B}`)!;
       let d = convexDistance(pa.hull, pb.hull);
-      if (d <= TOL) {
+      if (d <= tol) {
         // (The hulls meet: the meshes decide — in contact, or their own least distance.)
         const la = byId.get(A)!, lb = byId.get(B)!;
         if (meshesMeet(pa.mesh, la.indices, pb.mesh, lb.indices)) {
@@ -99,8 +105,10 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
       }
       if (r < 0) continue;
       if (!min || d < min.mm) min = { mm: d, s, links: [A, B] };
-      if (r > 0 && Math.max(d - TOL, 0) / r < step) { step = Math.max(d - TOL, 0) / r; limiting = [A, B]; }
+      if (r > 0 && Math.max(d - tol, 0) / r < step) { step = Math.max(d - tol, 0) / r; limiting = [A, B]; }
+      if (d < least) least = d;
     }
+    if (o.trace && least < Infinity) o.trace.push([s, least]);
     if (s >= 1) break;
     // (A step too small to make progress: the clearance is all but nothing — met, to the tolerance.)
     if (!(step > 1e-12) || samples >= cap) {
@@ -154,12 +162,29 @@ function inside(x: number, y: number, z: number, P: ArrayLike<number>, I: ArrayL
   for (let k = 0; k < I.length / 3; k++) { load(tB, P, I, k); if (pierces(x, y, z, x + 1e6 * 0.5773, y + 1e6 * 0.5782, z + 1e6 * 0.5763, tB)) n++; }
   return n % 2 === 1;
 }
-/** The least distance between two meshes' triangles (a vertex to a triangle, either way; an edge to an edge). */
+/** Each triangle's box (min x y z, max x y z) into `out`. */
+function boxesOf(P: ArrayLike<number>, I: ArrayLike<number>, out: Float64Array): Float64Array {
+  for (let k = 0; k < I.length / 3; k++) for (let q = 0; q < 3; q++) {
+    const a = P[I[k * 3] * 3 + q], b = P[I[k * 3 + 1] * 3 + q], c = P[I[k * 3 + 2] * 3 + q];
+    out[k * 6 + q] = Math.min(a, b, c); out[k * 6 + 3 + q] = Math.max(a, b, c);
+  }
+  return out;
+}
+/**
+ * The least distance between two meshes' triangles (a vertex to a triangle, either way; an edge to an edge). A pair whose
+ * boxes are already as far apart as the best found is skipped: a box gap is never more than its triangles' distance, so
+ * the result is the same, and the near pairs alone are measured (RM9a: the time of impact's last steps measure them).
+ */
 export function meshDistance(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>): number {
   let best = Infinity;
-  for (let i = 0; i < IA.length / 3; i++) {
-    load(tA, PA, IA, i);
-    for (let j = 0; j < IB.length / 3; j++) {
+  const na = IA.length / 3, nb = IB.length / 3, bA = boxesOf(PA, IA, new Float64Array(na * 6)), bB = boxesOf(PB, IB, new Float64Array(nb * 6));
+  for (let i = 0; i < na; i++) {
+    let loaded = false;
+    for (let j = 0; j < nb; j++) {
+      let gap = 0;
+      for (let q = 0; q < 3; q++) { const g = Math.max(bB[j * 6 + q] - bA[i * 6 + 3 + q], bA[i * 6 + q] - bB[j * 6 + 3 + q], 0); gap += g * g; }
+      if (gap >= best * best) continue;
+      if (!loaded) { load(tA, PA, IA, i); loaded = true; }
       load(tB, PB, IB, j);
       for (let v = 0; v < 3; v++) { best = Math.min(best, pointTriangle(tA[v * 3], tA[v * 3 + 1], tA[v * 3 + 2], tB), pointTriangle(tB[v * 3], tB[v * 3 + 1], tB[v * 3 + 2], tA)); }
       for (let e = 0; e < 3; e++) for (let f = 0; f < 3; f++) best = Math.min(best, segSeg(tA, e, (e + 1) % 3, tB, f, (f + 1) % 3));

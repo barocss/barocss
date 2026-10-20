@@ -2955,3 +2955,70 @@ The coordinator's pick of O61's two cheaper items. The DXF underlay waits for it
   - a DWG header is refused `DWG_NOT_READ` with "AutoCAD 2018", "Save As → DXF" and "ODA File Converter", and the state is unchanged;
   - the release lookup works, including an unknown tag;
   - a DXF is never mistaken for a DWG.
+
+## O64 — RM9a: continuous collision along a timed, multi-segment path; the time of impact to 1e-11 s (2026-10-20)
+
+Built as O62 froze it (`src/robot/ccd.ts`, on RM6's `sweepPath`).
+
+- **Timing**:
+  - each segment is straight in joint space and runs one normalised profile u(t) over distance 1. Its limits are the tightest joint's: v′ = minᵢ vᵢ/|Δqᵢ|, a′ likewise, and j′ for the S-curve. Every joint starts and stops together, and none passes its own limit;
+  - u is monotone, so a segment's path in s = u(t) is RM6's straight move;
+  - `timeAt` inverts u by bisection to the double's precision (checked against the trapezoid's own closed-form inverse to 1e-12).
+- **The time of impact**:
+  - `sweepPath` takes a `tolerance` (RM6's default stays 1e-6 mm); RM9a uses 1e-9 mm;
+  - each advancement step keeps the clearance at or above it, so the first sample where it is reached *is* the first time it is, to the step's 1e-12 in s. That s maps to time.
+  - The bisection the S0 planned is not needed: the advancement already brackets the contact from below.
+  - Also returned: the clearance profile [t, mm] (from `sweepPath`'s new `trace`), the least clearance with its time, and the segments' timing.
+- **Found and fixed (RM6 too)**:
+  - `meshDistance` measured every triangle pair, though its comment said "boxes first". At the tight tolerance, the contact pair's last steps are each a full mesh distance (about 60 ms on the 6R): 2.25× RM6's time with the same 45 samples.
+  - A pair whose boxes are as far apart as the best found is now skipped. A box gap is never more than its triangles' distance, so the results are identical.
+  - RM6's 6R fold went from 232 ms to **6 ms**, with the same contact s, and RM9a's takes **13 ms**.
+- **Evidence** (`test/robot-ccd.test.ts`, 5 tests; `conformance/rm/ccd-post`):
+  - **2R into the post on a trapezoid** (v 1, a 2): the TOI is 1.131635311870 s against the separating-axis angle through the trapezoid's closed form, 1.131635311896 s, |Δ| **2.6e-11 s**. Every earlier clearance is above the tolerance.
+  - **Two segments** (out −π/2, then to 2 rad): the contact is on segment 2 at the oracle's 4.773227965 s, within 1e-9. Segment 1's least clearance, 5.000000 mm, equals a 400-sample dense exact one over the same pairs.
+  - **MuJoCo 3.3.0** (`scripts/ccd-oracle.py`, kinematic replay of its own closed-form trapezoid, ccd_tolerance 1e-12, a scan every 1e-4 s then bisection): first contact `post_collision–a_collision` at 1.1316353212 s against ours 1.1316353119 s, |Δ| **9.3e-9 s** (acceptance 1e-6). The reading is committed as `oracle.mujoco-3.3.0.json`.
+  - **6R folding on an S-curve**: the TOI's s equals RM6's contact within 1e-4. No contact appears in 2000 exact samples before it, and the meshes are within 1e-6 mm at it. 13 ms against the S0's budget of 2 × 225 ms.
+- **Where**:
+  - the Joints card gets **Add waypoint** and **Clear waypoints**;
+  - **Check path** runs the timed path from the solved pose through the waypoints to the sliders'. Each joint's velocity limit is used where set, else 1 rad/s or 100 mm/s, and that is said. Acceleration is twice that per second.
+  - It shows "Contact A – B at N % of the move, t T s (segment k of n)", or "Clear: the whole move certified, T s …; least clearance … at t …". RM6's wording is kept, and its flow step is unchanged.
+  - The `sweep_path` tool is unchanged (RM6's straight move); `tools/list` is unchanged.
+- **Flow**: a step "RM9a" just before the last. The ccd-post arm is moved out to a −90° waypoint and then to 2 rad, and Check path reports the contact with the post at t 4.773 s on segment 2 of 2.
+
+## O65 — RM9b: a workspace map — the 2R annulus by exact set relations, the 6R's reach, the contact filter agreeing with RM6 (2026-10-20)
+
+Built as O62 froze it (`src/robot/workspace.ts`; `toolProbe`/`probeAt` added to `src/robot/ik.ts`).
+
+- **Sampling**:
+  - joint values from a Halton sequence (the first primes as bases), over each joint's limits, else [−π, π] for a turn. A slide without limits is refused `NO_RANGE`, and bad values `BAD_VALUES`;
+  - the tool point by FK into voxels of h, each with its count and best manipulability;
+  - the farthest reach is measured from the first moving joint's axis point;
+  - voxels are sorted by position, so the same inputs give the same map byte for byte.
+- **Manipulability**:
+  - w = √det(J Jᵀ) of RM7's position Jacobian (m per rad), or √det(Jᵀ J) when fewer joints than its three rows, so a planar 2R gives l₁l₂|sin θ₂|;
+  - the 2×2 or 3×3 determinant is taken directly, not as a product of Jacobi eigenvalues, for accuracy near singular poses.
+- **Self-contact filter** (optional): a pose is left out when two links (not parent and child, through RM6's `partParent`) interpenetrate, by GJK on the hulls, then RM6's exact `meshesMeet`.
+- **Evidence** (`test/robot-workspace.test.ts`, 4 tests):
+  - **planar 2R** (80, 50; 10⁵ samples, h 5), against the annulus 30 ≤ r ≤ 130:
+    - every occupied cell meets it, every cell wholly inside is occupied, so inside 1884 ≤ occupied 2123 ≤ meeting 2140;
+    - each occupied centre is within h√3/2 of it;
+    - the occupied area is within the boundary band of π(130² − 30²);
+    - the least expected count per cell is 31.7, so random sampling would miss a cell with chance e^−31.7 ≈ 2e-14, and Halton missed none;
+    - the reach is 130 to 1e-9;
+    - w equals 0.08·0.05·|sin θ₂| m² to 1e-9 relative, and r equals the law of cosines, at 200 poses;
+  - **the elbow limited to [0, π/2]**: its annulus √(80² + 50²) ≤ r ≤ 130 by the same relations (832 ≤ 1168 ≤ 1192). Refusals typed;
+  - **6R (arm-6r)**, 20 000 samples, h 20:
+    - reach 285.0 mm against the straight arm's 286.4, within h, and nothing past it;
+    - w at the straight pose 1e-34;
+    - deterministic;
+  - **the filter on the 6R** (300 poses): 143 left out, exactly the poses RM6's mesh test, run pair by pair, finds in contact.
+- **Where**:
+  - the Joints card gets **Workspace** (N 20 000, h 10 mm, "contact-free" optional). The tool point is the end link's tip: its farthest hull point from its joint at the solved pose;
+  - a summary line (poses, voxels, reach, best w), **JSON** download and **Hide**;
+  - the viewport draws the voxels as small squares in eight bands of w (blue low, red high), one SVG path a band;
+  - `tools/list` is unchanged.
+- **Flow**: a step "RM9b" just before the last. The RM9a arm's workspace is mapped from the card, its summary read, the bands drawn, then hidden.
+- **Flakes seen in this checkpoint's runs** (the machine at load average 36–37 from other sessions):
+  - `hollow.test.ts` "a curved body refused at once" missed its 1 s wall-clock guard once in the full suite (649/650). Rerun alone it passes (4/4). The guard is a proxy for "no mesher ran"; it is left as is and recorded here.
+  - One flow run died on a screenshot timeout at step 1531 while the UI sources were being edited (a dev-server reload). The clean rerun passes, 187/187.
+  - The render-source cascade (steps 48–55) did not recur.

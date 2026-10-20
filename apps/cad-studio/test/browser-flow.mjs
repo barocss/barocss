@@ -4558,6 +4558,37 @@ try {
     await snap('am7b-lattice');
   });
 
+  // ---- RM9a (O62): continuous collision along a timed path -----------------------------------------------------------
+  await check('RM9a: the arm out to a waypoint, then back into the post — Check path gives the time of impact on segment 2, the trapezoid\'s closed form', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/ccd-post/case.json'), 'utf8')), file = join(out, 'ccd-post.bcad');
+    fs.writeFileSync(file, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    const set = v => page.evaluate(x => { const el = document.querySelector('[aria-label="Joint base~a value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await set(-Math.PI / 2); await page.click('[aria-label="Add waypoint"]');
+    await set(2);
+    await page.click('[aria-label="Check path"]');
+    await page.waitForFunction(() => /^Contact /.test(document.querySelector('[aria-label="Path check"]')?.textContent ?? ''), null, { timeout: 30000 });
+    // (Out a quarter turn and back to 2 rad at 1 rad/s, 2 rad/s² (no limit set): the oracle's 4.773 s, test/robot-ccd.)
+    assert.match(await page.locator('[aria-label="Path check"]').innerText(), /^Contact .*post.* at \d+\.\d % of the move, t 4\.773 s \(segment 2 of 2\)/);
+    await snap('rm9a-toi');
+    await page.click('[aria-label="Clear waypoints"]'); await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RM9b (O62): a workspace map ---------------------------------------------------------------------------------
+  await check('RM9b: the same 2R arm\'s workspace mapped from the Joints card — its voxels drawn, coloured by manipulability; hidden again', async () => {
+    await page.waitForSelector('[aria-label="Map workspace"]', { timeout: 20000 });
+    await page.click('[aria-label="Map workspace"]');
+    await page.waitForSelector('[aria-label="Workspace summary"]', { timeout: 30000 });
+    const text = await page.locator('[aria-label="Workspace summary"]').innerText();
+    assert.match(text, /^Workspace of 20000 poses: \d+ voxels of 10 mm, reach \d+\.\d mm, best manipulability \d/);
+    assert.ok(await page.locator('[aria-label="Workspace map"] path').count() >= 2, 'the voxels drawn in bands');
+    await snap('rm9b-workspace');
+    await page.click('[aria-label="Hide workspace"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Workspace map"]'));
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

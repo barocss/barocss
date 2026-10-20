@@ -157,6 +157,8 @@ interface Props {
   regions?: ToolRegion[];
   /** The selected direct object's poles (drawn as dots; a click near one picks it), and the picked one. */
   poles?: { key: string; at: Vec3 }[];
+  /** A workspace map's voxel centres (RM9b), each with its manipulability as a share of the best, 0…1: dots coloured by it. */
+  cloud?: { at: Vec3; t: number }[] | null;
   pickedPole?: string | null;
   onPickPole?(key: string): void;
   /** Placed instances of other parts, and the selected ones. */
@@ -910,6 +912,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     // The cage being edited: the mirrored half faint, faces picked (n-gons tinted), edges (creases heavier, open
     // and non-manifold ones marked), vertices (poles ringed), all over the body.
     if (!sk && props.cage) items.push(<CageMarks key="cage" overlay={props.cage} project={q => cam.project(q as Vec3, w, h)} />);
+    // A workspace map (RM9b): its voxels as small squares, one path a band of manipulability (blue low, red high).
+    if (!sk && props.cloud?.length) {
+      const bands = Array.from({ length: 8 }, () => [] as string[]);
+      for (const c of props.cloud) { const q = cam.project(c.at, w, h); bands[Math.min(7, Math.floor(c.t * 8))].push(`M${(q[0] - 1.5).toFixed(1)} ${(q[1] - 1.5).toFixed(1)}h3v3h-3z`); }
+      items.push(<g key="cloud" aria-label="Workspace map">{bands.map((d, k) => d.length ? <path key={k} d={d.join('')} fill={`hsl(${240 - k * 34} 80% 55%)`} fillOpacity={0.75} /> : null)}</g>);
+    }
     // The selected curve's or surface's poles, the picked one ringed.
     if (!sk) (props.poles ?? []).forEach(p => {
       const q = cam.project(p.at, w, h), on = p.key === props.pickedPole;
