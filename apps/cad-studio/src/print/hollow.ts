@@ -27,7 +27,7 @@ const OFFSETS: readonly number[] = [1 / Math.PI, 1 / Math.E, Math.SQRT2 - 1];
 export interface Grid { o: Vec3; h: number; n: [number, number, number]; phi: Float64Array }
 const idx = (g: Grid, i: number, j: number, k: number) => (k * g.n[1] + j) * g.n[0] + i;
 /** The body's triangles (mm, double precision). */
-function trianglesOf(m: DisplayMesh): Float64Array { const T = new Float64Array(m.indices.length * 3); for (let t = 0; t < m.indices.length; t++) { const v = m.indices[t]; T[t * 3] = m.positions[v * 3]; T[t * 3 + 1] = m.positions[v * 3 + 1]; T[t * 3 + 2] = m.positions[v * 3 + 2]; } return T; }
+export function trianglesOf(m: DisplayMesh): Float64Array { const T = new Float64Array(m.indices.length * 3); for (let t = 0; t < m.indices.length; t++) { const v = m.indices[t]; T[t * 3] = m.positions[v * 3]; T[t * 3 + 1] = m.positions[v * 3 + 1]; T[t * 3 + 2] = m.positions[v * 3 + 2]; } return T; }
 /** Inside flags of the grid's nodes by ray parity along +X, one row (j, k) at a time. */
 export function insideFlags(T: Float64Array, o: Vec3, h: number, n: readonly number[]): Uint8Array {
   const out = new Uint8Array(n[0] * n[1] * n[2]), nt = T.length / 9, xs: number[] = [];
@@ -54,7 +54,7 @@ export function insideFlags(T: Float64Array, o: Vec3, h: number, n: readonly num
   return out;
 }
 /** The squared distance from p to triangle t (Ericson's closest point). */
-function dist2(T: Float64Array, t: number, px: number, py: number, pz: number): number {
+export function dist2(T: Float64Array, t: number, px: number, py: number, pz: number): number {
   const b = t * 9, ax = T[b], ay = T[b + 1], az = T[b + 2];
   const abx = T[b + 3] - ax, aby = T[b + 4] - ay, abz = T[b + 5] - az, acx = T[b + 6] - ax, acy = T[b + 7] - ay, acz = T[b + 8] - az;
   const apx = px - ax, apy = py - ay, apz = pz - az, d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
@@ -75,47 +75,58 @@ function dist2(T: Float64Array, t: number, px: number, py: number, pz: number): 
 }
 const cellOf = (x: number, k: number, lo: readonly number[], R: number, bn: readonly number[]) => Math.min(bn[k] - 1, Math.max(0, Math.floor((x - lo[k]) / R)));
 /** φ = depth − t at each node inside the body (depth capped at t + 2h: past it the node is deep in the cavity); −t outside. */
-export function cavityField(m: DisplayMesh, t: number, h: number): Grid {
-  const T = trianglesOf(m), lo = m.bounds.min, hi = m.bounds.max, R = t + 2 * h;
-  const o: Vec3 = [lo[0] - 2 * h + OFFSETS[0] * h, lo[1] - 2 * h + OFFSETS[1] * h, lo[2] - 2 * h + OFFSETS[2] * h];
-  const n: [number, number, number] = [0, 1, 2].map(k => Math.ceil((hi[k] - o[k] + 2 * h) / h) + 1) as [number, number, number];
-  if (n[0] * n[1] * n[2] > MAX_NODES) throw new HollowError('GRID_TOO_FINE', `${n.join(' × ')} nodes at h ${h} mm, over ${MAX_NODES}: take h ≥ ${(+(h * Math.cbrt(n[0] * n[1] * n[2] / MAX_NODES)).toFixed(3))} mm`);
-  const inside = insideFlags(T, o, h, n), phi = new Float64Array(n[0] * n[1] * n[2]).fill(-t), nt = T.length / 9;
-  // (Triangles binned on a grid of cell R: a node's nearest within R is in its 27 neighbouring cells.)
+/** A mesh's triangles binned on a grid of cell R, for a point's depth below it (its distance to the nearest triangle, to R). */
+export interface DepthBins { T: Float64Array; lo: readonly number[]; R: number; bn: number[]; bins: Map<number, number[]>; seen: Int32Array; mark: number }
+export function depthBins(m: DisplayMesh, R: number): DepthBins {
+  const T = trianglesOf(m), lo = m.bounds.min, hi = m.bounds.max, nt = T.length / 9;
   const bn = [0, 1, 2].map(k => Math.max(1, Math.ceil((hi[k] - lo[k]) / R) + 1)), bins = new Map<number, number[]>();
   for (let tr = 0; tr < nt; tr++) {
     const b = tr * 9, c0 = [0, 1, 2].map(k => cellOf(Math.min(T[b + k], T[b + 3 + k], T[b + 6 + k]), k, lo, R, bn)), c1 = [0, 1, 2].map(k => cellOf(Math.max(T[b + k], T[b + 3 + k], T[b + 6 + k]), k, lo, R, bn));
     for (let z = c0[2]; z <= c1[2]; z++) for (let y = c0[1]; y <= c1[1]; y++) for (let x = c0[0]; x <= c1[0]; x++) { const key = (z * bn[1] + y) * bn[0] + x; let l = bins.get(key); if (!l) { l = []; bins.set(key, l); } l.push(tr); }
   }
-  const seen = new Int32Array(nt).fill(-1);
+  return { T, lo, R, bn, bins, seen: new Int32Array(nt).fill(-1), mark: 0 };
+}
+/** A point's distance to the nearest triangle, if within R (its 27 neighbouring cells); R otherwise. */
+export function depthAt(d: DepthBins, px: number, py: number, pz: number): number {
+  const { lo, R, bn, bins, seen } = d, mark = ++d.mark, cx = cellOf(px, 0, lo, R, bn), cy = cellOf(py, 1, lo, R, bn), cz = cellOf(pz, 2, lo, R, bn);
+  let best = R * R;
+  for (let z = Math.max(0, cz - 1); z <= Math.min(bn[2] - 1, cz + 1); z++) for (let y = Math.max(0, cy - 1); y <= Math.min(bn[1] - 1, cy + 1); y++) for (let x = Math.max(0, cx - 1); x <= Math.min(bn[0] - 1, cx + 1); x++) {
+    const l = bins.get((z * bn[1] + y) * bn[0] + x); if (!l) continue;
+    for (const tr of l) { if (seen[tr] === mark) continue; seen[tr] = mark; const q = dist2(d.T, tr, px, py, pz); if (q < best) best = q; }
+  }
+  return Math.sqrt(best);
+}
+export function cavityField(m: DisplayMesh, t: number, h: number): Grid {
+  const lo = m.bounds.min, hi = m.bounds.max, R = t + 2 * h;
+  const o: Vec3 = [lo[0] - 2 * h + OFFSETS[0] * h, lo[1] - 2 * h + OFFSETS[1] * h, lo[2] - 2 * h + OFFSETS[2] * h];
+  const n: [number, number, number] = [0, 1, 2].map(k => Math.ceil((hi[k] - o[k] + 2 * h) / h) + 1) as [number, number, number];
+  if (n[0] * n[1] * n[2] > MAX_NODES) throw new HollowError('GRID_TOO_FINE', `${n.join(' × ')} nodes at h ${h} mm, over ${MAX_NODES}: take h ≥ ${(+(h * Math.cbrt(n[0] * n[1] * n[2] / MAX_NODES)).toFixed(3))} mm`);
+  // (Triangles binned on a grid of cell R: a node's nearest within R is in its 27 neighbouring cells.)
+  const d = depthBins(m, R), inside = insideFlags(d.T, o, h, n), phi = new Float64Array(n[0] * n[1] * n[2]).fill(-t);
   for (let k = 0; k < n[2]; k++) for (let j = 0; j < n[1]; j++) for (let i = 0; i < n[0]; i++) {
     const id = (k * n[1] + j) * n[0] + i; if (!inside[id]) continue;
-    const px = o[0] + i * h, py = o[1] + j * h, pz = o[2] + k * h, cx = cellOf(px, 0, lo, R, bn), cy = cellOf(py, 1, lo, R, bn), cz = cellOf(pz, 2, lo, R, bn);
-    let best = R * R;
-    for (let z = Math.max(0, cz - 1); z <= Math.min(bn[2] - 1, cz + 1); z++) for (let y = Math.max(0, cy - 1); y <= Math.min(bn[1] - 1, cy + 1); y++) for (let x = Math.max(0, cx - 1); x <= Math.min(bn[0] - 1, cx + 1); x++) {
-      const l = bins.get((z * bn[1] + y) * bn[0] + x); if (!l) continue;
-      for (const tr of l) { if (seen[tr] === id) continue; seen[tr] = id; const d = dist2(T, tr, px, py, pz); if (d < best) best = d; }
-    }
-    phi[id] = Math.sqrt(best) - t;
+    phi[id] = depthAt(d, o[0] + i * h, o[1] + j * h, o[2] + k * h) - t;
   }
   return { o, h, n, phi };
 }
 
 // ——— marching tetrahedra
 // (The cube's corners by bit (x, y, z) and its six tetrahedra about the diagonal 0 → 7.)
-const CORNER = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];
-const TETS = [[0, 1, 3, 7], [0, 3, 2, 7], [0, 2, 6, 7], [0, 6, 4, 7], [0, 4, 5, 7], [0, 5, 1, 7]];
+export const CORNER = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];
+export const TETS = [[0, 1, 3, 7], [0, 3, 2, 7], [0, 2, 6, 7], [0, 6, 4, 7], [0, 4, 5, 7], [0, 5, 1, 7]];
 interface March { g: Grid; positions: number[]; indices: number[]; vert: Map<number, number>; N: number }
 /** The vertex where φ crosses 0 on the grid edge a–b, shared by every triangle on that edge. */
 function vertexOn(m: March, a: number, b: number): number {
   const key = a < b ? a * m.N + b : b * m.N + a, have = m.vert.get(key); if (have !== undefined) return have;
-  const s = m.g.phi[a] / (m.g.phi[a] - m.g.phi[b]), pa = nodeAt(m.g, a), pb = nodeAt(m.g, b);
+  // (Strictly inside the edge: a field exactly 0 at a node — a drain's radius a whole number of steps from its axis — would
+  // put every edge's vertex there, coincident, and their triangles of no area crack the mesh. 1e-9 of an edge moves nothing.)
+  const s = Math.min(1 - 1e-9, Math.max(1e-9, m.g.phi[a] / (m.g.phi[a] - m.g.phi[b]))), pa = nodeAt(m.g, a), pb = nodeAt(m.g, b);
   m.positions.push(pa[0] + s * (pb[0] - pa[0]), pa[1] + s * (pb[1] - pa[1]), pa[2] + s * (pb[2] - pa[2]));
   const v = m.positions.length / 3 - 1; m.vert.set(key, v); return v;
 }
 const IDS = new Int32Array(4), PIN = new Int32Array(4), POUT = new Int32Array(4);
 /** The surface φ = 0 of the region φ > 0 as a closed mesh, outward (towards φ < 0); vertices shared by grid edge. */
-export function marchingTetrahedra(g: Grid): { positions: number[]; indices: number[] } {
+export function marchingTetrahedra(g: Grid): { positions: number[]; indices: number[]; edges: Float64Array } {
   const m: March = { g, positions: [], indices: [], vert: new Map(), N: g.n[0] * g.n[1] * g.n[2] };
   for (let k = 0; k + 1 < g.n[2]; k++) for (let j = 0; j + 1 < g.n[1]; j++) for (let i = 0; i + 1 < g.n[0]; i++) {
     for (let tt = 0; tt < 6; tt++) {
@@ -130,9 +141,11 @@ export function marchingTetrahedra(g: Grid): { positions: number[]; indices: num
       }
     }
   }
-  return { positions: m.positions, indices: m.indices };
+  // (Each vertex's grid edge, a·N + b with a < b: what a later pass needs to move it along its edge.)
+  const edges = new Float64Array(m.positions.length / 3); for (const [key, v] of m.vert) edges[v] = key;
+  return { positions: m.positions, indices: m.indices, edges };
 }
-const nodeAt = (g: Grid, id: number): Vec3 => { const i = id % g.n[0], r = (id - i) / g.n[0], j = r % g.n[1], k = (r - j) / g.n[1]; return [g.o[0] + i * g.h, g.o[1] + j * g.h, g.o[2] + k * g.h]; };
+export const nodeAt = (g: Grid, id: number): Vec3 => { const i = id % g.n[0], r = (id - i) / g.n[0], j = r % g.n[1], k = (r - j) / g.n[1]; return [g.o[0] + i * g.h, g.o[1] + j * g.h, g.o[2] + k * g.h]; };
 /** A triangle, turned to face from the inside node `pin` towards the outside node `pout`. */
 function emit(g: Grid, P: number[], I: number[], t0: number, t1: number, t2: number, pin: number, pout: number): void {
   const a = t0 * 3, b = t1 * 3, c = t2 * 3, ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
@@ -222,7 +235,7 @@ function rayHit(m: DisplayMesh, ox: number, oy: number, oz: number, dx: number, 
 const refusalOf = (e: unknown) => { const x = e as { detail?: string; title?: string } | string; return typeof x === 'string' ? x : x?.detail ?? x?.title ?? JSON.stringify(x); };
 
 /** A blob put by its SHA-256 at once (the command's build is synchronous): the hash the store's own would give. */
-function putNow(a: BlobArray): string { const h = sha256Hex(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)); putKnownBlob(h, a); return h; }
+export function putNow(a: BlobArray): string { const h = sha256Hex(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)); putKnownBlob(h, a); return h; }
 
 /** The hollowing's features appended: the cavity mesh, its difference from the body, a drain into each cavity. */
 export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: HollowOptions): { doc: StudioDoc; report: HollowReport } {

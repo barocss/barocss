@@ -2744,5 +2744,52 @@ Following the coordinator's points: the skin stays exact, the lattice only insid
   - **ε_clip = ℓ·h²/V**: ℓ is the length of the lattice's kink against the cavity walls, the edges between its wall triangles and its gyroid triangles, measured on the mesh;
   - with drains, the lattice's volume is less than without, by no more than Σ π r²·(cavity height).
 - **Mass:** the part's mass is the shell's B-rep volume plus the lattice body's, with no overlap (the lattice is inside φ_c > 0). It is checked against the kernel's intersection on a coarse case.
+- **Refinements, before any code** (working the bounds through):
+  - **The band is min(k − G, k + G)**, the same region as k − |G|, written as two smooth level sets;
+  - **H = 4ω², not 3ω²**: by Gershgorin, a diagonal entry of G's Hessian has two terms and a mixed one one term;
+  - **ε_MT = A·(3ω²h²/2)/(g·V)**. A Kuhn tetrahedron's circumradius² is 3h²/4, and linear interpolation errs by at most H·r²/2 in the field, so the surface moves by at most that over g;
+  - **ε_clip becomes ε_mix = N·(h³/6)/V.** N is the number of tetrahedra a surface crosses whose active term changes inside them: at the band's G = 0 kink, or where the band meets the cavity wall or a drain. In those, the true and meshed surfaces both lie within the tetrahedron, so its volume bounds the error. N is counted while meshing, a rigorous replacement for the estimated kink length;
+  - **STEP**: the export has no body filter (`stepFor` writes every output), so leaving the lattice out of STEP needs a change in `engine/evaluate.ts`. As frozen, that stops and goes to the coordinator. Until they say, STEP carries the lattice as a faceted body, said in the report.
 - **Refusals, typed:** `NOT_HOLLOW`; `BAD_VALUES` (L ≤ 0, k outside (0, 1.5), h > L/4); `GRID_TOO_FINE` (O53's).
 - **Exposure:** the command in the palette and `run_command` (the contract regenerated); a flow step before the last.
+
+## O58 — AM7b done: a gyroid lattice infill, its wall vertices on the exact wall, one drain a round (2026-10-20)
+
+The `lattice` command ("Fill with a lattice", `src/print/lattice.ts`) is built as O57 froze it: option B, a separate facet `mesh` body named `lattice` inside a part hollowed by `hollow`'s exact shell, the shell's B-rep unchanged but for the new drains. No kernel change. Four points changed in the building, each from a failure seen:
+
+- **The wall vertices on the wall (`snapToWall`).** Marching tetrahedra puts a vertex at the zero of the *interpolated* min. Where the band is the least term at an edge's inside node and the wall at its outside node, the vertex misses the wall. At L 15, h 2.5 a 24-triangle piece in the cavity's corner floated 0.008 mm off it, and the old keep rule (φ_c ≤ h/2 by the grid) kept it.
+  - Now each vertex whose edge's first crossing from its inside node is the wall's moves to the exact root of depth − t on that edge. That root is found by bisection on the exact depth (`depthBins`/`depthAt`, factored out of O53's `cavityField`, which now uses them).
+  - The other terms' crossings are linear, each in its own term. The vertex stays ≥ τ from a node (the weld).
+  - Topology is unchanged. Every vertex stays on its edge, so the ε_mix argument (the surfaces within the tetrahedron) holds.
+- **A piece is kept if it touches the wall**, which means it has a vertex at the exact depth t, to 2τ. Otherwise it is dropped and reported. On the coarse kernel case, every shell–piece pair measures clearance 0 with no overlap.
+- **Drains, one a round.** Adding a drain to every undrained region at once gave 13–44 drains on coarse grids. Regions stacked over one another got holes on the same axis, so the second hole cut nothing ("the hole misses the body"). Holes near each other met along an edge.
+  - Now each round drains only the largest undrained region, and the flood fill reruns. The new column, carved up through the lattice, drains every region it passes.
+  - Its axis is the floor node nearest the floor's centroid that keeps 2r + h clear of every column, and it gets a hole of its own.
+  - Failing that, the column goes at the region's lowest node whose column overlaps another's by h. That column is *joined* to the other's drain and gets no hole (`report.joined`).
+  - After 64 rounds the refusal is `UNDRAINED`.
+- **h at most the drain's radius** (`BAD_VALUES`). A column that holds no grid node drains nothing. This is why coarse grids fragmented.
+
+**Measured (`test/lattice.test.ts`, 12 s; it was 216 s):**
+- **Fraction** (O57's case: a 30 × 30 × 18 box, t 3, L 6, k 0.6, h 0.5, no drains):
+  - the lattice is 0.38740 vs f(k) 0.38929, |Δ| 0.00189;
+  - the bound is ε_MT 0.344 + ε_mix 0.264 + 4σ 0.00195 (87 552 mixed tetrahedra, g 1.328);
+  - the bound holds, though as derived it is loose by two orders. The measured error is near 4σ.
+- **Filled, the same box with its 3 mm drain:**
+  - 2 pieces, 0 dropped, 1 drain added (0 joined), 9391 wall vertices snapped;
+  - 253 040 triangles, lattice 2666.9 mm³;
+  - the lattice bodies' volumes sum to the report's;
+  - the shell is lighter, because the new drain cuts it;
+  - each body's voxels at 0.25 mm, OR'd: the solid is one 6-connected component and no empty voxel is enclosed.
+  - (One merged triangle soup's parity flipped where the lattice meets the wall: 8 false one-voxel voids. The check ORs per body.)
+- **The kernel's intersection** (24 × 24 × 18, t 3, a 6 mm drain, L 12, k 0.8, h 3; 344 triangles, 6 pieces, 8 drains):
+  - no pair overlaps;
+  - every piece is at clearance 0 from the shell.
+  - The kernel's mesh Boolean takes 25–230 s past ~1000 triangles (12 340 triangles: 170 s), so the case is this coarse.
+- **Refusals:** `NOT_HOLLOW` and `BAD_VALUES` (including h past the drain's radius).
+
+**Exposure:**
+- the command, available on one body hollowed by `hollow`, with defaults cell 8, k 0.6, h 0.5;
+- `COMMAND_DOCS` and the contract regenerated;
+- the flow step "AM7b" before the last: the AM7a block filled from the palette, the shell first and no fuller.
+
+**STEP, still open for the coordinator:** STEP carries the lattice as a faceted body. Leaving it out needs a body filter in `engine/evaluate.ts` `stepFor`. That is outside this lane until the coordinator says.
