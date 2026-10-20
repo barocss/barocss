@@ -1,0 +1,189 @@
+{
+  "id": "r12-corner-relief-box-square",
+  "step": "R12",
+  "decisions": [
+    "D119"
+  ],
+  "about": "R12.3b: an open-corner box — a 4 mm square relief off each corner, then four full-length 90° flanges (material inside, 20 to the outer sharp): its volume, its flat (80 + 2(20 − BD)) × (50 + 2(20 − BD)), four bends up.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "c0",
+          "kind": "sheet-corner-relief",
+          "target": "b",
+          "corner": "b.side0|b.side1",
+          "shape": "square",
+          "size": 4
+        },
+        {
+          "id": "c1",
+          "kind": "sheet-corner-relief",
+          "target": "c0",
+          "corner": "b.side1|b.side2",
+          "shape": "square",
+          "size": 4
+        },
+        {
+          "id": "c2",
+          "kind": "sheet-corner-relief",
+          "target": "c1",
+          "corner": "b.side2|b.side3",
+          "shape": "square",
+          "size": 4
+        },
+        {
+          "id": "c3",
+          "kind": "sheet-corner-relief",
+          "target": "c2",
+          "corner": "b.side0|b.side3",
+          "shape": "square",
+          "size": 4
+        },
+        {
+          "id": "f0",
+          "kind": "sheet-flange",
+          "target": "c3",
+          "edge": "b.side0|b.top",
+          "length": 20
+        },
+        {
+          "id": "f1",
+          "kind": "sheet-flange",
+          "target": "f0",
+          "edge": "b.side1|b.top",
+          "length": 20
+        },
+        {
+          "id": "f2",
+          "kind": "sheet-flange",
+          "target": "f1",
+          "edge": "b.side2|b.top",
+          "length": 20
+        },
+        {
+          "id": "f3",
+          "kind": "sheet-flange",
+          "target": "f2",
+          "edge": "b.side3|b.top",
+          "length": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11900.727773468674,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            40,
+            24.99999999999999,
+            6.0794755328097265
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.top",
+          "c0.side1",
+          "c0.side2",
+          "c1.side2",
+          "c2.side2",
+          "f0.bend.inner",
+          "f0.bend.outer",
+          "f0.leg.inner",
+          "f0.leg.outer",
+          "f0.tip",
+          "f1.bend.inner",
+          "f1.bend.outer",
+          "f1.leg.inner",
+          "f1.leg.outer",
+          "f2.bend.inner",
+          "f2.bend.outer",
+          "f2.leg.inner",
+          "f2.leg.outer",
+          "f3.bend.inner",
+          "f3.bend.outer",
+          "f3.leg.inner",
+          "f3.leg.outer"
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 7901.585775019952,
+            "relTol": 1e-9
+          },
+          "box": {
+            "value": [
+              114.78584013175396,
+              84.78584013175396
+            ],
+            "absTol": 1e-9
+          },
+          "loops": 1,
+          "bends": [
+            {
+              "name": "f0.bend",
+              "direction": "up",
+              "angleDegrees": 90
+            },
+            {
+              "name": "f1.bend",
+              "direction": "up",
+              "angleDegrees": 90
+            },
+            {
+              "name": "f2.bend",
+              "direction": "up",
+              "angleDegrees": 90
+            },
+            {
+              "name": "f3.bend",
+              "direction": "up",
+              "angleDegrees": 90
+            }
+          ]
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the plate less four s² T reliefs, each flange its edge less 2s long, less its trim (R + T) and plus its section; the flat box by the textbook BD, its area by the K-factor's identity on that volume. Centroid by this kernel."
+}

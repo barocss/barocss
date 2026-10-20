@@ -82,7 +82,7 @@ function sheetEdge(ctx: Parameters<Command['available']>[0]) {
   const sel = ctx.selection.edges;
   if (sel.length !== 1) return null;
   const body = ctx.bodies[sel[0].body], edge = body?.mesh.edges[sel[0].edge];
-  return body && edge && (body.flat || body.flatRefused) ? { body, edge } : null;
+  return body && edge && body.sheet ? { body, edge, T: body.sheet.thicknessMM } : null;
 }
 const POSITIONS = [{ value: 'material-inside', label: 'Material inside' }, { value: 'material-outside', label: 'Material outside' }, { value: 'bend-outside', label: 'Bend outside' }];
 const MEASURES = [{ value: 'outer', label: 'Outer sharp' }, { value: 'inner', label: 'Inner sharp' }, { value: 'tangent', label: 'From the bend' }];
@@ -112,7 +112,8 @@ export const sheetFlangeCommand: Command = {
     const p = sheetEdge(ctx); if (!p) throw new Error('Pick one straight edge of a sheet.');
     const [length, angle, r, o0, o1, rw, rd] = ['length', 'angle', 'r', 'o0', 'o1', 'rw', 'rd'].map(k => Number(v[k]));
     if (!(length > 0) || !(angle > 0 && angle < 180)) throw new Error('A flange has a length above 0 and bends between 0 and 180°.');
-    const partWidth = o0 > 0 || o1 > 0, relief = partWidth && (v.relief !== 'rectangular' || rw > 0 || rd > 0) ? { kind: v.relief as 'rectangular' | 'obround' | 'none', ...(rw > 0 && v.relief !== 'none' ? { width: rw } : {}), ...(rd > 0 && v.relief !== 'none' ? { depth: rd } : {}) } : undefined;
+    // (Part width: its relief written whole — the kernel defaults none (D119); 0 here is the sheet's T, an estimate.)
+    const partWidth = o0 > 0 || o1 > 0, relief = !partWidth ? undefined : v.relief === 'none' ? { kind: 'none' as const } : { kind: v.relief as 'rectangular' | 'obround', width: rw > 0 ? rw : p.T, depth: rd > 0 ? rd : p.T };
     const node: ModelNode = { kind: 'sheet-flange', parent: refOf(p.body), edges: [p.edge.names[0]], length,
       ...(angle !== 90 ? { angleDegrees: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
       ...(v.position !== 'material-inside' ? { position: v.position as 'material-outside' | 'bend-outside' } : {}), ...(partWidth ? { offsets: [o0, o1] as [number, number] } : {}), ...(relief ? { relief } : {}) };
@@ -120,4 +121,23 @@ export const sheetFlangeCommand: Command = {
   },
 };
 
-export const sheetCommands = [sheetPlateCommand, sheetProfileCommand, sheetFlangeCommand];
+/**
+ * A corner relief (R12.3b, D119): pick the edge of a plate's corner (between its two thickness faces) before flanging its
+ * two edges; a square or a round quarter cut off it, its size by default the sheet's R + T — the setback of a square
+ * bend, so flanges on both edges, full length, clear each other (a round one needs √2 that).
+ */
+export const sheetCornerReliefCommand: Command = {
+  id: 'sheet-corner-relief', label: 'Corner relief', icon: 'cad-sheet-corner', group: 'modify', keywords: 'sheet metal corner relief notch cut',
+  hint: 'Cut a square or round relief off a sheet plate\u2019s corner (pick its corner edge) so the flanges of its two edges clear each other',
+  available: ctx => sheetEdge(ctx) ? ok : no('Pick the edge of a sheet plate\u2019s corner (between its two thickness faces).'),
+  fields: () => [{ key: 'shape', label: 'Shape', kind: 'choice', options: [{ value: 'square', label: 'Square' }, { value: 'round', label: 'Round' }] }, { key: 'size', label: 'Size (default R + T)', kind: 'mm', min: 0.1 }],
+  defaults: ctx => { const p = sheetEdge(ctx), b = p?.body.sheet; return { shape: 'square', size: b ? +(b.bendRadiusMM + b.thicknessMM).toFixed(6) : 3 }; },
+  steps: ctx => { const p = sheetEdge(ctx); return [{ label: 'Corner', text: p ? p.edge.names[0] : 'pick a corner edge of a sheet', done: !!p }]; },
+  build: (ctx, v) => {
+    const p = sheetEdge(ctx); if (!p) throw new Error('Pick a corner edge of a sheet.');
+    const size = Number(v.size); if (!(size > 0)) throw new Error('Give the relief a size above 0.');
+    return withNode(ctx.doc, { kind: 'sheet-corner-relief', parent: refOf(p.body), edges: [p.edge.names[0]], shape: v.shape === 'round' ? 'round' : 'square', size });
+  },
+};
+
+export const sheetCommands = [sheetPlateCommand, sheetProfileCommand, sheetFlangeCommand, sheetCornerReliefCommand];

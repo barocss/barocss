@@ -34,6 +34,7 @@ const SPECS: Record<string, Spec> = {
   hole: { parent: 'ref', center: 'dim2', radius: 'dim', 'axis?': 'enum:x|y|z', 'side?': 'enum:min|max', 'depth?': 'dim' },
   // (R12.1, D116: sheet metal, its rules on each feature.)
   'sheet-base': { sketch: 'sketch', thickness: 'dim', bendRadius: 'dim', kFactor: 'num', 'reverse?': 'bool' },
+  'sheet-corner-relief': { parent: 'ref', edges: 'names1', shape: 'enum:square|round', size: 'dim' },
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', kFactor: 'num' },
 };
@@ -162,13 +163,13 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
 function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
   const r = (name: string) => renameFeatureIds(name, rename);
   if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
-  if (node.kind === 'sheet-flange') return { ...node, edges: [r(node.edges[0])] };
+  if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
   if (node.kind === 'draft') return { ...node, faces: node.faces.map(r) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

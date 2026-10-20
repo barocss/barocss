@@ -71,7 +71,8 @@ test('tool schemas: every buildable command is exposed and documented with the H
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     const ctx: Ctx = id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
-      : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
+      : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) }
+      : id === 'sheet-corner-relief' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side0|n1.side1')) }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);

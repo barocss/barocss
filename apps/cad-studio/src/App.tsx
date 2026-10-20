@@ -2325,7 +2325,7 @@ export function App() {
 function iconFor(n: ModelNode) {
   if ('made' in n && n.made) return 'cad-' + n.made.command;
   return ({ extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
-    translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch', 'sheet-base': 'cad-sheet-plate', 'sheet-contour': 'cad-sheet-profile', 'sheet-flange': 'cad-sheet-flange' } as Record<string, string>)[n.kind] ?? 'category';
+    translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch', 'sheet-base': 'cad-sheet-plate', 'sheet-contour': 'cad-sheet-profile', 'sheet-flange': 'cad-sheet-flange', 'sheet-corner-relief': 'cad-sheet-corner' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
 /** A point tried against a body: inside, outside or on it. */

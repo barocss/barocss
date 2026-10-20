@@ -129,7 +129,8 @@ test('D118 Flange: offered for one straight edge of a sheet; built on a plate\'s
   assert.deepEqual(editFields(next.nodes, 2).map(f => f.key), ['length', 'angle']);
   // Part width: offsets and an obround relief.
   const part = cmd.build!(ctx, { ...cmd.defaults!(ctx), o0: 10, o1: 25, relief: 'obround', angle: 120 });
-  assert.deepEqual(noId(part.nodes[2]), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20, angleDegrees: 120, offsets: [10, 25], relief: { kind: 'obround' } });
+  // (Its relief written whole: the sheet's T for the width and depth left at 0, D119.)
+  assert.deepEqual(noId(part.nodes[2]), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20, angleDegrees: 120, offsets: [10, 25], relief: { kind: 'obround', width: 1.5, depth: 1.5 } });
   assert.ok(bodiesOf(part)[0].flat!.bends.length === 1);
   const read = readStudioDoc(JSON.stringify(part)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-flange');
   // The agent's raw node: checked, built.
@@ -137,4 +138,25 @@ test('D118 Flange: offered for one straight edge of a sheet; built on a plate\'s
   const a = await dispatchTool({ doc, bodies: r0.bodies }, 'add_features', { features: [{ kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side3|n1.top'], length: 15, position: 'bend-outside' }] }, evaluate);
   assert.ok(!a.isError, a.content);
   assert.equal(a.state.bodies[0].flat!.bends.length, 1);
+});
+
+test('D119 Corner relief: on a sheet plate\'s corner edge, square or round, its size by default R + T; then flanges on both edges clear each other; a flange with offsets writes its relief whole', () => {
+  const cmd = commands.find(c => c.id === 'sheet-corner-relief')!, T = 1.5, R = 1.5;
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] });
+  doc = withNode(doc, { kind: 'sheet-base', sketch: 0, thickness: T, bendRadius: R, kFactor: 0.44 });
+  const bodies = bodiesOf(doc), corner = bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side0|n1.side1'));
+  const ctx = { doc, bodies, selection: { faces: [], edges: [{ body: 0, edge: corner }], bodies: [] } } as never;
+  assert.equal(cmd.available(ctx).ok, true);
+  assert.deepEqual(cmd.defaults!(ctx), { shape: 'square', size: 3 });
+  const next = cmd.build!(ctx, { shape: 'round', size: 4.5 }), node = next.nodes[2];
+  assert.deepEqual(noId(node), { kind: 'sheet-corner-relief', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.side1'], shape: 'round', size: 4.5 });
+  assert.equal(featureLabel(node, 2, next.nodes), 'Corner relief round 4.5');
+  assert.deepEqual(editFields(next.nodes, 2).map(f => f.key), ['size']);
+  const [b] = bodiesOf(next);
+  assert.ok(Math.abs(b.volumeMM3! - (80 * 50 - Math.PI * 4.5 * 4.5 / 4) * T) < 1e-9, `${b.volumeMM3}`);
+  // Two flanges on the corner's edges, full length: built, both bends in the flat.
+  let both = withNode(next, { kind: 'sheet-flange', parent: { node: 2, side: 'solid' }, edges: ['n1.side0|n1.top'], length: 20 });
+  both = withNode(both, { kind: 'sheet-flange', parent: { node: 3, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20 });
+  assert.equal(bodiesOf(both)[0].flat!.bends.length, 2);
+  const read = readStudioDoc(JSON.stringify(both)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-corner-relief');
 });

@@ -281,6 +281,11 @@ function checkThickness(c: Ctx, skin: Set<string>): void {
     if (touches && !off) continue;
     // A face facing a skin face across the sheet, at another distance: the sheet is not T thick there.
     const g = c.geo.get(fid)!;
+    // One in a skin face's own plane, not reached: a piece of the skin cut off from it (held at a point or along a thin).
+    if (g.kind === 'plane') for (const a of skin) {
+      const h = c.geo.get(a)!;
+      if (h.kind === 'plane' && dot(g.n, h.n) > 1 - 1e-12 && Math.abs(dot(sub(g.o, h.o), h.n)) <= c.tol) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies in the skin's plane but is cut off from it (held only at a point): a sliver left between cuts`);
+    }
     if (g.kind === 'plane') for (const a of skin) {
       const h = c.geo.get(a)!;
       if (h.kind === 'plane' && dot(g.n, h.n) < -1 + 1e-12) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies ${fmt(-dot(sub(g.o, h.o), h.n))} mm from the skin face ${nameOf(c, a)}, not the sheet's ${fmt(c.T)} mm`);
