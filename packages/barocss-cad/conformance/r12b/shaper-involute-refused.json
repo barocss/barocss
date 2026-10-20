@@ -1,0 +1,36 @@
+{
+  "id": "r12b-shaper-involute-refused",
+  "step": "R12b",
+  "decisions": [
+    "D133"
+  ],
+  "about": "A 20-tooth cutter in an unshifted 60-tooth ring: the ring's tips meet it below its base circle (K1's note: cutters of 15–22 teeth cause involute interference): refused, naming the ring shift that clears it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 60,
+          "faceWidth": 10,
+          "rim": 150,
+          "generator": "internal-gear@1",
+          "cutter": {
+            "teeth": 20
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "ring shift"
+    }
+  }
+}

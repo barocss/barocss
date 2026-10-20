@@ -210,7 +210,11 @@ type ModelNodeBase = SketchNode
    * pinion's hand), teeth, face width and the rim's outer diameter `rim`; profile shift x2, thickness reduction; standing
    * on z `from` about `center`, turned `rotation` degrees (tooth 1 on +X at 0). A gear meshes inside it by its `mesh`.
    */
-  | { kind: 'internal-gear'; module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; generator: 'internal-gear@0' }
+  | { kind: 'internal-gear'; module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; rim: Dim; profileShift?: number; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; generator: 'internal-gear@0' | 'internal-gear@1';
+    /** x2 left at the Internal gear command's default 0.5 (D132): its notes say so, as an estimate's would. */
+    shiftDefault?: boolean;
+    /** `internal-gear@1` (R12b.2b, D133): the pinion-type cutter that cuts its root — teeth, shift, tip radius (the default an estimate). */
+    cutter?: { teeth: number; shift?: number; tipRadius?: Dim } }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
     module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' | 'spur-gear@1'; toolTipRadius?: Dim }

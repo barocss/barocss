@@ -1,0 +1,36 @@
+{
+  "id": "r12b-shaper-trimming-refused",
+  "step": "R12b",
+  "decisions": [
+    "D133"
+  ],
+  "about": "A 30-tooth cutter fed radially into a 47-tooth ring trims its teeth (K1 Table 4.8(1): 30 → 48 the least): refused.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 47,
+          "faceWidth": 10,
+          "rim": 126,
+          "generator": "internal-gear@1",
+          "cutter": {
+            "teeth": 30
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "TRIMMING_INTERFERENCE"
+    }
+  }
+}

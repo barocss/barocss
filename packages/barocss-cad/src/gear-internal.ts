@@ -12,8 +12,10 @@ import type { Brep } from './brep-core.js';
 import type { Curve } from './types.js';
 import {
   GearError, inv, spurGearDimensions, spurGearProfile, extrudedProfile, helixTwist, arcCurve, reversed, safeId, exactProfile, segmentsCross, pointSegment, orient,
-  type GearDiagnostic, type SpurGearSpec, type SpurGearReport,
+  flankPoles, flankDeviation, bezierKnots, envelopeBreaks, envelopePoles, envelopeDeviation,
+  type Envelope, type GearDiagnostic, type SpurGearSpec, type SpurGearReport,
 } from './gear.js';
+import type { Point } from './types.js';
 
 /** Version 0 of the internal gear's inputs (lengths in mm). */
 export interface InternalGearSpec {
@@ -36,9 +38,16 @@ export interface InternalGearSpec {
   readonly profileToleranceMM?: number;
   /** The least rim beyond the root circle; default 1 m (geometry only: not a strength check). */
   readonly minimumRimMM?: number;
+  /**
+   * The root (R12b.2b, D133): 'schematic-corner' (the default; internal-gear@0) or 'shaper-cut' (internal-gear@1): the
+   * root a pinion-type `cutter` generates — its teeth z0, its shift x0 (default 0; its addendum 1.25 m + x0 m, its tooth
+   * m(π/2 + 2 x0 tan α)), its tip radius (default 0.38 m, the basic rack's: an estimate for a cutter's). Straight rings only.
+   */
+  readonly rootPolicy?: 'schematic-corner' | 'shaper-cut';
+  readonly cutter?: { readonly teeth: number; readonly profileShiftCoefficient?: number; readonly tipRadiusMM?: number };
 }
 export interface InternalGearReport {
-  readonly generator: 'internal-gear@0';
+  readonly generator: 'internal-gear@0' | 'internal-gear@1';
   readonly dimensions: {
     readonly referenceDiameterMM: number; readonly baseDiameterMM: number;
     /** The tip circle (inside) and the root circle (outside), the rim's outer diameter. */
@@ -48,11 +57,135 @@ export interface InternalGearReport {
   readonly profileShift: number;
   readonly helix?: SpurGearReport['helix'];
   readonly flankPieces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
-  readonly rootPolicy: 'schematic-corner'; readonly manufacturingValidated: false;
+  readonly rootPolicy: 'schematic-corner' | 'shaper-cut'; readonly manufacturingValidated: false;
+  /**
+   * A shaper-cut root's (R12b.2b): the cutter (teeth, shift, tip radius), the cutting centre distance and pressure angle,
+   * the diameter where the ring's involute ends at its root (the fillet's start) and whether the cutter's round crosses
+   * the involute there, the fillet's pieces and measured deviation.
+   */
+  readonly shaperRoot?: { readonly cutterTeeth: number; readonly cutterShift: number; readonly cutterTipRadiusMM: number; readonly cuttingCenterDistanceMM: number; readonly cuttingPressureAngleDeg: number;
+    readonly formDiameterMM: number; readonly crossing: boolean; readonly filletPieces: number; readonly filletDeviationMM: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
-const MIN_SHIFT = -0.5, MAX_SHIFT = 0.75;
+const MIN_SHIFT = -0.5, MAX_SHIFT = 0.75, MAX_FILLET_PIECES = 15, MAX_PIECES = 5;
+
+/**
+ * A pinion-type cutter's tip round as it cuts the ring (R12b.2b, D133), in the frame where the space it cuts is centred
+ * on +Y: the cutter's centre at (0, a_c), its tooth on +Y from there; as the ring turns φ the cutter turns φ z2/z0, the
+ * same way, about its centre. The round's centre at φ 0 is (qx, qy); the pitch point (0, rw2). The ring is touched at
+ * the round's point on the line from its centre away from the pitch point (its normal through the instant centre, as
+ * the rack's, D129), turned back by −φ. `phiRoot`: the turn at which the round's centre crosses the line of centres
+ * (its point on the cutter's tip circle cuts the root circle); `phiEnd`: where the fillet meets the ring's involute.
+ */
+class ShaperRoot implements Envelope {
+  constructor(readonly k: number, readonly ac: number, readonly rw2: number, readonly rho: number, readonly qx: number, readonly qy: number, readonly phiRoot: number, public phiEnd: number) {}
+  point(phi: number): [number, number] {
+    const pc = phi * this.k, c = Math.cos(pc), s = Math.sin(pc), dy0 = this.qy - this.ac, Qx = c * this.qx - s * dy0, Qy = this.ac + s * this.qx + c * dy0;
+    const dx = Qx, dy = Qy - this.rw2, L = Math.hypot(dx, dy), wx = Qx + this.rho * dx / L, wy = Qy + this.rho * dy / L, cr = Math.cos(phi), sr = Math.sin(phi);
+    return [cr * wx + sr * wy, -sr * wx + cr * wy];
+  }
+  /** p′ = Rot(−φ)(w′ − J w); w′ = Q′ + ρ u′, Q′ = k J (Q − C0), u′ = (Q′ − u (u·Q′)) / L. */
+  derivative(phi: number): [number, number] {
+    const pc = phi * this.k, c = Math.cos(pc), s = Math.sin(pc), dy0 = this.qy - this.ac, Qx = c * this.qx - s * dy0, Qy = this.ac + s * this.qx + c * dy0;
+    const dQx = -this.k * (Qy - this.ac), dQy = this.k * Qx, dx = Qx, dy = Qy - this.rw2, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, ud = ux * dQx + uy * dQy;
+    const wx = Qx + this.rho * ux, wy = Qy + this.rho * uy, dwx = dQx + this.rho * (dQx - ux * ud) / L, dwy = dQy + this.rho * (dQy - uy * ud) / L;
+    const vx = dwx + wy, vy = dwy - wx, cr = Math.cos(phi), sr = Math.sin(phi);
+    return [cr * vx + sr * vy, -sr * vx + cr * vy];
+  }
+}
+/** The ring's involute's polar angle at ρ, on the right of the space centred on +Y (its space gear's tooth there, half-angle ψ_s at the base). */
+const ringInvoluteAt = (psiS: number, rb: number, rho: number) => Math.PI / 2 - psiS + inv(Math.acos(Math.min(1, rb / rho)));
+function filletOff(S: ShaperRoot, phi: number, psiS: number, rb: number): number {
+  const p = S.point(phi), r = Math.hypot(p[0], p[1]);
+  return r < rb ? NaN : Math.atan2(p[1], p[0]) - ringInvoluteAt(psiS, rb, r);
+}
+/**
+ * The largest tip round a cutter's tooth holds (its centre on the tooth's middle): the round ρ off the flank with its
+ * centre at ra0 − ρ, by bisection in ρ on the centre's angle about the cutter's centre (D133).
+ */
+function largestTipRadius(rb0: number, ra0: number, psi0: number, m: number): number {
+  const tTip = Math.sqrt((ra0 / rb0) ** 2 - 1);
+  let lo = 0, hi = 0.6 * m;
+  for (let i = 0; i < 80; i++) {
+    const rho = (lo + hi) / 2, want = ra0 - rho;
+    // The offset flank's roll at radius want, by bisection; its angle about the cutter's centre against π/2.
+    let a = 0, b = tTip;
+    for (let j = 0; j < 80; j++) { const t = (a + b) / 2, ang = -psi0 + t - Math.atan(t), rr = rb0 * Math.sqrt(1 + t * t), be = -psi0 + t, x = rr * Math.cos(ang) - rho * Math.sin(be), y = rr * Math.sin(ang) + rho * Math.cos(be); if (Math.hypot(x, y) < want) a = t; else b = t; }
+    const t = (a + b) / 2, ang = -psi0 + t - Math.atan(t), rr = rb0 * Math.sqrt(1 + t * t), be = -psi0 + t, y = rr * Math.sin(ang) + rho * Math.cos(be);
+    // (In the tooth's frame centred on +X here: the centre's y below 0 means it crossed the tooth's middle.)
+    if (y < 0) lo = rho; else hi = rho;
+  }
+  return lo;
+}
+/** A shaper-cut ring's cutting geometry (D133) — the cutter, its distance, the root, the fillet — and the checks the cutter makes. */
+interface Shaper { readonly z0: number; readonly x0: number; readonly rho: number; readonly ac: number; readonly alphaC: number; readonly ra0: number; readonly rf: number; readonly S: ShaperRoot; readonly rStart: number; readonly crossing: boolean; readonly thetaJ: number }
+function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2: number, ra2: number, psiS: number, alpha: number): Shaper {
+  const c = spec.cutter;
+  if (!c || !(Number.isInteger(c.teeth) && c.teeth >= 8 && c.teeth <= z2 - 4)) throw new GearError('INVALID_INPUT', `a shaper-cut ring needs its cutter's teeth: a whole number from 8 to ${z2 - 4}`);
+  const z0 = c.teeth, x0 = c.profileShiftCoefficient ?? 0;
+  if (!(Number.isFinite(x0) && x0 >= MIN_SHIFT && x0 <= MAX_SHIFT)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `the cutter's shift ${x0}: from ${MIN_SHIFT} to ${MAX_SHIFT}`);
+  const r0 = m * z0 / 2, rb0 = r0 * Math.cos(alpha), ra0 = r0 + (1.25 + x0) * m, psi0 = m * (Math.PI / 2 + 2 * x0 * Math.tan(alpha)) / (2 * r0) + inv(alpha);
+  // (The tip radius: the toolmaker's; by default the basic rack's 0.38 m, or 80% of the largest the cutter's tip holds
+  // when that is less — a pinion cutter's 1.25 m addendum leaves a narrow tip. Either way an estimate, said so.)
+  const rho = c.tipRadiusMM ?? Math.min(0.38 * m, 0.8 * largestTipRadius(rb0, ra0, psi0, m));
+  // The cutting distance, the cutter's tooth filling the ring's space on their pitch circles: z2 (ψ_s − inv α_c) =
+  // z0 (ψ0 − inv α_c), so inv α_c = (z2 ψ_s − z0 ψ0)/(z2 − z0); a_c = m (z2 − z0) cos α / (2 cos α_c).
+  const target = (z2 * psiS - z0 * psi0) / (z2 - z0);
+  if (!(target > 0)) throw new GearError('SELF_INTERSECTION', 'the cutter does not fit the ring\'s spaces');
+  let w = alpha;
+  for (let i = 0; i < 60; i++) { const dw = (inv(w) - target) / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw new GearError('SELF_INTERSECTION', 'no cutting pressure angle for this cutter'); if (Math.abs(dw) < 1e-15) break; }
+  const ac = m * (z2 - z0) / 2 * Math.cos(alpha) / Math.cos(w), rw2 = ac * z2 / (z2 - z0), rf = ac + ra0;
+  // The cutter's own limits, as K1 tabulates them (Table 4.8; the trimming condition reproduces its boundary, D133):
+  // fed in radially it must not trim the ring's teeth; and the ring's tips must meet its involute, not below its base.
+  const aa0 = Math.acos(rb0 / ra0), aa2 = Math.acos(rb2 / ra2), q = (Math.cos(aa0) / Math.cos(aa2)) ** 2;
+  const t1 = Math.asin(Math.sqrt(Math.max(0, (1 - q) / (1 - (z0 / z2) ** 2)))), t2 = Math.asin(Math.sqrt(Math.max(0, (1 / q - 1) / ((z2 / z0) ** 2 - 1))));
+  const trim = (t1 + inv(aa0) - inv(w)) - (z2 / z0) * (t2 + inv(aa2) - inv(w));
+  if (!(trim >= 0)) throw new GearError('TRIMMING_INTERFERENCE', `a ${z0}-tooth cutter fed in radially trims the ${z2}-tooth ring's teeth (K1 Table 4.8's limit): a cutter of fewer teeth, or more ring teeth`);
+  const invM = z0 / z2 - (1 - Math.tan(aa2) / Math.tan(w));
+  if (!(invM >= 0)) throw new GearError('INVOLUTE_INTERFERENCE', `the ring's tips meet a ${z0}-tooth cutter below its base circle: their corners would be cut away (a ring shift x2 > 0, or more cutter teeth)`);
+  // The tip round: its centre at ra0 − ρ from the cutter's, ρ off the right flank (the cutter's tooth centred on +Y):
+  // on the flank's inward offset, by bisection in the roll.
+  const flank = (t: number): [number, number, number, number] => { const a = Math.PI / 2 - psi0 + t - Math.atan(t), rr = rb0 * Math.sqrt(1 + t * t), b = Math.PI / 2 - psi0 + t; return [rr * Math.cos(a), ac + rr * Math.sin(a), Math.sin(b), -Math.cos(b)]; };
+  const tTip = Math.sqrt((ra0 / rb0) ** 2 - 1), want = ra0 - rho, offR = (t: number) => { const f = flank(t); return Math.hypot(f[0] - rho * f[2], f[1] - rho * f[3] - ac); };
+  if (!(rho > 0 && offR(0) < want && offR(tTip) > want)) throw new GearError('INVALID_INPUT', `cutter tip radius ${rho} mm does not fit the cutter's tooth`);
+  let lo = 0, hi = tTip;
+  for (let i = 0; i < 200 && hi - lo > 1e-15; i++) { const mid = (lo + hi) / 2; if (offR(mid) < want) lo = mid; else hi = mid; }
+  const fl = flank((lo + hi) / 2), qx = fl[0] - rho * fl[2], qy = fl[1] - rho * fl[3], tx = fl[0], ty = fl[1];
+  if (!(qx > 0)) throw new GearError('INVALID_INPUT', `cutter tip radius ${rho} mm: the cutter's two tip rounds meet (at most ${largestTipRadius(rb0, ra0, psi0, m).toFixed(4)} mm for this cutter)`);
+  // φRoot: the round's centre on the line of centres (its angle about the cutter's centre π/2); then the turn at which it
+  // touches at its tangent point with the flank — the contact normal along the round's radius to it — by a scan and bisection.
+  const chi = Math.atan2(qy - ac, qx), k = z2 / z0, phiRoot = (Math.PI / 2 - chi) / k;
+  const S = new ShaperRoot(k, ac, rw2, rho, qx, qy, phiRoot, phiRoot);
+  const g = (phi: number) => {
+    const pc = phi * k, c2 = Math.cos(pc), s2 = Math.sin(pc), Qx = c2 * qx - s2 * (qy - ac), Qy = ac + s2 * qx + c2 * (qy - ac), Tx = c2 * tx - s2 * (ty - ac), Ty = ac + s2 * tx + c2 * (ty - ac);
+    return Qx * (Ty - Qy) - (Qy - rw2) * (Tx - Qx);
+  };
+  let a0 = phiRoot, g0 = g(a0), phiF = NaN;
+  const span = 6 * Math.PI / z2;
+  for (let i = 1; i <= 3000; i++) { const b = phiRoot - span * i / 3000, gb = g(b); if (Math.sign(gb) !== Math.sign(g0)) { let l = b, h = a0; for (let j = 0; j < 200 && Math.abs(h - l) > 1e-16; j++) { const mid = (l + h) / 2; if (Math.sign(g(mid)) === Math.sign(gb)) l = mid; else h = mid; } phiF = (l + h) / 2; break; } a0 = b; g0 = gb; }
+  if (!Number.isFinite(phiF)) throw new GearError('SELF_INTERSECTION', 'the cutter\'s round never meets the ring\'s flank');
+  S.phiEnd = phiF;
+  // Where the fillet meets the ring's involute: at the flank's tangent point, or — the round's envelope crossing the
+  // involute first — at the crossing (the involute beyond it cut away).
+  let crossing = false, end = phiF;
+  const N = 128, offs: number[] = [];
+  for (let i = 0; i <= N; i++) offs.push(filletOff(S, phiRoot + (phiF - phiRoot) * i / N, psiS, rb2));
+  for (let i = 1; i < N; i++) {
+    const v0 = offs[i], v1 = offs[i + 1];
+    if (Number.isFinite(v0) && Number.isFinite(v1) && v0 * v1 < 0 && Math.abs(v1) > 1e-10) {
+      let l = phiRoot + (phiF - phiRoot) * i / N, h = phiRoot + (phiF - phiRoot) * (i + 1) / N;
+      for (let j = 0; j < 200 && Math.abs(h - l) > 1e-16; j++) { const mid = (l + h) / 2; if (filletOff(S, mid, psiS, rb2) * v0 > 0) l = mid; else h = mid; }
+      end = (l + h) / 2; crossing = true; break;
+    }
+  }
+  S.phiEnd = end;
+  const pe = S.point(end), rStart = Math.hypot(pe[0], pe[1]), p0 = S.point(phiRoot), thetaJ = Math.atan2(p0[1], p0[0]);
+  if (!(rStart > ra2)) throw new GearError('SELF_INTERSECTION', 'the cutter cuts the ring\'s whole flank away');
+  for (let i = 0; i <= 64; i++) { const p = S.point(phiRoot + (end - phiRoot) * i / 64), an = Math.atan2(p[1], p[0]); if (!(an > Math.PI / 2 - Math.PI / z2 && an <= Math.PI / 2 + 1e-12)) throw new GearError('SELF_INTERSECTION', 'the cutter cuts through the ring\'s tooth'); }
+  void r2;
+  return { z0, x0, rho, ac, alphaC: w, ra0, rf, S, rStart, crossing, thetaJ };
+}
 
 /** The ring's space gear (D129): the spur machinery's gear at x2 + 0.25 and thickened to the ring's spaces. */
 function spaceSpecOf(spec: InternalGearSpec): SpurGearSpec {
@@ -67,7 +200,7 @@ function spaceSpecOf(spec: InternalGearSpec): SpurGearSpec {
 /** The ring's dimensions and input checks (refusals thrown, as GearError, in the ring's own terms). */
 export function internalGearDimensions(spec: InternalGearSpec): {
   r: number; rb: number; ra: number; rf: number; rim: number; mn: number; mt: number; alpha: number; alphaN: number; beta: number; x: number;
-  space: SpurGearSpec; sd: ReturnType<typeof spurGearDimensions>; spaceWidth: number; pitch: number;
+  space: SpurGearSpec; sd: ReturnType<typeof spurGearDimensions>; spaceWidth: number; pitch: number; shaper?: Shaper;
 } {
   const z = spec.teeth, x = spec.profileShiftCoefficient ?? 0;
   if (!(Number.isInteger(z) && z >= 8 && z <= 200)) throw new GearError('INVALID_INPUT', 'an internal gear takes a whole number of teeth from 8 to 200');
@@ -85,13 +218,19 @@ export function internalGearDimensions(spec: InternalGearSpec): {
     if (cause.code === 'UNSUPPORTED_PROFILE_SHIFT') throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth at x = ${x} are outside this stage`);
     throw cause;
   }
-  const r = sd.r, rb = sd.rb, mn = sd.mn, ra = r - (1 - x) * mn, rf = r + (1.25 + x) * mn;
+  const r = sd.r, rb = sd.rb, mn = sd.mn, ra = r - (1 - x) * mn;
+  const shaperCut = spec.rootPolicy === 'shaper-cut';
+  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !shaperCut) throw new GearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'shaper-cut'`);
+  if (!shaperCut && spec.cutter !== undefined) throw new GearError('INVALID_INPUT', "a cutter belongs to a shaper-cut root (rootPolicy 'shaper-cut')");
+  if (shaperCut && sd.beta !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', 'a shaper-cut root on a helical ring is not in this stage: give it the schematic root');
   // The ring's tip must stand on the involute: above its base circle (K1: z2 > 34 unshifted at 20°).
   if (!(ra >= rb)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `the ring's tip circle Ø${(2 * ra).toFixed(4)} falls inside its base circle Ø${(2 * rb).toFixed(4)} (${z} teeth${x ? ` at x = ${x}` : ''}): a shift of at least x = ${(1 - (r - rb) / mn).toFixed(3)} lifts it`);
+  // (A shaper-cut ring's root is the cutter's: a_c + its tip radius ra0, D133.)
+  const shaper = shaperCut ? shaperOf(spec, mn, z, r, rb, ra, sd.psi, sd.alpha) : undefined, rf = shaper ? shaper.rf : r + (1.25 + x) * mn;
   const R = spec.rimDiameterMM / 2, rimMin = spec.minimumRimMM ?? mn;
   if (!(Number.isFinite(R) && R > 0)) throw new GearError('INVALID_INPUT', 'rimDiameterMM must be a number of mm above 0');
   if (!(R >= rf + rimMin)) throw new GearError('RIM_INTERSECTION', `a rim of Ø${spec.rimDiameterMM} mm leaves less than the ${rimMin} mm rim beyond the root circle (Ø${(2 * rf).toFixed(3)} mm): at least Ø${(2 * (rf + rimMin)).toFixed(3)} (a geometric margin, not a strength check)`);
-  return { r, rb, ra, rf, rim: R, mn, mt: sd.mt, alpha: sd.alpha, alphaN: sd.alphaN, beta: sd.beta, x, space, sd, spaceWidth: sd.toothThicknessMM, pitch: sd.circularPitchMM };
+  return { r, rb, ra, rf, rim: R, mn, mt: sd.mt, alpha: sd.alpha, alphaN: sd.alphaN, beta: sd.beta, x, space, sd, spaceWidth: sd.toothThicknessMM, pitch: sd.circularPitchMM, ...(shaper ? { shaper } : {}) };
 }
 
 /** A curve turned by `a` radians about the origin (z kept). */
@@ -108,6 +247,7 @@ function turned(c: Curve, a: number): Curve {
  */
 export function internalGear(spec: InternalGearSpec, options: { readonly id?: string } = {}): { brep: Brep; report: InternalGearReport } {
   const id = safeId(options.id ?? 'ring'), d = internalGearDimensions(spec), z = spec.teeth;
+  if (d.shaper) return shaperCutRing(spec, d, id);
   let prof: ReturnType<typeof spurGearProfile>;
   try { prof = spurGearProfile(d.space); }
   catch (cause) {
@@ -128,6 +268,77 @@ export function internalGear(spec: InternalGearSpec, options: { readonly id?: st
     ...(h ? { helix: h.helix } : {}), flankPieces: prof.report.flankPieces, profileDeviationMM: prof.report.profileDeviationMM, profileToleranceMM: prof.report.profileToleranceMM,
     rootPolicy: 'schematic-corner', manufacturingValidated: false,
     diagnostics: [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root arc at a corner: a schematic root, not the one the cutting tool (a pinion-type cutter) generates' }],
+  };
+  return { brep, report };
+}
+
+/**
+ * A shaper-cut ring's exact outline for the sweeps (R12b.2b), as `exactProfile`'s: one space centred on angle 0,
+ * counter-clockwise from the middle of the tooth before it — the tip arc, the involute out (150 points), the fillet
+ * (the envelope itself, 150), the root arc, and their mirrors.
+ */
+function shaperOutline(d: ReturnType<typeof internalGearDimensions>): { tooth: Float64Array; z: number } {
+  const sh = d.shaper!, z = d.space.teeth, step = 2 * Math.PI / z, rb = d.rb, psiS = d.sd.psi, F = 150, A = 24, right: number[] = [];
+  const aTip = Math.PI / 2 - psiS + inv(Math.acos(Math.min(1, rb / d.ra))), t0 = Math.sqrt(Math.max(0, (d.ra / rb) ** 2 - 1)), t1 = Math.sqrt((sh.rStart / rb) ** 2 - 1);
+  // (In the frame where the space is centred on +Y; turned to 0 at the end.)
+  for (let i = 0; i < A / 2; i++) { const a = Math.PI / 2 - step / 2 + (aTip - Math.PI / 2 + step / 2) * i / (A / 2); right.push(d.ra * Math.cos(a), d.ra * Math.sin(a)); }
+  for (let i = 0; i <= F; i++) { const t = t0 + (t1 - t0) * i / F, r = rb * Math.sqrt(1 + t * t), a = Math.PI / 2 - psiS + t - Math.atan(t); right.push(r * Math.cos(a), r * Math.sin(a)); }
+  for (let i = F - 1; i > 0; i--) { const q = sh.S.point(sh.S.phiRoot + (sh.S.phiEnd - sh.S.phiRoot) * i / F); right.push(q[0], q[1]); }
+  for (let i = 0; i <= A / 2; i++) { const a = sh.thetaJ + (Math.PI / 2 - sh.thetaJ) * i / (A / 2); right.push(sh.rf * Math.cos(a), sh.rf * Math.sin(a)); }
+  const pts: number[] = [...right];
+  for (let i = right.length - 4; i >= 0; i -= 2) pts.push(-right[i], right[i + 1]);
+  const out = new Float64Array(pts.length);
+  for (let i = 0; i < pts.length; i += 2) { out[i] = pts[i + 1]; out[i + 1] = -pts[i]; }
+  return { tooth: out, z };
+}
+/** A curve mirrored in the y axis (x → −x), its order kept. */
+function mirroredY(c: Curve): Curve { return { ...c, controlPoints: c.controlPoints.map(p => [-p[0], p[1], p[2]]) }; }
+/**
+ * A shaper-cut ring (R12b.2b, D133): each space built in its own frame (centred on +Y) — the ring's involute on its right
+ * from the tip circle out to where the fillet starts (C¹ Hermite pieces as a gear's flank), the fillet (the cutter
+ * round's envelope, fitted as D130's), the root arc the cutter's tip circle cuts, their mirrors — then the ring's tooth
+ * tip arc to the next space; turned into place, reversed into the clockwise hole. Names as the schematic ring's, the
+ * fillets `filletR#k` / `filletL#k` (by the ring's tooth k beside them; later faces `filletR2#k`).
+ */
+function shaperCutRing(spec: InternalGearSpec, d: ReturnType<typeof internalGearDimensions>, id: string): { brep: Brep; report: InternalGearReport } {
+  const sh = d.shaper!, z = spec.teeth, rb = d.rb, psiS = d.sd.psi, tol = spec.profileToleranceMM ?? 1e-4 * d.mn;
+  if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  // The involute, as few pieces as the tolerance asks (at most five), from the tip circle to the fillet's start.
+  const t0 = Math.sqrt(Math.max(0, (d.ra / rb) ** 2 - 1)), t1 = Math.sqrt((sh.rStart / rb) ** 2 - 1);
+  let N = 1, dev = flankDeviation(rb, t0, t1, 1);
+  while (dev > tol && N < MAX_PIECES) dev = flankDeviation(rb, t0, t1, ++N);
+  if (dev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a ring flank within ${tol} mm of the involute needs more than ${MAX_PIECES} cubic pieces`);
+  let NF = 1, breaks = envelopeBreaks(sh.S, 1), fdev = envelopeDeviation(sh.S, breaks);
+  while (fdev > tol && NF < MAX_FILLET_PIECES) { breaks = envelopeBreaks(sh.S, ++NF); fdev = envelopeDeviation(sh.S, breaks); }
+  if (fdev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a ring fillet within ${tol} mm of the cutter's envelope needs more than ${MAX_FILLET_PIECES} cubic pieces`);
+  const faces = Math.ceil(NF / MAX_PIECES), crv = (P: Point[], n: number): Curve => ({ kind: 'curve', id: 'q', degree: 3, knots: bezierKnots(n), controlPoints: P, weights: P.map(() => 1) });
+  // One space's pieces, its frame (counter-clockwise round the ring's centre): right involute out, right fillet out,
+  // root, left fillet in, left involute in, the tip arc to the next space.
+  const invR = crv(flankPoles(rb, t0, t1, N, Math.PI / 2 - psiS, false), N), filR: Curve[] = [];
+  for (let j = 0; j < faces; j++) { const j0 = Math.round(NF * j / faces), j1 = Math.round(NF * (j + 1) / faces); filR.push(reversed(crv(envelopePoles(sh.S, breaks, j0, j1), j1 - j0))); }
+  filR.reverse();
+  const half = Math.PI / 2 - sh.thetaJ, root = arcCurve('r', sh.rf, sh.thetaJ, 2 * half), aTip = Math.PI / 2 - psiS + inv(Math.acos(Math.min(1, rb / d.ra)));
+  const tipFrom = Math.PI - aTip, step = 2 * Math.PI / z, tip = arcCurve('t', d.ra, tipFrom, aTip + step - tipFrom);
+  const pieces: { name: string; curve: Curve }[] = [];
+  for (let k = 1; k <= z; k++) {
+    // Space k sits before tooth k (tooth 1 on +X): centred at 2π(k − 1)/z − π/z; its frame's +Y turned there.
+    const turn = step * (k - 1) - Math.PI / z - Math.PI / 2, prev = k === 1 ? z : k - 1;
+    pieces.push({ name: `${id}.flankR#${prev}`, curve: turned(invR, turn) });
+    filR.forEach((c, j) => pieces.push({ name: `${id}.filletR${faces - j > 1 ? faces - j : ''}#${prev}`, curve: turned(c, turn) }));
+    pieces.push({ name: `${id}.root#${k}`, curve: turned(root, turn) });
+    [...filR].reverse().forEach((c, j) => pieces.push({ name: `${id}.filletL${j ? j + 1 : ''}#${k}`, curve: turned(reversed(mirroredY(c)), turn) }));
+    pieces.push({ name: `${id}.flankL#${k}`, curve: turned(reversed(mirroredY(invR)), turn) });
+    pieces.push({ name: `${id}.tip#${k}`, curve: turned(tip, turn) });
+  }
+  const inner = pieces.map(p => ({ name: p.name, curve: reversed(p.curve) })).reverse();
+  const rim = [{ name: `${id}.rim#1`, curve: arcCurve('m', d.rim, 0, Math.PI) }, { name: `${id}.rim#2`, curve: arcCurve('m', d.rim, Math.PI, Math.PI) }];
+  const brep = extrudedProfile(id, 'gear', rim, inner, spec.faceWidthMM, d.rim + 1);
+  const report: InternalGearReport = {
+    generator: 'internal-gear@1', profileShift: d.x,
+    dimensions: { referenceDiameterMM: 2 * d.r, baseDiameterMM: 2 * d.rb, tipDiameterMM: 2 * d.ra, rootDiameterMM: 2 * d.rf, rimDiameterMM: 2 * d.rim, circularPitchMM: d.pitch, spaceWidthMM: d.spaceWidth, toothThicknessMM: d.pitch - d.spaceWidth },
+    flankPieces: N, profileDeviationMM: dev, profileToleranceMM: tol, rootPolicy: 'shaper-cut', manufacturingValidated: false,
+    shaperRoot: { cutterTeeth: sh.z0, cutterShift: sh.x0, cutterTipRadiusMM: sh.rho, cuttingCenterDistanceMM: sh.ac, cuttingPressureAngleDeg: sh.alphaC * 180 / Math.PI, formDiameterMM: 2 * sh.rStart, crossing: sh.crossing, filletPieces: NF, filletDeviationMM: fdev },
+    diagnostics: spec.cutter?.tipRadiusMM === undefined ? [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the cutter's tip radius ${sh.rho.toFixed(4)} mm is an estimate for a pinion-type cutter's (the basic rack's 0.38 m, or 80% of the largest its tooth holds): give the toolmaker's` }] : [],
   };
   return { brep, report };
 }
@@ -182,11 +393,14 @@ export interface InternalGearPairCheck {
    * (Infinity: the tip circles never meet); `formMargin`, along the line of action, from where the pinion's involute starts
  * (its form circle, or max(rb, rf) under a schematic root) to where the ring's tip meets the line — negative when the
  * ring's tip runs below the pinion's involute, where the contact ends (the usable ratio) and the fillet passes it: not
- * a verdict, the sweep is (D132: mostly clear, 24 in 40 crossing); and the radial-insertion sweep for trimming — the pinion moved from the
-   * ring's centre out to the working distance along the line of centres, in its meshing phase, its least clearance on
-   * the way (`possible` false: its tip circle does not fit inside the ring's, so it cannot start there).
+ * a verdict, the sweep is (D132: mostly clear, 24 in 40 crossing); and trimming — the radial-insertion sweep (the
+   * pinion moved from the ring's centre out to the working distance along the line of centres, in its meshing phase, its
+   * least clearance on the way; `possible` false: its tip circle does not fit inside the ring's) and the trimming
+   * condition θ1 + inv α_a1 − inv α_w ≥ (z2/z1)(θ2 + inv α_a2 − inv α_w) (`conditionMargin`: it reproduces K1's Table
+   * 4.8, D133). `interference` when either says so (the straight path clears a few small pairs K1's condition does
+   * not); `sweepInterference` the path's alone.
    */
-  readonly interference: { readonly involuteMargin: number; readonly formMargin: number; readonly trochoidMargin: number; readonly trimming: { readonly possible: boolean; readonly interference: boolean; readonly leastClearanceMM: number; readonly atOffsetMM: number } };
+  readonly interference: { readonly involuteMargin: number; readonly formMargin: number; readonly trochoidMargin: number; readonly trimming: { readonly possible: boolean; readonly interference: boolean; readonly leastClearanceMM: number; readonly atOffsetMM: number; readonly conditionMargin: number; readonly sweepInterference: boolean } };
   readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
@@ -254,18 +468,22 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   const involuteMargin = z1 / z2 - (1 - Math.tan(aa2) / Math.tan(alphaW)), formMargin = ringTip - lo1;
   const c1 = (d.ra ** 2 - p.ra ** 2 - a * a) / (2 * a * p.ra), c2 = (a * a + d.ra ** 2 - p.ra ** 2) / (2 * a * d.ra);
   const trochoidMargin = Math.abs(c1) <= 1 && Math.abs(c2) <= 1 ? (Math.acos(c1) + inv(aa1) - inv(alphaW)) * z1 / z2 + inv(alphaW) - inv(aa2) - Math.acos(c2) : Infinity;
-  const P1 = exactProfile(pinion, p), Q2 = exactProfile(d.space, d.sd), O: Outlines = { P: P1, Q: Q2, ra1: p.ra, ra2: d.ra, m: d.mn, Pa: anglesOf(P1), Qa: anglesOf(Q2) };
+  const P1 = exactProfile(pinion, p), Q2 = d.shaper ? shaperOutline(d) : exactProfile(d.space, d.sd), O: Outlines = { P: P1, Q: Q2, ra1: p.ra, ra2: d.ra, m: d.mn, Pa: anglesOf(P1), Qa: anglesOf(Q2) };
   // (Touching is not crossing: the ring's outline is chords of its involutes, which stand into its spaces by up to their
   // sag — rb t δt²/8 at the end of its flank, δt the step in roll — so a pinion on the true involute can seem that far
   // into the ring's material at contact. A crossing no deeper is contact, 0.)
   const phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, verdict = options.mode === 'verdict', touch = chordSag(d.sd) + 1e-9 * d.mn;
   const at = (theta: number) => { const c = clearanceAt(O, theta, theta * z1 / z2 + phase, a, verdict); return c < 0 && c >= -touch ? 0 : c; };
-  const trimming = radialInsertion(O, a, phase, touch);
+  // (The trimming condition, transverse: with the pinion's and the ring's tip pressure angles and α_w.)
+  const qq = (Math.cos(aa1) / Math.cos(aa2)) ** 2, tt1 = Math.asin(Math.sqrt(Math.max(0, (1 - qq) / (1 - (z1 / z2) ** 2)))), tt2 = Math.asin(Math.sqrt(Math.max(0, (1 / qq - 1) / ((z2 / z1) ** 2 - 1))));
+  const conditionMargin = (tt1 + inv(aa1) - inv(alphaW)) - (z2 / z1) * (tt2 + inv(aa2) - inv(alphaW));
+  const ins = radialInsertion(O, a, phase, touch), trimming = { ...ins, interference: ins.interference || conditionMargin < 0, conditionMargin, sweepInterference: ins.interference };
   const period = 2 * Math.PI / z1, N = Math.max(16, options.samples ?? 64), diagnostics: GearDiagnostic[] = [];
   if (involuteMargin < 0) diagnostics.push({ code: 'INVOLUTE_INTERFERENCE', severity: 'error', message: `involute interference: the ring's tip meets the pinion below its base circle (z1/z2 ${(z1 / z2).toFixed(4)} < 1 − tan α_a2 / tan α_w = ${(z1 / z2 - involuteMargin).toFixed(4)})` });
   if (trochoidMargin < 0) diagnostics.push({ code: 'TROCHOID_INTERFERENCE', severity: 'error', message: `trochoid interference: the pinion's tip strikes the ring's tooth as it leaves the mesh (margin ${trochoidMargin.toFixed(5)} rad; more teeth between them, or a shift, clears it)` });
   if (!trimming.possible) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `radial assembly impossible: the pinion's tip circle Ø${(2 * p.ra).toFixed(4)} does not fit inside the ring's Ø${(2 * d.ra).toFixed(4)} — assemble it axially` });
-  else if (trimming.interference) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference: moved in radially, the teeth cross ${trimming.atOffsetMM.toFixed(4)} mm from the ring's centre — assemble it axially` });
+  else if (trimming.sweepInterference) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference: moved in radially, the teeth cross ${trimming.atOffsetMM.toFixed(4)} mm from the ring's centre — assemble it axially` });
+  else if (conditionMargin < 0) diagnostics.push({ code: 'TRIMMING_INTERFERENCE', severity: 'error', message: `trimming interference by the condition K1 tabulates (margin ${conditionMargin.toFixed(5)}; the straight radial path clears by ${trimming.leastClearanceMM.toFixed(4)} mm) — assemble it axially` });
   const base = { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2] as const, speedRatio: z1 / z2, backlashMM: backlash, tipClearancesMM: tips,
     idealContactRatio: ideal, usableContactRatio: usable, axialContactRatio: epsB, totalContactRatio: usable + epsB, interference: { involuteMargin, formMargin, trochoidMargin, trimming } };
   if (verdict) {

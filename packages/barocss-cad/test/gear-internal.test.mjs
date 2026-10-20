@@ -10,6 +10,10 @@ import { internalGear, internalGearDimensions, internalGearCenterDistance, check
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b} (|Δ| ${Math.abs(a - b).toExponential(3)} > ${tol})`);
 const ALPHA = 20 * Math.PI / 180, TAN = Math.tan(ALPHA), COS = Math.cos(ALPHA), inv = p => Math.tan(p) - p;
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
+// The full interference survey (every pair D132 records, the extra Booleans) runs with GEAR_SURVEY=1 — at track
+// boundaries and before RB rows; by default a subset that keeps a clear pair, crossings of each kind, trimming either side
+// of its boundary, the disagreement, and one helical pair.
+const SURVEY = !!process.env.GEAR_SURVEY;
 
 /**
  * A closed outline of `z` "teeth" (D129's probe): the involute of base radius rb from `r0` to `ra` on both sides of
@@ -151,7 +155,7 @@ function ownInsertion(m, z1, z2, n = 100) {
 
 test('the interference conditions against the sweep: involute and trochoid on D129\'s nine pairs; trimming — the radial insertion — against the condition, and against this file\'s own insertion where they disagree', t => {
   const rows = [];
-  for (const [z1, z2] of [[20, 60], [24, 60], [24, 40], [28, 40], [30, 40], [31, 40], [32, 40], [34, 40], [36, 40]]) {
+  for (const [z1, z2] of SURVEY ? [[20, 60], [24, 60], [24, 40], [28, 40], [30, 40], [31, 40], [32, 40], [34, 40], [36, 40]] : [[20, 60], [24, 60], [31, 40], [32, 40]]) {
     // (The verdict first — a crossing settles it; else the report, for a shortfall below j cos α / 2.)
     const gp = { moduleMM: 2, teeth: z1, faceWidthMM: 10 }, gr = { moduleMM: 2, teeth: z2, faceWidthMM: 10, rimDiameterMM: 2 * z2 + 20, toothThicknessReductionMM: 2e-4 }, v = checkInternalGearPair(gp, gr, { mode: 'verdict', samples: 128 });
     const c = v.sweep.interference ? v : checkInternalGearPair(gp, gr, { samples: 128 });
@@ -167,7 +171,7 @@ test('the interference conditions against the sweep: involute and trochoid on D1
   // Trimming: the product's radial insertion (zero backlash) against the condition — rings of 40, 60 and 80, either side
   // of the boundary (the margins nearest 0, 44/60 −1e-5 and 64/80 +5e-5, left out).
   const trim = [];
-  for (const [z1, z2] of [[20, 60], [40, 60], [42, 60], [45, 60], [46, 60], [48, 60], [20, 40], [22, 40], [26, 40], [28, 40], [30, 40], [50, 80], [60, 80], [66, 80]]) {
+  for (const [z1, z2] of SURVEY ? [[20, 60], [40, 60], [42, 60], [45, 60], [46, 60], [48, 60], [20, 40], [22, 40], [26, 40], [28, 40], [30, 40], [50, 80], [60, 80], [66, 80]] : [[42, 60], [45, 60], [22, 40], [26, 40]]) {
     const c = checkInternalGearPair({ moduleMM: 2, teeth: z1, faceWidthMM: 10 }, { moduleMM: 2, teeth: z2, faceWidthMM: 10, rimDiameterMM: 2 * z2 + 20 }, { mode: 'verdict' }), mg = trimmingMargin(2, z1, z2);
     assert.equal(c.interference.trimming.possible, true);
     assert.equal(c.interference.trimming.interference, mg < 0, `${z1}/${z2}: the insertion and the condition (${mg})`);
@@ -175,10 +179,13 @@ test('the interference conditions against the sweep: involute and trochoid on D1
   }
   t.diagnostic(`trimming condition vs insertion: ${trim.join(', ')}`);
   // Where they disagree — 24/40 and 25/40, the condition negative (−0.00058, −0.0029) — this file's own insertion (its own outlines, 100 offsets) agrees with the product's: clear; and crosses at 26/40, as both do. (The product's at 3000 offsets too, D132.)
-  for (const [z1, cross] of [[24, false], [25, false], [26, true]]) {
+  for (const [z1, cross] of SURVEY ? [[24, false], [25, false], [26, true]] : [[25, false], [26, true]]) {
     const c = checkInternalGearPair({ moduleMM: 2, teeth: z1, faceWidthMM: 10 }, { moduleMM: 2, teeth: 40, faceWidthMM: 10, rimDiameterMM: 100 }, { mode: 'verdict' });
-    assert.equal(c.interference.trimming.interference, cross, `product ${z1}/40`); assert.equal(ownInsertion(2, z1, 40), cross, `own ${z1}/40`);
-    assert.equal(trimmingMargin(2, z1, 40) < 0, true);
+    // (D133: the condition reproduces K1's Table 4.8, so the product flags trimming when either says so — here by the
+    // condition; the straight path's own verdict kept apart, `sweepInterference`.)
+    assert.equal(c.interference.trimming.sweepInterference, cross, `product's path ${z1}/40`); assert.equal(ownInsertion(2, z1, 40), cross, `own ${z1}/40`);
+    assert.equal(trimmingMargin(2, z1, 40) < 0, true); assert.equal(c.interference.trimming.interference, true, `${z1}/40 flagged`);
+    close(c.interference.trimming.conditionMargin, trimmingMargin(2, z1, 40), 1e-12, 'the condition\'s margin');
   }
   // A pinion whose tip circle does not fit inside the ring's cannot start concentric: radial assembly impossible.
   const big = checkInternalGearPair({ moduleMM: 2, teeth: 36, faceWidthMM: 10 }, { moduleMM: 2, teeth: 40, faceWidthMM: 10, rimDiameterMM: 100 }, { mode: 'verdict' });
@@ -187,12 +194,12 @@ test('the interference conditions against the sweep: involute and trochoid on D1
 
 test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-gear mesh) — at a along the direction, turning with the ring by z2/z1 the same way; the exact Boolean intersection empty when meshed, not when a phase off; a helical pair of one hand; STEP', () => {
   // (The ring shifted x2 0.25: unshifted, its tip runs into the rack-cut pinion's fillet — D132's finding, the sweep's crossing below.)
-  const feats = (rot, dir, phase = 0, x2 = 0.25) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, thicknessReduction: 0.05, profileShift: x2, rotation: rot, center: [5, 3] }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 5, thicknessReduction: 0.05, mesh: { gear: 'r', direction: dir, phase }, generator: 'spur-gear@1' }];
+  const feats = (rot, dir, phase = 0, x2 = 0.25) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 3, rim: 100, thicknessReduction: 0.05, profileShift: x2, rotation: rot, center: [5, 3] }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 3, thicknessReduction: 0.05, mesh: { gear: 'r', direction: dir, phase }, generator: 'spur-gear@1' }];
   // The shifted centre distance by K1's form, Newton on inv here: inv α_w = 2 tan α · 0.25 / 16 + inv α.
   let w = ALPHA; const target = 2 * TAN * 0.25 / 16 + inv(ALPHA);
   for (let i = 0; i < 60; i++) w -= (inv(w) - target) / Math.tan(w) ** 2;
   const aw = 16 * COS / Math.cos(w);
-  for (const [rot, dir] of [[0, 0], [7, 30], [13.25, 200]]) {
+  for (const [rot, dir] of SURVEY ? [[0, 0], [7, 30], [13.25, 200]] : [[0, 0], [13.25, 200]]) {
     const r = evaluateCadPart(D(feats(rot, dir))), ring = r.output('r'), pin = r.output('p').gearPlacement;
     close(Math.hypot(pin.center[0] - 5, pin.center[1] - 3), aw, 1e-12, 'centre distance'); close(Math.atan2(pin.center[1] - 3, pin.center[0] - 5), (dir > 180 ? dir - 360 : dir) * Math.PI / 180, 1e-12, 'direction');
     const c = checkPlacedInternalGears(ring.internalGearPlacement, pin, { mode: 'verdict' });
@@ -203,8 +210,7 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   close(a7 - a0, 40 / 24 * 7 * Math.PI / 180, 1e-12, 'z2/z1 the same way');
   // The exact Boolean intersection of the placed solids, apart from the sweep: none meshed, some half a pitch off.
   assert.throws(() => evaluateCadPart(D([...feats(7, 30), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
-  const off = evaluateCadPart(D([...feats(0, 0, 9), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
-  assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap');
+  if (SURVEY) { const off = evaluateCadPart(D([...feats(0, 0, 9), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap'); }
   // Unshifted (x2 0), the ring's tip corners run into the rack-cut pinion's root fillet: the sweep crosses (formMargin
   // −2.25 mm along the line of action — elsewhere a negative formMargin passes clear: it is no verdict).
   const un = evaluateCadPart(D(feats(0, 0, 0, 0))), unc = checkPlacedInternalGears(un.output('r').internalGearPlacement, un.output('p').gearPlacement);
@@ -216,13 +222,13 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   assert.ok(zc.sweep.minimumClearanceMM < -0.01, String(zc.sweep.minimumClearanceMM));
   const hit = evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
   assert.ok(brepMassProperties(hit.brep, 1).volumeMM3 > 1e-4, 'the solids overlap where the sweep says');
-  for (const [x2, red] of [[0.25, 0.05], [0.5, 0]]) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
   const offCheck = checkPlacedInternalGears(evaluateCadPart(D(feats(0, 0, 9))).output('r').internalGearPlacement, evaluateCadPart(D(feats(0, 0, 9))).output('p').gearPlacement, { mode: 'verdict' });
   assert.equal(offCheck.sweep.interference, true);
   // Refusals in the part model: another module, a feature that is no gear.
   assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], module: 2.5 }])).output('p'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 30, faceWidth: 5, rim: 90 }])).output('r'), e => e.code === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@1' }])).output('r'), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@2' }])).output('r'), e => e.code === 'CAPABILITY');
   // A helical ring and pinion, both right-handed, in the part model: placed, clear.
   const h = evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 50, faceWidth: 6, rim: 130, thicknessReduction: 0.05 }, { id: 'p', kind: 'spur-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 20, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'r', direction: 45 }, generator: 'spur-gear@1' }]));
   assert.equal(checkPlacedInternalGears(h.output('r').internalGearPlacement, h.output('p').gearPlacement, { mode: 'verdict' }).sweep.interference, false);

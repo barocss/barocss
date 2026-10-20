@@ -79,6 +79,8 @@ const arrow = (key: string, at: V3, dir: V3, extra: Partial<HandleSpec> = {}): H
 const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
 
 /** The one selected body when it is a spur gear as made (not built on further): its node and index. */
+/** The Internal gear command's default x2 (D132): unshifted, a ring's tip corners cut a rack-cut pinion's fillet at no backlash. */
+const RING_SHIFT = 0.5;
 function gearPicked(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' }>; index: number } | null {
   const p = pickedGearNode(ctx);
   return p && p.node.kind === 'gear' ? { node: p.node, index: p.index } : null;
@@ -146,17 +148,20 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'internal-gear', label: 'Internal gear', icon: 'cad-gear', hint: 'An involute internal (ring) gear by module, teeth, face width and rim diameter (20°; helical: normal module, helix angle and hand). Shifted x2 0.5 by default, so a rack-cut pinion inside clears its tips. Its root is schematic; not validated for manufacturing. Select it and add a Meshing gear to put a pinion inside', group: 'create', keywords: 'internal gear ring annulus planetary epicyclic inner teeth',
+    id: 'internal-gear', label: 'Internal gear', icon: 'cad-gear', hint: 'An involute internal (ring) gear by module, teeth, face width and rim diameter (20°; helical: normal module, helix angle and hand). Shifted x2 0.5 by default, so a rack-cut pinion inside clears its tips. Its root is the one a pinion-type cutter cuts (24 teeth by default: an estimate, the shop\'s to give); a helical ring\'s is schematic. Not validated for manufacturing. Select it and add a Meshing gear to put a pinion inside', group: 'create', keywords: 'internal gear ring annulus planetary epicyclic inner teeth',
     available: () => ok,
-    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 8, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'rim', label: 'Rim Ø', kind: 'mm', min: 1 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 0.75, step: 0.05 },
-      { key: 'helix', label: 'Helix angle β', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], when: v => Number(v.helix) > 0 }, ...at],
+    fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 8, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'rim', label: 'Rim Ø', kind: 'mm', min: 1 }, { key: 'shift', label: 'Profile shift x (default 0.5: clears rack-cut pinions, D132)', kind: 'number', min: -0.5, max: 0.75, step: 0.05 },
+      { key: 'helix', label: 'Helix angle β', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], when: v => Number(v.helix) > 0 },
+      // (R12b.2b, D133: the cutter that cuts its root — the shop's; 24 teeth an estimate. 0: the schematic root. A helical ring's root is schematic.)
+      { key: 'cutter', label: 'Cutter teeth (estimate: the shop\'s; 0 schematic)', kind: 'count', min: 0, max: 196, when: v => !(Number(v.helix) > 0) }, ...at],
     // (x2 0.5 by default: unshifted, the ring's tip corners run into a rack-cut pinion's root fillet at no backlash — D132.)
-    defaults: ctx => ({ m: 2, teeth: 60, b: 10, rim: 140, shift: 0.5, helix: 0, hand: 'right', ...beside(ctx, 75) }),
+    defaults: ctx => ({ m: 2, teeth: 60, b: 10, rim: 140, shift: RING_SHIFT, helix: 0, hand: 'right', cutter: 24, ...beside(ctx, 75) }),
     place: centred,
     handles: (_, v) => { const [m, z, b, x, y, zz] = n(v, 'm', 'teeth', 'b', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz + b], Z)]; },
     build: (ctx, v) => {
-      const [m, z, b, rim, x, y, zz, shift, helix] = n(v, 'm', 'teeth', 'b', 'rim', 'x', 'y', 'z', 'shift', 'helix');
-      return withNode(ctx.doc, { kind: 'internal-gear', module: m, teeth: Math.round(z), faceWidth: b, rim, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'internal-gear@0' });
+      const [m, z, b, rim, x, y, zz, shift, helix, cutter] = n(v, 'm', 'teeth', 'b', 'rim', 'x', 'y', 'z', 'shift', 'helix', 'cutter');
+      const shaped = !helix && cutter > 0;
+      return withNode(ctx.doc, { kind: 'internal-gear', module: m, teeth: Math.round(z), faceWidth: b, rim, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: shaped ? 'internal-gear@1' : 'internal-gear@0', ...(shaped ? { cutter: { teeth: Math.round(cutter) } } : {}), ...(shift === RING_SHIFT ? { shiftDefault: true } : {}) });
     },
   },
   {

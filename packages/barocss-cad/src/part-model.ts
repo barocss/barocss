@@ -224,7 +224,9 @@ export type CadPartFeature = Base & (
    * its `mesh: { gear: <this> }`.
    */
   | { readonly kind: 'internal-gear'; readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim;
-    readonly pressureAngle?: number; readonly profileShift?: number; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'internal-gear@0' }
+    readonly pressureAngle?: number; readonly profileShift?: number; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'internal-gear@0' (the default) the schematic root; 'internal-gear@1' (R12b.2b, D133) the root a pinion-type `cutter` cuts (its teeth, shift, tip radius). */
+    readonly generator?: 'internal-gear@0' | 'internal-gear@1'; readonly cutter?: { readonly teeth: number; readonly shift?: number; readonly tipRadius?: CadPartDim } }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -1469,7 +1471,11 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'internal-gear': {
-      if (f.generator !== undefined && f.generator !== 'internal-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      if (f.generator !== undefined && f.generator !== 'internal-gear@0' && f.generator !== 'internal-gear@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      // (@1: the shaper-cut root, its cutter required; @0 and none: the schematic one.)
+      const shaperCut = f.generator === 'internal-gear@1', cut = f.cutter as Record<string, unknown> | undefined;
+      if (!shaperCut && cut !== undefined) fail('INPUT', "cutter belongs to a shaper-cut root (generator 'internal-gear@1')");
+      if (shaperCut && (!isRecord(cut) || !(typeof cut.teeth === 'number'))) fail('INPUT', "a shaper-cut internal gear needs its cutter: { teeth, shift?, tipRadius? }");
       const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
       if (helical && f.module !== undefined) fail('INPUT', 'a helical internal gear takes normalModule (the normal module), not module');
       if (!helical && (f.normalModule !== undefined || f.hand !== undefined)) fail('INPUT', 'normalModule and hand belong to a helical internal gear: give helixAngle too (a straight one takes module)');
@@ -1477,7 +1483,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
       const spec: InternalGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, rimDiameterMM: rim, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(shaperCut ? { rootPolicy: 'shaper-cut' as const, cutter: { teeth: cut!.teeth as number, ...(cut!.shift === undefined ? {} : { profileShiftCoefficient: cut!.shift as number }), ...(cut!.tipRadius === undefined ? {} : { tipRadiusMM: dim(cut!.tipRadius as CadPartDim, 'cutter.tipRadius', true) }) } } : {}) };
       const place: PlacedInternalGear = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
       return () => {
         let made: ReturnType<typeof internalGear>;

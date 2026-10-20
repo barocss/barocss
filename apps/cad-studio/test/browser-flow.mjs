@@ -2503,7 +2503,7 @@ try {
     await snap('helical-generated-rack-fillet');
   });
 
-  await check('Internal gear (R12b.2a, D132): a ring from the palette (x2 0.5); a pinion inside it by Meshing gear with the ring selected — at the internal distance, the same way, clear, radial assembly clear', async () => {
+  await check('Internal gear (R12b.2a, D132; R12b.2b, D133): a ring from the palette (x2 0.5, its root cut by a 24-tooth cutter); a pinion inside it by Meshing gear with the ring selected — at the internal distance, the same way, clear, radial assembly clear', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('internal gear'); await press('Enter'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
@@ -2513,7 +2513,7 @@ try {
     await page.locator('.outliner .ol').first().click();
     await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
     const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
-    assert.ok(notes.some(t => /^Profile shift x 0\.5: Internal: reference Ø120, tip Ø118 \(inside\), root Ø127/.test(t)) && notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
+    assert.ok(notes.some(t => /^Profile shift 0\.5 \(default: clears rack-cut pinions; see D132\): Internal: reference Ø120, tip Ø118 \(inside\), root Ø126\.837/.test(t)) && notes.some(t => /^Root cut by a 24-tooth pinion-type cutter/.test(t)), notes.join(' | '));
     await press(' '); await page.locator('.palette input').fill('meshing gear'); await press('Enter'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
     await press('Enter');
