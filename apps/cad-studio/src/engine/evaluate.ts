@@ -98,13 +98,26 @@ function sheetOf(o: CadPartSnapshot['outputs'][number]): Pick<BodyResult, 'notes
 function sheetNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['sheet']>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => `${+x.toFixed(3)} mm`;
   // (A bend table: each bend says the rows its K came from, and an estimate among them as a warning; R12.4, D120.)
-  const t = s.bendTable;
+  const t = s.bendTable, short = oneFeature(s.bends);
   return [
     { text: `Sheet metal: ${mm(s.thicknessMM)} thick, bends of inner radius ${mm(s.bendRadiusMM)}, ${t ? `K from bend table ${t.id} (${t.rows.length} rows)` : `K-factor ${s.kFactor}`}` },
     ...(s.kFactor === 0.5 ? [{ text: 'K 0.5 is an estimate (the sheet\u2019s middle, no material data): real air bends lie lower, so the flat is long. Use your shop\u2019s value.', warning: true }] : []),
-    ...s.bends.map(b => ({ text: `${b.name.split('.').pop()}: ${+b.angleDegrees.toFixed(3)}°, allowance ${mm(b.allowanceMM)}, setback ${mm(b.setbackMM)}, deduction ${mm(b.deductionMM)}${b.table ? `; K ${+b.kFactor.toFixed(4)} from ${b.table.how === 'exact' ? 'row' : 'rows'} ${b.table.rows.join(', ')}${b.table.how === 'interpolated' ? ' (interpolated)' : ''}${b.table.estimate ? ', an estimate among them' : ''}` : ''}`, ...(b.table?.estimate ? { warning: true } : {}) })),
+    ...s.bends.map(b => ({ text: `${bendLabel(b.name, short)}: ${+b.angleDegrees.toFixed(3)}°, allowance ${mm(b.allowanceMM)}, setback ${mm(b.setbackMM)}, deduction ${mm(b.deductionMM)}${b.table ? `; K ${+b.kFactor.toFixed(4)} from ${b.table.how === 'exact' ? 'row' : 'rows'} ${b.table.rows.join(', ')}${b.table.how === 'interpolated' ? ' (interpolated)' : ''}${b.table.estimate ? ', an estimate among them' : ''}` : ''}`, ...(b.table?.estimate ? { warning: true } : {}) })),
   ];
 }
+
+/** A bend's feature: its name before the last `.` (`n4` of `n4.bend`, of a contour's `n0.bend1`). */
+const bendFeature = (name: string): string => name.slice(0, Math.max(0, name.lastIndexOf('.')));
+/** Whether every bend comes from one feature (a contour's bends, or one flange): then each reads by its last part. */
+function oneFeature(bends: readonly { name: string }[]): boolean {
+  for (let i = 1; i < bends.length; i++) if (bendFeature(bends[i].name) !== bendFeature(bends[0].name)) return false;
+  return true;
+}
+/**
+ * A bend's label in the notes: its last part (`bend1`) when the sheet's bends are all one feature's; otherwise its
+ * whole name (`n4.bend`), the feature its faces carry when picked, so several flanges' bends are told apart.
+ */
+const bendLabel = (name: string, short: boolean): string => short ? name.slice(name.lastIndexOf('.') + 1) : name;
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
   const part = toPartDocument(doc);

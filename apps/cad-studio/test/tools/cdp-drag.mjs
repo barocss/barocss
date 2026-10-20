@@ -24,7 +24,6 @@ try {
   await page.waitForSelector('[data-handle]', { timeout: 5000 });
   const handles = await page.evaluate(() => [...document.querySelectorAll('[data-handle]')].map(e => e.getAttribute('data-handle')));
   const key = handles.find(h => /radius|diameter|r$|d$/i.test(h ?? '')) ?? handles[0];
-  const svg = await page.locator('.vp-overlay').boundingBox();
   const c = await page.evaluate(k => { const e = document.querySelector(`[data-handle="${k}"]`); const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, key);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Performance.enable');
