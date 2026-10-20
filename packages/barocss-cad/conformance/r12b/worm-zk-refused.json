@@ -1,0 +1,34 @@
+{
+  "id": "r12b-worm-zk-refused",
+  "step": "R12b",
+  "decisions": [
+    "D136"
+  ],
+  "about": "A ZK worm (its thread ground by a disc): refused — ZI and ZA only in this stage.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "w",
+          "kind": "worm",
+          "axialModule": 3,
+          "starts": 2,
+          "diameter": 44,
+          "hand": "right",
+          "length": 60,
+          "form": "ZK"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "ZK worm"
+    }
+  }
+}

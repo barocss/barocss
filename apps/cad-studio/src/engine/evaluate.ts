@@ -1,6 +1,6 @@
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import type { FaceTable } from '../assembly/mates';
-import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -84,7 +84,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -450,6 +450,29 @@ function insideNotes(g: GearPlacement): { text: string; warning?: boolean }[] {
     c.interference.trimming.interference ? { text: c.interference.trimming.possible ? `Radial assembly: the teeth cross moving in ${mm(c.interference.trimming.atOffsetMM)} mm from the ring's centre — assemble it axially` : 'Radial assembly impossible: its tip circle does not fit inside the ring\'s — assemble it axially', warning: true }
       : { text: 'Radial assembly clear: it can be moved in from the ring\'s centre' },
     ...c.diagnostics.filter(x => x.code === 'INVOLUTE_INTERFERENCE' || x.code === 'TROCHOID_INTERFERENCE').map(x => ({ text: x.message, warning: true }))];
+}
+
+/** A worm's report as lines for the body's panel (R12b.5, D136). */
+function wormNotes(w: NonNullable<CadPartSnapshot['outputs'][number]['worm']>): { text: string; warning?: boolean }[] {
+  const d = w.dimensions, mm = (x: number) => +x.toFixed(4);
+  return [
+    { text: `Worm ${w.form}${w.form === 'ZI' ? ' (involute helicoid)' : ' (straight axial sides)'}: reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)}, root Ø${mm(d.rootDiameterMM)} (q ${mm(d.diameterQuotient)}); lead angle γ ${mm(d.leadAngleDeg)}°, lead ${mm(d.leadMM)} mm, axial pitch ${mm(d.axialPitchMM)} mm; ${w.form === 'ZI' ? `base Ø${mm(d.baseDiameterMM!)}, α_t ${mm(d.transversePressureAngleDeg!)}°` : `axial sides at α_x ${mm(d.axialPressureAngleDeg!)}°`}` },
+    { text: `Flanks within ${w.profileDeviationMM.toExponential(1)} mm (${w.flankPieces} cubic piece${w.flankPieces > 1 ? 's' : ''}${w.flankFaces > 1 ? ` on ${w.flankFaces} faces` : ''}), the thread's twist ${mm(w.twist.turns)} turns within ${w.twist.deviationMM.toExponential(1)} mm (${w.twist.pieces} pieces in ${w.twist.axialSegments} axial segments). Not validated for manufacturing` },
+    ...w.diagnostics.map(x => ({ text: x.code === 'ROOT_TRANSITION_UNVALIDATED' ? 'Schematic root: not the thread tool\'s, not validated for manufacturing' : x.message, warning: x.severity === 'warning' })),
+  ];
+}
+/** A worm meshing with its wheel: the pair's check in verdict mode (R12b.5, D136) — the sections square to the wheel's axis. */
+function wormMeshNotes(p: CadPartSnapshot['outputs'][number]['wormPlacement']): { text: string; warning?: boolean }[] {
+  if (!p?.wheel) return [];
+  const t0 = performance.now();
+  let c: ReturnType<typeof checkPlacedWormPair>;
+  try { c = checkPlacedWormPair(p.wheel, p, { mode: 'verdict' }); }
+  catch (cause) { return [{ text: `Does not mesh with ${p.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
+  const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4), side = mm(p.wheel.spec.faceWidthMM / 3);
+  return [{ text: `Meshes with ${p.meshesWith}: crossed at 90°, centre distance ${mm(c.centerDistanceMM)} mm, ratio ${p.wheel.spec.teeth}:${p.spec.starts} (${mm(c.speedRatio)}:1), backlash ${mm(c.backlashMM)} mm along the worm's axis, mid-plane contact ratio ${c.midPlaneContactRatio.toFixed(3)}` },
+    c.interference ? { text: `The thread and the wheel's teeth cross (${c.planes.filter(x => x.interference).map(x => `${mm(x.offsetMM)} mm`).join(', ')} from the wheel's mid-plane): interference (${ms.toFixed(0)} ms)`, warning: true }
+      : { text: `Clear over an axial pitch in the wheel's mid-plane and ±${side} mm (checked in ${ms.toFixed(0)} ms)` },
+    ...c.diagnostics.filter(x => x.code !== 'SELF_INTERSECTION').map(x => ({ text: x.message, warning: x.severity === 'warning' }))];
 }
 
 /** A bevel gear's report as lines for the body's panel (R12b.3, D134). */

@@ -207,6 +207,18 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'worm': {
+      // (R12b.5, D136: its module, diameter and hand are the wheel's — edit the wheel; its own here.)
+      const g = (n: ModelNode) => n as typeof node;
+      number('starts', 'Starts', undefined, n => g(n).starts, (n, v) => ({ ...g(n), starts: Math.max(1, Math.min(4, Math.round(v))) }));
+      out.push({ kind: 'choice', key: 'form', label: 'Worm form', options: [{ value: 'ZI', label: 'ZI (involute helicoid)' }, { value: 'ZA', label: 'ZA (straight axial sides)' }], get: n => self<typeof node>(n).form, set: (n, v) => replace(n, i, { ...self<typeof node>(n), form: v as 'ZI' | 'ZA' }) });
+      number('L', 'Length', 'mm', n => num(g(n).length), (n, v) => ({ ...g(n), length: v }));
+      number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
+      number('ds', 'Thinner by (axial)', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      number('dir', 'Direction', '°', n => g(n).mesh.direction ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh, direction: v } }));
+      number('ph', 'Phase', '°', n => g(n).mesh.phase ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh, phase: v } }));
+      break;
+    }
     case 'bevel-gear': {
       // (R12b.3, D134. A meshing gear's module, teeth, mate and shaft angle are its driver's: only its own here.)
       const g = (n: ModelNode) => n as typeof node;

@@ -7334,3 +7334,106 @@ Next: R12b.4 — spiral bevel gears (the ideal conjugate, flagged as an ideal mo
 - a mate of another face width.
 
 Next: R12b.5 — ZI and ZA worms and their cylindrical wheel.
+
+## D136 — R12b.5: cylindrical worms, ZI and ZA, and their cylindrical wheel (worm@0) (2026-10-21)
+
+**Decision** (`gear-worm.ts`: `worm`, `wormDimensions`, `wormWheelSpec`, `checkWormPair`, `wormPlacement`, `wormMatrix`, `checkPlacedWormPair`; the part model's `worm` with `mesh` to a helical `spur-gear`; the studio's Worm gear pair command and worm node). As D129 froze it, budgets raised and never the tolerance:
+- **The worm:** its own frame has the axis +Z from z 0 to its length, thread 1 centred on +X at z 0.
+  - **Proportions** (the axial module system, K1's): d1 = q m_x, tan γ = z1 m_x / d1 (z1 1–4, γ at most 45°), addendum m_x, dedendum 1.25 m_x, the thread's axial thickness π m_x / 2 at the reference cylinder, α_n 20° there.
+  - **Its section** (square to the axis) turns by z/p as it rises (p = z1 m_x / 2; counter-clockwise for a right hand), so the faces are the section's curves swept by that turn: the helical gear's `extrudedProfile` twist (D59) at β = 90° − γ.
+  - **ZI** (involute helicoid): the section is the involute of r1 cos α_t, tan α_t = tan α_n / sin γ — a helical gear of z1 teeth. Below its base circle (not met in practice) the join is radial and schematic, flagged.
+  - **ZA** (the lathe's straight axial sides at tan α_x = tan α_n / cos γ): the section is the Archimedean spiral, its half-thickness angle ψ(r) = s_x/(z1 m_x) − (r − r1) tan α_x / p, fitted by C¹ Hermite pieces in r. It is the new curve here.
+  - **Refused:** ZN, ZK, ZC (named, `UNSUPPORTED_GEAR_KIND`); double-enveloping worms; pressure angles other than 20°; a lead angle past 45°. Starts outside 1–4 and a diameter leaving no root are `INVALID_INPUT`; pointed or meeting threads `SELF_INTERSECTION`; a bore past the rim `BORE_INTERSECTION`.
+- **The tolerance and the raised budgets:**
+  - The section's fit and the twist's together stay within 1e-4 m_n: three quarters for the section and a quarter for the twist, as D135.
+  - The budgets rise as D129 asked. A flank of more than five cubic pieces is split radially onto several faces (`flankL2#k` …, 16 poles a face), up to 20 pieces. The twist may take up to 128 axial segments of four pieces each.
+  - D129's finest worm (m_x 1, q 16, one start, 40 long: 12.7 turns), past the old 64 segments, now builds in 111 segments within 2.5e-5 mm.
+- **The wheel:** a cylindrical helical `spur-gear` at β = γ of the worm's hand, its normal module m_x cos γ (`wormWheelSpec`), so d2 = z2 m_x. With a ZI worm it is a crossed helical pair at 90° (point contact); with a ZA worm it is conjugate in the mid-plane only.
+- **The pair** (`checkWormPair`):
+  - **Compatibility:** the wheel helical, of the worm's hand, at its lead angle (1e-9 rad) and normal module (else `MATE_INCOMPATIBLE`, saying which).
+  - **Values:** a = r1 + r2 + x m_n, the ratio z2/z1, backlash along the axis, the tip clearances, and the mid-plane contact ratio (the worm's axial section as a rack: exact for ZA, an estimate for ZI). Also the mesh zone where the wheel's tips reach the thread (a worm shorter than it is warned of).
+  - **The sections:** square to the wheel's axis — the mid-plane and ±b/3 — each swept through one axial pitch of the worm (the mid-plane refined).
+    - The worm's section in a plane comes from its exact transverse outline: each point (ρ, φ0) is carried along its helix to where it crosses the plane on the wheel's side, x = (asin(c/ρ) − φ0 − θ) p / h, y = √(ρ² − c²) − a, the copies a lead apart.
+    - The wheel's section is its transverse profile turned by its own twist to that plane.
+    - Distances are found through a grid of a module's cells: past a module a clearance comes back as one.
+    - Touching is not crossing: segments crossing by no more than 1e-9 a are contact (at no backlash a ZA worm and the wheel touch along the line of action, and rounding crosses them).
+    - The chords' sag is reported; a clearance can only come out larger, by up to it.
+  - Mid-plane conjugacy holds: at backlash j 0.1, ZA and ZI give j cos α_x / 2 = 0.0469336 to 1e-7.
+- **Placed:**
+  - `wormPlacement` puts the worm's axis square to the wheel's, at a toward `direction` in the wheel's mid-plane, its length centred on the line of centres, its X toward the wheel. It is turned so a thread meets a space in the mid-plane: θ from the wheel's mid-plane tooth angle (its own twist to the mid-plane included), less the half length's twist.
+  - `checkPlacedWormPair` requires the axes square, the distance, and the mid-plane (else `MATE_INCOMPATIBLE`). It reads the relative phase as the worm's extra turn.
+- **Part model:** `worm` (axialModule, starts, diameter, hand, length, form, bore, thicknessReduction, center, from, rotation, mesh; generator `worm@0`).
+  - A worm meshing with a helical gear and left without its axial module, diameter or hand takes them from it: m_x = m_n / cos β, d1 = z1 m_x / tan β, its hand.
+  - Outputs: `worm` and `wormPlacement`.
+- **Studio:**
+  - **Worm gear pair** (axial module, starts, worm Ø, hand, form, wheel teeth and face width, bores) adds the wheel — a helical gear node at γ, with its root schematic (below) — then the worm node meshing with it. The worm is long enough for the mesh zone and an axial pitch on either side (66 mm for K1's pair).
+  - **The worm node** keeps its starts, form, length, bore and reduction; its module, diameter and hand are the wheel's, so it follows the wheel's edits (its teeth: the distance and ratio follow).
+  - **Notes:** the worm's dimensions, the fits and the twist, "Meshes with n0: crossed at 90°, centre distance …, ratio 30:2 (15:1), backlash … along the worm's axis, mid-plane contact ratio …", and "Clear over an axial pitch in the wheel's mid-plane and ±… mm" or the crossing.
+  - **The agent:** the `worm-pair` command docs; `tools-v1.json` +1 command by `UPDATE_TOOL_CONTRACT=1` (v2 unchanged).
+  - **Declared one-line touches** for the new node kind: `src/assembly/flatten.ts`, `src/chat/features.ts`.
+
+**Found:**
+- **A rack-generated wheel root meets an axial-module worm's crest.**
+  - K1's wheel cut by the basic rack (`spur-gear@1`, at m_n = m_x cos γ) has its form circle at Ø85.599 (r 42.80). The worm's crest line reaches a − ra1 = 42 mm from its axis.
+  - At no backlash a ZA worm's crest corner therefore cuts the wheel's generated fillet, and the sections cross. The schematic root (`@0`) clears, touching. With a 0.05 mm backlash the generated one clears (0.0228 mm against the involute's 0.0235).
+  - A worm wheel is hobbed by a hob of the worm's own form, not by the basic rack, so neither root is the cut one. The studio's pair takes the schematic root, flagged as such, rather than claim the rack's.
+- **Off the mid-plane the cylindrical wheel stands clear of the worm:** at ±b/3 the least is 0.219 (ZA) and 0.227 (ZI) mm at no backlash. The cylindrical wheel touches a ZA worm only in its mid-plane, a ZI worm at points. This is what a throated wheel (R12b.6) would add contact for.
+- **The top bar's shapes strip is full** at the flow's 1440 px. The Worm gear pair command, first a placed one, pushed the page sideways, and the flow's right-click step (72) missed its body twice running. So it sits in the side toolbar (which scrolls), positioned by its fields. A placed command added later will need room made there (logged).
+- **Timings:**
+  - a worm 2–10 ms; its mass 0.2–0.5 s;
+  - a pair's report about 0.5 s (a module's grid, the mesh band only; first written brute force, 11 s);
+  - `gear-worm.test.mjs` 8 s by default, 14 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 218 s.
+
+**Evidence:**
+- **Kernel** `test/gear-worm.test.mjs`, 4/4, its oracles written there apart from `gear-worm.ts`. The first test fails on 9beab5f16 (no worm).
+  - **Worms** (K1's ZI with a bore and ZA left-hand; m_x 2 single-start ZI q 10; the survey adds ZA single-start, ZI four-start q 8 at 26.6°, D129's m_x 1 q 16, ZA three-start thinned):
+    - valid; the dimensions by the test's own formulas; K1's γ 7.76517° (5e-6), d1 44, d_a1 50, d_f1 36.5;
+    - every face sampled: the flanks against the section turned by z/p within the fits (sampled 5.5e-5 to 2.3e-4 against 6e-5 to 2.3e-4); tips and roots on their cylinders within the twist's fit;
+    - the normal pressure angle 20° at the reference cylinder, from the B-rep's own surface normals where each flank crosses r1 (observed within 1e-4 rad);
+    - a ZA flank carried along its helix to the axial half-plane is a straight line at α_x (to 1e-4 rad), within the fits;
+    - the faces radially and the segments within budget;
+    - the volume against (π rf² + z1 ∫ 2ψ r dr) × L less the bore: 3.4e-6 to 1.0e-5 relative, within perimeter × L × the fits. (A first oracle, a shoelace over coarse root arcs, was itself short by 4e-5 and was replaced by the radial integral.)
+  - **Refusals and `MATE_INCOMPATIBLE`,** each with its code.
+  - **K1's pair** (ZA and ZI, j 0.1):
+    - a 67, ratio 15, the wheel's d2 90;
+    - the mid-plane within [j cos α_x/2, + the sag], the sections ±b/3 clear;
+    - a phase off crosses;
+    - the generated-root finding above.
+  - **The part model:**
+    - K1's wheel as a helical `spur-gear` and its worm by `mesh` (directions −90°, 30° and 200°, the wheel turned): m_x 3 and d1 44 from the wheel, the worm at 67 mm in the mid-plane, square, toward the direction;
+    - `checkPlacedWormPair` phase 0 and clear;
+    - the two B-reps cut by planes square to the wheel's axis (sections from the faces' own surfaces): never crossing; the mid-plane equal to the pair check's (0.04697 against 0.04693), off it no nearer than the check's least;
+    - the mesh phase 60° off crosses;
+    - refusals (a straight wheel, the other hand, ZK);
+    - a STEP round trip (volume 1e-6, names, valid).
+- **Conformance** `r12b/`, 21 (195 overall):
+  - `worm-khk-pair` (the wheel 119279.7884 and the worm 84310.8648 by their sections' areas × lengths, centroids on their axes; relTol 2e-5);
+  - `worm-za-m2_5` (28372.9298);
+  - `worm-zk-refused`.
+- **RB seeds,** every stage OK: `gear-worm-khk-pair`, `gear-worm-za-single`, `gear-worm-zi-four-start`.
+- **Studio** `primitives.test.ts` "Worm gear pair":
+  - the wheel node at γ (7.765166018425334°, m_n 3 cos γ), the worm 66 mm, the label "Worm ZI m_x3 ×2 Ø44";
+  - the worm's volume against 92741.95 (within 0.6);
+  - its notes and the pair clear;
+  - the wheel edited to 40 teeth: the worm follows (82 mm, 40:2), clear; the worm to ZA: clear;
+  - the wheel guarded from deletion.
+- **Browser flow:** a new step "Worm gear pair (R12b.5, D136)": K1's pair from the palette, the history's "Helical gear mn2.97 z30 … Worm ZI m_x3 ×2 Ø44", the worm's notes, clear.
+
+**Checks:**
+- Kernel 1352/1357 (4 skipped; +7: the 4 tests and 3 conformance cases; the names against D135's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 195/195. Kernel lint clean, type-check clean.
+- Studio 717/718 with the known todo (O80), 0 fail (+1). Studio lint 0 errors (119 warnings), type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 205/205 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the studio's schematic wheel root (until a hob of the worm's form generates it); the worm's default length (the mesh zone and a pitch either side).
+
+**Not in this stage:**
+- ZN, ZK and ZC worms; double-enveloping worms; shaft angles other than 90°;
+- the throated (single-enveloping) wheel (R12b.6, to be attempted);
+- a hob-generated wheel root;
+- thread end chamfers;
+- strength and efficiency.
+
+Next: R12b.6 — the throated wheel of a ZA worm, attempted (refused with the reason if the fit cannot hold).

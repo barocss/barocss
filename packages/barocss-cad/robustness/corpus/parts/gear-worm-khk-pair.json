@@ -1,0 +1,31 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "g",
+      "kind": "spur-gear",
+      "normalModule": 2.972490504132897,
+      "helixAngle": 7.765166018425334,
+      "hand": "right",
+      "teeth": 30,
+      "faceWidth": 20,
+      "bore": 20,
+      "thicknessReduction": 0.05
+    },
+    {
+      "id": "w",
+      "kind": "worm",
+      "starts": 2,
+      "length": 60,
+      "bore": 12,
+      "mesh": {
+        "gear": "g",
+        "direction": 30
+      },
+      "thicknessReduction": 0.05
+    }
+  ]
+}

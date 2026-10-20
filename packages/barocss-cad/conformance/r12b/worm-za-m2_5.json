@@ -1,0 +1,59 @@
+{
+  "id": "r12b-worm-za-m2_5",
+  "step": "R12b",
+  "decisions": [
+    "D136"
+  ],
+  "about": "A ZA worm on its own: m_x 2.5, double thread left-hand, d1 30, 45 long, a Ø10 bore — the straight-sided axial profile, its section the Archimedean spiral; the volume its section's area × the length.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "z",
+          "kind": "worm",
+          "axialModule": 2.5,
+          "starts": 2,
+          "diameter": 30,
+          "hand": "left",
+          "length": 45,
+          "form": "ZA",
+          "bore": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 28372.9298,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            22.5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^z\\.(flankL\\d?|flankR\\d?|tip|root|face0|face1|bore)(#\\d+\\.\\d+)?$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "test/gear-worm.test.mjs sectionArea (ZA: ψ(r) = s_x/(z1 m_x) − (r − r1) tan α_x / p)"
+}

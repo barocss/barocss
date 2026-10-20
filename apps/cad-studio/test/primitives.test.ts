@@ -312,6 +312,31 @@ test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral
   assert.ok(r3.ok && r3.bodies[0].notes!.some(n => n.warning && /on a 57\.082 mm cutter radius \(an estimate: the mean cone distance; give the shop's\)/.test(n.text)));
 });
 
+test('Worm gear pair (R12b.5, D136): K1\'s pair from the command (m_x 3, double thread, d1 44, z2 30) — the wheel a helical gear at the lead angle, the worm meshing with it and long enough for the mesh zone; its volume, its notes, the pair clear; the worm follows the wheel\'s teeth and its form; the wheel cannot go from under it', async () => {
+  const { editFields } = await import('../src/app/editFields');
+  const { deleteFeature } = await import('../src/chat/features');
+  const { featureLabel } = await import('../src/engine/doc');
+  const cmd = commands.find(c => c.id === 'worm-pair')!;
+  const doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, r.ok ? '' : r.error.hint);
+  const wheel = doc.nodes[0] as Extract<ModelNode, { kind: 'gear' }>, worm = doc.nodes[1] as Extract<ModelNode, { kind: 'worm' }>;
+  // (γ = atan(2·3/44); the wheel's normal module 3 cos γ; the worm 2 × 23.181 mm of mesh zone and an axial pitch on either side: 66 mm.)
+  assert.ok(Math.abs(wheel.helixAngle! - 7.765166018425334) < 1e-12 && Math.abs(Number(wheel.module) - 3 * Math.cos(Math.atan(6 / 44))) < 1e-12 && wheel.hand === 'right' && wheel.teeth === 30, JSON.stringify(wheel));
+  assert.deepEqual([worm.starts, worm.form, worm.length, worm.bore, worm.mesh.gear], [2, 'ZI', 66, 12, 0]);
+  assert.equal(featureLabel(worm, 1, doc.nodes), 'Worm ZI m_x3 ×2 Ø44');
+  const w = r.ok ? r.bodies.find(b => b.ref?.node === 1)! : null!;
+  // (The worm's volume by the kernel test's construction, test/gear-worm.test.mjs: (π rf² + 2 ∫ 2ψ r dr − π 6²) × 66 = 92741.95 mm³, within its fits.)
+  assert.ok(Math.abs(w.volumeMM3! - 92741.95) < 0.6, String(w.volumeMM3));
+  assert.ok(w.notes!.some(n => /^Worm ZI \(involute helicoid\): reference Ø44, tip Ø50, root Ø36\.5 \(q 14\.6667\); lead angle γ 7\.7652°, lead 18\.8496 mm/.test(n.text))
+    && w.notes!.some(n => /^Meshes with n0: crossed at 90°, centre distance 67 mm, ratio 30:2 \(15:1\), backlash 0 mm along the worm's axis, mid-plane contact ratio 1\.800/.test(n.text)) && w.notes!.some(n => /^Clear over an axial pitch in the wheel's mid-plane and ±6\.6667 mm/.test(n.text)), JSON.stringify(w.notes));
+  // The wheel's teeth to 40: the worm follows (ratio 40:2, 87 mm apart), clear; the worm's form to ZA, clear.
+  const zf = editFields(doc.nodes, 0).find(f => f.key === 'z')!, z40 = zf.kind === 'number' ? zf.set(doc.nodes, 40) : doc.nodes, r2 = evaluateDoc({ ...doc, nodes: z40 }, 2);
+  assert.ok(r2.ok && r2.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /centre distance 82 mm, ratio 40:2 \(20:1\)/.test(n.text)) && r2.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), r2.ok ? JSON.stringify(r2.bodies.find(b => b.ref?.node === 1)!.notes) : r2.error.hint);
+  const ff = editFields(doc.nodes, 1).find(f => f.key === 'form')!, za = ff.kind === 'choice' ? ff.set(doc.nodes, 'ZA') : doc.nodes, r3 = evaluateDoc({ ...doc, nodes: za }, 3);
+  assert.ok(r3.ok && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Worm ZA \(straight axial sides\)/.test(n.text)) && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), r3.ok ? JSON.stringify(r3.bodies.find(b => b.ref?.node === 1)!.notes) : r3.error.hint);
+  assert.match((deleteFeature(doc, 0) as { error: string }).error, /used by feature 1/);
+});
+
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
   const { editFields } = await import('../src/app/editFields');
   const { runCheck } = await import('../src/chat/spec');
