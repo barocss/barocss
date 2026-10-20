@@ -1567,3 +1567,49 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - **"Keep, because…" against soft findings.** A Designer's patch may carry `keep: reason`. When the only rejecting findings are soft (`SOFT_CODES`: `DFM_RECOMMENDED`, `SOFT_FAILING`), the patch is **held** for the user with that reason (`keptBecause` / `kept_because`), not rejected again, so a soft target that cannot be met does not loop. Hard findings still reject.
     - Scenario `soft-keep`: the 1.0 mm shell is rejected; kept but 50 wide, it is rejected by the hard W; kept at 40, it is held with the reason.
   - `test/team-v2.test.ts` 2/2 over nine A8.1 scenarios. Studio 570/570, with no test name missing.
+
+## O34 — A8.2: the Architect's interfaces; Part agents against frozen contracts, with leases (2026-10-20)
+
+- **The interfaces** (`doc.interfaces`, version 1, `src/team/parts.ts`) are the assembly's contract, the Architect's:
+  - datums and keep-outs (A6.3's, by id);
+  - **hole patterns** `{id, positions (the assembly's frame), diameter, axis, parts}`;
+  - **envelopes** `{id, part, min, max}`;
+  - **budgets** `{massG?, parts: {part: grams}}`.
+  - They have **their own revision** (`interfacesRevision`, A7.1's hash over them alone). The doc's revision covers them, and so do the instances.
+  - `interfaces` is a contract field: a Designer's change to it is held (A7).
+- **The Architect** (`ArchitectRole.plan`) sets the assembly up through ops (`add_part`, placed), then the interfaces and the leases.
+- **Leases** are `{part, holder, contract: the interfaces' revision, until: the run's logical clock}`.
+- **A Part agent's patch** is `{id, by, part, contract, ops}`: ops on its part only (the Integrator gives each op `part`). `integratePart` checks, in order, with typed findings, and after a fail the rest is "not reached":
+  1. **lease**:
+     - `NO_LEASE`: none, or another agent's;
+     - `LEASE_EXPIRED`: past `until`, decision stale; the Architect renews it;
+     - `CONTRACT_MOVED`: the lease's or the patch's contract is not the interfaces' revision, decision stale;
+     - `OUT_OF_PART`: an op on another part, or an assembly op (add, place or delete a part, mates, joints).
+  2. **validity**: `OP_REFUSED`, or `NOT_EVALUATED` (no solid).
+  3. **contract**: the part's bodies where the assembly places them:
+     - `OUT_OF_ENVELOPE`;
+     - `HOLE_OFF_PATTERN`: no exact cylinder of the pattern's diameter (±0.05 mm) on its axis through each position (±0.05 mm). It uses the display faces' exact surfaces (A6.3) moved by `placeBody`, and names the positions missed;
+     - `OVER_BUDGET`: the part's mass, its own materials or aluminium assumed, against its share.
+  - Applied, the part's ops are committed. Otherwise the assembly is unchanged.
+- **The run** (`runParts`): the Architect's plan, then the Part agents take turns, one patch a turn, until all are done or the rounds run out.
+- **Scripted**: the Architect replays its setup, interfaces and leases. Part agents replay patches, on a stale contract or another part when the fixture says so.
+- **Evidence**: `test/team-v3.test.ts` (2 tests). Its name was checked free first.
+  - **Eight scenarios** in `conformance/a8/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
+
+    | scenario | what happens |
+    |---|---|
+    | parts-clean | a bracket and a board on one Ø4 pattern at (10, 10) and (50, 10), each in its envelope and budget: both applied |
+    | parts-no-lease | `NO_LEASE` |
+    | parts-expired | `LEASE_EXPIRED` |
+    | parts-contract-moved | `CONTRACT_MOVED` |
+    | parts-out-of-part | the board edited, a part added: `OUT_OF_PART` twice |
+    | parts-hole-off | a hole 2 mm off: `HOLE_OFF_PATTERN` |
+    | parts-envelope | 70 wide: `OUT_OF_ENVELOPE` |
+    | parts-budget | 64.8 g over 30 g: `OVER_BUDGET` |
+
+  - **The clean run**:
+    - both parts' holes on H1 (the exact cylinders, placed); the pattern moved 2 mm is missed at both positions;
+    - the board's placed box at z 20–22;
+    - every lease naming the interfaces' revision.
+  - Studio 572/572, with no test name missing against the last run. Lint and type-check clean.
+- **Next**: A8.3, ECRs with impact analysis and the user's approval.

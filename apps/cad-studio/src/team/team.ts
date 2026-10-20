@@ -28,7 +28,7 @@ function canonical(v: unknown): string {
   return `{${Object.keys(o).filter(k => o[k] !== undefined).sort().map(k => `${JSON.stringify(k)}:${canonical(o[k])}`).join(',')}}`;
 }
 /** What a revision covers: the model and the contracts a patch may depend on. */
-const REVISION_FIELDS = ['nodes', 'parameters', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'drafts'] as const;
+const REVISION_FIELDS = ['nodes', 'parameters', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'drafts', 'interfaces', 'instances'] as const;
 /** The canonical JSON of what a revision covers: equal exactly when the states a patch depends on are equal. */
 export const canonicalOf = (doc: StudioDoc) => canonical(Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]])));
 /**
@@ -54,7 +54,7 @@ export type FindingCode = 'NOT_A_DRAWING_OP' | 'DRAWING_ISSUES' | 'DRAWING_WARNI
 export interface Finding { code: FindingCode; message: string; entities?: string[] }
 export interface GateResult { gate: GateName; verdict: Verdict; findings: Finding[] }
 /** The fields a patch may not change: the contracts, the Requirements role's and the user's. */
-export const CONTRACT_FIELDS = ['references', 'brief', 'requirements', 'process', 'printer', 'drafts', 'questions'] as const;
+export const CONTRACT_FIELDS = ['references', 'brief', 'requirements', 'process', 'printer', 'drafts', 'questions', 'interfaces'] as const;
 const INTERFACE_QUERIES = new Set(['keepout', 'datum_distance', 'clearance', 'hole_alignment']);
 /** The contract fields that differ between two states. */
 export const contractChanges = (a: StudioDoc, b: StudioDoc) => CONTRACT_FIELDS.filter(k => canonical((a as unknown as Record<string, unknown>)[k] ?? null) !== canonical((b as unknown as Record<string, unknown>)[k] ?? null));

@@ -383,7 +383,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A8.1** (O33): done. Parallel read-only DFM and Analysis reviewers on their own frozen views, joined by role name;
     a Drafting agent with drawing ops only on a frozen revision (STALE_BASE, NOT_A_DRAWING_OP, DRAWING_ISSUES).
     Six scenarios in `conformance/a8`.
-  - A8.2 (next) → A8.3 → A8.4 → A8.5.
+  - **A8.2** (O34): done. The Architect's interfaces (`doc.interfaces`: hole patterns, envelopes, budgets, datums,
+    keep-outs; their own revision); leases; Part agents' patches checked: lease (NO_LEASE, LEASE_EXPIRED,
+    CONTRACT_MOVED, OUT_OF_PART), validity, contract (OUT_OF_ENVELOPE, HOLE_OFF_PATTERN on the exact cylinders,
+    OVER_BUDGET). Eight scenarios in `conformance/a8`.
+  - A8.3 (next) → A8.4 → A8.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

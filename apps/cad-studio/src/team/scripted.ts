@@ -7,6 +7,8 @@ import type { StudioDoc } from '../engine/doc';
 import { emptyDoc } from '../engine/doc';
 import type { ChatState, Evaluate } from '../chat/tools';
 import type { Op } from '../chat/proposals';
+import type { ArchitectRole, Interfaces, Lease, PartAgentRole, PartsRun } from './parts';
+import { runParts } from './parts';
 import { rebase, runTeam, type DesignerRole, type DrafterRole, type Patch, type RequirementsRole, type ReviewerName, type ReviewerRole, type ReviewView, type TeamRun, type VerifierRole, type VerifierView } from './team';
 
 export type DesignerStep = { patch: { id: string; ops: Op[]; rationale?: string; /** "stale": made on an old revision (a fixed one no part has). */ base?: 'stale'; /** Kept against soft findings, because… */ keep?: string } } | 'done' | 'rebase';
@@ -95,3 +97,22 @@ export function runSummary(r: TeamRun) {
     traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, base: t.base, ...(t.rebasedFrom ? { rebased_from: t.rebasedFrom } : {}), decision: t.decision, ...(t.contractChanges ? { contract_changes: t.contractChanges } : {}), revision_after: t.revisionAfter, gates: t.gates.map(g => ({ gate: g.gate, verdict: g.verdict, findings: g.findings })), ...(t.verifier ? { verifier: t.verifier } : {}), ...(t.reviews ? { reviews: t.reviews } : {}), ...(t.keptBecause ? { kept_because: t.keptBecause } : {}) })),
   };
 }
+
+// ——— v3 (A8.2): a scripted Architect and Part agents
+export type PartStep = { patch: { id: string; ops: Op[]; /** "stale": made on an old contract. */ contract?: 'stale'; /** Another part than the agent's own. */ part?: string } } | 'done';
+export interface PartsScenario {
+  case: string; step: 'A8.2'; note?: string; start?: StudioDoc;
+  architect: { ops: Op[]; interfaces: Interfaces; leases: Omit<Lease, 'contract'>[] };
+  parts: { name: string; part: string; steps: PartStep[] }[];
+  rounds?: number;
+}
+export const scriptedArchitect = (a: PartsScenario['architect']): ArchitectRole => ({ model: 'scripted', async plan() { return { ops: a.ops, interfaces: a.interfaces, leases: a.leases }; } });
+export function scriptedPartAgent(name: string, part: string, steps: readonly PartStep[]): PartAgentRole {
+  let k = 0;
+  return { name, part, model: 'scripted', async propose(view) { const s = steps[k++]; if (s === undefined || s === 'done') return 'done'; return { patch: { id: s.patch.id, ops: s.patch.ops, contract: s.patch.contract === 'stale' ? STALE_REVISION : view.contract, ...(s.patch.part ? { part: s.patch.part } : {}) } }; } };
+}
+export async function runPartsScenario(sc: PartsScenario, evaluate: Evaluate): Promise<PartsRun> {
+  const doc = sc.start ?? emptyDoc(), e = await evaluate(doc), start: ChatState = { doc, bodies: e?.ok ? e.bodies : [] };
+  return runParts(start, scriptedArchitect(sc.architect), sc.parts.map(p => scriptedPartAgent(p.name, p.part, p.steps)), evaluate, { rounds: sc.rounds ?? Math.max(...sc.parts.map(p => p.steps.length)) });
+}
+export const partsSummary = (r: PartsRun) => ({ accepted: r.accepted, leases: r.leases, traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, part: t.patch.part, decision: t.decision, gates: t.gates, revision_after: t.revisionAfter })) });
