@@ -3345,3 +3345,67 @@ Built as O70 froze it and the coordinator accepted (`src/rb9/`; `pnpm rb9`). The
   - `pnpm rb9` (seed 2026, 5 trials): **30/30 trials pass, pass@1 = pass@5 = pass^5 = 1 and RS 1 on every rung; 76/76 mutants killed; every hard predicate killed by a mutant.**
   - The report, with each trial's seed and sampled values, is in `notes/rb9-scripted-2026-10-20/` (report.md, results.json).
   - `test/rb9.test.ts`: the sampler's edge patterns, determinism and grid; the ladder end to end, as the CLI's gate; each trial's seed and values in the report.
+
+## O72 — RB9.1b: rungs 8, 9, 12 and 14 scripted (50/50 trials, 130/130 mutants); a library part's material from the brief; set_material proposed (2026-10-20)
+
+Ordered by the coordinator after O71. There are three parts: the library's material fix, rung 8 without context numbers, and RB9.1b. A per-body material tool is proposed below, and not built.
+
+- **A library part's material** (`src/library/libraries.ts`). The context now takes `materialIdOf(doc, target)`: the body's own material, else the brief's stated one. That is the material its mass already reads. Before this it read the body's look only, so a snap hook in a part whose brief stated ABS had no strain context unless the agent passed numbers. An assumed brief material still gives none, and says so.
+- **Found while building, and fixed** (`src/chat/tools.ts`): the assembly group's tools (`add_library_part` among them) did not re-evaluate the part. A second `add_library_part` in the same turn looked for the body by its face among the bodies from before the first union, and was refused with "No such body to add to". The result now re-evaluates and hands on its bodies.
+- Tests (`test/enclosure.test.ts`):
+  - a stated ABS brief gives the hook ε_allow 0.025, E 2200, σy 40 and μ 0.5;
+  - an assumed one gives the missing-material warning;
+  - the body's own PLA comes first;
+  - through the tools, `set_brief` then `add_library_part` gives the hook its context, with no `context`;
+  - four standoffs in one turn end in one body.
+- **The rungs**:
+  - **8, snap-fit box** (6 predicates, 10 mutants). A box and a flat lid on its rim (two solids), with 2 or 4 cantilever hooks under the lid, each over a ledge on its wall. The material (ABS or PETG) comes from the brief only; **the scripted agent passes no `context` numbers**, as ordered. Predicates:
+    - the box;
+    - the two solids;
+    - the hook count;
+    - **flex**: `library_check` strain and yield ≤ 1 on every hook;
+    - **latched**: each hook's catch face (an exact plane) faces a ledge's underside within 0 to 2·fitGap, and they overlap by at least (undercut − fitGap) × width;
+    - **clearance**: every hook at least the FDM fit gap (0.3) from the box. The meshes' distance is taken from the hook's own triangles (its prefix faces);
+    - no interference.
+  - **9, PCB enclosure** (8, 7):
+    - four standoffs (M2.5 or M3) on the board's hole pattern, their exact cylinders to 1e-9 and height to 1e-4;
+    - the board's component space as a keep-out, checked by the studio's own `check_keepouts` on a copy (1 mm clearance);
+    - the cable hole's exact cylinder;
+    - the vents, by the kernel's section through the right wall: the area lost lies between n obround slots and n rectangles;
+    - FDM `min_wall`, the box, one solid.
+  - **12, 5-part assembly** (5, 5). A base, two brackets with bores, a cap and a shaft, each its own part placed by mates (origin-plane distances). Predicates:
+    - five parts and five BOM rows;
+    - each part's placed box, matched by position and not by name;
+    - **freedoms by RM1's tree**: one joint moves, the shaft's, continuous about the bore axis; every other part is fixed; no loops or problems;
+    - `checkAssembly` passes, with only the mates' contacts;
+    - the mass against its closed form (6061) to 5e-3 g.
+  - **14, 2-axis arm** (4, 5). Bars on a base, as RM's chain-2r, with a payload block sized by its mass, and ratings set by `set_joints`. Predicates:
+    - two revolute joints on vertical axes, l₁ apart;
+    - **reach**: RM9b's map, 2000 poses, from the end link's far bore must be at least R*;
+    - **margins**: the RD9 harness at the brief's duty passes, with an RD3 pair on each joint;
+    - **URDF**: the export is clean, its FK equals RM2's to 1e-9 at 20 poses, and its inertials equal RM3's to 1e-12.
+- **Where these differ from O70's frozen text**:
+  - Rung 8: "a hook too thick (strain fails)" cannot be built. For ABS and PETG, σy/E is below the allowable strain, so a thicker hook is refused at yield before its strain warns. The flex mutant is the brief without a stated material instead (strain unknown).
+  - Rung 8: "lid-to-box clearance ≥ fitGap" is read as every hook's clearance from the box. The lid rests on the rim, and that contact is intended.
+  - Rung 8: the hook–ledge alignment is the overlap rule above, which is ±0.2 across: the ledge is wider by its 2 × 0.2 clearance.
+  - Rung 9 is the open base, one solid; the lid and two solids are rung 8's.
+  - Rung 9's volume closed form is replaced by the vents' section bound, the standoffs' exact cylinders and the keep-out.
+  - Rung 14's "motor too small" is a joint rated far below the move's torque. The document cannot hold an actuator choice, so the harness takes RD3's lightest feasible pair.
+- **Found while building**:
+  - `x_direction` sets a library part's width axis. A hook's latch faces −(x × z) on the face, so a hook by the left wall wants the opposite one.
+  - A ledge on the −x wall comes upside down without its own `x_direction`.
+  - A `distance` mate between two same-way faces offsets along a's normal, so the scripted agent uses the origin planes.
+  - An axial mate between the shaft and the cap closed a loop in RM1's tree. The shaft's end is mated to bracket A instead, 1 mm short of the cap.
+  - An unmated payload still exports a URDF (one robot, the loose part noted). The URDF mutant is unrated joints instead (LIMITS_MISSING).
+- **Proposal, not built: a per-part material.** No tool sets a body's material today. The brief covers the base part only, so an instance (rungs 12 and 14) is always the studio's default 6061, and a payload's mass has to be shaped in aluminium. The tool contract's overhead stands at 14 440 of its 15 000-character guard (tools/list 112 889 against 98 449 plain).
+  - **Recommended: a `material` field on `place_part`**, `{part: "base" | id, material, body?}`:
+    - it sets the look's material on every body of that part, or on `body`;
+    - an unknown id is refused with the list (MATERIAL_UNKNOWN);
+    - `part: "base"` is taken for material alone;
+    - it costs no contract overhead, about 300 plain characters, and goes in v2's assembly `place` action.
+  - A separate `set_material` tool would fit today: about +130 of contract overhead, leaving ~430. But it would spend most of what the next tool needs.
+  - Then rung 12 and rung 14 state a steel shaft and a steel payload, and their mass and inertia closed forms follow.
+- **Evidence**:
+  - `pnpm rb9` (seed 2026, 5 trials): **50/50 trials pass on all ten rungs; pass@1 = pass^5 = 1 and RS 1 each; 130/130 mutants killed; every hard predicate killed by a mutant.**
+  - The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
+  - `test/rb9.test.ts` now runs all ten rungs.

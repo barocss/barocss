@@ -8,45 +8,69 @@ Each rung: n trials on fresh documents, parameters sampled from the seed — tri
 | 2 | washer | 5/5 | 1.00 | 1 | 1 | 1.000 | 12/12 | — |
 | 3 | printed phone stand | 5/5 | 1.00 | 1 | 1 | 1.000 | 12/12 | — |
 | 5 | sheet-metal L-bracket | 5/5 | 1.00 | 1 | 1 | 1.000 | 14/14 | — |
+| 8 | snap-fit box | 5/5 | 1.00 | 1 | 1 | 1.000 | 20/20 | — |
+| 9 | PCB enclosure | 5/5 | 1.00 | 1 | 1 | 1.000 | 14/14 | — |
 | 10 | sheet-metal PCB enclosure | 5/5 | 1.00 | 1 | 1 | 1.000 | 16/16 | — |
+| 12 | 5-part assembly | 5/5 | 1.00 | 1 | 1 | 1.000 | 10/10 | — |
 | 13 | product from a brief | 5/5 | 1.00 | 1 | 1 | 1.000 | 10/10 | — |
+| 14 | 2-axis robot arm | 5/5 | 1.00 | 1 | 1 | 1.000 | 10/10 | — |
 
-Overall: 30/30 trials pass (100 %); mutants killed 76/76.
+Overall: 50/50 trials pass (100 %); mutants killed 130/130.
 
 ## Trials
 
 | rung | trial | seed | parameters | pass | RS | failed | calls | ms |
 |---|---|---|---|---|---|---|---|---|
-| block-hole | 0 | 2026 | w 30, d 30, h 8, dh 3 | yes | 1.000 | — | 2 | 35 |
+| block-hole | 0 | 2026 | w 30, d 30, h 8, dh 3 | yes | 1.000 | — | 2 | 34 |
 | block-hole | 1 | 2026 | w 120, d 120, h 40, dh 48 | yes | 1.000 | — | 2 | 11 |
 | block-hole | 2 | 2026 | w 30, d 120, h 8, dh 12 | yes | 1.000 | — | 2 | 9 |
 | block-hole | 3 | 2026 | w 120, d 30, h 40, dh 3 | yes | 1.000 | — | 2 | 8 |
 | block-hole | 4 | 2026 | w 54, d 73, h 36, dh 15.5 | yes | 1.000 | — | 2 | 9 |
-| washer | 0 | 2026 | D 8, d 3.2, t 0.8 | yes | 1.000 | — | 1 | 8 |
+| washer | 0 | 2026 | D 8, d 3.2, t 0.8 | yes | 1.000 | — | 1 | 9 |
 | washer | 1 | 2026 | D 40, d 28, t 4 | yes | 1.000 | — | 1 | 8 |
 | washer | 2 | 2026 | D 8, d 5.6, t 0.8 | yes | 1.000 | — | 1 | 8 |
-| washer | 3 | 2026 | D 40, d 16, t 4 | yes | 1.000 | — | 1 | 11 |
-| washer | 4 | 2026 | D 16.5, d 8.9, t 3.6 | yes | 1.000 | — | 1 | 9 |
+| washer | 3 | 2026 | D 40, d 16, t 4 | yes | 1.000 | — | 1 | 9 |
+| washer | 4 | 2026 | D 16.5, d 8.9, t 3.6 | yes | 1.000 | — | 1 | 10 |
 | phone-stand | 0 | 2026 | w 60, D 50, H 40, g 10 | yes | 1.000 | — | 5 | 16 |
-| phone-stand | 1 | 2026 | w 100, D 90, H 80, g 14 | yes | 1.000 | — | 5 | 15 |
-| phone-stand | 2 | 2026 | w 60, D 90, H 40, g 14 | yes | 1.000 | — | 5 | 14 |
+| phone-stand | 1 | 2026 | w 100, D 90, H 80, g 14 | yes | 1.000 | — | 5 | 14 |
+| phone-stand | 2 | 2026 | w 60, D 90, H 40, g 14 | yes | 1.000 | — | 5 | 15 |
 | phone-stand | 3 | 2026 | w 100, D 50, H 80, g 10 | yes | 1.000 | — | 5 | 14 |
-| phone-stand | 4 | 2026 | w 71, D 69, H 74, g 13 | yes | 1.000 | — | 5 | 14 |
-| sheet-l-bracket | 0 | 2026 | t 1, r 1, k 0.3, a 30, b 25, w 20, dh 3 | yes | 1.000 | — | 2 | 74 |
+| phone-stand | 4 | 2026 | w 71, D 69, H 74, g 13 | yes | 1.000 | — | 5 | 13 |
+| sheet-l-bracket | 0 | 2026 | t 1, r 1, k 0.3, a 30, b 25, w 20, dh 3 | yes | 1.000 | — | 2 | 72 |
 | sheet-l-bracket | 1 | 2026 | t 3, r 9, k 0.5, a 60, b 50, w 40, dh 13 | yes | 1.000 | — | 2 | 44 |
-| sheet-l-bracket | 2 | 2026 | t 1, r 3, k 0.3, a 60, b 25, w 40, dh 3 | yes | 1.000 | — | 2 | 42 |
-| sheet-l-bracket | 3 | 2026 | t 3, r 3, k 0.5, a 30, b 50, w 20, dh 6.5 | yes | 1.000 | — | 2 | 41 |
-| sheet-l-bracket | 4 | 2026 | t 1.5, r 3, k 0.48, a 51, b 35, w 24, dh 5.5 | yes | 1.000 | — | 2 | 41 |
-| sheet-pcb-enclosure | 0 | 2026 | t 1, r 1, k 0.3, A 80, B 50, h 15, inset 8, dh 2.5, sw 10, sh 4 | yes | 1.000 | — | 1 | 251 |
-| sheet-pcb-enclosure | 1 | 2026 | t 2, r 4, k 0.5, A 140, B 100, h 35, inset 15, dh 4, sw 30, sh 25 | yes | 1.000 | — | 1 | 227 |
-| sheet-pcb-enclosure | 2 | 2026 | t 1, r 2, k 0.3, A 140, B 50, h 35, inset 8, dh 4, sw 10, sh 28 | yes | 1.000 | — | 1 | 226 |
-| sheet-pcb-enclosure | 3 | 2026 | t 2, r 2, k 0.5, A 80, B 100, h 15, inset 15, dh 2.5, sw 30, sh 4 | yes | 1.000 | — | 1 | 209 |
-| sheet-pcb-enclosure | 4 | 2026 | t 1, r 1.5, k 0.48, A 121, B 69, h 19, inset 11.5, dh 3.1, sw 25, sh 10.5 | yes | 1.000 | — | 1 | 212 |
-| product-brief | 0 | 2026 | kind knob, R 10, H 12, ds 4, f 0.4, depth 4.8, fr 0.5, w 20, t 3, a 20, l 8 | yes | 1.000 | — | 6 | 191 |
-| product-brief | 1 | 2026 | kind hook, R 25, H 25, ds 8, f 1, depth 17.5, fr 3, w 40, t 6, a 50, l 20 | yes | 1.000 | — | 8 | 46 |
-| product-brief | 2 | 2026 | kind knob, R 25, H 12, ds 8, f 0.4, depth 8.3, fr 0.5, w 40, t 3, a 50, l 8 | yes | 1.000 | — | 6 | 296 |
-| product-brief | 3 | 2026 | kind hook, R 10, H 25, ds 4, f 1, depth 10, fr 3, w 20, t 6, a 20, l 20 | yes | 1.000 | — | 8 | 42 |
-| product-brief | 4 | 2026 | kind knob, R 17, H 23, ds 7, f 0.6, depth 10.7, fr 2, w 28, t 5.5, a 43, l 10 | yes | 1.000 | — | 6 | 75 |
+| sheet-l-bracket | 2 | 2026 | t 1, r 3, k 0.3, a 60, b 25, w 40, dh 3 | yes | 1.000 | — | 2 | 41 |
+| sheet-l-bracket | 3 | 2026 | t 3, r 3, k 0.5, a 30, b 50, w 20, dh 6.5 | yes | 1.000 | — | 2 | 39 |
+| sheet-l-bracket | 4 | 2026 | t 1.5, r 3, k 0.48, a 51, b 35, w 24, dh 5.5 | yes | 1.000 | — | 2 | 39 |
+| snap-fit-box | 0 | 2026 | W 60, D 40, H 25, s 1.5, tl 2, m abs, nh 2, tb 1.2, y 0.6, b 5, L 9 | yes | 1.000 | — | 8 | 126 |
+| snap-fit-box | 1 | 2026 | W 120, D 80, H 40, s 3, tl 3, m petg, nh 4, tb 2, y 1.2, b 10, L 31 | yes | 1.000 | — | 12 | 205 |
+| snap-fit-box | 2 | 2026 | W 60, D 80, H 25, s 3, tl 2, m petg, nh 2, tb 2, y 0.6, b 10, L 11 | yes | 1.000 | — | 8 | 96 |
+| snap-fit-box | 3 | 2026 | W 120, D 40, H 40, s 1.5, tl 3, m abs, nh 4, tb 1.2, y 1.2, b 5, L 32 | yes | 1.000 | — | 12 | 190 |
+| snap-fit-box | 4 | 2026 | W 76, D 59, H 38, s 2.5, tl 2.5, m abs, nh 4, tb 1.5, y 1.1, b 9, L 16 | yes | 1.000 | — | 12 | 196 |
+| pcb-enclosure | 0 | 2026 | w 90, d 60, h 25, t 2, a 40, b 30, i 3.5, v M2.5, hs 5, c 3, n 3, sl 8 | yes | 1.000 | — | 8 | 728 |
+| pcb-enclosure | 1 | 2026 | w 140, d 100, h 40, t 3, a 104, b 64, i 5, v M3, hs 10, c 23, n 8, sl 15 | yes | 1.000 | — | 8 | 800 |
+| pcb-enclosure | 2 | 2026 | w 90, d 100, h 25, t 3, a 40, b 64, i 3.5, v M3, hs 5, c 13, n 3, sl 15 | yes | 1.000 | — | 8 | 684 |
+| pcb-enclosure | 3 | 2026 | w 140, d 60, h 40, t 2, a 106, b 30, i 5, v M2.5, hs 10, c 3, n 8, sl 8 | yes | 1.000 | — | 8 | 788 |
+| pcb-enclosure | 4 | 2026 | w 103, d 79, h 38, t 3, a 50, b 33, i 4.5, v M2.5, hs 8.5, c 18, n 4, sl 12 | yes | 1.000 | — | 8 | 707 |
+| sheet-pcb-enclosure | 0 | 2026 | t 1, r 1, k 0.3, A 80, B 50, h 15, inset 8, dh 2.5, sw 10, sh 4 | yes | 1.000 | — | 1 | 233 |
+| sheet-pcb-enclosure | 1 | 2026 | t 2, r 4, k 0.5, A 140, B 100, h 35, inset 15, dh 4, sw 30, sh 25 | yes | 1.000 | — | 1 | 214 |
+| sheet-pcb-enclosure | 2 | 2026 | t 1, r 2, k 0.3, A 140, B 50, h 35, inset 8, dh 4, sw 10, sh 28 | yes | 1.000 | — | 1 | 216 |
+| sheet-pcb-enclosure | 3 | 2026 | t 2, r 2, k 0.5, A 80, B 100, h 15, inset 15, dh 2.5, sw 30, sh 4 | yes | 1.000 | — | 1 | 205 |
+| sheet-pcb-enclosure | 4 | 2026 | t 1, r 1.5, k 0.48, A 121, B 69, h 19, inset 11.5, dh 3.1, sw 25, sh 10.5 | yes | 1.000 | — | 1 | 204 |
+| five-part-assembly | 0 | 2026 | P 100, Q 50, tb 4, bw 8, bd 20, bh 30, ds 6, c 12, zc 7, ct 3, xa 5, xb 60 | yes | 1.000 | — | 21 | 86 |
+| five-part-assembly | 1 | 2026 | P 200, Q 100, tb 10, bw 15, bd 40, bh 60, ds 12, c 40, zc 40, ct 6, xa 75, xb 174 | yes | 1.000 | — | 21 | 76 |
+| five-part-assembly | 2 | 2026 | P 100, Q 100, tb 4, bw 15, bd 20, bh 60, ds 6, c 20, zc 11, ct 6, xa 5, xb 74 | yes | 1.000 | — | 21 | 73 |
+| five-part-assembly | 3 | 2026 | P 200, Q 50, tb 10, bw 8, bd 40, bh 30, ds 12, c 18, zc 21, ct 3, xa 82, xb 110 | yes | 1.000 | — | 21 | 73 |
+| five-part-assembly | 4 | 2026 | P 125, Q 75, tb 9, bw 13, bd 28, bh 36, ds 9, c 20, zc 22, ct 6, xa 11, xb 86.5 | yes | 1.000 | — | 21 | 74 |
+| product-brief | 0 | 2026 | kind knob, R 10, H 12, ds 4, f 0.4, depth 4.8, fr 0.5, w 20, t 3, a 20, l 8 | yes | 1.000 | — | 6 | 184 |
+| product-brief | 1 | 2026 | kind hook, R 25, H 25, ds 8, f 1, depth 17.5, fr 3, w 40, t 6, a 50, l 20 | yes | 1.000 | — | 8 | 41 |
+| product-brief | 2 | 2026 | kind knob, R 25, H 12, ds 8, f 0.4, depth 8.3, fr 0.5, w 40, t 3, a 50, l 8 | yes | 1.000 | — | 6 | 306 |
+| product-brief | 3 | 2026 | kind hook, R 10, H 25, ds 4, f 1, depth 10, fr 3, w 20, t 6, a 20, l 20 | yes | 1.000 | — | 8 | 47 |
+| product-brief | 4 | 2026 | kind knob, R 17, H 23, ds 7, f 0.6, depth 10.7, fr 2, w 28, t 5.5, a 43, l 10 | yes | 1.000 | — | 6 | 77 |
+| two-axis-arm | 0 | 2026 | l1 80, l2 80, m 0.1, R 110, q1 0.5, q2 -2, v 1, acc 5 | yes | 1.000 | — | 20 | 259 |
+| two-axis-arm | 1 | 2026 | l1 250, l2 250, m 1, R 490, q1 1.5, q2 -0.5, v 3, acc 20 | yes | 1.000 | — | 20 | 224 |
+| two-axis-arm | 2 | 2026 | l1 80, l2 250, m 0.1, R 320, q1 0.5, q2 -0.5, v 1, acc 20 | yes | 1.000 | — | 20 | 287 |
+| two-axis-arm | 3 | 2026 | l1 250, l2 80, m 1, R 280, q1 1.5, q2 -2, v 3, acc 5 | yes | 1.000 | — | 20 | 283 |
+| two-axis-arm | 4 | 2026 | l1 125, l2 160, m 0.9, R 248, q1 0.9, q2 -1.7, v 2, acc 11 | yes | 1.000 | — | 20 | 287 |
 
 ## Mutants
 
@@ -102,6 +126,40 @@ Overall: 30/30 trials pass (100 %); mutants killed 76/76.
 | sheet-l-bracket | one-hole@1 | one hole only | holes | yes | volume, flat-area, holes |
 | sheet-l-bracket | loose@0 | a loose piece beside it | solids | yes | volume, solids |
 | sheet-l-bracket | loose@1 | a loose piece beside it | solids | yes | volume, solids |
+| snap-fit-box | no-material@0 | the brief without the stated material: the hooks' strain unknown | flex | yes | flex |
+| snap-fit-box | no-material@1 | the brief without the stated material: the hooks' strain unknown | flex | yes | flex |
+| snap-fit-box | hook-short@0 | one hook fewer than asked | hooks | yes | hooks |
+| snap-fit-box | hook-short@1 | one hook fewer than asked | hooks | yes | hooks |
+| snap-fit-box | no-ledge@0 | one hook with no ledge | latched | yes | latched |
+| snap-fit-box | no-ledge@1 | one hook with no ledge | latched | yes | latched |
+| snap-fit-box | ledge-moved@0 | the ledges 2 mm along their walls | latched | yes | latched |
+| snap-fit-box | ledge-moved@1 | the ledges 2 mm along their walls | latched | yes | latched |
+| snap-fit-box | tight@0 | the ledges down on the catches: no fit gap | clearance | yes | clearance |
+| snap-fit-box | tight@1 | the ledges down on the catches: no fit gap | clearance | yes | clearance |
+| snap-fit-box | shallow@0 | ledges 0.15 deep: the catch misses them | latched | yes | latched |
+| snap-fit-box | shallow@1 | ledges 0.15 deep: the catch misses them | latched | yes | latched |
+| snap-fit-box | low@0 | ledges 0.6 lower, through the catches | fits | yes | latched, clearance, fits |
+| snap-fit-box | low@1 | ledges 0.6 lower, through the catches | fits | yes | latched, clearance, fits |
+| snap-fit-box | into-wall@0 | hooks 1 mm outward, into their walls | fits | yes | latched, clearance, fits |
+| snap-fit-box | into-wall@1 | hooks 1 mm outward, into their walls | fits | yes | latched, clearance, fits |
+| snap-fit-box | loose@0 | a loose piece beside it | solids | yes | box, solids |
+| snap-fit-box | loose@1 | a loose piece beside it | solids | yes | box, solids |
+| snap-fit-box | wide@0 | the box and lid 5 mm wider than asked | box | yes | box |
+| snap-fit-box | wide@1 | the box and lid 5 mm wider than asked | box | yes | box |
+| pcb-enclosure | moved@0 | a standoff 1 mm off its hole | standoffs | yes | standoffs |
+| pcb-enclosure | moved@1 | a standoff 1 mm off its hole | standoffs | yes | standoffs |
+| pcb-enclosure | tall@0 | the standoffs 3 mm taller, into the components | components | yes | standoffs, components |
+| pcb-enclosure | tall@1 | the standoffs 3 mm taller, into the components | components | yes | standoffs, components |
+| pcb-enclosure | no-cable@0 | no cable hole | cable | yes | cable |
+| pcb-enclosure | no-cable@1 | no cable hole | cable | yes | cable |
+| pcb-enclosure | no-vent@0 | no vent | vents | yes | vents |
+| pcb-enclosure | no-vent@1 | no vent | vents | yes | vents |
+| pcb-enclosure | thin@0 | walls 0.6 | min-wall | yes | cable, vents, min-wall |
+| pcb-enclosure | thin@1 | walls 0.6 | min-wall | yes | cable, vents, min-wall |
+| pcb-enclosure | loose@0 | a loose piece beside it | solids | yes | box, solids |
+| pcb-enclosure | loose@1 | a loose piece beside it | solids | yes | box, solids |
+| pcb-enclosure | wide@0 | 5 mm too wide | box | yes | box, cable, vents |
+| pcb-enclosure | wide@1 | 5 mm too wide | box | yes | box, cable, vents |
 | sheet-pcb-enclosure | k-off@0 | K 0.05 off | flat-length | yes | flat-length, flat-width, flat-area |
 | sheet-pcb-enclosure | k-off@1 | K 0.05 off | flat-length | yes | flat-length, flat-width, flat-area |
 | sheet-pcb-enclosure | k-area@0 | K 0.1 off | flat-area | yes | flat-length, flat-width, flat-area |
@@ -118,6 +176,16 @@ Overall: 30/30 trials pass (100 %); mutants killed 76/76.
 | sheet-pcb-enclosure | no-slot@1 | no connector slot | loops | yes | volume, flat-area, loops |
 | sheet-pcb-enclosure | loose@0 | a loose piece beside it | solids | yes | volume, solids |
 | sheet-pcb-enclosure | loose@1 | a loose piece beside it | solids | yes | volume, solids |
+| five-part-assembly | unmated@0 | the shaft with no axial mate: it slides too | freedoms | yes | placed, freedoms |
+| five-part-assembly | unmated@1 | the shaft with no axial mate: it slides too | freedoms | yes | placed, freedoms |
+| five-part-assembly | meet@0 | the shaft 1 mm over the bore | contacts | yes | placed, freedoms, contacts, mass |
+| five-part-assembly | meet@1 | the shaft 1 mm over the bore | contacts | yes | placed, freedoms, contacts, mass |
+| five-part-assembly | missing@0 | no cap | parts | yes | parts, placed, mass |
+| five-part-assembly | missing@1 | no cap | parts | yes | parts, placed, mass |
+| five-part-assembly | thick@0 | the brackets 2 mm thicker | mass | yes | placed, freedoms, mass |
+| five-part-assembly | thick@1 | the brackets 2 mm thicker | mass | yes | placed, freedoms, mass |
+| five-part-assembly | moved@0 | bracket B 5 mm further along | placed | yes | placed, freedoms, mass |
+| five-part-assembly | moved@1 | bracket B 5 mm further along | placed | yes | placed, freedoms, mass |
 | product-brief | bore@0 | the bore 0.5 too big (knob) / one screw hole (hook) | bore | yes | volume, bore, flat |
 | product-brief | bore@1 | the bore 0.5 too big (knob) / one screw hole (hook) | screw-holes | yes | volume, screw-holes |
 | product-brief | flat@0 | no flat (knob) / the back too thin (hook) | flat | yes | volume, flat |
@@ -128,3 +196,13 @@ Overall: 30/30 trials pass (100 %); mutants killed 76/76.
 | product-brief | rounder@1 | the edge rounded 0.5 more (knob) / the lip 2 higher (hook) | volume | yes | box, volume |
 | product-brief | loose@0 | a loose piece beside it | solids | yes | box, volume, solids |
 | product-brief | loose@1 | a loose piece beside it | solids | yes | box, volume, solids |
+| two-axis-arm | short@0 | the forearm too short for the reach | reach | yes | reach |
+| two-axis-arm | short@1 | the forearm too short for the reach | reach | yes | reach |
+| two-axis-arm | weak@0 | the joints rated 0.001 N·m: the motors too small for the move | margins | yes | margins |
+| two-axis-arm | weak@1 | the joints rated 0.001 N·m: the motors too small for the move | margins | yes | margins |
+| two-axis-arm | elbow-fixed@0 | the elbow held by an angle mate | joints | yes | joints, reach, margins |
+| two-axis-arm | elbow-fixed@1 | the elbow held by an angle mate | joints | yes | joints, reach, margins |
+| two-axis-arm | loose-payload@0 | the payload unmated: a part not connected | joints | yes | joints, reach |
+| two-axis-arm | loose-payload@1 | the payload unmated: a part not connected | joints | yes | joints, reach |
+| two-axis-arm | unrated@0 | the joints' range set, their effort and velocity not: the URDF needs them | urdf | yes | margins, urdf |
+| two-axis-arm | unrated@1 | the joints' range set, their effort and velocity not: the URDF needs them | urdf | yes | margins, urdf |

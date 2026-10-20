@@ -4,7 +4,7 @@ import { prng, sample } from '../src/rb9/core';
 import { RUNGS } from '../src/rb9/rungs';
 import { reportRb9, runRb9 } from '../src/rb9/report';
 
-// RB9.1 (O70, O71): the ladder with the scripted agent — every built rung passes all five trials (pass^5 = 1, RS 1),
+// RB9.1 (O70, O71, O72): the ladder with the scripted agent — every built rung passes all five trials (pass^5 = 1, RS 1),
 // edge-of-range values among them; every mutant is killed on both range ends, and every hard predicate has a mutant that
 // kills it; the report holds each trial's seed and values.
 
