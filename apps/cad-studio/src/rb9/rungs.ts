@@ -6,5 +6,6 @@ import { RUNG8, RUNG9 } from './rungs-enclosure';
 import { RUNG12, RUNG14 } from './rungs-assembly';
 import { RUNG6 } from './rungs-beam';
 import { RUNG11 } from './rungs-toy';
+import { RUNG4, RUNG7 } from './rungs-plates';
 
-export const RUNGS: readonly Rung[] = [RUNG1, RUNG2, RUNG3, RUNG5, RUNG6, RUNG8, RUNG9, RUNG10, RUNG11, RUNG12, RUNG13, RUNG14];
+export const RUNGS: readonly Rung[] = [RUNG1, RUNG2, RUNG3, RUNG4, RUNG5, RUNG6, RUNG7, RUNG8, RUNG9, RUNG10, RUNG11, RUNG12, RUNG13, RUNG14];

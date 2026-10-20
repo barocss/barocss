@@ -72,7 +72,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 33
+   "wallMs": 34
   },
   {
    "rung": "block-hole",
@@ -364,7 +364,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 9
+   "wallMs": 8
   },
   {
    "rung": "washer",
@@ -440,7 +440,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 9
+   "wallMs": 8
   },
   {
    "rung": "washer",
@@ -592,7 +592,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 9
+   "wallMs": 8
   },
   {
    "rung": "washer",
@@ -668,7 +668,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 8
+   "wallMs": 11
   },
   {
    "rung": "washer",
@@ -744,7 +744,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 11
+   "wallMs": 8
   },
   {
    "rung": "phone-stand",
@@ -872,7 +872,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 14
+   "wallMs": 15
   },
   {
    "rung": "phone-stand",
@@ -936,7 +936,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 14
+   "wallMs": 13
   },
   {
    "rung": "phone-stand",
@@ -1067,6 +1067,536 @@
    "wallMs": 13
   },
   {
+   "rung": "machined-plate",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       80,
+       50,
+       6
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 80 × 50 × 6 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "holes",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       true,
+       true,
+       true,
+       true
+      ],
+      4
+     ],
+     "expected": "four Ø4 through holes on the 40 × 20 pitch (axes to 1e-9)"
+    },
+    {
+     "id": "pocket",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       9,
+       9
+      ],
+      "floor": [
+       4
+      ],
+      "depth": 2
+     },
+     "expected": "a 9 × 9 pocket 2 deep, centred (exact planes to 1e-9)"
+    },
+    {
+     "id": "corners",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      3.0000000000000004,
+      3.0000000000000004,
+      3.0000000000000004,
+      3.0000000000000004
+     ],
+     "expected": "its four vertical corners rounded ≥ 3"
+    },
+    {
+     "id": "volume",
+     "hard": true,
+     "pass": true,
+     "measured": 23551.8584374908,
+     "expected": "23551.858437490766 ± 1e-9 relative"
+    },
+    {
+     "id": "machinable",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the machining rules wait for CNC1–CNC6 (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 83
+  },
+  {
+   "rung": "machined-plate",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       200,
+       150,
+       20
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 200 × 150 × 20 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "holes",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       true,
+       true,
+       true,
+       true
+      ],
+      4
+     ],
+     "expected": "four Ø10 through holes on the 160 × 120 pitch (axes to 1e-9)"
+    },
+    {
+     "id": "pocket",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       140,
+       100
+      ],
+      "floor": [
+       2
+      ],
+      "depth": 18
+     },
+     "expected": "a 140 × 100 pocket 18 deep, centred (exact planes to 1e-9)"
+    },
+    {
+     "id": "corners",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      8.000000000000002,
+      8.000000000000002,
+      8.000000000000002,
+      8.000000000000002
+     ],
+     "expected": "its four vertical corners rounded ≥ 8"
+    },
+    {
+     "id": "volume",
+     "hard": true,
+     "pass": true,
+     "measured": 342705.6999558855,
+     "expected": "342705.699955885 ± 1e-9 relative"
+    },
+    {
+     "id": "machinable",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the machining rules wait for CNC1–CNC6 (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 75
+  },
+  {
+   "rung": "machined-plate",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "L": 80,
+    "W": 150,
+    "T": 6,
+    "dh": 10,
+    "px": 40,
+    "py": 120,
+    "rc": 3,
+    "a": 20,
+    "b": 9,
+    "depth": 4
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       80,
+       150,
+       6
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 80 × 150 × 6 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "holes",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       true,
+       true,
+       true,
+       true
+      ],
+      4
+     ],
+     "expected": "four Ø10 through holes on the 40 × 120 pitch (axes to 1e-9)"
+    },
+    {
+     "id": "pocket",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       20,
+       9
+      ],
+      "floor": [
+       2
+      ],
+      "depth": 4
+     },
+     "expected": "a 20 × 9 pocket 4 deep, centred (exact planes to 1e-9)"
+    },
+    {
+     "id": "corners",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      3.0000000000000004,
+      3.0000000000000004,
+      3.0000000000000004,
+      3.0000000000000004
+     ],
+     "expected": "its four vertical corners rounded ≥ 3"
+    },
+    {
+     "id": "volume",
+     "hard": true,
+     "pass": true,
+     "measured": 69425.94707231679,
+     "expected": "69425.94707231689 ± 1e-9 relative"
+    },
+    {
+     "id": "machinable",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the machining rules wait for CNC1–CNC6 (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 77
+  },
+  {
+   "rung": "machined-plate",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "L": 200,
+    "W": 50,
+    "T": 20,
+    "dh": 4,
+    "px": 184,
+    "py": 20,
+    "rc": 8,
+    "a": 24,
+    "b": 24,
+    "depth": 2
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       200,
+       50,
+       20
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 200 × 50 × 20 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "holes",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       true,
+       true,
+       true,
+       true
+      ],
+      4
+     ],
+     "expected": "four Ø4 through holes on the 184 × 20 pitch (axes to 1e-9)"
+    },
+    {
+     "id": "pocket",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       24,
+       24
+      ],
+      "floor": [
+       18
+      ],
+      "depth": 2
+     },
+     "expected": "a 24 × 24 pocket 2 deep, centred (exact planes to 1e-9)"
+    },
+    {
+     "id": "corners",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      8.000000000000002,
+      8.000000000000002,
+      8.000000000000002,
+      8.000000000000002
+     ],
+     "expected": "its four vertical corners rounded ≥ 8"
+    },
+    {
+     "id": "volume",
+     "hard": true,
+     "pass": true,
+     "measured": 197952.56649119203,
+     "expected": "197952.56649119177 ± 1e-9 relative"
+    },
+    {
+     "id": "machinable",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the machining rules wait for CNC1–CNC6 (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 76
+  },
+  {
+   "rung": "machined-plate",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "L": 110,
+    "W": 100,
+    "T": 18,
+    "dh": 8,
+    "px": 73,
+    "py": 70,
+    "rc": 5.5,
+    "a": 31.5,
+    "b": 41.5,
+    "depth": 13
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       110,
+       100,
+       18
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 110 × 100 × 18 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "holes",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       true,
+       true,
+       true,
+       true
+      ],
+      4
+     ],
+     "expected": "four Ø8 through holes on the 73 × 70 pitch (axes to 1e-9)"
+    },
+    {
+     "id": "pocket",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       31.5,
+       41.5
+      ],
+      "floor": [
+       5
+      ],
+      "depth": 13
+     },
+     "expected": "a 31.5 × 41.5 pocket 13 deep, centred (exact planes to 1e-9)"
+    },
+    {
+     "id": "corners",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5.500000000000001,
+      5.500000000000001,
+      5.500000000000001,
+      5.500000000000001
+     ],
+     "expected": "its four vertical corners rounded ≥ 5.5"
+    },
+    {
+     "id": "volume",
+     "hard": true,
+     "pass": true,
+     "measured": 177724.2039520408,
+     "expected": "177724.20395204038 ± 1e-9 relative"
+    },
+    {
+     "id": "machinable",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the machining rules wait for CNC1–CNC6 (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 75
+  },
+  {
    "rung": "sheet-l-bracket",
    "trial": 0,
    "seed": 2026,
@@ -1143,7 +1673,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 74
+   "wallMs": 77
   },
   {
    "rung": "sheet-l-bracket",
@@ -1301,7 +1831,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 39
+   "wallMs": 41
   },
   {
    "rung": "sheet-l-bracket",
@@ -1380,7 +1910,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 41
+   "wallMs": 40
   },
   {
    "rung": "sheet-l-bracket",
@@ -1459,7 +1989,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 41
+   "wallMs": 38
   },
   {
    "rung": "load-bracket",
@@ -1549,7 +2079,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 77
+   "wallMs": 80
   },
   {
    "rung": "load-bracket",
@@ -1639,7 +2169,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 67
+   "wallMs": 70
   },
   {
    "rung": "load-bracket",
@@ -1729,7 +2259,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 64
+   "wallMs": 62
   },
   {
    "rung": "load-bracket",
@@ -1819,7 +2349,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 66
+   "wallMs": 63
   },
   {
    "rung": "load-bracket",
@@ -1909,7 +2439,533 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 62
+   "wallMs": 61
+  },
+  {
+   "rung": "lap-joint",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "plates",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1,
+      1
+     ],
+     "expected": "two plates, one solid each"
+    },
+    {
+     "id": "mated",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "plate B fixed to plate A by its mates"
+    },
+    {
+     "id": "pattern",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       26.75,
+       11.5
+      ],
+      [
+       26.75,
+       20.5
+      ]
+     ],
+     "expected": "plate A's 2 holes on the brief's pattern (axes to 1e-9)"
+    },
+    {
+     "id": "aligned",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      2,
+      2
+     ],
+     "expected": "every hole of A coaxial with one of B (1e-9)"
+    },
+    {
+     "id": "edges",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      6.75,
+      6.75
+     ],
+     "expected": "every hole ≥ 6.75 mm (1.5 Ø) from its plate's edges"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no interference; only the mates' contact"
+    },
+    {
+     "id": "bolt",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the bolts wait for R12c's fasteners (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 11,
+   "wallMs": 93
+  },
+  {
+   "rung": "lap-joint",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "plates",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1,
+      1
+     ],
+     "expected": "two plates, one solid each"
+    },
+    {
+     "id": "mated",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "plate B fixed to plate A by its mates"
+    },
+    {
+     "id": "pattern",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       117,
+       13.5
+      ],
+      [
+       117,
+       106.5
+      ],
+      [
+       171,
+       13.5
+      ],
+      [
+       171,
+       106.5
+      ]
+     ],
+     "expected": "plate A's 4 holes on the brief's pattern (axes to 1e-9)"
+    },
+    {
+     "id": "aligned",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      4,
+      4
+     ],
+     "expected": "every hole of A coaxial with one of B (1e-9)"
+    },
+    {
+     "id": "edges",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      13.5,
+      13.5
+     ],
+     "expected": "every hole ≥ 13.5 mm (1.5 Ø) from its plate's edges"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no interference; only the mates' contact"
+    },
+    {
+     "id": "bolt",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the bolts wait for R12c's fasteners (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 15,
+   "wallMs": 167
+  },
+  {
+   "rung": "lap-joint",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "d": 4.5,
+    "nx": 2,
+    "t": 3,
+    "W": 120,
+    "sy": 9,
+    "sx": 27,
+    "ov": 40.5,
+    "LA": 195.5,
+    "LB": 60.5
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "plates",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1,
+      1
+     ],
+     "expected": "two plates, one solid each"
+    },
+    {
+     "id": "mated",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "plate B fixed to plate A by its mates"
+    },
+    {
+     "id": "pattern",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       161.75,
+       55.5
+      ],
+      [
+       161.75,
+       64.5
+      ],
+      [
+       188.75,
+       55.5
+      ],
+      [
+       188.75,
+       64.5
+      ]
+     ],
+     "expected": "plate A's 4 holes on the brief's pattern (axes to 1e-9)"
+    },
+    {
+     "id": "aligned",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      4,
+      4
+     ],
+     "expected": "every hole of A coaxial with one of B (1e-9)"
+    },
+    {
+     "id": "edges",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      6.75,
+      6.75
+     ],
+     "expected": "every hole ≥ 6.75 mm (1.5 Ø) from its plate's edges"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no interference; only the mates' contact"
+    },
+    {
+     "id": "bolt",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the bolts wait for R12c's fasteners (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 15,
+   "wallMs": 164
+  },
+  {
+   "rung": "lap-joint",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "d": 9,
+    "nx": 1,
+    "t": 10,
+    "W": 59,
+    "sy": 32,
+    "sx": 18,
+    "ov": 54,
+    "LA": 74,
+    "LB": 199
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "plates",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1,
+      1
+     ],
+     "expected": "two plates, one solid each"
+    },
+    {
+     "id": "mated",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "plate B fixed to plate A by its mates"
+    },
+    {
+     "id": "pattern",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       47,
+       13.5
+      ],
+      [
+       47,
+       45.5
+      ]
+     ],
+     "expected": "plate A's 2 holes on the brief's pattern (axes to 1e-9)"
+    },
+    {
+     "id": "aligned",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      2,
+      2
+     ],
+     "expected": "every hole of A coaxial with one of B (1e-9)"
+    },
+    {
+     "id": "edges",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      13.5,
+      13.5
+     ],
+     "expected": "every hole ≥ 13.5 mm (1.5 Ø) from its plate's edges"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no interference; only the mates' contact"
+    },
+    {
+     "id": "bolt",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the bolts wait for R12c's fasteners (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 11,
+   "wallMs": 74
+  },
+  {
+   "rung": "lap-joint",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "d": 5.5,
+    "nx": 1,
+    "t": 9,
+    "W": 94,
+    "sy": 36.5,
+    "sx": 16,
+    "ov": 25,
+    "LA": 105,
+    "LB": 155
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "plates",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1,
+      1
+     ],
+     "expected": "two plates, one solid each"
+    },
+    {
+     "id": "mated",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "plate B fixed to plate A by its mates"
+    },
+    {
+     "id": "pattern",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       92.5,
+       28.75
+      ],
+      [
+       92.5,
+       65.25
+      ]
+     ],
+     "expected": "plate A's 2 holes on the brief's pattern (axes to 1e-9)"
+    },
+    {
+     "id": "aligned",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      2,
+      2
+     ],
+     "expected": "every hole of A coaxial with one of B (1e-9)"
+    },
+    {
+     "id": "edges",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      12.5,
+      12.5
+     ],
+     "expected": "every hole ≥ 8.25 mm (1.5 Ø) from its plate's edges"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no interference; only the mates' contact"
+    },
+    {
+     "id": "bolt",
+     "hard": false,
+     "pass": false,
+     "measured": "held",
+     "expected": "the bolts wait for R12c's fasteners (kernel lane)"
+    }
+   ],
+   "refused": [],
+   "calls": 11,
+   "wallMs": 68
   },
   {
    "rung": "snap-fit-box",
@@ -2028,7 +3084,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 121
+   "wallMs": 114
   },
   {
    "rung": "snap-fit-box",
@@ -2167,7 +3223,7 @@
    ],
    "refused": [],
    "calls": 12,
-   "wallMs": 203
+   "wallMs": 209
   },
   {
    "rung": "snap-fit-box",
@@ -2286,7 +3342,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 94
+   "wallMs": 95
   },
   {
    "rung": "snap-fit-box",
@@ -2425,7 +3481,7 @@
    ],
    "refused": [],
    "calls": 12,
-   "wallMs": 196
+   "wallMs": 193
   },
   {
    "rung": "snap-fit-box",
@@ -2564,7 +3620,7 @@
    ],
    "refused": [],
    "calls": 12,
-   "wallMs": 196
+   "wallMs": 189
   },
   {
    "rung": "pcb-enclosure",
@@ -2660,7 +3716,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 722
+   "wallMs": 702
   },
   {
    "rung": "pcb-enclosure",
@@ -2756,7 +3812,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 790
+   "wallMs": 775
   },
   {
    "rung": "pcb-enclosure",
@@ -2852,7 +3908,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 691
+   "wallMs": 679
   },
   {
    "rung": "pcb-enclosure",
@@ -2948,7 +4004,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 768
+   "wallMs": 762
   },
   {
    "rung": "pcb-enclosure",
@@ -3044,7 +4100,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 701
+   "wallMs": 694
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -3150,7 +4206,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 230
+   "wallMs": 233
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -3256,7 +4312,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 208
+   "wallMs": 206
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -3362,7 +4418,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 218
+   "wallMs": 211
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -3468,7 +4524,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 208
+   "wallMs": 222
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -3574,7 +4630,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 216
+   "wallMs": 207
   },
   {
    "rung": "print-in-place",
@@ -3671,7 +4727,7 @@
    ],
    "refused": [],
    "calls": 7,
-   "wallMs": 163
+   "wallMs": 158
   },
   {
    "rung": "print-in-place",
@@ -3768,7 +4824,7 @@
    ],
    "refused": [],
    "calls": 7,
-   "wallMs": 146
+   "wallMs": 143
   },
   {
    "rung": "print-in-place",
@@ -3865,7 +4921,7 @@
    ],
    "refused": [],
    "calls": 7,
-   "wallMs": 158
+   "wallMs": 141
   },
   {
    "rung": "print-in-place",
@@ -3962,7 +5018,7 @@
    ],
    "refused": [],
    "calls": 7,
-   "wallMs": 139
+   "wallMs": 134
   },
   {
    "rung": "print-in-place",
@@ -4059,7 +5115,7 @@
    ],
    "refused": [],
    "calls": 7,
-   "wallMs": 158
+   "wallMs": 143
   },
   {
    "rung": "five-part-assembly",
@@ -4154,7 +5210,7 @@
    ],
    "refused": [],
    "calls": 22,
-   "wallMs": 86
+   "wallMs": 77
   },
   {
    "rung": "five-part-assembly",
@@ -4249,7 +5305,7 @@
    ],
    "refused": [],
    "calls": 22,
-   "wallMs": 79
+   "wallMs": 78
   },
   {
    "rung": "five-part-assembly",
@@ -4344,7 +5400,7 @@
    ],
    "refused": [],
    "calls": 22,
-   "wallMs": 80
+   "wallMs": 77
   },
   {
    "rung": "five-part-assembly",
@@ -4439,7 +5495,7 @@
    ],
    "refused": [],
    "calls": 22,
-   "wallMs": 75
+   "wallMs": 77
   },
   {
    "rung": "five-part-assembly",
@@ -4615,7 +5671,7 @@
    ],
    "refused": [],
    "calls": 6,
-   "wallMs": 192
+   "wallMs": 186
   },
   {
    "rung": "product-brief",
@@ -4686,7 +5742,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 48
+   "wallMs": 44
   },
   {
    "rung": "product-brief",
@@ -4838,7 +5894,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 44
+   "wallMs": 41
   },
   {
    "rung": "product-brief",
@@ -4919,7 +5975,7 @@
    ],
    "refused": [],
    "calls": 6,
-   "wallMs": 75
+   "wallMs": 73
   },
   {
    "rung": "two-axis-arm",
@@ -5005,7 +6061,7 @@
    ],
    "refused": [],
    "calls": 21,
-   "wallMs": 257
+   "wallMs": 258
   },
   {
    "rung": "two-axis-arm",
@@ -5091,7 +6147,7 @@
    ],
    "refused": [],
    "calls": 21,
-   "wallMs": 220
+   "wallMs": 226
   },
   {
    "rung": "two-axis-arm",
@@ -5177,7 +6233,7 @@
    ],
    "refused": [],
    "calls": 21,
-   "wallMs": 284
+   "wallMs": 285
   },
   {
    "rung": "two-axis-arm",
@@ -5263,7 +6319,7 @@
    ],
    "refused": [],
    "calls": 21,
-   "wallMs": 281
+   "wallMs": 286
   },
   {
    "rung": "two-axis-arm",
@@ -5349,7 +6405,7 @@
    ],
    "refused": [],
    "calls": 21,
-   "wallMs": 289
+   "wallMs": 286
   }
  ],
  "mutants": [
@@ -5978,6 +7034,344 @@
    }
   },
   {
+   "rung": "machined-plate",
+   "mutant": "moved@0",
+   "target": "holes",
+   "why": "one hole 1 mm off its pitch",
+   "killed": true,
+   "failed": [
+    "holes",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "moved@1",
+   "target": "holes",
+   "why": "one hole 1 mm off its pitch",
+   "killed": true,
+   "failed": [
+    "holes",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "three@0",
+   "target": "holes",
+   "why": "three holes",
+   "killed": true,
+   "failed": [
+    "holes",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "three@1",
+   "target": "holes",
+   "why": "three holes",
+   "killed": true,
+   "failed": [
+    "holes",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "deep@0",
+   "target": "pocket",
+   "why": "the pocket 1 mm deeper",
+   "killed": true,
+   "failed": [
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "deep@1",
+   "target": "pocket",
+   "why": "the pocket 1 mm deeper",
+   "killed": true,
+   "failed": [
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "sharp@0",
+   "target": "corners",
+   "why": "corner radius 1",
+   "killed": true,
+   "failed": [
+    "corners",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "sharp@1",
+   "target": "corners",
+   "why": "corner radius 1",
+   "killed": true,
+   "failed": [
+    "corners",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "extra@0",
+   "target": "volume",
+   "why": "a stray Ø3 blind hole",
+   "killed": true,
+   "failed": [
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "extra@1",
+   "target": "volume",
+   "why": "a stray Ø3 blind hole",
+   "killed": true,
+   "failed": [
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "long@0",
+   "target": "box",
+   "why": "the plate 5 mm longer",
+   "killed": true,
+   "failed": [
+    "box",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "long@1",
+   "target": "box",
+   "why": "the plate 5 mm longer",
+   "killed": true,
+   "failed": [
+    "box",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "loose@0",
+   "target": "solids",
+   "why": "a loose block",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids",
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 80,
+    "W": 50,
+    "T": 6,
+    "dh": 4,
+    "px": 40,
+    "py": 20,
+    "rc": 3,
+    "a": 9,
+    "b": 9,
+    "depth": 2
+   }
+  },
+  {
+   "rung": "machined-plate",
+   "mutant": "loose@1",
+   "target": "solids",
+   "why": "a loose block",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids",
+    "pocket",
+    "volume",
+    "machinable"
+   ],
+   "params": {
+    "L": 200,
+    "W": 150,
+    "T": 20,
+    "dh": 10,
+    "px": 160,
+    "py": 120,
+    "rc": 8,
+    "a": 140,
+    "b": 100,
+    "depth": 18
+   }
+  },
+  {
    "rung": "sheet-l-bracket",
    "mutant": "k-off@0",
    "target": "flat-length",
@@ -6514,6 +7908,279 @@
     "m": "steel",
     "F": 500,
     "dmax": 0.25
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "off@0",
+   "target": "aligned",
+   "why": "one of B's holes 1 mm off",
+   "killed": true,
+   "failed": [
+    "aligned",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "off@1",
+   "target": "aligned",
+   "why": "one of B's holes 1 mm off",
+   "killed": true,
+   "failed": [
+    "aligned",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "edge@0",
+   "target": "edges",
+   "why": "the rows 1 Ø from the plates' sides",
+   "killed": true,
+   "failed": [
+    "pattern",
+    "edges",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "edge@1",
+   "target": "edges",
+   "why": "the rows 1 Ø from the plates' sides",
+   "killed": true,
+   "failed": [
+    "pattern",
+    "edges",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "spread@0",
+   "target": "pattern",
+   "why": "both plates' rows 2 mm further apart",
+   "killed": true,
+   "failed": [
+    "pattern",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "spread@1",
+   "target": "pattern",
+   "why": "both plates' rows 2 mm further apart",
+   "killed": true,
+   "failed": [
+    "pattern",
+    "edges",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "nub@0",
+   "target": "contacts",
+   "why": "a nub under B, 1 mm into A",
+   "killed": true,
+   "failed": [
+    "contacts",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "nub@1",
+   "target": "contacts",
+   "why": "a nub under B, 1 mm into A",
+   "killed": true,
+   "failed": [
+    "contacts",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "turns@0",
+   "target": "mated",
+   "why": "B on one bolt hole, free to turn",
+   "killed": true,
+   "failed": [
+    "mated",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "turns@1",
+   "target": "mated",
+   "why": "B on one bolt hole, free to turn",
+   "killed": true,
+   "failed": [
+    "mated",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "one@0",
+   "target": "plates",
+   "why": "plate B never added",
+   "killed": true,
+   "failed": [
+    "plates",
+    "pattern",
+    "aligned",
+    "edges",
+    "bolt"
+   ],
+   "params": {
+    "d": 4.5,
+    "nx": 1,
+    "t": 3,
+    "W": 32,
+    "sy": 9,
+    "sx": 9,
+    "ov": 13.5,
+    "LA": 33.5,
+    "LB": 33.5
+   }
+  },
+  {
+   "rung": "lap-joint",
+   "mutant": "one@1",
+   "target": "plates",
+   "why": "plate B never added",
+   "killed": true,
+   "failed": [
+    "plates",
+    "pattern",
+    "aligned",
+    "edges",
+    "bolt"
+   ],
+   "params": {
+    "d": 9,
+    "nx": 2,
+    "t": 10,
+    "W": 120,
+    "sy": 93,
+    "sx": 54,
+    "ov": 108,
+    "LA": 198,
+    "LB": 198
    }
   },
   {
@@ -8773,6 +10440,28 @@
    "unkilled": []
   },
   {
+   "rung": "machined-plate",
+   "n": 4,
+   "title": "machined plate (geometry)",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 14,
+   "killed": 14,
+   "predicates": [
+    "box",
+    "solids",
+    "holes",
+    "pocket",
+    "corners",
+    "volume"
+   ],
+   "unkilled": []
+  },
+  {
    "rung": "sheet-l-bracket",
    "n": 5,
    "title": "sheet-metal L-bracket",
@@ -8815,6 +10504,28 @@
     "fillet",
     "stress",
     "deflection"
+   ],
+   "unkilled": []
+  },
+  {
+   "rung": "lap-joint",
+   "n": 7,
+   "title": "bolted lap joint (plates)",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 12,
+   "killed": 12,
+   "predicates": [
+    "plates",
+    "mated",
+    "pattern",
+    "aligned",
+    "edges",
+    "contacts"
    ],
    "unkilled": []
   },

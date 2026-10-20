@@ -3453,3 +3453,28 @@ Ordered by the coordinator after O72, which put a body's material on the body's 
   - The set_material test in `test/enclosure.test.ts`.
   - The contract tests with the new numbers.
 - **Still held**: rung 4 (CNC1–CNC6) and rung 7's bolt (R12c), both in the kernel lane. Live trials wait for the owner.
+
+## O74 — RB9.3: the scoped forms of rungs 4 (machined plate) and 7 (lap joint); the held rules named (2026-10-21)
+
+Ordered by the coordinator after O73, per O70: the geometry the studio can judge today. What waits for the kernel lane is a **soft "held" outcome**: never passed, its lane named, outside pass and RS. The ladder now has all fourteen rungs (`src/rb9/rungs-plates.ts`).
+
+- **Rung 4, machined plate** (6 hard predicates and 1 held; 7 mutants). A plate L × W × T, four corner through holes on a pitch, and a central pocket a × b × depth with vertical corner radius rc (a box cut, then its four vertical edges filleted). Predicates:
+  - the box and one solid;
+  - **holes**: four of their Ø, on the pitch, exact axes to 1e-9, through T, and no others of that Ø;
+  - **pocket**: from exact planes inside the plate. The walls facing in give a × b, centred, to 1e-9; the floor facing up gives the depth to 1e-9;
+  - **corners**: the four vertical cylinders that are not holes, each at its pocket corner inset by its radius, r ≥ rc;
+  - **volume**: L·W·T − 4πr²T − (a·b − (4 − π)·rc²)·depth, to 1e-9 relative;
+  - **held, machinable**: CNC1–CNC6 (kernel lane).
+
+  Mutants: a hole 1 mm off its pitch, three holes, the pocket 1 mm deeper, corner radius 1, a stray Ø3 blind hole (volume), the plate 5 longer, a loose block.
+- **Rung 7, bolted lap joint, the plates** (6 hard predicates and 1 held; 6 mutants). Plate A is fixed; plate B is lapped over A's far end and mated (coincident faces, concentric on the first hole, the xz origin planes 0 apart). The holes are Ø d clearance holes, 2 or 4 on one pattern centred in the lap. Predicates:
+  - two plates, one solid each;
+  - **mated**: RM1's tree is all fixed, with no problems;
+  - **pattern**: A's holes at the brief's positions (exact axes, 1e-9);
+  - **aligned**: every hole of A coaxial with one of B (1e-9);
+  - **edges**: every hole ≥ 1.5 Ø from its own plate's sides (the brief's rule, not a standard's);
+  - **contacts**: `checkAssembly` passes, with only the mate's contact;
+  - **held, bolt**: R12c's fasteners (kernel lane).
+
+  Mutants: one of B's holes 1 mm off, the rows 1 Ø from the sides, both plates' rows 2 mm apart (pattern), a nub under B 1 mm into A, B on one bolt hole and free to turn, plate B never added.
+- **Evidence**: `pnpm rb9` (seed 2026, 5 trials): **70/70 trials on fourteen rungs; pass@1 = pass^5 = 1 and RS 1 each; 184/184 mutants killed; no hard predicate without a mutant.** The report is regenerated in `notes/rb9-scripted-2026-10-20/`.

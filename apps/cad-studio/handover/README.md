@@ -1493,6 +1493,8 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
     - **set_material + RB9.2 done (O73)**: `set_material` (a body's look material; contract overhead 14 544 / 15 000);
       rungs 12 and 14 state steel; rung 6 (beam: Green's-theorem sections on the kernel's cut, σ and δ closed form) and rung 11
       (print-in-place: RM6 translation captivity) — 60/60 trials on twelve rungs, 158/158 mutants. Held: rungs 4 and 7 (kernel lane).
+    - **RB9.3 done (O74)**: rungs 4 (machined plate: holes, pocket, corner radii, volume) and 7 (lap joint: mated plates, coaxial
+      clearance holes, 1.5 Ø edges) scoped — 70/70 trials on all fourteen rungs, 184/184 mutants; CNC1–CNC6 and R12c's bolt held, named.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
