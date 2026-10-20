@@ -2858,3 +2858,86 @@ This is research and a decision only, with no product code. The full write-up, w
   - The ≤ 700 text is about 1.5–3 weeks in the kernel lane (records, topology, analytic surfaces, procedural splines at their fit tolerance, the STEP gate). If it ever goes ahead, it goes to the kernel lane.
 - **DWG writing: no-go.** The R11b DXF writer already reaches every consumer. DWG adds the reader's complexity, plus checksums and AutoCAD's checks on files it did not write, for nothing DXF doesn't deliver.
 - **Revisit when**, per item: a recorded scenario where only DWG or SAT exists and conversion is not acceptable; a consumer that takes DWG only; or the owner clearing the ODS terms. Evidence level is L0–L1, with no user data behind the demand side.
+
+## O62 — RM9 S0: continuous collision along a timed joint path, a workspace map, SDF/USD export — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after O61. There are three items, in this order: the two deterministic ones first, and the exports last, since their external checks need a new install.
+
+**Limits on all three:**
+- Our own TypeScript, with no new runtime dependency.
+- MuJoCo 3.3.0 (O38's venv `~/.cache/barocss-mujoco`) is a test oracle only, run `python -I`, its readings committed as data beside the case.
+- **Nothing new is installed without asking.** RM9c's validators below are asked for, not assumed.
+- No chat tool: `tools/list` is unchanged. The exposure is `src/robot/`, the Joints card and the exports.
+- A change to the kernel core stops and goes to the coordinator.
+- Test names are compared at each checkpoint. The flow runs with `PW_DIR` and `CAD_STUDIO_CHAT_PORT=52391`, its new steps just before the last.
+
+### RM9a — continuous collision along a timed, multi-segment joint path (`src/robot/sweep.ts`, extended)
+RM6 certifies one straight joint-space move by conservative advancement. It stops a step before the first contact, within 1e-4 rad. What it lacks:
+- a path of several segments;
+- time (when along the motion the contact happens);
+- the time of contact itself, rather than a certified step short of it.
+
+- **The path**: waypoints `q⁰ … qⁿ`. Each segment is straight in joint space and timed by RD2's profiles (trapezoid or S-curve, synchronised so all joints start and stop together), giving `q(t)`.
+  - Its motion bound is RM6's, `|Δp| ≤ Σ_i |Δq_i(t₁) − Δq_i(t₀)| · r_i`, with the joint change over a time step taken from the profile. That change is monotone within a segment, so the bound still holds.
+- **Time of impact (TOI)**:
+  - conservative advancement to the last certified-free time `t_free`;
+  - then bisection between `t_free` and the first sample whose meshes meet (RM6's exact contact test), down to **1e-9 s**;
+  - the result: `{ clear, toi?, segment?, links?, values?, minClearance: { mm, t, links }, clearanceProfile: [t, mm][] }`.
+  - **No contact is missed**: everything before `toi` is certified by the bound, and the contact at `toi` is exact.
+- **Acceptance**:
+  - **The 2R arm swung into the post** (RM6's `conformance/rm/sweep-post`, now on a trapezoid profile):
+    - the TOI equals the planar separating-axis oracle's contact angle (RM6's, bisected to 1e-12), mapped through the trapezoid's closed-form `q(t)`, within **1e-9 s**;
+    - nothing is reported before it.
+  - **Two segments**: out clear, then back into the post. The contact is on segment 2 at its oracle time, and segment 1's least clearance equals a dense exact-mesh sampling's within the sampling's own step bound.
+  - **MuJoCo, where its geometry is ours**: its mesh geoms collide as convex hulls, so the boxes-only 2R case is used.
+    - The trajectory is replayed kinematically (`qpos` set, `mj_forward`, contacts read at 1e-5 s, then bisection).
+    - MuJoCo's first contact time equals ours within **1e-6 s**, the readings committed as `oracle.mujoco-3.3.0.json`.
+  - **The 6R arm folding** (RM6's case), on an S-curve: the TOI lies within the step RM6 stopped at, its meshes in contact to the tolerance there, and no earlier contact appears in a 2000-sample exact check.
+  - **Bench**: the 6R case within 2× RM6's 225 ms.
+- **Where**: the Joints card's **Check path** takes the waypoints recorded (the solved pose, then each "Add waypoint") and shows the TOI in seconds and the clearance along the path.
+
+### RM9b — a workspace map (`src/robot/workspace.ts`)
+- **What**: the positions a tool point reaches over the joint ranges (limits where they are set, else [−π, π]; slides over their limits, required).
+  - Joint values come from a Halton sequence (deterministic). FK gives the tool point (RM2).
+  - The points go into voxels of size `h`. Each voxel holds its count, the best manipulability seen, `w = √det(J Jᵀ)` (RM7's Jacobian, its position rows), and whether any pose there is free of self-contact (RM6's exact test, optional).
+- **The result**: occupied voxels with `w`, the bounding box, the farthest reach, and the sample count. In the studio it is shown as a point cloud coloured by `w`.
+- **Acceptance**:
+  - **Planar 2R, closed form** (l₁ 80, l₂ 50, no limits):
+    - every occupied voxel's centre is within `h√3/2` of the annulus 30 ≤ r ≤ 130;
+    - every voxel wholly inside the annulus is occupied after N = 10⁵ samples (the miss chance per voxel is stated and below 1e-9);
+    - the occupied area is within the boundary band's area of π(130² − 30²);
+    - `w` at each sample equals `l₁ l₂ |sin θ₂|` to 1e-9.
+  - **Limits**: the 2R with θ₂ ∈ [0, π/2] gives its closed-form region, by the same occupancy tests.
+  - **6R (arm-6r)**:
+    - the farthest reach equals the chain's straight-arm length within `h`;
+    - no voxel lies past it;
+    - `w` is zero (≤ 1e-9) at the straight pose.
+  - **Self-contact filter**: on the 6R, poses the exact test finds in contact are excluded, with a count. A pose sampled in contact and checked against RM6's mesh test agrees.
+  - Deterministic: the same inputs give the same map, byte for byte.
+- **Where**: "Workspace" in the Joints card (N, h, the tool point), with the cloud shown and a JSON download.
+
+### RM9c — SDF and USD export (`src/robot/sdf.ts`, `src/robot/usd.ts`)
+The same model as URDF and MJCF (RM4, RM5): links with RM3's inertia about the centre of mass, visual and collision meshes, joints with axes, limits and gear couplings.
+- **SDF**: SDFormat 1.11 (sdformat.org/spec, HTML).
+  - `<model>` with `<link>` (`<inertial>` with `<pose>`, `<mass>`, `<inertia>`), `<visual>` and `<collision>` (`<mesh><uri>` to an STL beside it), and `<joint>` (revolute, prismatic, fixed; `<axis><xyz expressed_in>`, `<limit>`).
+  - Poses relative to frames by `relative_to`, the SDF 1.7+ frame semantics (the tutorial "Specifying model kinematics").
+  - A gear follower as a `<joint type="gearbox">`, or noted when the pair does not fit gearbox's form.
+  - RM8's loop as a second joint closing it (SDF allows a graph), checked by our reader.
+- **USD**: `.usda` text with the UsdPhysics schema (OpenUSD's, documented in HTML).
+  - An `Xform` per link with `PhysicsRigidBodyAPI` and `PhysicsMassAPI` (`physics:mass`, `physics:centerOfMass`, `physics:diagonalInertia` with `physics:principalAxes`, from RM3's eigen-decomposition).
+  - Meshes as `Mesh` prims (points, faceVertexIndices) under each link.
+  - `PhysicsRevoluteJoint`, `PhysicsPrismaticJoint` and `PhysicsFixedJoint` with `body0`/`body1`, local frames, axis and limits (degrees, as UsdPhysics takes them).
+  - `PhysicsArticulationRootAPI` on the root.
+  - Units: `metersPerUnit = 0.001`, `kilogramsPerUnit = 1`, `upAxis = "Z"`.
+- **Acceptance, ours** (deterministic, now):
+  - our readers of both take the files back to the same tree: link names, masses to 1e-12, inertia tensors to 1e-12 relative, axes, limits;
+  - FK from each file's frames equals RM2's at 100 random poses to 1e-9 mm;
+  - URDF, MJCF, SDF and USD of arm-6r agree with one another on every one of those numbers;
+  - RM4/RM5's files are byte-identical.
+- **Acceptance, external**: **pending the owner's go-ahead to install**, asked here and not assumed.
+  - **USD**: `usd-core` (Pixar's pip package, Apache-2.0-style licence) in the venv. `Usd.Stage.Open` without errors; `UsdPhysics`' own parser (`LoadUsdPhysicsFromRange`, OpenUSD 24.11+) reads the bodies and joints, and its masses, frames and axes are compared with ours.
+  - **SDF**: libsdformat's validator (`gz sdf -k`, or the `sdformat` Python bindings). The file passes, and its parsed model's poses and inertias are compared.
+  - MuJoCo reads neither, so it is not an oracle here.
+- **Where**: "Export SDF" and "Export USD" beside URDF/MJCF in the Joints card, as files (with their STLs, or as a zip, as the URDF export does).
+
+**Order and checkpoints**: RM9a, then RM9b, then RM9c (ours), then RM9c (external) on the owner's go-ahead. Each one is checkpointed with the kernel conformance count, the studio count with test names compared, and the flow count.

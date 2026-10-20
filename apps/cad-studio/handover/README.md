@@ -1088,7 +1088,9 @@ gear crank.
     999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
   - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality). **Done (O45)**: Freudenstein to 3.0e-14 rad
     over a full turn; BRANCH_FLIP and NO_CLOSURE typed; MJCF <connect> held by MuJoCo (static 4.7e-16 m; passive at 0.1 ms 1.7e-6 m, 3.6e-5 rad).
-  - RM9 SDF/USD, CCD, workspace map.
+  - RM9 SDF/USD, CCD, workspace map. **S0 (O62)**: RM9a timed multi-segment CCD with a TOI to 1e-9 s (MuJoCo on the boxes case),
+    RM9b a Halton workspace map against the 2R annulus and manipulability, RM9c SDF 1.11 / UsdPhysics export (ours now; the
+    usd-core and libsdformat checks wait for the owner's install go-ahead).
 
 **RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
 - RD1: static gravity torques; planar 2R and 3R closed forms to 1e-9.
