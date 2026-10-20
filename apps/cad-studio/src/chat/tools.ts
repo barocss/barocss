@@ -13,7 +13,8 @@ import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } fr
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { GROUPS, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
-import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool } from './brief';
+import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
+import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
@@ -36,7 +37,9 @@ export { resolveNames, type NameSelection };
 /** `images`: traces of the images attached in this conversation (image 1 first). */
 /** `policy`: what the tools remember across a session's checks (chat/spec.ts). */
 /** `turnBase`: the part as the turn found it (the L2 gate weighs the turn's changes against it, D41). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc }
+/** `turns`: what the user typed in this conversation, sent by the studio (A6.2, O25), so a quote said to be theirs can be
+ * checked; absent where no conversation is known (cad-cli, cad-mcp --doc, a plain script). */
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[] }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -313,8 +316,8 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   const args = isObj(input) ? input : {};
   // (The robot, RM1: the assembly's joint tree and its settings.)
   // (The brief, A6.1: the part's intent, its required fields and gaps.)
-  if (BRIEF_TOOL_NAMES.has(name)) {
-    const out = runBriefTool(state.doc, name, args);
+  if (BRIEF_TOOL_NAMES.has(name) || QUESTION_TOOL_NAMES.has(name)) {
+    const out = QUESTION_TOOL_NAMES.has(name) ? runQuestionTool(state.doc, args) : runBriefTool(state.doc, name, args, state.turns);
     if ('error' in out) return fail(state, out.error);
     return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
   }
@@ -854,8 +857,21 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (!list) return fail(state, 'Pass "requirements": a list of {id, source, hard, basis?, subject?, assume?, check: {op, query, value | min, max, tol?, unit?}}.');
       for (const r of list) { const why = checkRequirement(r); if (why) return fail(state, why); }
       const ids = list.map(r => (r as Requirement).id); if (new Set(ids).size !== ids.length) return fail(state, 'Requirement ids repeat.');
+      // (The user's say, A6.2: only the user confirms; a stated source is their words, checked against the conversation
+      // when there is one; what the user stated or confirmed is not replaced or dropped by an assumption.)
+      const given = list as Requirement[], own = (r: Requirement) => !!r.confirmed || r.said === 'verified';
+      for (const r of given) {
+        if (r.confirmed !== undefined || r.said !== undefined) return fail(state, `[CONFIRM_IS_THE_USERS] ${r.id}: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out.`);
+        if ((r.basis ?? 'stated') === 'stated' && state.turns && !saidIn(r.source, state.turns)) return fail(state, `[SOURCE_NOT_SAID] ${r.id}: "${r.source}" is not in what the user wrote this conversation; quote their words exactly, or say it is assumed.`);
+      }
+      for (const was of state.doc.requirements ?? []) {
+        if (!own(was)) continue;
+        const next = given.find(r => r.id === was.id);
+        if (next ? (next.basis ?? 'stated') !== 'stated' : args.replace === true) return fail(state, `[STATED_KEPT] ${was.id} was ${was.confirmed ? `confirmed by ${was.confirmed.by}` : 'stated by the user'} ("${was.source}"): an assumption does not ${next ? 'replace' : 'drop'} it.`);
+      }
+      const marked = given.map(r => ((r.basis ?? 'stated') === 'stated' ? { ...r, said: state.turns ? 'verified' as const : 'unverified' as const } : r));
       const kept = args.replace === true ? [] : (state.doc.requirements ?? []).filter(r => !ids.includes(r.id));
-      const doc = { ...state.doc, requirements: [...kept, ...(list as Requirement[])] };
+      const doc = { ...state.doc, requirements: [...kept, ...marked] };
       return { state: { ...state, doc }, content: json({ ok: true, requirements: doc.requirements.map(r => ({ id: r.id, hard: r.hard, check: `${r.check.query.fn} ${expectedOf(r.check)}` })) }), isError: false, changed: true, summary: `${list.length} requirement${list.length === 1 ? '' : 's'} set` };
     }
     case 'check_spec': {
@@ -1140,7 +1156,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_requirements',
-    description: 'Keeps the brief as requirements, each with a check that can be run: {id, source (the words quoted), hard (true: must hold), basis (stated | assumed | ambiguous), subject?, assume?, check: {op: "==" | "<=" | ">=" | "between", query: {fn, …}, value | min and max, tol?, unit?}}. query.fn: bbox {axis, body?}, volume {body?}, mass {body?}, count_solids, count_faces_of_kind {kind: plane | curved, body?}, distance_between {a, b}, radius {face}, hole_diameter {face}, min_wall {body?}, draft_min {body?, pull?}, clearance {a, b: body keys}, gear_center_distance | gear_backlash | gear_contact_ratio | gear_clearance {a, b: the feature ids n<k> of two spur gears, or of a gear and a rack (then the centre distance is the gear axis from the rack pitch line); gear_clearance is minus the depth when the teeth cross}, library_check {feature: the id n<k> of a library part, check: the id of one of its rules — the margin it reports, unknown without its context}, hole_alignment {board: base or a part id holding the board (an imported PCB), features?: standoff ids — the largest offset in mm of their screw axes from its holes}, overhang_area {body?, direction?: build direction, default [0, 0, 1] — the area past the printing process limit}, print_rule {rule: wall | wall-rec | hole | horizontal-hole | gap | cavity | bed-fit | overhang | warp | tip, direction?}, subd_deviation {body?, at?: all | crease — the largest distance of a SubD body’s caps from the limit surface, in mm; crease: only those at crease, corner or boundary vertices}. Faces and edges by name or selector. Write them before modelling. Adds to (or with replace: true, replaces) those there; an id given again replaces its requirement.',
+    description: 'Keeps the brief as requirements, each with a check that can be run: {id, source (the user\'s words, quoted exactly as they wrote them: checked against the conversation, SOURCE_NOT_SAID; a requirement you derived is assumed), hard (true: must hold), basis (stated | assumed | ambiguous), subject?, assume?, check: {op: "==" | "<=" | ">=" | "between", query: {fn, …}, value | min and max, tol?, unit?}}. query.fn: bbox {axis, body?}, volume {body?}, mass {body?}, count_solids, count_faces_of_kind {kind: plane | curved, body?}, distance_between {a, b}, radius {face}, hole_diameter {face}, min_wall {body?}, draft_min {body?, pull?}, clearance {a, b: body keys}, gear_center_distance | gear_backlash | gear_contact_ratio | gear_clearance {a, b: the feature ids n<k> of two spur gears, or of a gear and a rack (then the centre distance is the gear axis from the rack pitch line); gear_clearance is minus the depth when the teeth cross}, library_check {feature: the id n<k> of a library part, check: the id of one of its rules — the margin it reports, unknown without its context}, hole_alignment {board: base or a part id holding the board (an imported PCB), features?: standoff ids — the largest offset in mm of their screw axes from its holes}, overhang_area {body?, direction?: build direction, default [0, 0, 1] — the area past the printing process limit}, print_rule {rule: wall | wall-rec | hole | horizontal-hole | gap | cavity | bed-fit | overhang | warp | tip, direction?}, subd_deviation {body?, at?: all | crease — the largest distance of a SubD body’s caps from the limit surface, in mm; crease: only those at crease, corner or boundary vertices}. Faces and edges by name or selector. Write them before modelling. Adds to (or with replace: true, replaces) those there; an id given again replaces its requirement.',
     input_schema: { type: 'object', properties: { requirements: { type: 'array', items: { type: 'object' } }, replace: { type: 'boolean' } }, required: ['requirements'], additionalProperties: false },
   },
   {
@@ -1224,6 +1240,7 @@ export const TOOLS: ToolDefinition[] = [
   ...ASSEMBLY_TOOLS,
   ...ROBOT_TOOLS,
   ...BRIEF_TOOLS,
+  ...QUESTION_TOOLS,
 ];
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
@@ -1232,7 +1249,7 @@ Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z
 
 Start from the brief: set_brief with its purpose, process and material (required) and what else the user said — stated with their words quoted, everything you chose yourself assumed with why, never stated; get_brief lists the gaps. Then write the requirements.
 
-Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L2 (the default) change values of one feature or of parameters directly — anything more in a turn (several features; adding, deleting or moving features; what a feature is built on) you propose, except on an empty part, whose first build you make directly; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask a short question only when the request is genuinely ambiguous; otherwise choose sensible dimensions and say what you chose. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension before building. Always say which dimensions you read and which you assumed.
+Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L2 (the default) change values of one feature or of parameters directly — anything more in a turn (several features; adding, deleting or moving features; what a feature is built on) you propose, except on an empty part, whose first build you make directly; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask only what blocks the design — ask_user, at most 5 questions a batch and 2 batches, each naming the gap it settles (a required brief field, or a hard requirement whose value you assumed); assume everything else, with why, and say what you chose: nothing waits on the answers. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension (ask_user, within the batches) and build at an assumed size meanwhile, said so. Always say which dimensions you read and which you assumed.
 
 For a part of many steps or repeated features, write it as one run_script instead of many calls: loops and arithmetic in it, each command's handle naming its faces for the next; a refused line comes back with its number, nothing applied, so fix that line and run the script again.
 

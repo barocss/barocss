@@ -43,7 +43,10 @@ export const SYSTEM_PROMPT_V2 = v2Names(PHRASES.reduce((p, [a, b]) => p.split(a)
 export function listed(t: ToolDefinition) {
   // (The title once, at the top as MCP lists it; the annotations' hints without it again — RD1: the list had grown past
   // A5.1's 15k-character guard on what the contract adds, a duplicated title being 1.6k of it.)
-  const { title, ...hints } = annotationsOf(t.name), out = outputSchemaOf(t.name);
+  // (A6.2: a read tool lists readOnlyHint without destructiveHint and idempotentHint, which MCP defines as meaningful only
+  // when readOnlyHint is false — the list had grown past that guard again.)
+  const { title, ...all } = annotationsOf(t.name), out = outputSchemaOf(t.name);
+  const hints = all.readOnlyHint ? { readOnlyHint: true, openWorldHint: all.openWorldHint } : all;
   return { name: t.name, title, description: t.description, inputSchema: t.input_schema, ...(out ? { outputSchema: out } : {}), annotations: hints };
 }
 /** The JSON-only arm: the v1 tools but run_script, the prompt without its paragraph. */

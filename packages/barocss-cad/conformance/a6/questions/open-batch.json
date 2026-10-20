@@ -1,0 +1,54 @@
+{
+ "case": "open-batch",
+ "step": "A6.2",
+ "note": "A second batch while the first is unanswered: refused (OPEN_BATCH).",
+ "input": {
+  "setup": {
+   "brief": {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a wall bracket for a 30 mm pipe"
+    }
+   }
+  },
+  "steps": [
+   {
+    "questions": [
+     {
+      "id": "q1",
+      "text": "How will it be made?",
+      "kind": "choice",
+      "options": [
+       "fdm",
+       "injection",
+       "cnc-milling"
+      ],
+      "blocks": {
+       "field": "process"
+      }
+     }
+    ],
+    "expect": "ok"
+   },
+   {
+    "questions": [
+     {
+      "id": "q2",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     }
+    ],
+    "expect": "OPEN_BATCH"
+   }
+  ]
+ },
+ "expect": {
+  "batches": [
+   "open"
+  ]
+ }
+}

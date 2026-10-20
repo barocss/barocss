@@ -67,6 +67,8 @@ import { renameToTagged } from './sketch/entityIds';
 import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, materialIdOf, rgbOf, rootOf, withLook } from './app/bodies';
 import { applyBrief, briefMaterial, confirmField, readBrief, type BriefKey } from './chat/brief';
 import { BriefPanel } from './ui/BriefPanel';
+import { SpecifyPanel } from './ui/SpecifyPanel';
+import { acceptAssumptions, answerBatch } from './chat/questions';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
@@ -227,6 +229,8 @@ export function App() {
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
   const [chat, setChat] = useState(false);
+  // (A message the studio sends to the chat as the user's: the Specify panel's answers, A6.2.)
+  const [chatOutbox, setChatOutbox] = useState<{ id: number; text: string } | null>(null);
   /** What a chat turn asked to show selected once its part is evaluated. */
   const chatSelection = useRef<NameSelection | null>(null);
   // The pointer's model point, shown in the status bar by its own component (a move re-renders only it).
@@ -1324,6 +1328,17 @@ export function App() {
     if (!Number.isFinite(value)) return;
     commit({ ...doc, requirements: doc.requirements!.map(q => q.id !== id ? q : { ...q, basis: 'stated' as const, confirmed: { by: 'user', at: new Date().toISOString() }, check: q.check.op === 'between' ? q.check : { ...q.check, value } }) }, false);
   };
+  /** The user's answers to the agent's questions, or all its assumptions accepted (A6.2): written as the user's, and
+   * sent to the chat as their message. */
+  const answerQuestions = (answers: Record<string, string | number | null>) => {
+    const r = answerBatch(doc, answers, new Date().toISOString());
+    if ('error' in r) { setToast({ title: 'Answer not taken', hint: r.error, detail: '' }); return; }
+    commit(applyBrief(r.doc, readBrief(r.doc.brief)), false); setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
+  };
+  const acceptAll = () => {
+    const r = acceptAssumptions(doc, new Date().toISOString()); if (!r.count) return;
+    commit(applyBrief(r.doc, readBrief(r.doc.brief)), false); setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
+  };
   /** A brief field confirmed by the user as it is (A6.1): stated from now on; a stated process becomes the part's. */
   const confirmBrief = (key: BriefKey) => { const b = readBrief(doc.brief); if (!b) return; const next = confirmField(b, key, new Date().toISOString()); if ('error' in next) return; commit(applyBrief(doc, next), false); };
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
@@ -1808,6 +1823,7 @@ export function App() {
             setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
+        <SpecifyPanel doc={doc} onAnswer={answerQuestions} onAcceptAll={acceptAll} />
         {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}
         {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
           <button className={'tool tiny' + (failingOnly ? ' on' : '')} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></button></div>
@@ -2134,7 +2150,7 @@ export function App() {
           commit(next);
           if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
         }}
-        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} /></Suspense>}
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))} /></Suspense>}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {historyMenu && doc.nodes[historyMenu.index] && (() => {

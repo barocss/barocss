@@ -31,6 +31,7 @@ function full(): StudioDoc {
     mates: [{ id: 'm1', kind: 'coincident', a: { part: 'base', face: 'n1.top', sig: { k: 'plane', p: [0, 0, 8], d: [0, 0, 1], s: 0 } }, b: { part: 'i1', face: 'n1.bottom' } }],
     robot: { version: 1, base: 'i1', joints: { 'base~i1': { lower: -1, upper: 1 } } },
     brief: { version: 1, process: { value: 'fdm', basis: 'stated', source: 'printed' } },
+    questions: { version: 1, batches: [{ n: 1, questions: [{ id: 'q1', text: 'Material?', kind: 'text', blocks: { field: 'material' } }], status: 'open' }] },
     requirements: [{ id: 'R1', source: '40 long', hard: true, basis: 'assumed', confirmed: { by: 'user', at: '2026-10-18T00:00:00Z' }, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 40, tol: 0.1 } }],
     proposals: [{ id: 'P1', title: 'thicker', status: 'rejected', by: { agent: 'chat' }, at: '2026-10-18T00:00:00Z', base: '00000000', ops: [], summary: 'no change',
       risk: { level: 'low', features_touched: 0, references_broken: 0, hard_requirements_changed: [], approval: [] } }],

@@ -340,7 +340,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     gaps with their questions; a stated process with rules becomes the part's (CNC and sheet metal as intent); a
     stated library material is the bodies'. Tools set_brief, get_brief; the Brief section in the Browser with
     Confirm. Conformance `conformance/a6/briefs` (10 hand-written cases).
-  - A6.2 clarifying policy (next) → A6.3 → A6.4 → A6.5.
+  - **A6.2** (O25): done. A quote said to be the user's is checked against what they typed this conversation
+    (SOURCE_NOT_SAID; without a conversation, stated but unverified), for the brief and the requirements; only the user
+    confirms; ask_user holds the policy (≤ 5 a batch, ≤ 2 batches, one open, each naming a gap get_brief reports or an
+    assumed hard requirement, else NOT_BLOCKING); the Specify panel (answers, skip, accept all) writes answers as the
+    user's and sends them to the chat. Conformance `conformance/a6/questions` (8 hand-written cases).
+  - A6.3 locked reference body (next) → A6.4 → A6.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

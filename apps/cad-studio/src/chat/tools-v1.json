@@ -360,6 +360,73 @@
    }
   },
   {
+   "name": "ask_user",
+   "annotations": {
+    "title": "Ask user",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "questions": {
+      "items": {
+       "properties": {
+        "blocks": {
+         "properties": {
+          "field": {
+           "type": "string"
+          },
+          "requirement": {
+           "type": "string"
+          }
+         },
+         "type": "object"
+        },
+        "id": {
+         "type": "string"
+        },
+        "kind": {
+         "enum": [
+          "choice",
+          "number",
+          "text"
+         ],
+         "type": "string"
+        },
+        "options": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "text": {
+         "type": "string"
+        },
+        "unit": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "id",
+        "text",
+        "kind",
+        "blocks"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "questions"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "auto_dimension",
    "annotations": {
     "title": "Auto dimension",
@@ -1081,6 +1148,9 @@
    },
    "output": {
     "properties": {
+     "asked": {
+      "type": "object"
+     },
      "brief": {
       "type": [
        "object",
@@ -1104,12 +1174,17 @@
        "object",
        "null"
       ]
+     },
+     "unverified": {
+      "type": "array"
      }
     },
     "required": [
      "brief",
      "gaps",
      "complete",
+     "unverified",
+     "asked",
      "process",
      "material"
     ],

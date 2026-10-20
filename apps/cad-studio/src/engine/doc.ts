@@ -3,6 +3,7 @@
 
 import type { RobotSettings } from '../robot/joints';
 import type { Brief } from '../chat/brief';
+import type { QuestionLog } from '../chat/questions';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
@@ -261,6 +262,8 @@ export interface StudioDoc {
   robot?: RobotSettings;
   /** The brief (A6.1, O24): purpose, process, material and the rest, each with its basis and the user's words (chat/brief.ts). */
   brief?: Brief;
+  /** The clarifying questions asked and their answers (A6.2, O25; chat/questions.ts): at most two batches a brief. */
+  questions?: QuestionLog;
   /** The brief as requirements with executable checks (chat/spec.ts). */
   requirements?: Requirement[];
   /** Changes agents proposed without making them, accepted or rejected ones kept (chat/proposals.ts). */
@@ -339,7 +342,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'brief', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'brief', 'questions', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

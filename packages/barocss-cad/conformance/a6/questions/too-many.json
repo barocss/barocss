@@ -1,0 +1,74 @@
+{
+ "case": "too-many",
+ "step": "A6.2",
+ "note": "Six questions in a batch: refused (TOO_MANY), nothing asked.",
+ "input": {
+  "setup": {
+   "brief": {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a wall bracket for a 30 mm pipe"
+    }
+   }
+  },
+  "steps": [
+   {
+    "questions": [
+     {
+      "id": "q0",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q1",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q2",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q3",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q4",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q5",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     }
+    ],
+    "expect": "TOO_MANY"
+   }
+  ]
+ },
+ "expect": {
+  "batches": []
+ }
+}

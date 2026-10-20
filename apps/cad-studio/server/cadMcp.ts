@@ -16,7 +16,7 @@ import { arrayOf, putKnownBlob, type BlobType } from '../src/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[] }
+export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[] }
 
 /** The tools as MCP lists them (A5.1): title, annotations and, for read tools, the output schema (v1). */
 export const TOOLS_LISTED = TOOLS.map(listed);
@@ -32,7 +32,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; changed: boolean; version: number }>;
+  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number }, why: 'change' | 'select'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
@@ -41,7 +41,7 @@ export function stateFileStore(statePath: string): McpStore {
     async open() {
       const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
-      return { doc: saved.doc, ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), changed: saved.changed, version: saved.version ?? 0 };
+      return { doc: saved.doc, ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), changed: saved.changed, version: saved.version ?? 0 };
     },
     save(s) {
       const tmp = `${statePath}.tmp`;
@@ -57,7 +57,7 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
   const tools = toolsetOf(set), list = tools.tools.map(listed);
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const first = await evaluate(saved.doc);
-  let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}) };
+  let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}) };
   let changed = saved.changed, version = saved.version;
   const save = (why: 'change' | 'select') => store.save({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version }, why);
   const reply = (id: unknown, result: unknown) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\n');

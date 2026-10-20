@@ -58,6 +58,8 @@ export interface Requirement {
   basis?: 'stated' | 'assumed' | 'ambiguous';
   /** Who confirmed an assumption (the user in the studio, for one), and when (ISO time): stated since. */
   confirmed?: { by: string; at: string };
+  /** A stated requirement's source checked against what the user typed this conversation (A6.2), or not checkable there. */
+  said?: 'verified' | 'unverified';
   /** Meant to hold under any change (one piece, no interference): not flagged as vacuous; `invariant_reason` says why. */
   invariant?: boolean; invariant_reason?: string;
   check: Predicate;
