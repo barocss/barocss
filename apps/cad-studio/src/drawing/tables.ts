@@ -7,6 +7,7 @@ import type { StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import type { DrawingTable } from './types';
 import type { TableContent } from './table';
+import { cutListSource } from '../app/cutList';
 
 export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[] }
 export type TableSource = (ctx: TableSourceContext) => TableContent | { error: string };
@@ -35,7 +36,7 @@ export function bendTable(ctx: TableSourceContext): TableContent | { error: stri
 }
 
 /** The sources by name. A cut list (FR4b, the kernel lane's) is registered here as 'cut-list'. */
-export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable };
+export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable, 'cut-list': cutListSource };
 
 /** A table's content: given, or its source's; an unknown or refusing source as its error. */
 export function tableContent(t: DrawingTable, ctx: TableSourceContext): TableContent | { error: string } {

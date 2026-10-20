@@ -3,7 +3,8 @@
 // says so.
 import { cutList, type CutList } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
+import { evaluatePart, type BodyResult } from '../engine/evaluate';
+import type { TableContent } from '../drawing/table';
 import { bodyName, materialIdOf } from './bodies';
 import { MATERIALS } from './materials';
 
@@ -25,4 +26,38 @@ export function partCutList(doc: StudioDoc, bodies: readonly BodyResult[], fallb
     return { ...b.cutPiece!, id: b.key, material: mat.label, densityKgPerM3: mat.gPerCm3 * 1000 };
   });
   return { ...cutList(pieces, { densityKgPerM3: base.gPerCm3 * 1000, material: base.label }), names, densityEstimate: true };
+}
+
+/** An end's cut as a table cell: square, `MITRE 45`, `MITRE 30 / BEVEL 10`, or what finishes it (`COPE`, `TRIM`). */
+function endCell(e: CutList['rows'][number]['ends'][number]): string {
+  if (e.kind === 'square' || e.kind === 'through') return 'SQUARE';
+  if (e.mitreDegrees === null) return e.kind.toUpperCase();
+  const r = (x: number) => String(Math.round(x * 10) / 10);
+  return `${e.kind.toUpperCase()} ${r(e.mitreDegrees)}${e.bevelDegrees ? ` / BEVEL ${r(e.bevelDegrees!)}` : ''}`;
+}
+/**
+ * A cut list as a drawing table's content (FR4b, D128; the outer lane's O49 table): a row a group — item, quantity,
+ * section, material, axis length, long point, each end's cut, mass each — and notes: the totals, a length by volume
+ * marked, the densities' being estimates.
+ */
+export function cutListTable(list: PartCutList): TableContent {
+  const rows: TableContent['rows'] = list.rows.map(r => [r.item, r.quantity, `${r.section}${r.mirrored ? ' (mirrored)' : ''}`, r.material ?? list.material ?? null, r.axisLengthMM, r.longPointMM, endCell(r.ends[0]), endCell(r.ends[1]), r.massKG]);
+  const byVolume = list.rows.filter(r => r.fromVolume).map(r => r.item);
+  return {
+    title: 'CUT LIST',
+    columns: [{ key: 'item', label: 'ITEM' }, { key: 'qty', label: 'QTY' }, { key: 'section', label: 'SECTION' }, { key: 'material', label: 'MATERIAL' },
+      { key: 'length', label: 'LENGTH', unit: 'mm', digits: 1 }, { key: 'long', label: 'LONG POINT', unit: 'mm', digits: 1 }, { key: 'start', label: 'START' }, { key: 'end', label: 'END' }, { key: 'mass', label: 'MASS EA', unit: 'kg', digits: 3 }],
+    rows,
+    notes: [
+      `${list.totals.quantity} pieces, ${+list.totals.axisLengthMM.toFixed(1)} mm, ${+list.totals.massKG.toFixed(3)} kg`,
+      ...(byVolume.length ? [`Items ${byVolume.join(', ')}: length by volume (an end coped or trimmed to a member)`] : []),
+      'Masses by the materials library’s densities: estimates',
+    ],
+  };
+}
+/** The drawing tables' 'cut-list' source: the part's frame members (evaluated when the bodies are not given). */
+export function cutListSource(ctx: { doc: StudioDoc; bodies?: readonly BodyResult[] }): TableContent | { error: string } {
+  const e = ctx.bodies ? null : evaluatePart(ctx.doc, 0), bodies = ctx.bodies ?? (e?.ok ? e.bodies : []);
+  const list = partCutList(ctx.doc, bodies);
+  return list ? cutListTable(list) : { error: 'no frame members (make a frame or a structural member)' };
 }

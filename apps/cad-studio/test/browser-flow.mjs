@@ -3332,6 +3332,56 @@ try {
     await page.click('[aria-label="Close the cut list"]');
   });
 
+  await check('FR4b the welded table frame by the scripted agent through the real chat: 12 members A·L each, its cut list on an A3 drawing by the checkbox — the table clean, in the SVG, PDF and DXF exports (new in D128)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      const { calls } = JSON.parse(fs.readFileSync(join(root, 'test/fixtures/frame-welded-table.calls.json'), 'utf8'));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      // (The agent's cut list: five rows, 9160 mm in all.)
+      const line = await page.locator('.chat-tool').last().innerText();
+      assert.ok(line.includes('cut_list'), line);
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+      // (A sharp 40 × 40 × 3 tube: A = 1600 − 34² = 444 mm²; the first member, the top's front rail, A·1000 — the panel rounds to 1 mm³.)
+      const vol = await bodyVolume();
+      assert.ok(Math.abs(vol - 444000) <= 1, String(vol));
+      await page.click('[aria-label="Show the cut list"]');
+      await page.waitForSelector('[aria-label="Cut list"]');
+      assert.equal(await page.locator('[aria-label="Cut list rows"] tbody tr').count(), 5);
+      assert.match(await page.textContent('[aria-label="Cut list"]'), /12 pieces in 5 rows · 9160 mm/);
+      await page.click('[aria-label="Close the cut list"]');
+    } finally { chat.kill(); }
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Cut list table"]', { timeout: 20000 });
+      await page.check('[aria-label="Cut list table"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.tables?.some(t => t.from === 'cut-list'), null, { timeout: 10000 });
+      await page.waitForFunction(() => window.__studioDrawing?.()?.tables?.length === 1 && !window.__studioDrawing().tables[0].error, null, { timeout: 30000 });
+      await snap('fr4b-cut-list-drawing');
+      const texts = ['CUT LIST', 'LENGTH [mm]', 'LONG POINT [mm]', '1000.0', '1040.0', '730.0', '960.0', 'MITRE 45', 'BUTT 0', 'SQUARE'];
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of texts) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+      const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
+      const pdf = fs.readFileSync(await pdfFile.path()).toString('latin1');
+      for (const t of texts) assert.ok(pdf.includes(`(${t.replace(/([()\\])/g, '\\$1')}) Tj`), `PDF: ${t}`);
+      const [dxfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export DXF"]')]);
+      const dxf = fs.readFileSync(await dxfFile.path()).toString('latin1');
+      for (const t of texts) assert.ok(dxf.includes(`\n${t}\r\n`) || dxf.includes(`\n${t}\n`), `DXF: ${t}`);
+      // (On A3 the issue list says nothing of the table.)
+      const issues = await page.evaluate(() => window.__studioDrawing?.()?.issues ?? []);
+      assert.ok(!issues.some(i => (i.tables ?? []).length), JSON.stringify(issues));
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
