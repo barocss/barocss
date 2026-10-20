@@ -43,7 +43,7 @@
       {
         "volumeMM3": {
           "value": 294309.29399611504,
-          "relTol": 1e-12
+          "relTol": 1e-9
         },
         "centroidMM": {
           "value": [

@@ -6044,6 +6044,7 @@ The first FR stage frozen in D122: section kinds in the kernel, and one straight
 - Refusals: 15 cases.
 
 **Conformance** `conformance/fr/` (8 cases; expectations by closed form in the generator `scripts/fr1-conformance.mjs`, not by the kernel): a round-cornered rectangular tube on an oblique line (area (Po + Pi)·L + 2A), an angle anchored at its heel, a channel rolled 90°, a vertical round tube (the fallback), a 20 × 40 T-slot (genus 2), a sketch section; two refusals. Each with a STEP round trip at 1e-9. The runner checks a new `member` expectation (area, length, centroid, axes, fallback).
+- Their volumes are held to 1e-9, as the other exact cases (D116). RB's B-rep quadrature (an implementation's other route) measures 1.7e-12 on the angle and 1.2e-12 on the tube. The first RB run flagged both at the generator's first 1e-12 (fixed in the commit after FR1's). The unit tests keep 1e-12 on the prismatic route.
 
 **Studio**:
 - The node `frame-member` (section kinds, or a sketch by its node; `estimates`: the section's fields still at a first-try value). Saved and read back; the agent's `add_features` spec checks each kind's fields (every dimension required, no unknown field).
