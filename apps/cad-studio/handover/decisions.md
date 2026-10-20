@@ -6433,5 +6433,7 @@ The fifth FR stage frozen in D122: a frame's cut list in the kernel, the studio'
 | Conformance | 172/172 |
 | Studio | 639/639 (+1 of FR4a, +3 from the merged AM7b; names compared, none missing) |
 | Full flow | 187/187, run on its own; the two new steps included (the responsiveness step: preview after 7.4 s, the slowest answer 3 ms, the longest main-thread gap 49 ms) |
+| RB | 314 cases (+2: the cut-list cases), 0 new, the 8 known TODOs (totals as before) |
+| Properties | 11/11, no failures |
 
 RB rows are in the next commit.
