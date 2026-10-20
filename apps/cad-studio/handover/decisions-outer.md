@@ -4105,3 +4105,24 @@ The kernel lane found the strip full at 1440 px. One more placed command (worm-p
   - a new step checks 1440, 1100 and 860. The page never scrolls sideways (scrollWidth and scrollLeft). The whole bar fits down to 1100. Shown plus in the menu stays the same total (11 + 4, 0 + 15, 0 + 15), and no more are shown as the window narrows. A shape picked from the menu starts its command, its button lit, and the menu closes;
   - the five steps that clicked Fastener, and one that clicked Cylinder, use a `shape(label)` helper that opens More when the strip has no room for it.
 - **Follow-up, beyond the strip**: below about 1100 px the bar's other controls alone are wider than the window. The mode group and the right-hand tools are clipped at its edge rather than shifting the page. A narrow-window layout for the whole bar is its own piece of work.
+
+## O91 — PKG-a: the empty `@barocss/cad-model` package (2026-10-21)
+
+PKG is the owner-approved package split (`handover/notes/research-package-boundary-2026-10-21.md`, README §0 roadmap item 4). The coordinator ordered only the two steps that are safe while the kernel lane is mid-track, each its own checkpoint: PKG-a, then PKG-b. The moves (PKG-c to PKG-f) wait for the joint boundary.
+
+- **`packages/barocss-cad-model`**:
+  - `@barocss/cad-model`, private, `type: module`;
+  - `exports: {"./*": "./src/*.ts"}`, so modules are imported by path;
+  - dependency `@barocss/cad: workspace:*`; devDependencies typescript 5.9.2 and @types/node 26.6.4, the studio's versions;
+  - a tsconfig with `moduleResolution: Bundler`, `types: ["node"]` and `lib: ["ES2022"]`: no DOM, so a browser global in model code fails its type check once code moves in;
+  - scripts `lint` (eslint, the root config) and `type-check`;
+  - one file, `src/index.ts`, a comment and `export {}`, because tsc refuses an empty input.
+- **The studio** depends on it (`"@barocss/cad-model": "workspace:*"`). The workspace already globs `packages/*`.
+- **`pnpm-lock.yaml`**: the coordinator said this change is expected, so it is committed. The diff is only the new importer and the studio's new link, 16 lines. `pnpm install --offline` relinked node_modules: it added the package's links and pruned stale entries; the lock itself changed only by those lines.
+- **Nothing moved.**
+- **Checks**:
+  - the package's lint 0 and type-check 0;
+  - studio tsc 0;
+  - suite 743 = 742 pass + 1 todo, the same names as before;
+  - kernel conformance 195/195;
+  - full flow 211/211.

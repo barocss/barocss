@@ -1,0 +1,19 @@
+{
+  "name": "@barocss/cad-model",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The CAD studio's document model, evaluation, analyses and agent tools, without React or the DOM (PKG, owner-approved 2026-10-21)",
+  "exports": { "./*": "./src/*.ts" },
+  "scripts": {
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@barocss/cad": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "@types/node": "26.6.4"
+  }
+}

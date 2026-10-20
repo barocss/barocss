@@ -53,6 +53,9 @@ importers:
       '@barocss/cad':
         specifier: workspace:*
         version: link:../../packages/barocss-cad
+      '@barocss/cad-model':
+        specifier: workspace:*
+        version: link:../../packages/barocss-cad-model
       '@barocss/gpu':
         specifier: workspace:*
         version: link:../../packages/barocss-gpu
@@ -151,6 +154,19 @@ importers:
       three:
         specifier: ^0.186.1
         version: 0.186.1
+
+  packages/barocss-cad-model:
+    dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../barocss-cad
+    devDependencies:
+      '@types/node':
+        specifier: 26.6.4
+        version: 26.6.4
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
   packages/barocss-gpu:
     dependencies:
