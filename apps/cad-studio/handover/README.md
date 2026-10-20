@@ -390,6 +390,9 @@ Done:
    - **RD4–RD8 held** (owner, 2026-10-20, #2177's CAE decision; O46): FEA and the mesher are off the roadmap. RD9 and RD10 only without FEA.
    - PCB/ECAD: see `handover/notes/research-pcb-ecad-2026-10-19.md`, not scheduled; deferred by the owner (2026-10-19).
 3. RB5–RB9.
+4. **PKG — the three-layer package split** (owner, 2026-10-21: "경계제안서 정리가 되면 그대로 정리하는 것도 로드맵에 추가 해서 진행해줘"; "실제 이동은 두 줄이 트랙 경계에 있을 때 하자"). Design input: `handover/notes/research-package-boundary-2026-10-21.md`. Kernel (`packages/barocss-cad`) / a new private `packages/barocss-cad-model` (the document model and domain logic, no React) / the app (UI, viewport, chat UI). Steps PKG-a…h, each keeping every suite green, run only when both lanes sit at a track boundary with clean trees (the coordinator holds the other lane). Until then: no new imports from domain code into `src/ui/` or `src/viewport/`, no new browser globals outside them.
+   - **Track K (kernel lane)**, generic geometry moved down from the studio: K1 hull + GJK; K2 one `triangleBvh(positions, indices)` with ray/nearest (supersedes the studio dual-tree, withdrawn 2026-10-21); K3 exact `meshClearance` + one point–triangle; K4 `closestPointOnSurface`; K5 polygon section properties, 3×3 symmetric eigen, `meshVolume`; K6 voxel SDF + marching tetrahedra; K7 curve-fit equivalence.
+   - **Kernel-lane requests from the outer lane** (queued 2026-10-21): the hole-after-union refusal (repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, a `todo` test); `splitFaceAlongCurve` / an isocline split for IM5's two-half parting; the analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
