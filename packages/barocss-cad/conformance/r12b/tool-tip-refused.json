@@ -1,0 +1,33 @@
+{
+  "id": "r12b-tool-tip-refused",
+  "step": "R12b",
+  "decisions": [
+    "D130"
+  ],
+  "about": "A tool tip radius of 1 mm on module 2: the rack's two tip rounds would meet (the largest that leaves a flat is (πm/4 − 1.25m tan α)/(1/cos α − tan α) = 0.9438 mm): refused, naming it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "generator": "spur-gear@1",
+          "toolTipRadius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "below 0.943821"
+    }
+  }
+}

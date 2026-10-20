@@ -6710,9 +6710,124 @@ Mapped to the part model as now: INPUT, CAPABILITY, GEOMETRY.
 **For the owner:**
 - **Spiral bevels** (R12b.4): keep the ideal conjugate spiral bevel (line contact, no crowning, honestly flagged), or drop the stage. The default taken: keep it.
 - **The throated wheel** (R12b.6): attempt it, with the refusal as the fallback (default), or stop at the cylindrical wheel.
+- **Decided (the owner, 2026-10-20, relayed by the coordinator):** "R12b.4 스파이럴 베벨은 이상적 모델이라고 분명히 표시해서 유지하고, R12b.6 목 있는 웜 휠은 시도하되 안 되면 이유를 밝혀 거부해." (Keep R12b.4, the spiral bevel, clearly marked as an ideal model; attempt R12b.6, the throated worm wheel, and if it cannot be done, refuse it with the reason stated.)
+  - **R12b.4:** the "ideal model" flag is shown wherever a user meets the gear: the body's notes, the kernel's report (`idealModel: true` and its warning) and the agent's tool output.
+  - **R12b.6:** attempted; if the fit cannot hold, a typed refusal (`UNSUPPORTED_GEAR_KIND`) whose message states why (the measured deviation against the tolerance and budget). The cylindrical wheel stays.
 
 **Checks:** S0 changed no product code.
 - r12b-s0: 7/7, 42 s alone; most of it the nine-pair interference sweep and the ring's 14.7 s Boolean.
 - Lint clean on the new file.
 - Kernel 1297/1302 (4 skipped; +7, the r12b-s0 tests; 1302 = 1295 + 7 and 1297 = 1290 + 7, so none missing). The env-only "actual native Split source…" fails, as always.
 - Conformance, RB, studio and the flow: not rerun, as at D115 and D122 (no source change).
+
+## D130 — R12b.1a: the generated root on external spur gears, generator spur-gear@1 (2026-10-20)
+
+**Decision** (`gear.ts`: `RackRoot`, `filletPoint`, the fillet's fit; `spurGearDimensions`, `spurGearProfile`, `exactProfile`; the part model's `spur-gear`; the studio's gear node, command, edit fields and notes):
+- **Inputs.**
+  - `rootPolicy: 'generated'` with `toolTipRadiusMM` ρ (default 0.38 m, the basic rack's root fillet radius, K2's fact). In the part model: generator `spur-gear@1`, with `toolTipRadius`.
+  - `@0`, or no generator, is the schematic root. Documents written with it rebuild unchanged (conformance r6a, the RB seeds, the determinism test: all as before).
+  - Spur gears only: a helical gear with a generated root is `UNSUPPORTED_GEAR_KIND`, naming R12b.1b.
+- **The tool,** as D129 froze it:
+  - the basic rack, addendum 1.25 m into the gear, flanks at α;
+  - its tooth πm/2 + Δs on its reference line, Δs the gear's thickness reduction, so the reduction is cut, not drawn;
+  - the reference line at r + x m;
+  - tip rounds ρ tangent to the flank and to a flat between them.
+  - `INVALID_INPUT` when ρ ≤ 0 or ρ reaches (πm/4 + Δs/2 − 1.25 m tan α)/(1/cos α − tan α), where the rounds meet. It is named: 0.943821 mm at m 2.
+- **The profile per tooth,** counter-clockwise:
+  - the left fillet, root to involute;
+  - the involute from where the fillet ends;
+  - the tip;
+  - the right flank and fillet down;
+  - the root arc the flat cuts, ±xc/r about the space's middle, exactly.
+  - **The fillet:** the round's envelope in closed form. At the gear's turn φ, the round's point on the line from its centre (xc − rφ, yc), away from the pitch point (0, r), is turned back by −φ. Its derivative is in closed form too, checked against finite differences.
+  - **Not undercut,** r sin α − hF/sin α ≥ 0 with hF = (1.25 − x)m − ρ(1 − sin α): the fillet meets the involute tangentially at the form circle √(rb² + (r sin α − hF/sin α)²).
+  - **Undercut:**
+    - The envelope crosses the involute above the base circle. The fillet ends there, found by bisection on the envelope's polar angle against the involute's at the same radius.
+    - The involute below is cut away. The flank starts there, warning `UNDERCUT` with the diameter.
+    - The schematic policy keeps today's undercut refusal.
+  - **Refusals:**
+    - the cut reaching the tip, or the fillet crossing the tooth's or the space's middle: `SELF_INTERSECTION`;
+    - fewer than 6 teeth: `INVALID_INPUT`, not in this stage.
+- **The fillet's fit.**
+  - C¹ Hermite cubic pieces on φ, the fewest within `profileToleranceMM` (1e-4·m, as the flanks).
+  - The breaks are spread to equal tangent turning (plus a little length): the envelope bends hardest near the root.
+  - At most five pieces to a face (the 16-pole convention of extrusion validation and offsets) and three faces, so 15 pieces. Past that: `PROFILE_BUDGET_EXCEEDED`, never a looser fit.
+  - The deviation is measured against the envelope at the same φ, a bound.
+  - **Found:** the curve is smooth (curvature radius 0.9–2.9 mm at m 2), but in φ its higher derivatives are large (r/L ≈ 11). Five uniform pieces come to 1.5e-3 mm, converging as h⁴; equal turning brings it to 6–9 pieces within 1e-4·m.
+  - A fit in the contact normal's angle ψ (φ(ψ) closed form) was worse (1.1e-2 at five pieces): not used.
+- **Names:** `.filletL#k`, `.filletR#k`, the later faces of a fillet `#k.2`, `#k.3` from the root outward. No `.rootL`/`.rootR` radial joins.
+- **Report:**
+  - `generator: 'spur-gear@1'` and `rootPolicy: 'generated'`;
+  - `generatedRoot: { toolTipRadiusMM, formDiameterMM, undercut, filletPieces, filletDeviationMM }`;
+  - `manufacturingValidated` stays false (no physical evidence);
+  - no `ROOT_TRANSITION_UNVALIDATED`.
+  - `UNDERCUT` joins `GearDiagnosticCode`: an API addition, mapped to GEOMETRY, never thrown.
+- **Pairs.** A gear's involute start is `rs`: max(rb, rf) schematic, the form circle or the undercut's crossing generated.
+  - The usable contact ratio of spur pairs and gear-and-rack checks starts there.
+  - The sweeps' exact outlines sample the envelope itself (`exactProfile`).
+- **Studio.**
+  - The gear node takes `generator: 'spur-gear@0' | 'spur-gear@1'` and `toolTipRadius?`.
+  - The Spur gear command makes spur gears `@1`, helical ones `@0`.
+  - Meshing gear: `@1` unless the gear it meshes with is helical (`helixOf`).
+  - **Edit fields:**
+    - Root ("Cut by the rack" / "Schematic") on spur gears;
+    - Tool tip radius on `@1` gears (0.38 m shown, not stored, when default);
+    - a helix given to an `@1` gear turns it `@0` (helical roots are schematic in this stage).
+  - **Notes:** "Root cut by the basic rack (tip radius … mm): the involute from Ø… (the form circle | undercut); fillets within … mm of the tool's envelope (n cubic pieces). Not validated for manufacturing", and the undercut warning. The command's hint says so.
+  - The Gear rack command is unchanged; the rack's own root is R12b.1b.
+- **Found at the rack pair:** a rack part (addendum m, sharp tip corners) meshing with a generated gear clears by 0.0467726 mm, not the flanks' j cos α/2 = 0.0469846.
+  - The rack's tip reaches depth m, 3e-5·m past the form circle's 0.99997 m. Its corner passes the fillet a little nearer.
+  - The corner's own path against the test's outline gives 0.0467779, apart from the sweep (agreeing to 5e-6, the sweep's chords).
+  - It is real geometry, recorded, not a defect.
+- **Volume:** the generated root keeps more material than the schematic radial joins. m2 z20's profile area is 1237.1969 against 1226.1057 mm² (+0.9%); m2 z12's is 438.4967 (undercut, built now).
+
+**Evidence:**
+- **Kernel** `test/gear-generated-root.test.mjs`, 7/7, every oracle in the file apart from `gear.ts`. The first test fails on 18d81bdd7: the generated policy was refused there, "only 'schematic-radial' in this stage".
+  - **The B-rep's own profile curves lie on the cut boundary.** The oracle is the tool's true signed distance (flat, round, flank, by symmetry), maximised over its travel (scan, golden section): 0 on the boundary, + where it ever enters.
+    - Seven gears: m2 z20; m3 z12 x 0.6 Δs 0.05; m2 z30 x −0.3; m1 z60 Δs 0.02; the undercut m2 z12, m2 z8 and m2 z6 x 0.4.
+    - The fillets come to |penetration| ≤ their reported fit (1.1e-4 … 1.8e-4 mm against fits 1.1e-4 … 2.4e-4, 6–8 pieces), the flanks ≤ theirs (4.1e-5 … 1.4e-4), the root arcs ≤ 7.1e-15.
+    - D129's ray oracle does not hold for undercut teeth: they are not star-shaped from the centre. The ray finds the pocket's lower edge, not the overhang.
+  - **Form circle:** r_F by the formula to 1e-9·m on the four not undercut; the root circle r − (1.25 − x)m exactly.
+  - **Undercut:** the crossing against the test's own scan-and-bisection to 1e-9·m; the involute 0.01 m above it untouched (|pen.| < 1e-9·m), 0.002 m below it cut (> 1e-6·m).
+  - **Volume:** the area of the boundary built in the test (its own envelope, involute and arcs, 20 000 points each, Green's theorem) × b, within 2z(flank dev·1.25m + fillet dev·1.5m)·b, on all seven.
+  - **Pairs:**
+    - generated 20/40 with 0.05 + 0.05: least clearance 0.0469850 against j cos α/2 = 0.0469846, converged;
+    - the undercut z12 with z40: the usable contact ratio by the formula from the crossing radius and the mate's form circle, to 1e-9, clear;
+    - the rack: the corner's path, above.
+  - **Refusals:**
+    - ρ just above the limit (0.471913·m computed) and 0;
+    - ρ 0.9 accepted;
+    - a helical gear (R12b.1b named);
+    - 5 teeth;
+    - ρ without the policy;
+    - the schematic z12 still refused, the generated one undercut;
+    - the part model's `@1` (an undercut z14 with ρ 0.6, `filletL#1` named), `toolTipRadius` without `@1` (INPUT), `spur-gear@2` (CAPABILITY), z14 with no generator (CAPABILITY, UNSUPPORTED_PROFILE_SHIFT).
+  - **STEP round trip:** the volume to 1e-6, the fillets' names kept.
+- **Conformance** `conformance/r12b/`, 3 cases (177 overall):
+  - `generated-m2-z20`: V 11869.3141 = 1237.19688 × 10 less the bore, relTol 3e-5 (the fits' slack); centroid; genus 1; names; STEP;
+  - `generated-undercut-z12`: V 4384.9665, genus 0;
+  - `tool-tip-refused`: ρ 1 on m 2, INPUT, "below 0.943821".
+- **RB seeds** in `robustness/corpus/parts/`, every stage OK: `gear-generated-m2-z20`, `-m2-z12-undercut`, `-m2-z40-keyway` (through the bore), `-m2-z40-slot` (a Boolean across teeth, through the fillet faces).
+- **Studio** `primitives.test.ts` "Spur gear":
+  - the command's node is `@1`;
+  - the volume is (1237.1969 × 10 − the bore) within the fits' 0.32 mm³ (40 flanks and fillets × deviation × length × b; observed 0.11). The schematic test's 0.05 was its own fits' bound;
+  - fillet faces, no radial joins;
+  - the notes, "the involute from Ø37.6401 (the form circle)";
+  - 30 teeth;
+  - the Root field to Schematic gives R6a's volume and warning; the Tool tip radius field reads 0.76;
+  - 12 teeth build undercut ("below Ø22.6054"), while the schematic root refuses them naming x = 0.298;
+  - a helix turns it `@0`.
+- **Browser flow:**
+  - the Spur gear step now reads the generated root's note, no schematic warning;
+  - a new step "Generated root (R12b.1a, D130)": a 12-tooth pinion from the palette is `@1`, its notes say undercut at Ø22.6054; in the node editor, Root and Tool tip radius 0.76; tip radius 0.6 applied, its note follows; then 20 teeth with Root Schematic applied, the schematic warning back.
+
+**Checks:**
+- Kernel 1307/1312 (4 skipped; +10: the 7 tests and 3 conformance cases; the passing names compared with D129's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 177/177 (+3). Kernel lint clean, type-check clean.
+- Studio 658/658: the R6a Spur gear test rewritten in place, 14 tests in the file before and after. Studio lint 0 errors (119 warnings, as before), type-check clean.
+- The full flow 192/192 run on its own (+1, the generated-root step).
+- RB and properties: the rows commit after this one.
+
+**Not in this stage:** helical gears' generated root and the rack's root fillet (R12b.1b); internal gears (R12b.2a); the pair-level tip relief; manufacturing validation.
+
+Next: R12b.1b — the helical gears' generated root (the elliptical transverse tip) and the rack's root fillet.

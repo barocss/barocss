@@ -2388,7 +2388,7 @@ try {
     await snap('mesh-hole');
   });
 
-  await check('Spur gear (R6a, issue #2167): from the palette — m 2, 20 teeth; its notes give the dimensions, the flank fit and the schematic root\'s warning', async () => {
+  await check('Spur gear (R6a, issue #2167; R12b.1a): from the palette — m 2, 20 teeth; its notes give the dimensions, the flank fit and the root the rack cuts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await press(' '); await page.locator('.palette input').fill('spur gear'); await press('Enter'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
@@ -2398,7 +2398,7 @@ try {
     await page.locator('.outliner .ol').first().click();
     await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
     const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
-    assert.ok(notes.some(t => /Reference Ø40, tip Ø44, root Ø35/.test(t)) && notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
+    assert.ok(notes.some(t => /Reference Ø40, tip Ø44, root Ø35/.test(t)) && notes.some(t => /Root cut by the basic rack \(tip radius 0\.76 mm\): the involute from Ø37\.6401 \(the form circle\)/.test(t)) && !notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
     await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
     await snap('spur-gear');
     // A gear meshing with it (R6a.4b): the gear selected, the command beside it; its notes give the pair's verdict.
@@ -2428,6 +2428,36 @@ try {
     await press('f'); await page.waitForTimeout(500);
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes[2].mesh.direction), 180);
     await snap('spur-gear-rack');
+  });
+
+  await check('Generated root (R12b.1a, D130): a 12-tooth pinion from the palette is cut as the rack cuts it — undercut, said in its notes; the node editor\'s tool tip radius and Root (to the schematic one, on 20 teeth)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spur gear'); await press('Enter'); await hudReady();
+    await field('Teeth').fill('12'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'gear' && window.__studioDoc.nodes[0].teeth === 12 && window.__studioDoc.nodes[0].generator === 'spur-gear@1' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /Root cut by the basic rack \(tip radius 0\.76 mm\): the involute from Ø22\.6054 \(undercut\)/.test(t)) && notes.some(t => /undercut: the tool's tip cuts the involute away below Ø22\.6054/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('gear-generated-root-undercut');
+    // The node editor: the tool's tip radius, then the schematic root on 20 teeth.
+    await page.locator('.history .hs', { hasText: 'Spur gear' }).click();
+    const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
+    assert.equal(await ed('Root').inputValue(), 'spur-gear@1'); assert.equal(await ed('Tool tip radius').inputValue(), '0.76');
+    await ed('Tool tip radius').fill(''); await ed('Tool tip radius').fill('0.6');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].toolTipRadius === 0.6, null, { timeout: 15000 });
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /tip radius 0\.6 mm/.test(n.textContent ?? '')), null, { timeout: 15000 });
+    await page.locator('.history .hs', { hasText: 'Spur gear' }).click();
+    await ed('Teeth').fill(''); await ed('Teeth').fill('20'); await ed('Root').selectOption('spur-gear@0');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].generator === 'spur-gear@0' && window.__studioDoc.nodes[0].teeth === 20 && window.__studioDoc.nodes[0].toolTipRadius === undefined, null, { timeout: 15000 });
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Schematic root/.test(n.textContent ?? '')), null, { timeout: 15000 });
   });
 
   await check('Helical gear (R6a.5c): β 20° from the Spur gear command, then a meshing gear of the opposite hand; the twist and the pair in the notes', async () => {

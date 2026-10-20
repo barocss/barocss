@@ -7,7 +7,7 @@
 // x m): the working pressure angle stays α whatever the distance, and a gear d farther away than that opens the
 // backlash by 2 d tan α (circumferential, along the pitch line). The contact ratio (textbook, as KHK's):
 // εα = [√(ra² − rb²) − r sin α + (m − x m − d)/sin α] / (π m cos α), the rack's part limited too by where the gear's
-// usable flank starts (max(rb, rf)). As the gear turns θ, the rack travels r θ; the configuration repeats every pitch.
+// usable flank starts (max(rb, rf); a generated root's form circle, R12b.1a). As the gear turns θ, the rack travels r θ; the configuration repeats every pitch.
 import type { Brep } from './brep-core.js';
 import type { Curve } from './types.js';
 import {
@@ -157,7 +157,7 @@ function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPair
   const tips: [number, number] = [D - g.ra + k.dedendumMM, D - g.rf - k.addendumMM];
   // Along the line of action from the pitch point: the gear's side to where its tip meets it, the rack's side to the
   // rack's tip line, or to where the gear's usable flank starts.
-  const A = Math.sqrt(g.ra ** 2 - g.rb ** 2) - g.r * sa, rackSide = (k.addendumMM - x * m - dd) / sa, lo = Math.sqrt(Math.max(0, Math.max(g.rb, g.rf) ** 2 - g.rb ** 2));
+  const A = Math.sqrt(g.ra ** 2 - g.rb ** 2) - g.r * sa, rackSide = (k.addendumMM - x * m - dd) / sa, lo = Math.sqrt(Math.max(0, g.rs ** 2 - g.rb ** 2));
   const pb = k.pitchMM * Math.cos(alpha), ideal = (A + rackSide) / pb, usable = (Math.max(0, A) + Math.max(0, Math.min(rackSide, g.r * sa - lo))) / pb;
   const epsB = Math.min(gear.faceWidthMM, rack.faceWidthMM) * Math.abs(Math.sin(g.beta)) / (Math.PI * m);
   // The sweep: the gear about (0, D), a tooth pointing down at θ 0 and turned by θ; the rack's pitch line y 0, a gap
