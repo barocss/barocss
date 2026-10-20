@@ -6,8 +6,8 @@ import { join, resolve } from 'node:path';
 import { Writable } from 'node:stream';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool } from '../src/chat/tools';
-import { integrate, rebase, revisionOf, VERIFIER_VIEW_KEYS, verifierView, type Patch, type VerifierView } from '../src/team/team';
+import { dispatchTool, TOOLS } from '../src/chat/tools';
+import { canonicalOf, integrate, rebase, revisionOf, VERIFIER_VIEW_KEYS, verifierView, type Patch, type VerifierView } from '../src/team/team';
 import { runScenario, runSummary, scriptedVerifier, STALE_REVISION, type Scenario } from '../src/team/scripted';
 import { cliMain } from '../server/cadCli';
 
@@ -18,7 +18,7 @@ import { cliMain } from '../server/cadCli';
 
 const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a7');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
-const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { expect: { decisions: string[]; stops: ([string, string] | null)[]; accepted: number; ended: string; rebased_from?: string } };
+const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { expect: { decisions: string[]; stops: ([string, string] | null)[]; accepted: number; ended: string; rebased_from?: string; contract_changes?: string[] } };
 
 test('the seeded-defect scenarios: each stopped at its gate (or by the Verifier), typed; the later gates not reached; byte-identical on a rerun', async () => {
   const files = readdirSync(CASES).filter(f => f.endsWith('.json'));
@@ -38,6 +38,7 @@ test('the seeded-defect scenarios: each stopped at its gate (or by the Verifier)
     });
     assert.equal(run.accepted, sc.expect.accepted, sc.case); assert.equal(run.ended, sc.expect.ended, sc.case);
     if (sc.expect.rebased_from) assert.equal(run.traces.at(-1)!.rebasedFrom, sc.expect.rebased_from);
+    if (sc.expect.contract_changes) assert.deepEqual(run.traces.at(-1)!.contractChanges, sc.expect.contract_changes, `${sc.case}: the changed contracts listed`);
     // (Every trace complete: the patch, its base, the gates in order, the decision; a revision after only when applied.)
     for (const t of run.traces) { assert.ok(t.patch && t.base && t.gates.length >= 1 && t.decision); assert.equal(t.revisionAfter !== null, t.decision === 'applied', `${sc.case} #${t.seq}`); }
     // (Reproducible to the byte.)
@@ -60,6 +61,40 @@ test('patches on a base revision: a stale one refused (STALE_BASE) and the state
   assert.equal(revisionOf({ ...s.doc, history: [{ id: 'h', kind: 'prompt', at: 'now', by: { agent: 'x' } }] } as unknown as StudioDoc), revisionOf(s.doc));
   const reordered = Object.fromEntries(Object.entries(s.doc).reverse()) as unknown as StudioDoc;
   assert.equal(revisionOf(reordered), revisionOf(s.doc));
+});
+
+test('a hash collision cannot apply a patch: the canonical JSON confirms the base, and an unknown base is refused (STALE_BASE)', async () => {
+  const s = { doc: emptyDoc(), bodies: [] as never[] }, r = revisionOf(s.doc);
+  const p: Patch = { id: 'p', by: 'designer', base: r, ops: [{ tool: 'run_command', args: { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } } }] };
+  // (The same hash recorded for another state: as a 64-bit collision would be.)
+  const collided = await integrate(s, p, evaluate, { seq: 1, bases: new Map([[r, canonicalOf({ ...s.doc, parameters: { other: 1 } })]]) });
+  assert.equal(collided.trace.decision, 'stale'); assert.match(collided.trace.gates[0].findings[0].message, /hash collision/); assert.equal(collided.state, s);
+  const unknown = await integrate(s, p, evaluate, { seq: 1, bases: new Map() });
+  assert.equal(unknown.trace.decision, 'stale'); assert.match(unknown.trace.gates[0].findings[0].message, /not a state this run gave/);
+  const right = await integrate(s, p, evaluate, { seq: 1, bases: new Map([[r, canonicalOf(s.doc)]]) });
+  assert.equal(right.trace.decision, 'applied');
+});
+
+test('the REFERENCE_LOCKED exemption is narrow: datums and keep-outs may be added or deleted; deleting a reference or using its geometry in a part or assembly op is refused, for every role', async () => {
+  const P = [0, 0, 0, 20, 0, 0, 20, 20, 0, 0, 20, 0, 0, 0, 5, 20, 0, 5, 20, 20, 5, 0, 20, 5], I = [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7];
+  let s = (await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }, evaluate)).state;
+  s = (await dispatchTool(s, 'add_reference', { name: 'slab', mesh: { positions: P, indices: I }, at: { position: [0, 0, 30], rotation: [0, 0, 0] } }, evaluate)).state;
+  const face = (await (await import('../src/chat/references')).referenceLocal(s.doc.references!.references[0], evaluate))[0].mesh.faces[0].name;
+  // (Allowed: a datum and a keep-out from it, and deleting them — in a batch too.)
+  const ok = await dispatchTool(s, 'apply_ops', { ops: [{ tool: 'add_datum', args: { reference: 'ref1', face, kind: 'plane' } }, { tool: 'add_keepout', args: { around: 'ref1', offset: 1 } }] }, evaluate);
+  assert.ok(!ok.isError, ok.content);
+  const del = await dispatchTool(ok.state, 'delete_reference_item', { id: 'D1' }, evaluate); assert.ok(!del.isError, del.content);
+  // (Refused: the reference itself deleted; its faces in a part op, an assembly op, a batch — whoever asks.)
+  for (const [tool, args] of [['delete_reference_item', { id: 'ref1' }], ['run_command', { command: 'hole', faces: [face], values: { d: 3, x: 1, y: 1 } }], ['add_mate', { kind: 'coincident', a: { part: 'base', face }, b: { part: 'base', face: 'n1.top' } }],
+    ['apply_ops', { ops: [{ tool: 'run_command', args: { command: 'fillet', edges: [`${face}|n1.top`], values: { radius: 1 } } }] }]] as const) {
+    const r = await dispatchTool(ok.state, tool, args, evaluate); assert.ok(r.isError && /REFERENCE_LOCKED/.test(r.content), `${tool}: ${r.content}`);
+  }
+  // (And through the team: a Designer's patch on the reference's face is rejected at validity, the reference untouched.)
+  const base = ok.state, out = await integrate(base, { id: 'p', by: 'designer', base: revisionOf(base.doc), ops: [{ tool: 'run_command', args: { command: 'hole', faces: [face], values: { d: 3, x: 1, y: 1 } } }] }, evaluate, { seq: 1 });
+  assert.equal(out.trace.decision, 'rejected'); assert.match(out.trace.gates[0].findings[0].message, /REFERENCE_LOCKED/);
+  assert.equal(JSON.stringify(out.state.doc.references), JSON.stringify(base.doc.references));
+  // (No tool moves a reference: its placement is the user's, in the studio.)
+  assert.ok(!TOOLS.some(t => /move|place/.test(t.name) && /reference/.test(t.name)));
 });
 
 test('the Verifier is given artifacts and requirements only: its view\'s keys the fixed set, nothing of the patch in it, frozen', async () => {

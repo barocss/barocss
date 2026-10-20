@@ -29,9 +29,15 @@ function canonical(v: unknown): string {
 }
 /** What a revision covers: the model and the contracts a patch may depend on. */
 const REVISION_FIELDS = ['nodes', 'parameters', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'drafts'] as const;
-/** The document's revision: a 64-bit FNV-1a (two 32-bit lanes) of the canonical JSON of what it covers, 16 hex digits. */
+/** The canonical JSON of what a revision covers: equal exactly when the states a patch depends on are equal. */
+export const canonicalOf = (doc: StudioDoc) => canonical(Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]])));
+/**
+ * The document's revision: a 64-bit FNV-1a (two 32-bit lanes) of its canonical JSON, 16 hex digits — **for staleness,
+ * not integrity**: equal hashes are confirmed by comparing the canonical JSON before a patch is applied (`integrate`'s
+ * `bases`), so a collision cannot apply a patch to another state.
+ */
 export function revisionOf(doc: StudioDoc): string {
-  const s = canonical(Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]])));
+  const s = canonicalOf(doc);
   let h1 = 0x811c9dc5, h2 = 0x050c5d1f;
   for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0; h2 ^= c; h2 = Math.imul(h2, 0x01000193) >>> 0; h2 = (h2 ^ (h1 >>> 7)) >>> 0; }
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
@@ -50,6 +56,8 @@ export interface GateResult { gate: GateName; verdict: Verdict; findings: Findin
 /** The fields a patch may not change: the contracts, the Requirements role's and the user's. */
 export const CONTRACT_FIELDS = ['references', 'brief', 'requirements', 'process', 'printer', 'drafts', 'questions'] as const;
 const INTERFACE_QUERIES = new Set(['keepout', 'datum_distance', 'clearance', 'hole_alignment']);
+/** The contract fields that differ between two states. */
+export const contractChanges = (a: StudioDoc, b: StudioDoc) => CONTRACT_FIELDS.filter(k => canonical((a as unknown as Record<string, unknown>)[k] ?? null) !== canonical((b as unknown as Record<string, unknown>)[k] ?? null));
 
 /** The pairs of bodies whose solids overlap (the kernel's intersection), as "a|b". */
 async function overlaps(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<Map<string, number>> {
@@ -94,12 +102,13 @@ export async function runGates(c: Candidate, evaluate: Evaluate): Promise<{ gate
     }
     if (gate === 'interfaces') {
       const f: Finding[] = [];
-      for (const k of CONTRACT_FIELDS) if (JSON.stringify((c.before.doc as unknown as Record<string, unknown>)[k] ?? null) !== JSON.stringify((after.doc as unknown as Record<string, unknown>)[k] ?? null)) f.push({ code: 'CONTRACT_CHANGED', message: `the patch changes the part's ${k}: a contract, the Requirements role's and the user's, not a design change` });
+      const changed = contractChanges(c.before.doc, after.doc);
+      if (changed.length) f.push({ code: 'CONTRACT_CHANGED', message: `the patch changes the part's ${changed.join(', ')}: contracts, the Requirements role's and the user's — held for the user to decide`, entities: changed });
       if (!f.length && after.doc.requirements?.length) {
         const { outcomes, ...r } = await checkSpec(after.doc, after.bodies, evaluate); spec = r;
         for (const q of after.doc.requirements) if (q.hard && INTERFACE_QUERIES.has(q.check.query.fn)) { const o = outcomes.get(q.id); if (o?.status === 'fail') f.push({ code: 'INTERFACE_FAILED', message: `${q.id} (${q.check.query.fn}) fails: ${String(o.measured)}`, entities: o.entities }); }
       }
-      push({ gate, verdict: f.length ? 'fail' : 'pass', findings: f }); continue;
+      push({ gate, verdict: f.some(x => x.code === 'INTERFACE_FAILED') ? 'fail' : f.length ? 'undecided' : 'pass', findings: f }); continue;
     }
     if (gate === 'dfm') {
       const proc = processOf(after.doc);
@@ -147,6 +156,8 @@ export interface VerifierRole { model: string; review(view: VerifierView): Promi
 export type Decision = 'applied' | 'rejected' | 'held' | 'stale';
 export interface Trace {
   seq: number; patch: Patch; base: string; rebasedFrom?: string; revisionAfter: string | null;
+  /** The contracts the patch would change (held for the user; A8's ECR later). */
+  contractChanges?: string[];
   diff?: unknown; gates: GateResult[]; verifier?: { model: string; accept: boolean; findings: string[] }; decision: Decision; tokens: Record<string, number>;
 }
 
@@ -154,10 +165,17 @@ export interface Trace {
  * The Integrator: one patch, against the state it is given (its current revision). Stale: refused. Else a dry run,
  * the gates, the Verifier on what passes; the state after only when applied.
  */
-export async function integrate(state: ChatState, patch: Patch, evaluate: Evaluate, o: { seq: number; verifier?: VerifierRole }): Promise<{ state: ChatState; trace: Trace }> {
+export async function integrate(state: ChatState, patch: Patch, evaluate: Evaluate, o: { seq: number; verifier?: VerifierRole; /** The states patches were made on, by revision (their canonical JSON): a patch's base confirmed against it. */ bases?: ReadonlyMap<string, string> }): Promise<{ state: ChatState; trace: Trace }> {
   const current = revisionOf(state.doc), tokens: Record<string, number> = {};
   const base: Omit<Trace, 'gates' | 'decision' | 'revisionAfter'> = { seq: o.seq, patch, base: patch.base, ...(patch.rebasedFrom ? { rebasedFrom: patch.rebasedFrom } : {}), tokens };
-  if (patch.base !== current) return { state, trace: { ...base, revisionAfter: null, gates: [{ gate: 'validity', verdict: 'fail', findings: [{ code: 'STALE_BASE', message: `the patch is on ${patch.base}; the part is at ${current}: rebase it explicitly` }] }], decision: 'stale' } };
+  const stale = (message: string) => ({ state, trace: { ...base, revisionAfter: null, gates: [{ gate: 'validity' as const, verdict: 'fail' as const, findings: [{ code: 'STALE_BASE' as const, message }] }], decision: 'stale' as const } });
+  if (patch.base !== current) return stale(`the patch is on ${patch.base}; the part is at ${current}: rebase it explicitly`);
+  // (The hash names the base; the canonical JSON confirms it: a collision is refused, not applied.)
+  if (o.bases) {
+    const was = o.bases.get(patch.base);
+    if (was === undefined) return stale(`the patch's base ${patch.base} is not a state this run gave a role: rebase it on the current one`);
+    if (was !== canonicalOf(state.doc)) return stale(`the base's hash ${patch.base} matches the part's, but the states differ (a hash collision): rebase it explicitly`);
+  }
   const r = await dispatchTool(state, 'apply_ops', { ops: patch.ops }, evaluate);
   let refused: string | undefined, broken = 0, diff: unknown;
   if (r.isError) { try { refused = JSON.parse(r.content).error; } catch { refused = r.content; } }
@@ -171,7 +189,8 @@ export async function integrate(state: ChatState, patch: Patch, evaluate: Evalua
     if (!v.accept) decision = 'rejected';
   }
   const applied = decision === 'applied';
-  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
+  const changes = r.isError ? [] : contractChanges(state.doc, r.state.doc);
+  return { state: applied ? r.state : state, trace: { ...base, ...(diff !== undefined ? { diff } : {}), ...(changes.length ? { contractChanges: changes } : {}), gates: g.gates, ...(verifier ? { verifier } : {}), decision, revisionAfter: applied ? revisionOf(r.state.doc) : null } };
 }
 
 /** What the Designer is given each round. */
@@ -183,6 +202,8 @@ export interface TeamRun { traces: Trace[]; final: StudioDoc; revision: string; 
 /** A team run: the Requirements role's brief applied (traced), then the Designer's patches through the Integrator and the Verifier until done or the budget. */
 export async function runTeam(start: ChatState, roles: { requirements?: RequirementsRole; designer: DesignerRole; verifier?: VerifierRole }, prompt: string, evaluate: Evaluate, o: { maxPatches?: number } = {}): Promise<TeamRun> {
   let state = start, seq = 0, last: DesignerView['last'] = null, ended: TeamRun['ended'] = 'budget';
+  // (Every state a role was given, by revision: a patch's base confirmed by its canonical JSON.)
+  const bases = new Map<string, string>(), seen = (s: ChatState) => { bases.set(revisionOf(s.doc), canonicalOf(s.doc)); return s; };
   const traces: Trace[] = [], tokens: Record<string, number> = { requirements: 0, designer: 0, verifier: 0 };
   if (roles.requirements) {
     // (The brief and requirements are the Requirements role's: applied without the design gates, traced.)
@@ -193,10 +214,10 @@ export async function runTeam(start: ChatState, roles: { requirements?: Requirem
     if (!r.isError) state = r.state;
   }
   for (let k = 0; k < (o.maxPatches ?? 8); k++) {
-    const p = await roles.designer.propose(designerView(state, last)); tokens.designer += p.tokens ?? 0;
+    const p = await roles.designer.propose(designerView(seen(state), last)); tokens.designer += p.tokens ?? 0;
     if (p === 'done' || ('patch' in p) === false) { ended = 'done'; break; }
     const patch: Patch = { ...p.patch, base: p.patch.base ?? revisionOf(state.doc) };
-    const out = await integrate(state, patch, evaluate, { seq: ++seq, ...(roles.verifier ? { verifier: roles.verifier } : {}) });
+    const out = await integrate(state, patch, evaluate, { seq: ++seq, bases, ...(roles.verifier ? { verifier: roles.verifier } : {}) });
     out.trace.tokens.designer = p.tokens ?? 0; tokens.verifier += out.trace.tokens.verifier ?? 0;
     traces.push(out.trace); state = out.state;
     last = { decision: out.trace.decision, findings: [...out.trace.gates.flatMap(g => g.findings.filter(f => f.code !== 'NOT_REACHED')), ...(out.trace.verifier?.findings ?? []).map(m => ({ code: 'VERIFIER' as const, message: m }))] };

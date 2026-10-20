@@ -1,7 +1,7 @@
 {
  "case": "contract",
  "step": "A7",
- "note": "A Designer patch that rewrites a requirement: the interfaces gate fails (CONTRACT_CHANGED).",
+ "note": "A Designer patch that rewrites a requirement: the interfaces gate is undecided (CONTRACT_CHANGED, the changed fields listed) and the patch is held for the user — a contract change is theirs to approve (A8's ECR later), not a plain reject.",
  "requirements": {
   "ops": [
    {
@@ -98,7 +98,7 @@
  "expect": {
   "decisions": [
    "applied",
-   "rejected"
+   "held"
   ],
   "stops": [
    null,
@@ -108,6 +108,9 @@
    ]
   ],
   "accepted": 0,
-  "ended": "done"
+  "ended": "done",
+  "contract_changes": [
+   "requirements"
+  ]
  }
 }

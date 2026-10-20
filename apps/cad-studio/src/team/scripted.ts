@@ -59,6 +59,6 @@ export async function runScenario(sc: Scenario, evaluate: Evaluate): Promise<Tea
 export function runSummary(r: TeamRun) {
   return {
     ended: r.ended, revision: r.revision, accepted: r.accepted, tried: r.tried, tokens: r.tokens, cost_per_accepted: r.costPerAccepted,
-    traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, base: t.base, ...(t.rebasedFrom ? { rebased_from: t.rebasedFrom } : {}), decision: t.decision, revision_after: t.revisionAfter, gates: t.gates.map(g => ({ gate: g.gate, verdict: g.verdict, findings: g.findings })), ...(t.verifier ? { verifier: t.verifier } : {}) })),
+    traces: r.traces.map(t => ({ seq: t.seq, patch: t.patch.id, by: t.patch.by, base: t.base, ...(t.rebasedFrom ? { rebased_from: t.rebasedFrom } : {}), decision: t.decision, ...(t.contractChanges ? { contract_changes: t.contractChanges } : {}), revision_after: t.revisionAfter, gates: t.gates.map(g => ({ gate: g.gate, verdict: g.verdict, findings: g.findings })), ...(t.verifier ? { verifier: t.verifier } : {}) })),
   };
 }

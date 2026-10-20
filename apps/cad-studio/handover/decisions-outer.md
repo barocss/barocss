@@ -1434,3 +1434,13 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
   - **`cad-cli team`**: the clean run's output identical twice, its five gates in order; exit 1 on the contract scenario, 2 for a missing file.
   - Studio 565/565, with no test name missing against the last run. Lint and type-check clean. Browser flow 173/173: no UI changed, and it is run for the shared tool code.
 - **Pending until the owner** (O30's protocol): the live comparison of one agent against the team at the same token budget, and the Verifier's precision and recall with a live model.
+- **Added on acceptance (coordinator, 2026-10-20), each a test** (`test/team.test.ts`, 6 tests now):
+  1. **A contract change is held, not rejected.** `CONTRACT_CHANGED` makes the interfaces gate undecided, and the decision **held** for the user.
+     - The changed contract fields are listed in the finding (its entities) and in the trace (`contractChanges`, `contract_changes` in the CLI's output). A8's ECR comes later.
+     - The `contract` scenario now expects held with `["requirements"]`.
+  2. **The hash is for staleness, not integrity.** `revisionOf` names the base, and `integrate`'s `bases` (each state a role was given, by revision, as its canonical JSON; `runTeam` keeps it) confirms it before applying.
+     - A matching hash over a different state, as a 64-bit collision would give, is refused `STALE_BASE` ("a hash collision"), and so is a base the run never gave a role.
+     - The test forces the collision.
+  3. **The REFERENCE_LOCKED exemption is narrow.** Datums and keep-outs may be added and deleted, in a batch too.
+     - Refused for every role: deleting a reference, its face in a part op (hole), in an assembly op (mate) and in a batch (fillet); and a Designer's patch on its face, rejected at validity with the reference untouched.
+     - No tool moves a reference.
