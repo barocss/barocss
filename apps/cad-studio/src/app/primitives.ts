@@ -2,7 +2,6 @@
 // feature): sphere, cone (or frustum), torus, tube, wedge and regular polygon prism. They stand on Z = At Z
 // at the given X, Y, to the right of what is there by default.
 import { withNode, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
-import { helixOf } from '../engine/part';
 import type { Command, Ctx, HandleSpec, Values } from './commands';
 
 const ok = { ok: true as const };
@@ -128,7 +127,7 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'gear', label: 'Spur gear', icon: 'cad-gear', hint: 'An involute spur or helical gear by module, teeth and face width (20°; helical: normal module, helix angle and hand). A spur gear\'s root is the one the basic rack cuts (tip radius 0.38 m); a helical gear\'s is schematic. Not validated for manufacturing', group: 'create', keywords: 'gear spur involute module teeth pinion wheel cog transmission',
+    id: 'gear', label: 'Spur gear', icon: 'cad-gear', hint: 'An involute spur or helical gear by module, teeth and face width (20°; helical: normal module, helix angle and hand). Its root is the one the basic rack cuts (tip radius 0.38 m). Not validated for manufacturing', group: 'create', keywords: 'gear spur involute module teeth pinion wheel cog transmission',
     available: () => ok,
     fields: () => [{ key: 'm', label: 'Module', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 },
       { key: 'helix', label: 'Helix angle β', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], when: v => Number(v.helix) > 0 },
@@ -138,7 +137,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [m, z, b, x, y, zz] = n(v, 'm', 'teeth', 'b', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz + b], Z)]; },
     build: (ctx, v) => {
       const [m, z, b, bore, x, y, zz, shift, helix] = n(v, 'm', 'teeth', 'b', 'bore', 'x', 'y', 'z', 'shift', 'helix');
-      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: helix ? 'spur-gear@0' : 'spur-gear@1' });
+      return withNode(ctx.doc, { kind: 'gear', module: m, teeth: Math.round(z), faceWidth: b, ...(shift ? { profileShift: shift } : {}), ...(helix ? { helixAngle: helix, hand: v.hand === 'left' ? 'left' as const : 'right' as const } : {}), ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@1' });
     },
   },
   {
@@ -149,11 +148,11 @@ export const primitives: Command[] = [
     build: (ctx, v) => {
       const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear to mesh with.');
       const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
-      return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: helixOf(g.node, ctx.doc.nodes) ? 'spur-gear@0' : 'spur-gear@1' });
+      return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
     },
   },
   {
-    id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (teeth on a bar): meshing with the selected gear — helical too, its teeth inclined, the opposite hand — under it and travelling with its turn; or on its own (straight)', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
+    id: 'gear-rack', label: 'Gear rack', icon: 'cad-rack', hint: 'A rack (teeth on a bar): meshing with the selected gear — helical too, its teeth inclined, the opposite hand — under it and travelling with its turn; or on its own (straight). Its root has the basic rack\'s fillet (0.38 m)', group: 'create', keywords: 'rack gear linear pinion straight teeth bar slide',
     available: () => ok,
     // (Meshing with a selected gear: its module and face width; where it stands, from the gear.)
     fields: ctx => gearPicked(ctx) ? [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 1, max: 500 }, { key: 'h', label: 'Height', kind: 'mm', min: 0.5 }, { key: 'dir', label: 'Direction', kind: 'deg' }]
@@ -163,10 +162,10 @@ export const primitives: Command[] = [
       const g = gearPicked(ctx), [z, h] = n(v, 'teeth', 'h');
       if (g) {
         const dir = Number(v.dir);
-        return withNode(ctx.doc, { kind: 'rack', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, height: h, ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), origin: [0, 0], mesh: { gear: g.index, ...(dir !== -90 ? { direction: dir } : {}) }, generator: 'spur-rack@0' });
+        return withNode(ctx.doc, { kind: 'rack', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, height: h, ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), origin: [0, 0], mesh: { gear: g.index, ...(dir !== -90 ? { direction: dir } : {}) }, generator: 'spur-rack@1' });
       }
       const [m, b, x, y, zz] = n(v, 'm', 'b', 'x', 'y', 'z');
-      return withNode(ctx.doc, { kind: 'rack', module: m, teeth: Math.round(z), faceWidth: b, height: h, origin: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-rack@0' });
+      return withNode(ctx.doc, { kind: 'rack', module: m, teeth: Math.round(z), faceWidth: b, height: h, origin: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-rack@1' });
     },
   },
   {

@@ -200,7 +200,7 @@ export type CadPartFeature = Base & (
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: number };
     /**
      * The generator version: 'spur-gear@0' (the default) the schematic root; 'spur-gear@1' (R12b.1a, D130) the root the
-     * basic rack generates, its tip radius `toolTipRadius` (default 0.38 m) — spur gears only, undercut taken as cut.
+     * basic rack generates, its tip radius `toolTipRadius` (default 0.38 m) — spur and helical (R12b.1b), undercut taken as cut.
      */
     readonly generator?: 'spur-gear@0' | 'spur-gear@1'; readonly toolTipRadius?: CadPartDim }
   /**
@@ -214,7 +214,8 @@ export type CadPartFeature = Base & (
     readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number; readonly thicknessReduction?: CadPartDim;
     readonly origin?: CadPartPoint2; readonly angle?: number; readonly from?: CadPartDim;
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: CadPartDim };
-    readonly generator?: 'spur-rack@0' }
+    /** 'spur-rack@0' (the default) the schematic root corner; 'spur-rack@1' (R12b.1b, D131) the basic rack's root fillet, radius `rootFillet` (default 0.38 m). */
+    readonly generator?: 'spur-rack@0' | 'spur-rack@1'; readonly rootFillet?: CadPartDim }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -1433,7 +1434,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'spur-rack': {
-      if (f.generator !== undefined && f.generator !== 'spur-rack@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      if (f.generator !== undefined && f.generator !== 'spur-rack@0' && f.generator !== 'spur-rack@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const filletedRoot = f.generator === 'spur-rack@1';
+      if (!filletedRoot && f.rootFillet !== undefined) fail('INPUT', "rootFillet belongs to a filleted root (generator 'spur-rack@1')");
       const b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), H = dim(f.height as CadPartDim, 'height', true);
       const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
@@ -1452,7 +1455,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (helix && f.module !== undefined) fail('INPUT', 'a helical rack takes normalModule (the normal module), not module');
       const mGiven = helix ? f.normalModule : f.module;
       const m = mGiven !== undefined ? dim(mGiven as CadPartDim, helix ? 'normalModule' : 'module', true) : g ? spurGearDimensions(g.spec).mn : dim(undefined as unknown as CadPartDim, 'module', true);
-      const spec: SpurRackSpec = { ...(helix ? { normalModuleMM: m, helixAngleDeg: helix.angle, hand: helix.hand } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }) };
+      const spec: SpurRackSpec = { ...(helix ? { normalModuleMM: m, helixAngleDeg: helix.angle, hand: helix.hand } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }),
+        ...(filletedRoot ? { rootPolicy: 'filleted' as const, ...(f.rootFillet === undefined ? {} : { rootFilletRadiusMM: dim(f.rootFillet as CadPartDim, 'rootFillet', true) }) } : {}) };
       let place: RackPlacement;
       if (mesh !== undefined) {
         const gd = spurGearDimensions(g!.spec);

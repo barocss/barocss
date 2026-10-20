@@ -2480,6 +2480,29 @@ try {
     await snap('helical-pair');
   });
 
+  await check('Generated root on a helical gear, the rack\'s root fillet (R12b.1b, D131): a helical gear from the palette is cut by the rack (spur-gear@1); a rack under it has the basic rack\'s fillets (spur-rack@1), the pair clear', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spur gear'); await press('Enter'); await hudReady();
+    await field('Helix angle β').fill('20'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'gear' && window.__studioDoc.nodes[0].helixAngle === 20 && window.__studioDoc.nodes[0].generator === 'spur-gear@1' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /Helical β 20° right hand/.test(t)) && notes.some(t => /^Root cut by the basic rack \(tip radius 0\.76 mm\): the involute from Ø[\d.]+ \(the form circle\)/.test(t)) && !notes.some(t => /Schematic root/.test(t)), notes.join(' | '));
+    await press(' '); await page.locator('.palette input').fill('gear rack'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'rack' && window.__studioDoc.nodes[1].generator === 'spur-rack@1' && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0/.test(n.textContent ?? '')), null, { timeout: 20000 });
+    const rack = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(rack.some(t => /^Helical rack β 20° left hand/.test(t)) && rack.some(t => /^Root fillets 0\.76 mm \(the basic rack's\)/.test(t)) && rack.some(t => /Clear over a full tooth period/.test(t)), rack.join(' | '));
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(500);
+    await snap('helical-generated-rack-fillet');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');

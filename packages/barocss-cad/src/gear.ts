@@ -46,7 +46,7 @@ export interface SpurGearSpec {
   readonly toothThicknessReductionMM?: number;
   /**
    * How the root joins the flanks: 'schematic-radial' (the default; generator spur-gear@0) or 'generated' (R12b.1a,
-   * D130; spur-gear@1): the root the basic rack cuts, its tip rounded by `toolTipRadiusMM`. Spur gears only in this stage.
+   * D130; spur-gear@1): the root the basic rack cuts, its tip rounded by `toolTipRadiusMM` — spur and (R12b.1b, D131) helical.
    */
   readonly rootPolicy?: 'schematic-radial' | 'generated';
   /** The basic rack's tip radius ρ for a generated root (default 0.38 m); it must leave a flat between the two rounds. */
@@ -113,10 +113,9 @@ export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { a
   if (alphaDeg !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
   const x = spec.profileShiftCoefficient ?? 0;
   if (!Number.isFinite(x)) throw new GearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
-  // (R12b.1a: the generated root, spur gears only — helical ones take it in R12b.1b.)
+  // (R12b.1a, R12b.1b: the generated root, spur and helical.)
   const generated = spec.rootPolicy === 'generated';
   if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-radial' && !generated) throw new GearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-radial' or 'generated'`);
-  if (generated && helical) throw new GearError('UNSUPPORTED_GEAR_KIND', 'a generated root on a helical gear is not in this stage (R12b.1b): give it the schematic root');
   if (!generated && spec.toolTipRadiusMM !== undefined) throw new GearError('INVALID_INPUT', "toolTipRadiusMM belongs to a generated root (rootPolicy 'generated')");
   if (generated && z < MIN_TEETH_GENERATED) throw new GearError('INVALID_INPUT', `a generated root takes at least ${MIN_TEETH_GENERATED} teeth in this stage`);
   if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
@@ -138,7 +137,7 @@ export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { a
   if (!(s > 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the reference thickness is ${s0.toFixed(4)} mm)`);
   const psi = s / d + inv(alpha), tipHalf = psi - inv(Math.acos(rb / ra));
   if (!(tipHalf > 0)) throw new GearError('SELF_INTERSECTION', `the tooth comes to a point below its tip circle${x > 0 ? ` (a shift of ${x} on ${z} teeth)` : ''}`);
-  const root = generated ? rackRoot(m, z, x, red, spec.toolTipRadiusMM ?? 0.38 * m, r, rb, ra, psi, alphaN) : undefined;
+  const root = generated ? rackRoot(m, z, x, red, spec.toolTipRadiusMM ?? 0.38 * m, r, rb, ra, psi, beta ? alpha : alphaN, beta, beta ? mt : m) : undefined;
   return { referenceDiameterMM: d, baseDiameterMM: 2 * rb, tipDiameterMM: 2 * ra, rootDiameterMM: 2 * rf, circularPitchMM: Math.PI * mt, toothThicknessMM: s, tipThicknessMM: 2 * ra * tipHalf, alpha, rb, ra, rf, r, psi, mn: m, mt, beta, alphaN, rs: root ? root.rStart : Math.max(rb, rf), ...(root ? { root } : {}) };
 }
 
@@ -149,23 +148,60 @@ export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { a
  * gear stands at 0 (rounds ρ, tangent to the flank and to the flat tip between them). As the gear turns φ the rack moves
  * by −rφ. `phiRoot` (= xc / r) is the turn at which the round's lowest point touches the root circle, `phiEnd` the one at
  * which the fillet meets the involute, at radius `rStart`.
+ *
+ * A helical gear's (R12b.1b, D131) in its transverse plane: the normal rack's round, a cylinder along the tooth (at β to
+ * the axis), cut by that plane is an ellipse — semi-axes a = ρ / cos β along the pitch line, b = ρ across it — tangent
+ * to the transverse flank (at α_t) and the flat tip; the pitch π m_t, heights in m_n. A spur gear's: a = b = ρ.
  */
-export interface RackRoot { readonly rho: number; readonly xc: number; readonly yc: number; readonly r: number; readonly rb: number; readonly psi: number; readonly z: number; readonly phiRoot: number; readonly phiEnd: number; readonly rStart: number; readonly undercut: boolean }
+export interface RackRoot { readonly rho: number; readonly a: number; readonly b: number; readonly xc: number; readonly yc: number; readonly r: number; readonly rb: number; readonly psi: number; readonly z: number; readonly thetaEnd: number; readonly phiRoot: number; readonly phiEnd: number; readonly rStart: number; readonly undercut: boolean }
+
+/**
+ * The gear's turn at which the tip ellipse touches it at its point of angle θ (from the centre, x = a cos θ, y = b sin θ):
+ * its normal (b cos θ, a sin θ) there passes through the pitch point (0, r) — closed form (D131).
+ */
+function phiOfTheta(R: RackRoot, th: number): number {
+  return (R.xc + R.a * Math.cos(th) + R.b / R.a * (R.r - R.yc - R.b * Math.sin(th)) * Math.cos(th) / Math.sin(th)) / R.r;
+}
+/** dφ/dθ of `phiOfTheta`. */
+function phiOfThetaD(R: RackRoot, th: number): number {
+  const s = Math.sin(th), c = Math.cos(th);
+  return (-R.a * s + R.b / R.a * (-R.b * c * c / s - (R.r - R.yc - R.b * s) / (s * s))) / R.r;
+}
+/** The ellipse angle θ ∈ [−π/2, θ_end] touching at the turn φ (φ falls as θ rises): bisection, then Newton. */
+function thetaAt(R: RackRoot, phi: number): number {
+  let lo = -Math.PI / 2, hi = R.thetaEnd;
+  for (let i = 0; i < 64; i++) { const mid = (lo + hi) / 2; if (phiOfTheta(R, mid) > phi) lo = mid; else hi = mid; }
+  let th = (lo + hi) / 2;
+  for (let i = 0; i < 2; i++) th -= (phiOfTheta(R, th) - phi) / phiOfThetaD(R, th);
+  return th;
+}
 
 /**
  * The fillet's point at the gear's turn φ: the tip round's centre is (xc − rφ, yc), the pitch point (0, r); the gear is
  * touched at the round's point on the line through the two, on the far side from the pitch point (its normal passes
- * through the instant centre), that point turned back by −φ into the gear's frame (D129).
+ * through the instant centre), that point turned back by −φ into the gear's frame (D129). A helical gear's ellipse: at
+ * the angle θ the turn calls for (D131).
  */
 export function filletPoint(R: RackRoot, phi: number): [number, number] {
-  const dx = R.xc - R.r * phi, dy = R.yc - R.r, L = Math.hypot(dx, dy), wx = dx + R.rho * dx / L, wy = R.yc + R.rho * dy / L, c = Math.cos(phi), s = Math.sin(phi);
+  const c = Math.cos(phi), s = Math.sin(phi);
+  if (R.a !== R.b) {
+    const th = thetaAt(R, phi), wx = R.xc - R.r * phi + R.a * Math.cos(th), wy = R.yc + R.b * Math.sin(th);
+    return [c * wx + s * wy, -s * wx + c * wy];
+  }
+  const dx = R.xc - R.r * phi, dy = R.yc - R.r, L = Math.hypot(dx, dy), wx = dx + R.rho * dx / L, wy = R.yc + R.rho * dy / L;
   return [c * wx + s * wy, -s * wx + c * wy];
 }
-/** The fillet's derivative in φ: p = Rot(−φ) w, so p′ = Rot(−φ)(w′ − J w), J the quarter turn; w′ = (−r, 0) + ρ u′. */
+/** The fillet's derivative in φ: p = Rot(−φ) w, so p′ = Rot(−φ)(w′ − J w), J the quarter turn; w′ = (−r, 0) + ρ u′ (an ellipse's: the point's θ′ = 1 / φ′(θ)). */
 function filletDerivative(R: RackRoot, phi: number): [number, number] {
+  const c = Math.cos(phi), s = Math.sin(phi);
+  if (R.a !== R.b) {
+    const th = thetaAt(R, phi), tp = 1 / phiOfThetaD(R, th), wx = R.xc - R.r * phi + R.a * Math.cos(th), wy = R.yc + R.b * Math.sin(th);
+    const vx = -R.r - R.a * Math.sin(th) * tp + wy, vy = R.b * Math.cos(th) * tp - wx;
+    return [c * vx + s * vy, -s * vx + c * vy];
+  }
   const dx = R.xc - R.r * phi, dy = R.yc - R.r, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, wx = dx + R.rho * ux, wy = R.yc + R.rho * uy;
   // u′ = (d′ − u (u·d′)) / L with d′ = (−r, 0).
-  const ud = -R.r * ux, dux = (-R.r - ux * ud) / L, duy = (-uy * ud) / L, vx = -R.r + R.rho * dux + wy, vy = R.rho * duy - wx, c = Math.cos(phi), s = Math.sin(phi);
+  const ud = -R.r * ux, dux = (-R.r - ux * ud) / L, duy = (-uy * ud) / L, vx = -R.r + R.rho * dux + wy, vy = R.rho * duy - wx;
   return [c * vx + s * vy, -s * vx + c * vy];
 }
 /** The involute's polar angle at radius ρ ≥ rb on the tooth the fillet bounds (the frame of `RackRoot`). */
@@ -182,14 +218,20 @@ function filletOffInvolute(R: RackRoot, phi: number): number {
  * (r sin α − hF / sin α ≥ 0 from the base circle's tangent point) — the fillet meets the involute there, tangentially, at
  * the form circle √(rb² + (r sin α − hF / sin α)²). Undercut, the round's envelope crosses the involute above the base
  * circle, and the involute below the crossing is cut away: the fillet ends at the crossing (found by bisection).
+ * Helical (D131): in the transverse plane, the ellipse's tangent point with the flank at θ_F = −atan((b / a) tan α_t),
+ * hF = r − (yc + b sin θ_F), α the transverse α_t, the tooth π m_t / 2 + Δs.
  */
-function rackRoot(m: number, z: number, x: number, red: number, rho: number, r: number, rb: number, ra: number, psi: number, alpha: number): RackRoot {
-  const hA = 1.25 * m, ta = Math.tan(alpha), sa = Math.sin(alpha);
-  const rhoMax = (Math.PI * m / 4 + red / 2 - hA * ta) / (1 / Math.cos(alpha) - ta);
+function rackRoot(m: number, z: number, x: number, red: number, rho: number, r: number, rb: number, ra: number, psi: number, alpha: number, beta: number, mt: number): RackRoot {
+  const hA = 1.25 * m, ta = Math.tan(alpha), sa = Math.sin(alpha), ca = Math.cos(alpha), a = beta ? rho / Math.cos(beta) : rho, b = rho;
+  // (The ellipse's reach along the flank's normal, √(a² cos² α + b² sin² α): ρ for a circle.)
+  const reach = beta ? Math.sqrt(a * a * ca * ca + b * b * sa * sa) : rho, k = reach / rho;
+  const rhoMax = (Math.PI * mt / 4 + red / 2 - hA * ta) / (k / ca - ta);
   if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw new GearError('INVALID_INPUT', `toolTipRadiusMM must be above 0 and below ${rhoMax.toFixed(6)} mm (where the rack's two tip rounds meet)`);
-  const hc = hA - rho, xc = Math.PI * m / 4 + red / 2 - hc * ta - rho / Math.cos(alpha), yc = r + x * m - hc, phiRoot = xc / r, phiF = (xc - (r - yc) / ta) / r;
-  const lead = r * sa - (hA - x * m - rho * (1 - sa)) / sa;
-  const base: RackRoot = { rho, xc, yc, r, rb, psi, z, phiRoot, phiEnd: phiF, rStart: 0, undercut: false };
+  const hc = hA - rho, xc = Math.PI * mt / 4 + red / 2 - hc * ta - reach / ca, yc = r + x * m - hc, phiRoot = xc / r;
+  const thetaF = beta ? -Math.atan(b / a * ta) : -alpha;
+  const base: RackRoot = { rho, a, b, xc, yc, r, rb, psi, z, thetaEnd: thetaF, phiRoot, phiEnd: 0, rStart: 0, undercut: false };
+  const phiF = beta ? phiOfTheta(base, thetaF) : (xc - (r - yc) / ta) / r;
+  const lead = beta ? r * sa - (r - (yc + b * Math.sin(thetaF))) / sa : r * sa - (hA - x * m - rho * (1 - sa)) / sa;
   let phiEnd = phiF, undercut = false;
   if (lead < 0) {
     // Where the fillet reaches the base circle (its radius grows as φ falls from φRoot), then the crossing above it.
@@ -206,8 +248,8 @@ function rackRoot(m: number, z: number, x: number, red: number, rho: number, r: 
   // The fillet stays between the tooth's middle and the space's: else the tool cuts through the tooth (or the space's two fillets cross).
   const toothAt = Math.PI / 2 - Math.PI / z;
   for (let i = 0; i <= 64; i++) {
-    const p = filletPoint(base, phiRoot + (phiEnd - phiRoot) * i / 64), a = Math.atan2(p[1], p[0]);
-    if (!(a > toothAt && a <= Math.PI / 2 + 1e-12)) throw new GearError('SELF_INTERSECTION', `the tool cuts through the tooth's root (${z} teeth${x ? `, x = ${x}` : ''})`);
+    const p = filletPoint(base, phiRoot + (phiEnd - phiRoot) * i / 64), an = Math.atan2(p[1], p[0]);
+    if (!(an > toothAt && an <= Math.PI / 2 + 1e-12)) throw new GearError('SELF_INTERSECTION', `the tool cuts through the tooth's root (${z} teeth${x ? `, x = ${x}` : ''})`);
   }
   return { ...base, phiEnd, rStart, undercut };
 }
@@ -341,7 +383,7 @@ export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Pi
       // The fillet up from the root on the tooth's clockwise side, the flanks and tip, the fillet down on its other
       // side, then the root arc the rack's flat tip cuts, ±xc / r about the next space's middle.
       const L = flankPoles(g.rb, t0, t1, N, gam - psiBase, false), R = flankPoles(g.rb, t0, t1, N, gam + psiBase, true);
-      // (A fillet of more than five pieces goes on faces of at most five each, root outward: `filletL#k`, `#k.2`, `#k.3`.)
+      // (A fillet of more than five pieces goes on faces of at most five each, root outward: `filletL#k`, `filletL2#k`, `filletL3#k`.)
       for (let j = 0; j < filletFaces; j++) {
         const j0 = Math.round(NF * j / filletFaces), j1 = Math.round(NF * (j + 1) / filletFaces), FL = filletPoles(root, breaks, j0, j1, gam, true);
         pieces.push({ role: 'filletL', tooth: n, part: j, curve: { kind: 'curve', id: 'q', degree: 3, knots: bezierKnots(j1 - j0), controlPoints: FL, weights: FL.map(() => 1) } });
@@ -384,13 +426,14 @@ export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Pi
  * The gear as a solid: its profile pulled from z 0 through the face width, the bore through it. Faces `<id>.flankL#k`
  * and `.flankR#k` (tooth k's flanks), `.tip#k`, `.root#k` (the root arc after tooth k), `.rootL#k`/`.rootR#k` (the
  * schematic radial joins) or `.filletL#k`/`.filletR#k` (a generated root's fillets, R12b.1a; a fillet of more than five
- * pieces on more faces, root outward, `#k.2`, `#k.3`), `.face0`/`.face1` (z 0 /
+ * pieces on more faces, root outward, `.filletL2#k`, `.filletL3#k`), `.face0`/`.face1` (z 0 /
  * the far face), `.bore#1`/`#2`.
  */
 export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } = {}): { brep: Brep; report: SpurGearReport } {
   const id = safeId(options.id ?? 'gear');
   const { pieces, bore, report: flat } = spurGearProfile(spec);
-  const nameOf = (p: Piece) => p.role === 'bore' ? `${id}.bore#${p.tooth}` : `${id}.${p.role}#${p.tooth}${p.part ? `.${p.part + 1}` : ''}`;
+  // (A fillet's later faces: `filletL2#k`, `filletL3#k` — the tooth last, so a helical gear's axial segments, `#k.2`, stay apart, D131.)
+  const nameOf = (p: Piece) => p.role === 'bore' ? `${id}.bore#${p.tooth}` : `${id}.${p.role}${p.part ? p.part + 1 : ''}#${p.tooth}`;
   const g = spurGearDimensions(spec);
   let report = flat, twist: ProfileTwist | undefined;
   if (g.beta !== 0) {

@@ -1,0 +1,18 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "g",
+      "kind": "spur-gear",
+      "normalModule": 2,
+      "helixAngle": 20,
+      "hand": "right",
+      "teeth": 20,
+      "faceWidth": 10,
+      "generator": "spur-gear@1"
+    }
+  ]
+}

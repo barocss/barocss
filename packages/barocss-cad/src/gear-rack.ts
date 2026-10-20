@@ -8,6 +8,10 @@
 // backlash by 2 d tan α (circumferential, along the pitch line). The contact ratio (textbook, as KHK's):
 // εα = [√(ra² − rb²) − r sin α + (m − x m − d)/sin α] / (π m cos α), the rack's part limited too by where the gear's
 // usable flank starts (max(rb, rf); a generated root's form circle, R12b.1a). As the gear turns θ, the rack travels r θ; the configuration repeats every pitch.
+//
+// R12b.1b (D131): the rack's root fillet (`rootPolicy: 'filleted'`, generator spur-rack@1) — the basic rack's own,
+// radius ρ (0.38 m by default), tangent to the flank and the root line; in a helical rack's transverse section the
+// ellipse a = ρ / cos β along the rack, b = ρ across (the normal section's circle, cut at β), exact as a rational arc.
 import type { Brep } from './brep-core.js';
 import type { Curve } from './types.js';
 import {
@@ -36,20 +40,25 @@ export interface SpurRackSpec {
   readonly pressureAngleDeg?: number;
   /** Circumferential thickness taken off each tooth on the pitch line (the rack's share of the backlash). */
   readonly toothThicknessReductionMM?: number;
+  /** The root: 'schematic-corner' (the default; spur-rack@0) or 'filleted' (R12b.1b, D131; spur-rack@1), radius `rootFilletRadiusMM` (default 0.38 m). */
+  readonly rootPolicy?: 'schematic-corner' | 'filleted';
+  readonly rootFilletRadiusMM?: number;
 }
 export interface SpurRackReport {
-  readonly generator: 'spur-rack@0';
+  readonly generator: 'spur-rack@0' | 'spur-rack@1';
   readonly lengthMM: number; readonly pitchMM: number; readonly toothThicknessMM: number; readonly tipWidthMM: number; readonly rootWidthMM: number;
   readonly addendumMM: number; readonly dedendumMM: number;
   /** A helical rack's: β, its hand label, the normal module, and how far its teeth slide along it per mm up the face. */
   readonly helix?: { readonly helixAngleDeg: number; readonly hand: 'right' | 'left'; readonly normalModuleMM: number; readonly shear: number };
+  /** A filleted root's (R12b.1b): its radius, and how deep below the pitch line the straight flank ends (where the fillet starts). */
+  readonly rootFillet?: { readonly radiusMM: number; readonly flankEndDepthMM: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
 const MAX_RACK_TEETH = 500;
 
 /** The rack's dimensions and its input checks (refusals thrown, as GearError). */
-export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha: number; alphaN: number; s: number; mn: number; beta: number; shear: number } {
+export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha: number; alphaN: number; s: number; mn: number; beta: number; shear: number; fillet?: RackFillet } {
   const n = spec.teeth, H = spec.heightMM, helical = spec.helixAngleDeg !== undefined && spec.helixAngleDeg !== 0;
   let m: number, beta = 0;
   if (helical) {
@@ -76,14 +85,42 @@ export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha
   const s = p / 2 - red, tip = s - 2 * ha * t, root = p - s - 2 * hf * t;
   if (!(tip > 0)) throw new GearError('SELF_INTERSECTION', 'the rack tooth comes to a point below its tip line');
   if (!(root > 0)) throw new GearError('SELF_INTERSECTION', 'neighbouring rack teeth meet at the root');
-  return { generator: 'spur-rack@0', lengthMM: n * p, pitchMM: p, toothThicknessMM: s, tipWidthMM: tip, rootWidthMM: root, addendumMM: ha, dedendumMM: hf,
-    diagnostics: [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root line at a corner: a schematic root, not the cutting tool\'s' }], alpha, alphaN: alphaDeg * Math.PI / 180, s, mn: m, beta, shear };
+  const filleted = spec.rootPolicy === 'filleted';
+  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !filleted) throw new GearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'filleted'`);
+  if (!filleted && spec.rootFilletRadiusMM !== undefined) throw new GearError('INVALID_INPUT', "rootFilletRadiusMM belongs to a filleted root (rootPolicy 'filleted')");
+  const fillet = filleted ? rackFillet(spec.rootFilletRadiusMM ?? 0.38 * m, beta, alpha, hf, root) : undefined;
+  return { generator: filleted ? 'spur-rack@1' : 'spur-rack@0', lengthMM: n * p, pitchMM: p, toothThicknessMM: s, tipWidthMM: tip, rootWidthMM: root, addendumMM: ha, dedendumMM: hf,
+    ...(fillet ? { rootFillet: { radiusMM: fillet.rho, flankEndDepthMM: fillet.depth } } : {}),
+    diagnostics: fillet ? [] : [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the flanks meet the root line at a corner: a schematic root, not the cutting tool\'s' }], alpha, alphaN: alphaDeg * Math.PI / 180, s, mn: m, beta, shear, ...(fillet ? { fillet } : {}) };
+}
+
+/**
+ * A filleted root's fillet on the gap side of a tooth's right flank (R12b.1b, D131), as offsets from the corner where
+ * the flank would meet the root line: the ellipse (a = ρ / cos β along, b = ρ across; a circle when straight) tangent to
+ * the root line `dx` along it from the corner, its centre `cx` from the corner and b above the root, and tangent to the
+ * flank at the angle θ_T (π + atan((b/a) tan α), the third quadrant), `depth` below the pitch line. Two of them must
+ * leave a flat on the root, else refused naming the largest ρ.
+ */
+export interface RackFillet { readonly rho: number; readonly a: number; readonly b: number; readonly dx: number; readonly thetaT: number; readonly depth: number }
+function rackFillet(rho: number, beta: number, alpha: number, hf: number, rootWidth: number): RackFillet {
+  const a = beta ? rho / Math.cos(beta) : rho, b = rho, t = Math.tan(alpha), ca = Math.cos(alpha), sa = Math.sin(alpha);
+  const reach = beta ? Math.sqrt(a * a * ca * ca + b * b * sa * sa) : rho, k = reach / rho, rhoMax = rootWidth / (2 * (k / ca - t));
+  if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw new GearError('INVALID_INPUT', `rootFilletRadiusMM must be above 0 and below ${rhoMax.toFixed(6)} mm (where the two fillets of a gap meet)`);
+  // The centre: b above the root line and, from the flank's foot, along the root by reach / cos α − b tan α.
+  const dx = reach / ca - b * t, thetaT = Math.PI + Math.atan(b / a * t);
+  return { rho, a, b, dx, thetaT, depth: hf - b - b * Math.sin(thetaT) };
+}
+/** A rational quadratic arc of the ellipse about (cx, cy), semi-axes a, b, from angle t0 by sweep (|sweep| < π/2). */
+function ellipseArc(cx: number, cy: number, a: number, b: number, t0: number, sweep: number): Curve {
+  const tm = t0 + sweep / 2, t1 = t0 + sweep, w = Math.cos(sweep / 2), mid = 1 / w;
+  return { kind: 'curve', id: 'e', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[cx + a * Math.cos(t0), cy + b * Math.sin(t0), 0], [cx + a * mid * Math.cos(tm), cy + b * mid * Math.sin(tm), 0], [cx + a * Math.cos(t1), cy + b * Math.sin(t1), 0]], weights: [1, w, 1] };
 }
 
 /**
  * The rack as a solid: its pitch line along +X from x 0 (tooth k centred at (k − ½)πm), teeth toward +Y, the back at
  * y = −height, pulled from z 0 through the face width. Faces `<id>.flankL#k`, `.flankR#k`, `.tip#k`, `.root#k` (the gap
- * before tooth k; `#n+1` the end gap), `.back`, `.end0`/`.end1` (x 0 / the far end), `.face0`/`.face1`.
+ * before tooth k; `#n+1` the end gap), `.back`, `.end0`/`.end1` (x 0 / the far end), `.face0`/`.face1`; a filleted
+ * root's `.filletL#k`, `.filletR#k` (R12b.1b).
  */
 export function spurRack(spec: SpurRackSpec, options: { readonly id?: string } = {}): { brep: Brep; report: SpurRackReport } {
   const id = safeId(options.id ?? 'rack'), d = spurRackDimensions(spec), m = d.mn, H = spec.heightMM, n = spec.teeth;
@@ -93,8 +130,22 @@ export function spurRack(spec: SpurRackSpec, options: { readonly id?: string } =
   line(`${id}.back`, [0, -H], [L, -H]);
   line(`${id}.end1`, [L, -H], [L, -hf]);
   let x = L;
+  const f = d.fillet;
   for (let k = n; k >= 1; k--) {
     const c = p * (k - 0.5), rootR = c + d.s / 2 + hf * t, tipR = c + d.s / 2 - ha * t, tipL = c - d.s / 2 + ha * t, rootL = c - d.s / 2 - hf * t;
+    if (f) {
+      // The fillets (R12b.1b): down the right side the root runs to the fillet's foot, the fillet turns up to the flank
+      // (clockwise round its centre), the flank to the tip; the left side mirrored.
+      const cR = rootR + f.dx, cL = rootL - f.dx, cy = -hf + f.b, tR: [number, number] = [cR + f.a * Math.cos(f.thetaT), cy + f.b * Math.sin(f.thetaT)], tL: [number, number] = [2 * c - tR[0], tR[1]];
+      line(`${id}.root#${k + 1}`, [x, -hf], [cR, -hf]);
+      out.push({ name: `${id}.filletR#${k}`, curve: ellipseArc(cR, cy, f.a, f.b, 1.5 * Math.PI, f.thetaT - 1.5 * Math.PI) });
+      line(`${id}.flankR#${k}`, tR, [tipR, ha]);
+      line(`${id}.tip#${k}`, [tipR, ha], [tipL, ha]);
+      line(`${id}.flankL#${k}`, [tipL, ha], tL);
+      out.push({ name: `${id}.filletL#${k}`, curve: ellipseArc(cL, cy, f.a, f.b, Math.PI - f.thetaT, -Math.PI / 2 - (Math.PI - f.thetaT)) });
+      x = cL;
+      continue;
+    }
     line(`${id}.root#${k + 1}`, [x, -hf], [rootR, -hf]);
     line(`${id}.flankR#${k}`, [rootR, -hf], [tipR, ha]);
     line(`${id}.tip#${k}`, [tipR, ha], [tipL, ha]);
@@ -104,7 +155,7 @@ export function spurRack(spec: SpurRackSpec, options: { readonly id?: string } =
   line(`${id}.root#1`, [x, -hf], [0, -hf]);
   line(`${id}.end0`, [0, -hf], [0, -H]);
   const brep = extrudedProfile(id, 'gear', out, [], spec.faceWidthMM, L + H + m + Math.abs(d.shear) * spec.faceWidthMM, undefined, d.shear);
-  const report: SpurRackReport = { generator: d.generator, lengthMM: d.lengthMM, pitchMM: d.pitchMM, toothThicknessMM: d.toothThicknessMM, tipWidthMM: d.tipWidthMM, rootWidthMM: d.rootWidthMM, addendumMM: d.addendumMM, dedendumMM: d.dedendumMM, ...(d.beta ? { helix: { helixAngleDeg: spec.helixAngleDeg!, hand: spec.hand!, normalModuleMM: d.mn, shear: d.shear } } : {}), diagnostics: d.diagnostics };
+  const report: SpurRackReport = { generator: d.generator, lengthMM: d.lengthMM, pitchMM: d.pitchMM, toothThicknessMM: d.toothThicknessMM, tipWidthMM: d.tipWidthMM, rootWidthMM: d.rootWidthMM, addendumMM: d.addendumMM, dedendumMM: d.dedendumMM, ...(d.beta ? { helix: { helixAngleDeg: spec.helixAngleDeg!, hand: spec.hand!, normalModuleMM: d.mn, shear: d.shear } } : {}), ...(d.rootFillet ? { rootFillet: d.rootFillet } : {}), diagnostics: d.diagnostics };
   return { brep, report };
 }
 
@@ -158,7 +209,9 @@ function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPair
   // Along the line of action from the pitch point: the gear's side to where its tip meets it, the rack's side to the
   // rack's tip line, or to where the gear's usable flank starts.
   const A = Math.sqrt(g.ra ** 2 - g.rb ** 2) - g.r * sa, rackSide = (k.addendumMM - x * m - dd) / sa, lo = Math.sqrt(Math.max(0, g.rs ** 2 - g.rb ** 2));
-  const pb = k.pitchMM * Math.cos(alpha), ideal = (A + rackSide) / pb, usable = (Math.max(0, A) + Math.max(0, Math.min(rackSide, g.r * sa - lo))) / pb;
+  // (A filleted rack's straight flank ends at its fillet: the gear's tip meets it no deeper than that, R12b.1b.)
+  const gearSide = k.rootFillet ? Math.min(A, (k.rootFillet.flankEndDepthMM + x * m + dd) / sa) : A;
+  const pb = k.pitchMM * Math.cos(alpha), ideal = (A + rackSide) / pb, usable = (Math.max(0, gearSide) + Math.max(0, Math.min(rackSide, g.r * sa - lo))) / pb;
   const epsB = Math.min(gear.faceWidthMM, rack.faceWidthMM) * Math.abs(Math.sin(g.beta)) / (Math.PI * m);
   // The sweep: the gear about (0, D), a tooth pointing down at θ 0 and turned by θ; the rack's pitch line y 0, a gap
   // centred under the gear at θ 0 and the phase, travelling r θ.
@@ -196,9 +249,18 @@ function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPair
 function rackRun(k: ReturnType<typeof spurRackDimensions>, shift: number, reach: number): Float64Array {
   const p = k.pitchMM, t = Math.tan(k.alpha), ha = k.addendumMM, hf = k.dedendumMM, s = k.s, pts: number[] = [];
   const first = Math.ceil((-reach - shift) / p) - 1, last = Math.floor((reach - shift) / p) + 1;
+  const f = k.fillet;
   for (let j = last; j >= first; j--) {
-    // The tooth between gap j − 1 and gap j, centred at shift + (j − ½)p: right flank down to left, x decreasing.
+    // The tooth between gap j − 1 and gap j, centred at shift + (j − ½)p: right flank down to left, x decreasing (a
+    // filleted root's fillets at 12 points each, the ellipse itself).
     const c = shift + (j - 0.5) * p;
+    if (f) {
+      const cR = c + s / 2 + hf * t + f.dx, cy = -hf + f.b;
+      for (let i = 0; i <= 12; i++) { const th = 1.5 * Math.PI + (f.thetaT - 1.5 * Math.PI) * i / 12; pts.push(cR + f.a * Math.cos(th), cy + f.b * Math.sin(th)); }
+      pts.push(c + s / 2 - ha * t, ha, c - s / 2 + ha * t, ha);
+      for (let i = 12; i >= 0; i--) { const th = 1.5 * Math.PI + (f.thetaT - 1.5 * Math.PI) * i / 12; pts.push(2 * c - cR - f.a * Math.cos(th), cy + f.b * Math.sin(th)); }
+      continue;
+    }
     pts.push(c + s / 2 + hf * t, -hf, c + s / 2 - ha * t, ha, c - s / 2 + ha * t, ha, c - s / 2 - hf * t, -hf);
   }
   return Float64Array.from(pts);

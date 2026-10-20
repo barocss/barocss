@@ -72,7 +72,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction !== undefined ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { origin: node.origin, ...(node.from ? { from: node.from } : {}), ...(node.angle ? { angle: node.angle } : {}) };
       // (Meshing: the module, helix angle and hand from the gear — the opposite hand; the kernel derives them.)
-      return { ...at, kind: 'spur-rack', ...(node.mesh ? {} : { module: node.module }), teeth: node.teeth, faceWidth: node.faceWidth, height: node.height, generator: node.generator, ...own, ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+      return { ...at, kind: 'spur-rack', ...(node.mesh ? {} : { module: node.module }), teeth: node.teeth, faceWidth: node.faceWidth, height: node.height, generator: node.generator, ...own, ...(node.rootFillet !== undefined ? { rootFillet: node.rootFillet } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'gear': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }

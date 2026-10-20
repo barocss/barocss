@@ -6831,3 +6831,78 @@ Mapped to the part model as now: INPUT, CAPABILITY, GEOMETRY.
 **Not in this stage:** helical gears' generated root and the rack's root fillet (R12b.1b); internal gears (R12b.2a); the pair-level tip relief; manufacturing validation.
 
 Next: R12b.1b — the helical gears' generated root (the elliptical transverse tip) and the rack's root fillet.
+
+## D131 — R12b.1b: the generated root on helical gears (the elliptical transverse tip), the rack's root fillet (spur-rack@1) (2026-10-20)
+
+**Decision:**
+- **Helical gears take the generated root** (`spur-gear@1`, `rootPolicy: 'generated'`; R12b.1a's helical refusal removed).
+  - **In the transverse plane:** the normal rack's tip round is a cylinder along the tooth, at β to the axis. Cut by that plane it is an ellipse, a = ρ/cos β along the pitch line and b = ρ across.
+    - It is tangent to the transverse flank (at α_t, tan α_t = tan α_n/cos β) and to the flat tip, its centre xc = π m_t/4 + Δs/2 − (1.25 m_n − ρ) tan α_t − √(a² cos² α_t + b² sin² α_t)/cos α_t.
+    - The pitch is π m_t, the heights m_n, Δs the transverse reduction, as the gear's own.
+  - **The envelope in closed form, by the ellipse's angle θ:** the ellipse touches the gear where its normal (b cos θ, a sin θ) passes through the pitch point, at the turn φ(θ) = [xc + a cos θ + (b/a)(r − yc − b sin θ) cot θ]/r.
+    - θ runs from −π/2 (the root) to the flank's tangent point θ_F = −atan((b/a) tan α_t).
+    - The fit stays on φ, as for spur gears (`thetaAt` inverts φ(θ): bisection, then Newton; θ′ = 1/φ′(θ) in closed form).
+    - Spur gears keep their circle's closed forms (a = b), bit for bit.
+  - **The form circle:** hF = r − (yc + b sin θ_F), the tangent point's depth. Undercut: the crossing, as D130.
+  - **ρ's upper limit:** (π m_t/4 + Δs/2 − 1.25 m_n tan α_t)/(k/cos α_t − tan α_t), k = √(cos² α_t/cos² β + sin² α_t).
+  - **The twist:** the transverse profile, fillets included, turned along the helix as before (D59). The fillet faces split along the axis like the flanks.
+- **Names:** a fillet's later faces become `filletL2#k`, `filletL3#k`, the tooth last. R12b.1a's `filletL#k.2` would have collided with a helical gear's axial segments (`#k.2`).
+  - This is a change to an `@1` name made in D130. No document but this branch's tests and conformance carried it; they are updated.
+- **The rack's root fillet** (`rootPolicy: 'filleted'`, `rootFilletRadiusMM` ρ, default 0.38 m; generator `spur-rack@1`; `@0` the schematic corner, unchanged): the basic rack's own fillet, tangent to the flank and the root line.
+  - **Shape:** a circle when straight; in a helical rack's transverse section the ellipse a = ρ/cos β, b = ρ. Each is one rational quadratic arc, exact. Its centre lies b above the root line, √(a² cos² α + b² sin² α)/cos α − b tan α along it from the flank's foot. It is tangent to the flank at θ_T = π + atan((b/a) tan α).
+  - **Faces:** `.filletL#k`, `.filletR#k`. A helical rack's are sheared like the rest, ruled and exact.
+  - **Report:** `rootFillet { radiusMM, flankEndDepthMM }` (the straight flank ends 1.25m − ρ(1 − sin α_n) below the pitch line); no `ROOT_TRANSITION_UNVALIDATED`.
+  - **Refusal:** two fillets meeting across a gap, `INVALID_INPUT` naming the largest ρ: (p − s − 2·1.25m tan α)/(2(k/cos α − tan α)) = 0.943821 mm at m 2 (0.4719 m), the same limit as the tool's rounds.
+  - **Gear-and-rack checks:** the gear's side of the path of contact stops where the rack's flank ends, min(A, (depth + x m + d)/sin α); the rack sweep's outline takes the fillets.
+    - Found: an unshifted gear's tip meets the line of action above that depth at any finite z (z 20: 1.572 mm against 1.99994), so the basic rack's fillet changes nothing there.
+    - A larger fillet does (z 200 with ρ 0.9: the flank ends 1.908 mm down, the tip reaches 1.929).
+- **Part model:** `spur-rack@1` with `rootFillet`; `rootFillet` without it is INPUT; an unknown generator is CAPABILITY.
+- **Studio:**
+  - Spur gear and Meshing gear make `@1` gears, helical too; a helix no longer turns a gear `@0`. The Root and Tool tip radius fields are on every gear.
+  - Gear rack makes `spur-rack@1`, with a Root field ("Filleted (the basic rack)" / "Schematic") and Root fillet on `@1`.
+  - The rack's notes: "Root fillets … mm (the basic rack's): the straight flank ends … mm below the pitch line. Not validated for manufacturing", or the schematic warning on `@0`. The commands' hints say so.
+  - The agent's tool contracts are unchanged (the command docs in `chat/tools.ts` are not touched).
+
+**Evidence:**
+- **Kernel** `test/gear-generated-root-helical.test.mjs`, 5/5, the oracles written there apart from `gear.ts`/`gear-rack.ts`. The first test fails on 07ed789a4: the helical generated root was refused there, UNSUPPORTED_GEAR_KIND.
+  - **The B-rep's own transverse curves (z 0) lie on the cut boundary.** The oracle is the transverse tool's true signed distance (flat, ellipse arc by a point-to-ellipse minimisation, flank), maximised over its travel.
+    - Five gears: m_n 2 z 20 β 20°; m_n 3 z 12 β 30°; m_n 2 z 25 β 45°; m_n 2 z 40 β 15° x 0.3 Δs 0.05; the undercut m_n 2 z 9 β 15°.
+    - The fillets come to |penetration| 1.15–1.57e-4 mm against their fits 1.44–1.85e-4 (6–8 pieces), the flanks within theirs, the root arcs ≤ 7.1e-15.
+  - **Form circle:** the transverse r_F with the ellipse's tangent point, to 1e-9·m_n; the z 9 crossing against the test's own scan in θ, to 1e-8·m_n.
+  - **Volume:** the transverse area built in the test (its own envelope in θ, involute and arcs, Green's theorem) × b, within the flank, fillet and twist fits.
+  - **Pairs:**
+    - generated 18/30 at β 20° with 0.05 + 0.05: 0.0466251 against j cos α_t/2 = 0.0466248, converged;
+    - with a filleted helical rack of the opposite hand: clear.
+  - **The rack, straight and helical** (m 2, 1.5, 3; β 0, 20°, 35°; ρ 0.38 m, 0.5, 0.9; a reduction):
+    - valid;
+    - the volume the closed form to 1e-9: the bar, the trapezoids and 2n corner fillets ρ²(cot(45° + α_n/2) − (π/2 − α_n)/2)/cos β, the corner seen in the frame scaled along the rack by cos β, where the ellipse is a circle and the flank at α_n;
+    - every fillet arc on its ellipse to 1e-12, tangent to the root line and to the flank (|slope| = tan α_t to 1e-9);
+    - the flank's end depth to 1e-12.
+  - **Filleted rack with a generated gear:**
+    - the usable contact ratio's change by the formula, to 1e-12 (none at z 20; at z 200, ρ 0.9, the stop at the flank's end);
+    - the least clearance the same as with the sharp root (the rack's tip corner by the gear's fillet, D130) to 1e-9.
+  - **Refusals:** ρ past 0.943821 and `rootFilletRadiusMM` without the policy; the part model's `spur-rack@1` (ρ 0.6, `filletR#1`), `rootFillet` alone (INPUT), `spur-rack@2` (CAPABILITY).
+  - **A helical `spur-gear@1` in the part model; STEP round trips** of it and of a filleted helical rack (volume 1e-6, fillet names).
+  - `test/gear-generated-root.test.mjs` (R12b.1a), updated: the `filletL2#k` names, the helical refusal removed (the test's title shortened in place).
+- **Conformance** `r12b/`, 6 (180 overall):
+  - `generated-helical-m2-z20` (V 14046.7114, relTol 3e-5; centroid; genus 0; STEP);
+  - `rack-filleted-m2-n10`: V 4961.682738 to 1e-9; centroid [10π, −3.8483072461, 5] — the height by Green's theorem over the exact outline, 20 000 points an arc, by an independent script; along the rack and the width by symmetry;
+  - `rack-fillet-refused`.
+  - R12b.1a's two patterns updated for `filletL2`.
+- **RB seeds**, every stage OK: `gear-generated-helical-m2-z20`, `gear-generated-helical-m2-z40-slot` (a Boolean across twisted fillet faces), `rack-filleted-m2-n10`, `rack-filleted-helical-m2-n8`.
+- **Studio** `primitives.test.ts`:
+  - Gear rack: the command's rack is `@1`, its volume the closed form with its 20 corners to 1e-9, its notes ("flank ends 1.9999 mm"). The Root field to Schematic gives R6a's closed form to 1e-9 and its warning.
+  - Spur gear: a helix keeps `@1`, its notes the rack's root and the helix.
+  - **The coordinator's confirm on D130's call 4:** the Spur gear test still holds the schematic `@0` gear to R6a's 0.05 mm³. The Root field set to Schematic on the same m2 z20 gear, its volume against 12261.057 − the bore within 0.05 (`primitives.test.ts`, the line after `root.set(doc.nodes, 'spur-gear@0')`). Only the `@1` gear takes its fits' 0.32.
+- **Browser flow:** a new step "Generated root on a helical gear, the rack's root fillet (R12b.1b, D131)": a β 20° gear from the palette is `@1`, its notes the rack's root and no schematic warning; a rack under it is `spur-rack@1`, its notes "Root fillets 0.76 mm (the basic rack's)", left hand, clear.
+
+**Checks:**
+- Kernel 1315/1320 (4 skipped; +8: the 5 tests and 3 conformance cases). The passing names compared with D130's run: none missing; the R12b.1a refusals test's title shortened in place. The env-only "actual native Split source…" fails.
+- Conformance 180/180. Kernel lint clean, type-check clean.
+- Studio 658 → 666 with the merged O68–O71; 666/666, the differences from D130's run all the outer lane's (O68–O71). Studio lint 0 errors, type-check clean.
+- The full flow 194/194 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Not in this stage:** the shaper-cut root (R12b.2b); tip relief; manufacturing validation.
+
+Next: R12b.2a — internal gears and their pair checks.

@@ -1,0 +1,17 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "k",
+      "kind": "spur-rack",
+      "module": 2,
+      "teeth": 10,
+      "faceWidth": 10,
+      "height": 8,
+      "generator": "spur-rack@1"
+    }
+  ]
+}
