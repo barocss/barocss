@@ -4499,6 +4499,26 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
   });
 
+  // ---- AM7a (O53): hollowing for printing -------------------------------------------------------------------------
+  await check('AM7a: a 40 × 30 × 20 block hollowed for printing from the palette by the kernel\'s exact shell: one body, its cavity drained, the mass the closed form', async () => {
+    const fs = await import('node:fs'), file = join(out, 'block.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 }] }));
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await press(' '); await page.locator('.palette input').fill('hollow for printing'); await press('Enter'); await hudReady();
+    assert.equal(await field('Wall').inputValue(), '2');
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 60000 }); await idle();
+    const kinds = (await doc()).nodes.map(n => n.kind);
+    // (The exact route: the kernel's closed shell, then the drain.)
+    assert.deepEqual(kinds.slice(-2), ['shell', 'hole']);
+    // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π = 9000.87: exact; the panel rounds to 1 mm³.)
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 1, String(vol));
+    await snap('am7a-hollow');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

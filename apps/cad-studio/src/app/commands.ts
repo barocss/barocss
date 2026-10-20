@@ -12,6 +12,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
 import { planBedSplit } from '../print/splitBed';
+import { planHollow } from '../print/hollow';
 import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
 
@@ -665,6 +666,14 @@ const allCommands: Command[] = [
       const n = splitNormal(v); if (!n) throw new Error('Give the plane a direction: its normal must not be zero.');
       return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: 'x', normal: n, at: Number(v.at) });
     },
+  },
+  {
+    // AM7a (O53, O56): a part hollowed for printing — the kernel's exact closed shell, else an SDF voxel cavity — drained from the bottom.
+    id: 'hollow', label: 'Hollow for printing', icon: 'cad-shell', hint: 'Hollow a solid part to a wall thickness, its outside kept exact, with a drain hole into each cavity', group: 'modify', keywords: 'print hollow shell wall cavity drain resin save material voxel sdf',
+    available: ctx => ctx.bodies.length === 1 ? ok : no(ctx.bodies.length ? 'The part has several bodies: hollowing takes one.' : 'There is no body to hollow.'),
+    fields: () => [{ key: 't', label: 'Wall', kind: 'mm' }, { key: 'h', label: 'Voxel', kind: 'mm' }, { key: 'drain', label: 'Drain Ø', kind: 'mm' }],
+    defaults: () => ({ t: 2, h: 0.5, drain: 4 }),
+    build: (ctx, v) => planHollow(ctx.doc, ctx.bodies, { t: Number(v.t), h: Number(v.h), drain: Number(v.drain) }).doc,
   },
   {
     // AM6 (O51): a part too big for the printer's bed, cut into the fewest even pieces that fit, with dowels or plugs.

@@ -106,9 +106,10 @@ test('keep-out verdicts against closed forms: box ∩ box overlap 125 mm³ exact
   const by = (k: string) => r.find(x => x.keepout === k)!;
   assert.ok(by('K1').verdict === 'violated' && near(by('K1').overlap_mm3, 125, 1e-9), JSON.stringify(by('K1')));
   assert.ok(by('K2').verdict === 'clear' && near(by('K2').clearance_mm, 2, 1e-12) && by('K2').chord_tolerance_mm === 0, JSON.stringify(by('K2')));
-  // (The post's nearest surface is 5 mm from the cube; its mesh's chord tolerance r(1 − cos π/32) ≈ 0.024 mm: 5 required is undecided.)
-  const chord = 5 * (1 - Math.cos(Math.PI / 32));
-  assert.ok(by('K3').verdict === 'undecided' && near(by('K3').chord_tolerance_mm, chord, 1e-12) && Math.abs(by('K3').clearance_mm - 5) <= chord, JSON.stringify(by('K3')));
+  // (The post's nearest surface is 5 mm from the cube; its mesh's chord tolerance ≈ r(1 − cos π/32) ≈ 0.024 mm — since O55
+  // bounded from the mesh's own normals, the cylinder's edge sag, to 1e-4 of that: 5 required is undecided.)
+  const chord = by('K3').chord_tolerance_mm;
+  assert.ok(by('K3').verdict === 'undecided' && Math.abs(chord - 5 * (1 - Math.cos(Math.PI / 32))) < 1e-4 && Math.abs(by('K3').clearance_mm - 5) <= chord, JSON.stringify(by('K3')));
   assert.match(by('K3').why, /chord tolerance 0\.0241 mm/);
   // (The tolerance is an upper bound: every point of the cylinder's mesh is within it of the true surface.)
   const { withKeepout } = await import('../src/chat/references'), probe = withKeepout(s.doc, readReferences(s.doc.references).keepouts[2]), ev = await evaluate(probe.doc);

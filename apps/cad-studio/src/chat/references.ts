@@ -208,20 +208,58 @@ export function envelopeOf(ref: Reference, local: readonly BodyResult[], offset:
   let r = 0; for (const b of local) for (let i = 0; i < b.mesh.positions.length; i += 3) r = Math.max(r, Math.hypot(b.mesh.positions[i] - cx, b.mesh.positions[i + 1] - cy));
   return { frame: { origin: add(turn(m, [cx, cy, min[2] - offset]), ref.at.position), normal: z, xAxis: x }, shape: { kind: 'cylinder', radius: r + offset, height: max[2] - min[2] + 2 * offset } };
 }
-/** The segments the studio's tessellation takes a quarter turn (engine/mesh.ts bodyMesh, quality 8). */
-export const SEGMENTS_PER_QUARTER = 8;
-/** How far a body's display mesh can be from its surface (mm): a curved face's sag at its radius; unbounded for a curved face of no known radius. */
+/**
+ * How far a body's display mesh can be from its surface (mm): the worst depth of any curved face's triangle, bounded from
+ * the tessellation's own steps in both directions (O55). The mesh's vertex normals are the surface's. Each edge's sag is
+ * |c·(nᵢ − nⱼ)| / (4(1 + cos(θ/2))), with θ the angle between its normals. That is exact for a circular arc, and for a
+ * cylinder's diagonal, whose axial run adds nothing. A triangle's worst point is the maximum over it of the quadratic patch
+ * through its edges' sags, 4(λ₁λ₂s₁₂ + λ₂λ₃s₂₃ + λ₃λ₁s₃₁). Only that two-way bound holds on a doubly curved face: a sphere's
+ * triangle sits about twice an edge's sagitta below it at its middle, which A6.3's first bound (an edge's sag at the face's
+ * radius) missed. A curved face without normals is unbounded.
+ */
 export function chordOf(mesh: DisplayMesh): number {
+  const have = chords.get(mesh); if (have !== undefined) return have;
   let s = 0;
-  for (const f of mesh.faces) if (f.kind === 'curved' && !f.facet) s = Math.max(s, f.radius && f.radius > 0 ? f.radius * (1 - Math.cos(Math.PI / (4 * SEGMENTS_PER_QUARTER))) : Infinity);
+  const curved = new Uint8Array(mesh.faces.length);
+  for (const f of mesh.faces) if (f.kind === 'curved' && !f.facet) curved[f.index] = 1;
+  for (let t = 0; t < mesh.indices.length && s < Infinity; t += 3) {
+    const a = mesh.indices[t], b = mesh.indices[t + 1], c = mesh.indices[t + 2];
+    if (!curved[mesh.faceOfVertex[a]]) continue;
+    s = Math.max(s, trianglePatchDepth(edgeSag(mesh, a, b), edgeSag(mesh, b, c), edgeSag(mesh, c, a)));
+  }
+  chords.set(mesh, s);
   return s;
+}
+const chords = new WeakMap<DisplayMesh, number>();
+/** The sag of the surface over the edge a–b, from its chord and its ends' normals (exact for a circular arc). */
+function edgeSag(m: DisplayMesh, a: number, b: number): number {
+  const P = m.positions, N = m.normals, cx = P[b * 3] - P[a * 3], cy = P[b * 3 + 1] - P[a * 3 + 1], cz = P[b * 3 + 2] - P[a * 3 + 2];
+  const ax = N[a * 3], ay = N[a * 3 + 1], az = N[a * 3 + 2], bx = N[b * 3], by = N[b * 3 + 1], bz = N[b * 3 + 2];
+  const la = Math.hypot(ax, ay, az), lb = Math.hypot(bx, by, bz);
+  if (!(la > 0 && lb > 0)) return Infinity;
+  const cos = Math.max(-1, Math.min(1, (ax * bx + ay * by + az * bz) / (la * lb))), half = Math.sqrt((1 + cos) / 2);
+  const dot = cx * (ax / la - bx / lb) + cy * (ay / la - by / lb) + cz * (az / la - bz / lb);
+  return Math.abs(dot) / (4 * (1 + half));
+}
+/** The maximum over a triangle of 4(λ₁λ₂p + λ₂λ₃q + λ₃λ₁r): at an edge's middle, or where its gradient vanishes inside. */
+function trianglePatchDepth(p: number, q: number, r: number): number {
+  if (!Number.isFinite(p + q + r)) return Infinity;
+  let best = Math.max(p, q, r);
+  // (With λ₃ = 1 − λ₁ − λ₂: f = λ₁λ₂p + λ₂(1 − λ₁ − λ₂)q + (1 − λ₁ − λ₂)λ₁r; ∂f/∂λ₁ = λ₂p − λ₂q + r(1 − 2λ₁ − λ₂) = 0,
+  // ∂f/∂λ₂ = λ₁p + q(1 − λ₁ − 2λ₂) − λ₁r = 0: a 2 × 2 system.)
+  const a11 = -2 * r, a12 = p - q - r, a21 = p - q - r, a22 = -2 * q, b1 = -r, b2 = -q, det = a11 * a22 - a12 * a21;
+  if (Math.abs(det) > 1e-300) {
+    const l1 = (b1 * a22 - a12 * b2) / det, l2 = (a11 * b2 - a21 * b1) / det, l3 = 1 - l1 - l2;
+    if (l1 >= 0 && l2 >= 0 && l3 >= 0) best = Math.max(best, 4 * (l1 * l2 * p + l2 * l3 * q + l3 * l1 * r));
+  }
+  return best;
 }
 export type Verdict = 'clear' | 'violated' | 'undecided';
 export interface KeepoutResult { keepout: string; body: string; verdict: Verdict; overlapMM3: number; clearanceMM: number | null; requiredMM: number; chordMM: number; why: string }
 /** The verdict for one keep-out against one body: overlap (exact) violates; else the mesh distance d against the required c within the chord δ. */
 export function verdictOf(overlap: number, d: number, required: number, chord: number): { verdict: Verdict; why: string } {
   if (overlap > 1e-6) return { verdict: 'violated', why: `it enters the keep-out: ${overlap.toPrecision(4)} mm³ overlap (exact, the kernel's intersection)` };
-  const tol = chord === Infinity ? 'an unbounded chord tolerance (a curved face of no known radius)' : `the meshes' chord tolerance ${chord.toPrecision(3)} mm`;
+  const tol = chord === Infinity ? 'an unbounded chord tolerance (a curved face without normals)' : `the meshes' chord tolerance ${chord.toPrecision(3)} mm`;
   if (d - chord >= required) return { verdict: 'clear', why: `${d.toPrecision(6)} mm from it, at least ${required} mm with ${tol}` };
   if (d + chord < required) return { verdict: 'violated', why: `${d.toPrecision(6)} mm from it, less than the ${required} mm it asks for, beyond ${tol}` };
   return { verdict: 'undecided', why: `${d.toPrecision(6)} mm from it, within ${tol} of the ${required} mm it asks for: not decided by the meshes` };

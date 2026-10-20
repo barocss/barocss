@@ -1040,6 +1040,11 @@ gear crank.
 - AM5: 3MF export (items, transforms, base materials, colour groups, Production UUIDs), opening in PrusaSlicer and
   Bambu with the same pose and colours.
 - Later: AM6 split with dowel or plug connectors; AM7 SDF voxel hollowing with drains, then lattices.
+  - **AM7a done (O53 S0, O54, O56)**: `hollow` — the kernel's exact closed shell first (box, sphere, torus exact), else an SDF
+    voxel cavity for planar parts; drains into each cavity; the wall measured; route and why reported. A curved body the shell
+    refuses: `CURVED_BODY`, waiting on the kernel's F3. AM7b (lattices) next.
+  - **A6.3 chord tolerance fixed (O55)**: bounded in both directions from the mesh's normals (sphere 0.144, was 0.072; torus
+    finite, was unbounded).
   - **AM6 done (O51 S0, O52)**: `split-bed` — the fewest even pieces that fit the bed, dowels or plugs at the fit; volumes,
     bed fit, exact radii and the kernel's no-overlap check; typed refusals.
 
