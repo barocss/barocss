@@ -4,8 +4,8 @@
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import { getBlob } from './blobs';
 import { mirrorCage } from '@barocss/cad';
-import type { BendTable, CadPartDocument, CadPartFeature } from '@barocss/cad';
-import { holeCentres, type BodyRef, type ModelNode, type StudioDoc } from './doc';
+import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
+import { holeCentres, type BodyRef, type FrameOverride, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { rotationSteps } from '../assembly/mates';
 
@@ -17,6 +17,10 @@ const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side =
 /** A sheet node's K, as the kernel takes it: its K-factor or its bend table (R12.4). */
 const sheetK = (n: { kFactor?: number; bendTable?: BendTable }) => (n.bendTable ? { bendTable: n.bendTable } : { kFactor: n.kFactor! }) as { kFactor: number } | { bendTable: BendTable };
 /** One node as a kernel feature (`nodes`: the document's, for its ids; without them node i is `n<i>`). */
+/** A member section for the kernel: a sketch section's node index as its feature id (FR2, D124). */
+const kernelSection = (s: MemberSection, toId: (i: number) => string): CadPartSection => s.kind === 'sketch' ? { kind: 'sketch', sketch: toId(s.sketch) } : s;
+/** A frame's override for the kernel: its sketch section by feature id. */
+function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { section, ...rest } = o; return { ...rest, ...(section ? { section: kernelSection(section, id) } : {}) }; }
 export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {
   if (nodes) current = nodes;
   const at = { id: id(index) };
@@ -50,6 +54,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
+    case 'frame': return { ...at, kind: 'frame', points: node.points, segments: node.segments, section: kernelSection(node.section, id),
+      ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
+      ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}) };
     case 'frame-member': return { ...at, kind: 'frame-member', section: node.section.kind === 'sketch' ? { kind: 'sketch', sketch: id(node.section.sketch) } : node.section, start: node.start, end: node.end,
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.up ? { up: node.up } : {}) };
     case 'sheet-contour': return { ...at, kind: 'sheet-contour', path: node.path, ...(node.plane ? { plane: node.plane } : {}), side: node.side, width: node.width, thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node) };
@@ -101,7 +108,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -135,7 +142,7 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   // (Keyed by the id's serial, `b<k>` for `n<k>`, see ids.ts; the node only tells a file's solids from a split's halves.)
   const k = serialOf(m[1]), i = nodes ? nodeIndexOf(nodes, m[1]) : k;
   if (!(k >= 0)) return outputId;
-  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate' || nodes?.[i]?.kind === 'mesh')) return `b${k}_part${m[2]}`;
+  if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate' || nodes?.[i]?.kind === 'mesh' || nodes?.[i]?.kind === 'frame')) return `b${k}_part${m[2]}`;
   return m[2] === undefined ? `b${k}` : `b${k}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };
 

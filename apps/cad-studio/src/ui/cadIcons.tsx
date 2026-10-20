@@ -204,6 +204,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   })()}</>,
   // A structural member (FR1): an angle's length, its section's cap in the accent colour.
   'cad-frame-member': <>{prism([[0, 0], [0.62, 0], [0.62, 0.16], [0.16, 0.16], [0.16, 0.62], [0, 0.62]], 0, 1, { capAccent: true })}</>,
+  // A frame (FR2): a table's top rail on two legs, the members' caps in the accent colour.
+  'cad-frame': <>{prism([[0, 0], [0.16, 0], [0.16, 0.84], [0.84, 0.84], [0.84, 0], [1, 0], [1, 1], [0, 1]], 0.2, 0.8, { capAccent: true })}</>,
   'cad-prism': <>{(() => {
     // A hexagonal prism, axis up: the top hexagon, then the three faces toward the view.
     const h = Array.from({ length: 6 }, (_, k) => { const a = (k * 60 + 30) * Math.PI / 180; return [0.5 + 0.55 * Math.cos(a), 0.5 + 0.55 * Math.sin(a)] as XY; });

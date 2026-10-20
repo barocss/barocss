@@ -1,7 +1,7 @@
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
-import { placedDoc, prefixDoc, type BodyRef, type Dim, type ModelNode, type StudioDoc } from '../engine/doc';
+import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from '../engine/doc';
 import { nextSerial, renameFeatureIds, withIds } from '../engine/ids';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
@@ -35,6 +35,10 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
+    case 'frame': {
+      const shift = (sec: MemberSection): MemberSection => sec.kind === 'sketch' ? { kind: 'sketch', sketch: sec.sketch + k } : sec;
+      return { ...node, section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}) };
+    }
     case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })), ...(node.from ? { from: node.from.map(i => i + k) } : {}) };
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };
     case 'difference': return { ...node, parent: ref(node.parent), tool: ref(node.tool) };

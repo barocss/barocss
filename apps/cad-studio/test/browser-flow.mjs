@@ -3189,7 +3189,7 @@ try {
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 300) <= 1, `${vol} vs ${A * 300}`);
     let props = await page.textContent('.props');
-    assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6 · section 420\.823 mm² · length 300 mm/);
+    assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6, ri 3 \(concentric\) · section 420\.823 mm² · length 300 mm/);
     assert.match(props, /Line through its centroid; section x −X, y \+Z/);
     assert.match(props, /Estimates, not your stock's: outerRadius 6 mm/);
     assert.match(await page.textContent('.history'), /Member RHS 40×40×3 · 300 mm/);
@@ -3208,6 +3208,29 @@ try {
     assert.match(props, /Estimates, not your stock's: opening 6\.2 mm, lip 1\.8 mm, undercut 11 mm, depth 6\.1 mm, bore 4\.2 mm/);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('fr1-members');
+  });
+
+  await check('FR2 a frame from the palette: a table skeleton of round-cornered tubes, 8 members each its own body named by its member, A·L each, the member\'s place in its notes (new in D124)', async () => {
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    // (Only the Frame command answers to "skeleton".)
+    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame', null, { timeout: 30000 });
+    await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    // The first body: a leg, 700 mm of the 40 × 40 × 3 tube (A 420.823 mm²): 294 576 mm³.
+    const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
+    assert.ok(Math.abs(vol - A * 700) <= 1, `${vol} vs ${A * 700}`);
+    const props = await page.textContent('.props');
+    assert.match(props, /Frame member 1 of 8: point 1 → point 5/);
+    assert.match(props, /the line runs along up, so y follows \+X/);
+    const ol = await page.textContent('.outliner');
+    assert.match(ol, /Frame RHS 40×40×3 · 8 members · member 8/);
+    assert.match(await page.textContent('.history'), /Frame RHS 40×40×3 · 8 members/);
+    // (The whole frame in view: nothing picked, then fit. Its corners still overlap: FR3 trims them.)
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('fr2-table-frame');
   });
 
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {

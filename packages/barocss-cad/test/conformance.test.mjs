@@ -54,6 +54,7 @@ for (const file of cases) {
         assert.ok(r, `output ${k} has no member report`);
         close(r.areaMM2, w.areaMM2, 'area'); close(r.lengthMM, w.lengthMM, 'length'); w.centroid.forEach((x, i) => close(r.centroid[i], x, 'centroid'));
         for (const key of ['xAxis', 'yAxis', 'upFallback']) if (w[key]) w[key].forEach((x, i) => close(r[key][i], x, key));
+        if (w.derived !== undefined) assert.deepEqual(r.derived ?? null, w.derived, `output ${k} member derived dimensions`);
       }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).

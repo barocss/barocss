@@ -37,6 +37,8 @@ const SPECS: Record<string, Spec> = {
   'sheet-corner-relief': { parent: 'ref', edges: 'names1', shape: 'enum:square|round', size: 'dim' },
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
   // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
+  // (FR2, D124: a frame on a skeleton; overrides set members apart.)
+  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
@@ -128,6 +130,19 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       return '{"kind": "conic", "rho": 0–1 exclusive} or {"kind": "g2", "tension"?: 0–1 exclusive}';
     }
     case 'vec3': return Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n)) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
+    case 'points3': return Array.isArray(v) && v.length >= 2 && v.length <= 1024 && v.every(p => Array.isArray(p) && p.length === 3 && p.every(dim)) ? null : '2 to 1024 [x, y, z] points';
+    case 'segments': return Array.isArray(v) && v.length >= 1 && v.length <= 256 && v.every(g => Array.isArray(g) && g.length === 2 && g.every(i => Number.isInteger(i) && i >= 0)) ? null : '1 to 256 [from, to] point indices';
+    case 'frame-overrides': {
+      if (!Array.isArray(v)) return 'a list of {"member": k, …}';
+      for (const o of v) {
+        if (!isObj(o) || !Number.isInteger(o.member) || (o.member as number) < 0) return 'each override names its "member" (the segment\'s index)';
+        const extra = Object.keys(o).find(k => !['member', 'section', 'anchor', 'offset', 'roll', 'mirror'].includes(k));
+        if (extra) return `an override has no "${extra}"`;
+        const why = (o.section !== undefined && checkValue(o.section, 'member-section', nodes, parameters, leaves)) || (o.anchor !== undefined && checkValue(o.anchor, SPECS.frame['anchor?'], nodes, parameters, leaves)) || (o.offset !== undefined && checkValue(o.offset, 'dim2', nodes, parameters, leaves)) || (o.roll !== undefined && checkValue(o.roll, 'num', nodes, parameters, leaves)) || (o.mirror !== undefined && checkValue(o.mirror, 'bool', nodes, parameters, leaves));
+        if (why) return `override of member ${o.member}: ${why}`;
+      }
+      return null;
+    }
     case 'member-section': {
       // (Each kind's dimensions, every one given: the kernel takes no default size or radius, D122.)
       if (!isObj(v)) return MEMBER_SECTION_HELP;

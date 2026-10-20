@@ -612,7 +612,7 @@ export { generalShell } from './general-shell.js';
 export { revolutionOf, type Revolution } from './surface-revolution.js';
 export type { SolidMassProperties } from './solid-mass.js';
 export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part-model.js';
-export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartSection } from './part-model.js';
+export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartSection, CadPartFrameOverride } from './part-model.js';
 export { booleanAnalytic } from './analytic-boolean.js';
 export type { AnalyticBooleanOperation } from './analytic-boolean.js';
 export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';

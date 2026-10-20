@@ -12,8 +12,8 @@ const write = (name, c) => writeFileSync(`${dir}/${name}.json`, JSON.stringify({
     input: { partDocument: D([{ id: 'm', kind: 'frame-member', section: { kind: 'rect-tube', width: b, height: h, wall: t, outerRadius: ro }, start: p0, end: p1 }]) },
     expect: { outputs: [{ volumeMM3: { value: A * L, relTol: 1e-9 }, centroidMM: { value: mid(p0, p1), absTol: 1e-9 }, areaMM2: { value: (Po + Pi) * L + 2 * A, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 1 }],
       faceNames: ['m.bore.bottom', 'm.bore.left', 'm.bore.right', 'm.bore.round.bl', 'm.bore.round.br', 'm.bore.round.tl', 'm.bore.round.tr', 'm.bore.top', 'm.bottom', 'm.end', 'm.left', 'm.right', 'm.round.bl', 'm.round.br', 'm.round.tl', 'm.round.tr', 'm.start', 'm.top'],
-      member: { areaMM2: A, lengthMM: L, centroid: [0, 0], absTol: 1e-9 } }], stepRoundTrip: { relTol: 1e-9 } },
-    oracle: 'Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²], ri = ro − t; a prism\'s volume A·L and centroid on its centroidal line\'s midpoint; perimeters 2(b + h) − 8r + 2πr outside and in the bore.' });
+      member: { areaMM2: A, lengthMM: L, centroid: [0, 0], derived: { innerRadius: 'concentric: ro − t' }, absTol: 1e-9 } }], stepRoundTrip: { relTol: 1e-9 } },
+    oracle: 'Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²], ri = ro − t (the bore concentric with the corners: a derived geometric rule, reported as such); a prism\'s volume A·L and centroid on its centroidal line\'s midpoint; perimeters 2(b + h) − 8r + 2πr outside and in the bore.' });
 }
 { // an angle anchored at its heel along +Y: its centroidal line by the spandrel decomposition
   const a = 50, b = 30, t = 5, r1 = 6, r2 = 3, L = 400, s1 = SP * r1 * r1, s2 = SP * r2 * r2, c1 = r1 * (10 - 3 * Math.PI) / (3 * (4 - Math.PI)), c2 = r2 * (10 - 3 * Math.PI) / (3 * (4 - Math.PI));
@@ -42,7 +42,7 @@ const write = (name, c) => writeFileSync(`${dir}/${name}.json`, JSON.stringify({
   write('member-round-tube-vertical', { about: 'FR1: a Ø33.7 × 2.6 round tube standing on Z: up is along the line, so the section\'s y is +X (reported); A·L; the surface π(d + d − 2t)·L + 2A.',
     input: { partDocument: D([{ id: 'm', kind: 'frame-member', section: { kind: 'round-tube', diameter: d, wall: t }, start: [5, 5, 0], end: [5, 5, L] }]) },
     expect: { outputs: [{ volumeMM3: { value: A * L, relTol: 1e-9 }, centroidMM: { value: [5, 5, L / 2], absTol: 1e-9 }, areaMM2: { value: Math.PI * (2 * d - 2 * t) * L + 2 * A, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 1 }],
-      faceNames: ['m.bore', 'm.end', 'm.outside', 'm.start'], member: { areaMM2: A, lengthMM: L, centroid: [0, 0], xAxis: [0, -1, 0], yAxis: [1, 0, 0], upFallback: [1, 0, 0], absTol: 1e-9 } }], stepRoundTrip: { relTol: 1e-9 } },
+      faceNames: ['m.bore', 'm.end', 'm.outside', 'm.start'], member: { areaMM2: A, lengthMM: L, centroid: [0, 0], xAxis: [0, -1, 0], yAxis: [1, 0, 0], upFallback: [1, 0, 0], derived: null, absTol: 1e-9 } }], stepRoundTrip: { relTol: 1e-9 } },
     oracle: 'Closed forms: A = π(d² − (d − 2t)²)/4; the fallback by definition (x = y × u).' });
 }
 { // a 20 × 40 T-slot

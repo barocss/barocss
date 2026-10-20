@@ -89,6 +89,9 @@
             0,
             0
           ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
           "absTol": 1e-9
         }
       }
@@ -97,5 +100,5 @@
       "relTol": 1e-9
     }
   },
-  "oracle": "Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²], ri = ro − t; a prism's volume A·L and centroid on its centroidal line's midpoint; perimeters 2(b + h) − 8r + 2πr outside and in the bore."
+  "oracle": "Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²], ri = ro − t (the bore concentric with the corners: a derived geometric rule, reported as such); a prism's volume A·L and centroid on its centroidal line's midpoint; perimeters 2(b + h) − 8r + 2πr outside and in the bore."
 }

@@ -1,0 +1,665 @@
+{
+  "id": "fr-frame-box-12",
+  "step": "FR",
+  "decisions": [
+    "D124"
+  ],
+  "about": "FR2: a 600 × 400 × 700 box frame of 40 × 40 × 3 round-cornered tubes, one member per edge, each its own body f/0 … f/11: A·L each, centroids on the edges' midpoints, the legs' y from the fallback, the rails' along +Z.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              600,
+              400,
+              0
+            ],
+            [
+              0,
+              400,
+              0
+            ],
+            [
+              0,
+              0,
+              700
+            ],
+            [
+              600,
+              0,
+              700
+            ],
+            [
+              600,
+              400,
+              700
+            ],
+            [
+              0,
+              400,
+              700
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              7
+            ],
+            [
+              7,
+              4
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 294576.1011528471,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            350
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 700,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            1,
+            0,
+            0
+          ],
+          "upFallback": [
+            1,
+            0,
+            0
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 294576.1011528471,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            600,
+            0,
+            350
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 700,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            1,
+            0,
+            0
+          ],
+          "upFallback": [
+            1,
+            0,
+            0
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 294576.1011528471,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            600,
+            400,
+            350
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 700,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            1,
+            0,
+            0
+          ],
+          "upFallback": [
+            1,
+            0,
+            0
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 294576.1011528471,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            400,
+            350
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 700,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            1,
+            0,
+            0
+          ],
+          "upFallback": [
+            1,
+            0,
+            0
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 252493.8009881547,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            0,
+            700
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 168329.20065876978,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            600,
+            200,
+            700
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            -1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 252493.8009881547,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            400,
+            700
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 168329.20065876978,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            200,
+            700
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 252493.8009881547,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 168329.20065876978,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            600,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            -1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 252493.8009881547,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            400,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 168329.20065876978,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 420.82300164692447,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "derived": {
+            "innerRadius": "concentric: ro − t"
+          },
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = bh − (4 − π)ro² − [(b − 2t)(h − 2t) − (4 − π)ri²]; each member A·L on its edge, its centroid at the edge's midpoint; the section frame by the up rule (y = up made square to the line, x = y × u; along up, y = +X)."
+}

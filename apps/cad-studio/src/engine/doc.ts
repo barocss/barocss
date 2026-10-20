@@ -21,6 +21,8 @@ export type MemberSection =
   | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
   | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
   | { kind: 'sketch'; sketch: number };
+/** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
+export interface FrameOverride { member: number; section?: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean }
 export type FrameAnchor = 'centroid' | 'origin' | 'bottom-left' | 'bottom' | 'bottom-right' | 'left' | 'center' | 'right' | 'top-left' | 'top' | 'top-right';
 /** `part<k>`: solid k of an imported STEP file that holds several (see the import node's `solids`). */
 export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' | `part${number}`;
@@ -148,6 +150,12 @@ type ModelNodeBase = SketchNode
    * or a closed sketch (node `sketch`). `estimates`: the section's fields still at a first-try value the studio filled in
    * (a radius, the T-slot's slot sizes) — the body's panel flags them; editing one drops it (D123).
    */
+  /**
+   * A frame (FR2, D124; the kernel's `frame`): a skeleton of `points` and `segments` (pairs of point indices, from → to),
+   * one member along each, each its own body (side `part<k>`; one segment: `solid`). The frame's section and placement hold
+   * for every member unless `overrides` sets one apart. `estimates` as a member's.
+   */
+  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -425,6 +433,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': case 'sheet-contour': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
+    case 'frame': return [node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : []);
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -439,7 +448,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -448,6 +457,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame' && node.segments.length > 1) node.segments.forEach((_, k) => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
@@ -554,6 +564,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
     case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
+    case 'frame': return `Frame ${sectionLabel(node.section, n)} · ${node.segments.length} member${node.segments.length === 1 ? '' : 's'}`;
     case 'sheet-corner-relief': return `Corner relief ${node.shape} ${n(node.size)}`;
     case 'sheet-contour': return `Sheet profile T${n(node.thickness)}${node.path.length > 2 ? ` · ${node.path.length - 2} bend${node.path.length > 3 ? 's' : ''}` : ''}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
