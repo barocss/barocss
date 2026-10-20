@@ -3845,3 +3845,169 @@ The coordinator accepted the CNC S0 and set a process rule: a product-file chang
   - nothing assumed: with no material, material and wall are unknown and there is no class; 450 long fails; turned, size and turning are unknown (CNC6); with no process, none is assumed;
   - through the tools: a stated CNC milling in aluminium becomes the part's process and the report judges by it.
 - **Flow**: a CNC1 step. CNC milling is chosen in the Library panel, which shows no moulding settings. An aluminium block is made and set through the real chat and tool servers: "cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown".
+
+## O85 — CNC2: holes and threads from the exact geometry (2026-10-21)
+
+- **Holes found** (`src/machining/holes.ts`, `holesOf`):
+  - A bore is a concave exact cylinder that goes round more than half a turn. Concavity is read from its triangles' normals against the radial direction, not from the face table. Half a turn or less is a fillet (CNC3's).
+  - A hole is the bores on one axis line, of any radius. Its steps are one radius each: pieces the kernel split are joined, with their extents along the axis.
+  - An end is open when a ray down the axis from just inside it leaves the part (the studio's BVH, as IM3 uses).
+  - A step's **reach** runs from the nearer open end to its far side, counting only an end with no narrower step between. A wider step behind a narrower one is an internal groove, which no straight tool reaches: its reach is null, as is a hole open at neither end. Both go to CNC4's access.
+  - A **counterbore** is a wider step at an open end.
+- **Tapped holes** (`tappedHoles`): the document's `hole.thread` (cosmetic, "M6×1"), matched to its bore by face name (`n4.side0` is node n4's). Patterned copies are judged by their worst.
+- **The rules** (milling; turning's holes stay unknown, naming CNC6), in place of CNC1's placeholder `holes`:
+  - **hole-depth**: the deepest step's reach over its diameter. Over Hubs' 4 × is warned, over 6 × fails. A hole reached from no end is unknown, naming CNC4.
+  - **hole-size**: each hole's narrowest step, which is the drilled one:
+    - under the 0.5 mm least feature fails; under the 2.5 mm that standard tools cut is warned (Hubs);
+    - off the drill table is warned, against Hubs' "standard drill bit sizes", naming the sizes either side;
+    - above the table's 25 mm the hole is milled, and only counted;
+    - wider steps (counterbores) are milled, and only counted.
+  - **thread**:
+    - a bore that is not its tap drill (d − P, the fastener table) fails;
+    - a size under M2 fails, and under M6 is warned (Hubs);
+    - a length over 3 × d is warned (Hubs: "Threads longer than 3 times the nominal diameter are unusable");
+    - a size outside the fastener table (M3–M12) has its tap drill unknown;
+    - a bore cut away is unknown.
+  - With no holes, the rules pass and say so.
+
+  The report's `machining` adds `holes` and `tapped`.
+- **The drill table** (W-WEB, read 2026-10-21): Engineers Edge's "ISO (Metric Size Drills)" table at `engineersedge.com/drill_sizes.htm`.
+  - The steps as read: 0.35–2.75 by 0.05; 2.8–10 by 0.1, with the quarter sizes it lists; 10–25 by 0.5. The quarters were read as a pattern from those listed, not checked one by one, and the note says so.
+  - These go in as new milling thresholds (`drillMinMM` … `drillCoarseStepMM`), each with its page and label, plus `holeDiameterRec` holding Hubs' label.
+  - Protolabs' milling page names "metric threads from M2 to M12" in its own factory. That is one supplier's limit, so it is not a rule.
+- **Tests** (`test/cnc-holes.test.ts`, 6). Each oracle is the construction (the depth and diameter as built), not the geometry read back:
+  - Ø5 blind 20, 30 and 32 deep give 4, 6 and 6.4 × d: pass, warn, fail. Mutants: moving the profile's maximum to 7 warns, and moving the recommended too passes;
+  - a counterbored Ø6.6 through 20 with Ø11 × 6: open at both ends, with reaches 14 (from the bottom) and 6 (from the top), counterbored, passing;
+  - the drill table's step rule against an enumerated list, every 0.01 mm from 0.30 to 26;
+  - hole size:
+    - Ø5 and Ø3.25 standard;
+    - Ø5.03 warned (5 or 5.1);
+    - Ø2 warned;
+    - Ø0.4 failed (set on the node directly: the hole command's least is 0.5);
+    - Ø30 milled;
+  - threads:
+    - M6 blind 12 on Ø5 passes;
+    - M6 through 20 is warned (over 18);
+    - M3 is warned;
+    - a mutant with the bore at Ø5.5 fails, "not its tap drill Ø5 (d − P)";
+  - no straight reach: the internal groove's Ø16 step reach is null, and a sealed void is open at neither end. Both are unknown, naming CNC4; with no holes, all pass.
+  - CNC1's tests now expect the hole rules to pass on a plain block, and the data test allows the drill table's page.
+- **Flow**:
+  - the CNC1 step now reads "… size pass, hole-depth pass, hole-size pass, thread pass, corners unknown …";
+  - a new CNC2 step, through the real chat and tool servers: a 60 × 40 × 20 aluminium plate with a counterbored Ø6.6 and an M6 tapped through. The report reads "hole-depth pass, hole-size pass, thread warn", with the holes' nodes as built.
+
+## O86 — CNC3: inside corners, cavities, small features, tall walls, text; derived drill steps marked (2026-10-21)
+
+The coordinator accepted CNC2 with one flag. Drill sizes "read as a pattern" are not values as printed, so they are marked derived. That fix lands in this commit.
+
+- **Derived values**:
+  - a new library source `W-DERIVED`: derived from a public page by a stated rule, not a value as printed;
+  - the drill table's four steps (`drillFineStepMM`, `drillStepMM`, `drillQuarterStepMM`, `drillCoarseStepMM`) are now `W-DERIVED`, each note starting "derived:" and stating its rule. The quarter step reads as a pattern from the quarter sizes listed. The others are the step between the listed sizes, which the page prints as sizes, not as a step;
+  - the table's ends as printed (0.35, 2.75, 10, 25) stay `W-WEB`;
+  - `checkMaterials` refuses a derived value without its page and its rule.
+- **What a tool leaves** (`src/machining/cavities.ts`, `cavitiesOf`), from the exact geometry and rays through the studio's BVH:
+  - **Inside corners**: concave cylinders spanning half a turn or less, with pieces on one axis and radius joined.
+    - A fillet is an **edge fillet** when a plane beside it looks out along its normal: a corner-radius or ball tool cuts it from that side. The display drops smooth edges, so the planes it is tangent to are found by geometry: the axis lies r off the plane on its outer side, and a vertex sits on the tangent line.
+    - Otherwise it is a **cavity's corner**: its axis line, which lies in the cavity, leads out of the part (a straight tool's axis). Its depth is its axial extent.
+  - **Sharp concave edges between planes**:
+    - **cut sharp**, when the planes are square and one looks out along its normal beside the edge (the end mill's end on it, its side on the other);
+    - otherwise a **sharp corner**, radius 0, reached along the edge if a ray from just inside it, either way, leaves the part. If no ray does, it is closed;
+    - an edge between planes that are not square is **angled**.
+  - **Floors**: a plane looking out along its normal, with a neighbour rising above it across a concave edge. Straight edges are tested beside the edge; curved ones (a round pocket's, a boss's) are taken as rising. An L's side face meets the floor at a convex edge and does not rise.
+    - Its depth is the highest rising neighbour.
+    - Its width is its narrowest extent, by rotating calipers on its hull, measured only across directions with a rising neighbour wholly at or past each side. A rib's top between two walls is as wide as the walls are apart. A step, open on a side, is not a cavity.
+    - A floor that only a hole's bores rise from is the hole's bottom (CNC2's).
+  - **Tall features**: IM4's ribs. The height runs across the rib face from its longest concave straight root edge; with no root edge, the height is unknown.
+- **The rules** (milling; turning's corners stay unknown, naming CNC6), in place of CNC1's placeholder `corners`. All are recommended-level with sourced limits (Hubs); a fail needs a sourced feasible value:
+  - **corners**: each corner reached along a tool's axis, its radius against ⅓ × its depth (warn under). A sharp corner reads "a rotating tool leaves its radius". Closed and angled corners are unknown, naming CNC4. Edges cut sharp and edge fillets are counted;
+  - **pocket**: the deepest floor for its width, against 4 × (warn over);
+  - **feature**: the narrowest cavity, failing under 0.5 mm and warned under 2.5 mm;
+  - **tall**: the tallest thin wall for its thickness, warned at 4 × or more (Hubs: "height / width is < 4"); one unmeasured is unknown;
+  - **text**: the studio has no text feature, so it passes, saying so. With an imported or mesh body it is unknown: text in it is not read. Protolabs' stroke and depth are named in the reason.
+
+  The report's `machining` adds `cavities`. Shared helpers: `concaveSpan` and `extent` from holes.ts, and `besideEdge` (now exported) from walls.ts. IM4's behaviour is unchanged.
+- **Tests** (`test/cnc-cavities.test.ts`, 7). Each oracle is the construction:
+  - the data: the four steps are derived with their rules, and the table's ends are printed values. A mutant derived value without its note is refused;
+  - `narrowest` against closed forms: a rectangle, a rotated one, and a 360-gon's 20 cos(π/360);
+  - a 50 × 30 pocket 8 deep with r 5 corners: four corners reached (r 5, depth 8), one floor 8 deep and 30 wide, everything passing. The mutant r 2 is warned, "under ⅓ of it (2.667)";
+  - the pocket with sharp corners: four corners of radius 0, depth 8, reached and warned; its four floor edges are cut sharp;
+  - slots 2 wide: 8 deep is exactly 4 × and passes; the feature is warned (2 mm); 10 deep is 5 × and warned. Mutants: the pocket limit moved to 6 passes; the feasible least moved to 2.2 fails;
+  - a shelled box with a rib 1.2 thick and 15 high: tall 12.5 × is warned, a 4 mm rib (3.75 ×) passes. The rib's top is a cavity 8 deep and 36 wide (the walls), not 1.2. The shell's sharp inside corners (23 deep) are warned;
+  - an L bracket: its inside edge is cut sharp and the base is a step, so there is no cavity. Filleted r 5, it is an edge fillet, not a cavity's corner.
+  - CNC1's block test expects the new rules to pass; CNC2's tests are unchanged and pass.
+- **Flow**:
+  - CNC1's and CNC2's steps read the new rules;
+  - a new CNC3 step, through the real chat and tool servers: a 120 × 80 × 12 aluminium plate with a 50 × 30 pocket 8 deep reads "corners warn", sharp. Filleted r 5, it reads "corners pass".
+
+## O87 — CNC4: access from the six directions and setups; RB9 rung 4's "machinable" made real (2026-10-21)
+
+- **Access** (`src/machining/access.ts`, `accessOf`):
+  - Each surface sample uses IM3's grid: every display triangle split into n² parts, n from its longest edge over a step (the diagonal over 200, at least 0.1 mm, n at most 48), each part's centre 0.01 mm off it.
+  - Each sample is tested against ±X, ±Y and ±Z, the directions a part is set up along. A direction **reaches** a sample when the tool comes from the face's side (n · d ≥ 0: the end on it, or its side along it, which is side milling) and the ray along d leaves the part (the studio's BVH).
+  - A sample no direction reaches is an **undercut for a 3-axis mill**.
+  - The samples' areas are kept in 64 bins by their 6-bit masks.
+  - **Setups** are counted greedily over the bins: the direction reaching the most area not yet reached, then the next, until everything any direction reaches is covered. The count is exact for the samples.
+- **The rules** (milling; turning's access stays unknown, naming CNC6), in place of CNC1's placeholder `access`:
+  - **access**: the area no direction reaches is warned, its faces named: "a 5-axis setup, an undercut cutter or a change". It is a warning because no source gives a feasible limit; Hubs' undercut widths are not a reach rule;
+  - **setups**: the greedy count and its directions. It is a count, not a judgement, since no source gives a limit.
+
+  CNC2's and CNC3's undecided reaches (a step behind a narrower one, a closed corner) now point to the access rule. The report's `machining` adds `access`.
+- **RB9 rung 4** (`src/rb9/rungs-plates.ts`): the held `machinable` is now a hard predicate.
+  - It runs the CNC milling report on the plate. No rule may fail or be undecided, except material and wall: the brief states no material, so neither is judged. Stages not built yet are also left out (the drawing, CNC5). Warnings are kept in `measured`.
+  - Over the rung's space, every sampled trial passes. The tightest are a 3 mm corner on an 18 mm pocket and Ø4 through 20, both warned, not failed.
+  - Two mutants target it, both killed at both range ends:
+    - **deep-hole**: a Ø0.5 blind hole T − 1 deep, over 6 × d, fails;
+    - **groove**: an internal groove round a corner hole leaves a step reached by no straight tool, so the reach is undecided and the area unreached.
+  - The ladder's check passes: every rung 5/5 with RS 1, every mutant killed, and no hard predicate without a mutant.
+- **Tests** (`test/cnc-access.test.ts`, 4), against closed forms:
+  - a 40 × 30 × 20 box: its area is 2(1200 + 800 + 600) exactly, and every face is reached. Setups: +X first (30·20 + 2·40·20 + 2·40·30), then −X (600);
+  - a sealed 10 × 10 × 5 void: 400 mm² unreached (planar, so exact), its faces named, warned;
+  - a side slot open to +X is reached. The mutant, stopped 1 mm short of the face, is sealed: 760 mm² unreached exactly;
+  - an internal groove (r 8, 4 high, round a Ø10 bore): 142π hidden, within the chord (at least 98 % and at most exact). The bore itself is reached, and hole-depth's reason points to the access rule.
+  - CNC1's block test now expects access to pass in two setups.
+- **Flow**:
+  - CNC1's step now reads "… access pass, setups pass, drawing unknown";
+  - a new CNC4 step, through the real chat and tool servers: a side slot open to +X reads "access pass, setups pass"; the slot sealed reads "access warn".
+
+## O88 — CNC5: the drawing a machined part goes with, on R14's drawing; AP242 semantic PMI left to the kernel lane (2026-10-21)
+
+The coordinator's rule: stop before any AP242 semantic PMI in the STEP writer. CNC5 checks the studio's own drawing, which is the document a shop quotes and machines from. The STEP writer is not touched. Semantic PMI stays the kernel lane's queued request (flagged in O83).
+
+- **Sources** (public HTML, read-only, 2026-10-21), each item naming its page and the page's words (`DRAWING_PAGES`):
+  - Hubs' CNC guide:
+    - "A technical drawing is required … When feature tolerances are required";
+    - "If no tolerance is specified in the technical drawing, then the standard ± 0.125 mm will be held";
+    - "The standard surface roughness of as-machined parts is 3.2 μm".
+  - Hubs' technical-drawing page (`hubs.com/knowledge-base/how-prepare-technical-drawing-cnc-machining/`):
+    - the title block's "part name, material, finish and color …", and "the standards used for dimensioning and tolerancing";
+    - "Include one or more 3D pictorial views", with two or three orthographic views sufficient;
+    - "dimensioning all critical features";
+    - "Specify the location, size, and length of all threads";
+    - finishing requirements annotated, the standard "Ra 3.2 μm".
+- **The check** (`src/machining/drawing.ts`, `drawingCheck`; the report's `drawing` rule for milling and turning alike, its items in `machining.drawing`):
+  - **Is a drawing needed?** Threads go on a drawing: with a tapped hole and no drawing, the rule fails. With neither threads nor a drawing, it passes: the standard ±0.125 mm holds. The studio states no tolerance tighter than standard outside the drawing.
+  - **On the drawing** (`drawingInputs` and R14's `issueContext`):
+    - **views**: a pictorial (iso) one among those shown, else warned. A drawing with no views chosen shows all four;
+    - **dimensions**: R14's errors (lost dimensions, datums or frames, overlaps and the like) fail, because the sheet is wrong. Its warnings that leave a size or position unsaid (HOLE_SIZE_MISSING, HOLE_NOT_LOCATED, STEP_NOT_LOCATED, OVERALL_MISSING, VIEW_NEEDED) are warned;
+    - **threads**: each tapped hole's designation is in a callout on the sheet (its size, and its length as THRU or DEEP);
+    - **tolerance**: a general note ("UNLESS OTHERWISE STATED …", R14's own, or one naming ISO 2768);
+    - **title**: the title block names the part (not the default "part");
+    - **material**: a note names the part's material, by its library label or id. With no material set, or bodies that differ, it is unknown;
+    - **finish**: when the brief states a finish, a note names it or gives an Ra. With none stated, it is as machined (Ra 3.2, the standard) and passes.
+  - The rule takes the worst item and says how many are in order. The title block has no material or finish cell, so a note carries them; a title-block cell would be an R14 layout change, left as a follow-up.
+- **RB9 rung 4**: `machinable` already left out the stages not built yet. The drawing is now built, so it is judged. The plate has no threads and no drawing, so it passes.
+- **Tests** (`test/cnc-drawing.test.ts`, 4):
+  - every item has its page;
+  - no drawing:
+    - a plain block passes, ±0.125 holding;
+    - with an M6 tapped hole it fails, "no drawing, but 1 tapped hole (M6×1)";
+    - the mutant, its thread taken off, passes;
+  - a drawing made complete, through the agent's Auto-dimension, the four views, a title, the general note and the material note:
+    - every item passes, "7 of 7 items in order";
+    - each one taken away is the item warned. For views, title, tolerance and material it is the only item warned; dimensions and threads move together, because the callout is a dimension;
+    - a dimension on an edge the part does not have fails (R14's error);
+  - the finish: the brief states "bead blasted", so the drawing without it is warned and a note naming it passes. With no material set, material is unknown.
+  - CNC1's block test expects the drawing to pass, needing none.
+- **Flow**:
+  - CNC1's step now reads "… drawing pass";
+  - a new CNC5 step, through the real chat and tool servers: a plate with an M6 tapped hole and no drawing reads "drawing fail". After Auto-dimension in the Drawing workspace the M6×1 callout is on the sheet, and it reads "drawing warn": no general note, title or material yet.

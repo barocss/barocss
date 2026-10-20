@@ -61,7 +61,7 @@ function sameAxis(x: { c: Vec3; a: Vec3; r: number }, y: { c: Vec3; a: Vec3; r: 
   return Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9;
 }
 /** The centre of a face's triangle lying on the segment a–b (two of its vertices on it), or null. */
-function besideEdge(m: DisplayMesh, f: number, a: readonly number[], b: readonly number[]): number[] | null {
+export function besideEdge(m: DisplayMesh, f: number, a: readonly number[], b: readonly number[]): number[] | null {
   const P = m.positions, dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L2 = dx * dx + dy * dy + dz * dz;
   for (let t = 0; t < m.indices.length; t += 3) {
     if (m.faceOfVertex[m.indices[t]] !== f) continue;

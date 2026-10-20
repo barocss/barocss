@@ -36,7 +36,7 @@ export interface ProcessProfile { readonly id: string; readonly label: string; r
 export interface PrinterProfile { readonly id: string; readonly label: string; readonly process: string; readonly buildMM: readonly [number, number, number]; readonly layerMM: number; readonly nozzleMM?: number; readonly heatedBed?: boolean; readonly source: string }
 export interface MaterialsData { readonly format: 'barocss-materials'; readonly version: 1; readonly libraryVersion: string; readonly license: string; readonly provenance: string; readonly sources: Readonly<Record<string, string>>; readonly materials: readonly MaterialData[]; readonly profiles: readonly ProcessProfile[]; readonly printers: readonly PrinterProfile[] }
 
-const WEB = 'W-WEB';
+const WEB = 'W-WEB', DERIVED = 'W-DERIVED';
 const pageOk = (w: WebSource | undefined) => !!w && /^https:\/\/[^\s]+$/.test(w.url) && /^\d{4}-\d{2}-\d{2}$/.test(w.read) && w.label.trim().length > 0;
 const NUMERIC = ['densityGPerCm3', 'elasticModulusMPa', 'yieldMPa', 'allowableStrain', 'shrink', 'friction'] as const;
 /** The data checked: every number finite and not negative (density, modulus and yield above 0), every source id known. */
@@ -66,6 +66,8 @@ export function checkMaterials(d: MaterialsData): string[] {
     if (!Number.isFinite(t.value)) problems.push(`${p.id}.${k}: ${t.value}`);
     if (!(t.source in d.sources)) problems.push(`${p.id}.${k}: unknown source ${t.source}`);
     if (t.source === WEB && !pageOk(t.page)) problems.push(`${p.id}.${k}: a web value needs its page (url, read, label)`);
+    // (CNC3, O86: a value derived from a page names the page and, in its note, the rule — not passed off as printed.)
+    if (t.source === DERIVED && !(pageOk(t.page) && (t.page!.note ?? '').trim().length > 0)) problems.push(`${p.id}.${k}: a derived value needs its page and its rule (the page's note)`);
   }
   // (IM1: a web value names its page; a finish its least draft.)
   for (const p of d.profiles) for (const f of p.finishes ?? []) {

@@ -1,6 +1,8 @@
 // RB9 rungs 4 and 7 (O70), scoped (O74): the geometry the studio can judge today, and what waits for the kernel lane named.
 // 4, a machined plate: its corner holes on their pitch (exact axes), the central pocket's size and depth (exact planes),
-// its vertical corner radii (exact cylinders), the volume's closed form; the machining rules wait for CNC1–CNC6.
+// its vertical corner radii (exact cylinders), the volume's closed form; machinable (O87): the CNC milling report —
+// CNC2–CNC4's holes, corners, cavities, access and setups, no rule failed or undecided (the brief states no material, so
+// material and wall are not judged).
 // 7, a lap joint: two plates mated, their clearance holes on one pattern and coaxial (exact axes), every hole ≥ 1.5 Ø from
 // its plate's edges (the brief's rule), no interference; the bolt itself waits for R12c's fasteners.
 import { treeOfDoc } from '../chat/robot';
@@ -8,6 +10,8 @@ import type { BodyResult } from '../engine/evaluate';
 import { assemblyBodies, checkAssembly } from '../team/assembly';
 import type { Call, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, boxOf, cylindersOf, holds, near, parallel, volumeOf } from './measure';
+import { machinability } from '../machining/report';
+import { processProfile } from '../library/materials';
 
 const num = (p: Params, k: string) => p[k] as number;
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): Call => ({ tool: 'run_command', args: { command, values, ...sel } });
@@ -15,6 +19,12 @@ const Z: [number, number, number] = [0, 0, 1];
 /** A rule the rung does not judge yet: soft, never passed, its lane named. */
 const held = (id: string, why: string): Outcome => ({ id, hard: false, pass: false, measured: 'held', expected: why });
 
+/** O87: machinable — the CNC milling report on the part: no rule failed or undecided but material and wall, which need the material the brief does not state, and the stages not built yet (said so in their reasons); warnings kept in what was measured. */
+function machinable(doc: Parameters<typeof machinability>[0], bodies: Parameters<typeof machinability>[1]): Outcome {
+  const r = machinability(doc, bodies, processProfile('cnc-milling')!), judged = r.rules.filter(x => x.id !== 'material' && x.id !== 'wall' && !/is not built yet/.test(x.why ?? ''));
+  const bad = judged.filter(x => x.status === 'fail' || x.status === 'unknown'), warned = judged.filter(x => x.status === 'warn');
+  return { id: 'machinable', hard: true, pass: !bad.length, measured: { failed: bad.map(x => `${x.id}: ${x.status}`), warned: warned.map(x => x.id) }, expected: 'cnc-milling: no rule failed or undecided (material and wall not judged: the brief states no material; the stages not built yet, the drawing\'s CNC5, not judged)' };
+}
 // ——— 4. the machined plate
 const CORNERS: readonly [number, number][] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
 const plate = (p: Params, o: { moved?: boolean; depth?: number; rc?: number; holes?: number; extra?: boolean; L?: number } = {}): Call[] => {
@@ -35,7 +45,7 @@ export const RUNG4: Rung = {
     { key: 'depth', lo: 2, hi: p => num(p, 'T') - 2, step: 0.5 }],
   prompt: p => `A machined plate ${p.L} × ${p.W} × ${p.T} mm, its corner at the origin: four Ø${p.dh} mm through holes on a ${p.px} × ${p.py} mm pitch centred on it, and a pocket in the middle of its top, ${p.a} × ${p.b} mm and ${p.depth} mm deep, its vertical corners rounded ${p.rc} mm.`,
   scripted: p => plate(p),
-  async check({ bodies }, p) {
+  async check({ doc, bodies }, p) {
     const L = num(p, 'L'), W = num(p, 'W'), T = num(p, 'T'), a = num(p, 'a'), b = num(p, 'b'), dep = num(p, 'depth'), rc = num(p, 'rc'), r = num(p, 'dh') / 2, cyl = cylindersOf(bodies);
     const holes = CORNERS.map(([sx, sy]) => cyl.find(c => Math.abs(c.r - r) <= 1e-9 && parallel(c.a, Z) && axisDistance(c, [L / 2 + sx * num(p, 'px') / 2, W / 2 + sy * num(p, 'py') / 2, 0]) <= 1e-9 && Math.abs(c.zMax - c.zMin - T) <= 1e-4));
     const holeCount = cyl.filter(c => Math.abs(c.r - r) <= 1e-9 && parallel(c.a, Z)).length;
@@ -54,7 +64,7 @@ export const RUNG4: Rung = {
       holds('holes', holes.every(Boolean) && holeCount === 4, [holes.map(Boolean), holeCount], `four Ø${2 * r} through holes on the ${p.px} × ${p.py} pitch (axes to 1e-9)`),
       holds('pocket', pocketOk, { size, floor, depth: floor.length ? T - floor[0] : null }, `a ${a} × ${b} pocket ${dep} deep, centred (exact planes to 1e-9)`),
       holds('corners', corners.every(c => !!c && c.r >= rc - 1e-9), corners.map(c => c?.r ?? null), `its four vertical corners rounded ≥ ${rc}`),
-      near('volume', volumeOf(bodies), vol, 1e-9, true), held('machinable', 'the machining rules wait for CNC1–CNC6 (kernel lane)')];
+      near('volume', volumeOf(bodies), vol, 1e-9, true), machinable(doc, bodies)];
   },
   mutants: [
     { id: 'moved', target: 'holes', why: 'one hole 1 mm off its pitch', calls: p => plate(p, { moved: true }) },
@@ -64,6 +74,9 @@ export const RUNG4: Rung = {
     { id: 'extra', target: 'volume', why: 'a stray Ø3 blind hole', calls: p => plate(p, { extra: true }) },
     { id: 'long', target: 'box', why: 'the plate 5 mm longer', calls: p => plate(p, { L: num(p, 'L') + 5 }) },
     { id: 'loose', target: 'solids', why: 'a loose block', calls: p => [...plate(p), cmd('box', { w: 5, d: 5, h: 5, x: num(p, 'L') + 10, y: 0, z: 0 })] },
+    { id: 'deep-hole', target: 'machinable', why: 'a Ø0.5 blind hole T − 1 deep (over 6 × d: failed)', calls: p => [...plate(p), cmd('hole', { type: 'blind', d: 0.5, depth: num(p, 'T') - 1, x: 3, y: num(p, 'W') / 2 }, { faces: ['n1.top'] })] },
+    // (A groove round the first corner hole, inside the plate: its step behind the bore reached by no straight tool.)
+    { id: 'groove', target: 'machinable', why: 'an internal groove round a corner hole (undecided reach, unreached area)', calls: p => [...plate(p), cmd('cylinder', { r: num(p, 'dh') / 2 + 1.5, h: 2, x: num(p, 'L') / 2 - num(p, 'px') / 2, y: num(p, 'W') / 2 - num(p, 'py') / 2, z: num(p, 'T') / 2 - 1 }), cmd('difference', {}, { bodies: ['b9', 'b11'] })] },
   ],
 };
 

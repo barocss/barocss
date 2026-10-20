@@ -1,23 +1,23 @@
 // CNC1 (O84): machining's process rule in the manufacturability report — the material's family (metal or plastic, the
 // library's own field) choosing the wall limits and the general tolerance class, the thinnest wall against them
-// (recommended: warned; feasible: failed), the part against the machine's envelope, every limit with its page. The
-// later stages are said to come, not guessed: holes and threads (CNC2), tool radius and depth (CNC3), access and setups
-// (CNC4), the drawing and PMI (CNC5), turning's own rules (CNC6).
+// (recommended: warned; feasible: failed), the part against the machine's envelope, every limit with its page. CNC2
+// (O85): holes and threads — each step's depth over its diameter from its reach, the drill table, a tapped hole's tap
+// drill, size and length. CNC3 (O86): inside corners against ⅓ of their depth, cavities' depth over width, small
+// features, tall thin walls, text. CNC4 (O87): access from the six directions with the tool's side, and setups. CNC5
+// (O88): the drawing a shop machines from (milling and turning alike). Turning's own rules are said to come (CNC6).
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
 import { materialData, type ProcessProfile } from '../library/materials';
 import { wallsOf } from '../mould/walls';
+import { accessOf, type Access } from './access';
+import { cavitiesOf, type Cavities } from './cavities';
+import { drawingCheck, type DrawingCheck } from './drawing';
+import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 
 export type Family = 'metal' | 'plastic';
 const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
-const LATER: readonly [string, string, string][] = [
-  ['holes', 'holes and threads: depth over diameter, drill and tap sizes', 'CNC2'],
-  ['corners', 'inside corners against the tool, pocket depth, small features', 'CNC3'],
-  ['access', 'access from the machine\'s directions, setups', 'CNC4'],
-  ['drawing', 'the drawing\'s minimum: views, callouts, datums, tolerance note, material, Ra', 'CNC5'],
-];
 
 /** The machining report for a milling or turning profile. */
 export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): PrintabilityReport {
@@ -44,9 +44,128 @@ export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], pro
     const lim = [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value], fits = e.every((v, k) => v <= lim[k] + 1e-9);
     rules.push({ id: 'size', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${e.map(r3).join(' × ')} mm) within a typical mill's ${lim.join(' × ')} mm`, value: r3(Math.max(...e.map((v, k) => v / lim[k]))), limit: 1, unit: 'ratio', source: t('maxPartLongMM').source });
   } else rules.push({ id: 'size', level: 'feasible', status: 'unknown', message: 'the part within the lathe\'s diameter and length', why: 'its turning axis comes with turning\'s rules (CNC6)' });
-  for (const [id, message, stage] of LATER) rules.push({ id, level: 'recommended', status: 'unknown', message, why: `${stage} is not built yet` });
+  let holes: Hole[] = [], tapped: TappedHole[] = [], cavities: Cavities | null = null, access: Access | null = null;
+  if (profile.id === 'cnc-milling') { ({ holes, tapped } = holeRules(doc, bodies, profile, rules)); cavities = cavityRules(doc, bodies, profile, rules, holes); access = accessRules(bodies, rules); }
+  else rules.push({ id: 'holes', level: 'recommended', status: 'unknown', message: 'holes on and off the turning axis', why: 'turning\'s holes come with its rules (CNC6)' },
+    { id: 'corners', level: 'recommended', status: 'unknown', message: 'inside corners, grooves and features against the turning tools', why: 'turning\'s tools come with its rules (CNC6)' },
+    { id: 'access', level: 'recommended', status: 'unknown', message: 'access on the lathe (from the tailstock end, radially)', why: 'turning\'s access comes with its rules (CNC6)' });
+  const drawing = drawingRule(doc, bodies, rules);
   if (profile.id === 'cnc-turning') rules.push({ id: 'turning', level: 'feasible', status: 'unknown', message: 'axisymmetry, grooves, thread relief, length over diameter', why: 'CNC6 is not built yet' });
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
-    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null } };
+    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), drawing } };
+}
+
+const worst = (xs: readonly PrintRule['status'][]): PrintRule['status'] => xs.includes('fail') ? 'fail' : xs.includes('warn') ? 'warn' : xs.includes('unknown') ? 'unknown' : 'pass';
+/** CNC2's three rules: hole depth (each step's reach over its diameter), hole size (the drilled step against the drill table and small features), threads. */
+function holeRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, rules: PrintRule[]): { holes: Hole[]; tapped: TappedHole[] } {
+  const T = profile.thresholds, t = (k: string) => T[k].value, holes = holesOf(bodies), tapped = tappedHoles(doc, holes);
+  // Depth: every step, its reach from the nearer open end over its diameter; a hole open at neither end is CNC4's.
+  const depths = holes.flatMap(h => h.steps.map(s => ({ h, s, ratio: s.reachMM === null ? null : s.reachMM / s.diameterMM })));
+  const deepest = depths.filter(x => x.ratio !== null).sort((x, y) => y.ratio! - x.ratio!)[0], closed = depths.filter(x => x.ratio === null);
+  if (!depths.length) rules.push({ id: 'hole-depth', level: 'feasible', status: 'pass', message: 'no holes' });
+  else {
+    const st = (r: number): PrintRule['status'] => r > t('holeDepthMax') + 1e-9 ? 'fail' : r > t('holeDepthRec') + 1e-9 ? 'warn' : 'pass';
+    const status = worst([...(deepest ? [st(deepest.ratio!)] : []), ...(closed.length ? ['unknown' as const] : [])]), r = deepest?.ratio ?? null;
+    rules.push({ id: 'hole-depth', level: r !== null && r > t('holeDepthMax') + 1e-9 ? 'feasible' : 'recommended', status,
+      message: `${holes.length} hole${holes.length === 1 ? '' : 's'}${deepest ? `; the deepest Ø${r3(deepest.s.diameterMM)} reaching ${r3(deepest.s.reachMM!)} mm from its open end, ${r3(r!)} × its diameter, against ${t('holeDepthRec')} × recommended and ${t('holeDepthMax')} × at most` : ''}${closed.length ? `; ${closed.length} open at neither end` : ''}`,
+      ...(r !== null ? { value: r3(r), limit: r > t('holeDepthMax') + 1e-9 ? t('holeDepthMax') : t('holeDepthRec'), unit: 'ratio', source: (r > t('holeDepthMax') + 1e-9 ? T.holeDepthMax : T.holeDepthRec).page?.url ?? 'W-WEB' } : {}),
+      entities: (deepest ? deepest.s.faces : closed[0].s.faces), ...(closed.length ? { why: 'a hole open at neither end, or a step behind a narrower one, is reached by no straight tool: see the access rule (CNC4)' } : {}) });
+  }
+  // Size: each hole's narrowest step — drilled — against the small-feature limits and the drill table; wider steps (counterbores) are milled.
+  const sized = holes.map(h => {
+    const d = h.steps[0].diameterMM, table = onDrillTable(d, t), status: PrintRule['status'] = d < t('featureMinMM') - 1e-9 ? 'fail' : d < t('featureRecMM') - 1e-9 || table === false ? 'warn' : 'pass';
+    return { h, d, table, status };
+  });
+  if (!sized.length) rules.push({ id: 'hole-size', level: 'recommended', status: 'pass', message: 'no holes' });
+  else {
+    const status = worst(sized.map(x => x.status)), bad = sized.filter(x => x.status === status && status !== 'pass'), x = bad[0];
+    const why = (y: (typeof sized)[number]) => y.d < t('featureMinMM') - 1e-9 ? `Ø${r3(y.d)} under the ${t('featureMinMM')} mm least feature` : y.d < t('featureRecMM') - 1e-9 ? `Ø${r3(y.d)} under the ${t('featureRecMM')} mm a standard tool cuts` : `Ø${r3(y.d)} not a standard drill size (${nearestDrills(y.d, t).join(' or ')})`;
+    const milled = sized.filter(y => y.table === null && y.d > t('drillMaxMM')).length, cb = holes.filter(h => h.counterbore).length;
+    rules.push({ id: 'hole-size', level: status === 'fail' ? 'feasible' : 'recommended', status,
+      message: `${sized.length} drilled diameter${sized.length === 1 ? '' : 's'}${x ? `; ${why(x)}${bad.length > 1 ? `, and ${bad.length - 1} more` : ''}` : ', each a standard drill size'}${milled ? `; ${milled} above the ${t('drillMaxMM')} mm drill table, milled` : ''}${cb ? `; ${cb} counterbored` : ''}`,
+      ...(x ? { value: r3(x.d), unit: 'mm', source: (x.d < t('featureRecMM') - 1e-9 ? T[x.d < t('featureMinMM') - 1e-9 ? 'featureMinMM' : 'featureRecMM'] : T.drillStepMM).page?.url ?? 'W-WEB', entities: x.h.steps[0].faces } : {}) });
+  }
+  // Threads: each tapped hole's bore against its tap drill (d − P), its size against M2 feasible and M6 recommended, its length against 3 × d.
+  if (!tapped.length) rules.push({ id: 'thread', level: 'recommended', status: 'pass', message: 'no tapped holes' });
+  else {
+    const judged = tapped.map(x => {
+      const off = x.boreMM === null ? 'none' : x.tapMM === null ? 'unknown' : Math.abs(x.boreMM - x.tapMM) > 1e-6 ? 'off' : 'ok';
+      const status: PrintRule['status'] = off === 'off' || x.sizeMM < t('threadMinMM') - 1e-9 ? 'fail' : off === 'none' || off === 'unknown' ? 'unknown'
+        : x.sizeMM < t('threadRecMM') - 1e-9 || (x.lengthMM !== null && x.lengthMM > t('threadLengthRatio') * x.sizeMM + 1e-9) ? 'warn' : 'pass';
+      const why = off === 'off' ? `drilled Ø${r3(x.boreMM!)}, not its tap drill Ø${x.tapMM} (d − P)` : x.sizeMM < t('threadMinMM') - 1e-9 ? `under M${t('threadMinMM')}, the least feasible`
+        : off === 'none' ? 'its bore is not in the part' : off === 'unknown' ? `M${x.sizeMM} is not in the fastener table (M3–M12): its tap drill unknown`
+        : x.sizeMM < t('threadRecMM') - 1e-9 ? `under M${t('threadRecMM')}, the recommended` : x.lengthMM !== null && x.lengthMM > t('threadLengthRatio') * x.sizeMM + 1e-9 ? `${r3(x.lengthMM)} mm long, over ${t('threadLengthRatio')} × d (${r3(t('threadLengthRatio') * x.sizeMM)} mm): no stronger for it` : '';
+      return { x, status, why };
+    });
+    const status = worst(judged.map(j => j.status)), j = judged.find(y => y.status === status && status !== 'pass');
+    const key = !j ? 'threadRecMM' : j.why.startsWith('drilled') ? null : j.why.startsWith('under M' + t('threadMinMM')) ? 'threadMinMM' : j.why.startsWith('under') ? 'threadRecMM' : j.why.includes('× d') ? 'threadLengthRatio' : null;
+    rules.push({ id: 'thread', level: status === 'fail' ? 'feasible' : 'recommended', status,
+      message: `${tapped.length} tapped hole${tapped.length === 1 ? '' : 's'} (${[...new Set(tapped.map(x => x.thread))].join(', ')})${j ? `; ${j.x.thread} ${j.why}` : ', each on its tap drill'}`,
+      ...(key ? { source: T[key].page?.url ?? 'W-WEB' } : j ? { source: 'FAST-TAP' } : {}), entities: (j ?? judged[0]).x.faces.length ? (j ?? judged[0]).x.faces : [(j ?? judged[0]).x.node],
+      ...(status === 'unknown' && j ? { why: j.why } : {}) });
+  }
+  return { holes, tapped };
+}
+
+/** CNC3's rules: corners (a tool's radius against ⅓ of the corner's depth), pocket (depth over width), feature (the narrowest cavity), tall (height over thickness), text. */
+function cavityRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, rules: PrintRule[], holes: readonly Hole[]): Cavities {
+  const T = profile.thresholds, t = (k: string) => T[k].value, cv = cavitiesOf(doc, bodies, new Set(holes.flatMap(h => h.steps.flatMap(s => s.faces)))), src = (k: string) => T[k].page?.url ?? T[k].source;
+  // Corners: each one a tool comes down, its radius over its depth against ⅓; sharp ones (radius 0) the same; closed or angled ones CNC4's.
+  const reached = cv.corners.filter(c => c.reach), closed = cv.corners.filter(c => !c.reach), angled = cv.edges.filter(e => e.kind === 'angled'), k = t('insideRadiusDepthRatio');
+  const worstCorner = [...reached].sort((a, b) => a.radiusMM / a.depthMM - b.radiusMM / b.depthMM)[0], small = reached.filter(c => c.radiusMM < k * c.depthMM - 1e-9);
+  const extra = [cv.edges.length - angled.length ? `${cv.edges.length - angled.length} sharp edge${cv.edges.length - angled.length === 1 ? '' : 's'} cut sharp (a face open to the tool's end)` : '', cv.edgeFillets ? `${cv.edgeFillets} edge fillet${cv.edgeFillets === 1 ? '' : 's'} (not along a tool's axis)` : '', closed.length ? `${closed.length} reached along no direction` : '', angled.length ? `${angled.length} angled` : ''].filter(Boolean).join('; ');
+  if (!reached.length && !closed.length && !angled.length) rules.push({ id: 'corners', level: 'recommended', status: 'pass', message: `no inside corners along a tool's axis${extra ? `; ${extra}` : ''}` });
+  else {
+    const status = worst([small.length ? 'warn' : 'pass', ...(closed.length || angled.length ? ['unknown' as const] : [])]), c = small[0] ?? worstCorner;
+    const what = c ? (c.kind === 'sharp' ? `a sharp inside corner ${r3(c.depthMM)} deep (a rotating tool leaves its radius: at least ${r3(k * c.depthMM)} mm wanted)` : `r ${r3(c.radiusMM)} on a corner ${r3(c.depthMM)} deep, ${small.length ? 'under' : 'at least'} ⅓ of it (${r3(k * c.depthMM)})`) : '';
+    rules.push({ id: 'corners', level: 'recommended', status, message: `${reached.length} inside corner${reached.length === 1 ? '' : 's'} along a tool's axis${what ? `; ${small.length ? `${small.length} under ⅓ of its depth, ` : 'the tightest '}${what}` : ''}${extra ? `; ${extra}` : ''}`,
+      ...(c ? { value: r3(c.radiusMM / c.depthMM), limit: r3(k), unit: 'ratio', source: src('insideRadiusDepthRatio'), entities: c.faces } : {}), ...(closed.length || angled.length ? { why: 'a corner reached along no straight direction, or between planes not square, takes a tool at an angle: see the access rule (CNC4)' } : {}) });
+  }
+  // Pocket: each cavity floor's depth over its narrowest width against 4.
+  const deep = [...cv.floors].sort((a, b) => b.depthMM / b.widthMM - a.depthMM / a.widthMM)[0];
+  if (!deep) rules.push({ id: 'pocket', level: 'recommended', status: 'pass', message: 'no cavities' });
+  else {
+    const r = deep.depthMM / deep.widthMM, over = r > t('pocketDepthWidthRatio') + 1e-9;
+    rules.push({ id: 'pocket', level: 'recommended', status: over ? 'warn' : 'pass', message: `${cv.floors.length} cavit${cv.floors.length === 1 ? 'y' : 'ies'} (floors); the deepest for its width ${r3(deep.depthMM)} deep, ${r3(deep.widthMM)} wide: ${r3(r)} × against ${t('pocketDepthWidthRatio')} × recommended`, value: r3(r), limit: t('pocketDepthWidthRatio'), unit: 'ratio', source: src('pocketDepthWidthRatio'), entities: [deep.face] });
+  }
+  // Feature: the narrowest cavity floor against the small-feature limits.
+  const narrow = [...cv.floors].sort((a, b) => a.widthMM - b.widthMM)[0];
+  if (!narrow) rules.push({ id: 'feature', level: 'recommended', status: 'pass', message: 'no cavities' });
+  else {
+    const w = narrow.widthMM, status: PrintRule['status'] = w < t('featureMinMM') - 1e-9 ? 'fail' : w < t('featureRecMM') - 1e-9 ? 'warn' : 'pass', key = w < t('featureMinMM') - 1e-9 ? 'featureMinMM' : 'featureRecMM';
+    rules.push({ id: 'feature', level: status === 'fail' ? 'feasible' : 'recommended', status, message: `the narrowest cavity ${r3(w)} mm wide, against ${t('featureRecMM')} mm recommended and ${t('featureMinMM')} mm feasible`, value: r3(w), limit: t(key), unit: 'mm', source: src(key), entities: [narrow.face] });
+  }
+  // Tall: each thin standing wall's height over its thickness against 4.
+  const measured = cv.tall.filter(x => x.heightMM !== null), tallest = [...measured].sort((a, b) => b.heightMM! / b.thicknessMM - a.heightMM! / a.thicknessMM)[0], unmeasured = cv.tall.length - measured.length;
+  if (!cv.tall.length) rules.push({ id: 'tall', level: 'recommended', status: 'pass', message: 'no thin standing walls' });
+  else {
+    const r = tallest ? tallest.heightMM! / tallest.thicknessMM : null, over = r !== null && r > t('tallFeatureRatio') - 1e-9;
+    rules.push({ id: 'tall', level: 'recommended', status: worst([over ? 'warn' : 'pass', ...(unmeasured ? ['unknown' as const] : [])]),
+      message: `${cv.tall.length} thin standing wall${cv.tall.length === 1 ? '' : 's'}${tallest ? `; the tallest for its thickness ${r3(tallest.heightMM!)} high, ${r3(tallest.thicknessMM)} thick: ${r3(r!)} × against under ${t('tallFeatureRatio')} ×` : ''}${unmeasured ? `; ${unmeasured} with no root edge to measure from` : ''}`,
+      ...(r !== null ? { value: r3(r), limit: t('tallFeatureRatio'), unit: 'ratio', source: src('tallFeatureRatio'), entities: tallest!.faces } : {}), ...(unmeasured ? { why: 'a wall with no straight concave root edge has no height measured' } : {}) });
+  }
+  // Text: the studio makes no text feature; an imported body's engraving is not read.
+  const imported = doc.nodes.some(n => n.kind === 'import' || n.kind === 'mesh');
+  rules.push(imported ? { id: 'text', level: 'recommended', status: 'unknown', message: 'engraved or embossed text', why: `imported geometry: text in it is not read (against ${t('textWidthPlasticMM')} / ${t('textWidthMetalMM')} mm stroke, ${t('textDepthMM')} mm deep)` }
+    : { id: 'text', level: 'recommended', status: 'pass', message: 'no text: the studio makes no text feature' });
+  return cv;
+}
+
+/** CNC4's rules: access (area no axis direction reaches, warned: no sourced feasible limit) and setups (counted, greedy). */
+function accessRules(bodies: readonly BodyResult[], rules: PrintRule[]): Access {
+  const a = accessOf(bodies), faces = a.unreached.slice(0, 4).map(u => u.face);
+  rules.push(a.unreachedMM2 > 0 ? { id: 'access', level: 'recommended', status: 'warn', message: `${r3(a.unreachedMM2)} mm² reached from none of ±X, ±Y, ±Z (${faces.join(', ')}${a.unreached.length > 4 ? ' …' : ''}): an undercut for a 3-axis mill — a 5-axis setup, an undercut cutter or a change`, value: r3(a.unreachedMM2), unit: 'mm²', entities: faces }
+    : { id: 'access', level: 'recommended', status: 'pass', message: 'every surface reached from one of ±X, ±Y, ±Z (the tool from its side)' });
+  rules.push({ id: 'setups', level: 'recommended', status: 'pass', message: `${a.setups.length} setup${a.setups.length === 1 ? '' : 's'} (${a.setups.map(x => x.direction).join(', ')}), counted greedily by the area each adds`, value: a.setups.length, unit: 'setups' });
+  return a;
+}
+
+/** CNC5's rule: the drawing — needed or not, and on it each item a shop needs (the worst of them; each item in `machining.drawing`). */
+function drawingRule(doc: StudioDoc, bodies: readonly BodyResult[], rules: PrintRule[]): DrawingCheck {
+  const d = drawingCheck(doc, bodies), status = worst(d.items.map(x => x.status)), bad = d.items.filter(x => x.status === status && status !== 'pass');
+  rules.push({ id: 'drawing', level: status === 'fail' ? 'feasible' : 'recommended', status,
+    message: d.present ? `the drawing: ${d.items.filter(x => x.status === 'pass').length} of ${d.items.length} items in order${bad.length ? `; ${bad.map(x => `${x.id}: ${x.message}`).join('; ')}` : ''}` : d.items[0].message,
+    source: (bad[0] ?? d.items[0]).source, ...(status === 'unknown' ? { why: bad[0].message } : {}) });
+  return d;
 }

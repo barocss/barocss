@@ -14,6 +14,10 @@ import { draftField, type DraftFace } from '../mould/draft';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
 import { partingLine, type Half, type PartingReport } from '../mould/parting';
+import type { Hole, TappedHole } from '../machining/holes';
+import type { Cavities } from '../machining/cavities';
+import type { Access } from '../machining/access';
+import type { DrawingCheck } from '../machining/drawing';
 import { machinability } from '../machining/report';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
@@ -29,7 +33,15 @@ export interface PrintRule {
 export interface PrintabilityReport {
   readonly process: string | null; readonly printer?: string; readonly direction: Vec3 | null; readonly rules: readonly PrintRule[];
   /** CNC1 (O84): the material's family, the general tolerance (sourced) and its class (named, not copied). */
-  readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { mm: number; feasibleMM: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null };
+  readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { mm: number; feasibleMM: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null;
+    /** CNC2 (O85): the holes found (steps, open ends, reaches) and the tapped holes matched to them. */
+    readonly holes?: readonly Hole[]; readonly tapped?: readonly TappedHole[];
+    /** CNC3 (O86): the inside corners, sharp edges, cavity floors and thin standing walls. */
+    readonly cavities?: Cavities;
+    /** CNC4 (O87): the area each set of the six directions reaches, what none does, and the greedy setups. */
+    readonly access?: Access;
+    /** CNC5 (O88): the drawing — needed, present, and its items each with its page. */
+    readonly drawing?: DrawingCheck };
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];

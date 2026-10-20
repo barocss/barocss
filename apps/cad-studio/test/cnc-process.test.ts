@@ -24,17 +24,19 @@ test('CNC1 data: the milling and turning profiles, every value with its page; th
   const mill = processProfile('cnc-milling')!, turn = processProfile('cnc-turning')!;
   assert.deepEqual(['wallMetalMin', 'wallMetalRec', 'wallPlasticMin', 'wallPlasticRec', 'insideRadiusDepthRatio', 'holeDepthRec', 'holeDepthMax', 'maxPartLongMM', 'maxPartWideMM', 'maxPartDepthMM', 'tolMM'].map(k => +mill.thresholds[k].value.toFixed(6)), [0.5, 0.8, 1, 1.5, 0.333333, 4, 6, 400, 250, 150, 0.125]);
   assert.deepEqual(['maxDiameterMM', 'maxLengthMM', 'minDiameterMM', 'grooveWidthMinMM', 'tolMM'].map(k => turn.thresholds[k].value), [500, 1000, 0.76, 1.2, 0.13]);
-  for (const p of [mill, turn]) for (const [k, v] of Object.entries(p.thresholds)) assert.ok(v.source === 'W-WEB' && v.page && /^https:\/\/www\.(hubs|protolabs)\.com\//.test(v.page.url) && v.page.read === '2026-10-21', `${p.id}.${k}`);
+  for (const p of [mill, turn]) for (const [k, v] of Object.entries(p.thresholds)) assert.ok((v.source === 'W-WEB' || (v.source === 'W-DERIVED' && /^derived: /.test(v.page?.note ?? ''))) && v.page && /^https:\/\/www\.(hubs|protolabs|engineersedge)\.com\//.test(v.page.url) && v.page.read === '2026-10-21', `${p.id}.${k}`);
   assert.deepEqual([mill.toleranceClasses!.metal, mill.toleranceClasses!.plastic], ['ISO 2768-1 f', 'ISO 2768-1 m']);
   assert.match(mill.toleranceClasses!.page.note!, /not copied/);
 });
 
-test('CNC1 an aluminium block 100 × 60 × 20, milled: a metal, its walls and size pass; ±0.125 mm general, ISO 2768-1 f named; holes, corners, access and the drawing said to come (CNC2–CNC5)', async () => {
+test('CNC1 an aluminium block 100 × 60 × 20, milled: a metal, its walls and size pass; ±0.125 mm general, ISO 2768-1 f named; no holes (CNC2, O85), no cavities (CNC3, O86), every face reached in two setups (CNC4, O87), no drawing needed (CNC5, O88)', async () => {
   const { r, by } = await report(machined(block(100, 60, 20), 'al6061'));
   assert.equal(r.process, 'cnc-milling');
   assert.deepEqual([by.material.status, by.wall.status, by.size.status], ['pass', 'pass', 'pass']);
   assert.equal(by.size.value, Math.max(100 / 400, 60 / 250, 20 / 150));
-  for (const [id, stage] of [['holes', 'CNC2'], ['corners', 'CNC3'], ['access', 'CNC4'], ['drawing', 'CNC5']]) { assert.equal(by[id].status, 'unknown'); assert.match(by[id].why!, new RegExp(stage)); }
+  for (const id of ['hole-depth', 'hole-size', 'thread', 'corners', 'pocket', 'feature', 'tall', 'text', 'access', 'setups']) assert.equal(by[id].status, 'pass', by[id].message);
+  assert.equal(by.setups.value, 2);
+  assert.equal(by.drawing.status, 'pass'); assert.match(by.drawing.message, /the standard ±0\.125 mm holds/);
   assert.deepEqual([r.machining!.family, r.machining!.tolerance.mm, r.machining!.toleranceClass!.name], ['metal', 0.125, 'ISO 2768-1 f']);
 });
 
