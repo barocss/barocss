@@ -1,0 +1,34 @@
+{
+  "id": "r12b-rack-fillet-refused",
+  "step": "R12b",
+  "decisions": [
+    "D131"
+  ],
+  "about": "A root fillet of 1 mm on a module-2 rack: the two fillets of a gap would meet (the largest is (p − s − 2·1.25m tan α)/(2(1/cos α − tan α)) = 0.9438 mm): refused, naming it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "k",
+          "kind": "spur-rack",
+          "module": 2,
+          "teeth": 10,
+          "faceWidth": 10,
+          "height": 8,
+          "generator": "spur-rack@1",
+          "rootFillet": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "below 0.943821"
+    }
+  }
+}

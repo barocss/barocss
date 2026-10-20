@@ -421,7 +421,9 @@ function rackNotes(k: NonNullable<CadPartSnapshot['outputs'][number]['rack']>): 
   const mm = (x: number) => +x.toFixed(4);
   return [...(k.helix ? [{ text: `Helical rack β ${k.helix.helixAngleDeg}° ${k.helix.hand} hand (normal module ${mm(k.helix.normalModuleMM)}): its teeth slide ${mm(k.helix.shear)} mm along per mm up the face` }] : []),
     { text: `Length ${mm(k.lengthMM)} mm, pitch ${mm(k.pitchMM)} mm; tooth ${mm(k.toothThicknessMM)} mm on the pitch line, tip ${mm(k.tipWidthMM)}, root gap ${mm(k.rootWidthMM)} mm` },
-    { text: 'Schematic root: not the cutting tool\'s, not validated for manufacturing', warning: true }];
+    // (R12b.1b, D131: the basic rack's root fillet, or the schematic corner.)
+    k.rootFillet ? { text: `Root fillets ${mm(k.rootFillet.radiusMM)} mm (the basic rack's): the straight flank ends ${mm(k.rootFillet.flankEndDepthMM)} mm below the pitch line. Not validated for manufacturing` }
+      : { text: 'Schematic root: not the cutting tool\'s, not validated for manufacturing', warning: true }];
 }
 /** A rack meshing with a gear: the pair's check in verdict mode, its time (as meshNotes). */
 function rackMeshNotes(k: RackPlacement | undefined): { text: string; warning?: boolean }[] {

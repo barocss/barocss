@@ -47,7 +47,7 @@
             "genus": 1
           }
         ],
-        "faceNamePattern": "^g\\.(filletL|filletR|flankL|flankR|tip|root|bore|face0|face1)(#\\d+\\.\\d)?$"
+        "faceNamePattern": "^g\\.(filletL\\d?|filletR\\d?|flankL|flankR|tip|root|bore|face0|face1)$"
       }
     ],
     "stepRoundTrip": {

@@ -136,9 +136,10 @@ test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the com
   assert.ok(twelve.ok && twelve.bodies[0].notes?.some(n => n.warning && /undercut: the tool's tip cuts the involute away below Ø22\.6054/.test(n.text)), JSON.stringify(twelve.ok && twelve.bodies[0].notes));
   const bad = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12, generator: 'spur-gear@0' }] }, 3);
   assert.ok(!bad.ok && /x = 0\.298/.test(bad.error.detail + bad.error.hint), JSON.stringify(!bad.ok && bad.error));
-  // A helix on it: the helical gear's root is schematic in this stage (spur-gear@0).
-  const helix = fields.find(f => f.key === 'helix')!, turned = helix.kind === 'number' ? helix.set(doc.nodes, 15) : doc.nodes;
-  assert.equal((turned[0] as typeof node).generator, 'spur-gear@0'); assert.ok(evaluateDoc({ ...doc, nodes: turned }, 5).ok);
+  // A helix on it (R12b.1b, D131): still the rack's root, cut by the transverse tool's ellipse.
+  const helix = fields.find(f => f.key === 'helix')!, turned = helix.kind === 'number' ? helix.set(doc.nodes, 15) : doc.nodes, ht = evaluateDoc({ ...doc, nodes: turned }, 5);
+  assert.equal((turned[0] as typeof node).generator, 'spur-gear@1');
+  assert.ok(ht.ok && ht.bodies[0].notes?.some(n => /^Root cut by the basic rack/.test(n.text)) && ht.bodies[0].notes?.some(n => /^Helical β 15°/.test(n.text)), JSON.stringify(ht.ok && ht.bodies[0].notes));
 });
 
 test('Meshing gear (R6a.4b, D56): beside the selected gear at the centre distance, turned to mesh — the pair\'s verdict in the panel; turning the driver turns it (clear still); a phase off, the teeth cross; the driver cannot go first or be deleted from under it', async () => {
@@ -194,8 +195,17 @@ test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact vo
   const alone = rack.build!(ctx, { ...rack.defaults!(ctx), m: 2, teeth: 10, b: 10, h: 10, x: 0, y: 0, z: 0 }), ra = evaluateDoc(alone, 1);
   assert.ok(ra.ok, ra.ok ? '' : ra.error.hint);
   const T = Math.tan(Math.PI / 9), p = 2 * Math.PI, s = p / 2, tooth = ((s - 4 * T) + (s + 5 * T)) / 2 * 4.5;
-  close(ra.ok ? ra.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth) * 10, 1e-9);
+  // (R12b.1b, D131: the command's rack has the basic rack's root fillets, 0.76 mm — twenty corners, each the region
+  // between the root line, the flank and the arc, ρ²(cot(45° + α/2) − (π/2 − α)/2).)
+  const corner = 0.76 ** 2 * (1 / Math.tan(Math.PI / 4 + Math.PI / 18) - (Math.PI / 2 - Math.PI / 9) / 2);
+  assert.equal((alone.nodes[0] as Extract<ModelNode, { kind: 'rack' }>).generator, 'spur-rack@1');
+  close(ra.ok ? ra.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth + 20 * corner) * 10, 1e-9);
   assert.ok(ra.ok && ra.bodies[0].notes!.some(n => /^Length 62\.8319 mm, pitch 6\.2832 mm/.test(n.text)));
+  assert.ok(ra.ok && ra.bodies[0].notes!.some(n => /^Root fillets 0\.76 mm \(the basic rack's\): the straight flank ends 1\.9999 mm below the pitch line/.test(n.text)) && !ra.bodies[0].notes!.some(n => /Schematic root/.test(n.text)));
+  // The Root field to Schematic (spur-rack@0): R6a's corners, its volume to 1e-9 as before, its warning.
+  const rootField = editFields(alone.nodes, 0).find(f => f.key === 'root')!, sharp = rootField.kind === 'choice' ? rootField.set(alone.nodes, 'spur-rack@0') : alone.nodes, rs = evaluateDoc({ ...alone, nodes: sharp }, 6);
+  close(rs.ok ? rs.bodies[0].volumeMM3! : 0, (10 * p * 7.5 + 10 * tooth) * 10, 1e-9);
+  assert.ok(rs.ok && rs.bodies[0].notes!.some(n => n.warning && /Schematic root/.test(n.text)));
   const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 2);
   assert.ok(r1.ok);
   const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };

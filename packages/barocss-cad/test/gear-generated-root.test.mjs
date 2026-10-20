@@ -129,7 +129,8 @@ test('the generated root is refused at the previous HEAD and builds now: valid, 
   const names = brep.faces.map(f => f.name);
   for (const k of [1, 20]) for (const role of ['filletL', 'filletR', 'flankL', 'flankR', 'tip', 'root']) assert.ok(names.includes(`g.${role}#${k}`), `g.${role}#${k}`);
   assert.ok(!names.some(n => /root[LR]#/.test(n)), 'no schematic radial joins');
-  if (gr.filletPieces > 5) assert.ok(names.includes('g.filletL#1.2') && names.includes('g.filletR#20.2'));
+  // (A fillet's later faces put their number before the tooth's: `filletL2#k` — R12b.1b, D131 — so a helical gear's axial `#k.2` stays apart.)
+  if (gr.filletPieces > 5) assert.ok(names.includes('g.filletL2#1') && names.includes('g.filletR2#20'));
   // The schematic root is as it was: no fillet faces, the warning, generator @0.
   const old = spurGear({ moduleMM: 2, teeth: 20, faceWidthMM: 10, boreDiameterMM: 10 }, { id: 'g' });
   assert.equal(old.report.generator, 'spur-gear@0'); assert.equal(old.report.diagnostics[0].code, 'ROOT_TRANSITION_UNVALIDATED');
@@ -140,7 +141,7 @@ test('the gear\'s own profile curves lie on the boundary the rack cuts — the t
   for (const [m, z, x, red] of CASES) {
     const { brep, report } = spurGear({ moduleMM: m, teeth: z, faceWidthMM: 5, profileShiftCoefficient: x, toothThicknessReductionMM: red, rootPolicy: 'generated' }, { id: 'g' }), T = tool(m, z, x, red);
     const t0 = performance.now();
-    const fillet = worstOn(brep, T, /fillet[LR]#/), flank = worstOn(brep, T, /flank[LR]#/), root = worstOn(brep, T, /\.root#/, 6);
+    const fillet = worstOn(brep, T, /fillet[LR]\d?#/), flank = worstOn(brep, T, /flank[LR]#/), root = worstOn(brep, T, /\.root#/, 6);
     assert.ok(fillet <= report.generatedRoot.filletDeviationMM * 1.001 + 1e-9, `m${m} z${z} x${x}: fillets ${fillet} vs their fit ${report.generatedRoot.filletDeviationMM}`);
     assert.ok(flank <= report.profileDeviationMM * 1.001 + 1e-9, `m${m} z${z} x${x}: flanks ${flank} vs ${report.profileDeviationMM}`);
     assert.ok(root <= 1e-9 * m, `m${m} z${z} x${x}: root arcs ${root}`);
@@ -202,7 +203,7 @@ test('pairs: the sweep runs on the generated outlines — j cos α/2 with backla
   close(r.sweep.minimumClearanceMM, corner, 1e-5, 'rack clearance (its tip corner by the fillet)');
 });
 
-test('refusals: a tip radius that leaves no flat, a helical gear, fewer than six teeth, a tip radius without a generated root; the part model\'s generator', () => {
+test('refusals: a tip radius that leaves no flat, fewer than six teeth, a tip radius without a generated root; the part model\'s generator', () => {
   const code = (spec, c, re) => assert.throws(() => spurGear(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   const g = { moduleMM: 2, teeth: 20, faceWidthMM: 5, rootPolicy: 'generated' };
   // (The largest: where the two rounds meet, (πm/4 − 1.25m tan α)/(1/cos α − tan α) = 0.4719 m.)
@@ -211,7 +212,6 @@ test('refusals: a tip radius that leaves no flat, a helical gear, fewer than six
   code({ ...g, toolTipRadiusMM: rhoMax + 1e-6 }, 'INVALID_INPUT', /below 0\.9438/);
   code({ ...g, toolTipRadiusMM: 0 }, 'INVALID_INPUT');
   assert.equal(spurGear({ ...g, toolTipRadiusMM: 0.9 }).report.generatedRoot.toolTipRadiusMM, 0.9);
-  code({ normalModuleMM: 2, helixAngleDeg: 15, hand: 'right', teeth: 20, faceWidthMM: 5, rootPolicy: 'generated' }, 'UNSUPPORTED_GEAR_KIND', /R12b\.1b/);
   code({ ...g, teeth: 5, profileShiftCoefficient: 0.5 }, 'INVALID_INPUT', /at least 6/);
   code({ moduleMM: 2, teeth: 20, faceWidthMM: 5, toolTipRadiusMM: 0.5 }, 'INVALID_INPUT');
   // The schematic root still refuses an undercut gear; the generated one builds it.
